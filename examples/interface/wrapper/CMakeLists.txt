@@ -1,6 +1,4 @@
 
-enable_language(Fortran)
-
 foreach( repotype SIMPLE ) # REPOSITORY
   string(TOLOWER ${repotype} repo_suffix)
   
@@ -23,7 +21,7 @@ foreach( repotype SIMPLE ) # REPOSITORY
         set( target_name "c_interface_${var_suffix}_${repo_suffix}_${datatype_suffix}_${dimension}D" )
         add_executable( ${target_name} c_interface_main.c )
         target_link_libraries( ${target_name} -Wl,--whole-archive example_wrapper_${repo_suffix}_${datatype_suffix}_${dimension}D -Wl,--no-whole-archive )
-        set_target_properties( ${target_name} PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DC_INTERFACE_EXAMPLE_${variation} -DC_INTERFACE_EXAMPLE_${repotype} -DUSE_TYPE_${data_type} -DDIMENSION=${dimension} -std=c11")
+        set_target_properties( ${target_name} PROPERTIES COMPILE_FLAGS "${CMAKE_C_FLAGS} -DC_INTERFACE_EXAMPLE_${variation} -DC_INTERFACE_EXAMPLE_${repotype} -DUSE_TYPE_${data_type} -DDIMENSION=${dimension} -std=c11 -DGT_EXAMPLE_HEADER_FILE=example_wrapper_${repo_suffix}_${datatype_suffix}_${dimension}D.h")
         target_link_libraries( ${target_name} gt_interface )
         add_dependencies( ${target_name} example_wrapper_${repo_suffix}_${datatype_suffix}_${dimension}D_declarations)
         target_include_directories(${target_name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}") #include the generated bindings for the user defined wrapper
@@ -42,8 +40,22 @@ foreach( repotype SIMPLE ) # REPOSITORY
     endforeach( variation )
     
     #SET(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DUSE_TYPE_${data_type} -DDIMENSION=${dimension}")
-    add_executable( fortran_interface_simple_${datatype_suffix}_${dimension}D fortran_interface_simple.F90 wrapper_functions_delegate.F90 ${PROJECT_SOURCE_DIR}/src/interface/wrapper/gt_interface.f90 ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_simple.f90 ) #TODO make lib
-    target_link_libraries( fortran_interface_simple_${datatype_suffix}_${dimension}D -Wl,--whole-archive example_wrapper_simple_${datatype_suffix}_${dimension}D -Wl,--no-whole-archive )
+    # ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_simple.f90
+    
+  # enable_language(Fortran)
+  #  add_library(fortran_interface_example_${repo_suffix}_${datatype_suffix}_${dimension}D ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_simple_${repo_suffix}_${datatype_suffix}_${dimension}D.f90
+  #   )
+    #add_dependencies( fortran_interface_example_${repo_suffix}_${datatype_suffix}_${dimension}D example_wrapper_${repo_suffix}_${datatype_suffix}_${dimension}D_declarations)
+    
+    add_library( fortran_interface_${repo_suffix}_${datatype_suffix}_${dimension}D_LIB ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_${repo_suffix}_${datatype_suffix}_${dimension}D.f90 )
+    target_link_libraries( fortran_interface_${repo_suffix}_${datatype_suffix}_${dimension}D_LIB example_wrapper_${repo_suffix}_${datatype_suffix}_${dimension}D  )
+    target_link_libraries( fortran_interface_${repo_suffix}_${datatype_suffix}_${dimension}D_LIB -Wl,--whole-archive gt_interface_fortran -Wl,--no-whole-archive )
+    target_link_libraries( fortran_interface_${repo_suffix}_${datatype_suffix}_${dimension}D_LIB gt_interface )
+    target_include_directories(fortran_interface_${repo_suffix}_${datatype_suffix}_${dimension}D_LIB PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+     
+    add_executable(fortran_interface_simple_${datatype_suffix}_${dimension}D fortran_interface_simple.F90 )
+    target_link_libraries( fortran_interface_simple_${datatype_suffix}_${dimension}D fortran_interface_${repo_suffix}_${datatype_suffix}_${dimension}D_LIB )
+    
     set_target_properties(fortran_interface_simple_${datatype_suffix}_${dimension}D PROPERTIES COMPILE_FLAGS "${CMAKE_Fortran_FLAGS} -DUSE_TYPE_${data_type} -DTEST_DIMENSION=${dimension}")
   endforeach( dimension )
   endforeach( data_type )

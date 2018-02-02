@@ -41,7 +41,12 @@
 #ifdef C_INTERFACE_EXAMPLE_REPOSITORY
 // TODO repository
 #else
-#include "example_wrapper_simple.h"
+
+#define QUOTEME(x) QUOTEME_1(x)
+#define QUOTEME_1(x) #x
+#define INCLUDE_FILE(x) QUOTEME(x)
+#include INCLUDE_FILE(GT_EXAMPLE_HEADER_FILE)
+//#include "example_wrapper_simple.h"
 #endif
 
 typedef struct wrappable {
