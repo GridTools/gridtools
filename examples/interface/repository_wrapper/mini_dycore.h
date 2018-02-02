@@ -77,6 +77,8 @@ GRIDTOOLS_MAKE_REPOSITORY(bare_dycore_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
+// using wrapped_dycore_repository = repository_wrapper< bare_dycore_repository >; // TODO should look like this
+
 class wrapped_dycore_repository : public repository_wrapper< bare_dycore_repository > {
   public:
     using super = repository_wrapper< bare_dycore_repository >;

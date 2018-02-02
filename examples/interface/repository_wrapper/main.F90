@@ -42,6 +42,15 @@ call copy_stencil(dycore)
 
 call gt_pull(dycore_repository, "out", out)
 
+call put_a_number(dycore, 3)
+call put_a_number(dycore, 8)
+call put_a_number(dycore, 1)
+
+call print_numbers(dycore)
+
+call gt_release(dycore_repository)
+call gt_release(dycore)
+
 error = .false.
 DO i = 1 , dim(1)
       DO j = 1, dim(2)
@@ -55,17 +64,10 @@ DO i = 1 , dim(1)
 END DO
 IF( error ) THEN
     print *, "ERROR!"
+    stop 1
 ELSE
     print *, "verified!"
+    stop 0
 ENDIF
-
-call put_a_number(dycore, 3)
-call put_a_number(dycore, 8)
-call put_a_number(dycore, 1)
-
-call print_numbers(dycore)
-
-call gt_release(dycore_repository)
-call gt_release(dycore)
 
 END PROGRAM interface_fortran_example
