@@ -47,7 +47,8 @@ target_link_libraries(c_bindings_generator_main c_bindings_generator)
 # compile gt_interface
 # ===============
 include(bindings)
-add_bindings_library(gt_interface src/interface/wrapper/wrapper_interface.cpp src/interface/logging.cpp)
+#add_bindings_library(gt_interface src/interface/wrapper/wrapper_interface.cpp src/interface/logging.cpp)
+add_library(gt_interface src/interface/wrapper/wrapper_interface.cpp src/interface/logging.cpp)
 enable_language(Fortran)
 add_library(gt_interface_fortran src/interface/wrapper/gt_interface_delegate.F90 src/interface/wrapper/gt_interface.F90 )
 target_include_directories(gt_interface_fortran PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
