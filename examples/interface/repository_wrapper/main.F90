@@ -20,9 +20,9 @@ dim(3)=5
 print *, "[Fortran] dim: ", dim(1), dim(2), dim(3)
 print *, "size=", SIZE(SHAPE(in)), "shape: ", SHAPE(IN)
 
-dycore_repository = alloc_wrapped_dycore_repository(3, dim)
+dycore_repository = alloc_wrapped_dycore_repository(3, dim) ! pass dimensions for the storage
 dycore_repository_explicit = convert_dycore_repo(dycore_repository) !this shouldn't be needed in next release
-dycore = alloc_mini_dycore(3, dim, dycore_repository_explicit);
+dycore = alloc_mini_dycore(3, dim, dycore_repository_explicit); ! pass dimensions for the grid (which could be different)
 
 DO i = 1 , dim(1)
       DO j = 1, dim(2)

@@ -40,7 +40,7 @@
 #include "c_bindings/export.hpp"
 
 void wrapped_dycore_repository::run() {
-    // dummy: will probably remoed in a next release
+    // TODO: empty, will probably removed in a next release
 }
 
 std::shared_ptr< wrappable > alloc_wrapped_dycore_repository_impl(int ndims, int *dims) {
@@ -73,6 +73,19 @@ mini_dycore::mini_dycore(std::vector< uint_t > sizes, std::shared_ptr< wrapped_d
     stencil_->ready();
 }
 
+// allocate a "mini_dycore" and return it
+mini_dycore alloc_mini_dycore_impl(int ndims, int *dims, std::shared_ptr< wrapped_dycore_repository > repo) {
+    std::vector< gridtools::uint_t > sizes(ndims);
+    for (size_t i = 0; i < ndims; ++i) {
+        sizes[i] = dims[i];
+    }
+    return mini_dycore(sizes, repo);
+}
+
+// generate fortran binding "alloc_mini_dycore" which calls "alloc_mini_dycore_impl"
+// the function accepts 3 arguments ("_3")
+GT_EXPORT_BINDING_3(alloc_mini_dycore, alloc_mini_dycore_impl);
+
 void mini_dycore::copy_stencil() {
     LOG_BEGIN("mini_dycore::copy_stencil()");
 
@@ -85,12 +98,18 @@ void mini_dycore::copy_stencil() {
     LOG_END();
 }
 
+// for calling a member function (here: copy_stencil) we need to provide the signature for the binding.
+// we pass one argument which is the instance on which we want to call the member function (with no arguments)
 GT_EXPORT_BINDING_WITH_SIGNATURE_1(copy_stencil, void(mini_dycore &), std::mem_fn(&mini_dycore::copy_stencil));
 
+// example how to pass, e.g. a configuration options
 void mini_dycore::put_a_number(int number) {
     just_a_collection_of_numbers.push_back(number);
     std::cout << just_a_collection_of_numbers.size() << std::endl;
 }
+
+// example for a member function call with argument.
+// the first argument is the class instance, the second is the argument to the member function
 GT_EXPORT_BINDING_WITH_SIGNATURE_2(put_a_number, void(mini_dycore &, int), std::mem_fn(&mini_dycore::put_a_number));
 
 void mini_dycore::print_numbers() {
@@ -101,13 +120,3 @@ void mini_dycore::print_numbers() {
     std::cout << std::endl;
 }
 GT_EXPORT_BINDING_WITH_SIGNATURE_1(print_numbers, void(mini_dycore &), std::mem_fn(&mini_dycore::print_numbers));
-
-mini_dycore alloc_mini_dycore_impl(int ndims, int *dims, std::shared_ptr< wrapped_dycore_repository > repo) {
-    std::vector< gridtools::uint_t > sizes(ndims);
-    for (size_t i = 0; i < ndims; ++i) {
-        sizes[i] = dims[i];
-    }
-    return mini_dycore(sizes, repo);
-}
-
-GT_EXPORT_BINDING_3(alloc_mini_dycore, alloc_mini_dycore_impl);

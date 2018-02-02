@@ -77,8 +77,6 @@ GRIDTOOLS_MAKE_REPOSITORY(bare_dycore_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
-// using wrapped_dycore_repository = repository_wrapper< bare_dycore_repository >; // TODO should look like this
-
 class wrapped_dycore_repository : public repository_wrapper< bare_dycore_repository > {
   public:
     using super = repository_wrapper< bare_dycore_repository >;
@@ -86,8 +84,12 @@ class wrapped_dycore_repository : public repository_wrapper< bare_dycore_reposit
     virtual ~wrapped_dycore_repository() = default;
     wrapped_dycore_repository(std::vector< uint_t > sizes) : super(sizes[0], sizes[1], sizes[2]) { Logging::enable(); }
 
-    void run() override;
+    void run() override; // TODO not used in this example, will probably be removed in a next release
 };
+
+// TODO in a next release the the "run" will be removed and the repository will not be abstract anymore
+// then the following line should be the better way and the boiler plate above will be avoided:
+// using wrapped_dycore_repository = repository_wrapper< bare_dycore_repository >;
 
 /**
  * A dycore which predicts that the weather will be the same tomorrow as it is now.
