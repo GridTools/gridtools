@@ -61,8 +61,10 @@ DO i = 1 , dim(1)
 END DO
 IF( error ) THEN
     print *, "ERROR!"
+    stop 1
 ELSE
     print *, "verified!"
+    stop 0
 ENDIF
 
 !call gt_wrapper_call_proc(dycore_wrapper, "pass_int", C_LOC(dim))
