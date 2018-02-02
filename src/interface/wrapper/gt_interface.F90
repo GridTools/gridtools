@@ -3,10 +3,6 @@ module gt_interface
 implicit none
   interface
 
-    subroutine gt_release(h) bind(c)
-      use iso_c_binding
-      type(c_ptr), value :: h
-    end
     subroutine gt_pull_bool(arg0, arg1, arg2, arg3, arg4, arg5) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
