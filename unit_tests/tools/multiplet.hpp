@@ -43,7 +43,7 @@
 template < size_t N >
 class multiplet : public gridtools::array< long int, N > {
   public:
-    template < typename... T, typename = gridtools::all_integral< T... > >
+    template < typename... T >
     multiplet(T... values)
         : gridtools::array< long int, N >{{(long int)values...}} {}
 };

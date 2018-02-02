@@ -60,12 +60,12 @@ struct functor1 {
 };
 
 typedef storage_traits< Host >::storage_info_t< 0, 2 > storage_info_ij_t;
-typedef storage_traits< Host >::data_store_t< float_type, storage_info_ij_t > storage_type;
+typedef storage_traits< Host >::data_store_t< float_type, storage_info_ij_t > storage_t;
 
-typedef arg< 0, storage_type > p_in;
-typedef arg< 2, storage_type > p_out;
-typedef arg< 1, storage_type > p_buff;
-typedef arg< 3, storage_type > p_notin;
+typedef arg< 0, storage_t > p_in;
+typedef arg< 2, storage_t > p_out;
+typedef arg< 1, storage_t > p_buff;
+typedef arg< 3, storage_t > p_notin;
 
 typedef decltype(gridtools::make_stage< functor1 >(p_in(), p_buff())) esf1_t;
 typedef decltype(gridtools::make_stage< functor1 >(p_buff(), p_out())) esf2_t;
@@ -88,13 +88,13 @@ typedef detail::cache_impl< K, p_notin, cache_io_policy::local, x_interval > cac
 typedef boost::mpl::vector4< cache1_t, cache2_t, cache3_t, cache4_t > caches_t;
 
 using st_wrapper_in_t =
-    storage_wrapper< p_in, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+    storage_wrapper< p_in, data_view< storage_t, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
 using st_wrapper_buff_t =
-    storage_wrapper< p_buff, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+    storage_wrapper< p_buff, data_view< storage_t, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
 using st_wrapper_notin_t =
-    storage_wrapper< p_notin, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+    storage_wrapper< p_notin, data_view< storage_t, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
 using st_wrapper_out_t =
-    storage_wrapper< p_out, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+    storage_wrapper< p_out, data_view< storage_t, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
 
 typedef decltype(gridtools::make_stage< functor2 >(p_in(), p_notin())) esf1k_t;
 typedef decltype(gridtools::make_stage< functor2 >(p_notin(), p_out())) esf2k_t;
