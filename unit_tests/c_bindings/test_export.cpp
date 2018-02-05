@@ -58,7 +58,7 @@ namespace {
         obj.push(val);
     }
     GT_EXPORT_BINDING_2(my_push, push_impl< double >);
-    GT_EXPORT_GENERIC_BINDING(2, my_push_, push_impl, float);
+    GT_EXPORT_GENERIC_BINDING(2, my_push_, push_impl, (float, int, double));
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_pop, void(stack_t &), [](stack_t &obj) { obj.pop(); });
 
@@ -98,6 +98,8 @@ bool my_empty(gt_handle*);
 void my_pop(gt_handle*);
 void my_push(gt_handle*, double);
 void my_push_0(gt_handle*, float);
+void my_push_1(gt_handle*, int);
+void my_push_2(gt_handle*, double);
 double my_top(gt_handle*);
 
 #ifdef __cplusplus

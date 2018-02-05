@@ -83,8 +83,15 @@
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
 #define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)
 
-#define GT_EXPORT_GENERIC_BINDING(n, prefix, impl_template, template_param) \
-    GT_EXPORT_BINDING(n, prefix##0, impl_template< template_param >)
+#define GT_EXPORT_GENERIC_BINDING_IMPL(r, data, i, elem) \
+    GT_EXPORT_BINDING(BOOST_PP_TUPLE_ELEM(0, data),      \
+        BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, data), i),   \
+        BOOST_PP_TUPLE_ELEM(2, data) < elem > );
+
+#define GT_EXPORT_GENERIC_BINDING(n, prefix, impl_template, template_params)                                \
+    BOOST_PP_SEQ_FOR_EACH_I(                                                                                \
+        GT_EXPORT_GENERIC_BINDING_IMPL, (n, prefix, impl_template), BOOST_PP_TUPLE_TO_SEQ(template_params)) \
+    static_assert(1, "")
 
 /// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_0(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(0, name, s, i)
