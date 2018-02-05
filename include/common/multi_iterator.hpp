@@ -259,6 +259,10 @@ namespace gridtools {
         GT_FUNCTION T end() const { return end_; }
     };
 
+    //    TODO begin() -> std::get<0>
+
+    //    using range
+
     template < typename T >
     range< T > make_range(T b, T e) {
         return range< T >{b, e};
@@ -293,7 +297,7 @@ namespace gridtools {
 
         struct grid_iterator {
             array< T, D > pos_;
-            const hypercube< T, D > range_;
+            const array< T, D > range_;
 
             grid_iterator(const array< T, D > &pos, const hypercube< T, D > &range) : pos_{pos}, range_{range} {}
 
@@ -332,14 +336,20 @@ namespace gridtools {
         grid_iterator end() const { return grid_iterator{range_.end(), range_}; }
 
       private:
-        hypercube< T, D > range_;
+        //        hypercube< T, D > range_;
+        array< T, D > begin_; // TODO transpose
+        array< T, D > end_;
+        // or
+        //        array< T, D > offset_;
+        //        array< T, D > size_;
     };
 
     /**
     * @brief Construct hypercube_view from a variadic sequence of ranges
     */
-    template < typename... T, typename = all_integral< T... > >
-    GT_FUNCTION auto make_hypercube(range< T >... r)
+    template < typename... T /*, typename = all_integral< T... >*/ >
+    GT_FUNCTION auto make_hypercube(T... r)
+        // TODO do the transpose here
         GT_AUTO_RETURN((hypercube< typename std::common_type< T... >::type, sizeof...(T) >{r...}));
 
     /**
