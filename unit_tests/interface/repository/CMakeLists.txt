@@ -8,12 +8,11 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC "-E")
     
         # now use the preprocessed file to generate a library (which we will never use) ...
-        add_library( dummy_${cpp_file} EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)
+        add_library( dummy_${cpp_file} STATIC EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)
         # ... but before linking we copy the preprocessed file to the given file "preprocessed_file_out"
         # this trick is necessary because $<TARGET_OBJECTS:XXX> is only defined within add_library
         add_custom_command( TARGET dummy_${cpp_file} PRE_LINK
-            COMMAND bash -c "cp '$<TARGET_OBJECTS:${cpp_file}_OBJECTS>' ${preprocessed_file_out}"
-            VERBATIM
+            COMMAND ${CMAKE_COMMAND} -E copy '$<TARGET_OBJECTS:${cpp_file}_OBJECTS>' ${preprocessed_file_out}
         )
         
         # add a target for the generated file
