@@ -107,7 +107,7 @@ mkdir -p build;
 cd build;
 
 if [ "x$TARGET" == "xgpu" ]; then
-    ENABLE_HOST=OFF
+    ENABLE_HOST=ON
     ENABLE_CUDA=ON
 else
     ENABLE_HOST=ON
