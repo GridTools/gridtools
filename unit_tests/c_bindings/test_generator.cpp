@@ -49,6 +49,9 @@ namespace gridtools {
             GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
             GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
 
+            GT_ADD_GENERIC_DECLARATION(foo, bar);
+            GT_ADD_GENERIC_DECLARATION(foo, baz);
+
             const char expected_c_interface[] = R"?(
 struct gt_handle;
 
@@ -70,7 +73,8 @@ void foo();
 
             TEST(generator, c_interface) {
                 std::ostringstream strm;
-                EXPECT_EQ(generate_c_interface(strm).str(), expected_c_interface);
+                generate_c_interface(strm);
+                EXPECT_EQ(strm.str(), expected_c_interface);
             }
 
             const char expected_fortran_interface[] = R"?(
@@ -97,12 +101,16 @@ implicit none
     end
 
   end interface
+  interface foo
+    procedure bar, baz
+  end interface
 end
 )?";
 
             TEST(generator, fortran_interface) {
                 std::ostringstream strm;
-                EXPECT_EQ(generate_fortran_interface(strm).str(), expected_fortran_interface);
+                generate_fortran_interface(strm);
+                EXPECT_EQ(strm.str(), expected_fortran_interface);
             }
         }
     }

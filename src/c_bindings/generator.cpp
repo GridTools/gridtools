@@ -46,44 +46,46 @@ namespace gridtools {
                 assert(ok);
             }
 
-            std::ostream &operator<<(std::ostream &strm, declarations const &declarations) {
-                for (auto &&item : declarations.m_generators)
+            std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
+                for (auto &&item : obj.m_generators)
                     item.second(strm, item.first);
                 return strm;
             }
 
-            char const c_traits::m_prologue[] = R"?(
-struct gt_handle;
+            class fortran_generics {
+                std::map< char const *, std::vector< const char * >, c_string_less > m_procedures;
 
-#ifdef __cplusplus
-extern "C" {
-#else
-typedef struct gt_handle gt_handle;
-#endif
+              public:
+                void add(char const *generic_name, char const *concrete_name) {
+                    m_procedures[generic_name].push_back(concrete_name);
+                }
+                friend std::ostream &operator<<(std::ostream &strm, fortran_generics const &obj) {
+                    for (auto &&item : obj.m_procedures) {
+                        strm << "  interface " << item.first << "\n";
+                        strm << "    procedure ";
+                        bool need_comma = false;
+                        for (auto &&procedure : item.second) {
+                            if (need_comma)
+                                strm << ", ";
+                            strm << procedure;
+                            need_comma = true;
+                        }
+                        strm << "\n";
+                        strm << "  end interface\n";
+                    }
+                    return strm;
+                }
+            };
 
-void gt_release(gt_handle*);
-)?";
-            char const c_traits::m_epilogue[] = R"?(
-#ifdef __cplusplus
-}
-#endif
-)?";
+            fortran_generics &get_fortran_generics() {
+                static fortran_generics obj;
+                return obj;
+            }
 
-            // TODO(anstaf): To figure out if it makes sense to export functions under the different module name.
-            char const fortran_traits::m_prologue[] = R"?(
-module gt_import
-implicit none
-  interface
+            fortran_generic_registrar::fortran_generic_registrar(char const *generic_name, char const *concrete_name) {
+                get_fortran_generics().add(generic_name, concrete_name);
+            }
 
-    subroutine gt_release(h) bind(c)
-      use iso_c_binding
-      type(c_ptr), value :: h
-    end
-)?";
-            char const fortran_traits::m_epilogue[] = R"?(
-  end interface
-end
-)?";
             template <>
             char const fortran_kind_name< bool >::value[] = "c_bool";
             template <>
@@ -102,6 +104,41 @@ end
             char const fortran_kind_name< long double >::value[] = "c_long_double";
             template <>
             char const fortran_kind_name< signed char >::value[] = "c_signed_char";
+        }
+
+        void generate_c_interface(std::ostream &strm) {
+            strm << R"?(
+struct gt_handle;
+
+#ifdef __cplusplus
+extern "C" {
+#else
+typedef struct gt_handle gt_handle;
+#endif
+
+void gt_release(gt_handle*);
+)?";
+            strm << _impl::get_declarations< _impl::c_traits >();
+            strm << R"?(
+#ifdef __cplusplus
+}
+#endif
+)?";
+        }
+
+        void generate_fortran_interface(std::ostream &strm) {
+            strm << "\nmodule gt_import\n";
+            strm << "implicit none\n";
+            strm << "  interface\n";
+            strm << "\n";
+            strm << "    subroutine gt_release(h) bind(c)\n";
+            strm << "      use iso_c_binding\n";
+            strm << "      type(c_ptr), value :: h\n";
+            strm << "    end\n";
+            strm << _impl::get_declarations< _impl::fortran_traits >();
+            strm << "\n  end interface\n";
+            strm << _impl::get_fortran_generics();
+            strm << "end\n";
         }
     }
 }

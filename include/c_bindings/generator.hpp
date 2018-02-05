@@ -41,6 +41,7 @@
 #include <map>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include <boost/function_types/result_type.hpp>
 #include <boost/function_types/parameter_types.hpp>
@@ -52,16 +53,17 @@ namespace gridtools {
 
         namespace _impl {
 
+            struct c_string_less {
+                bool operator()(char const *lhs, char const *rhs) const { return strcmp(lhs, rhs) < 0; }
+            };
+
             class declarations {
                 using generator_t = std::function< void(std::ostream &, char const *) >;
-                struct less {
-                    bool operator()(char const *lhs, char const *rhs) const { return strcmp(lhs, rhs) < 0; }
-                };
-                std::map< char const *, generator_t, less > m_generators;
+                std::map< char const *, generator_t, c_string_less > m_generators;
 
               public:
                 void add(char const *name, generator_t generator);
-                friend std::ostream &operator<<(std::ostream &strm, declarations const &);
+                friend std::ostream &operator<<(std::ostream &strm, declarations const &obj);
             };
 
             template < class >
@@ -255,8 +257,6 @@ namespace gridtools {
                 static void generate_declaration(std::ostream &strm, char const *name) {
                     write_c_declaration< Signature >(strm, name);
                 }
-                static char const m_prologue[];
-                static char const m_epilogue[];
             };
 
             struct fortran_traits {
@@ -264,9 +264,6 @@ namespace gridtools {
                 static void generate_declaration(std::ostream &strm, char const *name) {
                     write_fortran_declaration< Signature >(strm, name);
                 }
-
-                static const char m_prologue[];
-                static const char m_epilogue[];
             };
 
             template < class Traits, class Signature >
@@ -282,25 +279,16 @@ namespace gridtools {
                 }
             };
 
-            template < class Traits >
-            void generate_interface(std::ostream &strm) {
-                strm << Traits::m_prologue << _impl::get_declarations< Traits >() << Traits::m_epilogue;
-            }
+            struct fortran_generic_registrar {
+                fortran_generic_registrar(char const *generic_name, char const *concrete_name);
+            };
         }
 
         /// Outputs the content of the C compatible header with the declarations added by GT_ADD_GENERATED_DECLARATION
-        template < class Strm >
-        Strm generate_c_interface(Strm &&strm) {
-            _impl::generate_interface< _impl::c_traits >(strm);
-            return std::forward< Strm >(strm);
-        }
+        void generate_c_interface(std::ostream &strm);
 
         /// Outputs the content of the Fortran module with the declarations added by GT_ADD_GENERATED_DECLARATION
-        template < class Strm >
-        Strm generate_fortran_interface(Strm &&strm) {
-            _impl::generate_interface< _impl::fortran_traits >(strm);
-            return std::forward< Strm >(strm);
-        }
+        void generate_fortran_interface(std::ostream &strm);
     }
 }
 
@@ -310,3 +298,7 @@ namespace gridtools {
  */
 #define GT_ADD_GENERATED_DECLARATION(signature, name) \
     static ::gridtools::c_bindings::_impl::registrar< signature > generated_declaration_registrar_##name(#name)
+
+#define GT_ADD_GENERIC_DECLARATION(generic_name, concrete_name)      \
+    static ::gridtools::c_bindings::_impl::fortran_generic_registrar \
+        fortran_generic_registrar_##generic_name##_##concrete_name(#generic_name, #concrete_name)
