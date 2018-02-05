@@ -1,25 +1,50 @@
-# generate a repository to inspect the preprocessor hackery and add it as a custom test (to be able to add a dependency)
-add_executable( generated_repository.cpp plain_repository_generator.cpp )
-# preprocess the file:
-target_compile_options( generated_repository.cpp BEFORE PUBLIC "-E")
-# the script hooks into the link command with a custom script (I couldn't find a clean way to disable the linking step):
-set_target_properties( generated_repository.cpp PROPERTIES RULE_LAUNCH_LINK "${CMAKE_CURRENT_SOURCE_DIR}/omit_linking.sh")
+# The following macro is a trick to generate a file containing pre-processed compiler output (-E flag) 
+macro(generate_preprocessed_file preprocessed_file_out cpp_file)
+    # check if ${cpp_file} is a file that exists (to protect that the user passes in multiple files or something else)
+    if( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${cpp_file}" )
+        # pretend to generate an object file ...
+        add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
+        # ... but actually generate the preprocessed file 
+        target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC "-E")
+    
+        # now use the preprocessed file to generate a library (which we will never use) ...
+        add_library( dummy_${cpp_file} EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)
+        # ... but before linking we copy the preprocessed file to the given file "preprocessed_file_out"
+        # this trick is necessary because $<TARGET_OBJECTS:XXX> is only defined within add_library
+        add_custom_command( TARGET dummy_${cpp_file} PRE_LINK
+            COMMAND bash -c "cp '$<TARGET_OBJECTS:${cpp_file}_OBJECTS>' ${preprocessed_file_out}"
+            VERBATIM
+        )
+        
+        # add a target for the generated file
+        add_custom_command( OUTPUT ${preprocessed_file_out} COMMAND "" DEPENDS dummy_${cpp_file})
+    else()
+        message( ERROR "In macro generate_preprocessed_file: ${cpp_file} is not a file" )
+    endif()
+endmacro(generate_preprocessed_file)
 
-set( GENERATED_REPOSITORY "${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp" )
+# generate a file where we can inspect the generated repository
+set( GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp )
+generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
 
+# clean the preprocessed file from comments and from everything before our class starts
 add_custom_target( process_generated_repository
   COMMAND sed -i "/^#/d" ${GENERATED_REPOSITORY} # remove all lines starting with '#'
-  COMMAND awk -i inplace "/class my_repository/,0" ${GENERATED_REPOSITORY} # remove everything before "class my_repository"
+  # remove everything before "class my_repository"
+  COMMAND awk "/class my_repository/,0" ${GENERATED_REPOSITORY} > ${GENERATED_REPOSITORY}_tmp
+  COMMAND cp ${GENERATED_REPOSITORY}_tmp ${GENERATED_REPOSITORY}
+  DEPENDS ${GENERATED_REPOSITORY}
   )
-add_dependencies( process_generated_repository generated_repository.cpp )
 
+# format the generated file if we can 
 if( CLANG_FORMAT_FOUND )
-  #format the generated_repository.cpp
-  add_custom_target( format_generated_repository COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY} )
+  add_custom_target( format_generated_repository COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY}
+      DEPENDS process_generated_repository
+  )
 else()
-  add_custom_target( format_generated_repository COMMAND "" ) #dummy target for dependency
+  #dummy target for dependency
+  add_custom_target( format_generated_repository COMMAND "" DEPENDS process_generated_repository) 
 endif()
-add_dependencies( format_generated_repository process_generated_repository )
 
 # generate the driver
 configure_file( custom_test_generated_repository.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
@@ -29,7 +54,7 @@ target_link_libraries(custom_test_generated_repository ${exe_LIBS} gtest_main)
 gridtools_add_test(custom_test_generated_repository ${TEST_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository)
 add_dependencies( custom_test_generated_repository format_generated_repository )
 
-
 # collect test cases
 fetch_host_tests(.)
 fetch_gpu_tests(.)
+
