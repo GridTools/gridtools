@@ -89,6 +89,15 @@
 #endif
 #endif
 
+/**
+ * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
+ */
+#if __cplusplus >= 201402L
+#define GT_CXX14CONSTEXPR constexpr
+#else
+#define GT_CXX14CONSTEXPR
+#endif
+
 /** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
@@ -192,7 +201,7 @@ namespace gridtools {
         /*
          * accessor I/O policy
          */
-        enum intend { in, inout };
+        enum intent { in, inout };
 
 #ifdef __CUDACC__
         static const unsigned int vector_width = 32;
@@ -319,18 +328,9 @@ namespace gridtools {
     using static_short = boost::mpl::integral_c< short_t, N >;
     template < ushort_t N >
     using static_ushort = boost::mpl::integral_c< ushort_t, N >;
+    template < size_t N >
+    using static_size_t = boost::mpl::integral_c< size_t, N >;
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
-
-    template < typename T >
-    struct is_static_integral : boost::mpl::false_ {};
-
-    template < typename T, T N >
-    struct is_static_integral< boost::mpl::integral_c< T, N > > : boost::mpl::true_ {};
-    /**
-       @}
-     */
-
-    //######################################################
 
 } // namespace gridtools

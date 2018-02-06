@@ -33,17 +33,19 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
+#include "array.hpp"
 
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/generic_metafunctions/is_not_same.hpp"
-
-using namespace gridtools;
-
-TEST(is_not_same, test) {
-    GRIDTOOLS_STATIC_ASSERT((is_not_same< int, float >::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((!is_not_same< int, int >::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((is_not_same< double, float >::value), "ERROR");
-
-    ASSERT_TRUE(true);
-}
+namespace gridtools {
+    /**
+     * @brief dot product for gridtools::array (enabled for all arithmetic types)
+     */
+    template < typename T, size_t D, typename std::enable_if< std::is_arithmetic< T >::value, T >::type = 0 >
+    T operator*(const array< T, D > a, const array< T, D > &b) {
+        T result = 0;
+        for (int i = 0; i < D; ++i) {
+            result += a[i] * b[i];
+        }
+        return result;
+    }
+} // namespace gridtools

@@ -39,16 +39,12 @@
 #include "storage/common/storage_info_rt.hpp"
 #include "storage/storage-facility.hpp"
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 
-#ifdef __CUDACC__
-static constexpr enumtype::platform platform_ = enumtype::Cuda;
-#else
-static constexpr enumtype::platform platform_ = enumtype::Host;
-#endif
-
 TEST(StorageInfoRT, Make3D) {
-    using storage_info_t = storage_traits< platform_ >::storage_info_t< 0, 3 >;
+    using storage_info_t = storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
     storage_info_t si(4, 5, 6);
 
     auto storage_info_rt_ = make_storage_info_rt(si);
@@ -67,11 +63,10 @@ TEST(StorageInfoRT, Make3D) {
     ASSERT_EQ(si.stride< 0 >(), strides[0]);
     ASSERT_EQ(si.stride< 1 >(), strides[1]);
     ASSERT_EQ(si.stride< 2 >(), strides[2]);
-
 }
 
 TEST(StorageInfoRT, Make3Dmasked) {
-    using storage_info_t = storage_traits< platform_ >::special_storage_info_t< 0, selector< 1, 0, 1 > >;
+    using storage_info_t = storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 0, 1 > >;
     storage_info_t si(4, 5, 6);
 
     auto storage_info_rt_ = make_storage_info_rt(si);
@@ -90,5 +85,4 @@ TEST(StorageInfoRT, Make3Dmasked) {
     ASSERT_EQ(si.stride< 0 >(), strides[0]);
     ASSERT_EQ(si.stride< 1 >(), strides[1]);
     ASSERT_EQ(si.stride< 2 >(), strides[2]);
-
 }

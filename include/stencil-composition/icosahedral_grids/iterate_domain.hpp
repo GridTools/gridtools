@@ -36,9 +36,6 @@
 #pragma once
 #include <type_traits>
 #include <boost/type_traits/remove_reference.hpp>
-#include "../../common/generic_metafunctions/is_not_same.hpp"
-#include "../../common/generic_metafunctions/apply_to_sequence.hpp"
-#include "../../common/generic_metafunctions/is_not_same.hpp"
 #include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
@@ -48,6 +45,7 @@
 #include "../location_type.hpp"
 #include "../iterate_domain_impl_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
+#include "../position_offset_type.hpp"
 #include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 
@@ -97,6 +95,9 @@ namespace gridtools {
 
         typedef data_ptr_cached< typename local_domain_t::storage_wrapper_list_t > data_ptr_cached_t;
         typedef strides_cached< N_META_STORAGES - 1, storage_info_ptrs_t > strides_cached_t;
+
+        using array_index_t = array< int_t, N_META_STORAGES >;
+        using grid_position_t = array< uint_t, 4 >;
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get
          * compiled (generating sometimes a compile-time overflow) */
@@ -167,11 +168,9 @@ namespace gridtools {
       private:
         local_domain_t const &m_local_domain;
         grid_topology_t const &m_grid_topology;
-        typedef array< int_t, N_META_STORAGES > array_index_t;
         // TODOMEETING do we need m_index?
         array_index_t m_index;
-
-        array< uint_t, 4 > m_grid_position;
+        grid_position_t m_grid_position;
 
       public:
         /**@brief constructor of the iterate_domain struct
@@ -289,39 +288,18 @@ namespace gridtools {
             m_grid_position[Coordinate] += steps_;
         }
 
-        /**@brief getter for the index array */
-        // TODO simplify this using just loops
         GT_FUNCTION
-        void get_index(array< int_t, N_META_STORAGES > &index) const {
-            for (int_t i = 0; i < N_META_STORAGES; ++i) {
-                index[i] = m_index[i];
-            }
-        }
+        array_index_t const &index() const { return m_index; }
 
         GT_FUNCTION
-        array< uint_t, 4 > const &position() const { return m_grid_position; }
+        grid_position_t const &position() const { return m_grid_position; }
 
-        /**@brief getter for the index array */
-        GT_FUNCTION
-        void get_position(array< uint_t, 4 > &position) const { position = m_grid_position; }
+        GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        /**@brief method for setting the index array */
-        template < typename Value >
-        GT_FUNCTION void set_index(array< Value, N_META_STORAGES > const &index) {
-            for (int_t i = 0; i < N_META_STORAGES; ++i) {
-                m_index[i] = index[i];
-            }
-        }
+        GT_FUNCTION void reset_index() { m_index = array_index_t{}; }
 
         GT_FUNCTION
-        void set_index(int index) {
-            for (int_t i = 0; i < N_META_STORAGES; ++i) {
-                m_index[i] = index;
-            }
-        }
-
-        GT_FUNCTION
-        void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
+        void set_position(grid_position_t const &position) { m_grid_position = position; }
 
         template < typename Accessor >
         GT_FUNCTION
@@ -339,7 +317,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(accessor_t::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "Requested accessor index lower than zero. Check that when you define the accessor you specify the "
-                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
+                "dimensions which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
                 "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
                 "you here.");
 
@@ -509,15 +487,15 @@ namespace gridtools {
          * It dereferences the value of an accessor given its 4d (i,c,j,k) position_offset
          */
         template < uint_t ID,
-            enumtype::intend Intend,
+            enumtype::intent Intent,
             typename LocationType,
             typename Extent,
             ushort_t FieldDimensions >
         GT_FUNCTION typename std::remove_reference<
-            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
-            _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
-                array< int_t, 4 > const &RESTRICT position_offset) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            typename accessor_return_type< accessor< ID, Intent, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intent, LocationType, Extent, FieldDimensions >,
+            position_offset_type const &RESTRICT position_offset) const {
+            using accessor_t = accessor< ID, Intent, LocationType, Extent, FieldDimensions >;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
 

@@ -33,24 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include <boost/mpl/or.hpp>
-#include <boost/type_traits/is_integral.hpp>
-#include "vector_traits.hpp"
-#include "array.hpp"
+#include <fstream>
+#include <iostream>
 
-namespace gridtools {
+#include "c_bindings/generator.hpp"
 
-    /**
-     * type trait to check if a type is an aggregate
-     * Note: see discussion here
-     * http://stackoverflow.com/questions/33648044/boostprotois-aggregate-returning-false-when-it-is-an-aggregate-type
-     * there is not general way of detecting whether a type in C++ is an aggregate, and there probably wont be.
-     * Instead we use specific traits for the types that are used in our library
-     * (in the future this might be extended to using concepts)
-     */
-    template < typename T >
-    struct is_aggregate
-        : boost::mpl::or_< boost::is_integral< T >, is_vector< T >, std::is_array< T >, is_array< T > > {};
+int main(int argc, const char *argv[]) {
+    if (argc > 2) {
+        std::ofstream dst(argv[2]);
+        gridtools::c_bindings::generate_fortran_interface(dst);
+    }
+    if (argc > 1) {
+        std::ofstream dst(argv[1]);
+        gridtools::c_bindings::generate_c_interface(dst);
+    } else {
+        gridtools::c_bindings::generate_c_interface(std::cout);
+    }
 }

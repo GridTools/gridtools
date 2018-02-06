@@ -40,10 +40,6 @@
 
 namespace check_grid_bounds {
 
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > the_backend;
-
     typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
 
     /**

@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_is_all.cpp"
+#include "test_function_wrapper.cpp"

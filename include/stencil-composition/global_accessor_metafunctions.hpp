@@ -34,19 +34,40 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../defs.hpp"
-#include "accumulate.hpp"
+
+#include "global_accessor_fwd.hpp"
+#include "accessor_metafunctions.hpp"
+#include "global_accessor.hpp"
 
 namespace gridtools {
-    /**
-     * @brief checks if all Types in variadic pack fulfill the Condition (true if empty)
-     */
-    template < template < typename > class Condition, typename... Types >
-    using is_all = boost::mpl::bool_< accumulate(logical_and(), true, Condition< Types >::type::value...) >;
+    template < typename Type >
+    struct is_global_accessor : boost::false_type {};
 
-    /**
-     * @brief SFINAE for the case in which all the components of a parameter pack match a certain condition
-     */
-    template < template < typename > class Condition, typename... Types >
-    using all_ = typename boost::enable_if_c< is_all< Condition, Types... >::type::value, bool >::type;
-}
+    template < uint_t I >
+    struct is_global_accessor< global_accessor< I > > : boost::true_type {};
+
+    template < typename Global, typename... Args >
+    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+
+    template < typename T >
+    struct is_global_accessor_with_arguments : boost::false_type {};
+
+    template < typename Global, typename... Args >
+    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+
+    template < uint_t I >
+    struct is_accessor< global_accessor< I > > : boost::true_type {};
+
+    template < ushort_t ID, typename ArgsMap >
+    struct remap_accessor_type< global_accessor< ID >, ArgsMap > {
+        typedef global_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >() > type;
+    };
+
+    template < typename GlobalAcc, typename ArgsMap, typename... Args >
+    struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
+        typedef global_accessor_with_arguments<
+            global_accessor< _impl::get_remap_accessor_id< GlobalAcc::index_t::value, ArgsMap >() >,
+            Args... > type;
+    };
+
+} // namespace gridtools

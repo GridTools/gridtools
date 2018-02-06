@@ -33,24 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include <boost/mpl/vector/vector0.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/fold.hpp>
 
-namespace gridtools {
-
-    /**
-     * @struct sequence_to_vector
-     * convert a forward sequence (vector like) into a vector.
-     * This is used in order to force instantiation of mpl vector from lazy sequence like
-     * mpl::filter_view
-     */
-    template < typename Vec >
-    struct sequence_to_vector {
-        typedef typename boost::mpl::fold< Vec,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
-    };
-
-} // namespace gridtools
+#include "test_expandable_parameters.cpp"

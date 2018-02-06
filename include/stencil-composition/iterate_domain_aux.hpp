@@ -252,7 +252,7 @@ namespace gridtools {
                 const StorageInfo * >::type::pos index_t;
 
             GRIDTOOLS_STATIC_ASSERT(
-                (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
+                (index_t::value < ArrayIndex::size()), "Accessing an index out of bound in fusion tuple");
 
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
@@ -268,63 +268,6 @@ namespace gridtools {
                                                      m_strides_cached.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * m_increment);
             }
-        }
-    };
-
-    /**@brief assigning all the storage pointers to the m_data_pointers array
-
-       similar to the increment_index class, but assigns the indices, and it does not depend on the storage type
-    */
-    template < uint_t ID >
-    struct set_index_recur {
-        /**@brief does the actual assignment
-           This method is responsible of assigning the index for the memory access at
-           the location (i,j,k). Such index is shared among all the fields contained in the
-           same storage class instance, and it is not shared among different storage instances.
-
-           This method given an array and an integer id assigns to the current component of the array the input integer.
-        */
-        template < typename Array >
-        GT_FUNCTION static void set(int_t const &id, Array &index) {
-            GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value), GT_INTERNAL_ERROR_MSG("type is not a gridtools array"));
-            index[ID] = id;
-            set_index_recur< ID - 1 >::set(id, index);
-        }
-
-        /**@brief does the actual assignment
-           This method is responsible of assigning the index for the memory access at
-           the location (i,j,k). Such index is shared among all the fields contained in the
-           same storage class instance, and it is not shared among different storage instances.
-
-           This method given two arrays copies the IDth component of one into the other, i.e. recursively cpoies one
-           array into the other.
-        */
-        template < typename Array >
-        GT_FUNCTION static void set(Array const &index, Array &out) {
-            GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value), GT_INTERNAL_ERROR_MSG("type is not a gridtools array"));
-            out[ID] = index[ID];
-            set_index_recur< ID - 1 >::set(index, out);
-        }
-
-      private:
-        set_index_recur();
-        set_index_recur(set_index_recur const &);
-    };
-
-    /**usual specialization to stop the recursion*/
-    template <>
-    struct set_index_recur< 0 > {
-
-        template < typename Array >
-        GT_FUNCTION static void set(int_t const &id, Array &index /* , ushort_t* lru */) {
-            GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value), GT_INTERNAL_ERROR_MSG("type is not a gridtools array"));
-            index[0] = id;
-        }
-
-        template < typename Array >
-        GT_FUNCTION static void set(Array const &index, Array &out) {
-            GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value), GT_INTERNAL_ERROR_MSG("type is not a gridtools array"));
-            out[0] = index[0];
         }
     };
 
@@ -387,7 +330,7 @@ namespace gridtools {
             constexpr int_t additional_offset =
                 (Coordinate == i_pos && tmp_info_t::value) ? StorageInfo::halo_t::template at< i_pos >() : 0;
             GRIDTOOLS_STATIC_ASSERT(
-                (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
+                (index_t::value < ArrayIndex::size()), "Accessing an index out of bound in fusion tuple");
             const int_t initial_pos =
                 ((tmp_info_t::value)
                         ? ((m_initial_pos)-m_block *
@@ -578,16 +521,6 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct get_storage_type {
-        typedef T type;
-    };
-
-    template < typename T >
-    struct get_storage_type< std::vector< pointer< T > > > {
-        typedef T type;
-    };
-
-    template < typename T >
     struct get_datafield_offset {
         template < typename Acc >
         GT_FUNCTION static constexpr uint_t get(Acc const &a) {
@@ -618,8 +551,7 @@ namespace gridtools {
     struct get_arg_value_type_from_accessor {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
-        typedef typename get_storage_type<
-            typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::data_store_t >::type::data_t type;
+        typedef typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::data_store_t::data_t type;
     };
 
     /**

@@ -35,31 +35,19 @@
 */
 #pragma once
 
-namespace gridtools {
-#if !defined(__CUDACC__)
-    template < typename Pattern, typename Repl, typename Arg >
-    struct subs {
-        typedef typename boost::mpl::if_< boost::is_same< Pattern, Arg >, Repl, Arg >::type type;
-    };
+#include <stencil-composition/stencil-composition.hpp>
 
-    /**
-     * metafunction used to replace types stored in a metadata class.
-     * When a type (Metadata) is used as "metadata" to store a collection of types,
-     * replace_template_arguments will substitute any type stored that equals a pattern (Pattern)
-     * with a new value type (Repl).
-     *
-     * Usage example:
-     * boost::is_same<
-     *     typename replace_template_arguments<wrap<int>, int, double>::type,
-     *     wrap<double>
-     * > :: value == true
-     */
-    template < typename Metadata, typename Pattern, typename Repl >
-    struct replace_template_arguments;
-
-    template < template < typename... > class Metadata, typename... Args, typename Pattern, typename Repl >
-    struct replace_template_arguments< Metadata< Args... >, Pattern, Repl > {
-        typedef Metadata< typename subs< Pattern, Repl, Args >::type... > type;
-    };
+#ifdef BACKEND_HOST
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+#else
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
 #endif
-} // namespace gridtools
+#elif defined(BACKEND_CUDA)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#else
+#error "no backend selected"
+#endif

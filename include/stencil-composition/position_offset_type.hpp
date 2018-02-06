@@ -34,17 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/not.hpp>
+
+#include <boost/mpl/bool.hpp>
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
 
 namespace gridtools {
-
-    /*
-    * @struct is_not_same
-    * just a not of is_same
-    */
-    template < typename T1, typename T2 >
-    struct is_not_same {
-        typedef typename boost::mpl::not_< typename boost::is_same< T1, T2 >::type >::type type;
-        BOOST_STATIC_CONSTANT(bool, value = (type::value));
+    /**
+     * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
+     */
+    class position_offset_type : public array< int_t, 4 > {
+      public:
+        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
+            : array< int_t, 4 >({i0, i1, i2, i3}) {}
     };
+    template < typename T >
+    struct is_position_offset_type : boost::mpl::false_ {};
+    template <>
+    struct is_position_offset_type< position_offset_type > : boost::mpl::true_ {};
 }

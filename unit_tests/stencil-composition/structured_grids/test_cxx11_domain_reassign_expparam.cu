@@ -33,5 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define CUDA_EXAMPLE
 #include "test_cxx11_domain_reassign_expparam.cpp"

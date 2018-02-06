@@ -33,41 +33,57 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #include "gtest/gtest.h"
-#include <common/defs.hpp>
-#include <common/generic_metafunctions/is_all.hpp>
-#include <common/generic_metafunctions/is_all_integrals.hpp>
+#include "common/defs.hpp"
+#include "common/array.hpp"
+#include "common/make_array.hpp"
+#include "../test_helper.hpp"
 
 using namespace gridtools;
 
-TEST(AllIntegrals, is_all_integral) {
-    GRIDTOOLS_STATIC_ASSERT((is_all_integral< int, u_int, long >::value), "not all integral");
-    GRIDTOOLS_STATIC_ASSERT((!is_all_integral< int, double >::value), "all integral (but shouldn't be)");
+TEST(make_array_test, only_int) {
+    auto a = make_array(1, 2, 3);
+
+    auto expected = array< int, 3 >{1, 2, 3};
+
+    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
+    ASSERT_EQ(expected, a);
 }
 
-TEST(AllIntegrals, is_all_static_integral) {
-    GRIDTOOLS_STATIC_ASSERT((is_all_static_integral< static_int< 0 >,
-                                static_uint< 1 >,
-                                static_short< 2 >,
-                                static_ushort< 3 >,
-                                static_bool< 1 > >::value),
-        "not all static integral");
+TEST(make_array_test, constexpr_only_int) {
+    constexpr auto a = make_array(1, 2, 3);
+
+    constexpr auto expected = array< int, 3 >{1, 2, 3};
+
+    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
+
+    ASSERT_EQ(expected, a);
 }
 
-template < typename... Ts, typename = all_integral< Ts... > >
-bool is_enabled_on_all_integral(Ts... vals) {
-    return true;
+TEST(make_array_test, int_and_long) {
+    auto a = make_array(1, 2, 3l);
+
+    auto expected = array< long int, 3 >{1l, 2l, 3l};
+
+    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
+    ASSERT_EQ(expected, a);
 }
 
-TEST(AllIntegrals, enable_with_all_integral) { ASSERT_TRUE(is_enabled_on_all_integral(1, 2, 3)); }
-TEST(AllIntegrals, enable_with_all_integral_empty) { ASSERT_TRUE(is_enabled_on_all_integral()); }
+TEST(make_array_test, int_and_double) {
+    double a_double = 3;
+    auto a = make_array(1, 2, a_double);
 
-#ifdef CUDA8
-template < typename... Ts, typename = all_< boost::is_integral, Ts... > >
-bool is_enabled_on_all_(Ts... vals) {
-    return true;
+    auto expected = array< double, 3 >{1., 2., a_double};
+
+    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
+    ASSERT_EQ(expected, a);
 }
 
-TEST(test_all_, enable_with_is_integral_and_all_) { ASSERT_TRUE(is_enabled_on_all_(1, 2, 3)); }
-#endif
+TEST(make_array_test, force_double_for_ints) {
+    auto a = make_array< double >(1, 2, 3);
+
+    auto expected = array< double, 3 >{1., 2., 3.};
+
+    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
+    ASSERT_EQ(expected, a);
+}

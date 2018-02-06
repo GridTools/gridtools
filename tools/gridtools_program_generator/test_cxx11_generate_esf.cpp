@@ -61,6 +61,8 @@ struct prelude {
         code += "#include <boost/mpl/equal.hpp>\n";
         code += "#include <stencil-composition/stencil-composition.hpp>\n";
         code += "\n";
+        code += "#include \"backend_select.hpp\"\n";
+        code += "\n";
         // code += "using namespace gridtools::enumtype;\n";
         // code += "using gridtools::accessor;\n";
         // code += "using gridtools::extent;\n";
@@ -384,11 +386,7 @@ int main(int argc, char **argv) {
     }
 
     // boilerplate
-    program += "using BACKEND = backend<Host, GRIDBACKEND, Block >;\n";
-    program += "\n";
-    program += "    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;\n";
-
-    program += "typedef layout_map<2,1,0> layout_t;\n";
+    program += "gridtools::storage_traits< backend_t::s_backend_id > storage_tr;\n";
     program += "using storage_info_type = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;\n";
     program += "using storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_type >;\n";
     program += "\n";
@@ -505,7 +503,7 @@ int main(int argc, char **argv) {
         program += "    grid< axis > grid(di, dj);\n";
         program += "    grid.value_list[0] = 0;\n";
         program += "    grid.value_list[1] = 3;\n\n";
-        program += "    auto stencil = make_computation<BACKEND>(\n";
+        program += "    auto stencil = make_computation<backend_t>(\n";
         program += "        agg,\n";
         program += "        grid,\n";
         program += "        mss);\n";
