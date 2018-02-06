@@ -6,6 +6,9 @@ enable_testing()
 ####################################################################################
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
+
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googlemock/include)
+
 # ===============
 add_library(gtest ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
 add_library(gtest_main ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)

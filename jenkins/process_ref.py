@@ -346,7 +346,7 @@ if __name__ == "__main__":
         target_suff = "cuda"
         stella_suffix = "CUDA"
     elif target == 'cpu':
-        target_suff = "block"
+        target_suff = "host_block"
     else:
         parser.error('wrong value for --target')
 
