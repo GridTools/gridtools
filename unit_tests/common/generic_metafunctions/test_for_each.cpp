@@ -37,7 +37,6 @@
 #include <common/generic_metafunctions/for_each.hpp>
 
 #include <type_traits>
-#include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -47,11 +46,11 @@
 namespace gridtools {
 
     struct f {
-        int *&m_sizes;
+        int *&dst;
 
         template < class T >
-        GT_FUNCTION void operator()(T) const {
-            *(m_sizes++) = T::value;
+        GT_FUNCTION_WARNING void operator()(T) const {
+            *(dst++) = T::value;
         }
     };
 
@@ -62,10 +61,10 @@ namespace gridtools {
     using int_t = std::integral_constant< int, I >;
 
     TEST(for_each, functional) {
-        int sizes[3];
-        int *cur = sizes;
+        int vals[3];
+        int *cur = vals;
         for_each< lst< int_t< 0 >, int_t< 42 >, int_t< 3 > > >(f{cur});
-        EXPECT_EQ(cur, sizes + 3);
-        EXPECT_THAT(sizes, testing::ElementsAre(0, 42, 3));
+        EXPECT_EQ(cur, vals + 3);
+        EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
 }
