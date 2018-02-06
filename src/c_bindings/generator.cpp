@@ -40,20 +40,9 @@
 
 namespace gridtools {
     namespace c_bindings {
-        namespace _impl {
-            void declarations::add(char const *name, generator_t generator) {
-                bool ok = m_generators.emplace(name, std::move(generator)).second;
-                assert(ok);
-            }
-
-            std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
-                for (auto &&item : obj.m_generators)
-                    item.second(strm, item.first);
-                return strm;
-            }
-
+        namespace {
             class fortran_generics {
-                std::map< char const *, std::vector< const char * >, c_string_less > m_procedures;
+                std::map< char const *, std::vector< const char * >, _impl::c_string_less > m_procedures;
 
               public:
                 void add(char const *generic_name, char const *concrete_name) {
@@ -81,6 +70,19 @@ namespace gridtools {
                 static fortran_generics obj;
                 return obj;
             }
+        }
+
+        namespace _impl {
+            void declarations::add(char const *name, generator_t generator) {
+                bool ok = m_generators.emplace(name, std::move(generator)).second;
+                assert(ok);
+            }
+
+            std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
+                for (auto &&item : obj.m_generators)
+                    item.second(strm, item.first);
+                return strm;
+            }
 
             fortran_generic_registrar::fortran_generic_registrar(char const *generic_name, char const *concrete_name) {
                 get_fortran_generics().add(generic_name, concrete_name);
@@ -107,23 +109,18 @@ namespace gridtools {
         }
 
         void generate_c_interface(std::ostream &strm) {
-            strm << R"?(
-struct gt_handle;
-
-#ifdef __cplusplus
-extern "C" {
-#else
-typedef struct gt_handle gt_handle;
-#endif
-
-void gt_release(gt_handle*);
-)?";
+            strm << "\n#pragma once\n\n";
+            strm << "struct gt_handle;\n\n";
+            strm << "#ifdef __cplusplus\n";
+            strm << "extern \"C\" {\n";
+            strm << "#else\n";
+            strm << "typedef struct gt_handle gt_handle;\n";
+            strm << "#endif\n\n";
+            strm << "void gt_release(gt_handle*);\n";
             strm << _impl::get_declarations< _impl::c_traits >();
-            strm << R"?(
-#ifdef __cplusplus
-}
-#endif
-)?";
+            strm << "\n#ifdef __cplusplus\n";
+            strm << "}\n";
+            strm << "#endif\n";
         }
 
         void generate_fortran_interface(std::ostream &strm) {
@@ -137,7 +134,7 @@ void gt_release(gt_handle*);
             strm << "    end\n";
             strm << _impl::get_declarations< _impl::fortran_traits >();
             strm << "\n  end interface\n";
-            strm << _impl::get_fortran_generics();
+            strm << get_fortran_generics();
             strm << "end\n";
         }
     }

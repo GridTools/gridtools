@@ -53,6 +53,8 @@ namespace gridtools {
             GT_ADD_GENERIC_DECLARATION(foo, baz);
 
             const char expected_c_interface[] = R"?(
+#pragma once
+
 struct gt_handle;
 
 #ifdef __cplusplus
