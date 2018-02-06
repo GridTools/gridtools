@@ -57,6 +57,7 @@
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/binary_ops.hpp"
+#include "../../common/generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 
