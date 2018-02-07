@@ -110,28 +110,20 @@ namespace gridtools {
 
         void generate_c_interface(std::ostream &strm) {
             strm << "\n#pragma once\n\n";
-            strm << "struct gt_handle;\n\n";
+            strm << "#include <c_bindings/handle.h>\n\n";
             strm << "#ifdef __cplusplus\n";
             strm << "extern \"C\" {\n";
-            strm << "#else\n";
-            strm << "typedef struct gt_handle gt_handle;\n";
             strm << "#endif\n\n";
-            strm << "void gt_release(gt_handle*);\n";
             strm << _impl::get_declarations< _impl::c_traits >();
             strm << "\n#ifdef __cplusplus\n";
             strm << "}\n";
             strm << "#endif\n";
         }
 
-        void generate_fortran_interface(std::ostream &strm) {
-            strm << "\nmodule gt_import\n";
+        void generate_fortran_interface(std::ostream &strm, std::string const &module_name) {
+            strm << "\nmodule " << module_name << "\n";
             strm << "implicit none\n";
-            strm << "  interface\n";
-            strm << "\n";
-            strm << "    subroutine gt_release(h) bind(c)\n";
-            strm << "      use iso_c_binding\n";
-            strm << "      type(c_ptr), value :: h\n";
-            strm << "    end\n";
+            strm << "  interface\n\n";
             strm << _impl::get_declarations< _impl::fortran_traits >();
             strm << "\n  end interface\n";
             strm << get_fortran_generics();

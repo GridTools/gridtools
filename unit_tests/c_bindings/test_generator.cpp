@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/handle.hpp>
+#include <c_bindings/handle_impl.hpp>
 #include <c_bindings/generator.hpp>
 
 #include <sstream>
@@ -55,15 +55,12 @@ namespace gridtools {
             const char expected_c_interface[] = R"?(
 #pragma once
 
-struct gt_handle;
+#include <c_bindings/handle.h>
 
 #ifdef __cplusplus
 extern "C" {
-#else
-typedef struct gt_handle gt_handle;
 #endif
 
-void gt_release(gt_handle*);
 gt_handle* bar(int, double*, gt_handle*);
 void baz(int****);
 void foo();
@@ -80,14 +77,10 @@ void foo();
             }
 
             const char expected_fortran_interface[] = R"?(
-module gt_import
+module my_module
 implicit none
   interface
 
-    subroutine gt_release(h) bind(c)
-      use iso_c_binding
-      type(c_ptr), value :: h
-    end
     type(c_ptr) function bar(arg0, arg1, arg2) bind(c)
       use iso_c_binding
       integer(c_int), value :: arg0
@@ -111,7 +104,7 @@ end
 
             TEST(generator, fortran_interface) {
                 std::ostringstream strm;
-                generate_fortran_interface(strm);
+                generate_fortran_interface(strm, "my_module");
                 EXPECT_EQ(strm.str(), expected_fortran_interface);
             }
         }

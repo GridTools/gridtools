@@ -34,7 +34,8 @@
 
 program main
     use iso_c_binding
-    use gt_import
+    use gt_handle
+    use implementation
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
     real(FLOAT_PRECISION), dimension(i, j, k) :: in, out

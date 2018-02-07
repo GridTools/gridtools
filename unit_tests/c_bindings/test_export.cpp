@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 
-#include "c_bindings/handle.hpp"
+#include "c_bindings/handle.h"
 
 namespace {
 
@@ -85,15 +85,12 @@ namespace {
     const char expected_c_interface[] = R"?(
 #pragma once
 
-struct gt_handle;
+#include <c_bindings/handle.h>
 
 #ifdef __cplusplus
 extern "C" {
-#else
-typedef struct gt_handle gt_handle;
 #endif
 
-void gt_release(gt_handle*);
 gt_handle* my_create();
 bool my_empty(gt_handle*);
 void my_pop(gt_handle*);

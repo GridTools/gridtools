@@ -33,13 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/**
- * This is just an example file, that could be some
- * application source code that is using the GridTools
- * library. For further and more detailed examples see
- * examples directory.
- */
+#pragma once
 
-#include "stencil-composition/stencil-composition.hpp"
+struct gt_handle;
 
-int main() { return 0; }
+#ifdef __cplusplus
+
+extern "C" void gt_release(gt_handle const *);
+
+#else
+
+typedef struct gt_handle gt_handle;
+void gt_release(gt_handle *);
+
+#endif

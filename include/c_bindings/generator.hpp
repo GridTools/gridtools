@@ -288,7 +288,7 @@ namespace gridtools {
         void generate_c_interface(std::ostream &strm);
 
         /// Outputs the content of the Fortran module with the declarations added by GT_ADD_GENERATED_DECLARATION
-        void generate_fortran_interface(std::ostream &strm);
+        void generate_fortran_interface(std::ostream &strm, std::string const &module_name);
     }
 }
 
