@@ -56,26 +56,28 @@ namespace gridtools {
         using block_kparallel_t = execinfo_block_kparallel_mic;
 
         template < class Grid >
-        execinfo_mic(const Grid &grid)
+        GT_FUNCTION execinfo_mic(const Grid &grid)
             : m_i_grid_size(grid.i_high_bound() - grid.i_low_bound() + 1),
               m_j_grid_size(grid.j_high_bound() - grid.j_low_bound() + 1), m_i_low_bound(grid.i_low_bound()),
               m_j_low_bound(grid.j_low_bound()) {
             const int_t threads = omp_get_max_threads();
 
-            int_t m_j_block_size = (m_j_grid_size + threads - 1) / threads;
+            m_j_block_size = (m_j_grid_size + threads - 1) / threads;
             const int_t j_blocks = (m_j_grid_size + m_j_block_size - 1) / m_j_block_size;
             const int_t i_blocks = threads / j_blocks;
             m_i_block_size = (m_i_grid_size + i_blocks - 1) / i_blocks;
+
+            assert(m_i_block_size > 0 && m_j_block_size > 0);
         }
 
-        block_kserial_t block(int_t i_block_index, int_t j_block_index) const {
+        GT_FUNCTION block_kserial_t block(int_t i_block_index, int_t j_block_index) const {
             return block_kserial_t{block_start(i_block_index, m_i_block_size, m_i_low_bound),
                 block_start(j_block_index, m_j_block_size, m_j_low_bound),
                 clamped_block_size(i_block_index, m_i_block_size, m_i_grid_size),
                 clamped_block_size(j_block_index, m_j_block_size, m_j_grid_size)};
         }
 
-        block_kparallel_t block(int_t i_block_index, int_t j_block_index, int_t k) const {
+        GT_FUNCTION block_kparallel_t block(int_t i_block_index, int_t j_block_index, int_t k) const {
             return block_kparallel_t{block_start(i_block_index, m_i_block_size, m_i_low_bound),
                 block_start(j_block_index, m_j_block_size, m_j_low_bound),
                 k,
@@ -83,11 +85,11 @@ namespace gridtools {
                 clamped_block_size(j_block_index, m_j_block_size, m_j_grid_size)};
         }
 
-        int_t i_blocks() const { return (m_i_grid_size + m_i_block_size - 1) / m_i_block_size; }
-        int_t j_blocks() const { return (m_j_grid_size + m_j_block_size - 1) / m_j_block_size; }
+        GT_FUNCTION int_t i_blocks() const { return (m_i_grid_size + m_i_block_size - 1) / m_i_block_size; }
+        GT_FUNCTION int_t j_blocks() const { return (m_j_grid_size + m_j_block_size - 1) / m_j_block_size; }
 
-        int_t i_block_size() const { return m_i_block_size; }
-        int_t j_block_size() const { return m_j_block_size; }
+        GT_FUNCTION int_t i_block_size() const { return m_i_block_size; }
+        GT_FUNCTION int_t j_block_size() const { return m_j_block_size; }
 
       private:
         GT_FUNCTION static int_t block_start(int_t block_index, int_t block_size, int_t offset) {
