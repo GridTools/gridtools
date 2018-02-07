@@ -60,15 +60,12 @@ namespace gridtools {
             : m_i_grid_size(grid.i_high_bound() - grid.i_low_bound() + 1),
               m_j_grid_size(grid.j_high_bound() - grid.j_low_bound() + 1), m_i_low_bound(grid.i_low_bound()),
               m_j_low_bound(grid.j_low_bound()) {
-            const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
-            const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
-
             const int_t threads = omp_get_max_threads();
 
-            int_t m_j_block_size = (j_grid_size + threads - 1) / threads;
-            const int_t j_blocks = (j_grid_size + m_j_block_size - 1) / m_j_block_size;
+            int_t m_j_block_size = (m_j_grid_size + threads - 1) / threads;
+            const int_t j_blocks = (m_j_grid_size + m_j_block_size - 1) / m_j_block_size;
             const int_t i_blocks = threads / j_blocks;
-            m_i_block_size = (i_grid_size + i_blocks - 1) / i_blocks;
+            m_i_block_size = (m_i_grid_size + i_blocks - 1) / i_blocks;
         }
 
         block_kserial_t block(int_t i_block_index, int_t j_block_index) const {
