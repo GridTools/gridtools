@@ -134,13 +134,12 @@ namespace gridtools {
             constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
             const int threads = omp_get_max_threads();
 
-            int_t i_block_size, j_block_size;
-            std::tie(i_block_size, j_block_size) = block_size_mic(grid);
+            execinfo_mic exinfo(grid);
 
             constexpr int_t alignment = storage_info_t::alignment_t::value;
-            int_t i_padded_size = ((i_block_size + 2 * halo_i + alignment - 1) / alignment) * alignment;
+            int_t i_padded_size = ((exinfo.i_block_size() + 2 * halo_i + alignment - 1) / alignment) * alignment;
 
-            return storage_info_t(i_padded_size, (j_block_size + 2 * halo_j) * threads, k_size);
+            return storage_info_t(i_padded_size, (exinfo.j_block_size() + 2 * halo_j) * threads, k_size);
         }
 
         // get a temporary storage for Cuda

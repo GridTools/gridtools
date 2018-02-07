@@ -40,6 +40,7 @@
 #include "../mss_functor.hpp"
 #include "../tile.hpp"
 #include "execute_kernel_functor_mic.hpp"
+#include "execinfo_mic.hpp"
 
 namespace gridtools {
 
@@ -104,33 +105,19 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execution_info_parallel_mic >;
+                    execinfo_mic::block_kparallel_t >;
 
-                int_t i_block_size, j_block_size;
-                std::tie(i_block_size, j_block_size) = block_size_mic(grid);
-
-                const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
-                const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
-
-                const int_t i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
-                const int_t j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
-
+                execinfo_mic exinfo(grid);
+                const int_t i_blocks = exinfo.i_blocks();
+                const int_t j_blocks = exinfo.j_blocks();
                 const int_t k_first = grid.k_min();
                 const int_t k_last = grid.k_max();
 #pragma omp parallel for collapse(3)
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t k = k_first; k <= k_last; ++k) {
                         for (int_t bi = 0; bi < i_blocks; ++bi) {
-                            const int_t i_first = bi * i_block_size + grid.i_low_bound();
-                            const int_t j_first = bj * j_block_size + grid.j_low_bound();
-
-                            const int_t i_bs = (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
-                            const int_t j_bs = (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
-
-                            execution_info_parallel_mic e = {i_first, j_first, k, i_bs, j_bs};
-
                             boost::mpl::for_each< iter_range >(
-                                mss_functor_t(local_domain_lists, grid, reduction_data, e));
+                                mss_functor_t(local_domain_lists, grid, reduction_data, exinfo.block(bi, bj, k)));
                         }
                     }
                 }
@@ -147,31 +134,16 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execution_info_serial_mic >;
+                    execinfo_mic::block_kserial_t >;
 
-                int_t i_block_size, j_block_size;
-                std::tie(i_block_size, j_block_size) = block_size_mic(grid);
-
-                const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
-                const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
-
-                const int_t i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
-                const int_t j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
-
-                const int_t k_first = grid.k_min();
-                const int_t k_last = grid.k_max();
+                execinfo_mic exinfo(grid);
+                const int_t i_blocks = exinfo.i_blocks();
+                const int_t j_blocks = exinfo.j_blocks();
 #pragma omp parallel for collapse(2)
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t bi = 0; bi < i_blocks; ++bi) {
-                        const int_t i_first = bi * i_block_size + grid.i_low_bound();
-                        const int_t j_first = bj * j_block_size + grid.j_low_bound();
-
-                        const int_t i_bs = (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
-                        const int_t j_bs = (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
-
-                        execution_info_serial_mic e = {i_first, j_first, i_bs, j_bs};
-
-                        boost::mpl::for_each< iter_range >(mss_functor_t(local_domain_lists, grid, reduction_data, e));
+                        boost::mpl::for_each< iter_range >(
+                            mss_functor_t(local_domain_lists, grid, reduction_data, exinfo.block(bi, bj)));
                     }
                 }
                 reduction_data.reduce();

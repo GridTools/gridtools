@@ -39,6 +39,7 @@
 
 #include "execute_kernel_functor_mic_fwd.hpp"
 #include "../../run_functor_arguments_fwd.hpp"
+#include "../../backend_mic/execinfo_mic.hpp"
 
 namespace gridtools {
 
