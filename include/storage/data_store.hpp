@@ -177,7 +177,10 @@ namespace gridtools {
          * @param initializer initialization value
          */
         data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length(), [initializer](int) { return initializer; })),
+            : m_shared_storage(new storage_t(info.padded_total_length(),
+                  [initializer](int) { return initializer; },
+                  info.first_index_of_inner_region(),
+                  typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
