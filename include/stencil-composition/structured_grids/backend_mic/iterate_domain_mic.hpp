@@ -438,9 +438,9 @@ namespace gridtools {
     }
 
     template < typename IterateDomainArguments >
-    struct is_iterate_domain< iterate_domain_mic< IterateDomainArguments > > : public boost::mpl::true_ {};
+    struct is_iterate_domain< iterate_domain_mic< IterateDomainArguments > > : boost::mpl::true_ {};
 
     template < typename IterateDomainArguments >
-    struct is_positional_iterate_domain< iterate_domain_mic< IterateDomainArguments > > : public boost::mpl::true_ {};
+    struct is_positional_iterate_domain< iterate_domain_mic< IterateDomainArguments > > : boost::mpl::true_ {};
 
 } // namespace gridtools
