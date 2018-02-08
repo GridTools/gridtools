@@ -39,39 +39,30 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
 TEST(bakend, select_layout) {
-#ifdef __CUDACC__
+#ifdef BACKEND_HOST
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< BACKEND::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 3, 2, 1, 0 > >::value),
+        (boost::is_same< backend_t::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 0, 1, 2, 3 > >::value),
         "ERROR");
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< BACKEND::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 2, -1, 1, 0 > >::value),
+        (boost::is_same< backend_t::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 0, -1, 1, 2 > >::value),
         "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
-                                layout_map< 3, 2, -1, 1, 0 > >::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< backend_t::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
+                                layout_map< 1, 2, -1, 3, 0 > >::value),
         "ERROR");
-
 #else
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< BACKEND::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 0, 1, 2, 3 > >::value),
+        (boost::is_same< backend_t::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 3, 2, 1, 0 > >::value),
         "ERROR");
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< BACKEND::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 0, -1, 1, 2 > >::value),
+        (boost::is_same< backend_t::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 2, -1, 1, 0 > >::value),
         "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
-                                layout_map< 1, 2, -1, 3, 0 > >::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< backend_t::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
+                                layout_map< 3, 2, -1, 1, 0 > >::value),
         "ERROR");
 #endif
 }

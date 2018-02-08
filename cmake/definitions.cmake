@@ -22,16 +22,7 @@ if(STRUCTURED_GRIDS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
 endif()
 
-add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
-
-## get boost ##
-if(WIN32)
-  # Auto-linking happens on Windows, so we don't need to specify specific components
-  find_package( Boost 1.58 REQUIRED )
-else()
-  # On other platforms, me must be specific about which libs are required
-  find_package( Boost 1.58 REQUIRED )
-endif()
+find_package( Boost 1.58 REQUIRED )
 
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
@@ -41,11 +32,9 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT USE_GPU)
+if(NOT ENABLE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
-endif(NOT USE_GPU)
-
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ")
+endif(NOT ENABLE_CUDA)
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
@@ -60,26 +49,30 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
 message (STATUS "Building profiled executables")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD}")
+
+if(ENABLE_HOST)
+  set(HOST_BACKEND_DEFINE "BACKEND_HOST")
+endif(ENABLE_HOST)
 
 ## cuda support ##
-if( USE_GPU )
-  message(STATUS "Using GPU")
+if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${GT_CUDA_VERSION}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "${BOOST_FUSION_MAX_SIZE_FLAGS}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${CUDA_VERSION} -DGT_CUDA_VERSION=${CUDA_VERSION}")
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  if( ${CUDA_VERSION} VERSION_GREATER "60")
-      set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
-  else()
+  if( ${CUDA_VERSION} VERSION_LESS "70" )
       error(STATUS "CUDA 6.0 or lower does not supported")
+  endif()
+  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")    
+  if( ${CUDA_VERSION} VERSION_LESS "80" )
+      add_definitions(-DBOOST_RESULT_OF_USE_TR1)
   endif()
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
@@ -99,6 +92,7 @@ if( USE_GPU )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
 
+  set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
 else()
   set (CUDA_LIBRARIES "")
 endif()
@@ -106,6 +100,13 @@ endif()
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
+endif()
+
+## Intel compiler ##
+if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
+    # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'")
 endif()
 
 Find_Package( OpenMP )
@@ -156,13 +157,13 @@ endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
   endif()
   add_definitions("-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
   add_definitions("-DFLOAT_PRECISION=8") 

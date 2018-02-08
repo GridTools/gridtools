@@ -39,6 +39,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <tools/verifier.hpp>
 #include "benchmarker.hpp"
+#include "backend_select.hpp"
 
 /**
   @file
@@ -56,13 +57,6 @@ using namespace enumtype;
 using namespace expressions;
 
 namespace shorizontal_diffusion {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct wlap_function {
         typedef accessor< 0, enumtype::inout > out;
@@ -73,7 +67,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in(1, 0, 0)) + eval(in(-1, 0, 0)) - (gridtools::float_type)2 * eval(in()) +
                           eval(crlato()) * (eval(in(0, 1, 0)) - eval(in())) +
                           eval(crlatu()) * (eval(in(0, -1, 0)) - eval(in()));
@@ -91,7 +85,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap, crlato, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             gridtools::float_type fluxx = eval(lap(1, 0, 0)) - eval(lap());
             gridtools::float_type fluxx_m = eval(lap(0, 0, 0)) - eval(lap(-1, 0, 0));
 
@@ -114,16 +108,6 @@ namespace shorizontal_diffusion {
         uint_t d2 = y;
         uint_t d3 = z;
         uint_t halo_size = 2;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
         typedef horizontal_diffusion::repository::j_storage_type j_storage_type;
@@ -157,14 +141,12 @@ namespace shorizontal_diffusion {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, d3);
 
-        auto simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
+        auto simple_hori_diff = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

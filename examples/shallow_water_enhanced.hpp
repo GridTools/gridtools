@@ -43,6 +43,7 @@
 #include <storage/storage-facility.hpp>
 
 #include <communication/halo_exchange.hpp>
+#include "backend_select.hpp"
 
 #include <tools/verifier.hpp>
 
@@ -76,21 +77,7 @@ GT_FUNCTION float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
 
 #include "shallow_water_reference.hpp"
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#else
-#define BACKEND_ARCH Host
-#endif
-
-using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
-
 namespace shallow_water {
-    // This is the definition of the special regions in the "vertical" direction
-    // [intervals]
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-    // [intervals]
-
     // [functor_traits]
     /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow
      * water model*/
@@ -137,7 +124,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -196,7 +183,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector< tmpy, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -258,7 +245,7 @@ namespace shallow_water {
         // Using a strategy to define some arguments beforehand
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             const float_type &tl = 2.;
 #ifndef CUDA8
             dimension< 1 > i;
@@ -340,8 +327,8 @@ namespace shallow_water {
         //! [layout_map]
 
         //! [storage_type]
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_field_t< float_type, storage_info_t, 1, 1, 1 > sol_type;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_field_t< float_type, storage_info_t, 1, 1, 1 > sol_type;
         //! [storage_type]
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
@@ -435,14 +422,13 @@ namespace shallow_water {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         //! [grid]
-        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
-            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]});
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
+            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
+            d3);
         //! [grid]
 
         //! [computation]
-        auto shallow_water_stencil = make_computation< BACKEND >(
+        auto shallow_water_stencil = make_computation< backend_t >(
             domain,
             grid,
             make_multistage // mss_descriptor
@@ -563,7 +549,7 @@ namespace shallow_water {
 
         verifier check_result(1e-8);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference< BACKEND > reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
+        shallow_water_reference< backend_t > reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE INIT ################" << std::endl;

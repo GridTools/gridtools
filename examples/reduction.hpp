@@ -40,6 +40,7 @@
 #include "cache_flusher.hpp"
 #include "defs.hpp"
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 /**
   @file
@@ -55,10 +56,8 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace test_reduction {
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval; // TODO cannot use default interval because of issue #752
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct sum_red {
@@ -95,18 +94,8 @@ namespace test_reduction {
 
         cache_flusher flusher(cache_flusher_size);
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-        typedef BACKEND::storage_traits_t::storage_info_t< __COUNTER__, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< __COUNTER__, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(x, y, z);
 
@@ -137,17 +126,9 @@ namespace test_reduction {
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
         // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        auto grid = make_grid(d1, d2, axis_t(d3));
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
-
-        auto sum_red_ = make_computation< gridtools::BACKEND >(domain,
+        auto sum_red_ = make_computation< backend_t >(domain,
             grid,
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
@@ -172,7 +153,7 @@ namespace test_reduction {
         std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
 #endif
 
-        auto prod_red_ = make_computation< gridtools::BACKEND >(domain,
+        auto prod_red_ = make_computation< backend_t >(domain,
             grid,
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));

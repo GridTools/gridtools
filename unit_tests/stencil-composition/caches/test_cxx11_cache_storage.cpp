@@ -37,26 +37,17 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/offset_computation.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
 namespace test_multidimensional_caches {
 
     int test_ijcache() {
 
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
         typedef storage_wrapper< arg< 0, storage_t >,
             data_view< storage_t >,
             gridtools::tile< 0, 0, 0 >,
@@ -120,8 +111,8 @@ namespace test_multidimensional_caches {
     }
 
     int test_kcache() {
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
         typedef storage_wrapper< arg< 0, storage_t >,
             data_view< storage_t >,
             gridtools::tile< 0, 0, 0 >,

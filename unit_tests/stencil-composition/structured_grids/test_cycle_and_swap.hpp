@@ -41,6 +41,8 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace expressions;
 
@@ -48,14 +50,11 @@ namespace test_cycle_and_swap {
     using namespace gridtools;
     using namespace enumtype;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
     struct functor {
         typedef inout_accessor< 0, extent<>, 5 > p_i;
         typedef boost::mpl::vector< p_i > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_i()) += eval(p_i());
         }
     };
@@ -68,26 +67,16 @@ namespace test_cycle_and_swap {
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
     };
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     bool test_2D() {
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 1 > >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 1 > >
             storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
             data_store_field_t;
 
         storage_info_t meta_(1u, 1u, 1u);
@@ -96,19 +85,14 @@ namespace test_cycle_and_swap {
         iv.get< 0, 0 >()(0, 0, 0) = 0;
         iv.get< 0, 1 >()(0, 0, 0) = 1;
 
-        uint_t di[5] = {0, 0, 0, 0, 1};
-        uint_t dj[5] = {0, 0, 0, 0, 1};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = 0;
+        auto grid = make_grid((uint_t)1, (uint_t)1, (uint_t)1);
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
         aggregator_type< accessor_list > domain(i_data);
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto comp = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
@@ -130,8 +114,8 @@ namespace test_cycle_and_swap {
         const uint_t d2 = 9;
         const uint_t d3 = 7;
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
             data_store_field_t;
 
         storage_info_t meta_(d1, d2, d3);
@@ -154,19 +138,17 @@ namespace test_cycle_and_swap {
         iv.get< 0, 1 >()(0, 0, 0) = 1.;
 
         const uint_t halo_size = 1;
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, d3);
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
         aggregator_type< accessor_list > domain(i_data);
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto comp = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
@@ -222,13 +204,13 @@ namespace test_cycle_and_swap {
     }
 
     bool test_cycle() {
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
 #ifdef CUDA8
         typedef gridtools::storage_traits<
-            BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 4 > data_store_field_t;
+            backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 4 > data_store_field_t;
 #else // rectangular data field
         typedef gridtools::storage_traits<
-            BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 3 > data_store_field_t;
+            backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 3 > data_store_field_t;
 #endif
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
@@ -247,19 +229,17 @@ namespace test_cycle_and_swap {
 #endif
 
         const uint_t halo_size = 0;
-        uint_t di[5] = {halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
+        halo_descriptor di{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = 0;
+        auto grid = make_grid(di, dj, (uint_t)1);
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
 
         aggregator_type< accessor_list > domain(i_data);
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto comp = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
