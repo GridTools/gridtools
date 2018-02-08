@@ -60,6 +60,9 @@ namespace gridtools {
         inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id);
     } // namespace advanced
 
+    /**
+     * @brief iterate domain class for the MIC backend
+     */
     template < typename IterateDomainArguments >
     class iterate_domain_mic : public iterate_domain_reduction< IterateDomainArguments > {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
@@ -133,7 +136,7 @@ namespace gridtools {
         local_domain_t const &local_domain;
         data_ptr_cached_t *RESTRICT m_data_pointer;
         strides_cached_t *RESTRICT m_strides;
-        int_t m_index_i, m_index_j, m_index_k, m_block_base_i, m_block_base_j;
+        int_t m_i_block_index, m_j_block_index, m_k_block_index, m_i_block_base, m_j_block_base;
         int_t m_prefetch_distance;
         // ******************* end of members *******************
 
@@ -150,9 +153,9 @@ namespace gridtools {
                 const int_t stride_i = m_it_domain.stride< storage_info_t, 0 >();
                 const int_t stride_j = m_it_domain.stride< storage_info_t, 1 >();
                 const int_t stride_k = m_it_domain.stride< storage_info_t, 2 >();
-                m_index_array[StorageInfoIndex::value] = m_it_domain.m_index_i * stride_i +
-                                                         m_it_domain.m_index_j * stride_j +
-                                                         m_it_domain.m_index_k * stride_k;
+                m_index_array[StorageInfoIndex::value] = m_it_domain.m_i_block_index * stride_i +
+                                                         m_it_domain.m_j_block_index * stride_j +
+                                                         m_it_domain.m_k_block_index * stride_k;
             }
 
           private:
@@ -164,7 +167,7 @@ namespace gridtools {
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_data_pointer(nullptr),
-              m_strides(nullptr), m_index_i(0), m_index_j(0), m_index_k(0), m_prefetch_distance(0) {}
+              m_strides(nullptr), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_prefetch_distance(0) {}
 
         GT_FUNCTION
         data_ptr_cached_t const &RESTRICT data_pointer() const { return *m_data_pointer; }
@@ -197,35 +200,14 @@ namespace gridtools {
                                         *m_strides));
         }
 
-        template < ushort_t Coordinate, typename Steps >
-        GT_FUNCTION void increment() {
-            if (Coordinate == 0)
-                m_index_i += Steps::value;
-            if (Coordinate == 1)
-                m_index_j += Steps::value;
-            if (Coordinate == 2)
-                m_index_k += Steps::value;
+        GT_FUNCTION void set_block_base(int_t i_block_base, int_t j_block_base) {
+            m_i_block_base = i_block_base;
+            m_j_block_base = j_block_base;
         }
 
-        GT_FUNCTION void set_index(int_t i, int_t j, int_t k, int_t block_base_i, int_t block_base_j) {
-            m_index_i = i;
-            m_index_j = j;
-            m_index_k = k;
-            m_block_base_i = block_base_i;
-            m_block_base_j = block_base_j;
-        }
-
-        GT_FUNCTION void reset_index() { m_index_i = m_index_j = m_index_k = m_block_base_i = m_block_base_j = 0; }
-
-        template < ushort_t Coordinate >
-        GT_FUNCTION void set_block_index(int_t v) {
-            if (Coordinate == 0)
-                m_index_i = v;
-            if (Coordinate == 1)
-                m_index_j = v;
-            if (Coordinate == 2)
-                m_index_k = v;
-        }
+        GT_FUNCTION void set_i_block_index(int_t i) { m_i_block_index = i; }
+        GT_FUNCTION void set_j_block_index(int_t j) { m_j_block_index = j; }
+        GT_FUNCTION void set_k_block_index(int_t k) { m_k_block_index = k; }
 
         GT_FUNCTION array< int_t, N_META_STORAGES > index() const {
             using index_range = boost::mpl::range_c< int_t, 0, N_META_STORAGES >;
@@ -364,13 +346,13 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        int_t i() const { return m_block_base_i + m_index_i; }
+        int_t i() const { return m_i_block_base + m_i_block_index; }
 
         GT_FUNCTION
-        int_t j() const { return m_block_base_j + m_index_j; }
+        int_t j() const { return m_j_block_base + m_j_block_index; }
 
         GT_FUNCTION
-        int_t k() const { return m_index_k; }
+        int_t k() const { return m_k_block_index; }
 
       private:
         GT_FUNCTION
@@ -410,12 +392,13 @@ namespace gridtools {
                 boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type::value;
             constexpr int_t halo_i = StorageInfo::halo_t::template at< 0 >();
             constexpr int_t halo_j = StorageInfo::halo_t::template at< 1 >();
-            const int_t block_offset = Coordinate == 0 ? (is_tmp ? halo_i : m_block_base_i)
-                                                       : Coordinate == 1 ? (is_tmp ? halo_j : m_block_base_j) : 0;
+            const int_t block_offset = Coordinate == 0 ? (is_tmp ? halo_i : m_i_block_base)
+                                                       : Coordinate == 1 ? (is_tmp ? halo_j : m_j_block_base) : 0;
 
             // index offset in i-, j- and k-dimension
-            const int_t index_offset =
-                Coordinate == 0 ? m_index_i : Coordinate == 1 ? m_index_j : Coordinate == 2 ? m_index_k : 0;
+            const int_t index_offset = Coordinate == 0 ? m_i_block_index : Coordinate == 1
+                                                                               ? m_j_block_index
+                                                                               : Coordinate == 2 ? m_k_block_index : 0;
 
             // accessor offset in all dimensions
             constexpr int_t accessor_index =
