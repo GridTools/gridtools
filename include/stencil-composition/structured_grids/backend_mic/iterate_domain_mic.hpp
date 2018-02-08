@@ -344,11 +344,8 @@ namespace gridtools {
             return is_masked ? 0 : is_max ? 1 : m_strides.template get< storage_info_index >()[layout_val];
         }
 
-        template < typename StorageInfo,
-            typename Accessor,
-            int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
-        GT_FUNCTION int_t compute_offset(Accessor const &accessor,
-            std::integral_constant< int_t, Coordinate > = std::integral_constant< int_t, Coordinate >()) const {
+        template < typename StorageInfo, int_t Coordinate >
+        GT_FUNCTION int_t base_offset() const {
             // block offset in i- and j-dimension
             constexpr bool is_tmp =
                 boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type::value;
@@ -361,6 +358,16 @@ namespace gridtools {
             const int_t index_offset = Coordinate == 0 ? m_i_block_index : Coordinate == 1
                                                                                ? m_j_block_index
                                                                                : Coordinate == 2 ? m_k_block_index : 0;
+            return block_offset + index_offset;
+        }
+
+        template < typename StorageInfo,
+            typename Accessor,
+            int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
+        GT_FUNCTION typename std::enable_if< (Coordinate >= 0), int_t >::type compute_offset(
+            Accessor const &accessor) const {
+            // base index offset
+            const int_t index_offset = base_offset< StorageInfo, Coordinate >();
 
             // accessor offset in all dimensions
             constexpr int_t accessor_index =
@@ -368,14 +375,14 @@ namespace gridtools {
             const int_t accessor_offset = accessor.template get< accessor_index >();
 
             // total offset
-            const int_t offset = (block_offset + index_offset + accessor_offset) * stride< StorageInfo, Coordinate >();
+            const int_t offset = (index_offset + accessor_offset) * stride< StorageInfo, Coordinate >();
 
             // recursively add offsets of lower dimensions
-            return offset + compute_offset< StorageInfo >(accessor, std::integral_constant< int_t, Coordinate - 1 >());
+            return offset + compute_offset< StorageInfo, Accessor, Coordinate - 1 >(accessor);
         }
 
-        template < typename StorageInfo, typename Accessor >
-        GT_FUNCTION int_t compute_offset(Accessor const &, std::integral_constant< int_t, -1 >) const {
+        template < typename StorageInfo, typename Accessor, int_t Coordinate >
+        GT_FUNCTION typename std::enable_if< (Coordinate == -1), int_t >::type compute_offset(Accessor const &) const {
             // base case of recursive offset computation
             return 0;
         }
