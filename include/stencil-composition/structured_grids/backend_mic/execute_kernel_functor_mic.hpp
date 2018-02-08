@@ -239,18 +239,7 @@ namespace gridtools {
                 using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
                 using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
-                using data_ptr_cached_t = typename iterate_domain_t::data_ptr_cached_t;
-                using strides_cached_t = typename iterate_domain_t::strides_cached_t;
-
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
-
-                data_ptr_cached_t data_ptr;
-                strides_cached_t strides;
-                it_domain.set_data_pointer_impl(&data_ptr);
-                it_domain.set_strides_pointer_impl(&strides);
-
-                it_domain.template assign_storage_pointers< backend_traits_t >();
-                it_domain.template assign_stride_pointers< backend_traits_t, strides_cached_t >();
 
                 boost::mpl::for_each< loop_intervals_t >(
                     gridtools::_impl::interval_functor_mic< RunFunctorArguments, ExecutionInfo >(

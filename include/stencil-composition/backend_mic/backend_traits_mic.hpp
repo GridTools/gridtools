@@ -39,7 +39,6 @@
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
-#include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_mic.hpp"
 #include "run_esf_functor_mic.hpp"
 #include "strategy_mic.hpp"
@@ -206,11 +205,6 @@ namespace gridtools {
                 select_basic_iterate_domain< IterateDomainArguments >,
 #endif
                 select_basic_iterate_domain< IterateDomainArguments > >::type type;
-        };
-
-        template < typename IterateDomainArguments >
-        struct select_iterate_domain_cache {
-            typedef empty_iterate_domain_cache type;
         };
 
 #ifdef ENABLE_METERS

@@ -136,6 +136,7 @@ namespace test_iterate_domain {
         GRIDTOOLS_STATIC_ASSERT(
             it_domain_t::N_DATA_POINTERS == 23, "bug in iterate domain, incorrect number of data pointers");
 
+#ifndef BACKEND_MIC
         typename it_domain_t::data_ptr_cached_t data_pointer;
         typedef typename it_domain_t::strides_cached_t strides_t;
         strides_t strides;
@@ -145,6 +146,7 @@ namespace test_iterate_domain {
 
         it_domain.template assign_storage_pointers< backend_traits_t >();
         it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
+#endif
 
         // check data pointers initialization
         assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[0] ==
@@ -196,10 +198,12 @@ namespace test_iterate_domain {
                 out.get< 2, 0 >().get_storage_ptr()->get_cpu_ptr()));
         assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[5] ==
                 out.get< 2, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        // check field storage access
+// check field storage access
 
-        // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
+// using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
+#ifndef BACKEND_MIC
         it_domain.reset_index();
+#endif
         auto inv = make_field_host_view(in);
         inv.get< 0, 0 >()(0, 0, 0, 0) = 0.; // is accessor<0>
         inv.get< 0, 1 >()(0, 0, 0, 0) = 1.;
@@ -327,17 +331,21 @@ namespace test_iterate_domain {
         auto mdi = in.template get< 0, 0 >().get_storage_info_ptr();
 
         array< int_t, 3 > new_index;
+#ifdef BACKEND_MIC
+        it_domain.set_i_block_index(1);
+        it_domain.set_j_block_index(1);
+        it_domain.set_k_block_index(1);
+#else
         it_domain.increment< 0, static_uint< 1 > >(); // increment i
         it_domain.increment< 1, static_uint< 1 > >(); // increment j
         it_domain.increment< 2, static_uint< 1 > >(); // increment k
+#endif
         new_index = it_domain.index();
 
         // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra
         // stride
         assert(index[0] + mdi->template stride< 0 >() + mdi->template stride< 1 >() + mdi->template stride< 2 >() ==
                new_index[0]);
-        // std::cout<<index[1]<<" + "<<buff.strides<0>(buff.strides()) << " + " << buff.strides<1>(buff.strides()) << "
-        // + " << buff.strides<2>(buff.strides())<<std::endl;
 
         assert(index[1] + mdb->template stride< 0 >() + mdb->template stride< 1 >() + mdb->template stride< 2 >() ==
                new_index[1]);
@@ -403,6 +411,7 @@ namespace test_iterate_domain {
 
 #endif
 
+#ifndef BACKEND_MIC
         // check strides initialization
         // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
         assert(mdi->template stride< 3 >() == strides.get< 0 >()[0]);
@@ -413,6 +422,7 @@ namespace test_iterate_domain {
         assert(mdb->template stride< 1 >() == strides.get< 1 >()[1]); // 3D storage
 
         assert(mdo->template stride< 0 >() == strides.get< 2 >()[0]); // 2D storage
+#endif
 
         return true;
     }

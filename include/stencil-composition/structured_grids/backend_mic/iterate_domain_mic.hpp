@@ -72,13 +72,7 @@ namespace gridtools {
         using iterate_domain_reduction_t = iterate_domain_reduction< iterate_domain_arguments_t >;
         using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
         using grid_traits_t = typename iterate_domain_arguments_t::grid_traits_t;
-        using processing_elements_block_size_t = typename iterate_domain_arguments_t::processing_elements_block_size_t;
-        using backend_id_t =
-            typename iterate_domain_backend_id< iterate_domain_mic< iterate_domain_arguments_t > >::type;
-        using backend_traits_t = backend_traits_from_id< backend_id_t::value >;
-        using iterate_domain_cache_t = typename backend_traits_from_id<
-            backend_id_t::value >::template select_iterate_domain_cache< iterate_domain_arguments_t >::type;
-        using all_caches_t = typename iterate_domain_cache_t::all_caches_t;
+        using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
 
         //***************** end of internal type definitions
@@ -95,14 +89,6 @@ namespace gridtools {
         template < typename Accessor >
         struct accessor_holds_data_field {
             using type = typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type;
-        };
-
-        /**
-         * metafunction that determines if a given accessor is associated with an arg that is cached
-         */
-        template < typename Accessor >
-        struct cache_access_accessor {
-            using type = typename accessor_is_cached< Accessor, all_caches_t >::type;
         };
 
         /**
@@ -134,8 +120,8 @@ namespace gridtools {
       protected:
         // *********************** members **********************
         local_domain_t const &local_domain;
-        data_ptr_cached_t *RESTRICT m_data_pointer;
-        strides_cached_t *RESTRICT m_strides;
+        data_ptr_cached_t m_data_pointer;
+        strides_cached_t m_strides;
         int_t m_i_block_index, m_j_block_index, m_k_block_index, m_i_block_base, m_j_block_base;
         int_t m_prefetch_distance;
         // ******************* end of members *******************
@@ -166,39 +152,22 @@ namespace gridtools {
       public:
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_data_pointer(nullptr),
-              m_strides(nullptr), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_prefetch_distance(0) {}
-
-        GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer() const { return *m_data_pointer; }
-
-        GT_FUNCTION void set_data_pointer_impl(data_ptr_cached_t *RESTRICT data_pointer) {
-            assert(data_pointer);
-            m_data_pointer = data_pointer;
-        }
-
-        GT_FUNCTION void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
-            assert(strides);
-            m_strides = strides;
-        }
-
-        template < typename BackendType >
-        GT_FUNCTION void assign_storage_pointers() {
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_i_block_index(0),
+              m_j_block_index(0), m_k_block_index(0), m_prefetch_distance(0) {
+            // assign storage pointers
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                assign_storage_ptrs< BackendType,
+                assign_storage_ptrs< backend_traits_t,
                                         data_ptr_cached_t,
                                         local_domain_t,
-                                        processing_elements_block_size_t,
-                                        grid_traits_t >(data_pointer(), local_domain.m_local_storage_info_ptrs));
+                                        block_size< 0, 0, 0 >,
+                                        grid_traits_t >(m_data_pointer, local_domain.m_local_storage_info_ptrs));
+            // assign stride pointers
+            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+                assign_strides< backend_traits_t, strides_cached_t, local_domain_t, block_size< 0, 0, 0 > >(m_strides));
         }
 
-        template < typename BackendType, typename Strides >
-        GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), GT_INTERNAL_ERROR);
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides< BackendType, strides_cached_t, local_domain_t, processing_elements_block_size_t >(
-                                        *m_strides));
-        }
+        GT_FUNCTION
+        data_ptr_cached_t const &RESTRICT data_pointer() const { return m_data_pointer; }
 
         GT_FUNCTION void set_block_base(int_t i_block_base, int_t j_block_base) {
             m_i_block_base = i_block_base;
@@ -243,7 +212,7 @@ namespace gridtools {
 
             using acc_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
-            return data_pointer().template get< index_t::value >()[0];
+            return m_data_pointer.template get< index_t::value >()[0];
         }
 
         template < typename Accessor >
@@ -268,7 +237,7 @@ namespace gridtools {
             assert(
                 idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
 
-            return data_pointer().template get< index_t::value >()[idx];
+            return m_data_pointer.template get< index_t::value >()[idx];
         }
 
         template < typename Container, typename Tuple, uint_t... Ids >
@@ -295,21 +264,17 @@ namespace gridtools {
                 ->template dim< Coordinate >();
         }
 
-        template < typename Accessor >
-        using cached = typename cache_access_accessor< Accessor >::type;
-
         template < uint_t I >
         GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type operator()(
             global_accessor< I > const &accessor) {
             using return_t = typename accessor_return_type< global_accessor< I > >::type;
             using index_t = typename global_accessor< I >::index_t;
-            return *static_cast< return_t * >(data_pointer().template get< index_t::value >()[0]);
+            return *static_cast< return_t * >(m_data_pointer.template get< index_t::value >()[0]);
         }
 
         template < typename Accessor >
-        GT_FUNCTION typename boost::disable_if< boost::mpl::or_< cached< Accessor >,
-                                                    boost::mpl::not_< is_accessor< Accessor > >,
-                                                    is_global_accessor< Accessor > >,
+        GT_FUNCTION typename boost::disable_if<
+            boost::mpl::or_< boost::mpl::not_< is_accessor< Accessor > >, is_global_accessor< Accessor > >,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
@@ -356,10 +321,7 @@ namespace gridtools {
 
       private:
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const { return *m_strides; }
-
-        GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer() { return *m_data_pointer; }
+        data_ptr_cached_t &RESTRICT data_pointer() { return m_data_pointer; }
 
         friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< iterate_domain_mic >(
             iterate_domain_mic &);
@@ -379,14 +341,14 @@ namespace gridtools {
 
             constexpr int_t storage_info_index = boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
                 const StorageInfo * >::type::pos::value;
-            return is_masked ? 0 : is_max ? 1 : strides().template get< storage_info_index >()[layout_val];
+            return is_masked ? 0 : is_max ? 1 : m_strides.template get< storage_info_index >()[layout_val];
         }
 
         template < typename StorageInfo,
             typename Accessor,
             int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
-        GT_FUNCTION int_t compute_offset(
-            Accessor const &accessor, boost::mpl::int_< Coordinate > = boost::mpl::int_< Coordinate >()) const {
+        GT_FUNCTION int_t compute_offset(Accessor const &accessor,
+            std::integral_constant< int_t, Coordinate > = std::integral_constant< int_t, Coordinate >()) const {
             // block offset in i- and j-dimension
             constexpr bool is_tmp =
                 boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type::value;
@@ -409,11 +371,11 @@ namespace gridtools {
             const int_t offset = (block_offset + index_offset + accessor_offset) * stride< StorageInfo, Coordinate >();
 
             // recursively add offsets of lower dimensions
-            return offset + compute_offset< StorageInfo >(accessor, boost::mpl::int_< Coordinate - 1 >());
+            return offset + compute_offset< StorageInfo >(accessor, std::integral_constant< int_t, Coordinate - 1 >());
         }
 
         template < typename StorageInfo, typename Accessor >
-        GT_FUNCTION int_t compute_offset(Accessor const &, boost::mpl::int_< -1 >) const {
+        GT_FUNCTION int_t compute_offset(Accessor const &, std::integral_constant< int_t, -1 >) const {
             // base case of recursive offset computation
             return 0;
         }
@@ -454,11 +416,8 @@ namespace gridtools {
         const int_t pointer_offset = compute_offset< storage_info_t >(accessor);
 
 #ifndef NDEBUG
-        GTASSERT((pointer_oob_check< backend_traits_t,
-            processing_elements_block_size_t,
-            local_domain_t,
-            arg_t,
-            grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
+        GTASSERT((pointer_oob_check< backend_traits_t, block_size< 0, 0, 0 >, local_domain_t, arg_t, grid_traits_t >(
+            storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
 #ifdef __SSE__
