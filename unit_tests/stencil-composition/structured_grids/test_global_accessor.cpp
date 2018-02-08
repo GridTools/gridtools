@@ -42,8 +42,6 @@
 
 #include "backend_select.hpp"
 
-#include "backend_select.hpp"
-
 using namespace gridtools;
 using namespace enumtype;
 

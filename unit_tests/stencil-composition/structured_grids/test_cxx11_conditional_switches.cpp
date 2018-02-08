@@ -38,8 +38,6 @@
 
 #include "backend_select.hpp"
 
-#include "backend_select.hpp"
-
 namespace test_conditional_switches {
     using namespace gridtools;
     using namespace enumtype;
