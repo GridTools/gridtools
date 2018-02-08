@@ -35,7 +35,9 @@
 */
 #pragma once
 
+#ifdef __SSE__
 #include <xmmintrin.h>
+#endif
 
 #include "common/gt_assert.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
@@ -476,11 +478,13 @@ namespace gridtools {
             grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
+#ifdef __SSE__
         if (m_prefetch_distance != 0) {
             const int_t prefetch_offset = m_prefetch_distance * stride< storage_info_t, 2 >();
             _mm_prefetch(
                 reinterpret_cast< const char * >(&real_storage_pointer[pointer_offset + prefetch_offset]), _MM_HINT_T1);
         }
+#endif
         return real_storage_pointer[pointer_offset];
     }
 
