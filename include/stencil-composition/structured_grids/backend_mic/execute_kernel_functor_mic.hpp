@@ -137,7 +137,7 @@ namespace gridtools {
                 const int_t j_last = m_execution_info.j_block_size + extent_t::jplus::value;
 
                 run_esf_functor_t run_esf(m_it_domain);
-                m_it_domain.set_index(0, 0, 0, m_execution_info.i_first, m_execution_info.j_first);
+                m_it_domain.set_index(0, 0, m_execution_info.k, m_execution_info.i_first, m_execution_info.j_first);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.template set_block_index< 1 >(j);
 // TODO: fix vectorization for ICC
