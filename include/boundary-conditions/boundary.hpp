@@ -83,7 +83,7 @@ namespace gridtools {
         struct proper_view< enumtype::Mic, AM, DataF > {
             using proper_view_t = decltype(make_host_view< AM, DataF >(std::declval< DataF >()));
 
-            static proper_view_t make(DataF &df) { return make_host_view< AM >(df); }
+            static proper_view_t make(DataF const &df) { return make_host_view< AM >(df); }
         };
 
 #ifdef __CUDACC__
