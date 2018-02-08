@@ -50,9 +50,6 @@ namespace gridtools {
     template < ushort_t Coordinate >
     struct dimension {
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#define constexpr
-#endif
         GT_FUNCTION constexpr dimension() : value(0) {}
 
         template < typename IntType >
@@ -66,10 +63,6 @@ namespace gridtools {
         /**@brief Constructor*/
         GT_FUNCTION
         constexpr dimension(dimension const &other) : value(other.value) {}
-
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#undef constexpr
-#endif
 
         static const ushort_t index = Coordinate;
         int_t value;

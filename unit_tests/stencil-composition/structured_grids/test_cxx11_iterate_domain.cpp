@@ -209,7 +209,6 @@ namespace test_iterate_domain {
         inv.get< 2, 0 >()(0, 0, 0, 0) = 20.;
 
 #ifdef CUDA8
-#ifndef GT_NO_CONSTEXPR_ACCESSES
         assert(
             it_domain(alias< inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >, dimension< 6 > >::set< 0 >()) == 0.);
         assert(
@@ -223,7 +222,6 @@ namespace test_iterate_domain {
                        1 >()) == 11.);
         assert(
             it_domain(alias< inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >, dimension< 5 > >::set< 2 >()) == 20.);
-#endif // GT_NO_CONSTEXPR_ACCESSES
 
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
         auto buffv = make_field_host_view(buff);
@@ -239,7 +237,6 @@ namespace test_iterate_domain {
         buffv.get< 1, 5 >()(0, 0, 0) = 15.;
         buffv.get< 1, 6 >()(0, 0, 0) = 16.;
 
-#ifndef GT_NO_CONSTEXPR_ACCESSES
         assert(it_domain(
                    alias< accessor< 1, enumtype::in, extent< 0, 0, 0, 0, 0 >, 5 >, dimension< 5 > >::set< 0 >()) == 0.);
         assert(it_domain(
@@ -267,7 +264,6 @@ namespace test_iterate_domain {
         assert(it_domain(alias< accessor< 1, enumtype::in, extent< 0, 0, 0, 0, 0 >, 5 >,
                    dimension< 4 >,
                    dimension< 5 > >::set< 1, 6 >()) == 16.);
-#endif // GT_NO_CONSTEXPR_ACCESSES
 
         auto outv = make_field_host_view(out);
         outv.get< 0, 0 >()(0, 0) = 0.; // is accessor<2>
@@ -348,13 +344,7 @@ namespace test_iterate_domain {
 
         assert(index[2] + mdo->template stride< 0 >() + mdo->template stride< 1 >() == new_index[2]);
 
-// check offsets for the space dimensions
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 0 >, 6 > d1_(1, 0, 0, 0, 1, 1);
-        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 0 >, 6 > d2_(0, 1, 0, 0, 1, 1);
-        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 0 >, 6 > d3_(0, 0, 1, 0, 1, 1);
-        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 0 >, 6 > d4_(0, 0, 0, 1, 1, 1);
-#else
+        // check offsets for the space dimensions
         using in_1_1 = alias< accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 0 >, 6 >,
             dimension< 6 >,
             dimension< 5 > >::set< 1, 1 >;
@@ -363,7 +353,6 @@ namespace test_iterate_domain {
         auto d2_ = in_1_1{dimension< 2 >{1}};
         auto d3_ = in_1_1{dimension< 3 >{1}};
         auto d4_ = in_1_1{dimension< 4 >{1}};
-#endif // GT_NO_CONSTEXPR_ACCESSES
         assert(((float_type *)(&inv.get< 1, 1 >()(0, 0, 0, 0) + new_index[0] + mdi->template stride< 0 >() ==
                                &it_domain(d1_))));
 
@@ -376,20 +365,14 @@ namespace test_iterate_domain {
         assert(((float_type *)(&inv.get< 1, 1 >()(0, 0, 0, 0) + new_index[0] + mdi->template stride< 3 >() ==
                                &it_domain(d4_))));
 
-// check offsets for the space dimensions
-
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-        accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, 0 >, 5 > b1_(1, 0, 0, 1, 1);
-        accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, 0 >, 5 > b2_(0, 1, 0, 1, 1);
-        accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, 0 >, 5 > b3_(0, 0, 1, 1, 1);
-#else
+        // check offsets for the space dimensions
         using buff_1_1 =
             alias< accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, 0 >, 5 >, dimension< 5 >, dimension< 4 > >::set< 1,
                 1 >;
         auto b1_ = buff_1_1{dimension< 1 >{1}};
         auto b2_ = buff_1_1{dimension< 2 >{1}};
         auto b3_ = buff_1_1{dimension< 3 >{1}};
-#endif // GT_NO_CONSTEXPR_ACCESSES
+
         assert(((float_type *)(&buffv.get< 1, 1 >()(0, 0, 0) + new_index[1] + mdb->template stride< 0 >() ==
                                &it_domain(b1_))));
 
@@ -399,30 +382,24 @@ namespace test_iterate_domain {
         assert(((float_type *)(&buffv.get< 1, 1 >()(0, 0, 0) + new_index[1] + mdb->template stride< 2 >() ==
                                &it_domain(b3_))));
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-        inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 > c1_(1, 0, 1, 1);
-        inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 > c2_(0, 1, 1, 1);
-#else
         using out_1 =
             alias< inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >, dimension< 4 >, dimension< 3 > >::set< 1, 1 >;
 
         auto c1_ = out_1{dimension< 1 >{1}};
         auto c2_ = out_1{dimension< 2 >{1}};
-#endif // GT_NO_CONSTEXPR_ACCESSES
+
         assert((
             (float_type *)(&outv.get< 1, 1 >()(0, 0) + new_index[2] + mdo->template stride< 0 >() == &it_domain(c1_))));
 
         assert((
             (float_type *)(&outv.get< 1, 1 >()(0, 0) + new_index[2] + mdo->template stride< 1 >() == &it_domain(c2_))));
 
-#ifndef GT_NO_CONSTEXPR_ACCESSES
         // check runtime alias arguments
         alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > > acc_(1, 1);
         using acc_t =
             alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > >::set< 1,
                 1 >;
         assert(&it_domain(acc_t(dimension< 1 >(1))) == &it_domain(acc_(dimension< 1 >(1))));
-#endif // GT_NO_CONSTEXPR_ACCESSES
 
 #endif
 

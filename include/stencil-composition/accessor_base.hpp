@@ -104,10 +104,6 @@ namespace gridtools {
         friend struct accessor_base;
 
       public:
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#define constexpr
-#endif
-
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount
            of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I
@@ -168,11 +164,7 @@ namespace gridtools {
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#undef constexpr
-#endif
-
-        static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
+        static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extent() << " "; }
 
         template < short_t Idx >
         GT_FUNCTION constexpr bool end() const {

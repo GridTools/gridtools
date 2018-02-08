@@ -59,11 +59,7 @@ namespace test_cycle_and_swap {
         }
     };
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-    dimension< 1 > i;
-#else
     constexpr dimension< 1 > i;
-#endif // GT_NO_CONSTEXPR_ACCESSES
 
     struct functor_avg {
         typedef inout_accessor< 0, extent<>, 5 > p_data;

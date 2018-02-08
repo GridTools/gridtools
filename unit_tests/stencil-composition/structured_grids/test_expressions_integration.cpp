@@ -123,15 +123,9 @@ namespace {
         typedef boost::mpl::vector< val2, val3, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-            gridtools::dimension< 1 > i{};
-            gridtools::dimension< 2 > j{};
-            gridtools::dimension< 3 > k{};
-#else
             constexpr gridtools::dimension< 1 > i{};
             constexpr gridtools::dimension< 2 > j{};
             constexpr gridtools::dimension< 3 > k{};
-#endif // GT_NO_CONSTEXPR_ACCESSES
 
             // starts the cascade
             int index = 0;

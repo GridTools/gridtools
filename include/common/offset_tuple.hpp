@@ -51,10 +51,6 @@
 
 namespace gridtools {
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#define constexpr
-#endif
-
     /**@brief method for initializing the offsets in the placeholder
        Version valid for one dimension
        \param x is an instance of the \ref gridtools::enumtype::dimension class, which contains the offset (x.value) and
@@ -181,10 +177,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr offset_tuple() : super(), m_offset(0) {}
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#undef constexpr
-#endif
-
         template < short_t Idx >
         GT_FUNCTION constexpr bool end() const {
             return Idx == n_args - 1 ? false : super::template end< Idx >();
@@ -229,10 +221,6 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dimensions = NDim;
 
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#define constexpr
-#endif
-
         template < size_t ArrayDim,
             typename... Dimensions,
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
@@ -251,11 +239,6 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr offset_tuple() {}
-
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-#undef constexpr
-#endif
-
         static const short_t n_args = 0;
 
         template < short_t Idx >

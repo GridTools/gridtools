@@ -49,29 +49,6 @@ void test_offset_tuple(bool *result) {
     using namespace gridtools;
     *result = true;
 #if !defined(__CUDACC__)
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-    {
-        array< int_t, 4 > pos{2, 5, 8, -6};
-        offset_tuple< 4, 4 > offsets(0, pos);
-
-        ASSERT_EQ(offsets.get< 0 >(), -6);
-        ASSERT_EQ(offsets.get< 1 >(), 8);
-        ASSERT_EQ(offsets.get< 2 >(), 5);
-        ASSERT_EQ(offsets.get< 3 >(), 2);
-    }
-
-    {
-        array< int_t, 4 > pos{2, 5, 8, -6};
-        dimension< 4 > dim(2);
-        offset_tuple< 5, 5 > offsets(0, pos, dim);
-
-        ASSERT_EQ(offsets.get< 0 >(), 2);
-        ASSERT_EQ(offsets.get< 1 >(), -6);
-        ASSERT_EQ(offsets.get< 2 >(), 8);
-        ASSERT_EQ(offsets.get< 3 >(), 5);
-        ASSERT_EQ(offsets.get< 4 >(), 2);
-    }
-#else
     {
         constexpr array< int_t, 4 > pos{2, 5, 8, -6};
         constexpr offset_tuple< 4, 4 > offsets(0, pos);
@@ -93,8 +70,8 @@ void test_offset_tuple(bool *result) {
         GRIDTOOLS_STATIC_ASSERT((static_int< offsets.get< 3 >() >::value == 5), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_int< offsets.get< 4 >() >::value == 2), "Error");
     }
-#endif // GT_NO_CONSTEXPR_OFFSET_TUPL
-#endif // __CUDACC__
+
+#endif
     {
         array< int_t, 4 > pos{2, 5, 8, -6};
         offset_tuple< 4, 4 > offsets(0, pos);
@@ -105,7 +82,7 @@ void test_offset_tuple(bool *result) {
         *result &= ((offsets.get< 3 >() == 2));
     }
 
-#if !defined(__CUDACC__) && !defined(GT_NO_CONSTEXPR_ACCESSES)
+#if !defined(__CUDACC__)
     typedef offset_tuple_mixed< offset_tuple< 3, 3 >, pair_< 1, 8 >, pair_< 2, 7 > > offset_tuple_mixed_t;
 
     offset_tuple_mixed_t offset(11, 12, 13);
@@ -125,17 +102,6 @@ void test_offset_tuple_array_and_dim(bool *result) {
     using namespace gridtools;
     *result = true;
 #if defined(NDEBUG) && !defined(__CUDACC__)
-#ifdef GT_NO_CONSTEXPR_ACCESSES
-    {
-        array< int_t, 4 > pos{2, 5, 8, -6};
-        offset_tuple< 4, 4 > offsets(0, pos, dimension< 2 >(3), dimension< 3 >(-2));
-
-        ASSERT_EQ(offsets.get< 0 >(), -8);
-        ASSERT_EQ(offsets.get< 1 >(), 11);
-        ASSERT_EQ(offsets.get< 2 >(), 5);
-        ASSERT_EQ(offsets.get< 3 >(), 2);
-    }
-#else
     {
         constexpr array< int_t, 4 > pos{2, 5, 8, -6};
         constexpr offset_tuple< 4, 4 > offsets(0, pos, dimension< 2 >(3), dimension< 3 >(-2));
@@ -145,7 +111,6 @@ void test_offset_tuple_array_and_dim(bool *result) {
         GRIDTOOLS_STATIC_ASSERT((static_int< offsets.get< 2 >() >::value == 5), "Error");
         GRIDTOOLS_STATIC_ASSERT((static_int< offsets.get< 3 >() >::value == 2), "Error");
     }
-#endif // GT_NO_CONSTEXPR_ACCESSES
 #endif
     {
         array< int_t, 4 > pos{2, 5, 8, -6};
