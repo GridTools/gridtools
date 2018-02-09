@@ -37,7 +37,6 @@
 #pragma once
 
 #include <array>
-#include <iostream>
 
 #include <boost/mpl/vector_c.hpp>
 
