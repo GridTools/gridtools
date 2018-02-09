@@ -40,6 +40,8 @@
 #endif
 
 #include "common/gt_assert.hpp"
+#include "common/generic_metafunctions/for_each.hpp"
+#include "common/generic_metafunctions/meta.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
@@ -115,6 +117,7 @@ namespace gridtools {
 
         using data_ptr_cached_t = data_ptr_cached< typename local_domain_t::storage_wrapper_list_t >;
         using strides_cached_t = strides_cached< N_META_STORAGES - 1, storage_info_ptrs_t >;
+        using array_index_t = array< int_t, N_META_STORAGES >;
         // *************** end of type definitions **************
 
       protected:
@@ -128,20 +131,18 @@ namespace gridtools {
 
         // helper class for index array generation
         struct index_getter {
-            index_getter(iterate_domain_mic const &it_domain, array< int_t, N_META_STORAGES > &index_array)
+            index_getter(iterate_domain_mic const &it_domain, array_index_t &index_array)
                 : m_it_domain(it_domain), m_index_array(index_array) {}
 
             template < class StorageInfoIndex >
-            void operator()(StorageInfoIndex) {
-                const auto *storage_info =
-                    boost::fusion::at< StorageInfoIndex >(m_it_domain.local_domain.m_local_storage_info_ptrs);
-                using storage_info_t = typename boost::remove_pointer< decltype(storage_info) >::type;
-                const int_t stride_i = m_it_domain.stride< storage_info_t, 0 >();
-                const int_t stride_j = m_it_domain.stride< storage_info_t, 1 >();
-                const int_t stride_k = m_it_domain.stride< storage_info_t, 2 >();
-                m_index_array[StorageInfoIndex::value] = m_it_domain.m_i_block_index * stride_i +
-                                                         m_it_domain.m_j_block_index * stride_j +
-                                                         m_it_domain.m_k_block_index * stride_k;
+            void operator()(StorageInfoIndex const &) const {
+                using storage_info_t =
+                    typename std::remove_const< typename std::remove_pointer< typename std::remove_reference<
+                        typename boost::fusion::result_of::at_c< typename local_domain_t::storage_info_ptr_fusion_list,
+                            StorageInfoIndex::value >::type >::type >::type >::type;
+
+                m_index_array[StorageInfoIndex::value] =
+                    m_it_domain.compute_offset< storage_info_t >(accessor_base< 0, enumtype::inout, extent<>, 3 >());
             }
 
           private:
@@ -178,12 +179,10 @@ namespace gridtools {
         GT_FUNCTION void set_j_block_index(int_t j) { m_j_block_index = j; }
         GT_FUNCTION void set_k_block_index(int_t k) { m_k_block_index = k; }
 
-        GT_FUNCTION array< int_t, N_META_STORAGES > index() const {
-            using index_range = boost::mpl::range_c< int_t, 0, N_META_STORAGES >;
-            array< int_t, N_META_STORAGES > index;
-            index_getter ig(*this, index);
-            boost::mpl::for_each< index_range >(ig);
-            return index;
+        GT_FUNCTION array_index_t index() const {
+            array_index_t index_array;
+            gridtools::for_each< meta::make_indices< N_META_STORAGES > >(index_getter(*this, index_array));
+            return index_array;
         }
 
         GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
@@ -370,8 +369,7 @@ namespace gridtools {
             const int_t index_offset = base_offset< StorageInfo, Coordinate >();
 
             // accessor offset in all dimensions
-            constexpr int_t accessor_index =
-                is_array< Accessor >::value ? Coordinate : Accessor::n_dimensions - 1 - Coordinate;
+            constexpr int_t accessor_index = Accessor::n_dimensions - 1 - Coordinate;
             const int_t accessor_offset = accessor.template get< accessor_index >();
 
             // total offset
