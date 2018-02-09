@@ -120,7 +120,7 @@ if __name__ == "__main__":
     decode = json.load(f)
     
     #Update the hash
-    decode['hash'] = commit_hash
+    decode['hash'] = "" + commit_hash.decode()
     
     f.close()
     fw = open(json_file,'w')
