@@ -50,7 +50,7 @@ else
   GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/compiler/gcc/label/${myhost}/mpi/MPI/"
 fi
 
-export GPATH=${GPATH}/real_type/$PREC/std/$STD/target/$TARGET/build
+export GPATH=${GPATH}/real_type/$PREC/target/$TARGET/build
 export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk_timers/release_$PREC/bin/
 cd ${JENKINSPATH}/
 cmd="python process_ref.py -p $GPATH --target $TARGET --prec $PREC -c -u ${JSON_FILE} --stella_path $STELLA_PATH --gtype ${GTYPE} -v --plot"
