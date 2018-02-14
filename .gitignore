@@ -17,6 +17,10 @@
 
 include/workarounds/
 
+# Python temporary files
+__pycache__
+*.pyc
+
 # ignore everything in the root folder
 /*
 
