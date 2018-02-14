@@ -70,7 +70,7 @@ typedef layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
 typedef layout_map< 3, 2, 1, 0 > layout4_t;
 typedef layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
 
-typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_type;
+typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_global_quad_t > storage_global_quad_t;
 typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_local_quad_t > storage_local_quad_t;
 
@@ -251,8 +251,8 @@ namespace assembly {
         typedef arg< 0, storage_local_quad_t > p_phi;
         typedef arg< 1, storage_local_quad_t > p_psi;
         typedef arg< 2, storage_global_quad_t > p_jac;
-        typedef arg< 3, storage_type > p_f;
-        typedef arg< 4, storage_type > p_result;
+        typedef arg< 3, storage_t > p_f;
+        typedef arg< 4, storage_t > p_result;
 
         typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
 
@@ -290,8 +290,8 @@ namespace assembly {
                     }
 
         storage_info_t meta_(d1, d2, d3, b1, b2, b3);
-        storage_type f(meta_, (float_type)1.3, "f");
-        storage_type result(meta_, (float_type)0., "result");
+        storage_t f(meta_, (float_type)1.3, "f");
+        storage_t result(meta_, (float_type)0., "result");
 
         aggregator_type< accessor_list > domain(phi, psi, jac, f, result);
         /**

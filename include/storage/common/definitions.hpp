@@ -42,4 +42,5 @@
 namespace gridtools {
     enum class access_mode { ReadWrite = 0, ReadOnly = 1 };
     enum class ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
+    enum class storage_type { Host = 0, Cuda = 1 };
 }

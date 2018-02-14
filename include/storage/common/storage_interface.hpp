@@ -125,6 +125,11 @@ namespace gridtools {
          * @return true if the storage is valid, false otherwise
          */
         bool valid() const { return static_cast< Derived const * >(this)->valid_impl(); }
+
+        /*
+         * @return storage_type
+         */
+        storage_type get_storage_type() { return static_cast< Derived * >(this)->get_storage_type_impl(); }
     };
 
     template < typename T >

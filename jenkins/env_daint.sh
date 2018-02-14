@@ -8,7 +8,6 @@ function exit_if_error {
     fi
 }
 
-module unload CMake
 module load daint-gpu
 module load cudatoolkit
 module rm   PrgEnv-cray

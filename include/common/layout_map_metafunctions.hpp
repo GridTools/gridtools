@@ -95,29 +95,6 @@ namespace gridtools {
         typedef layout_map< N1, N2, N3 > type;
     };
 
-    template < short_t D >
-    struct default_layout_map;
-
-    template <>
-    struct default_layout_map< 1 > {
-        typedef layout_map< 0 > type;
-    };
-
-    template <>
-    struct default_layout_map< 2 > {
-        typedef layout_map< 0, 1 > type;
-    };
-
-    template <>
-    struct default_layout_map< 3 > {
-        typedef layout_map< 0, 1, 2 > type;
-    };
-
-    template <>
-    struct default_layout_map< 4 > {
-        typedef layout_map< 0, 1, 2, 3 > type;
-    };
-
     /*
      * metafunction to filter out some of the dimensions of a layout map, determined by the DimSelector
      * Example of use: filter_layout<layout_map<0,1,2,3>, selector<1,1,0,1 > == layout_map<0,1,-1,2>
@@ -194,27 +171,41 @@ namespace gridtools {
         };
     }
 
-    template < typename LayoutMap, ushort_t NExtraDim >
+    enum class InsertLocation { pre, post };
+
+    template < typename LayoutMap, ushort_t NExtraDim, InsertLocation Location = InsertLocation::pre >
     struct extend_layout_map;
 
     /*
      * metafunction to extend a layout_map with certain number of dimensions.
      * Example of use: extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
      */
-    template < ushort_t NExtraDim, int_t... Args >
-    struct extend_layout_map< layout_map< Args... >, NExtraDim > {
+    template < ushort_t NExtraDim, int_t... Args, InsertLocation Location >
+    struct extend_layout_map< layout_map< Args... >, NExtraDim, Location > {
 
-        template < typename T, int_t... InitialInts >
+        template < InsertLocation Loc, typename T, int_t... InitialInts >
         struct build_ext_layout;
 
         // build an extended layout
         template < int_t... Indices, int_t... InitialIndices >
-        struct build_ext_layout< gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
+        struct build_ext_layout< InsertLocation::pre, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
             typedef layout_map< InitialIndices..., Indices... > type;
+        };
+        template < int_t... Indices, int_t... InitialIndices >
+        struct build_ext_layout< InsertLocation::post, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
+            typedef layout_map< Indices..., InitialIndices... > type;
         };
 
         using seq = typename make_gt_integer_sequence< int_t, NExtraDim >::type;
 
-        typedef typename build_ext_layout< seq, impl::inc_< Args, NExtraDim >::value... >::type type;
+        typedef typename build_ext_layout< Location, seq, impl::inc_< Args, NExtraDim >::value... >::type type;
     };
+
+    template < short_t D >
+    struct default_layout_map {
+        using type = typename extend_layout_map< layout_map<>, D, InsertLocation::post >::type;
+    };
+
+    template < short_t D >
+    using default_layout_map_t = typename default_layout_map< D >::type;
 }
