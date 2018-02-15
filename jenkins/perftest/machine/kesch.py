@@ -3,17 +3,24 @@
 import os
 import textwrap
 
-
-def stella_path(grid, precision, backend):
-    return os.path.join('/project', 'c14', 'install', 'kesch', 'stella',
-                        'trunk_timers', f'release_{precision}', 'bin')
+from perftest.runtime import StellaRuntimeBase, GridtoolsRuntimeBase
 
 
-def gridtools_path(grid, precision, backend):
-    return os.path.join('/scratch', 'jenkins', 'workspace',
-                        f'GridTools_{grid}_PR', 'build_type', 'release',
-                        'compiler', 'gcc', 'label', 'kesch', 'mpi', 'MPI',
-                        'real_type', precision, 'target', 'gpu', 'build')
+class StellaRuntime(StellaRuntimeBase):
+    def version(self):
+        return 'trunk'
+
+    def path(self):
+        return os.path.join('/project', 'c14', 'install', 'kesch', 'stella',
+                            'trunk_timers', f'release_{self.precision}', 'bin')
+
+
+class GridtoolsRuntime(GridtoolsRuntimeBase):
+    def path(self):
+        return os.path.join('/scratch', 'jenkins', 'workspace',
+                            f'GridTools_{self.grid}_PR', 'build_type', 'release',
+                            'compiler', 'gcc', 'label', 'kesch', 'mpi', 'MPI',
+                            'real_type', self.precision, 'target', 'gpu', 'build')
 
 
 def sbatch(command):

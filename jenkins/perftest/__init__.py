@@ -6,3 +6,15 @@ class Error(Exception):
 
 class ConfigError(Error):
     pass
+
+
+class NotFoundError(Error):
+    pass
+
+
+class ArgumentError(Error):
+    pass
+
+
+class ParseError(Error):
+    pass

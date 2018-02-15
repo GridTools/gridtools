@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import re
 
 from perftest import ConfigError
 from perftest.helpers import Registry
@@ -20,14 +21,14 @@ class Stencil(metaclass=Registry):
 
     @property
     def name(self):
-        return self.__class__.__name__
+        return re.sub(r'(.)([A-Z]+)', r'\1 \2', self.__class__.__name__).lower()
 
 
 def instantiate(grid):
-    stencils = importlib.import_module('perftest.config.stencils.' + grid)
+    stencils = importlib.import_module('perftest.stencils.' + grid)
     return [cls() for cls in stencils.Stencil.registry]
 
 
 def sizes(grid):
-    stencils = importlib.import_module('perftest.config.stencils.' + grid)
+    stencils = importlib.import_module('perftest.stencils.' + grid)
     return stencils.sizes

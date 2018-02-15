@@ -8,11 +8,9 @@ import subprocess
 import tempfile
 
 
-def run(command, sbatch_gen=None):
-    return run_multiple([command], sbatch_gen)[0]
-
-
-def run_multiple(commands, sbatch_gen=None):
+def run(commands, sbatch_gen=None):
+    if isinstance(commands, str):
+        commands = [commands]
     futures = [asyncio.ensure_future(_run(c, sbatch_gen)) for c in commands]
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*futures))
 
@@ -21,7 +19,7 @@ def run_multiple(commands, sbatch_gen=None):
 
 def _submit(command, sbatch_gen=None):
     if sbatch_gen is None:
-        import perftest.config.machine as machine
+        import perftest.machine as machine
         sbatch_gen = machine.sbatch
 
     with tempfile.NamedTemporaryFile(suffix='.sh', mode='w') as sbatch:

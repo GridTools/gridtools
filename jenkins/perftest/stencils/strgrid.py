@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from perftest.config.stencils import Stencil
+from perftest.stencils import Stencil
 
 
 sizes = [(16, 16, 8)]
