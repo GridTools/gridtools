@@ -4,14 +4,14 @@ import os
 import textwrap
 
 
-def stella_path(grid_type, precision, backend):
+def stella_path(grid, precision, backend):
     return os.path.join('/project', 'c14', 'install', 'kesch', 'stella',
                         'trunk_timers', f'release_{precision}', 'bin')
 
 
-def gridtools_path(grid_type, precision, backend):
+def gridtools_path(grid, precision, backend):
     return os.path.join('/scratch', 'jenkins', 'workspace',
-                        f'GridTools_{grid_type}_PR', 'build_type', 'release',
+                        f'GridTools_{grid}_PR', 'build_type', 'release',
                         'compiler', 'gcc', 'label', 'kesch', 'mpi', 'MPI',
                         'real_type', precision, 'target', 'gpu', 'build')
 

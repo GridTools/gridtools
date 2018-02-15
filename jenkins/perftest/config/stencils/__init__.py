@@ -23,11 +23,11 @@ class Stencil(metaclass=Registry):
         return self.__class__.__name__
 
 
-def instantiate(grid_type):
-    stencils = importlib.import_module('perftest.config.stencils.' + grid_type)
+def instantiate(grid):
+    stencils = importlib.import_module('perftest.config.stencils.' + grid)
     return [cls() for cls in stencils.Stencil.registry]
 
 
-def sizes(grid_type):
-    stencils = importlib.import_module('perftest.config.stencils.' + grid_type)
+def sizes(grid):
+    stencils = importlib.import_module('perftest.config.stencils.' + grid)
     return stencils.sizes
