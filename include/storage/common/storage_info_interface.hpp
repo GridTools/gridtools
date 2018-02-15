@@ -57,6 +57,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     namespace impl_ {
 
         /**
@@ -537,4 +541,8 @@ namespace gridtools {
         : boost::is_base_of<
               storage_info_interface< T::id, typename T::layout_t, typename T::halo_t, typename T::alignment_t >,
               T > {};
+
+    /**
+     * @}
+     */
 }

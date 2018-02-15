@@ -134,10 +134,10 @@ namespace gridtools {
     };
 
     /**
-        If Pred derives from false_type, ::type provide a mpl::vector of placeholders
+        If Pred derives from false_type, `type` provide a mpl::vector of placeholders
         that corresponds to temporary fields that are written by EsfF.
 
-        If Pred derives from true_type, ::type provide a mpl::vector of pairs of
+        If Pred derives from true_type, `type` provide a mpl::vector of pairs of
         placeholders and extents that corresponds to temporary fields that are written by EsfF.
      */
     template < typename EsfF, typename Pred = boost::false_type >
@@ -155,10 +155,10 @@ namespace gridtools {
     };
 
     /**
-        If Pred derives from false_type, ::type provide a mpl::vector of placeholders
+        If Pred derives from false_type, `type` provide a mpl::vector of placeholders
         that corresponds to fields that are read by EsfF.
 
-        If Pred derives from true_type, ::type provide a mpl::vector of pairs of
+        If Pred derives from true_type, `type` provide a mpl::vector of pairs of
         placeholders and extents that corresponds to fields that are read by EsfF.
      */
     template < typename EsfF, typename Pred = boost::false_type >
@@ -177,12 +177,12 @@ namespace gridtools {
     };
 
     /**
-        If Pred derives from false_type, ::type provide a mpl::vector of placeholders
-        that corresponds to fields (temporary or not) that are written by EsfF.
+       If Pred derives from false_type, `type` provide a mpl::vector of placeholders
+       that corresponds to fields (temporary or not) that are written by EsfF.
 
-        If Pred derives from true_type, ::type provide a mpl::vector of pairs of
-        placeholders and extents that corresponds to fields (temporary or not) that are
-        written by EsfF.
+       If Pred derives from true_type, `type` provide a mpl::vector of pairs of
+       placeholders and extents that corresponds to fields (temporary or not) that are
+       written by EsfF.
      */
     template < typename EsfF, typename Pred = boost::false_type >
     struct esf_get_w_per_functor {
@@ -215,10 +215,10 @@ namespace gridtools {
     };
 
     /**
-        If Pred derives from false_type, ::type provide a mpl::vector of placeholders
+        If Pred derives from false_type, then `type` provide a mpl::vector of placeholders
         that corresponds to fields (temporary or not) that are read by EsfF.
 
-        If Pred derives from true_type, ::type provide a mpl::vector of pairs of
+        If Pred derives from true_type, then `type` provide a mpl::vector of pairs of
         placeholders and extents that corresponds to fields (temporary or not) that are
         read by EsfF.
      */

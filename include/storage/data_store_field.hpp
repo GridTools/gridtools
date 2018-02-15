@@ -47,6 +47,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /**
      * @brief data_store_field implementation. This struct provides a pack of data_stores. The different coordinates
      * can have arbitrary sizes. So it is more flexible than a 2-dimensional array of data_stores.
@@ -332,4 +336,8 @@ namespace gridtools {
             by_impl< (sizeof...(N)-1), M >(data_field);
         }
     };
+
+    /**
+     * @}
+     */
 }

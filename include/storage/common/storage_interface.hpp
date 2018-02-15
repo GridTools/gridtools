@@ -45,6 +45,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     struct state_machine;
 
     /*
@@ -129,4 +133,8 @@ namespace gridtools {
 
     template < typename T >
     struct is_storage : boost::is_base_of< storage_interface< T >, T > {};
+
+    /**
+     * @}
+     */
 }

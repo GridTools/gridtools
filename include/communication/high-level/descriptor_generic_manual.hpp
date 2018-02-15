@@ -584,7 +584,7 @@ namespace gridtools {
         /**
            Function to unpack received data
 
-           \param[in] fields vector with data fields pointers to be packed from
+           \param[in] _fields vector with data fields pointers to be packed from
         */
         template < typename T1, typename T2, template < typename > class T3 >
         void pack(std::vector< field_on_the_fly< T1, T2, T3 > > const &_fields) {
@@ -741,7 +741,7 @@ namespace gridtools {
         /**
            Function to unpack received data
 
-           \param[in] fields vector with data fields pointers to be unpacked into
+           \param[in] _fields vector with data fields pointers to be unpacked into
         */
         template < typename T1, typename T2, template < typename > class T3 >
         void unpack(std::vector< field_on_the_fly< T1, T2, T3 > > const &_fields) {

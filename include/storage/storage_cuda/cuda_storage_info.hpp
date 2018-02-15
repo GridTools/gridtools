@@ -43,6 +43,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /*
      * @brief The cuda storage info implementation.
      * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
@@ -111,4 +115,8 @@ namespace gridtools {
 
     template < uint_t Id, typename Layout, typename Halo, typename Alignment >
     struct is_cuda_storage_info< cuda_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

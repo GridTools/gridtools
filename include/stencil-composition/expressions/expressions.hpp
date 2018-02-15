@@ -56,14 +56,15 @@
 namespace gridtools {
 
     /** \ingroup stencil-composition
-        \insection expressions
+        \section expressions
         @{
     */
 
     namespace expressions {
 
-        /**Expressions defining the interface for specifiyng a given offset for a specified dimension
+        /** Expressions defining the interface for specifiyng a given offset for a specified dimension in plus-direction
            \tparam Coordinate: direction in which to apply the offset
+           \param d1 Coordinate id
            \param offset: the offset to be applied in the Coordinate direction
         */
         template < ushort_t Coordinate >
@@ -71,6 +72,12 @@ namespace gridtools {
             return dimension< Coordinate >(offset);
         }
 
+        /** Expressions defining the interface for specifiyng a given offset for a specified dimension in
+           minus-direction
+           \tparam Coordinate: direction in which to apply the offset
+           \param d1 Coordinate id
+           \param offset: the offset to be applied in the Coordinate direction
+        */
         template < ushort_t Coordinate >
         GT_FUNCTION constexpr dimension< Coordinate > operator-(dimension< Coordinate > d1, int const &offset) {
             return dimension< Coordinate >(-offset);

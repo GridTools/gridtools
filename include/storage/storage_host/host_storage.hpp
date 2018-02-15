@@ -44,6 +44,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /*
      * @brief The Host storage implementation. This class owns the pointer
      * to the data. Additionally there is a field that contains information about
@@ -177,4 +181,8 @@ namespace gridtools {
 
     template < typename T >
     struct is_host_storage< host_storage< T > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

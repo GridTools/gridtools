@@ -52,6 +52,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     namespace {
         /**
          * @brief metafunction used to retrieve the appropriate function type that is needed in order
@@ -128,7 +132,7 @@ namespace gridtools {
         }
     }
 
-    /**
+    /** \ingroup storage
      * @brief data_store implementation. This struct wraps storage and storage information in one class.
      * It can be copied and passed around without replicating the data. Automatic cleanup is provided when
      * the last data_store that points to the data is destroyed.
@@ -163,7 +167,8 @@ namespace gridtools {
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
-         * @param info storage info instance
+         * @param info storage_info instance
+         * @param name Human readable name for the data_store
          */
         constexpr data_store(StorageInfo const &info, std::string const &name = "")
             : m_shared_storage(new storage_t(info.padded_total_length())),
@@ -174,6 +179,7 @@ namespace gridtools {
          * Additionally the data is initialized to the given value.
          * @param info storage info instance
          * @param initializer initialization value
+         * @param name Human readable name for the data_store
          */
         constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
             : m_shared_storage(new storage_t(info.padded_total_length(), initializer)),
@@ -185,6 +191,7 @@ namespace gridtools {
          * to the lambda.
          * @param info storage info instance
          * @param initializer initialization lambda
+         * @param name Human readable name for the data_store
          */
         data_store(StorageInfo const &info,
             typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
@@ -197,6 +204,15 @@ namespace gridtools {
             clone_to_device();
         }
 
+        /**
+         * @brief Re-initialize the data of the data_store with the
+         * given initializer.
+         *
+         * Indices of the data_sore element to be initialized are
+         * passed to the initializer if it is a lambda/functor
+         *
+         * @param initializer Either a value or a lambda/functor to perfrom initialization
+         */
         void re_initialize(typename appropriate_function_t< data_t, StorageInfo >::type const &initializer) {
             lambda_initializer(initializer, *m_shared_storage_info, m_shared_storage->get_cpu_ptr());
         }
@@ -208,6 +224,7 @@ namespace gridtools {
          * @param info storage info instance
          * @param external_ptr the external pointer
          * @param own ownership information
+         * @param name Human readable name for the data_store
          */
         template < typename T = data_t *,
             typename boost::enable_if_c< boost::is_pointer< T >::value && boost::is_same< data_t *, T >::value,
@@ -228,6 +245,8 @@ namespace gridtools {
 
         /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
+         *
+         * @param info Storage_info instance
          */
         void allocate(StorageInfo const &info) {
             ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
@@ -373,4 +392,8 @@ namespace gridtools {
 
     template < typename S, typename SI >
     struct is_data_store< data_store< S, SI > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

@@ -397,7 +397,7 @@ namespace gridtools {
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
            placeholder
-           \param arg placeholder containing the storage ID and the offsets
+           \param accessor accessor proxying the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
         // TODO This should be merged with structured grids

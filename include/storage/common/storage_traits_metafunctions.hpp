@@ -50,6 +50,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /* Layout map extender, takes a given layout and extends it by n dimensions (ascending and descending version) */
     template < uint_t Dim, uint_t Current, typename Layout >
     struct layout_map_ext_asc;
@@ -213,4 +217,8 @@ namespace gridtools {
             boost::mpl::int_< -1 > >::type masked_vec;
         typedef typename fix_values< masked_vec, layout_map< select_dimension< Dims, Bitmask >::value... > >::type type;
     };
+
+    /**
+     * @}
+     */
 }

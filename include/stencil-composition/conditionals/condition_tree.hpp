@@ -312,7 +312,7 @@ namespace gridtools {
          *
          * @tparam Fun - the type of the functor to be invoked.
          * @tparam Args - the types of the rest of the arguments that are passed to the functor after the branch
-         * @param fun - the functor to be invoked : fun(<selected_branch>, args...)
+         * @param fun - the functor to be invoked : `fun(<selected_branch>, args...)`
          * @param args - the rest of the arguments that are passed to the functor after the branch
          * @return - what `fun` invocation actually returns. The result type is calculated as a std::common_type
          *           functor invocations return values for all possible branches.

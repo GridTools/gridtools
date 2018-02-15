@@ -50,6 +50,9 @@
 #include "cuda_storage_info.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /**
      * @brief function used to create host views to data stores (read-write/read-only).
@@ -146,4 +149,8 @@ namespace gridtools {
                            : (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
                                  (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu));
     }
+
+    /**
+     * @}
+     */
 }

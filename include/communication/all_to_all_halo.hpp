@@ -88,7 +88,7 @@ namespace gridtools {
            only the operator[]
 
             \param field Pointer to the data do be sent
-            \param Array or vector of type arraytype1 that contains the description of the data to be sent
+            \param halo_block or vector of type arraytype1 that contains the description of the data to be sent
             \param coords Array of vector of absolute coordinates of the process that will receive the data
          */
         template < typename arraytype1, typename arraytype2 >
@@ -111,8 +111,8 @@ namespace gridtools {
             \tparam arraytype2 type of the array of coordinates of the destination process. This is required to have
            only the operator[]
 
-            \param field Pointer to the data do be received
-            \param Array or vector of type arraytype1 that contains the description of the data to be received
+            \param field Pointer to the tata do be received
+            \param halo_block or vector of type arraytype1 that contains the description of the data to be received
             \param coords Array of vector of absolute coordinates of the process that from where the data will be
            received
          */

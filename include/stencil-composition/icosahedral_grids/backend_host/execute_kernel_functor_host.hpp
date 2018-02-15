@@ -138,7 +138,7 @@ namespace gridtools {
 
             /**
             @brief core of the kernel execution
-            @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
+            The parameters define the first iteration point (in ij-plane), the loop dimensions and the blocck-ids
             */
             explicit execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,

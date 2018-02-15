@@ -152,6 +152,7 @@ namespace gridtools {
             trigger any communication call).
 
             \param[in] nprocs Number of processes in the MPI world
+            \param[in] a2a_comm the MPI communicator to use
          */
         all_to_all(int nprocs, MPI_Comm a2a_comm) : a2a_comm(a2a_comm), to(nprocs), from(nprocs) {}
 

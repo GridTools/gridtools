@@ -61,6 +61,10 @@
 
 namespace gridtools {
 
+    /** \ingroup stancil-composition
+     * \{
+     */
+
     /**substituting the std::vector type in the args<> with a correspondent
        expandable_parameter placeholder*/
     template < uint_t Size >
@@ -111,9 +115,9 @@ namespace gridtools {
        computation. The way of callyng this metafunction is to
        do the following
 
-       \begincode
+       \code
        using newmap = compute_extents_of<oldmap>::for_mss<mss>::type;
-       \endcode
+       \endvcode
 
        \tparam PlaceholdersMap placeholders to extents map from where to start
      */
@@ -469,4 +473,7 @@ namespace gridtools {
             reduction_get_extent_for< boost::mpl::_, ExtentMap > >::type;
     };
 
+    /**
+     * @}
+     */
 } // namespace gridtools

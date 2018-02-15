@@ -53,7 +53,7 @@ namespace gridtools {
 
     /**@brief method for initializing the offsets in the placeholder
        Version valid for one dimension
-       \param x is an instance of the \ref gridtools::enumtype::dimension class, which contains the offset (x.value) and
+       \param x is an instance of the \ref gridtools::dimension class, which contains the offset (x.value) and
        the dimension index (X::index)
     */
     template < ushort_t N, typename X >

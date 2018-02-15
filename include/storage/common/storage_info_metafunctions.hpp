@@ -50,6 +50,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /* forward declaration */
     template < typename T >
     struct is_alignment;
@@ -179,4 +183,8 @@ namespace gridtools {
                 get_strides_aux< Layout >::template get_stride< LayoutArgs >(d...)...};
         }
     };
+
+    /**
+     * @}
+     */
 }
