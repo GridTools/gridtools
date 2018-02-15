@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import importlib
-import os
 import platform
 import re
-
-from perftest import ArgumentError
 
 
 def name():

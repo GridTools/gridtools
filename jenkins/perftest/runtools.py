@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import asyncio
@@ -52,6 +51,7 @@ async def _wait(task_id, outpath):
                 break
         await asyncio.sleep(1)
     exitcode = int(exitcode.split(':')[0])
+    print(f'Job {task_id} finished with exitcode {exitcode}')
 
     with open(outpath, 'r') as out:
         output = out.read()
@@ -64,5 +64,6 @@ async def _run(command, sbatch_template=None):
     task_id, outpath = _submit(command, sbatch_template)
     output, exitcode = await _wait(task_id, outpath)
     if exitcode != 0:
-        raise RuntimeError(f'Running command "{command}" failed with output:\n{output}')
+        raise RuntimeError(f'Running command "{command}" failed with output:\n'
+                           + output)
     return output

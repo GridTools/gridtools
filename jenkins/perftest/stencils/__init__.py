@@ -4,7 +4,7 @@ import importlib
 import re
 
 from perftest import ConfigError
-from perftest.helpers import Registry
+from perftest.utils import Registry
 
 
 class Stencil(metaclass=Registry):
@@ -17,11 +17,13 @@ class Stencil(metaclass=Registry):
                 missing_attrs.append(attr)
         if missing_attrs:
             missing = ' '.join(missing_attrs)
-            raise ConfigError(f'Stencil {self.name} has missing attributes: {missing}')
+            raise ConfigError(f'Stencil {self.name} has missing attributes: '
+                              + missing)
 
     @property
     def name(self):
-        return re.sub(r'(.)([A-Z]+)', r'\1 \2', self.__class__.__name__).lower()
+        clsname = self.__class__.__name__
+        return re.sub(r'(.)([A-Z]+)', r'\1 \2', clsname).lower()
 
 
 def instantiate(grid):

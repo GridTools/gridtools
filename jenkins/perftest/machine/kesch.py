@@ -7,20 +7,28 @@ from perftest.runtime import StellaRuntimeBase, GridtoolsRuntimeBase
 
 
 class StellaRuntime(StellaRuntimeBase):
+    @property
     def version(self):
         return 'trunk'
 
+    @property
     def path(self):
         return os.path.join('/project', 'c14', 'install', 'kesch', 'stella',
                             'trunk_timers', f'release_{self.precision}', 'bin')
 
 
 class GridtoolsRuntime(GridtoolsRuntimeBase):
+    @property
     def path(self):
-        return os.path.join('/scratch', 'jenkins', 'workspace',
-                            f'GridTools_{self.grid}_PR', 'build_type', 'release',
-                            'compiler', 'gcc', 'label', 'kesch', 'mpi', 'MPI',
-                            'real_type', self.precision, 'target', 'gpu', 'build')
+        return os.path.join('/scratch', 'jenkins',
+                            'workspace', f'GridTools_{self.grid}_PR',
+                            'build_type', 'release',
+                            'compiler', 'gcc',
+                            'label', 'kesch',
+                            'mpi', 'MPI',
+                            'real_type', self.precision,
+                            'target', 'gpu',
+                            'build')
 
 
 def sbatch(command):
@@ -42,12 +50,7 @@ def sbatch(command):
         module load cudatoolkit/8.0.61
         module load mvapich2gdr_gnu/2.2_cuda_8.0
         module load gcc/5.4.0-2.26
-        module load cmake/3.9.1
 
-        export Boost_NO_SYSTEM_PATHS=true
-        export Boost_NO_BOOST_CMAKE=true
-        export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0
-        export BOOST_INCLUDE=/project/c14/install/kesch/boost/boost_1_66_0/include/
         export CUDA_ARCH=sm_37
 
         {command}
