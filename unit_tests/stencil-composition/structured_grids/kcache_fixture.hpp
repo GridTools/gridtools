@@ -41,7 +41,7 @@
 using axis_t = gridtools::axis< 1, 1 >;
 using axis = axis_t::axis_interval_t;
 
-using kfull = axis_t::full_interval::modify< -1, 0 >; // if we don't start from -1 we reach the max offset limit
+using kfull = axis_t::full_interval;
 using kbody_high = kfull::modify< 1, 0 >;
 using kminimum = kfull::first_level;
 using kminimump1 = kminimum::shift< 1 >;
@@ -55,12 +55,12 @@ using kbody = kfull::modify< 1, -1 >;
 using axis_b_t = gridtools::axis< 2, 1 >;
 using axis_b = axis_b_t::axis_interval_t;
 
-using kfull_b = axis_b_t::full_interval::modify< -1, 0 >; // if we don't start from -1 we reach the max offset limit
+using kfull_b = axis_b_t::full_interval;
 using kminimum_b = kfull_b::first_level;
 using kminimump1_b = kminimum_b::shift< 1 >;
 using kmaximum_b = kfull_b::last_level;
 using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 0, -1 >;
-using kbody_low_b = axis_b_t::get_interval< 0 >::modify< -1, 0 >; // for the same reason as above
+using kbody_low_b = axis_b_t::get_interval< 0 >;
 using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
 
 class kcachef : public ::testing::Test {
