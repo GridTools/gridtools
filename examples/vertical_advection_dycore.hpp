@@ -242,8 +242,7 @@ namespace vertical_advection_dycore {
                                                      repository.utens(),
                                                      repository.dtr_stage()),
               di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
-              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2},
-              grid(di, dj, _impl::intervals_to_indices(gridtools::axis< 1 >{d3}.interval_sizes())) {
+              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2}, grid(make_grid(di, dj, axis_t(d3))) {
             repository.init_fields();
 
             repository.generate_reference();

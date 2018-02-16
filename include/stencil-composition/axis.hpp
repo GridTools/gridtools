@@ -59,15 +59,18 @@ namespace gridtools {
             static constexpr size_t max_id = constexpr_max(IntervalIDs...);
             GRIDTOOLS_STATIC_ASSERT((max_id < NIntervals), "Interval ID out of bounds for this axis.");
 
-            using type = interval< level< min_id, -1 >, level< max_id + 1, -1 > >;
+            using type = interval< level< min_id, 1 >, level< max_id + 1, -1 > >;
         };
 
       public:
         static const uint_t max_offsets_ = cLevelOffsetLimit;
 
-        using axis_interval_t = interval< level< 0, -1 >, level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >;
+        using axis_interval_t = interval< level< 0, 1 >,
+            level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >; // TODO think about subtracting
+                                                                       // ExtraOffsetsBeyondFullInterval from the
+                                                                       // from_level
 
-        using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
+        using full_interval = interval< level< 0, 1 >, level< NIntervals, -1 > >;
 
         template < typename... IntervalSizes,
             typename std::enable_if< sizeof...(IntervalSizes) == NIntervals &&
