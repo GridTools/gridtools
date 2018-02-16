@@ -63,11 +63,6 @@ using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 0, -1 >;
 using kbody_low_b = axis_b_t::get_interval< 0 >::modify< -1, 0 >; // for the same reason as above
 using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
 
-// GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
-// GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
-// GT_FUNCTION static void Do(Evaluation &eval, kbody_lowp1_b) {
-// GT_FUNCTION static void Do(Evaluation &eval, kminimum_b) {
-
 class kcachef : public ::testing::Test {
   protected:
     typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
