@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 import itertools
 import math
 
@@ -8,12 +9,12 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
+from perftest import result, logger
 
-prop_cycle = cycler.cycler('color', ['#1f77b4', '#ff7f0e',
-                                     '#2ca02c', '#d62728',
-                                     '#9467bd', '#8c564b',
-                                     '#e377c2', '#7f7f7f',
-                                     '#bcbd22', '#17becf'])
+
+plt.style.use('ggplot')
+
+prop_cycle = matplotlib.rcParams['axes.prop_cycle']
 
 
 def figsize(rows=1, cols=1):
@@ -25,32 +26,30 @@ def discrete_colors(n):
 
 
 def get_titles(*results):
-    common_fields = results[0].common_fields(*results[1:])
-    common_fields.discard('times')
+    common, diff = results[0].runtime.compare(*(r.runtime for r in
+                                                results[1:]))
 
-    def title(result, fields, sep):
-        return sep.join(str(getattr(result, f)).title() for f in fields)
+    def titlestr(v):
+        if isinstance(v, datetime):
+            return v.strftime('%y-%m-%d %H:%M')
+        else:
+            s = str(v).title()
+            return s if len(s) < 30 else s[:27] + '...'
 
-    suptitle = title(results[0], common_fields, ', ')
+    suptitle = ', '.join(titlestr(v) for v in common.values())
 
-    common_fields.add('times')
-    titles = [title(r, r.fields - common_fields, '\n') for r in results]
-
+    titles = ['\n'.join(titlestr(v) for v in vs) for vs in zip(*diff.values())]
     return suptitle, titles
 
 
 def compare(*results):
-    assert results[0].has_same_stencils(*results[1:])
-    ntimes = len(results[0].times)
+    stencils, meantimes, stdevtimes = result.times_by_stencil(*results)
 
-    rows = math.floor(math.sqrt(ntimes))
-    cols = math.ceil(ntimes / rows)
+    rows = math.floor(math.sqrt(len(stencils)))
+    cols = math.ceil(len(stencils) / rows)
 
     fig, axarr = plt.subplots(rows, cols, squeeze=False,
                               figsize=figsize(rows, cols))
-
-    stencils = results[0].times.keys()
-    stimes = {s: [r.times[s] for r in results] for s in stencils}
 
     axes = itertools.chain(*axarr)
     colors = discrete_colors(len(results))
@@ -58,14 +57,40 @@ def compare(*results):
     suptitle, titles = get_titles(*results)
     fig.suptitle(suptitle)
 
-    xticks = list(range(ntimes))
-    for ax, (stencil, times) in zip(axes, stimes.items()):
-        ax.set_title(stencil.title())
+    xticks = list(range(len(results)))
+    for ax, stencil, means, stdevs in itertools.zip_longest(axes, stencils,
+                                                            meantimes,
+                                                            stdevtimes):
+        if stencil:
+            ax.set_title(stencil.title())
 
-        ax.bar(xticks, times, width=0.8, color=colors)
+            ax.bar(xticks, means, yerr=stdevs, width=0.8, color=colors)
 
-        ax.set_xticks(xticks)
-        ax.set_xticklabels(titles)
+            ax.set_xticks(xticks)
+            ax.set_xticklabels(titles)
+        else:
+            ax.set_visible(False)
 
     fig.tight_layout()
+    fig.subplots_adjust(top=0.9)
+    return fig
+
+
+def history(*results):
+    stencils, meantimes, stdevtimes = result.times_by_stencil(*results)
+    dates = [matplotlib.dates.date2num(r.runtime.datetime) for r in results]
+
+    if len(dates) > len(set(dates)):
+        logger.warning('Non-unique datetimes in history plot')
+
+    fig, ax = plt.subplots()
+
+    for stencil, means, stdevs in zip(stencils, meantimes, stdevtimes):
+        ax.plot_date(dates, means, 'o-', label=stencil)
+        ax.errorbar(dates, means, yerr=stdevs)
+
+    ax.legend()
+    fig.autofmt_xdate()
+    fig.tight_layout()
+
     return fig

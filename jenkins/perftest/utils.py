@@ -14,12 +14,15 @@ class Registry(type):
         return [t(*args, **kwargs) for t in cls.registry]
 
 
-def get_timestamp(time=None):
+def timestr(time=None):
     if time is None:
         time = datetime.now(timezone.utc)
     return time.strftime('%Y-%m-%dT%H:%M:%S.%f%z')
 
 
-def get_datetime(timestamp):
-    return datetime.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%f%z')
+def timestr_from_posix(posixtime):
+    return timestr(datetime.fromtimestamp(int(posixtime), timezone.utc))
 
+
+def datetime_from_timestr(tstr):
+    return datetime.strptime(tstr, '%Y-%m-%dT%H:%M:%S.%f%z')

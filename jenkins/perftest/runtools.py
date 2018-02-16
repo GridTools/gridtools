@@ -5,6 +5,9 @@ import os
 import re
 import subprocess
 import tempfile
+import textwrap
+
+from perftest import logger
 
 
 def run(commands, sbatch_gen=None):
@@ -34,7 +37,7 @@ def _submit(command, sbatch_gen=None):
         task_id = re.match(r'Submitted batch job (\d+)',
                            sbatch_out.decode()).group(1)
 
-    print(f'Submitted job {task_id}: "{command}"')
+    logger.debug(f'Submitted job {task_id}: "{command}"')
 
     return task_id, out.name
 
@@ -42,20 +45,29 @@ def _submit(command, sbatch_gen=None):
 async def _wait(task_id, outpath):
     wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
     while True:
-        info = subprocess.check_output(['sacct', '--format=state,exitcode',
-                                        '--parsable2', '--noheader',
-                                        '--jobs=' + str(task_id)]).decode()
+        sacct_command = ['sacct', '--format=state,exitcode', '--parsable2',
+                         '--noheader', '--jobs=' + str(task_id)]
+        logger.debug('Running "{}"'.format(' '.join(sacct_command)))
+        info = subprocess.check_output(sacct_command).decode().strip()
         if info:
             state, exitcode = info.split('\n')[0].split('|')
+            logger.debug(f'Sacct output while waiting for {task_id}:\n' +
+                         textwrap.indent(info, '    '))
             if state not in wait_states:
                 break
+        else:
+            logger.debug(f'Sacct gave no output while waiting for {task_id}')
+
         await asyncio.sleep(1)
     exitcode = int(exitcode.split(':')[0])
-    print(f'Job {task_id} finished with exitcode {exitcode}')
+    logger.debug(f'Job {task_id} finished with exitcode {exitcode}')
 
     with open(outpath, 'r') as out:
         output = out.read()
     os.remove(outpath)
+
+    logger.debug(f'Job {task_id} generated output:\n' +
+                textwrap.indent(output, '    '))
 
     return output, exitcode
 

@@ -1,75 +1,59 @@
 # -*- coding: utf-8 -*-
 
 import abc
-import json
+import collections
 import os
 import re
+import statistics
 import subprocess
+import types
 
 from perftest import NotFoundError, ParseError, ArgumentError
-from perftest import runtools, stencils, utils
-
-
-class Result:
-    def __init__(self, filename=None, **kwargs):
-        if filename:
-            with open(filename, 'r') as fp:
-                data = json.load(fp)
-            data.update(kwargs)
-        else:
-            data = kwargs
-        self.fields = frozenset(data.keys())
-        for field in self.fields:
-            setattr(self, field, data[field])
-
-    def write(self, filename):
-        data = {field: getattr(self, field) for field in self.fields}
-        with open(filename, 'w') as fp:
-            json.dump(data, fp, indent=4)
-
-    def __str__(self):
-        fstr = ', '.join(f'{f}={getattr(self, f)}' for f in self.fields)
-        return f'Result({fstr})'
-
-    def has_same_stencils(self, *others):
-        stimekeys = set(self.times.keys())
-        otimekeys = [set(o.times.keys()) for o in others]
-        return stimekeys == stimekeys.intersection(*otimekeys)
-
-    def common_fields(self, *others):
-        candidates = self.fields.intersection(*(o.fields for o in others))
-        common = set()
-        for f in candidates:
-            if all(getattr(self, f) == getattr(o, f) for o in others):
-                common.add(f)
-        return common
-
-    def get_runtime(self):
-        return get(self.runtime, self.grid, self.precision, self.backend)
+from perftest import logger, result, runtools, stencils, utils
 
 
 class Runtime(metaclass=abc.ABCMeta):
     def __init__(self, grid, precision, backend):
+        if grid not in self.grids:
+            sup = ', '.join(f'"{g}"' for g in self.grids)
+            raise ArgumentError(
+                    f'Invalid grid "{grid}", supported are {sup}')
+        if precision not in self.precisions:
+            sup = ', '.join(f'"{p}"' for p in self.precisions)
+            raise ArgumentError(
+                    f'Invalid precision "{precision}", supported are {sup}')
+        if backend not in self.backends:
+            sup = ', '.join(f'"{b}"' for b in self.backends)
+            raise ArgumentError(
+                    f'Invalid backend "{backend}", supported are {sup}')
         self.grid = grid
         self.precision = precision
         self.backend = backend
 
-    def run(self, size):
+    def run(self, domain, runs):
         stencil_list = stencils.instantiate(self.grid)
-        commands = [self.command(s, size) for s in stencil_list]
-        outputs = runtools.run(commands)
-        times = {s.name: self._parse_time(o) for s, o in zip(stencil_list,
-                                                             outputs)}
-        return Result(runtime=self.name,
-                      version=self.version,
-                      backend=self.backend,
-                      grid=self.grid,
-                      precision=self.precision,
-                      size=size,
-                      times=times,
-                      timestamp=utils.get_timestamp())
+        commands = [self.command(s, domain) for s in stencil_list]
 
-    def _parse_time(self, output):
+        allcommands = [c for c in commands for _ in range(runs)]
+        logger.info('Running stencils')
+        alloutputs = runtools.run(allcommands)
+        logger.info('Running stencils finished')
+
+        alltimes = [self._parse_time(o) for o in alloutputs]
+
+        times = [alltimes[i:i+runs] for i in range(0, len(alltimes), runs)]
+
+        meantimes = [statistics.mean(t) for t in times]
+        stdevtimes = [statistics.stdev(t) for t in times]
+
+        return result.Result(runtime=self,
+                             domain=domain,
+                             stencils=stencil_list,
+                             meantimes=meantimes,
+                             stdevtimes=stdevtimes)
+
+    @staticmethod
+    def _parse_time(output):
         p = re.compile(r'.*\[s\]\s*([0-9.]+).*', re.MULTILINE | re.DOTALL)
         m = p.match(output)
         if not m:
@@ -78,7 +62,7 @@ class Runtime(metaclass=abc.ABCMeta):
 
     def __str__(self):
         return (f'Runtime(name={self.name}, version={self.version}, '
-                f'path={self.path})')
+                f'datetime={self.datetime}, path={self.path})')
 
     @property
     def name(self):
@@ -86,6 +70,10 @@ class Runtime(metaclass=abc.ABCMeta):
 
     @abc.abstractproperty
     def version(self):
+        pass
+
+    @abc.abstractproperty
+    def datetime(self):
         pass
 
     @abc.abstractmethod
@@ -97,11 +85,15 @@ class Runtime(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def command(self, stencil, size):
+    def command(self, stencil, domain):
         pass
 
 
 class StellaRuntimeBase(Runtime):
+    grids = ['strgrid']
+    precisions = ['float', 'double']
+    backends = ['cuda', 'host']
+
     def binary(self, stencil):
         suffix = 'CUDA' if self.backend == 'cuda' else ''
         binary = os.path.join(self.path, f'StandaloneStencils{suffix}')
@@ -109,18 +101,30 @@ class StellaRuntimeBase(Runtime):
             raise NotFoundError(f'Could not find STELLA binary at {binary}')
         return binary
 
-    def command(self, stencil, size):
+    def command(self, stencil, domain):
         binary = self.binary(stencil)
-        ni, nj, nk = size
+        ni, nj, nk = domain
         filt = stencil.stella_filter
         return f'{binary} --ie {ni} --je {nj} --ke {nk} --gtest_filter={filt}'
 
 
 class GridtoolsRuntimeBase(Runtime):
+    grids = ['strgrid', 'icgrid']
+    precisions = ['float', 'double']
+    backends = ['cuda', 'host']
+
     @property
     def version(self):
         return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
                                        cwd=self.path).decode().strip()
+
+    @property
+    def datetime(self):
+        commit = self.version
+        posixtime = subprocess.check_output(['git', 'show', '-s',
+                                             '--format=%ct', commit],
+                                            cwd=self.path).decode().strip()
+        return utils.timestr_from_posix(posixtime)
 
     def binary(self, stencil):
         binary = getattr(stencil, 'gridtools_' + self.backend.lower())
@@ -129,9 +133,9 @@ class GridtoolsRuntimeBase(Runtime):
             raise NotFoundError(f'Could not find GridTools binary at {binary}')
         return binary
 
-    def command(self, stencil, size):
+    def command(self, stencil, domain):
         binary = self.binary(stencil)
-        ni, nj, nk = size
+        ni, nj, nk = domain
         halo = stencil.halo
         ni, nj, nk = ni + 2 * halo, nj + 2 * halo, nk + 2 * halo
         return f'{binary} {ni} {nj} {nk} 10'

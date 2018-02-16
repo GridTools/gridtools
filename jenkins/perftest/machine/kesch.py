@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import os
+import subprocess
 import textwrap
 
-from perftest.runtime import StellaRuntimeBase, GridtoolsRuntimeBase
+from perftest import utils, runtime
 
 
-class StellaRuntime(StellaRuntimeBase):
+class StellaRuntime(runtime.StellaRuntimeBase):
     @property
     def version(self):
         return 'trunk'
+
+    @property
+    def datetime(self):
+        posixtime = subprocess.check_output(['stat', '--format=%Y',
+                                             self.path])
+        return utils.timestr_from_posix(posixtime)
 
     @property
     def path(self):
@@ -17,7 +24,7 @@ class StellaRuntime(StellaRuntimeBase):
                             'trunk_timers', f'release_{self.precision}', 'bin')
 
 
-class GridtoolsRuntime(GridtoolsRuntimeBase):
+class GridtoolsRuntime(runtime.GridtoolsRuntimeBase):
     @property
     def path(self):
         return os.path.join('/scratch', 'jenkins',
@@ -52,6 +59,9 @@ def sbatch(command):
         module load gcc/5.4.0-2.26
 
         export CUDA_ARCH=sm_37
+        export OMP_PROC_BIND=true
+        export OMP_PLACES=threads
+        export OMP_NUM_THREADS=12
 
         {command}
 
