@@ -80,11 +80,7 @@ namespace gridtools {
 #endif
 
 #ifdef __CUDA_ARCH__
-#ifdef CUDA8
 #define ASSERT_OR_THROW(cond, msg) assert(cond)
-#else
-#define ASSERT_OR_THROW(cond, msg)
-#endif
 #else
 #define ASSERT_OR_THROW(cond, msg) \
     if (!cond)                     \

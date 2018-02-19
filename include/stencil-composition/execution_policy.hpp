@@ -86,11 +86,9 @@ namespace gridtools {
 
             template < typename IterationPolicy, typename Interval >
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
-#ifdef CUDA8
                 assert(from >= 0);
                 assert(to >= 0);
                 assert(to >= from);
-#endif
                 typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
                     run_esf_functor_t;
 
