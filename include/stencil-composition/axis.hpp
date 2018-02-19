@@ -65,8 +65,7 @@ namespace gridtools {
       public:
         static const uint_t max_offsets_ = cLevelOffsetLimit;
 
-        using axis_interval_t = interval< level< 0, _impl::add_offset(1, -ExtraOffsetsBeyondFullInterval) >,
-            level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >;
+        using axis_interval_t = interval< level< 0, 1 >, level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >;
 
         using full_interval = interval< level< 0, 1 >, level< NIntervals, -1 > >;
 
