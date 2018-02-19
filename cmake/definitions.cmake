@@ -109,51 +109,15 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'")
 endif()
 
-Find_Package( OpenMP )
-
-
-## openmp ##
-if(OPENMP_FOUND)
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-    set( PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project" )
-else()
-    set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil" )
-endif()
-
 ## performance meters ##
 if(ENABLE_PERFORMANCE_METERS)
     add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
-# always use fopenmp and lpthread as cc/ld flags
+# always use lpthread as cc/ld flags
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
 set ( exe_LIBS -lpthread ${exe_LIBS} )
-
-## papi wrapper ##
-if ( PAPI_WRAP_LIBRARY )
-  find_package(PapiWrap)
-  if ( PAPI_WRAP_FOUND )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
-    set( PAPI_WRAP_MODULE "ON" )
-    include_directories( "${PAPI_WRAP_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_WRAP_LIBRARIES}" )
-  else()
-    message ("papi-wrap not found. Please set PAPI_WRAP_PREFIX to the root path of the papi-wrap library. papi-wrap not used!")
-  endif()
-endif()
-
-## papi ##
-if(USE_PAPI)
-  find_package(PAPI REQUIRED)
-  if(PAPI_FOUND)
-    include_directories( "${PAPI_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_LIBRARIES}" )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI" )
-  else()
-    message("PAPI library not found. set the PAPI_PREFIX")
-  endif()
-endif()
 
 ## precision ##
 if(SINGLE_PRECISION)

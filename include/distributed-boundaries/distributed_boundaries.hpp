@@ -176,7 +176,7 @@ namespace gridtools {
             }
 
             using execute_in_order = int[];
-            execute_in_order{(apply_boundary(jobs), 0)...};
+            (void)execute_in_order{(apply_boundary(jobs), 0)...};
             call_pack(all_stores_for_exc,
                 typename make_gt_integer_sequence< uint_t,
                           std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
