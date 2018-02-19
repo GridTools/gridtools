@@ -215,11 +215,8 @@ namespace gridtools {
             typedef typename RunFunctorArguments::grid_t grid_t;
 
             // ctor
-            explicit execute_kernel_functor_cuda(const local_domain_t &local_domain,
-                const grid_t &grid,
-                const uint_t block_idx_i,
-                const uint_t block_idx_j)
-                : m_local_domain(local_domain), m_grid(grid), m_block_idx_i(block_idx_i), m_block_idx_j(block_idx_j) {}
+            explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
+                : m_local_domain(local_domain), m_grid(grid) {}
 
             void operator()() {
 #ifdef VERBOSE
@@ -319,8 +316,6 @@ namespace gridtools {
           private:
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
-            const uint_t m_block_idx_i;
-            const uint_t m_block_idx_j;
         };
 
     } // namespace icgrid

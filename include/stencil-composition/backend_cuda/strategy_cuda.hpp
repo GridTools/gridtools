@@ -58,8 +58,13 @@ namespace gridtools {
     struct strategy_from_id_cuda< enumtype::Naive > {};
 
     /**
+     * @brief struct holding backend-specific runtime information about stencil execution.
+     * Empty for the CUDA backend.
+     */
+    struct execution_info_cuda {};
+
+    /**
        @brief specialization for the \ref gridtools::_impl::Block strategy
-       Empty as not used in the CUDA backend
     */
     template <>
     struct strategy_from_id_cuda< enumtype::Block > {
@@ -68,7 +73,7 @@ namespace gridtools {
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponentsArray a meta array with the mss components of all MSS
+         * @tparam MssComponents a meta array with the mss components of all MSS
          * @tparam BackendIds backend ids type
          */
         template < typename MssComponents, typename BackendIds, typename ReductionData >
@@ -83,9 +88,12 @@ namespace gridtools {
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponents, Grid, LocalDomainListArray, BackendIds, ReductionData >(
-                        local_domain_lists, grid, reduction_data, 0, 0));
+                boost::mpl::for_each< iter_range >(mss_functor< MssComponents,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendIds,
+                    ReductionData,
+                    execution_info_cuda >(local_domain_lists, grid, reduction_data, {}));
             }
         };
     };
