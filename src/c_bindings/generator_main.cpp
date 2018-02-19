@@ -41,7 +41,7 @@
 #include "c_bindings/generator.hpp"
 
 namespace {
-    std::string basename(const std::string &src) {
+    std::string stem(const std::string &src) {
         auto last_before_trailing_slashes = src.find_last_not_of('/');
         if (last_before_trailing_slashes == std::string::npos)
             return "";
@@ -57,7 +57,7 @@ namespace {
 int main(int argc, const char *argv[]) {
     if (argc > 2) {
         std::ofstream dst(argv[2]);
-        auto module = argc > 3 ? argv[3] : basename(argv[2]);
+        auto module = argc > 3 ? argv[3] : stem(argv[2]);
         gridtools::c_bindings::generate_fortran_interface(dst, module);
     }
     if (argc > 1) {
