@@ -111,14 +111,10 @@ double my_top(gt_handle*);
     }
 
     const char expected_fortran_interface[] = R"?(
-module gt_import
+module my_module
 implicit none
   interface
 
-    subroutine gt_release(h) bind(c)
-      use iso_c_binding
-      type(c_ptr), value :: h
-    end
     type(c_ptr) function my_create() bind(c)
       use iso_c_binding
     end
@@ -159,7 +155,7 @@ end
 
     TEST(export, fortran_interface) {
         std::ostringstream strm;
-        gridtools::c_bindings::generate_fortran_interface(strm);
+        gridtools::c_bindings::generate_fortran_interface(strm, "my_module");
         EXPECT_EQ(strm.str(), expected_fortran_interface);
     }
 }
