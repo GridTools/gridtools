@@ -57,7 +57,7 @@ namespace {
     void push_impl(std::stack< T > &obj, T val) {
         obj.push(val);
     }
-    GT_EXPORT_GENERIC_BINDING(2, my_push, push_impl, (float, int, double));
+    GT_EXPORT_GENERIC_BINDING(2, my_push, push_impl, (float)(int)(double));
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_pop, void(stack_t &), [](stack_t &obj) { obj.pop(); });
 

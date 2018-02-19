@@ -74,7 +74,7 @@ namespace {
     generic_data_store_t< T > make_data_store(uint_t x, uint_t y, uint_t z, T *ptr) {
         return generic_data_store_t< T >(storage_info_t(x, y, z), ptr);
     }
-    GT_EXPORT_GENERIC_BINDING(4, generic_create_data_store, make_data_store, (double, float));
+    GT_EXPORT_GENERIC_BINDING(4, generic_create_data_store, make_data_store, (double)(float));
     GT_EXPORT_BINDING_4(create_data_store, make_data_store< float_type >);
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));

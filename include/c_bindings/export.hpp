@@ -90,13 +90,14 @@
 #define GT_EXPORT_GENERIC_BINDING_IMPL(n, name, suffix, impl) \
     GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(n, name, BOOST_PP_CAT(name, suffix), impl)
 
-#define GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR(r, data, i, elem) \
-    GT_EXPORT_GENERIC_BINDING_IMPL(                              \
-        BOOST_PP_TUPLE_ELEM(0, data), BOOST_PP_TUPLE_ELEM(1, data), i, BOOST_PP_TUPLE_ELEM(2, data) < elem > );
+#define GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR(r, data, i, elem)    \
+    GT_EXPORT_GENERIC_BINDING_IMPL(BOOST_PP_TUPLE_ELEM(3, 0, data), \
+        BOOST_PP_TUPLE_ELEM(3, 1, data),                            \
+        i,                                                          \
+        BOOST_PP_TUPLE_ELEM(3, 2, data) < elem > );
 
-#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                        \
-    BOOST_PP_SEQ_FOR_EACH_I(                                                                                      \
-        GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (n, name, impl_template), BOOST_PP_TUPLE_TO_SEQ(template_params)) \
+#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                     \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (n, name, impl_template), template_params) \
     static_assert(1, "")
 
 /// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity
