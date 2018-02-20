@@ -432,7 +432,7 @@ namespace gridtools {
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-            GTASSERT((pointer_oob_check< backend_traits_t,
+            assert((pointer_oob_check< backend_traits_t,
                 processing_elements_block_size_t,
                 local_domain_t,
                 arg_t,
@@ -470,7 +470,7 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
-            GTASSERT((pointer_oob_check< backend_traits_t,
+            assert((pointer_oob_check< backend_traits_t,
                 processing_elements_block_size_t,
                 local_domain_t,
                 arg_t,

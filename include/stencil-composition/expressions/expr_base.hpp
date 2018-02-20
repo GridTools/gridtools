@@ -145,7 +145,6 @@ namespace gridtools {
        to use the namespace expressions.*/
     namespace expressions {
 
-#ifdef CUDA8
         template < typename... Args >
         using no_expr_types = boost::mpl::bool_< accumulate(logical_and(), !is_expr< Args >::value...) >;
 
@@ -162,25 +161,6 @@ namespace gridtools {
             no_global_accessor_types< Args... >::value,
             no_accessor_types< Args... >::value,
             no_expr_types< Args... >::value) >;
-
-#else
-        template < typename Arg1, typename Arg2 >
-        using no_expr_types = boost::mpl::bool_< (!is_expr< Arg1 >::value && !is_expr< Arg2 >::value) >;
-
-        template < typename Arg1, typename Arg2 >
-        using no_accessor_types =
-            typename boost::mpl::bool_< (!is_accessor< Arg1 >::value && !is_accessor< Arg2 >::value) >::type;
-
-        template < typename Arg1, typename Arg2 >
-        using no_global_accessor_types =
-            boost::mpl::bool_< (!is_global_accessor< Arg1 >::value && !is_global_accessor< Arg2 >::value) >;
-
-        template < typename Arg1, typename Arg2 = Arg1 >
-        using no_expr_nor_accessor_types =
-            boost::mpl::bool_< (no_global_accessor_types< Arg1, Arg2 >::value &&
-                                no_accessor_types< Arg1, Arg2 >::value && no_expr_types< Arg1, Arg2 >::value) >;
-
-#endif
 
     } // namespace expressions
 

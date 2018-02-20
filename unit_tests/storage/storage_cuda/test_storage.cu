@@ -41,7 +41,7 @@
 
 __global__ void initial_check_s1(int *s) {
     ASSERT_OR_THROW((s[0] == 10), "check failed");
-    ASSERT_OR_THROW((s[1] == (s[1] == 10)), "check failed");
+    ASSERT_OR_THROW((s[1] == 10), "check failed");
     if (s[0] != 10 || s[1] != 10) {
         s[0] = -1;
         s[1] = -1;
