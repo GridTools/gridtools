@@ -52,8 +52,8 @@ namespace gridtools {
 
     namespace _impl {
 
-        /*
-         * @brief meta function to check if an MSS can be executed in parallel along k-axis
+        /**
+         * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
         struct is_mss_kparallel {
             template < typename Mss >
@@ -62,8 +62,8 @@ namespace gridtools {
             };
         };
 
-        /*
-         * @brief meta function to check if all MSS in an MssComponents array can be executed in parallel along k
+        /**
+         * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along k-axis.
          */
         template < typename MssComponents >
         struct all_mss_kparallel
@@ -74,17 +74,18 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Block strategy
-       The loops over i and j are split according to the values of BI and BJ
-    */
+     * @brief Specialization for the \ref gridtools::_impl::Block strategy.
+     */
     template <>
     struct strategy_from_id_mic< enumtype::Block > {
         using block_size_t = block_size< 0, 0, 0 >;
 
         /**
-         * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponents a meta array with the mss components of all MSS
-         * @tparam BackendIds ids of backend
+         * @brief Loops over all blocks and executes sequentially all MSS functors for each block.
+         * Implementation for stencils with serial execution along k-axis.
+         *
+         * @tparam MssComponents A meta array with the MSS components of all MSS.
+         * @tparam BackendIds IDs of backend.
          */
         template < typename MssComponents, typename BackendIds, typename ReductionData, typename Enable = void >
         struct fused_mss_loop {
@@ -117,6 +118,13 @@ namespace gridtools {
             }
         };
 
+        /**
+         * @brief Loops over all blocks and executes sequentially all MSS functors for each block.
+         * Implementation for stencils with parallel execution along k-axis.
+         *
+         * @tparam MssComponents A meta array with the MSS components of all MSS.
+         * @tparam BackendIds IDs of backend.
+         */
         template < typename MssComponents, typename BackendIds, typename ReductionData >
         struct fused_mss_loop< MssComponents,
             BackendIds,
