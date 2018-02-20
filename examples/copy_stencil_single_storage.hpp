@@ -119,16 +119,14 @@ namespace copy_stencil {
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
 
-        copy->ready();
+        copy.steady();
 
-        copy->steady();
+        copy.run();
 
-        copy->run();
-
-        copy->finalize();
+        copy.finalize();
 
 #ifdef BENCHMARK
-        std::cout << copy->print_meter() << std::endl;
+        std::cout << copy.print_meter() << std::endl;
 #endif
 
         in.sync();

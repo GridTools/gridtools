@@ -184,25 +184,19 @@ namespace copy_stencil {
         printf("computation instantiated\n");
 #endif
 
-        copy->ready();
-
-#ifdef VERBOSE
-        printf("computation ready\n");
-#endif
-
-        copy->steady();
+        copy.steady();
 
 #ifdef VERBOSE
         printf("computation steady\n");
 #endif
 
-        copy->run();
+        copy.run();
 
 #ifdef VERBOSE
         printf("computation run\n");
 #endif
 
-        copy->finalize();
+        copy.finalize();
 
 #ifdef VERBOSE
         printf("computation finalized\n");

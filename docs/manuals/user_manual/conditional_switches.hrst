@@ -86,7 +86,7 @@ and its use is exemplified in the following snippet
                        make_stage< functor1 >(p(), p_tmp()),
                        make_stage< functor2 >(p(), p_tmp())))))
 
-As for the ``if_`` statement, ``cond_`` is evaluated at every call to ``comp_->run()``, and the
+As for the ``if_`` statement, ``cond_`` is evaluated at every call to ``comp_.run()``, and the
 multistage executed in the two calls will be different.
 
 .. note:: 

@@ -174,10 +174,9 @@ namespace test_expandable_parameters {
                                                            p_3_tmp(),
                                                            p_4_tmp())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.steady();
+        comp_.run();
+        comp_.finalize();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {

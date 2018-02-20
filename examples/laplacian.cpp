@@ -129,17 +129,15 @@ TEST(Laplace, test) {
     auto laplace = make_computation< backend_t >(
         domain, grid, make_multistage(execute< forward >(), make_stage< lap_function >(p_out(), p_in())));
 
-    laplace->ready();
-
-    laplace->steady();
+    laplace.steady();
 
     /**
        Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the
        backend.
      */
-    laplace->run();
+    laplace.run();
 
-    laplace->finalize();
+    laplace.finalize();
 
     storage_t ref(metadata_, -7.3);
 
@@ -163,7 +161,7 @@ TEST(Laplace, test) {
     bool result = verif.verify(grid, ref, out, halos);
 
 #ifdef BENCHMARK
-    std::cout << laplace->print_meter() << std::endl;
+    std::cout << laplace.print_meter() << std::endl;
 #endif
 
     ASSERT_TRUE(result);

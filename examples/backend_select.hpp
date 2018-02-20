@@ -35,7 +35,8 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <common/defs.hpp>
+#include <stencil-composition/backend.hpp>
 
 #ifdef BACKEND_HOST
 #ifdef BACKEND_STRATEGY_NAIVE

@@ -154,9 +154,8 @@ namespace sf {
                     p_in_edges(), p_tmp_cells()),
                 gridtools::make_stage< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_tmp_cells(), p_out_cells())));
-        stencil_cells->ready();
-        stencil_cells->steady();
-        stencil_cells->run();
+        stencil_cells.steady();
+        stencil_cells.run();
 
         out_cells.sync();
         in_edges.sync();
@@ -206,7 +205,7 @@ namespace sf {
 #ifdef BENCHMARK
         benchmarker::run(stencil_cells, t_steps);
 #endif
-        stencil_cells->finalize();
+        stencil_cells.finalize();
 
         return result;
     }

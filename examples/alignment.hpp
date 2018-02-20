@@ -140,13 +140,12 @@ namespace aligned_copy_stencil {
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
+        copy.steady();
+        copy.run();
+        copy.finalize();
 
 #ifdef BENCHMARK
-        std::cout << copy->print_meter() << std::endl;
+        std::cout << copy.print_meter() << std::endl;
 #endif
 
         // check view consistency

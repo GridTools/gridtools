@@ -108,10 +108,9 @@ namespace test_expandable_parameters {
                                                        make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                        make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.steady();
+        comp_.run();
+        comp_.finalize();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {

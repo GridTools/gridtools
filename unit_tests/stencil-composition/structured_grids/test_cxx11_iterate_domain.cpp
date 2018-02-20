@@ -36,6 +36,7 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 
 #include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/structured_grids/accessor.hpp"
 #include "gtest/gtest.h"
@@ -103,10 +104,9 @@ namespace test_iterate_domain {
 
         typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
 
-        computation_->ready();
-        computation_->steady();
+        computation_.steady();
 
-        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
+        typedef std::decay< decltype(computation_) >::type intermediate_t;
         typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
         typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
@@ -125,7 +125,7 @@ namespace test_iterate_domain {
                 boost::mpl::false_,
                 notype > > it_domain_t;
 
-        mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c< 0 >(computation_->mss_local_domain_list());
+        mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c< 0 >(computation_.mss_local_domain_list());
         auto local_domain1 = boost::fusion::at_c< 0 >(mss_local_domain1.local_domain_list);
         it_domain_t it_domain(local_domain1, 0);
 

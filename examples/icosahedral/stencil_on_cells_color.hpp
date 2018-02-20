@@ -131,9 +131,8 @@ namespace socc {
                 gridtools::make_stage< on_cells_color_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_cells(), p_out_cells())));
 
-        stencil_->ready();
-        stencil_->steady();
-        stencil_->run();
+        stencil_.steady();
+        stencil_.run();
 
         out_cells.sync();
         in_cells.sync();
@@ -172,7 +171,7 @@ namespace socc {
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif
-        stencil_->finalize();
+        stencil_.finalize();
 
         return result;
     }

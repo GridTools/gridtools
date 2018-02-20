@@ -231,6 +231,27 @@ namespace gridtools {
             };
         };
 
+        template < typename AggregatorType >
+        struct is_view_consistent_f {
+            AggregatorType const &m_aggregator;
+
+            template < typename T,
+                typename boost::disable_if< is_tmp_arg< typename boost::fusion::result_of::first< T >::type >,
+                    int >::type = 0 >
+            bool operator()(T const &v) const {
+                const auto &ds =
+                    m_aggregator.template get_arg_storage_pair< typename boost::fusion::result_of::first< T >::type >();
+                return check_consistency(ds.m_value, v.second);
+            }
+
+            template < typename T,
+                typename boost::enable_if< is_tmp_arg< typename boost::fusion::result_of::first< T >::type >,
+                    int >::type = 0 >
+            bool operator()(T const &) const {
+                return true;
+            }
+        };
+
         /** @brief Functor used to check the consistency of all views */
         template < typename AggregatorType >
         struct check_view_consistency {

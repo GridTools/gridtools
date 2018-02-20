@@ -438,9 +438,7 @@ namespace shallow_water {
         //! [computation]
 
         //! [setup]
-        shallow_water_stencil->ready();
-
-        shallow_water_stencil->steady();
+        shallow_water_stencil.steady();
         //! [setup]
 
         // the following might be runtime value
@@ -502,14 +500,14 @@ namespace shallow_water {
 #endif
 
             //! [run]
-            shallow_water_stencil->run();
+            shallow_water_stencil.run();
             //! [run]
         }
 
         //! [finalize]
         he.wait();
 
-        shallow_water_stencil->finalize();
+        shallow_water_stencil.finalize();
 
         bool retval = true;
 //! [finalize]

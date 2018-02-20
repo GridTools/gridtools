@@ -246,13 +246,11 @@ namespace horizontal_diffusion_functions {
                     gridtools::make_stage< fly_function >(p_fly(), p_in())),
                 gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
-        horizontal_diffusion->ready();
-
-        horizontal_diffusion->steady();
+        horizontal_diffusion.steady();
 
         cache_flusher flusher(cache_flusher_size);
 
-        horizontal_diffusion->run();
+        horizontal_diffusion.run();
 
         repository.out().sync();
 
@@ -275,13 +273,13 @@ namespace horizontal_diffusion_functions {
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
-            horizontal_diffusion->run();
+            horizontal_diffusion.run();
         }
 #endif
 
-        horizontal_diffusion->finalize();
+        horizontal_diffusion.finalize();
 #ifdef BENCHMARK
-        std::cout << horizontal_diffusion->print_meter() << std::endl;
+        std::cout << horizontal_diffusion.print_meter() << std::endl;
 #endif
 
         return result;

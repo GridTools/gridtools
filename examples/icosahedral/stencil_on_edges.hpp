@@ -119,9 +119,8 @@ namespace soe {
             (execute< forward >(),
                 gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
                     p_in_edges(), p_out_edges())));
-        stencil_->ready();
-        stencil_->steady();
-        stencil_->run();
+        stencil_.steady();
+        stencil_.run();
 
         out_edges.sync();
         in_edges.sync();
@@ -157,7 +156,7 @@ namespace soe {
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif
-        stencil_->finalize();
+        stencil_.finalize();
         return result;
     }
 } // namespace soe

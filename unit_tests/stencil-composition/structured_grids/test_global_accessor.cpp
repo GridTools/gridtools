@@ -151,9 +151,8 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     auto bc_eval = make_computation< backend_t >(
         domain, coords_bc, make_multistage(execute< forward >(), make_stage< functor1 >(p_sol(), p_bd())));
 
-    bc_eval->ready();
-    bc_eval->steady();
-    bc_eval->run();
+    bc_eval.steady();
+    bc_eval.run();
     // fetch data and check
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -188,7 +187,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     sol_.clone_to_device();
 
     // run again and finalize
-    bc_eval->run();
+    bc_eval.run();
 
     sol_.clone_from_device();
     sol_.reactivate_host_write_views();
@@ -206,7 +205,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
             }
         }
     }
-    bc_eval->finalize();
+    bc_eval.finalize();
 }
 
 TEST_F(global_accessor_single_stage, with_procedure_call) {
@@ -214,9 +213,8 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
         coords_bc,
         make_multistage(execute< forward >(), make_stage< functor_with_procedure_call >(p_sol(), p_bd())));
 
-    bc_eval->ready();
-    bc_eval->steady();
-    bc_eval->run();
+    bc_eval.steady();
+    bc_eval.run();
 
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -233,7 +231,7 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
         }
     }
 
-    bc_eval->finalize();
+    bc_eval.finalize();
 }
 
 TEST_F(global_accessor_single_stage, with_function_call) {
@@ -241,9 +239,8 @@ TEST_F(global_accessor_single_stage, with_function_call) {
         coords_bc,
         make_multistage(execute< forward >(), make_stage< functor_with_function_call >(p_sol(), p_bd())));
 
-    bc_eval->ready();
-    bc_eval->steady();
-    bc_eval->run();
+    bc_eval.steady();
+    bc_eval.run();
 
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -260,7 +257,7 @@ TEST_F(global_accessor_single_stage, with_function_call) {
         }
     }
 
-    bc_eval->finalize();
+    bc_eval.finalize();
 }
 
 // The following will test the global accessor in a context of multiple
@@ -292,9 +289,8 @@ TEST(test_global_accessor, multiple_stages) {
                                                      make_stage< functor1 >(p_tmp(), p_bd()),
                                                      make_stage< functor2 >(p_sol(), p_tmp(), p_bd())));
 
-    bc_eval->ready();
-    bc_eval->steady();
-    bc_eval->run();
+    bc_eval.steady();
+    bc_eval.run();
     // fetch data and check
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -333,7 +329,7 @@ TEST(test_global_accessor, multiple_stages) {
     tmp_.clone_to_device();
 
     // run again and finalize
-    bc_eval->run();
+    bc_eval.run();
     sol_.clone_from_device();
     sol_.reactivate_host_write_views();
 
@@ -349,5 +345,5 @@ TEST(test_global_accessor, multiple_stages) {
             }
         }
     }
-    bc_eval->finalize();
+    bc_eval.finalize();
 }

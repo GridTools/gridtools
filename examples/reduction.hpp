@@ -133,10 +133,9 @@ namespace test_reduction {
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
-        sum_red_->ready();
-        sum_red_->steady();
+        sum_red_.steady();
 
-        float_type sum_redt = sum_red_->run();
+        float_type sum_redt = sum_red_.run();
         float_type precision;
 #if FLOAT_PRECISION == 4
         precision = 1e-6;
@@ -147,10 +146,10 @@ namespace test_reduction {
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
-            sum_red_->run();
+            sum_red_.run();
         }
-        sum_red_->finalize();
-        std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
+        sum_red_.finalize();
+        std::cout << "Sum Reduction : " << sum_red_.print_meter() << std::endl;
 #endif
 
         auto prod_red_ = make_computation< backend_t >(domain,
@@ -158,19 +157,18 @@ namespace test_reduction {
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
-        prod_red_->ready();
-        prod_red_->steady();
+        prod_red_.steady();
 
-        float_type prod_redt = prod_red_->run();
+        float_type prod_redt = prod_red_.run();
 
         success = success & compare_below_threshold(prod_ref, prod_redt, precision);
 #ifdef BENCHMARK
         for (uint_t t = 1; t < t_steps; ++t) {
             flusher.flush();
-            prod_red_->run();
+            prod_red_.run();
         }
-        prod_red_->finalize();
-        std::cout << "Prod Reduction : " << prod_red_->print_meter() << std::endl;
+        prod_red_.finalize();
+        std::cout << "Prod Reduction : " << prod_red_.print_meter() << std::endl;
 #endif
 
         return success;

@@ -66,7 +66,6 @@
 #include "../../storage/data_store_field.hpp"
 #include "../arg.hpp"
 #include "../backend_metafunctions.hpp"
-#include "../computation.hpp"
 #include "../computation_grammar.hpp"
 #include "../grid.hpp"
 #include "../intermediate.hpp"
@@ -104,9 +103,9 @@ namespace gridtools {
                 };
             };
 
-            template < uint_t N, typename Aggregator >
-            using converted_aggregator_type = aggregator_type<
-                typename boost::mpl::transform< typename Aggregator::placeholders_t, convert_placeholder< N > >::type >;
+            template < uint_t N, typename Placeholders >
+            using converted_placeholders =
+                typename boost::mpl::transform< Placeholders, convert_placeholder< N > >::type;
 
             struct get_value_size {
                 template < class T >
@@ -118,13 +117,12 @@ namespace gridtools {
 #endif
             };
 
-            template < typename Aggregator >
-            size_t get_expandable_size(Aggregator const &src) {
+            template < typename ArgStoragePairs >
+            size_t get_expandable_size(ArgStoragePairs const &src) {
                 namespace f = boost::fusion;
                 namespace m = boost::mpl;
                 auto sizes = f::transform(
-                    f::filter_if< m::and_< is_expandable< m::_ >, boost::mpl::not_< is_tmp_arg< m::_ > > > >(
-                        src.get_arg_storage_pairs()),
+                    f::filter_if< m::and_< is_expandable< m::_ >, boost::mpl::not_< is_tmp_arg< m::_ > > > >(src),
                     get_value_size{});
                 if (f::empty(sizes))
                     // If there is nothing to expand we are going to compute stensil once.
@@ -178,7 +176,9 @@ namespace gridtools {
 #endif
             };
 
-            template < uint_t N, typename Aggregator, typename Res = converted_aggregator_type< N, Aggregator > >
+            template < uint_t N,
+                typename Aggregator,
+                typename Res = aggregator_type< converted_placeholders< N, typename Aggregator::placeholders_t > > >
             Res convert_aggregator(const Aggregator &src) {
                 namespace f = boost::fusion;
                 namespace m = boost::mpl;
@@ -226,12 +226,12 @@ namespace gridtools {
             };
 
             template < typename Src, typename Dst >
-            void assign(const Src &src_agg, Dst &dst_agg, size_t offset) {
+            void assign(const Src &src_all, Dst &dst_all, size_t offset) {
                 namespace f = boost::fusion;
                 namespace m = boost::mpl;
                 using pred_t = m::not_< is_tmp_arg< m::_ > >;
-                auto src = make_filter_view< pred_t >(src_agg.get_arg_storage_pairs());
-                auto dst = make_filter_view< pred_t >(dst_agg.get_arg_storage_pairs());
+                auto src = make_filter_view< pred_t >(src_all);
+                auto dst = make_filter_view< pred_t >(dst_all);
                 f::for_each(make_zip_view(f::make_vector(std::cref(src), std::ref(dst))),
                     f::make_fused(assign_arg_storage_pair{offset}));
             }
@@ -278,7 +278,7 @@ namespace gridtools {
         typename Aggregator,
         typename Grid,
         typename... MssDescriptorTrees >
-    class intermediate_expand : public computation< Aggregator > {
+    class intermediate_expand {
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
@@ -291,23 +291,23 @@ namespace gridtools {
         using converted_intermediate = intermediate< N,
             IsStateful,
             Backend,
-            _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
+            aggregator_type< _impl::expand_detail::converted_placeholders< N, typename Aggregator::placeholders_t > >,
             Grid,
             _impl::expand_detail::converted_mss_descriptors_tree< N, MssDescriptorTrees >... >;
 
-        using base_t = typename intermediate_expand::computation;
-        using base_t::m_domain;
+        using arg_storage_pair_fusion_list_t = typename Aggregator::arg_storage_pair_fusion_list_t;
 
         // private members
+        arg_storage_pair_fusion_list_t m_arg_storage_pairs;
         const size_t m_size;
-        const std::unique_ptr< converted_intermediate< ExpandFactor::value > > m_intermediate;
+        std::unique_ptr< converted_intermediate< ExpandFactor::value > > m_intermediate;
         // For some reason nvcc goes nuts here (even though the previous line is OK):
-        // const std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
+        // std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
         // I have to expand `converted_intermediate` alias manually:
-        const std::unique_ptr< intermediate< 1,
+        std::unique_ptr< intermediate< 1,
             IsStateful,
             Backend,
-            _impl::expand_detail::converted_aggregator_type< 1, Aggregator >,
+            aggregator_type< _impl::expand_detail::converted_placeholders< 1, typename Aggregator::placeholders_t > >,
             Grid,
             _impl::expand_detail::converted_mss_descriptors_tree< 1, MssDescriptorTrees >... > >
             m_intermediate_remainder;
@@ -319,14 +319,15 @@ namespace gridtools {
            Given expandable parameters with size N, creates other @ref gristools::expandable_parameters storages with
            dimension given by  @ref gridtools::expand_factor
          */
-        template < typename Domain >
-        intermediate_expand(Domain &&domain, Grid const &grid, MssDescriptorTrees const &... mss_descriptor_trees)
-            : base_t(std::forward< Domain >(domain)), m_size(_impl::expand_detail::get_expandable_size(m_domain)),
+        intermediate_expand(
+            Aggregator const &domain, Grid const &grid, MssDescriptorTrees const &... mss_descriptor_trees)
+            : m_arg_storage_pairs(domain.get_arg_storage_pairs()),
+              m_size(_impl::expand_detail::get_expandable_size(m_arg_storage_pairs)),
               m_intermediate(m_size >= ExpandFactor::value
-                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, mss_descriptor_trees...)
+                                 ? create_intermediate< ExpandFactor::value >(domain, grid, mss_descriptor_trees...)
                                  : nullptr),
               m_intermediate_remainder(m_size % ExpandFactor::value
-                                           ? create_intermediate< 1 >(m_domain, grid, mss_descriptor_trees...)
+                                           ? create_intermediate< 1 >(domain, grid, mss_descriptor_trees...)
                                            : nullptr) {}
 
         /**
@@ -338,7 +339,7 @@ namespace gridtools {
            iterations, if the number of parameters is not multiple of the expand factor, the remaining
            chunck of storage pointers is consumed.
          */
-        notype run() override {
+        notype run() {
             assign_and_call(_impl::expand_detail::run{});
             return {};
         }
@@ -349,7 +350,7 @@ namespace gridtools {
            does not take into account the remainder kernel executed when the number of parameters is
            not multiple of the expand factor
          */
-        std::string print_meter() override {
+        std::string print_meter() {
             assert(false);
             return {};
         }
@@ -357,14 +358,14 @@ namespace gridtools {
         /**
            @brief forwards to the m_intermediate and m_intermediate_remainder members
          */
-        void reset_meter() override {
+        void reset_meter() {
             if (m_intermediate)
                 m_intermediate->reset_meter();
             if (m_intermediate_remainder)
                 m_intermediate_remainder->reset_meter();
         }
 
-        double get_meter() override {
+        double get_meter() {
             double res = 0;
             if (m_intermediate)
                 res += m_intermediate->get_meter();
@@ -376,24 +377,14 @@ namespace gridtools {
         /**
            @brief forward the call to the members
          */
-        void ready() override {
-            if (m_intermediate)
-                m_intermediate->ready();
-            if (m_intermediate_remainder)
-                m_intermediate_remainder->ready();
-        }
+        void steady() { assign_and_call(_impl::expand_detail::steady{}); }
 
         /**
            @brief forward the call to the members
          */
-        void steady() override { assign_and_call(_impl::expand_detail::steady{}); }
-
-        /**
-           @brief forward the call to the members
-         */
-        void finalize() override {
+        void finalize() {
             // sync all data stores
-            boost::fusion::for_each(m_domain.m_arg_storage_pair_list, _impl::sync_data_stores());
+            boost::fusion::for_each(m_arg_storage_pairs, _impl::sync_data_stores());
         }
 
       private:
@@ -407,7 +398,7 @@ namespace gridtools {
 
         template < typename Dst >
         void assign(Dst &dst, size_t offset) {
-            _impl::expand_detail::assign(m_domain, dst.domain(), offset);
+            _impl::expand_detail::assign(m_arg_storage_pairs, dst.get_arg_storage_pairs(), offset);
         }
 
         template < typename F >

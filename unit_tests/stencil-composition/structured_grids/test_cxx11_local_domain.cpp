@@ -45,6 +45,8 @@
 #include <boost/fusion/include/vector.hpp>
 #include "gtest/gtest.h"
 
+#include <common/defs.hpp>
+#include <stencil-composition/backend.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;

@@ -134,10 +134,9 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                         p_edge_length(), p_cell_area_reciprocal(), p_orientation_of_normal(), p_div_weights())));
-            stencil_prep->ready();
-            stencil_prep->steady();
-            stencil_prep->run();
-            stencil_prep->finalize();
+            stencil_prep.steady();
+            stencil_prep.run();
+            stencil_prep.finalize();
         }
 
         {
@@ -157,10 +156,9 @@ namespace ico_operators {
                     gridtools::make_stage< div_prep_functor_on_edges,
                         icosahedral_topology_t,
                         icosahedral_topology_t::edges >(p_edge_length(), p_cell_area_reciprocal(), p_l_over_A())));
-            stencil_prep_on_edges->ready();
-            stencil_prep_on_edges->steady();
-            stencil_prep_on_edges->run();
-            stencil_prep_on_edges->finalize();
+            stencil_prep_on_edges.steady();
+            stencil_prep_on_edges.run();
+            stencil_prep_on_edges.finalize();
         }
 
         bool result = true;
@@ -184,9 +182,8 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< div_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                         p_in_edges(), p_div_weights(), p_out_cells())));
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
+            stencil_.steady();
+            stencil_.run();
 
             in_edges.sync();
             div_weights.sync();
@@ -196,9 +193,9 @@ namespace ico_operators {
 
 #ifdef BENCHMARK
             benchmarker::run(stencil_, t_steps);
-            std::cout << "div: " << stencil_->print_meter() << std::endl;
+            std::cout << "div: " << stencil_.print_meter() << std::endl;
 #endif
-            stencil_->finalize();
+            stencil_.finalize();
         }
         /*
          * stencil of div reduction into scalar
@@ -220,9 +217,8 @@ namespace ico_operators {
                     gridtools::make_stage< div_functor_reduction_into_scalar,
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(p_in_edges(), p_div_weights(), p_out_cells())));
-            stencil_reduction_into_scalar->ready();
-            stencil_reduction_into_scalar->steady();
-            stencil_reduction_into_scalar->run();
+            stencil_reduction_into_scalar.steady();
+            stencil_reduction_into_scalar.run();
 
             in_edges.sync();
             div_weights.sync();
@@ -232,53 +228,10 @@ namespace ico_operators {
 
 #ifdef BENCHMARK
             benchmarker::run(stencil_reduction_into_scalar, t_steps);
-            std::cout << "reduction into scalar: " << stencil_reduction_into_scalar->print_meter() << std::endl;
+            std::cout << "reduction into scalar: " << stencil_reduction_into_scalar.print_meter() << std::endl;
 #endif
-            stencil_reduction_into_scalar->finalize();
+            stencil_reduction_into_scalar.finalize();
         }
-
-        //        /*
-        //         * stencil of div flow convention
-        //         */
-        //        {
-        //            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-        //            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
-        //            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-        //            typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
-
-        //            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
-        //                accessor_list_t;
-
-        //            gridtools::aggregator_type< accessor_list_t > domain(
-        //                boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
-
-        //            auto stencil_flow_convention = gridtools::make_computation< backend_t >(
-        //                domain,
-        //                grid_,
-        //                gridtools::make_multistage // mss_descriptor
-        //                (execute< forward >(),
-        //                    gridtools::make_stage< div_functor_flow_convention,
-        //                        icosahedral_topology_t,
-        //                        icosahedral_topology_t::cells >(
-        //                        p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
-        //            stencil_flow_convention->ready();
-        //            stencil_flow_convention->steady();
-        //            stencil_flow_convention->run();
-
-        //#ifdef __CUDACC__
-        //            in_edges.d2h_update();
-        //            edge_length.d2h_update();
-        //            cell_area_reciprocal.d2h_update();
-        //            out_cells.d2h_update();
-        //#endif
-        //            result = result && ver.verify(grid_, ref_cells, out_cells, halos);
-
-        //#ifdef BENCHMARK
-        //            benchmarker::run(stencil_flow_convention, t_steps);
-        //            std::cout << "flow convention: " << stencil_flow_convention->print_meter() << std::endl;
-        //#endif
-        //            stencil_flow_convention->finalize();
-        //        }
 
         /*
          * stencil of div flow convention
@@ -304,9 +257,8 @@ namespace ico_operators {
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(
                         p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
-            stencil_flow_convention->ready();
-            stencil_flow_convention->steady();
-            stencil_flow_convention->run();
+            stencil_flow_convention.steady();
+            stencil_flow_convention.run();
 
             in_edges.sync();
             edge_length.sync();
@@ -317,99 +269,11 @@ namespace ico_operators {
 
 #ifdef BENCHMARK
             benchmarker::run(stencil_flow_convention, t_steps);
-            std::cout << "flow convention connectivity: " << stencil_flow_convention->print_meter() << std::endl;
+            std::cout << "flow convention connectivity: " << stencil_flow_convention.print_meter() << std::endl;
 #endif
-            stencil_flow_convention->finalize();
+            stencil_flow_convention.finalize();
         }
 
-        //        {
-        //            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-        //            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
-        //            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-        //            typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
-
-        //            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
-        //                accessor_list_t;
-
-        //            gridtools::aggregator_type< accessor_list_t > domain(
-        //                boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
-
-        //            /*
-        //             * stencil of over edge
-        //             */
-        //            auto stencil_div_over_edges = gridtools::make_computation< backend_t >(
-        //                domain,
-        //                grid_,
-        //                gridtools::make_multistage // mss_descriptor
-        //                (execute< forward >(),
-        //                    gridtools::make_stage< div_functor_over_edges,
-        //                        icosahedral_topology_t,
-        //                        icosahedral_topology_t::edges >(p_in_edges(), p_edge_length(), p_out_cells()),
-        //                    gridtools::make_stage< divide_by_field, icosahedral_topology_t,
-        //                    icosahedral_topology_t::cells >(
-        //                        p_cell_area_reciprocal(), p_out_cells())));
-        //            stencil_div_over_edges->ready();
-        //            stencil_div_over_edges->steady();
-        //            stencil_div_over_edges->run();
-
-        //#ifdef __CUDACC__
-        //            in_edges.d2h_update();
-        //            edge_length.d2h_update();
-        //            cell_area_reciprocal.d2h_update();
-        //            out_cells.d2h_update();
-        //#endif
-
-        //// TODO: this does not validate because the divide_by_field functor runs only on edges with color 0
-        ////                        result = result && ver.verify(grid_, ref_cells, out_cells, halos);
-
-        //#ifdef BENCHMARK
-        ////                benchmarker::run(stencil_div_over_edges, t_steps);
-        ////                std::cout << "over edges: "<< stencil_div_over_edges->print_meter() << std::endl;
-        //#endif
-        //            stencil_div_over_edges->finalize();
-        //        }
-
-        //        {
-        //            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-        //            typedef arg< 1, cells_of_edges_storage_type, enumtype::cells > p_l_over_A;
-        //            typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
-
-        //            typedef boost::mpl::vector< p_in_edges, p_l_over_A, p_out_cells > accessor_list_t;
-
-        //            gridtools::aggregator_type< accessor_list_t > domain(
-        //                boost::fusion::make_vector(&in_edges, &l_over_A, &out_cells));
-
-        //            /*
-        //             * stencil of over edge weights
-        //             */
-
-        //            auto stencil_div_over_edges_weights = gridtools::make_computation< backend_t >(
-        //                domain,
-        //                grid_,
-        //                gridtools::make_multistage // mss_descriptor
-        //                (execute< forward >(),
-        //                    gridtools::make_stage< div_functor_over_edges_weights,
-        //                        icosahedral_topology_t,
-        //                        icosahedral_topology_t::edges >(p_in_edges(), p_l_over_A(), p_out_cells())));
-        //            stencil_div_over_edges_weights->ready();
-        //            stencil_div_over_edges_weights->steady();
-        //            stencil_div_over_edges_weights->run();
-
-        //#ifdef __CUDACC__
-        //            in_edges.d2h_update();
-        //            l_over_A.d2h_update();
-        //            out_cells.d2h_update();
-        //#endif
-
-        //// TODO: this does not validate in bottom left cell
-        ////                result = result && ver.verify(grid_, ref_cells, out_cells, halos);
-
-        //#ifdef BENCHMARK
-        //            benchmarker::run(stencil_div_over_edges_weights, t_steps);
-        //            std::cout << "over edges weights: " << stencil_div_over_edges_weights->print_meter() << std::endl;
-        //#endif
-        //            stencil_div_over_edges_weights->finalize();
-        //        }
         return result;
     }
 }

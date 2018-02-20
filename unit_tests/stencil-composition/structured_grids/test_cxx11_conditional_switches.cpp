@@ -132,16 +132,15 @@ namespace test_conditional_switches {
 
         bool result = true;
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
+        comp_.steady();
+        comp_.run();
         dummy.sync();
         result = result && (make_host_view(dummy)(0, 0, 0) == 842);
 
         p = false;
-        comp_->run();
+        comp_.run();
 
-        comp_->finalize();
+        comp_.finalize();
         result = result && (make_host_view(dummy)(0, 0, 0) == 5662);
 
         return result;

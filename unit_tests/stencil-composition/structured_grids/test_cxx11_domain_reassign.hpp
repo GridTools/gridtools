@@ -38,9 +38,8 @@
 #include <stencil-composition/arg.hpp>
 #include <stencil-composition/aggregator_type.hpp>
 #include <common/defs.hpp>
-#include <stencil-composition/stencil.hpp>
 #include "backend_select.hpp"
-
+/*
 namespace domain_reassign {
 
     typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
@@ -75,3 +74,4 @@ namespace domain_reassign {
         void finalize();
     };
 }
+*/

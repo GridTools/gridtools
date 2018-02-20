@@ -136,10 +136,9 @@ namespace positional_copy_stencil {
                 gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
                     )));
 
-        init->ready();
-        init->steady();
-        init->run();
-        init->finalize();
+        init.steady();
+        init.run();
+        init.finalize();
 
         auto copy =
             gridtools::make_computation< backend_t >(domain,
@@ -149,10 +148,9 @@ namespace positional_copy_stencil {
                                                          gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                                                              ,
                                                              p_out())));
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
+        copy.steady();
+        copy.run();
+        copy.finalize();
 
         storage_t ref(meta_, [](int i, int j, int k) { return static_cast< double >(_value_) * (i + j + k); });
 

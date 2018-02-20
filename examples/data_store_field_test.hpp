@@ -124,10 +124,9 @@ namespace data_store_field_test {
                                                       make_stage< A >(p_in(), p_tmp()),
                                                       make_stage< A >(p_tmp(), p_out())));
 
-        comp->ready();
-        comp->steady();
-        comp->run();
-        comp->finalize();
+        comp.steady();
+        comp.run();
+        comp.finalize();
 
         bool valid = true;
         for (int i = halo_size; i < d1 - halo_size; ++i) {

@@ -133,21 +133,19 @@ TEST_F(cache_stencil, ij_cache) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil = make_computation< backend_t >(domain,
+    auto stencil = make_computation< backend_t >(domain,
         m_grid,
         make_multistage // mss_descriptor
         (execute< forward >(),
-                                                      define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                      make_stage< functor1 >(p_in(), p_buff()),
-                                                      make_stage< functor1 >(p_buff(), p_out())));
+                                                     define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                     make_stage< functor1 >(p_in(), p_buff()),
+                                                     make_stage< functor1 >(p_buff(), p_out())));
 
-    pstencil->ready();
+    stencil.steady();
 
-    pstencil->steady();
+    stencil.run();
 
-    pstencil->run();
-
-    pstencil->finalize();
+    stencil.finalize();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -176,22 +174,20 @@ TEST_F(cache_stencil, ij_cache_offset) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil = make_computation< backend_t >(domain,
+    auto stencil = make_computation< backend_t >(domain,
         m_grid,
         make_multistage // mss_descriptor
         (execute< forward >(),
-                                                      // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                      make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                      make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-                                                      ));
+                                                     // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                     make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                     make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                     ));
 
-    pstencil->ready();
+    stencil.steady();
 
-    pstencil->steady();
+    stencil.run();
 
-    pstencil->run();
-
-    pstencil->finalize();
+    stencil.finalize();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -235,13 +231,11 @@ TEST_F(cache_stencil, multi_cache) {
                                           make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
                                           make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
                                           ));
-    stencil->ready();
+    stencil.steady();
 
-    stencil->steady();
+    stencil.run();
 
-    stencil->run();
-
-    stencil->finalize();
+    stencil.finalize();
 
     verifier verif(1e-13);
     array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};

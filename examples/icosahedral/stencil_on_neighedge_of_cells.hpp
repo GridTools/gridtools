@@ -121,9 +121,8 @@ namespace soneoc {
                 gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_edges(), p_out_cells())));
 
-        stencil_edges->ready();
-        stencil_edges->steady();
-        stencil_edges->run();
+        stencil_edges.steady();
+        stencil_edges.run();
 
         out_cells.sync();
         in_edges.sync();
@@ -158,7 +157,7 @@ namespace soneoc {
 #ifdef BENCHMARK
         benchmarker::run(stencil_edges, t_steps);
 #endif
-        stencil_edges->finalize();
+        stencil_edges.finalize();
         return result;
     }
 

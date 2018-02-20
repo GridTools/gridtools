@@ -193,9 +193,8 @@ namespace horizontal_diffusion {
                     gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
                 gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
-        horizontal_diffusion->ready();
-        horizontal_diffusion->steady();
-        horizontal_diffusion->run();
+        horizontal_diffusion.steady();
+        horizontal_diffusion.run();
 
         repository.out().sync();
 
@@ -214,7 +213,7 @@ namespace horizontal_diffusion {
 #ifdef BENCHMARK
         benchmarker::run(horizontal_diffusion, t_steps);
 #endif
-        horizontal_diffusion->finalize();
+        horizontal_diffusion.finalize();
 
         return result;
     }

@@ -274,13 +274,11 @@ namespace multi_types_test {
                 gridtools::make_stage< function1 >(p_temp(), p_field1()),
                 gridtools::make_stage< function3 >(p_field3(), p_temp(), p_field1())));
 
-        test_computation->ready();
+        test_computation.steady();
 
-        test_computation->steady();
+        test_computation.run();
 
-        test_computation->run();
-
-        test_computation->finalize();
+        test_computation.finalize();
 
         auto f1v = make_host_view(field1);
         auto f2v = make_host_view(field2);

@@ -191,10 +191,9 @@ namespace ico_operators {
                         icosahedral_topology_t,
                         icosahedral_topology_t::vertices >(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
-            stencil_->finalize();
+            stencil_.steady();
+            stencil_.run();
+            stencil_.finalize();
         }
 
         /*
@@ -247,9 +246,8 @@ namespace ico_operators {
                         p_edge_length_reciprocal(),
                         p_out_edges())));
 
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
+            stencil_.steady();
+            stencil_.run();
 
             in_edges.sync();
             dual_edge_length_reciprocal.sync();
@@ -328,9 +326,8 @@ namespace ico_operators {
                         p_edge_length_reciprocal(),
                         p_out_edges())));
 
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
+            stencil_.steady();
+            stencil_.run();
 
             in_edges.sync();
             out_edges.sync();

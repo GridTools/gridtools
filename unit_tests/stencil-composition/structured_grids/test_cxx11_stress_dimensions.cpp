@@ -310,10 +310,9 @@ namespace assembly {
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
                                               make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
-        fe_comp->ready();
-        fe_comp->steady();
-        fe_comp->run();
-        fe_comp->finalize();
+        fe_comp.steady();
+        fe_comp.run();
+        fe_comp.finalize();
 
         return do_verification< storage_local_quad_t, storage_global_quad_t >(d1, d2, d3, result, grid);
     }

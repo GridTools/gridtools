@@ -85,9 +85,8 @@ namespace test_staggered_keyword {
             gridtools::make_multistage(execute< forward >(),
                 gridtools::make_stage< functor, staggered< 5, 5, 5, 5 > >(p_i_data(), p_j_data())));
 
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.steady();
+        comp.run();
 
         return (functor::ok_i && functor::ok_j);
     }

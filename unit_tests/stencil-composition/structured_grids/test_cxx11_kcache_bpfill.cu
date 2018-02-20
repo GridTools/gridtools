@@ -165,11 +165,9 @@ TEST_F(kcachef, bpfilll_forward) {
                                               ,
                                               p_out())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -183,7 +181,7 @@ TEST_F(kcachef, bpfilll_forward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, bpfilll_backward) {
@@ -215,11 +213,9 @@ TEST_F(kcachef, bpfilll_backward) {
                                               ,
                                               p_out())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
     m_out.sync();
     m_out.reactivate_host_write_views();
 
@@ -232,7 +228,7 @@ TEST_F(kcachef, bpfilll_backward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, bpfilll_selfupdate_forward) {
@@ -268,11 +264,9 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
                                           define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
                                           make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -285,7 +279,7 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, bpfilll_selfupdate_backward) {
@@ -321,11 +315,9 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
                                           define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
                                           make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -339,5 +331,5 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }

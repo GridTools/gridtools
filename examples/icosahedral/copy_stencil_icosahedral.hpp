@@ -98,10 +98,9 @@ namespace test_copy_stencil_icosahedral {
             make_multistage(enumtype::execute< enumtype::forward >(),
                 make_stage< functor_copy, icosahedral_topology_t, icosahedral_topology_t::cells >(p_out(), p_in())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.steady();
+        comp_.run();
+        comp_.finalize();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

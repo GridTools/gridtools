@@ -281,11 +281,9 @@ namespace vertical_advection_dycore {
 
             auto vertical_advection = gridtools::make_computation< backend_t >(domain, grid, up_stencil, down_stencil);
 
-            vertical_advection->ready();
+            vertical_advection.steady();
 
-            vertical_advection->steady();
-
-            vertical_advection->run();
+            vertical_advection.run();
 
             repository.utens_stage().sync();
 
@@ -305,7 +303,7 @@ namespace vertical_advection_dycore {
             benchmarker::run(vertical_advection, t_steps);
 #endif
 
-            vertical_advection->finalize();
+            vertical_advection.finalize();
 
             return result;
         }
@@ -340,11 +338,9 @@ namespace vertical_advection_dycore {
                                                p_dcol(),
                                                p_data_col())));
 
-            vertical_advection->ready();
+            vertical_advection.steady();
 
-            vertical_advection->steady();
-
-            vertical_advection->run();
+            vertical_advection.run();
 
             repository.utens_stage().sync();
 
@@ -361,7 +357,7 @@ namespace vertical_advection_dycore {
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
 
-            vertical_advection->finalize();
+            vertical_advection.finalize();
 
             return result;
         }

@@ -120,12 +120,11 @@ namespace copy_stencils_3D_2D_1D_0D {
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
                                                                  ));
 
-        copy->ready();
-        copy->steady();
+        copy.steady();
 
-        copy->run();
+        copy.run();
 
-        copy->finalize();
+        copy.finalize();
 
         bool ok = true;
         auto outv = make_host_view(out);

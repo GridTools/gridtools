@@ -34,11 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <memory>
 #include <type_traits>
 #include <utility>
-
-#include <boost/fusion/include/make_vector.hpp>
 
 #include "../common/defs.hpp"
 #include "expandable_parameters/expand_factor.hpp"
@@ -59,10 +56,8 @@ namespace gridtools {
                 typename std::decay< Domain >::type,
                 Grid,
                 typename std::decay< MssDescriptorTrees >::type... > >
-        std::shared_ptr< Res > make_computation(
-            Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return std::make_shared< Res >(
-                std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...);
+        Res make_computation(Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
+            return {std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
         }
 
         template < typename Expand,
@@ -77,10 +72,9 @@ namespace gridtools {
                 typename std::decay< Domain >::type,
                 Grid,
                 typename std::decay< MssDescriptorTrees >::type... > >
-        std::shared_ptr< Res > make_computation_expandable(
+        Res make_computation_expandable(
             Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return std::make_shared< Res >(
-                std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...);
+            return {std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
         }
 
         template < bool Positional,
@@ -106,9 +100,21 @@ namespace gridtools {
         }
     }
 
+#ifndef NDEBUG
+#define POSITIONAL_WHEN_DEBUGGING true
+#ifndef SUPPRESS_MESSAGES
+#pragma message( \
+    ">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
+#endif
+#else
+#define POSITIONAL_WHEN_DEBUGGING false
+#endif
+
     template < typename Backend, typename... Args >
     auto make_computation(Args &&... args) GT_AUTO_RETURN(
         (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(std::forward< Args >(args)...)));
+
+#undef POSITIONAL_WHEN_DEBUGGING
 
     template < typename Backend, typename... Args >
     auto make_positional_computation(Args &&... args)

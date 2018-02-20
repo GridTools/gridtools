@@ -190,11 +190,9 @@ TEST_F(kcachef, local_forward) {
                                                          p_out(),
                                                          p_buff())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -208,7 +206,7 @@ TEST_F(kcachef, local_forward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, local_backward) {
@@ -245,11 +243,9 @@ TEST_F(kcachef, local_backward) {
                                                          p_out(),
                                                          p_buff())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -263,7 +259,7 @@ TEST_F(kcachef, local_backward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, biside_forward) {
@@ -306,11 +302,9 @@ TEST_F(kcachef, biside_forward) {
                 p_out(),
                 p_buff())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -324,7 +318,7 @@ TEST_F(kcachef, biside_forward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, biside_backward) {
@@ -378,11 +372,9 @@ TEST_F(kcachef, biside_backward) {
                 p_out(),
                 p_buff())));
 
-    kcache_stencil->ready();
+    kcache_stencil.steady();
 
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -396,5 +388,5 @@ TEST_F(kcachef, biside_backward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
-    kcache_stencil->finalize();
+    kcache_stencil.finalize();
 }

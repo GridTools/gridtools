@@ -344,9 +344,8 @@ class call_interface : public testing::Test {
 
     template < typename Computation >
     void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.steady();
+        comp.run();
         out.sync();
     }
 };
@@ -621,9 +620,8 @@ class call_proc_interface : public testing::Test {
 
     template < typename Computation >
     void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.steady();
+        comp.run();
         out1.sync();
         out2.sync();
     }

@@ -122,9 +122,8 @@ namespace soc {
             (execute< forward >(),
                 gridtools::make_stage< test_on_cells_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_cells(), p_out_cells())));
-        stencil_cells->ready();
-        stencil_cells->steady();
-        stencil_cells->run();
+        stencil_cells.steady();
+        stencil_cells.run();
 
         out_cells.sync();
         in_cells.sync();
@@ -159,7 +158,7 @@ namespace soc {
 #ifdef BENCHMARK
         benchmarker::run(stencil_cells, t_steps);
 #endif
-        stencil_cells->finalize();
+        stencil_cells.finalize();
 
         return result;
     }

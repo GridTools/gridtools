@@ -105,14 +105,13 @@ namespace adv_prepare_tracers {
                 make_multistage(enumtype::execute< enumtype::forward >(),
                                               make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
+        comp_.steady();
+        comp_.run();
 
 #ifdef BENCHMARK
         benchmarker::run(comp_, t_steps);
 #endif
-        comp_->finalize();
+        comp_.finalize();
 
         verifier verif(1e-6);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};

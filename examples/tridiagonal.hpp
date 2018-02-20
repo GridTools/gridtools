@@ -226,15 +226,14 @@ namespace tridiagonal {
                 gridtools::make_stage< backward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ));
 
-        solver->ready();
-        solver->steady();
+        solver.steady();
 
-        solver->run();
+        solver.run();
 
-        solver->finalize();
+        solver.finalize();
 
 #ifdef BENCHMARK
-        std::cout << solver->print_meter() << std::endl;
+        std::cout << solver.print_meter() << std::endl;
 #endif
 
 #if FLOAT_PRECISION == 4

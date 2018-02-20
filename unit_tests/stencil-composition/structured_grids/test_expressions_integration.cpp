@@ -98,9 +98,8 @@ class test_expressions : public testing::Test {
 
     template < typename Computation >
     void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.steady();
+        comp.run();
 #ifdef __CUDACC__
         out.sync();
 #endif

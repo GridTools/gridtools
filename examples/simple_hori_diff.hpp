@@ -155,10 +155,9 @@ namespace shorizontal_diffusion {
                 gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                 gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
-        simple_hori_diff->ready();
-        simple_hori_diff->steady();
+        simple_hori_diff.steady();
 
-        simple_hori_diff->run();
+        simple_hori_diff.run();
 
         out.sync();
 
@@ -176,7 +175,7 @@ namespace shorizontal_diffusion {
         benchmarker::run(simple_hori_diff, t_steps);
 #endif
 
-        simple_hori_diff->finalize();
+        simple_hori_diff.finalize();
 
         return result; /// lapse_time.wall<5000000 &&
     }

@@ -36,6 +36,7 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 
 #include "common/defs.hpp"
+#include "stencil-composition/backend.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/structured_grids/accessor.hpp"
 #include "gtest/gtest.h"
@@ -94,7 +95,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()));
         auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
-        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
+        typedef decltype(computation_) intermediate_t;
         static_assert(
             std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
@@ -104,7 +105,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in()));
         auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
-        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
+        typedef decltype(computation_) intermediate_t;
         static_assert(
             std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
@@ -119,7 +120,7 @@ TEST(testdomain, iterate_domain_with_extents) {
 
         auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
 
-        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
+        typedef decltype(computation_) intermediate_t;
         static_assert(
             std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
@@ -134,7 +135,7 @@ TEST(testdomain, iterate_domain_with_extents) {
 
         auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
 
-        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
+        typedef decltype(computation_) intermediate_t;
         static_assert(
             std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }

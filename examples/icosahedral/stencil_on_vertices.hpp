@@ -120,9 +120,8 @@ namespace sov {
                 gridtools::make_stage< test_on_vertices_functor,
                     icosahedral_topology_t,
                     icosahedral_topology_t::vertices >(p_in_vertices(), p_out_vertices())));
-        stencil_->ready();
-        stencil_->steady();
-        stencil_->run();
+        stencil_.steady();
+        stencil_.run();
 
         out_vertices.sync();
         in_vertices.sync();
@@ -156,7 +155,7 @@ namespace sov {
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif
-        stencil_->finalize();
+        stencil_.finalize();
         return result;
     }
 

@@ -133,9 +133,8 @@ namespace soeov {
             (execute< forward >(),
                 gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_cell_area(), p_weight_edges())));
-        stencil_->ready();
-        stencil_->steady();
-        stencil_->run();
+        stencil_.steady();
+        stencil_.run();
 
         cell_area.sync();
         weight_edges.sync();
@@ -171,7 +170,7 @@ namespace soeov {
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif
-        stencil_->finalize();
+        stencil_.finalize();
         return result;
     }
 } // namespace soeov

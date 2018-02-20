@@ -115,10 +115,9 @@ namespace test_expandable_parameters_icosahedral {
                 make_stage< functor_exp, icosahedral_topology_t, icosahedral_topology_t::cells >(
                                 p_list_out(), p_list_in())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.steady();
+        comp_.run();
+        comp_.finalize();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

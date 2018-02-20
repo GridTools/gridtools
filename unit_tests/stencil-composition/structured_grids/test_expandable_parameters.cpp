@@ -160,9 +160,8 @@ class expandable_parameters : public testing::Test {
 
     template < typename Computation >
     void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.steady();
+        comp.run();
         out_1.sync();
         out_2.sync();
         out_3.sync();

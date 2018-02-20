@@ -39,7 +39,6 @@
 #include "../common/host_device.hpp"
 #include "esf.hpp"
 #include "intermediate_impl.hpp"
-#include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
 #include "../storage/storage-facility.hpp"
@@ -47,6 +46,8 @@
 #include "grid_traits.hpp"
 #include "computation.hpp"
 #include "storage_info_extender.hpp"
+#include "caches/define_caches.hpp"
+#include "make_computation.hpp"
 
 #ifndef STRUCTURED_GRIDS
 #include "icosahedral_grids/grid.hpp"

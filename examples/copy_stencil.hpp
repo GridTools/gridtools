@@ -144,18 +144,16 @@ namespace copy_stencil {
                 (execute< forward >(),
                     gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
-            copy->ready();
+            copy.steady();
 
-            copy->steady();
-
-            copy->run();
+            copy.run();
 
             out.sync();
             in.sync();
 
             bool success = verify();
 
-            copy->finalize();
+            copy.finalize();
 
             return success;
         }
@@ -166,11 +164,9 @@ namespace copy_stencil {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
-            copy->ready();
+            copy.steady();
 
-            copy->steady();
-
-            copy->run();
+            copy.run();
 
             out.sync();
             in.sync();
@@ -180,7 +176,7 @@ namespace copy_stencil {
 #ifdef BENCHMARK
             benchmarker::run(copy, t_steps);
 #endif
-            copy->finalize();
+            copy.finalize();
 
             return success;
         }
