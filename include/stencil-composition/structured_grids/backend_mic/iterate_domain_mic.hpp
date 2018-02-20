@@ -497,7 +497,7 @@ namespace gridtools {
         const int_t pointer_offset = compute_offset< storage_info_t >(accessor);
 
 #ifndef NDEBUG
-        GTASSERT((pointer_oob_check< backend_traits_t, block_size< 0, 0, 0 >, local_domain_t, arg_t, grid_traits_t >(
+        assert((pointer_oob_check< backend_traits_t, block_size< 0, 0, 0 >, local_domain_t, arg_t, grid_traits_t >(
             storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
