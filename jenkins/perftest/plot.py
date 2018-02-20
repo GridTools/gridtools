@@ -4,7 +4,6 @@ from datetime import datetime
 import itertools
 import math
 
-import cycler
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
