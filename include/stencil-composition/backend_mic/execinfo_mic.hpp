@@ -40,16 +40,32 @@
 
 namespace gridtools {
 
+    /**
+     *  \brief Execution info class for MIC backend.
+     *  Used for stencils that are executed serially along the k-axis.
+     */
     struct execinfo_block_kserial_mic {
-        int_t i_first, j_first;
-        int_t i_block_size, j_block_size;
+        int_t i_first;      /** First index in block along i-axis. */
+        int_t j_first;      /** First index in block along j-axis. */
+        int_t i_block_size; /** Size of block along i-axis. */
+        int_t j_block_size; /** Size of block along j-axis. */
     };
 
+    /**
+     *  \brief Execution info class for MIC backend.
+     *  Used for stencils that are executed in parallel along the k-axis.
+     */
     struct execinfo_block_kparallel_mic {
-        int_t i_first, j_first, k;
-        int_t i_block_size, j_block_size;
+        int_t i_first;      /** First index in block along i-axis. */
+        int_t j_first;      /** First index in block along j-axis. */
+        int_t k;            /** Position along k-axis. */
+        int_t i_block_size; /** Size of block along i-axis. */
+        int_t j_block_size; /** Size of block along j-axis. */
     };
 
+    /**
+     * \brief Helper class for block handling.
+     */
     class execinfo_mic {
       public:
         using block_kserial_t = execinfo_block_kserial_mic;
@@ -62,6 +78,9 @@ namespace gridtools {
               m_j_low_bound(grid.j_low_bound()) {
             const int_t threads = omp_get_max_threads();
 
+            // if domain is large enough (relative to the number of threads),
+            // we split only along j-axis (for prefetching reasons)
+            // for smaller domains we also split along i-axis
             m_j_block_size = (m_j_grid_size + threads - 1) / threads;
             const int_t j_blocks = (m_j_grid_size + m_j_block_size - 1) / m_j_block_size;
             const int_t i_blocks = threads / j_blocks;
@@ -70,6 +89,14 @@ namespace gridtools {
             assert(m_i_block_size > 0 && m_j_block_size > 0);
         }
 
+        /**
+         * \brief Computes the effective (clamped) block size and position for k-serial stencils.
+         *
+         * \param i_block_index Block index along i-axis.
+         * \param j_block_index Block index along j-axis.
+         *
+         * \return An execution info instance with the computed properties.
+         */
         GT_FUNCTION block_kserial_t block(int_t i_block_index, int_t j_block_index) const {
             return block_kserial_t{block_start(i_block_index, m_i_block_size, m_i_low_bound),
                 block_start(j_block_index, m_j_block_size, m_j_low_bound),
@@ -77,6 +104,15 @@ namespace gridtools {
                 clamped_block_size(j_block_index, m_j_block_size, m_j_grid_size)};
         }
 
+        /**
+         * \brief Computes the effective (clamped) block size and position for k-parallel stencils.
+         *
+         * \param i_block_index Block index along i-axis.
+         * \param j_block_index Block index along j-axis.
+         * \param k Index along k-axis.
+         *
+         * \return An execution info instance with the computed properties.
+         */
         GT_FUNCTION block_kparallel_t block(int_t i_block_index, int_t j_block_index, int_t k) const {
             return block_kparallel_t{block_start(i_block_index, m_i_block_size, m_i_low_bound),
                 block_start(j_block_index, m_j_block_size, m_j_low_bound),
@@ -85,10 +121,14 @@ namespace gridtools {
                 clamped_block_size(j_block_index, m_j_block_size, m_j_grid_size)};
         }
 
+        /** \brief Number of blocks along i-axis. */
         GT_FUNCTION int_t i_blocks() const { return (m_i_grid_size + m_i_block_size - 1) / m_i_block_size; }
+        /** \brief Number of blocks along j-axis. */
         GT_FUNCTION int_t j_blocks() const { return (m_j_grid_size + m_j_block_size - 1) / m_j_block_size; }
 
+        /** \brief Unclamped block size along i-axis. */
         GT_FUNCTION int_t i_block_size() const { return m_i_block_size; }
+        /** \brief Unclamped block size along j-axis. */
         GT_FUNCTION int_t j_block_size() const { return m_j_block_size; }
 
       private:
