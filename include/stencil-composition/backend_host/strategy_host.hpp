@@ -44,6 +44,9 @@ namespace gridtools {
     template < enumtype::strategy >
     struct strategy_from_id_host;
 
+    /**
+     * @brief struct holding backend-specific runtime information about stencil execution.
+     */
     struct execution_info_host {
         uint_t bi, bj;
     };
@@ -94,11 +97,11 @@ namespace gridtools {
         struct mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
-            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
+            template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                ExecutionInfo &execution_info) {
+                const execution_info_host &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
@@ -183,11 +186,11 @@ namespace gridtools {
 
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
+            template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                ExecutionInfo &execution_info) {
+                const execution_info_host &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);

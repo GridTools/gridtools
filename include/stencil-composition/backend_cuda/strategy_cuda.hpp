@@ -60,8 +60,13 @@ namespace gridtools {
     struct execution_info_cuda {};
 
     /**
+     * @brief struct holding backend-specific runtime information about stencil execution.
+     * Empty for the CUDA backend.
+     */
+    struct execution_info_cuda {};
+
+    /**
        @brief specialization for the \ref gridtools::_impl::Block strategy
-       Empty as not used in the CUDA backend
     */
     template <>
     struct strategy_from_id_cuda< enumtype::Block > {
