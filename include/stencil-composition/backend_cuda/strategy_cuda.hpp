@@ -57,8 +57,6 @@ namespace gridtools {
     template <>
     struct strategy_from_id_cuda< enumtype::Naive > {};
 
-    struct execution_info_cuda {};
-
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.
      * Empty for the CUDA backend.
