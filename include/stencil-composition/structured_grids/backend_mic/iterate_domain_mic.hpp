@@ -63,7 +63,7 @@ namespace gridtools {
     } // namespace advanced
 
     /**
-     * @brief iterate domain class for the MIC backend
+     * @brief Iterate domain class for the MIC backend.
      */
     template < typename IterateDomainArguments >
     class iterate_domain_mic : public iterate_domain_reduction< IterateDomainArguments > {
@@ -86,7 +86,8 @@ namespace gridtools {
         //*****************
 
         /**
-         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         * @brief metafunction that determines if a given accessor is associated with an placeholder holding a data
+         * field.
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
@@ -94,10 +95,8 @@ namespace gridtools {
         };
 
         /**
-         * metafunction that computes the return type of all operator() of an accessor.
-         *
-         * If the temaplate argument is not an accessor ::type is mpl::void_
-         *
+         * @brief metafunction that computes the return type of all operator() of an accessor.
+         * If the temaplate argument is not an accessor ::type is mpl::void_.
          */
         template < typename Accessor >
         struct accessor_return_type {
@@ -125,11 +124,15 @@ namespace gridtools {
         local_domain_t const &local_domain;
         data_ptr_cached_t m_data_pointer;
         strides_cached_t m_strides;
-        int_t m_i_block_index, m_j_block_index, m_k_block_index, m_i_block_base, m_j_block_base;
-        int_t m_prefetch_distance;
+        int_t m_i_block_index;     /** Local i-index inside block. */
+        int_t m_j_block_index;     /** Local j-index inside block. */
+        int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
+        int_t m_i_block_base;      /** Global block start index along i-axis. */
+        int_t m_j_block_base;      /** Global block start index along j-axis. */
+        int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
         // ******************* end of members *******************
 
-        // helper class for index array generation
+        // helper class for index array generation, only needed for the index() function
         struct index_getter {
             index_getter(iterate_domain_mic const &it_domain, array_index_t &index_array)
                 : m_it_domain(it_domain), m_index_array(index_array) {}
@@ -167,24 +170,31 @@ namespace gridtools {
                 assign_strides< backend_traits_t, strides_cached_t, local_domain_t, block_size< 0, 0, 0 > >(m_strides));
         }
 
+        /** @brief Returns the array of pointers to the raw data as const reference. */
         GT_FUNCTION
         data_ptr_cached_t const &RESTRICT data_pointer() const { return m_data_pointer; }
 
+        /** @brief Sets the block start indices. */
         GT_FUNCTION void set_block_base(int_t i_block_base, int_t j_block_base) {
             m_i_block_base = i_block_base;
             m_j_block_base = j_block_base;
         }
 
+        /** @brief Sets the local block index along the i-axis. */
         GT_FUNCTION void set_i_block_index(int_t i) { m_i_block_index = i; }
+        /** @brief Sets the local block index along the j-axis. */
         GT_FUNCTION void set_j_block_index(int_t j) { m_j_block_index = j; }
+        /** @brief Sets the local block index along the k-axis. */
         GT_FUNCTION void set_k_block_index(int_t k) { m_k_block_index = k; }
 
+        /** @brief Returns the current data index at offset (0, 0, 0) per meta storage. */
         GT_FUNCTION array_index_t index() const {
             array_index_t index_array;
             gridtools::for_each< meta::make_indices< N_META_STORAGES > >(index_getter(*this, index_array));
             return index_array;
         }
 
+        /** @brief Sets the software prefetching distance along k-axis. Zero means no software prefetching. */
         GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
 
         template < typename T >
@@ -192,10 +202,26 @@ namespace gridtools {
             local_domain.info(x);
         }
 
-        template < typename Accessor, typename StoragePointer, bool DirectGMemAccess = false >
+        /**
+         * @brief Returns the value of the memory at the given address, plus the offset specified by the arg
+         * placeholder.
+         * @param accessor Accessor passed to the evaluator.
+         * @param storage_pointer Pointer to the first element of the specific data field used.
+         * @tparam DirectGMemAccess Selects a direct access to main memory for the given accessor, ignoring if the
+         * parameter is being cached using software managed cache syntax.
+        */
+        template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
+        /**
+         * @brief Method returning the data pointer of an accessor.
+         * Specialization for the accessor placeholders for standard storages.
+         *
+         * This method is enabled only if the current placeholder dimension does not exceed the number of space
+         * dimensions of the storage class. I.e., if we are dealing with storages, not with storage lists or data fields
+         * (see concepts page for definitions)
+        */
         template < typename Accessor >
         GT_FUNCTION
             typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
@@ -214,6 +240,15 @@ namespace gridtools {
             return m_data_pointer.template get< index_t::value >()[0];
         }
 
+        /**
+         * @brief Method returning the data pointer of an accessor.
+         * Specialization for the accessor placeholder for extended storages,
+         * containg multiple snapshots of data fields with the same dimension and memory layout.
+         *
+         * This method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
+         * the storage class. I.e., if we are dealing with storage lists or data fields (see concepts page for
+         * definitions).
+        */
         template < typename Accessor >
         GT_FUNCTION
             typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
@@ -239,6 +274,16 @@ namespace gridtools {
             return m_data_pointer.template get< index_t::value >()[idx];
         }
 
+        /**
+         * @brief Helper function that given an input in_ and a tuple t_ calls in_.operator() with the elements of the
+         * tuple as arguments.
+         *
+         * For example, if the tuple is an accessor containing the offsets 1,2,3, and the input is a storage st_, this
+         * function returns st_(1,2,3).
+         *
+         * @param container The input class.
+         * @param tuple The tuple.
+         */
         template < typename Container, typename Tuple, uint_t... Ids >
         GT_FUNCTION auto static tuple_to_container(
             Container &&container_, Tuple const &tuple_, gt_integer_sequence< uint_t, Ids... >)
@@ -252,6 +297,10 @@ namespace gridtools {
             std::declval< global_accessor_with_arguments< Acc, Args... > >().get_arguments(),
             make_gt_integer_sequence< uint_t, sizeof...(Args) >())) >::type;
 
+        /**
+         * @brief Returns the dimension of the storage corresponding to the given accessor.
+         * Useful to determine the loop bounds, when looping over a dimension from whithin a kernel.
+         */
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
@@ -263,6 +312,10 @@ namespace gridtools {
                 ->template dim< Coordinate >();
         }
 
+        /**
+         * @brief Method called in the Do methods of the functors.
+         * Specialization for the generic accessors placeholders.
+        */
         template < uint_t I >
         GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type operator()(
             global_accessor< I > const &accessor) {
@@ -271,6 +324,24 @@ namespace gridtools {
             return *static_cast< return_t * >(m_data_pointer.template get< index_t::value >()[0]);
         }
 
+        /**
+         * @brief Method called in the Do methods of the functors.
+         * Specialization for the generic accessors placeholders with arguments.
+        */
+        template < typename Acc, typename... Args >
+        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
+            -> ret_t< Acc, Args... > {
+            using index_t = typename Acc::index_t;
+            auto storage_ = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
+
+            return tuple_to_container(
+                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
+        }
+
+        /**
+         * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
+         * nor expression).
+         */
         template < typename Accessor >
         GT_FUNCTION typename boost::disable_if<
             boost::mpl::or_< boost::mpl::not_< is_accessor< Accessor > >, is_global_accessor< Accessor > >,
@@ -284,13 +355,13 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-        template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
-            -> decltype(expressions::evaluation::value(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
-            return expressions::evaluation::value((*this), arg);
-        }
-
+        /**
+         * @brief Method called in the Do methods of the functors.
+         *
+         * Partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
+         * be polluted with casting (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before
+         * using them in the expression).
+        */
         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
         GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg)
             -> decltype(expressions::evaluation::value((*this), arg)) {
@@ -299,22 +370,15 @@ namespace gridtools {
             return expressions::evaluation::value((*this), arg);
         }
 
-        template < typename Acc, typename... Args >
-        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
-            -> ret_t< Acc, Args... > {
-            typedef typename Acc::index_t index_t;
-            auto storage_ = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
-
-            return tuple_to_container(
-                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
-        }
-
+        /** @brief Global i-index. */
         GT_FUNCTION
         int_t i() const { return m_i_block_base + m_i_block_index; }
 
+        /** @brief Global j-index. */
         GT_FUNCTION
         int_t j() const { return m_j_block_base + m_j_block_index; }
 
+        /** @brief Global k-index. */
         GT_FUNCTION
         int_t k() const { return m_k_block_index; }
 
@@ -325,6 +389,7 @@ namespace gridtools {
         friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< iterate_domain_mic >(
             iterate_domain_mic &);
 
+        /** @brief Computes stride for a storage_info along given coordinate. */
         template < typename StorageInfo, int_t Coordinate >
         GT_FUNCTION int_t stride() const {
             using layout_t = typename StorageInfo::layout_t;
@@ -343,6 +408,10 @@ namespace gridtools {
             return is_masked ? 0 : is_max ? 1 : m_strides.template get< storage_info_index >()[layout_val];
         }
 
+        /**
+         * @brief Computes pointer offset for a storage_info along given coordinate.
+         * This function computes only the offset according to the current index.
+         */
         template < typename StorageInfo, int_t Coordinate >
         GT_FUNCTION int_t base_offset() const {
             // block offset in i- and j-dimension
@@ -360,6 +429,10 @@ namespace gridtools {
             return block_offset + index_offset;
         }
 
+        /**
+         * @brief Computes pointer offset for a storage_info along given coordinate.
+         * This function computes the full offset according to the current index and an accessor.
+         */
         template < typename StorageInfo,
             typename Accessor,
             int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
@@ -386,8 +459,15 @@ namespace gridtools {
         }
     };
 
+    /**
+     * @brief Returns the value of the memory at the given address, plus the offset specified by the arg placeholder.
+     * @param accessor Accessor passed to the evaluator.
+     * @param storage_pointer Pointer to the first element of the specific data field used.
+     * @tparam DirectGMemAccess selects a direct access to main memory for the given accessor, ignoring if the parameter
+     * is being cached using software managed cache syntax.
+    */
     template < typename IterateDomainArguments >
-    template < typename Accessor, typename StoragePointer, bool DirectGMemAccess >
+    template < typename Accessor, typename StoragePointer >
     GT_FUNCTION typename iterate_domain_mic< IterateDomainArguments >::template accessor_return_type< Accessor >::type
     iterate_domain_mic< IterateDomainArguments >::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
