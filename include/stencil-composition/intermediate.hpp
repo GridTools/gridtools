@@ -429,7 +429,7 @@ namespace gridtools {
                                         m_storage_wrapper_list, m_domain));
         }
 
-        void finalize() {
+        void sync_all() {
             // sync the data stores that should be synced
             boost::fusion::for_each(get_arg_storage_pairs(), _impl::sync_data_stores());
         }

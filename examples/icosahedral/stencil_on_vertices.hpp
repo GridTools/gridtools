@@ -155,7 +155,6 @@ namespace sov {
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif
-        stencil_.finalize();
         return result;
     }
 

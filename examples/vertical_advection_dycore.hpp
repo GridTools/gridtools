@@ -302,9 +302,6 @@ namespace vertical_advection_dycore {
 #ifdef BENCHMARK
             benchmarker::run(vertical_advection, t_steps);
 #endif
-
-            vertical_advection.finalize();
-
             return result;
         }
 
@@ -356,9 +353,6 @@ namespace vertical_advection_dycore {
                     {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
-
-            vertical_advection.finalize();
-
             return result;
         }
     };

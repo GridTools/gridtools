@@ -145,7 +145,7 @@ TEST_F(cache_stencil, ij_cache) {
 
     stencil.run();
 
-    stencil.finalize();
+    stencil.sync_all();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -187,7 +187,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
     stencil.run();
 
-    stencil.finalize();
+    stencil.sync_all();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -235,7 +235,7 @@ TEST_F(cache_stencil, multi_cache) {
 
     stencil.run();
 
-    stencil.finalize();
+    stencil.sync_all();
 
     verifier verif(1e-13);
     array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};

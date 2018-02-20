@@ -130,20 +130,16 @@ namespace test_conditional_switches {
                 make_stage< functor1< 400 > >(p_dummy(), p_dummy_tmp()),
                 make_stage< functor2< 400 > >(p_dummy(), p_dummy_tmp())));
 
-        bool result = true;
-
         comp_.steady();
         comp_.run();
         dummy.sync();
-        result = result && (make_host_view(dummy)(0, 0, 0) == 842);
+        bool result = make_host_view(dummy)(0, 0, 0) == 842;
 
         p = false;
         comp_.run();
 
-        comp_.finalize();
-        result = result && (make_host_view(dummy)(0, 0, 0) == 5662);
-
-        return result;
+        comp_.sync_all();
+        return result && make_host_view(dummy)(0, 0, 0) == 5662;
     }
 } // namespace test_conditional
 

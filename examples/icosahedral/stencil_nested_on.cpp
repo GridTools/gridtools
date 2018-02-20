@@ -172,7 +172,7 @@ TEST(test_stencil_nested_on, run) {
                 p_in_cells(), p_in_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges(), p_out_edges())));
     copy.steady();
     copy.run();
-    copy.finalize();
+    copy.sync_all();
 
     unstructured_grid ugrid(d1, d2, d3);
     for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {

@@ -235,19 +235,6 @@ namespace gridtools {
                 f::for_each(make_zip_view(f::make_vector(std::cref(src), std::ref(dst))),
                     f::make_fused(assign_arg_storage_pair{offset}));
             }
-
-            struct run {
-                template < typename T >
-                void operator()(T &obj) const {
-                    obj.run();
-                }
-            };
-            struct steady {
-                template < typename T >
-                void operator()(T &obj) const {
-                    obj.steady();
-                }
-            };
         }
     }
     /**
@@ -340,7 +327,17 @@ namespace gridtools {
            chunck of storage pointers is consumed.
          */
         notype run() {
-            assign_and_call(_impl::expand_detail::run{});
+            size_t i = 0;
+            for (; m_size - i >= ExpandFactor::value; i += ExpandFactor::value) {
+                assign(*m_intermediate, i);
+                m_intermediate->steady();
+                m_intermediate->run();
+            }
+            for (; i < m_size; ++i) {
+                assign(*m_intermediate_remainder, i);
+                m_intermediate_remainder->steady();
+                m_intermediate_remainder->run();
+            }
             return {};
         }
 
@@ -374,15 +371,9 @@ namespace gridtools {
             return res;
         }
 
-        /**
-           @brief forward the call to the members
-         */
-        void steady() { assign_and_call(_impl::expand_detail::steady{}); }
+        void steady() {}
 
-        /**
-           @brief forward the call to the members
-         */
-        void finalize() {
+        void sync_all() {
             // sync all data stores
             boost::fusion::for_each(m_arg_storage_pairs, _impl::sync_data_stores());
         }
@@ -399,19 +390,6 @@ namespace gridtools {
         template < typename Dst >
         void assign(Dst &dst, size_t offset) {
             _impl::expand_detail::assign(m_arg_storage_pairs, dst.get_arg_storage_pairs(), offset);
-        }
-
-        template < typename F >
-        void assign_and_call(const F &fun) {
-            size_t i = 0;
-            for (; m_size - i >= ExpandFactor::value; i += ExpandFactor::value) {
-                assign(*m_intermediate, i);
-                fun(*m_intermediate);
-            }
-            for (; i < m_size; ++i) {
-                assign(*m_intermediate_remainder, i);
-                fun(*m_intermediate_remainder);
-            }
         }
     };
 }

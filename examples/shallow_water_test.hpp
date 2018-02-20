@@ -349,19 +349,7 @@ namespace shallow_water {
                     gridtools::make_stage< final_step >(p_tmp(), p_sol())));
 
             shallow_water_stencil.steady();
-
-            gridtools::array< gridtools::halo_descriptor, 2 > halos;
-            halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-            halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-            // TODO: use placeholders here instead of the storage
-            // gridtools::boundary_apply< bc_reflecting<uint_t> >(halos, bc_reflecting<uint_t>()).apply(p_sol(),
-            // p_sol());
-
             shallow_water_stencil.run();
-
-            shallow_water_stencil.finalize();
-
-            // sol.print();
         }
         return true;
     }

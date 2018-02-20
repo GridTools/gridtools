@@ -213,8 +213,6 @@ namespace horizontal_diffusion {
 #ifdef BENCHMARK
         benchmarker::run(horizontal_diffusion, t_steps);
 #endif
-        horizontal_diffusion.finalize();
-
         return result;
     }
 

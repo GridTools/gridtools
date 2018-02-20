@@ -205,8 +205,6 @@ namespace sf {
 #ifdef BENCHMARK
         benchmarker::run(stencil_cells, t_steps);
 #endif
-        stencil_cells.finalize();
-
         return result;
     }
 

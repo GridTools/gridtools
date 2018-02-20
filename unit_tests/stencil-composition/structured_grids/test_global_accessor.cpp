@@ -205,7 +205,6 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
             }
         }
     }
-    bc_eval.finalize();
 }
 
 TEST_F(global_accessor_single_stage, with_procedure_call) {
@@ -230,8 +229,6 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
             }
         }
     }
-
-    bc_eval.finalize();
 }
 
 TEST_F(global_accessor_single_stage, with_function_call) {
@@ -256,8 +253,6 @@ TEST_F(global_accessor_single_stage, with_function_call) {
             }
         }
     }
-
-    bc_eval.finalize();
 }
 
 // The following will test the global accessor in a context of multiple
@@ -345,5 +340,4 @@ TEST(test_global_accessor, multiple_stages) {
             }
         }
     }
-    bc_eval.finalize();
 }

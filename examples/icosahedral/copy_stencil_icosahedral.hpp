@@ -100,7 +100,7 @@ namespace test_copy_stencil_icosahedral {
 
         comp_.steady();
         comp_.run();
-        comp_.finalize();
+        comp_.sync_all();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

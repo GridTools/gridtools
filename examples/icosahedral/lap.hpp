@@ -193,7 +193,7 @@ namespace ico_operators {
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
             stencil_.steady();
             stencil_.run();
-            stencil_.finalize();
+            stencil_.sync_all();
         }
 
         /*

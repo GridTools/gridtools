@@ -174,9 +174,6 @@ namespace shorizontal_diffusion {
 #ifdef BENCHMARK
         benchmarker::run(simple_hori_diff, t_steps);
 #endif
-
-        simple_hori_diff.finalize();
-
         return result; /// lapse_time.wall<5000000 &&
     }
 

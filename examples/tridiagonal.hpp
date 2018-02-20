@@ -220,7 +220,7 @@ namespace tridiagonal {
 
         solver.run();
 
-        solver.finalize();
+        solver.sync_all();
 
 #ifdef BENCHMARK
         std::cout << solver.print_meter() << std::endl;
@@ -232,8 +232,6 @@ namespace tridiagonal {
         verifier verif(1e-12);
 #endif
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        bool result = verif.verify(grid, solution, out, halos);
-
-        return result;
+        return verif.verify(grid, solution, out, halos);
     }
 } // namespace tridiagonal

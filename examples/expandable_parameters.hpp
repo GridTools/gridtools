@@ -110,7 +110,7 @@ namespace test_expandable_parameters {
 
         comp_.steady();
         comp_.run();
-        comp_.finalize();
+        comp_.sync_all();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {

@@ -142,7 +142,7 @@ namespace aligned_copy_stencil {
 
         copy.steady();
         copy.run();
-        copy.finalize();
+        copy.sync_all();
 
 #ifdef BENCHMARK
         std::cout << copy.print_meter() << std::endl;

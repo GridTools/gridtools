@@ -196,7 +196,7 @@ namespace copy_stencil {
         printf("computation run\n");
 #endif
 
-        copy.finalize();
+        copy.sync_all();
 
 #ifdef VERBOSE
         printf("computation finalized\n");

@@ -79,7 +79,6 @@ namespace domain_reassign {
 
         m_stencil.steady();
     }
-    gt_example::~gt_example() { m_stencil.finalize(); }
 
     void gt_example::run(std::vector< storage_t > &in, std::vector< storage_t > &out) {
 

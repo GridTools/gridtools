@@ -136,7 +136,7 @@ namespace ico_operators {
                         p_edge_length(), p_cell_area_reciprocal(), p_orientation_of_normal(), p_div_weights())));
             stencil_prep.steady();
             stencil_prep.run();
-            stencil_prep.finalize();
+            stencil_prep.sync_all();
         }
 
         {
@@ -158,7 +158,7 @@ namespace ico_operators {
                         icosahedral_topology_t::edges >(p_edge_length(), p_cell_area_reciprocal(), p_l_over_A())));
             stencil_prep_on_edges.steady();
             stencil_prep_on_edges.run();
-            stencil_prep_on_edges.finalize();
+            stencil_prep_on_edges.sync_all();
         }
 
         bool result = true;
@@ -195,7 +195,6 @@ namespace ico_operators {
             benchmarker::run(stencil_, t_steps);
             std::cout << "div: " << stencil_.print_meter() << std::endl;
 #endif
-            stencil_.finalize();
         }
         /*
          * stencil of div reduction into scalar
@@ -230,7 +229,6 @@ namespace ico_operators {
             benchmarker::run(stencil_reduction_into_scalar, t_steps);
             std::cout << "reduction into scalar: " << stencil_reduction_into_scalar.print_meter() << std::endl;
 #endif
-            stencil_reduction_into_scalar.finalize();
         }
 
         /*
@@ -271,7 +269,6 @@ namespace ico_operators {
             benchmarker::run(stencil_flow_convention, t_steps);
             std::cout << "flow convention connectivity: " << stencil_flow_convention.print_meter() << std::endl;
 #endif
-            stencil_flow_convention.finalize();
         }
 
         return result;

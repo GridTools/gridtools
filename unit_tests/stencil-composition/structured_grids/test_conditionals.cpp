@@ -82,12 +82,10 @@ namespace test_conditionals {
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
-        bool result = true;
         comp_.steady();
         comp_.run();
-        comp_.finalize();
-        result = result && (make_host_view(dummy)(0, 0, 0) == 1);
-        return result;
+        comp_.sync_all();
+        return make_host_view(dummy)(0, 0, 0) == 1;
     }
 } // namespace test_conditional
 

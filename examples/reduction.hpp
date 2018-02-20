@@ -148,7 +148,6 @@ namespace test_reduction {
             flusher.flush();
             sum_red_.run();
         }
-        sum_red_.finalize();
         std::cout << "Sum Reduction : " << sum_red_.print_meter() << std::endl;
 #endif
 
@@ -167,7 +166,6 @@ namespace test_reduction {
             flusher.flush();
             prod_red_.run();
         }
-        prod_red_.finalize();
         std::cout << "Prod Reduction : " << prod_red_.print_meter() << std::endl;
 #endif
 

@@ -157,7 +157,6 @@ namespace soneoc {
 #ifdef BENCHMARK
         benchmarker::run(stencil_edges, t_steps);
 #endif
-        stencil_edges.finalize();
         return result;
     }
 

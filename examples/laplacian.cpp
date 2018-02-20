@@ -137,7 +137,7 @@ TEST(Laplace, test) {
      */
     laplace.run();
 
-    laplace.finalize();
+    laplace.sync_all();
 
     storage_t ref(metadata_, -7.3);
 

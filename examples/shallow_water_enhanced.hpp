@@ -441,7 +441,7 @@ namespace shallow_water {
         //! [finalize]
         he.wait();
 
-        shallow_water_stencil.finalize();
+        shallow_water_stencil.sync_all();
 
         bool retval = true;
 //! [finalize]

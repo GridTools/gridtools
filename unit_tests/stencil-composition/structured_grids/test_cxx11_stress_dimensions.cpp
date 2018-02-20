@@ -312,7 +312,7 @@ namespace assembly {
 
         fe_comp.steady();
         fe_comp.run();
-        fe_comp.finalize();
+        fe_comp.sync_all();
 
         return do_verification< storage_local_quad_t, storage_global_quad_t >(d1, d2, d3, result, grid);
     }

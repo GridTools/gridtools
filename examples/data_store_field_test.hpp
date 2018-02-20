@@ -126,7 +126,7 @@ namespace data_store_field_test {
 
         comp.steady();
         comp.run();
-        comp.finalize();
+        comp.sync_all();
 
         bool valid = true;
         for (int i = halo_size; i < d1 - halo_size; ++i) {

@@ -77,7 +77,6 @@ namespace domain_reassign {
         m_stencil.steady();
     }
 
-    void gt_example::finalize() { m_stencil.finalize(); }
     void gt_example::run(storage_t &in, storage_t &out) {
         m_stencil.reassign(in, out);
         m_stencil.run();
@@ -126,8 +125,6 @@ class ReassignDomain : public ::testing::Test {
     {
         sync();
     }
-
-    void finalize() { m_stex.finalize(); }
 
     void sync() {
         m_out1.sync();

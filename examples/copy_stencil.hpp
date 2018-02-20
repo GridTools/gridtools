@@ -151,11 +151,7 @@ namespace copy_stencil {
             out.sync();
             in.sync();
 
-            bool success = verify();
-
-            copy.finalize();
-
-            return success;
+            return verify();
         }
 
         bool test() {
@@ -176,8 +172,6 @@ namespace copy_stencil {
 #ifdef BENCHMARK
             benchmarker::run(copy, t_steps);
 #endif
-            copy.finalize();
-
             return success;
         }
     };

@@ -205,8 +205,6 @@ TEST_F(kcachef, local_forward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
-    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, local_backward) {
@@ -258,8 +256,6 @@ TEST_F(kcachef, local_backward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
-    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, biside_forward) {
@@ -317,8 +313,6 @@ TEST_F(kcachef, biside_forward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
-    kcache_stencil.finalize();
 }
 
 TEST_F(kcachef, biside_backward) {
@@ -387,6 +381,4 @@ TEST_F(kcachef, biside_backward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
-    kcache_stencil.finalize();
 }

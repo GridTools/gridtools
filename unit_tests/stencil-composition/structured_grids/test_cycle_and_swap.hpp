@@ -102,7 +102,7 @@ namespace test_cycle_and_swap {
         swap< 0, 0 >::with< 0, 1 >(i_data);
         i_data.sync();
         comp.run();
-        comp.finalize();
+        comp.sync_all();
 
         iv = make_field_host_view(i_data);
         return (iv.get< 0, 0 >()(0, 0, 0) == 2 && iv.get< 0, 1 >()(0, 0, 0) == 0);
@@ -187,7 +187,7 @@ namespace test_cycle_and_swap {
         // grid points at the boundaries has not been computed at the first run. However we just dont validate these
         // points with the verifier
         comp.run();
-        comp.finalize();
+        comp.sync_all();
 
 #if FLOAT_PRECISION == 4
         verifier verif(1e-6);
@@ -241,7 +241,7 @@ namespace test_cycle_and_swap {
         cycle_all::by< 1 >(i_data);
         i_data.sync();
         comp.run();
-        comp.finalize();
+        comp.sync_all();
 
         // renew the view, because it is not valid anymore
         iv = make_field_host_view(i_data);
