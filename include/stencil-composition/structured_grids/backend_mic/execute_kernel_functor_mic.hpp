@@ -48,9 +48,19 @@ namespace gridtools {
 
     namespace _impl {
 
+        /**
+         * @brief Class for inner (block-level) looping.
+         */
         template < typename RunFunctorArguments, typename Interval, typename ExecutionInfo >
         class inner_functor_mic;
 
+        /**
+         * @brief Class for inner (block-level) looping.
+         * Specialization for stencils with serial execution along k-axis.
+         *
+         * @tparam RunFunctorArguments Run functor arguments.
+         * @tparam Interval K-axis interval where the functors should be executed.
+         */
         template < typename RunFunctorArguments, typename Interval >
         class inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kserial_mic > {
             using grid_t = typename RunFunctorArguments::grid_t;
@@ -61,6 +71,11 @@ namespace gridtools {
                 iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mic &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
+            /**
+             * @brief Executes the corresponding functor in the given interval.
+             *
+             * @param index Index in the functor list of the ESF functor that should be executed.
+             */
             template < typename Index >
             GT_FUNCTION void operator()(const Index &index) const {
                 using backend_traits_t = backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >;
@@ -112,6 +127,13 @@ namespace gridtools {
             const execinfo_block_kserial_mic &m_execution_info;
         };
 
+        /**
+         * @brief Class for inner (block-level) looping.
+         * Specialization for stencils with parallel execution along k-axis.
+         *
+         * @tparam RunFunctorArguments Run functor arguments.
+         * @tparam Interval K-axis interval where the functors should be executed.
+         */
         template < typename RunFunctorArguments, typename Interval >
         class inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kparallel_mic > {
             using grid_t = typename RunFunctorArguments::grid_t;
@@ -122,6 +144,11 @@ namespace gridtools {
                 iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kparallel_mic &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
+            /**
+             * @brief Executes the corresponding functor on a single k-level inside the block.
+             *
+             * @param index Index in the functor list of the ESF functor that should be executed.
+             */
             template < typename Index >
             GT_FUNCTION void operator()(const Index &index) const {
                 using backend_traits_t = backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >;
@@ -157,9 +184,16 @@ namespace gridtools {
             const execinfo_block_kparallel_mic &m_execution_info;
         };
 
+        /**
+         * @brief Class for per-block looping on a single interval.
+         */
         template < typename RunFunctorArguments, typename ExecutionInfo >
         class interval_functor_mic;
 
+        /**
+         * @brief Class for per-block looping on a single interval.
+         * Specialization for stencils with serial execution along k-axis.
+         */
         template < typename RunFunctorArguments >
         class interval_functor_mic< RunFunctorArguments, execinfo_block_kserial_mic > {
             using grid_t = typename RunFunctorArguments::grid_t;
@@ -170,6 +204,9 @@ namespace gridtools {
                 iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mic &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
+            /**
+             * @brief Runs all functors in RunFunctorArguments on the given interval.
+             */
             template < typename Interval >
             GT_FUNCTION void operator()(const Interval &) const {
                 using functor_list_t = typename RunFunctorArguments::functor_list_t;
@@ -185,6 +222,10 @@ namespace gridtools {
             const execinfo_block_kserial_mic &m_execution_info;
         };
 
+        /**
+         * @brief Class for per-block looping on a single interval.
+         * Specialization for stencils with parallel execution along k-axis.
+         */
         template < typename RunFunctorArguments >
         class interval_functor_mic< RunFunctorArguments, execinfo_block_kparallel_mic > {
             using grid_t = typename RunFunctorArguments::grid_t;
@@ -195,6 +236,9 @@ namespace gridtools {
                 iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kparallel_mic &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
+            /**
+             * @brief Runs all functors in RunFunctorArguments on the given interval if k is inside the interval.
+             */
             template < typename Interval >
             GT_FUNCTION void operator()(const Interval &) const {
                 using from_t = typename index_to_level< typename Interval::first >::type;
@@ -222,6 +266,10 @@ namespace gridtools {
     } // namespace _impl
 
     namespace strgrid {
+
+        /**
+         * @brief Class for executing all functors on a single block.
+         */
         template < typename RunFunctorArguments >
         class execute_kernel_functor_mic {
             using grid_t = typename RunFunctorArguments::grid_t;
