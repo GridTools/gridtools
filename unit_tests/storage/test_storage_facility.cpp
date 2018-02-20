@@ -108,17 +108,31 @@ struct static_type_tests< backend< enumtype::Mic, GridBackend, Strategy > > {
     typedef storage_traits_t::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
+#ifdef STRUCTURED_GRIDS
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< storage_info_ty,
             mic_storage_info< 0, layout_map< 2, 0, 1 >, halo< 1, 2, 3 >, alignment< 8 > > >::type::value),
         "storage info test failed");
+#else
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< storage_info_ty,
+            mic_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 8 > > >::type::value),
+        "storage info test failed");
+#endif
 
     // special layout
     typedef storage_traits_t::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > > special_storage_info_ty;
+#ifdef STRUCTURED_GRIDS
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< special_storage_info_ty,
             mic_storage_info< 0, layout_map< 1, 0, -1 >, halo< 1, 2, 3 >, alignment< 8 > > >::type::value),
         "storage info test failed");
+#else
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< special_storage_info_ty,
+            mic_storage_info< 0, layout_map< 0, 1, -1 >, halo< 1, 2, 3 >, alignment< 8 > > >::type::value),
+        "storage info test failed");
+#endif
 
     /*########## DATA STORE CHECKS ########## */
     typedef storage_traits_t::data_store_t< double, storage_info_ty > data_store_t;
@@ -550,9 +564,15 @@ struct static_layout_tests< backend< enumtype::Cuda, GridBackend, Strategy > >
     : static_layout_tests_decreasing< enumtype::Cuda > {};
 #endif
 
+#ifdef STRUCTURED_GRIDS
 template < enumtype::grid_type GridBackend, enumtype::strategy Strategy >
 struct static_layout_tests< backend< enumtype::Mic, GridBackend, Strategy > >
     : static_layout_tests_decreasing_swappedxy< enumtype::Mic > {};
+#else
+template < enumtype::grid_type GridBackend, enumtype::strategy Strategy >
+struct static_layout_tests< backend< enumtype::Mic, GridBackend, Strategy > >
+    : static_layout_tests_increasing< enumtype::Mic > {};
+#endif
 
 template < enumtype::grid_type GridBackend, enumtype::strategy Strategy >
 struct static_layout_tests< backend< enumtype::Host, GridBackend, Strategy > >

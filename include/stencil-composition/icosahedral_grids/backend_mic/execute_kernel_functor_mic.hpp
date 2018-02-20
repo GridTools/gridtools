@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits_fwd.hpp"
@@ -53,15 +53,15 @@ namespace gridtools {
          * @tparam Index unsigned int type with color
          */
         template < typename RunFunctorArguments, typename Index >
-        struct colorize_run_functor_arguments {
+        struct colorize_run_functor_arguments_mic {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-            typedef typename replace_template_arguments< RunFunctorArguments,
+            using type = meta::replace< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
-                color_type< (uint_t)Index::value > >::type type;
+                color_type< (uint_t)Index::value > >;
         };
 
         template < typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent >
-        struct color_execution_functor {
+        struct color_execution_functor_mic {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
@@ -71,9 +71,6 @@ namespace gridtools {
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
 
-            typedef array< int_t, IterateDomain::N_META_STORAGES > array_index_t;
-            typedef array< uint_t, 4 > array_position_t;
-
           private:
             IterateDomain &m_it_domain;
             Grid const &m_grid;
@@ -81,7 +78,7 @@ namespace gridtools {
             gridtools::array< const uint_t, 2 > const &m_loop_size;
 
           public:
-            color_execution_functor(IterateDomain &it_domain,
+            color_execution_functor_mic(IterateDomain &it_domain,
                 Grid const &grid,
                 gridtools::array< const uint_t, 2 > const &first_pos,
                 gridtools::array< const uint_t, 2 > const &loop_size)
@@ -92,17 +89,14 @@ namespace gridtools {
                 typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t,
                     color_type< Index::value > >::type >::type * = 0) const {
 
-                array_index_t memorized_index;
-                array_position_t memorized_position;
-
                 for (uint_t j = m_first_pos[1] + Extent::jminus::value;
                      j <= m_first_pos[1] + m_loop_size[1] + Extent::jplus::value;
                      ++j) {
-                    m_it_domain.get_index(memorized_index);
-                    m_it_domain.get_position(memorized_position);
+                    typename IterateDomain::array_index_t memorized_index = m_it_domain.index();
+                    typename IterateDomain::grid_position_t memorized_position = m_it_domain.position();
 
                     // we fill the run_functor_arguments with the current color being processed
-                    typedef typename colorize_run_functor_arguments< RunFunctorArguments, Index >::type
+                    typedef typename colorize_run_functor_arguments_mic< RunFunctorArguments, Index >::type
                         run_functor_arguments_t;
                     boost::mpl::for_each< loop_intervals_t >(
                         _impl::run_f_on_interval< execution_type_t, run_functor_arguments_t >(m_it_domain, m_grid));
@@ -213,8 +207,7 @@ namespace gridtools {
                     typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
                     execution_type_t::type::iteration > iteration_policy_t;
 
-                // reset the index
-                it_domain.set_index(0);
+                it_domain.reset_index();
 
                 // TODO FUSING work on extending the loops using the extent
                 //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value,
@@ -233,7 +226,7 @@ namespace gridtools {
                      i <= m_first_pos[0] + m_loop_size[0] + extent_t::iplus::value;
                      ++i) {
                     boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
-                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t, extent_t >(
+                        color_execution_functor_mic< RunFunctorArguments, iterate_domain_t, grid_t, extent_t >(
                             it_domain, m_grid, m_first_pos, m_loop_size));
 
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,

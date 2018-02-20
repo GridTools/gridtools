@@ -44,7 +44,7 @@
 using namespace gridtools;
 
 TEST(bakend, select_layout) {
-#ifdef BACKEND_HOST
+#if defined(BACKEND_HOST) || defined(BACKEND_MIC)
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< backend_t::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 0, 1, 2, 3 > >::value),
         "ERROR");

@@ -38,11 +38,11 @@
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
-#include "../../backend_mic/execinfo_mic.hpp"
 #include "stencil-composition/backend_mic/iterate_domain_mic.hpp"
 #include "stencil-composition/iterate_domain.hpp"
 #include "common/generic_metafunctions/for_each.hpp"
 #include "common/generic_metafunctions/meta.hpp"
+#include "execinfo_mic.hpp"
 
 namespace gridtools {
 
