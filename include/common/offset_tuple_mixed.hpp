@@ -37,7 +37,6 @@
 #pragma once
 #include "offset_tuple.hpp"
 
-#ifdef CUDA8
 namespace gridtools {
 
     /** Trick to make nvcc understand that the tuple is a constant expression*/
@@ -140,4 +139,3 @@ namespace gridtools {
         offset_tuple_mixed< ArgType, Pair... >::s_tuple_constexpr;
 
 } // namespace gridtools
-#endif // CUDA8
