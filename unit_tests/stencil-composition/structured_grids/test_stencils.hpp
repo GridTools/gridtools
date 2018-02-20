@@ -42,11 +42,6 @@
 
 #include <boost/fusion/include/make_vector.hpp>
 
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
-
 #include "backend_select.hpp"
 
 /*

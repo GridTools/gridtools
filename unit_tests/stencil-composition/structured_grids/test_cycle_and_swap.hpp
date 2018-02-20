@@ -203,13 +203,8 @@ namespace test_cycle_and_swap {
 
     bool test_cycle() {
         typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-#ifdef CUDA8
         typedef gridtools::storage_traits<
             backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 4 > data_store_field_t;
-#else // rectangular data field
-        typedef gridtools::storage_traits<
-            backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 3 > data_store_field_t;
-#endif
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
         auto iv = make_field_host_view(i_data);
@@ -222,9 +217,7 @@ namespace test_cycle_and_swap {
         iv.get< 2, 0 >()(0, 0, 0) = 20;
         iv.get< 2, 1 >()(0, 0, 0) = 21;
         iv.get< 2, 2 >()(0, 0, 0) = 22;
-#ifdef CUDA8
         iv.get< 2, 3 >()(0, 0, 0) = 23;
-#endif
 
         const uint_t halo_size = 0;
         halo_descriptor di{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
@@ -254,13 +247,8 @@ namespace test_cycle_and_swap {
         iv = make_field_host_view(i_data);
         return (iv.get< 0, 0 >()(0, 0, 0) == 2 && iv.get< 0, 1 >()(0, 0, 0) == 2 && iv.get< 0, 2 >()(0, 0, 0) == 0 &&
                 iv.get< 1, 0 >()(0, 0, 0) == 12 && iv.get< 1, 1 >()(0, 0, 0) == 10 && iv.get< 1, 2 >()(0, 0, 0) == 11 &&
-#ifdef CUDA8
                 iv.get< 2, 0 >()(0, 0, 0) == 23 && iv.get< 2, 1 >()(0, 0, 0) == 20 && iv.get< 2, 2 >()(0, 0, 0) == 21 &&
-                iv.get< 2, 3 >()(0, 0, 0) == 22
-#else
-                iv.get< 2, 0 >()(0, 0, 0) == 22 && iv.get< 2, 1 >()(0, 0, 0) == 20 && iv.get< 2, 2 >()(0, 0, 0) == 21
-#endif
-            );
+                iv.get< 2, 3 >()(0, 0, 0) == 22);
     }
 
 } // namespace test_cycle_and_swap
