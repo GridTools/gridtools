@@ -127,26 +127,6 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
-#ifndef CUDA8
-            comp c;
-            dimension< 1 > i;
-            //! [expression]
-            eval(tmpx()) =
-                eval((sol(i - 0) + sol(i - 1)) / tl - (dt() / (2 * dx())) * (sol(c + 1) - sol(c + 1, i - 1)));
-            // ! [expression]
-
-            eval(tmpx(comp(1))) =
-                eval((sol(comp(1)) + sol(comp(1), i - 1)) / tl -
-                     ((pow< 2 >(sol(comp(1))) / sol(i - 0) + pow< 2 >(sol(i - 0)) * g() / tl) -
-                         (pow< 2 >(sol(comp(1), i - 1)) / sol(i - 1) + pow< 2 >(sol(i - 1)) * (g() / tl))) *
-                         (dt() / (tl * dx())));
-
-            eval(tmpx(comp(2))) = eval(
-                (sol(comp(2)) + sol(comp(2), i - 1)) / tl -
-                (sol(comp(1)) * sol(comp(2)) / sol(i - 0) - sol(comp(1), i - 1) * sol(comp(2), i - 1) / sol(i - 1)) *
-                    (dt() / (2 * dx())));
-
-#else
             dimension< 1 > i;
             //![alias]
             using hx = alias< tmpx, comp >::set< 0 >;
@@ -168,7 +148,6 @@ namespace shallow_water {
 
             eval(vx()) =
                 eval((v() + v(i - 1)) / tl - (u() * v() / h() - u(i - 1) * v(i - 1) / h(i - 1)) * (dt() / (2 * dx())));
-#endif
         }
     };
     // [flux_x]
@@ -186,25 +165,6 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
-#ifndef CUDA8
-            dimension< 1 > i;
-            dimension< 2 > j;
-
-            eval(tmpy()) =
-                eval((sol(i - 0) + sol(j - 1)) / tl - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
-
-            eval(tmpy(comp(1))) = eval(
-                (sol(comp(1)) + sol(comp(1), j - 1)) / tl -
-                (sol(comp(2)) * sol(comp(1)) / sol(i - 0) - sol(comp(2), j - 1) * sol(comp(1), j - 1) / sol(j - 1)) *
-                    (dt() / (2 * dy())));
-
-            eval(tmpy(comp(2))) =
-                eval((sol(comp(2)) + sol(comp(2), j - 1)) / tl -
-                     ((pow< 2 >(sol(comp(2))) / sol(i - 0) + pow< 2 >(sol(i - 0)) * g() / tl) -
-                         (pow< 2 >(sol(comp(2), j - 1)) / sol(j - 1) + pow< 2 >(sol(j - 1)) * (g() / tl))) *
-                         (dt() / (tl * dy())));
-
-#else
             dimension< 2 > j;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;
@@ -222,7 +182,6 @@ namespace shallow_water {
                               ((pow< 2 >(v()) / h() + pow< 2 >(h()) * g() / tl) -
                                   (pow< 2 >(v(j - 1)) / h(j - 1) + pow< 2 >(h(j - 1)) * (g() / tl))) *
                                   (dt() / (tl * dy())));
-#endif
         }
     };
     // [flux_y]
@@ -247,30 +206,6 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
             const float_type &tl = 2.;
-#ifndef CUDA8
-            dimension< 1 > i;
-            dimension< 2 > j;
-
-            eval(sol()) = eval(sol{} - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
-                               (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
-
-            eval(sol(comp(1))) = eval(
-                sol(comp(1)) -
-                (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
-                    (pow< 2 >(tmpx(comp(1))) / tmpx{} + pow< 2 >(tmpx{}) * ((g() / tl)))) *
-                    ((dt() / dx())) -
-                (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) - tmpy(comp(2)) * tmpy(comp(1)) / tmpy{}) *
-                    (dt() / dy()));
-
-            eval(sol(comp(2))) = eval(
-                sol(comp(2)) -
-                (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) - (tmpx(comp(1)) * tmpx(comp(2))) / tmpx{}) *
-                    ((dt() / dx())) -
-                (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
-                    (pow< 2 >(tmpy(comp(2))) / tmpy{} + pow< 2 >(tmpy{}) * ((g() / tl)))) *
-                    ((dt() / dy())));
-
-#else
             dimension< 1 > i;
             dimension< 2 > j;
             using hx = alias< tmpx, comp >::set< 0 >;
@@ -296,7 +231,6 @@ namespace shallow_water {
                      (pow< 2 >(vy(j + 1)) / hy(j + 1) + pow< 2 >(hy(j + 1)) * ((g() / tl)) -
                          (pow< 2 >(vy()) / hy() + pow< 2 >(hy()) * ((g() / tl)))) *
                          ((dt() / dy())));
-#endif
         }
     };
     // [final_step]
