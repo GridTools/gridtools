@@ -207,8 +207,6 @@ namespace gridtools {
          * placeholder.
          * @param accessor Accessor passed to the evaluator.
          * @param storage_pointer Pointer to the first element of the specific data field used.
-         * @tparam DirectGMemAccess Selects a direct access to main memory for the given accessor, ignoring if the
-         * parameter is being cached using software managed cache syntax.
         */
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
@@ -463,8 +461,6 @@ namespace gridtools {
      * @brief Returns the value of the memory at the given address, plus the offset specified by the arg placeholder.
      * @param accessor Accessor passed to the evaluator.
      * @param storage_pointer Pointer to the first element of the specific data field used.
-     * @tparam DirectGMemAccess selects a direct access to main memory for the given accessor, ignoring if the parameter
-     * is being cached using software managed cache syntax.
     */
     template < typename IterateDomainArguments >
     template < typename Accessor, typename StoragePointer >
