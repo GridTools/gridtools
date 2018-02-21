@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -48,7 +49,7 @@ namespace gridtools {
         template < bool Positional, typename Backend, typename Domain, typename Grid, typename... MssDescriptorTrees >
         intermediate< 1, Positional, Backend, Grid, typename std::decay< MssDescriptorTrees >::type... >
         make_computation(Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return {std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
+            return {grid, std::forward< Domain >(domain), std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
         }
 
         template < typename Expand,

@@ -84,6 +84,8 @@
 #include "iterate_on_esfs.hpp"
 #include "extract_placeholders.hpp"
 
+#include "../common/generic_metafunctions/meta.hpp"
+
 /**
  * @file
  * \brief this file contains mainly helper metafunctions which simplify the interface for the application developer
@@ -120,18 +122,18 @@ namespace gridtools {
         using type = typename boost::fusion::result_of::as_map< arg_and_view_seq >::type;
     };
 
-    template < typename Backend, typename AggregatorType, typename MssComponentsArray >
+    template < typename Backend, typename Placeholders, typename MssComponentsArray >
     struct create_storage_wrapper_list {
         // handle all tmps, obtain the storage_wrapper_list for written tmps
         typedef
-            typename _impl::obtain_storage_wrapper_list_t< Backend, AggregatorType, MssComponentsArray >::type all_tmps;
+            typename _impl::obtain_storage_wrapper_list_t< Backend, Placeholders, MssComponentsArray >::type all_tmps;
 
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
         // if we find a read-only tmp void will be pushed back, but this will be filtered out in the
         // last step.
         typedef typename boost::mpl::transform_view<
-            typename AggregatorType::placeholders_t,
+            Placeholders,
             boost::mpl::if_< is_tmp_arg< boost::mpl::_ >,
                 storage_wrapper_elem< boost::mpl::_, all_tmps >,
                 storage_wrapper< boost::mpl::_, create_view< boost::mpl::_ >, tile< 0, 0, 0 >, tile< 0, 0, 0 > > > >::
@@ -292,13 +294,9 @@ namespace gridtools {
 
     namespace _impl {
         struct dummy_run_f {
-            template < typename Branch >
-            reduction_type< Branch > operator()(Branch const &) const;
+            template < typename T >
+            reduction_type< T > operator()(T const &) const;
         };
-
-        template < typename... MssDescriptors >
-        using reduction_type_from_forest_t =
-            decltype(std::declval< branch_selector< MssDescriptors... > >().apply(dummy_run_f{}));
     }
 
     /**
@@ -308,11 +306,11 @@ namespace gridtools {
 
     template < uint_t RepeatFunctor, bool IsStateful, typename Backend, typename Grid, typename... MssDescriptors >
     struct intermediate {
-
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< std::true_type,
-                                    is_condition_tree_of< MssDescriptors, is_computation_token >... >::value),
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (meta::conjunction< is_condition_tree_of< MssDescriptors, is_computation_token >... >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         using branch_selector_t = branch_selector< MssDescriptors... >;
@@ -346,7 +344,7 @@ namespace gridtools {
         typedef typename create_view_fusion_map< placeholders_t >::type view_list_fusion_t;
 
         // create storage_wrapper_list
-        typedef typename create_storage_wrapper_list< Backend, DomainType, mss_components_array_t >::type
+        typedef typename create_storage_wrapper_list< Backend, placeholders_t, mss_components_array_t >::type
             storage_wrapper_list_t;
 
         // create storage_wrapper_fusion_list
@@ -394,7 +392,7 @@ namespace gridtools {
 
       public:
         template < typename Domain, typename... Msses >
-        intermediate(Domain const &domain, Grid const &grid, Msses &&... msses)
+        intermediate(Grid const &grid, Domain const &domain, Msses &&... msses)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_branch_selector(std::forward< Msses >(msses)...) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
@@ -424,7 +422,7 @@ namespace gridtools {
             boost::fusion::for_each(get_arg_storage_pairs(), _impl::sync_data_stores());
         }
 
-        _impl::reduction_type_from_forest_t< MssDescriptors... > run() {
+        decltype(std::declval< branch_selector_t >().apply(_impl::dummy_run_f{})) run() {
             // check if all views are still consistent, otherwise we have to call steady again
             _impl::check_view_consistency< DomainType > check_views(m_domain);
             boost::fusion::for_each(m_view_list, check_views);

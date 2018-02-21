@@ -345,19 +345,18 @@ namespace gridtools {
 
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij extents
-         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
+         * @tparam Placeholders the placeholders for all storages (including temporaries)
          * @tparam MssComponents the mss components of the MSS
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the different functors of a MSS.
          */
-        template < typename AggregatorType, typename MssComponents >
+        template < typename Placeholders, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
             typedef typename MssComponents::extent_sizes_t ExtentSizes;
 
             // filter all the temporary args
-            typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
+            typedef typename boost::mpl::fold< Placeholders,
                 boost::mpl::vector0<>,
                 boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
                                                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
@@ -396,21 +395,20 @@ namespace gridtools {
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij extents
          * for all the Mss components in an array (corresponding to a Computation)
-         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
+         * @tparam Placeholders the placeholders for all storages (including temporaries)
          * @tparam MssComponentsArray meta array of the mss components of all MSSs
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the temporary in all MSSs.
          */
-        template < typename AggregatorType, typename MssComponents >
+        template < typename Placeholders, typename MssComponents >
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::fold<
                 MssComponents,
                 boost::mpl::map0<>,
                 merge_extent_temporary_maps< boost::mpl::_1,
-                    obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
+                    obtain_map_extents_temporaries_mss< Placeholders, boost::mpl::_2 > > >::type type;
         };
 
         /**
@@ -436,11 +434,10 @@ namespace gridtools {
          * @tparam AggregatorType domain
          * @tparam MssComponentsArray meta array of mss components
          */
-        template < typename Backend, typename AggregatorType, typename MssComponents >
+        template < typename Backend, typename Placeholders, typename MssComponents >
         struct obtain_storage_wrapper_list_t {
 
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             using block_size_t = typename Backend::block_size_t;
 
@@ -448,7 +445,7 @@ namespace gridtools {
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
             typedef
-                typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssComponents >::type map_of_extents;
+                typename obtain_map_extents_temporaries_mss_array< Placeholders, MssComponents >::type map_of_extents;
 
             typedef typename boost::mpl::fold<
                 map_of_extents,
