@@ -7,6 +7,11 @@ import re
 from perftest import ConfigError, logger
 
 
+imported_configname = None
+imported_runtimes = None
+imported_sbatch = None
+
+
 def system_name():
     hostname = platform.node()
     logger.debug(f'Host name is {hostname}')
@@ -15,37 +20,46 @@ def system_name():
     return machinename
 
 
-def load_config(name):
-    global StellaRuntime, GridtoolsRuntime, sbatch
+def load_config(configname):
+    from perftest.runtime import Runtime
+    global imported_configname, imported_runtimes, imported_sbatch
 
-    logger.debug(f'Trying to load config "{name}"')
+    logger.debug(f'Trying to load config "{configname}"')
 
-    system = importlib.import_module('perftest.config.' + name)
-    StellaRuntime = system.StellaRuntime
-    GridtoolsRuntime= system.GridtoolsRuntime
-    sbatch = system.sbatch
+    config_module = importlib.import_module('perftest.config.' + configname)
 
-    logger.debug(f'Successfully imported config "{name}"')
+    try:
+        imported_sbatch = config_module.sbatch
+    except AttributeError:
+        raise ConfigError(f'Loading config "{configname}" failed, '
+                          'no sbatch function provided in config') from None
+
+    imported_runtimes = dict()
+    for k, v in config_module.__dict__.items():
+        if isinstance(v, type) and issubclass(v, Runtime):
+            runtime_name = k.lower().rstrip('runtime')
+            imported_runtimes[runtime_name] = v
+            logger.debug(f'Found runtime "{runtime_name}" in config '
+                         '"{configname}"')
+
+    imported_configname = configname
+
+    logger.debug(f'Successfully imported config "{configname}"')
 
 
-class StellaRuntime:
-    def __init__(self, *args, **kwargs):
+def get_runtime(runtime):
+    if not imported_runtimes:
         raise ConfigError('No config was loaded')
+    try:
+        return imported_runtimes[runtime]
+    except KeyError:
+        clsname = runtime.title() + 'Runtime'
+        raise ConfigError(f'Config "{imported_configname}" does not provide '
+                          f'a runtime "{runtime}" (class "{clsname}") in its '
+                          'config file') from None
 
 
-class GridtoolsRuntime:
-    def __init__(self, *args, **kwargs):
+def sbatch(command):
+    if not imported_sbatch:
         raise ConfigError('No config was loaded')
-
-
-def sbatch(*args, **kwargs):
-    raise ConfigError('No config was loaded')
-
-
-try:
-    config_name = system_name()
-    load_config(config_name)
-except ModuleNotFoundError:
-    logger.warn(f'Could not find default config for host "{config_name}"')
-finally:
-    del config_name
+    return imported_sbatch(command)

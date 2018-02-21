@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import abc
-import collections
 import os
 import re
 import statistics
 import subprocess
-import types
 
 from perftest import NotFoundError, ParseError, ArgumentError
 from perftest import logger, result, runtools, stencils, utils
@@ -143,8 +141,5 @@ class GridtoolsRuntimeBase(Runtime):
 
 def get(runtime, grid, precision, backend):
     from perftest import config
-    try:
-        cls = getattr(config, runtime.title() + 'Runtime')
-    except AttributeError:
-        raise ArgumentError(f'Runtime "{runtime}" not available')
-    return cls(grid, precision, backend)
+    cls = config.get_runtime(runtime)
+    return cls(grid=grid, precision=precision, backend=backend)
