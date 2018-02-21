@@ -7,9 +7,7 @@ import re
 from perftest import ConfigError, logger
 
 
-imported_configname = None
-imported_runtimes = None
-imported_sbatch = None
+_config = None
 
 
 def system_name():
@@ -20,46 +18,50 @@ def system_name():
     return machinename
 
 
-def load_config(configname):
+def load_config(configname=None):
+    if configname is None:
+        configname = system_name()
+
     from perftest.runtime import Runtime
-    global imported_configname, imported_runtimes, imported_sbatch
+    global _config
 
     logger.debug(f'Trying to load config "{configname}"')
-
     config_module = importlib.import_module('perftest.config.' + configname)
+    config = dict()
 
     try:
-        imported_sbatch = config_module.sbatch
+        config['sbatch'] = config_module.sbatch
     except AttributeError:
         raise ConfigError(f'Loading config "{configname}" failed, '
                           'no sbatch function provided in config') from None
 
-    imported_runtimes = dict()
+    config['runtimes'] = dict()
     for k, v in config_module.__dict__.items():
         if isinstance(v, type) and issubclass(v, Runtime):
             runtime_name = k.lower().rstrip('runtime')
-            imported_runtimes[runtime_name] = v
-            logger.debug(f'Found runtime "{runtime_name}" in config '
-                         '"{configname}"')
+            config['runtimes'][runtime_name] = v
+            logger.debug(f'Found runtime "{runtime_name}" in config')
 
-    imported_configname = configname
+    config['name'] = configname
 
-    logger.debug(f'Successfully imported config "{configname}"')
+    _config = config
+    logger.debug(f'Successfully loaded config "{configname}"')
 
 
 def get_runtime(runtime):
-    if not imported_runtimes:
-        raise ConfigError('No config was loaded')
+    if not _config:
+        load_config()
     try:
-        return imported_runtimes[runtime]
+        return _config['runtimes'][runtime]
     except KeyError:
+        configname = _config['name']
         clsname = runtime.title() + 'Runtime'
-        raise ConfigError(f'Config "{imported_configname}" does not provide '
+        raise ConfigError(f'Config "{configname}" does not provide '
                           f'a runtime "{runtime}" (class "{clsname}") in its '
                           'config file') from None
 
 
 def sbatch(command):
-    if not imported_sbatch:
-        raise ConfigError('No config was loaded')
-    return imported_sbatch(command)
+    if not _config:
+        load_config()
+    return _config['sbatch'](command)
