@@ -73,12 +73,10 @@ typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, met
 typedef arg< 0, storage_t > p_in;
 typedef arg< 1, storage_buff_t > p_buff;
 typedef arg< 2, storage_t > p_out;
-typedef boost::mpl::vector< p_in, p_buff, p_out > accessor_list;
 
 typedef intermediate< 1,
     false,
     backend< Host, GRIDBACKEND, Naive >,
-    aggregator_type< accessor_list >,
     grid< axis< 1 >::axis_interval_t >,
     decltype(make_multistage // mss_descriptor
                           (execute< forward >(),

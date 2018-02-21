@@ -252,8 +252,7 @@ namespace gridtools {
        4, we'll execute 5 stencil with a "vector width" of 4, and one stencil with a "vector width"
        of 3 (23%4).
 
-       This object contains two unique pointers of @ref gridtools::intermediate type, one with a
-       vector width
+       This object contains two unique pointers of @ref gridtools::intermediate type, one with a vector width
        corresponding to the expand factor defined by the user (4 in the previous example), and another
        one with a vector width of expand_factor%total_parameters (3 in the previous example).
        In case the total number of parameters is a multiple of the expand factor, the second
@@ -278,7 +277,6 @@ namespace gridtools {
         using converted_intermediate = intermediate< N,
             IsStateful,
             Backend,
-            aggregator_type< _impl::expand_detail::converted_placeholders< N, typename Aggregator::placeholders_t > >,
             Grid,
             _impl::expand_detail::converted_mss_descriptors_tree< N, MssDescriptorTrees >... >;
 
@@ -294,7 +292,6 @@ namespace gridtools {
         std::unique_ptr< intermediate< 1,
             IsStateful,
             Backend,
-            aggregator_type< _impl::expand_detail::converted_placeholders< 1, typename Aggregator::placeholders_t > >,
             Grid,
             _impl::expand_detail::converted_mss_descriptors_tree< 1, MssDescriptorTrees >... > >
             m_intermediate_remainder;

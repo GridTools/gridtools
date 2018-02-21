@@ -45,18 +45,9 @@
 namespace gridtools {
     namespace _impl {
 
-        template < bool Positional,
-            typename Backend,
-            typename Domain,
-            typename Grid,
-            typename... MssDescriptorTrees,
-            typename Res = intermediate< 1,
-                Positional,
-                Backend,
-                typename std::decay< Domain >::type,
-                Grid,
-                typename std::decay< MssDescriptorTrees >::type... > >
-        Res make_computation(Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
+        template < bool Positional, typename Backend, typename Domain, typename Grid, typename... MssDescriptorTrees >
+        intermediate< 1, Positional, Backend, Grid, typename std::decay< MssDescriptorTrees >::type... >
+        make_computation(Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
             return {std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
         }
 
@@ -65,15 +56,14 @@ namespace gridtools {
             typename Backend,
             typename Domain,
             typename Grid,
-            typename... MssDescriptorTrees,
-            typename Res = intermediate_expand< Expand,
-                Positional,
-                Backend,
-                typename std::decay< Domain >::type,
-                Grid,
-                typename std::decay< MssDescriptorTrees >::type... > >
-        Res make_computation_expandable(
-            Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
+            typename... MssDescriptorTrees >
+        intermediate_expand< Expand,
+            Positional,
+            Backend,
+            typename std::decay< Domain >::type,
+            Grid,
+            typename std::decay< MssDescriptorTrees >::type... >
+        make_computation_expandable(Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
             return {std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
         }
 

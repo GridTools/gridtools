@@ -135,6 +135,13 @@ namespace gridtools {
             : aggregator_type(_impl::private_ctor,
                   boost::fusion::make_vector(std::forward< ArgStoragePairs >(arg_storage_pairs)...)) {}
 
+        aggregator_type(aggregator_type const &) = default;
+        aggregator_type(aggregator_type &&) = default;
+
+        template < typename OtherPlaceholders >
+        aggregator_type(aggregator_type< OtherPlaceholders > const &src)
+            : aggregator_type(_impl::private_ctor, boost::fusion::as_vector(src.get_arg_storage_pairs())) {}
+
         /**
            This constructor takes a variadic list of data_stores, data_store_fields, or std::vectors and assigns
            arg_storage_pairs
@@ -153,7 +160,7 @@ namespace gridtools {
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
         arg_storage_pair_fusion_list_t &get_arg_storage_pairs() { return m_arg_storage_pair_list; }
-        const arg_storage_pair_fusion_list_t &get_arg_storage_pairs() const { return m_arg_storage_pair_list; }
+        arg_storage_pair_fusion_list_t const &get_arg_storage_pairs() const { return m_arg_storage_pair_list; }
 
         /**
          * @brief returning by const reference an arg storage pair. An arg storage pair maps

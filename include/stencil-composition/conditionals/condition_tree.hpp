@@ -245,7 +245,7 @@ namespace gridtools {
         }
     }
 
-    /// Check that the object is a condition tree and al leafs satisfy the given predicate.
+    /// Check that the object is a condition tree and all leafs satisfy the given predicate.
     template < typename Leaf, template < typename > class Pred >
     struct is_condition_tree_of : Pred< Leaf > {};
 
@@ -277,7 +277,7 @@ namespace gridtools {
         tree_t m_tree;
 
       public:
-        /// MPL sequence, containing all leafs of al trees. I.e. the flat view for all trees.
+        /// MPL sequence, containing all leaves of all trees. I.e. the flat view for all trees.
         using all_leaves_t = typename boost::mpl::copy< _impl::condition_tree::all_leaves_in_forest_t< Trees... >,
             boost::mpl::back_inserter< boost::mpl::vector0<> > >::type;
 

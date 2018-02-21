@@ -40,7 +40,6 @@
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
-#include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/any.hpp>
@@ -82,8 +81,8 @@
 #include "wrap_type.hpp"
 
 #include "computation_grammar.hpp"
-#include "all_args_in_aggregator.hpp"
 #include "iterate_on_esfs.hpp"
+#include "extract_placeholders.hpp"
 
 /**
  * @file
@@ -307,12 +306,7 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
 
-    template < uint_t RepeatFunctor,
-        bool IsStateful,
-        typename Backend,
-        typename DomainType,
-        typename Grid,
-        typename... MssDescriptors >
+    template < uint_t RepeatFunctor, bool IsStateful, typename Backend, typename Grid, typename... MssDescriptors >
     struct intermediate {
 
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
@@ -327,11 +321,8 @@ namespace gridtools {
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::grid_traits_t grid_traits_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< DomainType, MssDescriptors... >::type::value),
-            "Some placeholders used in the computation are not listed in the aggregator");
-
-        typedef typename DomainType::placeholders_t placeholders_t;
+        using placeholders_t = typename extract_placeholders< all_mss_descriptors_t >::type;
+        using DomainType = aggregator_type< placeholders_t >;
 
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
@@ -403,9 +394,8 @@ namespace gridtools {
 
       public:
         template < typename Domain, typename... Msses >
-        intermediate(Domain &&domain, Grid const &grid, Msses &&... msses)
-            : m_domain(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
-              m_branch_selector(std::forward< Msses >(msses)...) {
+        intermediate(Domain const &domain, Grid const &grid, Msses &&... msses)
+            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_branch_selector(std::forward< Msses >(msses)...) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
             // instantiate all the temporaries
