@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 
 loghandler = logging.StreamHandler()
 loghandler.setFormatter(
-        logging.Formatter('%(levelname)s %(asctime)s %(filename)s:%(lineno)d: '
-                          '%(message)s', '%Y-%m-%d %H:%M:%S'))
+        logging.Formatter('%(levelname)s %(asctime)s: %(message)s',
+                          '%Y-%m-%d %H:%M:%S'))
 
 logger.addHandler(loghandler)
 
