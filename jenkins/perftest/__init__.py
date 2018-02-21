@@ -42,4 +42,4 @@ def set_verbose(verbosity):
         logger.setLevel(logging.DEBUG)
 
 
-set_verbose(False)
+set_verbose(0)

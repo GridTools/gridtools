@@ -32,7 +32,7 @@ def run(runtime, grid, precision, backend, domain, runs, outfile, config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--verbose', '-v', action='count')
+    parser.add_argument('--verbose', '-v', action='count', default=0)
 
     subparsers = parser.add_subparsers(dest='command')
     subparsers.required = True
