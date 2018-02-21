@@ -19,8 +19,12 @@ def plot(mode, infiles, outfile):
 
     fig.savefig(outfile)
 
-def run(runtime, grid, precision, backend, domain, runs, outfile):
+def run(runtime, grid, precision, backend, domain, runs, outfile, config):
+    import perftest.machine
     import perftest.runtime
+
+    if config is not None:
+        perftest.machine.load_config(config)
 
     rt = perftest.runtime.get(runtime, grid, precision, backend)
     rt.run(domain, runs).write(outfile)
@@ -45,6 +49,7 @@ if __name__ == '__main__':
     run_parser.add_argument('--domain', '-d', required=True, type=int, nargs=3)
     run_parser.add_argument('--runs', default=10, type=int)
     run_parser.add_argument('--output', '-o', required=True)
+    run_parser.add_argument('--config', '-c')
 
     plot_parser = subparsers.add_parser('plot')
     plot_parser.add_argument('--mode', '-m', default='compare',
@@ -59,7 +64,7 @@ if __name__ == '__main__':
     try:
         if args.command == 'run':
             run(args.runtime, args.grid, args.precision, args.backend,
-                args.domain, args.runs, args.output)
+                args.domain, args.runs, args.output, args.config)
         elif args.command == 'plot':
             plot(args.mode, args.input, args.output)
     except Exception:
