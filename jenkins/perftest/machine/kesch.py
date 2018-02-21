@@ -41,7 +41,7 @@ class GridtoolsRuntime(runtime.GridtoolsRuntimeBase):
 def sbatch(command):
     return textwrap.dedent(f"""\
         #!/bin/bash -l
-        #SBATCH --job-name=gridtools_test
+        #SBATCH --job-name=gridtools_perftest
         #SBATCH --nodes=1
         #SBATCH --ntasks=1
         #SBATCH --ntasks-per-node=1
@@ -59,9 +59,19 @@ def sbatch(command):
         module load gcc/5.4.0-2.26
 
         export CUDA_ARCH=sm_37
+        export CUDA_AUTO_BOOST=0
+        export GCLOCK=875
+        export G2G=1
+
         export OMP_PROC_BIND=true
         export OMP_PLACES=threads
         export OMP_NUM_THREADS=12
+
+        export MALLOC_MMAP_MAX_=0
+        export MALLOC_TRIM_THRESHOLD_=536870912
+
+        echo $LD_LIBRARY_PATH
+        echo "Running on node $HOSTNAME"
 
         {command}
 
