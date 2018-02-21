@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from perftest.stencils import Stencil
 
 
@@ -27,7 +29,8 @@ class StencilOnNeighcellOfEdges(Stencil):
     gridtools_host = path('sencil_on_neighcell_of_edges_host_block')
     halo = 1
 
-class StencilManualFold(Stencils):
+
+class StencilManualFold(Stencil):
     gridtools_gpu = path('stencil_manual_fold_cuda')
     gridtools_host = path('stencil_manual_fold_host_block')
     halo = 1
