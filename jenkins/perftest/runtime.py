@@ -42,7 +42,7 @@ class Runtime(metaclass=abc.ABCMeta):
         times = [alltimes[i:i+runs] for i in range(0, len(alltimes), runs)]
 
         meantimes = [statistics.mean(t) for t in times]
-        stdevtimes = [statistics.stdev(t) for t in times]
+        stdevtimes = [statistics.stdev(t) if len(t) > 1 else 0 for t in times]
 
         return result.Result(runtime=self,
                              domain=domain,
