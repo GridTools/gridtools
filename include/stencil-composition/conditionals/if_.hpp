@@ -34,7 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <functional>
+
 #include "condition.hpp"
+#include "condition_tree.hpp"
 #include "../computation_grammar.hpp"
 /**@file*/
 
@@ -65,10 +68,10 @@ namespace gridtools {
     */
     template < typename Mss1, typename Mss2, typename Condition >
     condition< Mss1, Mss2, Condition > if_(Condition cond, Mss1 const &mss1_, Mss2 const &mss2_) {
-        GRIDTOOLS_STATIC_ASSERT(is_computation_token< Mss1 >::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_computation_token< Mss2 >::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_conditional< Condition >::value,
-            "you have to pass to gridtools::if_ an instance of type \"conditional\" as first argument.");
-        return condition< Mss1, Mss2, Condition >(cond, mss1_, mss2_);
+        GRIDTOOLS_STATIC_ASSERT((std::is_convertible< Condition, std::function< bool() > >::value),
+            "Condition should be nullary boolean functor.");
+        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of< Mss1, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of< Mss2, is_computation_token >::value), GT_INTERNAL_ERROR);
+        return condition< Mss1, Mss2, Condition >{cond, mss1_, mss2_};
     }
 } // namespace gridtools

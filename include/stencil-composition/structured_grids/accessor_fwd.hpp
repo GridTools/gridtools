@@ -35,12 +35,10 @@
 */
 #pragma once
 
+#include "../accessor_fwd.hpp"
+
 namespace gridtools {
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
     struct accessor;
-
-    template < typename T >
-    struct is_accessor;
-
 } // namespace gridtools

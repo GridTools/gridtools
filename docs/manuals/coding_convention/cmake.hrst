@@ -1,0 +1,6 @@
+
+CMake
+=====
+
+* cmake variable names are always uppercase. Multi-word variables separated with '_'. For example ``set (ADD_MPI_LIBS "")``
+

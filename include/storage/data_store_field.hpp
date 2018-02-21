@@ -71,6 +71,9 @@ namespace gridtools {
         // and 1. All together we have 6 storages.)
         std::array< DataStore, num_of_storages > m_field;
 
+        // This prevents nvcc to decorate the implicitly defined operator= with __device__
+        data_store_field &operator=(const data_store_field &) = default;
+
         /**
          * @brief data_store_field constructor
          */
@@ -244,9 +247,8 @@ namespace gridtools {
     struct is_data_store_field< data_store_field< S, N... > > : boost::mpl::true_ {};
 
     /**
-     *  @brief Implementation of a swap function. E.g., swap<0,0>::with<0,1>(field_view)
-     *  will swap the CPU and GPU pointers of storages 0,0 and 0,1.
-     *  This operation invalidates the previously created views.
+     *  @brief Implementation of a swap function. E.g., swap_storage< 0, 0 >::with< 0, 1 >(field_view)
+     *  will swap the  storages 0, 0 and 0, 1. This operation invalidates the previously created views.
      **/
     template < uint_t Dim_S, uint_t Snapshot_S >
     struct swap {
@@ -255,22 +257,16 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((Dim_S == Dim_T), GT_INTERNAL_ERROR_MSG("Inter-component swap is not allowed."));
             GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
                 GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
-            typedef typename std::remove_pointer< decltype(
-                std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr().get()) >::type::
-                ptrs_t ptrs_t;
-            auto &src = data_field.template get< Dim_S, Snapshot_S >();
-            auto &trg = data_field.template get< Dim_T, Snapshot_T >();
-            auto tmp_ptrs = src.get_storage_ptr()->template get_ptrs< ptrs_t >();
-            src.get_storage_ptr()->template set_ptrs< ptrs_t >(trg.get_storage_ptr()->template get_ptrs< ptrs_t >());
-            trg.get_storage_ptr()->template set_ptrs< ptrs_t >(tmp_ptrs);
+            auto &a = data_field.template get< Dim_S, Snapshot_S >();
+            auto &b = data_field.template get< Dim_T, Snapshot_T >();
+            a.get_storage_ptr()->swap(*b.get_storage_ptr());
         }
     };
 
     /**
-     *  @brief Implementation of a cycle function. E.g., cycle<0>(field_view)
-     *  move the last data store of component 0 to the first position
-     *  and shifting all others one position to the right.
-     *  This operation invalidates the previously created views.
+     *  @brief Implementation of a cycle function. E.g., cycle< 0 >::by< 1 >(field_view) move the last data store of
+     *  component 0 to the first position and shifting all others one position to the right. This operation invalidates
+     *  the previously created views.
      **/
     template < uint_t Dim >
     struct cycle {
@@ -278,29 +274,21 @@ namespace gridtools {
         static void by(data_store_field< T, N... > &data_field) {
             GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
                 GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
-            typedef typename data_store_field< T, N... >::data_store_t data_store_t;
-            typedef typename std::remove_pointer< decltype(
-                std::declval< data_store_t >().get_storage_ptr().get()) >::type::ptrs_t ptrs_t;
-            int size = get_value_from_pack(Dim, N...);
-            uint_t cnt = 0;
-            uint_t src = 0;
-            uint_t shift = (((F) % size) < 0) ? ((F) % size) + size : ((F) % size);
-            ptrs_t src_ptrs = data_field.get(Dim, 0).get_storage_ptr()->template get_ptrs< ptrs_t >();
-            while (cnt < size) {
-                // calculate the target position
-                uint_t trg = (src + shift) % size;
-                // get both data_stores
-                auto &trg_ds = data_field.get(Dim, trg);
-                auto &src_ds = data_field.get(Dim, src);
-                // our tmp pointers are the current source pointers
-                auto tmp_ptrs = src_ptrs;
-                // update the src pointers with the current target pointers
-                src_ptrs = trg_ds.get_storage_ptr()->template get_ptrs< ptrs_t >();
-                // replace the target pointers with the tmp_ptrs
-                trg_ds.get_storage_ptr()->template set_ptrs< ptrs_t >(tmp_ptrs);
-                // increase the count and set the new src position
-                cnt++;
-                src = trg;
+            constexpr int size = get_value_from_pack(Dim, N...);
+            // cycle with only swaps, no temporaries
+            constexpr int f = ((F % size) + size) % size;
+            constexpr int sf = (f == 0) ? 0 : size / f;
+            for (int j = 1; j < sf; ++j) {
+                for (int i = 0; i < f; ++i) {
+                    auto &a = data_field.get(Dim, i);
+                    auto &b = data_field.get(Dim, j * f + i);
+                    a.get_storage_ptr()->swap(*b.get_storage_ptr());
+                }
+            }
+            for (int i = 0; i < f; ++i) {
+                auto &a = data_field.get(Dim, i);
+                auto &b = data_field.get(Dim, (sf * f + i) % size);
+                a.get_storage_ptr()->swap(*b.get_storage_ptr());
             }
         }
     };

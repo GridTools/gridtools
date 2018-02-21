@@ -56,22 +56,21 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
-    typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
-    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
-    typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > kmaximum;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using kbody = axis_t::full_interval::modify< 1, -1 >;
+    using kbody_low = axis_t::full_interval::modify< 0, -1 >;
+    using kfull = axis_t::full_interval;
+    using kminimum = axis_t::full_interval::first_level;
+    using kmaximum = axis_t::full_interval::last_level;
 
     template < typename T >
     struct u_forward_function {
-        typedef accessor< 0 > utens_stage;
+        typedef accessor< 0, enumtype::in > utens_stage;
         typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0, 0, 1 > > wcon;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > u_stage;
-        typedef accessor< 3 > u_pos;
-        typedef accessor< 4 > utens;
-        typedef accessor< 5 > dtr_stage;
+        typedef accessor< 3, enumtype::in > u_pos;
+        typedef accessor< 4, enumtype::in > utens;
+        typedef accessor< 5, enumtype::in > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
         typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > ccol;
@@ -159,10 +158,10 @@ namespace vertical_advection_dycore {
     template < typename T >
     struct u_backward_function {
         typedef accessor< 0, enumtype::inout > utens_stage;
-        typedef accessor< 1 > u_pos;
-        typedef accessor< 2 > dtr_stage;
-        typedef accessor< 3 > ccol;
-        typedef accessor< 4 > dcol;
+        typedef accessor< 1, enumtype::inout > u_pos;
+        typedef accessor< 2, enumtype::inout > dtr_stage;
+        typedef accessor< 3, enumtype::inout > ccol;
+        typedef accessor< 4, enumtype::inout > dcol;
         typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > data_col;
 
         typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
@@ -193,18 +192,14 @@ namespace vertical_advection_dycore {
         }
     };
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
+    struct vertical_advection_test {
 
-        const int halo_size = 3;
+        const u_int halo_size = 3;
 
         typedef vertical_advection::repository::storage_type storage_type;
         typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
 
-        vertical_advection::repository repository(d1, d2, d3, halo_size);
-        repository.init_fields();
-
-        repository.generate_reference();
-
+        vertical_advection::repository repository;
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
         typedef arg< 0, storage_type > p_utens_stage;
@@ -231,81 +226,145 @@ namespace vertical_advection_dycore {
             p_bcol,
             p_ccol,
             p_dcol,
-            p_data_col > accessor_list;
+            p_data_col > placeholders_list;
 
-        gridtools::aggregator_type< accessor_list > domain(repository.utens_stage(),
-            repository.u_stage(),
-            repository.wcon(),
-            repository.u_pos(),
-            repository.utens(),
-            repository.dtr_stage());
+        gridtools::aggregator_type< placeholders_list > domain;
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di, dj;
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        gridtools::grid< axis_t::axis_interval_t > grid;
 
-        auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
-            domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
-                    cache< K, cache_io_policy::flush, kfull >(p_dcol()),
-                    cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                gridtools::make_stage< u_forward_function< float_type > >(p_utens_stage(),
-                    p_wcon(),
-                    p_u_stage(),
-                    p_u_pos(),
-                    p_utens(),
-                    p_dtr_stage(),
-                    p_acol(),
-                    p_bcol(),
-                    p_ccol(),
-                    p_dcol()) // esf_descriptor
-                ),
-            gridtools::make_multistage(execute< backward >(),
-                define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                gridtools::make_stage< u_backward_function< float_type > >(p_utens_stage(),
-                                           p_u_pos(),
-                                           p_dtr_stage(),
-                                           p_ccol(),
-                                           p_dcol(),
-                                           p_data_col())));
+        vertical_advection_test(u_int d1, u_int d2, u_int d3)
+            : repository(d1, d2, d3, halo_size), domain(repository.utens_stage(),
+                                                     repository.u_stage(),
+                                                     repository.wcon(),
+                                                     repository.u_pos(),
+                                                     repository.utens(),
+                                                     repository.dtr_stage()),
+              di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
+              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2},
+              grid(di, dj, _impl::intervals_to_indices(gridtools::axis< 1 >{d3}.interval_sizes())) {
+            repository.init_fields();
 
-        vertical_advection->ready();
-
-        vertical_advection->steady();
-
-        vertical_advection->run();
-
-        repository.utens_stage().sync();
-
-        bool result = true;
-        if (verify) {
-
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6);
-#else
-            verifier verif(1e-11);
-#endif
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
-            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            repository.generate_reference();
         }
 
+        void reset() {
+            repository.init_fields();
+            repository.generate_reference();
+        }
+
+        bool test(uint_t t_steps, bool verify) {
+
+            auto up_stencil = gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
+                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
+                    gridtools::make_stage< u_forward_function< float_type > >(p_utens_stage(),
+                        p_wcon(),
+                        p_u_stage(),
+                        p_u_pos(),
+                        p_utens(),
+                        p_dtr_stage(),
+                        p_acol(),
+                        p_bcol(),
+                        p_ccol(),
+                        p_dcol()) // esf_descriptor
+                    );
+
+            auto down_stencil = gridtools::make_multistage(
+                execute< backward >(),
+                define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                gridtools::make_stage< u_backward_function< float_type > >(
+                    p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
+
+            auto vertical_advection = gridtools::make_computation< backend_t >(domain, grid, up_stencil, down_stencil);
+
+            vertical_advection->ready();
+
+            vertical_advection->steady();
+
+            vertical_advection->run();
+
+            repository.utens_stage().sync();
+
+            bool result = true;
+            if (verify) {
+
+#if FLOAT_PRECISION == 4
+                verifier verif(1e-6);
+#else
+                verifier verif(1e-11);
+#endif
+                array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+                result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            }
+
 #ifdef BENCHMARK
-        benchmarker::run(vertical_advection, t_steps);
+            benchmarker::run(vertical_advection, t_steps);
 #endif
 
-        vertical_advection->finalize();
+            vertical_advection->finalize();
 
-        return result;
-    }
+            return result;
+        }
+
+        bool test_with_extents(uint_t t_steps, bool verify) {
+
+            auto vertical_advection = gridtools::make_computation< backend_t >(
+                domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
+                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
+                    gridtools::make_stage_with_extent< u_forward_function< float_type >, extent< 0 > >(p_utens_stage(),
+                        p_wcon(),
+                        p_u_stage(),
+                        p_u_pos(),
+                        p_utens(),
+                        p_dtr_stage(),
+                        p_acol(),
+                        p_bcol(),
+                        p_ccol(),
+                        p_dcol()) // esf_descriptor
+                    ),
+                gridtools::make_multistage(execute< backward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                    gridtools::make_stage_with_extent< u_backward_function< float_type >, extent< 0 > >(p_utens_stage(),
+                                               p_u_pos(),
+                                               p_dtr_stage(),
+                                               p_ccol(),
+                                               p_dcol(),
+                                               p_data_col())));
+
+            vertical_advection->ready();
+
+            vertical_advection->steady();
+
+            vertical_advection->run();
+
+            repository.utens_stage().sync();
+
+            bool result = true;
+            if (verify) {
+
+#if FLOAT_PRECISION == 4
+                verifier verif(1e-6);
+#else
+                verifier verif(1e-12);
+#endif
+                array< array< uint_t, 2 >, 3 > halos{
+                    {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+                result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            }
+
+            vertical_advection->finalize();
+
+            return result;
+        }
+    };
 
 } // namespace vertical_advection

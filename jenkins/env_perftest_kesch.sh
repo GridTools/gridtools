@@ -2,7 +2,7 @@
 
 source ${JENKINSPATH}/machine_env.sh
 
-module load matplotlib/1.4.3-gmvolf-15.11-Python-2.7.10
+module load python/3.6.2-gmvolf-17.02
 
 export GRIDTOOLS_BUILD_PATH=/scratch/jenkins/workspace/
 export STELLA_BUILD_PATH=/project/c14/install/${myhost}

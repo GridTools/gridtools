@@ -87,8 +87,3 @@ bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > c
     std::sort(b0.begin(), b0.end());
     return std::equal(a0.begin(), a0.end(), b0.begin());
 }
-
-template < typename T, typename U, size_t D >
-bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    return std::equal(a.begin(), a.end(), b.begin());
-}

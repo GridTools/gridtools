@@ -46,7 +46,6 @@
 #include "../caches/extract_extent_caches.hpp"
 #include "common/defs.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "common/generic_metafunctions/vector_to_map.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
 #include <boost/fusion/container/map/convert.hpp>
 #include <boost/fusion/include/as_map.hpp>
@@ -54,13 +53,11 @@
 #include <boost/fusion/support/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/filter_view.hpp>
-#include "common/generic_metafunctions/vector_to_map.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../accessor_fwd.hpp"
-#include "../../common/generic_metafunctions/sequence_to_vector.hpp"
 #include "iterate_domain_cache_aux.hpp"
 
 namespace gridtools {
@@ -280,9 +277,8 @@ namespace gridtools {
             // same for those k caches that need an end-point flush. Determine among them, which ones have an interval
             // whose end
             // matches the current interval
-            using interval_epflushing_indexes_t =
-                typename sequence_to_vector< typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
-                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+            using interval_epflushing_indexes_t = typename boost::mpl::copy_if< k_epflushing_caches_indexes_t,
+                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
 
             using type =
                 typename boost::mpl::copy< interval_flushing_indexes_t,
@@ -322,9 +318,8 @@ namespace gridtools {
                 is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
 
             // same for those k cache that require a begin-point filling
-            using interval_bpfilling_indexes_t =
-                typename sequence_to_vector< typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
-                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+            using interval_bpfilling_indexes_t = typename boost::mpl::copy_if< k_bpfilling_caches_indexes_t,
+                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
 
             using type =
                 typename boost::mpl::copy< interval_filling_indexes_t,

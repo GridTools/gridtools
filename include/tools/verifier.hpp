@@ -44,23 +44,23 @@ namespace gridtools {
 
     template < typename value_type >
     GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
-        value_type M = math::max(math::fabs(expected), math::fabs(actual));
-        value_type m = math::min(math::fabs(expected), math::fabs(actual));
-        value_type e = (M - m) / M;
-        if ((m == M) || (e <= precision) || ((M - m) < precision)) {
+        value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
+        value_type absolute_error = math::fabs(expected - actual);
+        value_type relative_error = absolute_error / absmax;
+        if (relative_error <= precision || absolute_error < precision) {
             return true;
         }
         return false;
     }
 
     template < typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (Array::n_dimensions == sizeof...(T)), const int >::type get_index(
+    typename boost::enable_if_c< (Array::size() == sizeof...(T)), const int >::type get_index(
         Array const &pos, StorageInfo storage_info, T... t) {
         return storage_info.index(t...);
     }
 
     template < typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (Array::n_dimensions > sizeof...(T)), const int >::type get_index(
+    typename boost::enable_if_c< (Array::size() > sizeof...(T)), const int >::type get_index(
         Array const &pos, StorageInfo storage_info, T... t) {
         return get_index(pos, storage_info, t..., pos[sizeof...(T)]);
     }

@@ -143,7 +143,7 @@ namespace gridtools {
     template < typename ReturnType, typename Fn, typename Array >
     GT_FUNCTION static constexpr auto explode(const Array &a) -> ReturnType {
         GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
-        return Expander< Array::n_dimensions, ReturnType, Fn, const Array & >::expand(a);
+        return Expander< tuple_size< Array >::value, ReturnType, Fn, const Array & >::expand(a);
     }
 
     /**
@@ -157,12 +157,14 @@ namespace gridtools {
     template < typename ReturnType, typename Fn, typename Array, typename ExtraData >
     GT_FUNCTION static constexpr auto explode(const Array &a, const ExtraData &extra_data) -> ReturnType const {
         GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
-        return Expander_inj< Array::n_dimensions, ReturnType, Fn, ExtraData, const Array & >::expand(extra_data, a);
+        return Expander_inj< tuple_size< Array >::value, ReturnType, Fn, ExtraData, const Array & >::expand(
+            extra_data, a);
     }
 
     template < typename ReturnType, typename Fn, typename Array, typename ExtraData >
     GT_FUNCTION static constexpr auto explode(const Array &a, ExtraData &extra_data) -> ReturnType {
         GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
-        return Expander_inj< Array::n_dimensions, ReturnType, Fn, ExtraData, const Array & >::expand(extra_data, a);
+        return Expander_inj< tuple_size< Array >::value, ReturnType, Fn, ExtraData, const Array & >::expand(
+            extra_data, a);
     }
 }

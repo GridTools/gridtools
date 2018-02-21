@@ -45,24 +45,12 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
+#include "backend_select.hpp"
 
 namespace test_expandable_parameters {
 
     using namespace gridtools;
     using namespace expressions;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct functor_single_kernel {
 
@@ -91,7 +79,7 @@ namespace test_expandable_parameters {
             parameters5_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(parameters1_out()) = eval(parameters1_in());
             eval(parameters2_out()) = eval(parameters2_in());
             eval(parameters3_out()) = eval(parameters3_in());
@@ -102,8 +90,8 @@ namespace test_expandable_parameters {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -122,12 +110,7 @@ namespace test_expandable_parameters {
         std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
         std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(d1, d2, d3);
 
         typedef arg< 0, storage_t > p_0_out;
         typedef arg< 1, storage_t > p_1_out;
@@ -165,31 +148,31 @@ namespace test_expandable_parameters {
 
         aggregator_type< args_t > domain_(
             storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
-        auto comp_ = make_computation< BACKEND >(domain_,
+        auto comp_ = make_computation< backend_t >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, cache_io_policy::local >(
-                                                         p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
-                                                     make_stage< functor_single_kernel >(p_0_tmp(),
-                                                         p_1_tmp(),
-                                                         p_2_tmp(),
-                                                         p_3_tmp(),
-                                                         p_4_tmp(),
-                                                         p_0_in(),
-                                                         p_1_in(),
-                                                         p_2_in(),
-                                                         p_3_in(),
-                                                         p_4_in()),
-                                                     make_stage< functor_single_kernel >(p_0_out(),
-                                                         p_1_out(),
-                                                         p_2_out(),
-                                                         p_3_out(),
-                                                         p_4_out(),
-                                                         p_0_tmp(),
-                                                         p_1_tmp(),
-                                                         p_2_tmp(),
-                                                         p_3_tmp(),
-                                                         p_4_tmp())));
+                                                       define_caches(cache< IJ, cache_io_policy::local >(
+                                                           p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
+                                                       make_stage< functor_single_kernel >(p_0_tmp(),
+                                                           p_1_tmp(),
+                                                           p_2_tmp(),
+                                                           p_3_tmp(),
+                                                           p_4_tmp(),
+                                                           p_0_in(),
+                                                           p_1_in(),
+                                                           p_2_in(),
+                                                           p_3_in(),
+                                                           p_4_in()),
+                                                       make_stage< functor_single_kernel >(p_0_out(),
+                                                           p_1_out(),
+                                                           p_2_out(),
+                                                           p_3_out(),
+                                                           p_4_out(),
+                                                           p_0_tmp(),
+                                                           p_1_tmp(),
+                                                           p_2_tmp(),
+                                                           p_3_tmp(),
+                                                           p_4_tmp())));
 
         comp_->ready();
         comp_->steady();

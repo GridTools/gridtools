@@ -42,6 +42,7 @@
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 constexpr int halo_size = 1;
 
@@ -50,17 +51,13 @@ namespace test_cache_stencil {
     using namespace gridtools;
     using namespace enumtype;
 
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, 1 > > axis;
-
     struct functor1 {
         typedef accessor< 0, enumtype::in > in;
         typedef accessor< 1, enumtype::inout > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -71,7 +68,7 @@ namespace test_cache_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) =
                 (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
         }
@@ -83,19 +80,13 @@ namespace test_cache_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in()) + 1;
         }
     };
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, structured, Block >
-#else
-#define BACKEND backend< Host, structured, Block >
-#endif
-
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
@@ -114,17 +105,14 @@ class cache_stencil : public ::testing::Test {
 
     halo_descriptor m_di, m_dj;
 
-    gridtools::grid< axis > m_grid;
+    gridtools::grid< axis< 1 >::axis_interval_t > m_grid;
     storage_info_t m_meta;
     storage_t m_in, m_out;
 
     cache_stencil()
         : m_d1(128), m_d2(128), m_d3(30), m_di{halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1},
-          m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2}, m_grid(m_di, m_dj),
-          m_meta(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {
-        m_grid.value_list[0] = 0;
-        m_grid.value_list[1] = m_d3 - 1;
-    }
+          m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2}, m_grid(make_grid(m_di, m_dj, m_d3)),
+          m_meta(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {}
 
     virtual void SetUp() {
         m_in = storage_t(m_meta, 0.);
@@ -145,14 +133,13 @@ TEST_F(cache_stencil, ij_cache) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil =
-        make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                   define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                   make_stage< functor1 >(p_in(), p_buff()),
-                                                   make_stage< functor1 >(p_buff(), p_out())));
+    auto pstencil = make_computation< backend_t >(domain,
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+                                                      define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                      make_stage< functor1 >(p_in(), p_buff()),
+                                                      make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -189,15 +176,14 @@ TEST_F(cache_stencil, ij_cache_offset) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil =
-        make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                   // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                   make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                   make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-                                                   ));
+    auto pstencil = make_computation< backend_t >(domain,
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+                                                      // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                      make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                      make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                      ));
 
     pstencil->ready();
 
@@ -234,21 +220,21 @@ TEST_F(cache_stencil, multi_cache) {
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto stencil = make_computation< gridtools::BACKEND >(
-        domain,
-        m_grid,
-        make_multistage // mss_descriptor
-        (execute< forward >(),
-            // test if define_caches works properly with multiple vectors of caches.
-            // in this toy example two vectors are passed (IJ cache vector for p_buff
-            // and p_buff_2, IJ cache vector for p_buff_3)
-            define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
-                cache< IJ, cache_io_policy::local >(p_buff_3())),
-            make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
-            make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-            make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-            make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
-            ));
+    auto stencil =
+        make_computation< backend_t >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                          // test if define_caches works properly with multiple vectors of caches.
+                                          // in this toy example two vectors are passed (IJ cache vector for p_buff
+                                          // and p_buff_2, IJ cache vector for p_buff_3)
+                                          define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
+                                              cache< IJ, cache_io_policy::local >(p_buff_3())),
+                                          make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
+                                          make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+                                          make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+                                          make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+                                          ));
     stencil->ready();
 
     stencil->steady();
