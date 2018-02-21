@@ -28,18 +28,24 @@ def load_config(name):
     logger.debug(f'Successfully imported config "{name}"')
 
 
-try:
-    load_config(system_name())
-except ModuleNotFoundError:
-    logger.warn(f'Could not find default config for host "{system_name()}"')
-
-    class StellaRuntime:
-        def __init__(self, *args, **kwargs):
-            raise ConfigError('No config was loaded')
-
-    class GridtoolsRuntime:
-        def __init__(self, *args, **kwargs):
-            raise ConfigError('No config was loaded')
-
-    def sbatch(*args, **kwargs):
+class StellaRuntime:
+    def __init__(self, *args, **kwargs):
         raise ConfigError('No config was loaded')
+
+
+class GridtoolsRuntime:
+    def __init__(self, *args, **kwargs):
+        raise ConfigError('No config was loaded')
+
+
+def sbatch(*args, **kwargs):
+    raise ConfigError('No config was loaded')
+
+
+try:
+    config_name = system_name()
+    load_config(config_name)
+except ModuleNotFoundError:
+    logger.warn(f'Could not find default config for host "{config_name}"')
+finally:
+    del config_name
