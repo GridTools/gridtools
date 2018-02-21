@@ -73,7 +73,7 @@ def sbatch(command):
         echo $LD_LIBRARY_PATH
         echo "Running on node $HOSTNAME"
 
-        {command}
+        srun {command}
 
         sync
         """)
