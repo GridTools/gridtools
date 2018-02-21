@@ -793,7 +793,10 @@ namespace gridtools {
 
         /**
          *   is_set_fast evaluates to std::true_type if the parameter is a set.
-         *   Otherwise compilation could fail.
+         *   If parameter is not a type list, predicate evaluates to std::false_type.
+         *   Compilation fails if the parameter is a type list with duplicated elements.
+         *
+         *   Its OK to use this predicate in static asserts and not OK in sfinae enablers.
          */
         template < class, class = void >
         struct is_set_fast : std::false_type {};
