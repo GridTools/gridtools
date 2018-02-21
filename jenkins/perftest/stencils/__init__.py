@@ -3,7 +3,7 @@
 import importlib
 import re
 
-from perftest import ConfigError, logger
+from perftest import logger
 from perftest.utils import Registry
 
 
@@ -15,6 +15,7 @@ class Stencil(metaclass=Registry):
 
 
 def stencils_module(grid):
+    logger.debug(f'Trying to import stencils for grid "{grid}"')
     stencils = importlib.import_module('perftest.stencils.' + grid)
     logger.debug(f'Successfully imported stencils for grid "{grid}"')
     return stencils
