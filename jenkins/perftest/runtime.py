@@ -141,12 +141,10 @@ class GridtoolsRuntimeBase(Runtime):
         return f'{binary} {ni} {nj} {nk} 10'
 
 
-from perftest import machine
-
-
 def get(runtime, grid, precision, backend):
+    from perftest import config
     try:
-        cls = getattr(machine, runtime.title() + 'Runtime')
+        cls = getattr(config, runtime.title() + 'Runtime')
     except AttributeError:
         raise ArgumentError(f'Runtime "{runtime}" not available')
     return cls(grid, precision, backend)

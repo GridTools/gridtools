@@ -21,8 +21,8 @@ def run(commands, sbatch_gen=None):
 
 def _submit(command, sbatch_gen=None):
     if sbatch_gen is None:
-        import perftest.machine as machine
-        sbatch_gen = machine.sbatch
+        from perftest import config
+        sbatch_gen = config.sbatch
 
     with tempfile.NamedTemporaryFile(suffix='.sh', mode='w') as sbatch:
         sbatch.write(sbatch_gen(command))
