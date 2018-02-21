@@ -12,7 +12,7 @@ import distutils.dir_util as dutil
 def build_path(host, jplan, target, prec, std):
     path="/scratch/jenkins/workspace/"+jplan+"/build_type/release/compiler/gcc/label/"+host+"/mpi/MPI/"
     
-    path=path+"/real_type/"+prec+"/std/"+std+"/target/"+target+"/build/"   
+    path=path+"/real_type/"+prec+"/target/"+target+"/build/"
 
     return path
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     commit_hash=None
     for target, prec in product(targets, precs):
         path=build_path("kesch",jplan, target, prec, std)
-        gitrev_cmd='git rev-parse  HEAD '+path 
+        gitrev_cmd='git rev-parse HEAD -- ' + path
         gitrev_out=subprocess.Popen(gitrev_cmd, shell=True, stdout=subprocess.PIPE)
     
         for line in gitrev_out.stdout:
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     decode = json.load(f)
     
     #Update the hash
-    decode['hash'] = commit_hash
+    decode['hash'] = "" + commit_hash.decode()
     
     f.close()
     fw = open(json_file,'w')

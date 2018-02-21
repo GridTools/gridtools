@@ -533,3 +533,15 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ((y.length< 2 >()), 7);
     EXPECT_EQ((y.total_length< 2 >()), 13);
 }
+
+TEST(StorageInfo, Equal) {
+    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 16 > > si1(9, 11, 13);
+    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 16 > > si2(9, 11, 13);
+    ASSERT_EQ(si1, si2);
+}
+
+TEST(StorageInfo, SizesNotEqual) {
+    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 16 > > si1(9, 11, 13);
+    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 16 > > si2(9, 11, 15);
+    ASSERT_NE(si1, si2);
+}

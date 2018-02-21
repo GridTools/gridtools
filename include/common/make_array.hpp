@@ -38,17 +38,23 @@
 #include "array.hpp"
 
 namespace gridtools {
-    GT_FUNCTION gridtools::array< int, 2 > make_array(int i1, int i2) {
-        gridtools::array< int, 2 > a;
-        a[0] = i1;
-        a[1] = i2;
-        return a;
+    namespace impl_ {
+        template < typename ForceType, typename... Types >
+        struct forced_or_common_type {
+            using type = ForceType;
+        };
+
+        template < typename... Types >
+        struct forced_or_common_type< void, Types... > {
+            using type = typename std::common_type< Types... >::type;
+        };
     }
-    GT_FUNCTION gridtools::array< int, 3 > make_array(int i1, int i2, int i3) {
-        gridtools::array< int, 3 > a;
-        a[0] = i1;
-        a[1] = i2;
-        a[2] = i3;
-        return a;
+
+    template < typename ForceType = void, typename... Types >
+    constexpr GT_FUNCTION
+        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
+            make_array(Types... values) {
+        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
+            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
     }
 }

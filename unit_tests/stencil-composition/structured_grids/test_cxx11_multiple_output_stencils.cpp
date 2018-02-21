@@ -36,6 +36,8 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
 
@@ -80,20 +82,10 @@ struct SmagUpdateFunction {
     GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
-#ifdef __CUDACC__
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
-
 TEST(multiple_outputs, compute_extents) {
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
     meta_data_t meta_data_(10, 10, 10);
     storage_t dummy(meta_data_, 0.);
@@ -132,7 +124,7 @@ TEST(multiple_outputs, compute_extents) {
     halo_descriptor dj{2, 2, 2, 7, 10};
     auto grid_ = make_grid(di, dj, 10);
 
-    auto computation = make_computation< BACKEND >(
+    auto computation = make_computation< backend_t >(
         domain,
         grid_,
         make_multistage(execute< forward >(),

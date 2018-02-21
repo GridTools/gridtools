@@ -36,9 +36,9 @@
 
 #pragma once
 #include "accessor_fwd.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
-#ifdef CUDA8
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -102,7 +102,7 @@ the dimension is chosen
            For a usage example check the examples folder
         */
         template < int_t... Args >
-        using set = accessor_mixed< AccessorType, pair_< Known::direction, Args >... >;
+        using set = accessor_mixed< AccessorType, pair_< Known::index, Args >... >;
 
         /**@brief constructor
        \param args are the offsets which are already known*/
@@ -124,7 +124,7 @@ the dimension is chosen
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Unknowns >::value...), GT_INTERNAL_ERROR);
 #endif
             return AccessorType(
-                dimension< Known::direction >(m_knowns[boost::mpl::find< dim_vector, Known >::type::pos::value])...,
+                dimension< Known::index >(m_knowns[boost::mpl::find< dim_vector, Known >::type::pos::value])...,
                 unknowns...);
         }
 
@@ -132,5 +132,21 @@ the dimension is chosen
         // store the list of offsets which are already known on an array
         int_t m_knowns[sizeof...(Known)];
     };
-#endif // CUDA8
+
+    template < typename ArgType >
+    struct is_accessor_mixed;
+
+    template < typename... Types >
+    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
+    template < typename... Types >
+    struct is_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
+    template < typename... Types >
+    struct is_grid_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
+    template < typename Accessor, typename ArgsMap, typename... Pairs >
+    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
+        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
+    };
 } // namespace gridtools

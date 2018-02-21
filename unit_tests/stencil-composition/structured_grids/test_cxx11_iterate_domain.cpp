@@ -199,7 +199,7 @@ namespace test_iterate_domain {
         // check field storage access
 
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-        it_domain.set_index(0);
+        it_domain.reset_index();
         auto inv = make_field_host_view(in);
         inv.get< 0, 0 >()(0, 0, 0, 0) = 0.; // is accessor<0>
         inv.get< 0, 1 >()(0, 0, 0, 0) = 1.;
@@ -208,7 +208,6 @@ namespace test_iterate_domain {
         inv.get< 1, 1 >()(0, 0, 0, 0) = 11.;
         inv.get< 2, 0 >()(0, 0, 0, 0) = 20.;
 
-#ifdef CUDA8
         assert(
             it_domain(alias< inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >, dimension< 6 > >::set< 0 >()) == 0.);
         assert(
@@ -310,14 +309,14 @@ namespace test_iterate_domain {
         // check index initialization and increment
 
         array< int_t, 3 > index;
-        it_domain.get_index(index);
+        index = it_domain.index();
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
         index[0] += 3;
         index[1] += 2;
         index[2] += 1;
         it_domain.set_index(index);
 
-        it_domain.get_index(index);
+        index = it_domain.index();
         assert(index[0] == 3 && index[1] == 2 && index[2] == 1);
 
         auto mdo = out.template get< 0, 0 >().get_storage_info_ptr();
@@ -328,7 +327,7 @@ namespace test_iterate_domain {
         it_domain.increment< 0, static_uint< 1 > >(); // increment i
         it_domain.increment< 1, static_uint< 1 > >(); // increment j
         it_domain.increment< 2, static_uint< 1 > >(); // increment k
-        it_domain.get_index(new_index);
+        new_index = it_domain.index();
 
         // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra
         // stride
@@ -399,8 +398,6 @@ namespace test_iterate_domain {
             alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > >::set< 1,
                 1 >;
         assert(&it_domain(acc_t(dimension< 1 >(1))) == &it_domain(acc_(dimension< 1 >(1))));
-
-#endif
 
         // check strides initialization
         // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.

@@ -41,6 +41,8 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace expressions;
 
@@ -70,21 +72,11 @@ namespace test_cycle_and_swap {
         }
     };
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     bool test_2D() {
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 1 > >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 1 > >
             storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
             data_store_field_t;
 
         storage_info_t meta_(1u, 1u, 1u);
@@ -100,7 +92,7 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(i_data);
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto comp = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
@@ -122,8 +114,8 @@ namespace test_cycle_and_swap {
         const uint_t d2 = 9;
         const uint_t d3 = 7;
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
             data_store_field_t;
 
         storage_info_t meta_(d1, d2, d3);
@@ -156,7 +148,7 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(i_data);
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto comp = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
@@ -212,14 +204,9 @@ namespace test_cycle_and_swap {
     }
 
     bool test_cycle() {
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-#ifdef CUDA8
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
         typedef gridtools::storage_traits<
-            BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 4 > data_store_field_t;
-#else // rectangular data field
-        typedef gridtools::storage_traits<
-            BACKEND::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 3 > data_store_field_t;
-#endif
+            backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 4 > data_store_field_t;
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
         auto iv = make_field_host_view(i_data);
@@ -232,9 +219,7 @@ namespace test_cycle_and_swap {
         iv.get< 2, 0 >()(0, 0, 0) = 20;
         iv.get< 2, 1 >()(0, 0, 0) = 21;
         iv.get< 2, 2 >()(0, 0, 0) = 22;
-#ifdef CUDA8
         iv.get< 2, 3 >()(0, 0, 0) = 23;
-#endif
 
         const uint_t halo_size = 0;
         halo_descriptor di{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
@@ -247,7 +232,7 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(i_data);
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto comp = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
@@ -265,13 +250,8 @@ namespace test_cycle_and_swap {
         iv = make_field_host_view(i_data);
         return (iv.get< 0, 0 >()(0, 0, 0) == 2 && iv.get< 0, 1 >()(0, 0, 0) == 2 && iv.get< 0, 2 >()(0, 0, 0) == 0 &&
                 iv.get< 1, 0 >()(0, 0, 0) == 12 && iv.get< 1, 1 >()(0, 0, 0) == 10 && iv.get< 1, 2 >()(0, 0, 0) == 11 &&
-#ifdef CUDA8
                 iv.get< 2, 0 >()(0, 0, 0) == 23 && iv.get< 2, 1 >()(0, 0, 0) == 20 && iv.get< 2, 2 >()(0, 0, 0) == 21 &&
-                iv.get< 2, 3 >()(0, 0, 0) == 22
-#else
-                iv.get< 2, 0 >()(0, 0, 0) == 22 && iv.get< 2, 1 >()(0, 0, 0) == 20 && iv.get< 2, 2 >()(0, 0, 0) == 21
-#endif
-            );
+                iv.get< 2, 3 >()(0, 0, 0) == 22);
     }
 
 } // namespace test_cycle_and_swap

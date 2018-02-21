@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
@@ -171,7 +171,7 @@ namespace gridtools {
                 iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
-            it_domain.set_index(0);
+            it_domain.reset_index();
 
             // initialize the indices
             it_domain.template initialize< 0 >(i + starti, blockIdx.x);
@@ -211,11 +211,8 @@ namespace gridtools {
             typedef typename RunFunctorArguments::grid_t grid_t;
 
             // ctor
-            explicit execute_kernel_functor_cuda(const local_domain_t &local_domain,
-                const grid_t &grid,
-                const uint_t block_idx_i,
-                const uint_t block_idx_j)
-                : m_local_domain(local_domain), m_grid(grid), m_block_idx_i(block_idx_i), m_block_idx_j(block_idx_j) {}
+            explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
+                : m_local_domain(local_domain), m_grid(grid) {}
 
             void operator()() {
 #ifdef VERBOSE
@@ -285,31 +282,9 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-// re-create the run functor arguments, replacing the processing elements block size
-// with the corresponding, recently computed, block size
-#if !defined(__CUDACC__)
-                typedef typename replace_template_arguments< RunFunctorArguments,
-                    typename RunFunctorArguments::processing_elements_block_size_t,
-                    cuda_block_size_t >::type run_functor_arguments_cuda_t;
-#else
-                typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
-                    cuda_block_size_t,
-                    typename RunFunctorArguments::physical_domain_block_size_t,
-                    typename RunFunctorArguments::functor_list_t,
-                    typename RunFunctorArguments::esf_sequence_t,
-                    typename RunFunctorArguments::esf_args_map_sequence_t,
-                    typename RunFunctorArguments::loop_intervals_t,
-                    typename RunFunctorArguments::functors_map_t,
-                    typename RunFunctorArguments::extent_sizes_t,
-                    typename RunFunctorArguments::local_domain_t,
-                    typename RunFunctorArguments::cache_sequence_t,
-                    typename RunFunctorArguments::async_esf_map_t,
-                    typename RunFunctorArguments::grid_t,
-                    typename RunFunctorArguments::execution_type_t,
-                    typename RunFunctorArguments::is_reduction_t,
-                    typename RunFunctorArguments::reduction_data_t,
-                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
-#endif
+                // re-create the run functor arguments, replacing the processing elements block size
+                // with the corresponding, recently computed, block size
+                using run_functor_arguments_cuda_t = meta::replace_at_c< RunFunctorArguments, 1, cuda_block_size_t >;
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
@@ -336,8 +311,6 @@ namespace gridtools {
           private:
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
-            const uint_t m_block_idx_i;
-            const uint_t m_block_idx_j;
         };
 
     } // namespace strgrid

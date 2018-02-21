@@ -103,10 +103,6 @@ namespace gridtools {
             }
         };
 
-    } // namespace _impl
-
-    namespace {
-
         /*
          * @brief Internal helper function to check if two given storage infos contain the same information.
          * The function performs checks on all dimensions. This function is the base case.
@@ -221,7 +217,7 @@ namespace gridtools {
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
+        template < typename... Dims, typename = gridtools::is_all_integral< Dims... > >
         GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
             : m_dims{static_cast< uint_t >(dims_)...},
               m_padded_dims{compute_padding(typename make_gt_integer_sequence< uint_t, sizeof...(Dims) >::type{},
@@ -442,15 +438,11 @@ namespace gridtools {
          * @param idx given offsets
          * @return index
          */
-        template < typename... Ints >
-        GT_FUNCTION constexpr
-            typename boost::enable_if< typename is_all_integral_or_enum< Ints... >::type, int >::type index(
-                Ints... idx) const {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Ints) > 0) >,
-                                        typename is_all_integral_or_enum< Ints... >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == ndims,
-                GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
+
+        template < typename... Ints,
+            typename std::enable_if< sizeof...(Ints) == ndims && is_all_integral_or_enum< Ints... >::value,
+                int >::type = 0 >
+        GT_FUNCTION constexpr int index(Ints... idx) const {
 #ifdef NDEBUG
             return offset(typename make_gt_integer_sequence< uint_t, ndims >::type{}, idx...);
 #else
@@ -491,8 +483,9 @@ namespace gridtools {
          * @param rhs right hand side storage info instance
          * @return true if the storage infos are equal, false otherwise
          */
-        GT_FUNCTION
-        bool operator==(this_t const &rhs) const { return equality_check< ndims - 1 >(*this, rhs); }
+        GT_FUNCTION bool operator==(this_t const &rhs) const { return _impl::equality_check< ndims - 1 >(*this, rhs); }
+
+        GT_FUNCTION bool operator!=(this_t const &rhs) const { return !operator==(rhs); }
     };
 
     template < typename T >

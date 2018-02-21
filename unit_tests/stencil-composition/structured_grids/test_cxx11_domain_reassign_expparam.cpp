@@ -69,13 +69,13 @@ namespace domain_reassign {
 
         aggregator_type< accessor_list > domain(list_in, list_out);
 
-        m_stencil = make_computation< gridtools::BACKEND >(expand_factor< 2 >(),
+        m_stencil = make_computation< backend_t >(expand_factor< 2 >(),
             domain,
             grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                                               make_stage< test_functor >(p_in(), p_tmp()),
-                                                               make_stage< test_functor >(p_tmp(), p_out())));
+                                                      make_stage< test_functor >(p_in(), p_tmp()),
+                                                      make_stage< test_functor >(p_tmp(), p_out())));
 
         m_stencil->ready();
         m_stencil->steady();

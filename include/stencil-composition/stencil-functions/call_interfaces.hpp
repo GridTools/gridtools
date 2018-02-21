@@ -38,8 +38,8 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/mpl.hpp>
 
-#include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../accessor.hpp"
 #include "../functor_decorator.hpp"
@@ -90,7 +90,7 @@ namespace gridtools {
 
             template < typename Accessor >
             struct accessor_return_type {
-                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+                using type = typename CallerAggregator::template accessor_return_type< Accessor >::type;
             };
 
             GT_FUNCTION
@@ -98,48 +98,69 @@ namespace gridtools {
                 CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
+          private:
+            template < typename Accessor >
+            using accessor_return_type_t = typename CallerAggregator::template accessor_return_type< Accessor >::type;
+
             template < typename Accessor >
             using get_passed_argument_index =
                 static_uint< (Accessor::index_t::value < OutArg) ? Accessor::index_t::value
                                                                  : (Accessor::index_t::value - 1) >;
 
             template < typename Accessor >
-            using get_passed_argument_type =
+            using get_passed_argument_t =
                 typename boost::mpl::at_c< PassedArguments, get_passed_argument_index< Accessor >::value >::type;
 
             template < typename Accessor >
-            GT_FUNCTION constexpr get_passed_argument_type< Accessor > get_passed_argument() const {
+            GT_FUNCTION constexpr get_passed_argument_t< Accessor > get_passed_argument() const {
                 return boost::fusion::at_c< get_passed_argument_index< Accessor >::value >(m_accessors_list);
             }
 
             template < typename Accessor >
+            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_t< Accessor > >::type;
+
+            template < typename Accessor >
             using is_out_arg = boost::mpl::bool_< Accessor::index_t::value == OutArg >;
 
+          public:
             /**
              * @brief Accessor (of the callee) is a regular 3D in_accessor
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not is_out_arg< Accessor >::value &&
+            GT_FUNCTION constexpr typename boost::enable_if_c< passed_argument_is_accessor_t< Accessor >::value &&
+                                                                   not is_out_arg< Accessor >::value &&
                                                                    not is_global_accessor< Accessor >::value,
-                typename accessor_return_type< get_passed_argument_type< Accessor > >::type >::type const
+                accessor_return_type_t< get_passed_argument_t< Accessor > > >::type const
             operator()(Accessor const &accessor) const {
-                GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_type< Accessor > >::value),
+                GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_t< Accessor > >::value),
                     "In call: you are passing a global_accessor to a normal accessor");
-                return m_caller_aggregator(get_passed_argument_type< Accessor >(
+                return m_caller_aggregator(get_passed_argument_t< Accessor >(
                     accessor.template get< 2 >() + Offi + get_passed_argument< Accessor >().template get< 2 >(),
                     accessor.template get< 1 >() + Offj + get_passed_argument< Accessor >().template get< 1 >(),
                     accessor.template get< 0 >() + Offk + get_passed_argument< Accessor >().template get< 0 >()));
+            }
+
+            /*
+             * @brief If the passed type is not an accessor we assume it is a local variable which we just return.
+            */
+            template < typename Accessor >
+            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor_t< Accessor >::value &&
+                                                                   not is_out_arg< Accessor >::value,
+                get_passed_argument_t< Accessor > >::type
+            operator()(Accessor const &accessor) const {
+                return get_passed_argument< Accessor >();
             }
 
             /**
              * @brief Accessor is a global_accessor
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr
-                typename boost::enable_if_c< not is_out_arg< Accessor >::value && is_global_accessor< Accessor >::value,
-                    typename accessor_return_type< get_passed_argument_type< Accessor > >::type >::type
-                operator()(Accessor const &) const {
-                GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_type< Accessor > >::value),
+            GT_FUNCTION constexpr typename boost::enable_if_c< passed_argument_is_accessor_t< Accessor >::value &&
+                                                                   not is_out_arg< Accessor >::value &&
+                                                                   is_global_accessor< Accessor >::value,
+                accessor_return_type_t< get_passed_argument_t< Accessor > > >::type
+            operator()(Accessor const &) const {
+                GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_t< Accessor > >::value),
                     "In call: you are passing a normal accessor to a global_accessor");
                 return m_caller_aggregator(get_passed_argument< Accessor >());
             }
@@ -279,24 +300,25 @@ namespace gridtools {
                 (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
                 "The first argument must be an iterate_domain or a function_aggregator");
 
-            typedef typename boost::fusion::result_of::as_vector<
-                typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
+            typedef typename boost::fusion::result_of::as_vector< PassedArguments >::type accessors_list_t;
 
             CallerAggregator &m_caller_aggregator;
             accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
-                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+                using type = typename CallerAggregator::template accessor_return_type< Accessor >::type;
             };
 
+          private:
             template < typename Accessor >
-            using passed_argument_is_accessor =
-                is_accessor< typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type >;
+            using accessor_return_type_t = typename CallerAggregator::template accessor_return_type< Accessor >::type;
 
             template < typename Accessor >
-            using get_passed_argument_type =
-                typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type;
+            using get_passed_argument_t = typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type;
+
+            template < typename Accessor >
+            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_t< Accessor > >::type;
 
             template < typename Accessor >
             GT_FUNCTION constexpr auto get_passed_argument() const
@@ -304,6 +326,7 @@ namespace gridtools {
                 return boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list);
             }
 
+          public:
             GT_FUNCTION constexpr function_aggregator_procedure_offsets(
                 CallerAggregator &caller_aggregator, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_accessors_list(list) {}
@@ -314,13 +337,12 @@ namespace gridtools {
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< not is_global_accessor< Accessor >::value &&
-                                                                   passed_argument_is_accessor< Accessor >::value,
-                typename CallerAggregator::template accessor_return_type<
-                    get_passed_argument_type< Accessor > >::type >::type
+                                                                   passed_argument_is_accessor_t< Accessor >::value,
+                accessor_return_type_t< get_passed_argument_t< Accessor > > >::type
             operator()(Accessor const &accessor) const {
-                GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_type< Accessor > >::value),
-                    "In call_proc: you are passing a global_accessor to a normal accessor");
-                return m_caller_aggregator(get_passed_argument_type< Accessor >(
+                GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_t< Accessor > >::value),
+                    "In call_proc: you are passing a global_accessor to a regular/vector accessor");
+                return m_caller_aggregator(get_passed_argument_t< Accessor >(
                     accessor.template get< 2 >() + Offi + get_passed_argument< Accessor >().template get< 2 >(),
                     accessor.template get< 1 >() + Offj + get_passed_argument< Accessor >().template get< 1 >(),
                     accessor.template get< 0 >() + Offk + get_passed_argument< Accessor >().template get< 0 >()));
@@ -331,12 +353,12 @@ namespace gridtools {
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< is_global_accessor< Accessor >::value &&
-                                                                   passed_argument_is_accessor< Accessor >::value,
-                typename CallerAggregator::template accessor_return_type<
-                                                                   get_passed_argument_type< Accessor > >::type >::type
+
+                                                                   passed_argument_is_accessor_t< Accessor >::value,
+                accessor_return_type_t< get_passed_argument_t< Accessor > > >::type
             operator()(Accessor const &accessor) const {
-                GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_type< Accessor > >::value),
-                    "In call_proc: you are passing a normal accessor to a global_accessor");
+                GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_t< Accessor > >::value),
+                    "In call_proc: you are passing a regular/vector accessor to a global_accessor");
                 return m_caller_aggregator(get_passed_argument< Accessor >());
             }
 
@@ -344,7 +366,7 @@ namespace gridtools {
              * @brief Passed argument is a local variable (not an accessor)
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor< Accessor >::value,
+            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor_t< Accessor >::value,
                 typename boost::remove_reference< typename boost::fusion::result_of::at_c< accessors_list_t,
                     Accessor::index_t::value >::type >::type::type >::type &
             operator()(Accessor const &) const {
@@ -372,7 +394,7 @@ namespace gridtools {
         function, where the results should be obtained from. The
         values can also be used by the function as inputs.
 
-        \tparam Functos The stencil operator to be called
+        \tparam Functor The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is
        not
        called and will result in compilation error. The user is responsible for calling the proper Do overload)
