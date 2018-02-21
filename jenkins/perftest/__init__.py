@@ -28,6 +28,10 @@ class ParseError(Error):
     pass
 
 
+class JobError(Error):
+    pass
+
+
 logger = logging.getLogger(__name__)
 
 loghandler = logging.StreamHandler()

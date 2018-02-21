@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import textwrap
 
-from perftest import logger
+from perftest import JobError, logger
 
 
 def run(commands, sbatch_gen=None):
@@ -48,37 +48,46 @@ def _submit(command, sbatch_gen=None):
 async def _wait(task_id, outpath):
     wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
     while True:
-        sacct_command = ['sacct', '--format=state,exitcode', '--parsable2',
-                         '--noheader', '--jobs=' + str(task_id)]
+        sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
+                         '--parsable2', '--noheader', '--jobs=' + str(task_id)]
         logger.debug('Running "{}"'.format(' '.join(sacct_command)))
         info = subprocess.check_output(sacct_command).decode().strip()
         if info:
-            state, exitcode = info.split('\n')[0].split('|')
             logger.debug(f'Sacct output while waiting for {task_id}:\n' +
                          textwrap.indent(info, '    '))
-            if state not in wait_states:
+
+            infos = [line.split('|') for line in info.split('\n')]
+            if not any(state in wait_states for _, _, state, _ in infos):
                 break
         else:
             logger.debug(f'Sacct gave no output while waiting for {task_id}')
 
         await asyncio.sleep(1)
-    exitcode = int(exitcode.split(':')[0])
-    logger.debug(f'Job {task_id} finished with exitcode {exitcode}')
+
+    logger.debug(f'Job {task_id} finished')
+
+    failed = False
+    for jobid, jobname, state, exitcode in infos:
+        exitcode = int(exitcode.split(':')[0])
+        if exitcode != 0:
+            logger.error(f'Job {jobid} ({jobname}) failed with exitcode '
+                         f'{exitcode} and state {state}')
+            failed = True
 
     with open(outpath, 'r') as out:
         output = out.read()
     os.remove(outpath)
 
+    if failed:
+        raise JobError(f'Job {task_id} failed with output:\n' +
+                       textwrap.indent(output, '    '))
+
     logger.debug(f'Job {task_id} generated output:\n' +
                  textwrap.indent(output, '    '))
 
-    return output, exitcode
+    return output
 
 
 async def _run(command, sbatch_template=None):
     task_id, outpath = _submit(command, sbatch_template)
-    output, exitcode = await _wait(task_id, outpath)
-    if exitcode != 0:
-        raise RuntimeError(f'Running command "{command}" failed with output:\n'
-                           + output)
-    return output
+    return await _wait(task_id, outpath)
