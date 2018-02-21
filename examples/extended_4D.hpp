@@ -162,7 +162,7 @@ namespace assembly {
                                      phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
                                          f{i, j, k, di, dj + 1, dk} +
                                      phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
-                                         f{i, k, k, di, dj, dk + 1} +
+                                         f{i, j, k, di, dj, dk + 1} +
                                      phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
                                          f{i, j, k, di + 1, dj + 1, dk} +
                                      phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *

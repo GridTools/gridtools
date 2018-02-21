@@ -75,7 +75,7 @@ namespace gridtools {
 
         template < ushort_t Dim, class... Ts >
         GT_FUNCTION constexpr array< int_t, Dim > make_offsets(Ts... srcs) {
-            return make_offsets_impl< Dim >(make_gt_integer_sequence< uint_t, Dim >{}, srcs...);
+            return make_offsets_impl< Dim >(make_gt_integer_sequence< ushort_t, Dim >{}, srcs...);
         }
     }
 
@@ -123,7 +123,10 @@ namespace gridtools {
 
         template < ushort_t I, ushort_t... Is >
         GT_FUNCTION constexpr explicit accessor_base(dimension< I > d, dimension< Is >... ds)
-            : m_offsets(_impl::make_offsets< Dim >(d, ds...)) {}
+            : m_offsets(_impl::make_offsets< Dim >(d, ds...)) {
+            GRIDTOOLS_STATIC_ASSERT((meta::is_set< meta::list< dimension< I >, dimension< Is >... > >::value),
+                "all dimensions should be of different indicies");
+        }
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {

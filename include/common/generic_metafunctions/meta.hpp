@@ -781,5 +781,24 @@ namespace gridtools {
 
         template < class List, size_t N, class New >
         using replace_at_c = replace_at< List, std::integral_constant< size_t, N >, New >;
+
+        /**
+         *   True if the template parameter is type list which elements are all different
+         */
+        template < class >
+        struct is_set : std::false_type {};
+
+        template < template < class... > class L, class... Ts >
+        struct is_set< L< Ts... > > : std::is_same< L< Ts... >, dedup< L< Ts... > > > {};
+
+        /**
+         *   is_set_fast evaluates to std::true_type if the parameter is a set.
+         *   Otherwise compilation could fail.
+         */
+        template < class, class = void >
+        struct is_set_fast : std::false_type {};
+
+        template < template < class... > class L, class... Ts >
+        struct is_set_fast< L< Ts... >, void_t< decltype(inherit_impl< lazy< Ts >... >{}) > > : std::true_type {};
     }
 }
