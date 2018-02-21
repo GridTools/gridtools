@@ -2,7 +2,7 @@
 
 import json
 
-from perftest import logger, utils
+from perftest import ArgumentError, logger, utils
 
 
 class RuntimeInfo:
