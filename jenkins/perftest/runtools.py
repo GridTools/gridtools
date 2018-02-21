@@ -25,7 +25,10 @@ def _submit(command, sbatch_gen=None):
         sbatch_gen = config.sbatch
 
     with tempfile.NamedTemporaryFile(suffix='.sh', mode='w') as sbatch:
-        sbatch.write(sbatch_gen(command))
+        sbatchstr = sbatch_gen(command)
+        logger.debug(f'Generated sbatch file:\n' +
+                     textwrap.indent(sbatchstr, '    '))
+        sbatch.write(sbatchstr)
         sbatch.flush()
 
         out = tempfile.NamedTemporaryFile(suffix='.out', dir='.', delete=False)
@@ -67,7 +70,7 @@ async def _wait(task_id, outpath):
     os.remove(outpath)
 
     logger.debug(f'Job {task_id} generated output:\n' +
-                textwrap.indent(output, '    '))
+                 textwrap.indent(output, '    '))
 
     return output, exitcode
 
