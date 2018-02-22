@@ -19,6 +19,7 @@ def plot(mode, infiles, outfile):
 
     fig.savefig(outfile)
 
+
 def run(runtime, grid, precision, backend, domain, runs, outfile, config):
     import perftest.runtime
 
