@@ -70,8 +70,8 @@ def sbatch(command):
         export MALLOC_MMAP_MAX_=0
         export MALLOC_TRIM_THRESHOLD_=536870912
 
-        echo $LD_LIBRARY_PATH
         echo "Running on node $HOSTNAME"
+        echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 
         srun {command}
 
