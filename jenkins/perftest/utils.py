@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from perftest import ArgumentError
 from datetime import datetime, timezone
 
 
@@ -25,4 +26,11 @@ def timestr_from_posix(posixtime):
 
 
 def datetime_from_timestr(tstr):
-    return datetime.strptime(tstr, '%Y-%m-%dT%H:%M:%S.%f%z')
+    try:
+        return datetime.strptime(tstr, '%Y-%m-%dT%H:%M:%S.%f%z')
+    except ValueError:
+        raise ArgumentError(f'"{tstr}" is an invalid time string') from None
+
+
+def short_timestr(tstr):
+    return datetime_from_timestr(tstr).strftime('%y-%m-%d %H:%M')

@@ -10,17 +10,21 @@ from perftest import ConfigError, logger
 _config = None
 
 
-def system_name():
+def get_hostname():
     hostname = platform.node()
     logger.debug(f'Host name is {hostname}')
-    machinename = re.sub(r'^([a-z]+)(ln-)?\d*$', '\g<1>', hostname)
-    logger.debug(f'Machine name is {machinename}')
-    return machinename
+    return hostname
+
+
+def get_systemname():
+    systemname = re.sub(r'^([a-z]+)(ln-)?\d*$', '\g<1>', get_hostname())
+    logger.debug(f'System name is {systemname}')
+    return systemname
 
 
 def load_config(configname=None):
     if configname is None:
-        configname = system_name()
+        configname = get_systemname()
 
     from perftest.runtime import Runtime
     global _config
@@ -61,7 +65,13 @@ def get_runtime(runtime):
                           'config file') from None
 
 
-def sbatch(command):
+def get_configname():
+    if not _config:
+        load_config()
+    return _config['name']
+
+
+def get_sbatch(command):
     if not _config:
         load_config()
     return _config['sbatch'](command)

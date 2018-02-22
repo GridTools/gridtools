@@ -2,48 +2,38 @@
 
 import json
 
-from perftest import ArgumentError, logger, utils
+from perftest import ArgumentError, config, logger, utils
 
 
-class RuntimeInfo:
-    def __init__(self, name, version, datetime, grid, precision, backend):
-        self.name = name
-        self.version = version
-        self.datetime = utils.datetime_from_timestr(datetime)
-        self.grid = grid
-        self.precision = precision
-        self.backend = backend
+def _items_as_attrs(x):
+    istype = isinstance(x, type)
 
-    def compare(self, *others):
-        common = dict()
-        diff = dict()
-        attrs = ['name', 'version', 'datetime', 'grid', 'precision', 'backend']
-        for attr in attrs:
-            if all(getattr(self, attr) == getattr(o, attr) for o in others):
-                common[attr] = getattr(self, attr)
-            else:
-                diff[attr] = [getattr(self, attr)] + [getattr(o, attr) for o
-                                                      in others]
-        return common, diff
+    class Wrapper(x if istype else type(x)):
+        def __getattr__(self, name):
+            try:
+                return getattr(super(), name)
+            except AttributeError:
+                return _items_as_attrs(self.__getitem__(name))
+
+        def __getitem__(self, name):
+            return _items_as_attrs(super().__getitem__(name))
+
+    return Wrapper if istype else Wrapper(x)
 
 
-class Result:
+@_items_as_attrs
+class Result(dict):
     def __init__(self, filename=None, runtime=None, domain=None,
                  stencils=None, meantimes=None, stdevtimes=None):
-        if filename is None:
+        if filename:
+            self._init_from_file(filename)
+        else:
             self._init_from_run(runtime, domain, stencils,
                                 meantimes, stdevtimes)
-        else:
-            self._init_from_file(filename)
-
-    def write(self, filename):
-        with open(filename, 'w') as fp:
-            json.dump(self.data, fp, indent=4, sort_keys=True)
-        logger.info(f'Wrote result to {filename}')
 
     def _init_from_file(self, filename):
         with open(filename, 'r') as fp:
-            self.data = json.load(fp)
+            self.update(json.load(fp))
         logger.info(f'Successfully loaded result from {filename}')
 
     def _init_from_run(self, runtime, domain, stencils, meantimes, stdevtimes):
@@ -53,7 +43,7 @@ class Result:
         times = [{'stencil': s.name, 'mean': m, 'stdev': d} for s, m, d in
                  zip(stencils, meantimes, stdevtimes)]
 
-        self.data = {'runtime': {'name': runtime.name,
+        self.update({'runtime': {'name': runtime.name,
                                  'version': runtime.version,
                                  'datetime': runtime.datetime,
                                  'grid': runtime.grid,
@@ -61,40 +51,45 @@ class Result:
                                  'backend': runtime.backend},
                      'domain': domain,
                      'times': times,
-                     'datetime': utils.timestr()}
+                     'datetime': utils.timestr(),
+                     'config': {
+                         'configname': config.get_configname(),
+                         'hostname': config.get_hostname()
+                     }})
+
+    def write(self, filename):
+        with open(filename, 'w') as fp:
+            json.dump(self, fp, indent=4, sort_keys=True)
+        logger.info(f'Wrote result to "{filename}"')
 
     @property
     def stencils(self):
-        return [t['stencil'] for t in self.data['times']]
+        return [t['stencil'] for t in self['times']]
 
     @property
     def meantimes(self):
-        return [t['mean'] for t in self.data['times']]
+        return [t['mean'] for t in self['times']]
 
     @property
     def stdevtimes(self):
-        return [t['stdev'] for t in self.data['times']]
-
-    @property
-    def domain(self):
-        return self.data['domain']
-
-    @property
-    def runtime(self):
-        return RuntimeInfo(**self.data['runtime'])
-
-    @property
-    def datetime(self):
-        return utils.datetime_from_timestr(self.data['datetime'])
-
-    def times_by_stencil(self, *others):
-        if not all(self.stencils == o.stencils for o in others):
-            raise ArgumentError('All results must include the same stencils')
-        combined = (self,) + others
-        mtimes = list(zip(*(r.meantimes for r in combined)))
-        stimes = list(zip(*(r.stdevtimes for r in combined)))
-        return self.stencils, mtimes, stimes
+        return [t['stdev'] for t in self['times']]
 
 
-def times_by_stencil(*results):
-    return results[0].times_by_stencil(*results[1:])
+def times_by_stencil(results):
+    stencils = results[0].stencils
+    if any(stencils != r.stencils for r in results):
+        raise ArgumentError('All results must include the same stencils')
+
+    meantimes = list(zip(*(r.meantimes for r in results)))
+    stdevtimes = list(zip(*(r.stdevtimes for r in results)))
+    return stencils, meantimes, stdevtimes
+
+
+def compare(results):
+    first, *rest = results
+    common_keys = set(first.keys()).intersection(*(r.keys() for r in rest))
+    common = {k: first[k] for k in common_keys
+              if all(first[k] == r[k] for r in rest)}
+    diff = [{k: v for k, v in r.items() if k not in common.keys()}
+            for r in results]
+    return _items_as_attrs(common), _items_as_attrs(diff)
