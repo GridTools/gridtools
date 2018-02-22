@@ -73,19 +73,17 @@ namespace aligned_copy_stencil {
             \param it_domain iterate domain, used to get the pointers and offsets
             \param alignment ordinal number identifying the alignment
         */
-        template < unsigned Index, typename ItDomain >
-        GT_FUNCTION static bool check_pointer_alignment(ItDomain &it_domain, uint_t alignment) {
+        template < typename Ptr >
+        GT_FUNCTION static bool check_pointer_alignment(Ptr const *ptr, uint_t alignment) {
             bool result_ = true;
             if (threadIdx.x == 0) {
-                auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< Index >()[0]) +
-                            it_domain.get().index()[0]);
-                result_ = (((uintptr_t)ptr & (alignment - 1)) == 0);
+                result_ = (((uintptr_t)ptr % alignment) == 0);
             }
             return result_;
         }
 #endif
 
-        typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 3 > in;
+        typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > in;
         typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
@@ -94,8 +92,8 @@ namespace aligned_copy_stencil {
 
 #ifdef __CUDACC__
 #ifndef NDEBUG
-            if (!check_pointer_alignment< 0 >(eval, meta_data_t::alignment_t::value) ||
-                !check_pointer_alignment< 1 >(eval, meta_data_t::alignment_t::value)) {
+            if (!check_pointer_alignment(&eval(in()), 8 * meta_data_t::alignment_t::value) ||
+                !check_pointer_alignment(&eval(out()), 8 * meta_data_t::alignment_t::value)) {
                 printf("alignment error in some storages with first meta_storage \n");
                 assert(false);
             }
@@ -110,8 +108,8 @@ namespace aligned_copy_stencil {
         meta_data_t meta_data_(d1 + 2 * halo_t::at< 0 >(), d2 + 2 * halo_t::at< 1 >(), d3 + 2 * halo_t::at< 2 >());
 
         // Definition of the actual data fields that are used for input/output
-        storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
         storage_t out(meta_data_, (float_type)-1., "out");
+        storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
 
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
@@ -136,7 +134,7 @@ namespace aligned_copy_stencil {
 
         grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >() - 1});
 
-        auto copy = gridtools::make_computation< backend_t >(domain,
+        auto copy = gridtools::make_positional_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 

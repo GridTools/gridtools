@@ -57,52 +57,11 @@
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/binary_ops.hpp"
+#include "../../common/generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 
     namespace _impl {
-        template < typename Layout, int Max, int i >
-        struct compute_strides {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {
-                compute_strides< Layout, Max, i - 1 >::apply(strides, dims);
-                strides[Layout::template find< Max - i >()] =
-                    strides[Layout::template find< Max - i + 1 >()] * dims[Layout::template find< Max - i + 1 >()];
-            }
-        };
-
-        template < typename Layout >
-        struct compute_strides< Layout, -1, -1 > {
-            // Scalar storage - 0-dimensional storage
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {}
-        };
-
-        template < typename Layout, int Max >
-        struct compute_strides< Layout, Max, 0 > {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &) {
-                strides[Layout::template find< Max >()] = 1;
-            }
-        };
-
-        template < typename Layout >
-        struct compute_strides< Layout, 0, 0 > {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &) {
-                strides[Layout::template find< 0 >()] = 1;
-            }
-        };
-
-        template < typename Layout, int Max >
-        struct compute_strides< Layout, Max, Max > {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {
-                compute_strides< Layout, Max, Max - 1 >::apply(strides, dims);
-                strides[Layout::template find< 0 >()] =
-                    strides[Layout::template find< 1 >()] * dims[Layout::template find< 1 >()];
-            }
-        };
 
         /*
          * @brief Internal helper function to check if two given storage infos contain the same information.
@@ -167,19 +126,6 @@ namespace gridtools {
          */
         GT_FUNCTION constexpr storage_info_interface() {}
 
-        template < typename T >
-        GT_FUNCTION static constexpr T round_up(T i) {
-            return (i % alignment_t::value == 0) ? i : (i / alignment_t::value + 1) * alignment_t::value;
-        }
-
-        template < uint_t... Ints, typename... Dims >
-        GT_FUNCTION static constexpr array< uint_t, ndims > compute_padding(
-            gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
-            static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
-            return {
-                static_cast< uint_t >((layout_t::template at< Ints >() == max_layout_v) ? round_up(dims) : dims)...};
-        }
-
         template < uint_t Idx, uint_t... Idxs, typename Array, typename Halo = zero_halo< ndims > >
         GT_FUNCTION static constexpr uint_t multiply_if_layout(
             gt_integer_sequence< uint_t, Idx, Idxs... >, Array const &array, Halo h = zero_halo< ndims >{}) {
@@ -199,8 +145,7 @@ namespace gridtools {
             return idx * m_strides[SeqFirst] + offset(gt_integer_sequence< uint_t, SeqRest... >{}, rest...);
         }
 
-        GT_FUNCTION
-        constexpr int offset(gt_integer_sequence< uint_t >) const { return 0; }
+        GT_FUNCTION constexpr int offset(gt_integer_sequence< uint_t >) const { return 0; }
 
         template < int... Inds >
         GT_FUNCTION constexpr int first_index_impl(gt_integer_sequence< int, Inds... >) const {
@@ -221,13 +166,15 @@ namespace gridtools {
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template < typename... Dims, typename = gridtools::is_all_integral< Dims... > >
-        GT_FUNCTION constexpr /*explicit*/ storage_info_interface(Dims... dims_)
+        template < typename... Dims,
+            typename std::enable_if< sizeof...(Dims) == ndims && is_all_integral_or_enum< Dims... >::value,
+                int >::type = 0 >
+        GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
             : m_dims{static_cast< uint_t >(dims_)...},
-              m_padded_dims{compute_padding(typename make_gt_integer_sequence< uint_t, sizeof...(Dims) >::type{},
-                  static_cast< uint_t >(dims_)...)},
+              m_padded_dims{pad_dimensions< alignment_t, max_layout_v, LayoutArgs >(
+                  handle_masked_dims< LayoutArgs >::extend(dims_))...},
               m_strides(
-                  get_strides< layout_t >::get_stride_array(align_dimensions< alignment_t, max_layout_v, LayoutArgs >(
+                  get_strides< layout_t >::get_stride_array(pad_dimensions< alignment_t, max_layout_v, LayoutArgs >(
                       handle_masked_dims< LayoutArgs >::extend(dims_))...)) {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),

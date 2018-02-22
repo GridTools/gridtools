@@ -165,7 +165,7 @@ namespace gridtools {
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
          * @param info storage info instance
          */
-        constexpr data_store(StorageInfo const &info, std::string const &name = "")
+        data_store(StorageInfo const &info, std::string const &name = "")
             : m_shared_storage(new storage_t(
                   info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}

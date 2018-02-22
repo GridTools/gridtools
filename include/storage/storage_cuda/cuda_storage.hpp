@@ -131,6 +131,7 @@ namespace gridtools {
             for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer(i);
             }
+
             this->clone_to_device();
         }
 

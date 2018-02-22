@@ -53,19 +53,14 @@ namespace gridtools {
         std::vector< uint_t > dims_;
         std::vector< uint_t > unaligned_dims_;
         std::vector< uint_t > strides_;
-        //        std::vector< uint_t > unaligned_strides_;
 
       public:
-        storage_info_rt(std::vector< uint_t > dims,
-            std::vector< uint_t > unaligned_dims,
-            std::vector< uint_t > strides/*,
-                                           std::vector< uint_t > unaligned_strides*/)
-            : dims_(dims), unaligned_dims_(unaligned_dims), strides_(strides)/*, unaligned_strides_(unaligned_strides)*/ {}
+        storage_info_rt(std::vector< uint_t > dims, std::vector< uint_t > unaligned_dims, std::vector< uint_t > strides)
+            : dims_(dims), unaligned_dims_(unaligned_dims), strides_(strides) {}
 
         const std::vector< uint_t > &dims() const { return dims_; }
         const std::vector< uint_t > &unaligned_dims() const { return unaligned_dims_; }
         const std::vector< uint_t > &strides() const { return strides_; }
-        // const std::vector< uint_t > &unaligned_strides() const { return unaligned_strides_; }
     };
 
     namespace {
@@ -78,15 +73,6 @@ namespace gridtools {
                 return storage_info_.template total_length< Idx >();
             }
         };
-        // template < int Idx >
-        // struct unaligned_stride_getter {
-        //     constexpr unaligned_stride_getter() {}
-
-        //     template < typename StorageInfo >
-        //     GT_FUNCTION static constexpr uint_t apply(const StorageInfo &storage_info_) {
-        //         return storage_info_.template unaligned_stride< Idx >();
-        //     }
-        // };
 
         template < template < int Idx > class Getter, typename StorageInfo >
         gridtools::array< uint_t, StorageInfo::layout_t::masked_length > make_array_from(
@@ -107,8 +93,7 @@ namespace gridtools {
         return storage_info_rt( //
             to_vector(storage_info.dims()),
             to_vector(make_unaligned_dims_array(storage_info)),
-            to_vector(storage_info.strides())/*,
-                                               to_vector(make_unaligned_strides_array(storage_info))*/);
+            to_vector(storage_info.strides()));
     }
 
     /*
@@ -120,14 +105,4 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((gridtools::is_storage_info< StorageInfo >::value), "Expected a StorageInfo");
         return make_array_from< unaligned_dim_getter >(storage_info);
     }
-
-    // /*
-    //  * @brief Constructs gridtools::array of unaligned_strides.
-    //  */
-    // template < typename StorageInfo >
-    // gridtools::array< uint_t, StorageInfo::layout_t::masked_length > make_unaligned_strides_array(
-    //     const StorageInfo &storage_info) {
-    //     GRIDTOOLS_STATIC_ASSERT((gridtools::is_storage_info< StorageInfo >::value), "Expected a StorageInfo");
-    //     return make_array_from< unaligned_stride_getter >(storage_info);
-    // }
 }

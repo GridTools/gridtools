@@ -78,57 +78,14 @@ namespace gridtools {
      * @tparam LayoutArg layout map entry
      * @return return aligned dimension if it should be aligned, otherwise return as is.
      */
-    template < typename Alignment, int_t MaxLayoutV, int LayoutArg >
-    GT_FUNCTION constexpr uint_t align_dimensions(uint_t dimension) {
+    template < typename Alignment, int_t MaxLayoutV, int LayoutArg, typename Int >
+    GT_FUNCTION constexpr uint_t pad_dimensions(Int dimension) {
         GRIDTOOLS_STATIC_ASSERT(
             is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
         return ((Alignment::value > 1) && (LayoutArg == MaxLayoutV))
                    ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
-
-    // /*
-    //  * @brief struct used to compute the initial offset. The initial offset
-    //  * has to be added if we use alignment in combination with a halo
-    //  * in the aligned dimension. We want to have the first non halo point
-    //  * aligned. Therefore we have to introduce an initial offset.
-    //  * @tparam Layout layout map
-    //  * @tparam Alignment alignment information
-    //  * @tparam Halo halo information
-    //  */
-    // template < typename Layout, typename Alignment, typename Halo >
-    // struct get_initial_offset;
-
-    // template < int... LayoutArgs, typename Alignment, uint_t... HaloVals >
-    // struct get_initial_offset< layout_map< LayoutArgs... >, Alignment, halo< HaloVals... > > {
-    //     GRIDTOOLS_STATIC_ASSERT(
-    //         is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
-
-    //     // this function returns the halo of the first stride dimension
-    //     // e.g., layout_map<1,2,-1,0> with halo<3,4,0,1> would return 4
-    //     // because the second dimension is the one first stride dimension
-    //     // and the halo there is 4.
-    //     GT_FUNCTION constexpr static uint_t get_first_stride_dim_halo() {
-    //         return get_value_from_pack(get_index_of_element_in_pack(0,
-    //                                        static_cast< int >(layout_map< LayoutArgs... >::unmasked_length - 1),
-    //                                        static_cast< int >(LayoutArgs)...),
-    //             static_cast< uint_t >(HaloVals)...);
-    //     }
-
-    //     // if the alignment is >1 we have to calculate an initial offset.
-    //     // e.g., alignment<32>, layout_map<0,1,2>, halo<0,2,2>. the function
-    //     // gt_ceil(2/32) * 32 - 2 = 1 * 32 - 2 = 30. This means the initial offset
-    //     // is 30, followed by 2 halo points, followed by an aligned non-halo point.
-    //     GT_FUNCTION constexpr static uint_t compute() {
-    //         return 0;
-    //         // return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
-    //         //            ? static_cast< uint_t >(
-    //         //                  gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) *
-    //         Alignment::value -
-    //         //                  get_first_stride_dim_halo())
-    //         //            : 0;
-    //     }
-    // };
 
     /*
      * @brief helper struct used to compute the strides in a constexpr manner

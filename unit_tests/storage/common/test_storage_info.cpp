@@ -249,11 +249,6 @@ TEST(StorageInfo, Simple) {
     EXPECT_EQ((x.dim< 2 >()), 8);
     EXPECT_EQ((x.dim< 3 >()), 2);
 
-    // EXPECT_EQ((x.unaligned_dim< 0 >()), 5);
-    // EXPECT_EQ((x.unaligned_dim< 1 >()), 7);
-    // EXPECT_EQ((x.unaligned_dim< 2 >()), 8);
-    // EXPECT_EQ((x.unaligned_dim< 3 >()), 2);
-
     EXPECT_EQ((x.stride< 0 >()), 56);
     EXPECT_EQ((x.stride< 1 >()), 8);
     EXPECT_EQ((x.stride< 2 >()), 1);
@@ -324,10 +319,6 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((x.dim< 1 >()), 7);
     EXPECT_EQ((x.dim< 2 >()), 7);
 
-    // EXPECT_EQ((x.unaligned_dim< 0 >()), 7);
-    // EXPECT_EQ((x.unaligned_dim< 1 >()), 7);
-    // EXPECT_EQ((x.unaligned_dim< 2 >()), 7);
-
     EXPECT_EQ((x.stride< 0 >()), 1);
     EXPECT_EQ((x.stride< 1 >()), 7);
     EXPECT_EQ((x.stride< 2 >()), 49);
@@ -338,10 +329,6 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((y.dim< 1 >()), 7);
     EXPECT_EQ((y.dim< 2 >()), 7);
 
-    // EXPECT_EQ((y.unaligned_dim< 0 >()), 7);
-    // EXPECT_EQ((y.unaligned_dim< 1 >()), 7);
-    // EXPECT_EQ((y.unaligned_dim< 2 >()), 7);
-
     EXPECT_EQ((y.stride< 0 >()), 49);
     EXPECT_EQ((y.stride< 1 >()), 7);
     EXPECT_EQ((y.stride< 2 >()), 1);
@@ -351,10 +338,6 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((z.dim< 0 >()), 7);
     EXPECT_EQ((z.dim< 1 >()), 11);
     EXPECT_EQ((z.dim< 2 >()), 3);
-
-    // EXPECT_EQ((z.unaligned_dim< 0 >()), 7);
-    // EXPECT_EQ((z.unaligned_dim< 1 >()), 11);
-    // EXPECT_EQ((z.unaligned_dim< 2 >()), 3);
 
     EXPECT_EQ((z.stride< 0 >()), 1);
     EXPECT_EQ((z.stride< 1 >()), 7);
@@ -370,11 +353,6 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 2 >()), 32);
         EXPECT_EQ((x.dim< 3 >()), 2);
 
-        // EXPECT_EQ((x.unaligned_dim< 0 >()), 5);
-        // EXPECT_EQ((x.unaligned_dim< 1 >()), 7);
-        // EXPECT_EQ((x.unaligned_dim< 2 >()), 32);
-        // EXPECT_EQ((x.unaligned_dim< 3 >()), 2);
-
         EXPECT_EQ((x.stride< 0 >()), 32 * 7);
         EXPECT_EQ((x.stride< 1 >()), 32);
         EXPECT_EQ((x.stride< 2 >()), 1);
@@ -387,11 +365,6 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 3);
         EXPECT_EQ((x.dim< 3 >()), 10);
-
-        // EXPECT_EQ((x.unaligned_dim< 0 >()), 7);
-        // EXPECT_EQ((x.unaligned_dim< 1 >()), 11);
-        // EXPECT_EQ((x.unaligned_dim< 2 >()), 32);
-        // EXPECT_EQ((x.unaligned_dim< 3 >()), 10);
 
         EXPECT_EQ((x.stride< 0 >()), 32 * 11);
         EXPECT_EQ((x.stride< 1 >()), 32);
@@ -412,11 +385,6 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 14);
         EXPECT_EQ((x.dim< 3 >()), 10);
-
-        // EXPECT_EQ((x.unaligned_dim< 0 >()), 32);
-        // EXPECT_EQ((x.unaligned_dim< 1 >()), 11);
-        // EXPECT_EQ((x.unaligned_dim< 2 >()), 14);
-        // EXPECT_EQ((x.unaligned_dim< 3 >()), 10);
 
         EXPECT_EQ((x.stride< 0 >()), 1);
         EXPECT_EQ((x.stride< 1 >()), 32);

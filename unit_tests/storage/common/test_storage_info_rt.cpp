@@ -63,11 +63,6 @@ TEST(StorageInfoRT, Make3D) {
     ASSERT_EQ(si.stride< 0 >(), strides[0]);
     ASSERT_EQ(si.stride< 1 >(), strides[1]);
     ASSERT_EQ(si.stride< 2 >(), strides[2]);
-
-    // auto unaligned_strides = storage_info_rt_.unaligned_strides();
-    // ASSERT_EQ(si.unaligned_stride< 0 >(), unaligned_strides[0]);
-    // ASSERT_EQ(si.unaligned_stride< 1 >(), unaligned_strides[1]);
-    // ASSERT_EQ(si.unaligned_stride< 2 >(), unaligned_strides[2]);
 }
 
 TEST(StorageInfoRT, Make3Dmasked) {
@@ -90,9 +85,4 @@ TEST(StorageInfoRT, Make3Dmasked) {
     ASSERT_EQ(si.stride< 0 >(), strides[0]);
     ASSERT_EQ(si.stride< 1 >(), strides[1]);
     ASSERT_EQ(si.stride< 2 >(), strides[2]);
-
-    // auto unaligned_strides = storage_info_rt_.unaligned_strides();
-    // ASSERT_EQ(si.unaligned_stride< 0 >(), unaligned_strides[0]);
-    // ASSERT_EQ(si.unaligned_stride< 1 >(), unaligned_strides[1]);
-    // ASSERT_EQ(si.unaligned_stride< 2 >(), unaligned_strides[2]);
 }
