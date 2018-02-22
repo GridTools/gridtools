@@ -78,7 +78,7 @@ namespace gridtools {
      * @tparam LayoutArg layout map entry
      * @return return aligned dimension if it should be aligned, otherwise return as is.
      */
-    template < typename Alignment, uint_t MaxLayoutV, int LayoutArg >
+    template < typename Alignment, int_t MaxLayoutV, int LayoutArg >
     GT_FUNCTION constexpr uint_t align_dimensions(uint_t dimension) {
         GRIDTOOLS_STATIC_ASSERT(
             is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));

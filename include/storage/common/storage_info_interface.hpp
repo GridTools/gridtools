@@ -56,6 +56,7 @@
 #include "../../common/layout_map.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
+#include "../../common/generic_metafunctions/binary_ops.hpp"
 
 namespace gridtools {
 
@@ -167,12 +168,13 @@ namespace gridtools {
         GT_FUNCTION constexpr storage_info_interface() {}
 
         template < typename T >
-        static constexpr T round_up(T i) {
+        GT_FUNCTION static constexpr T round_up(T i) {
             return (i % alignment_t::value == 0) ? i : (i / alignment_t::value + 1) * alignment_t::value;
         }
 
         template < uint_t... Ints, typename... Dims >
-        static constexpr array< uint_t, ndims > compute_padding(gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
+        GT_FUNCTION static constexpr array< uint_t, ndims > compute_padding(
+            gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
             static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
             return {
                 static_cast< uint_t >((layout_t::template at< Ints >() == max_layout_v) ? round_up(dims) : dims)...};
@@ -192,14 +194,16 @@ namespace gridtools {
         }
 
         template < uint_t SeqFirst, uint_t... SeqRest, typename Int, typename... Ints >
-        constexpr int offset(gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
+        GT_FUNCTION constexpr int offset(
+            gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
             return idx * m_strides[SeqFirst] + offset(gt_integer_sequence< uint_t, SeqRest... >{}, rest...);
         }
 
+        GT_FUNCTION
         constexpr int offset(gt_integer_sequence< uint_t >) const { return 0; }
 
         template < int... Inds >
-        constexpr int first_index_impl(gt_integer_sequence< int, Inds... >) const {
+        GT_FUNCTION constexpr int first_index_impl(gt_integer_sequence< int, Inds... >) const {
             return index(halo_t::template at< Inds >()...);
         }
 
@@ -218,14 +222,13 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template < typename... Dims, typename = gridtools::is_all_integral< Dims... > >
-        GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
+        GT_FUNCTION constexpr /*explicit*/ storage_info_interface(Dims... dims_)
             : m_dims{static_cast< uint_t >(dims_)...},
               m_padded_dims{compute_padding(typename make_gt_integer_sequence< uint_t, sizeof...(Dims) >::type{},
                   static_cast< uint_t >(dims_)...)},
               m_strides(
                   get_strides< layout_t >::get_stride_array(align_dimensions< alignment_t, max_layout_v, LayoutArgs >(
                       handle_masked_dims< LayoutArgs >::extend(dims_))...)) {
-
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));

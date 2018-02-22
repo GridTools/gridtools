@@ -75,44 +75,23 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 0 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 1 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_dim< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_dim< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_dim< 2 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.stride< 0 >() == 1, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.stride< 1 >() == 3, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.stride< 2 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_stride< 2 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.get_initial_offset() == 0, "init. offset check failed");
 
     GRIDTOOLS_STATIC_ASSERT(csih.dim< 0 >() == 7, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.dim< 1 >() == 5, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_dim< 2 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 0 >() == 1, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 1 >() == 7, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 2 >() == 35, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_stride< 1 >() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_stride< 2 >() == 35, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.get_initial_offset() == 0, "init. offset check failed");
 
     EXPECT_EQ(csiha.dim< 0 >(), 16);
     EXPECT_EQ(csiha.dim< 1 >(), 5);
     EXPECT_EQ(csiha.dim< 2 >(), 3);
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_dim< 2 >() == 3, "dimension check failed.");
     EXPECT_EQ(csiha.stride< 0 >(), 1);
     EXPECT_EQ(csiha.stride< 1 >(), 16);
     EXPECT_EQ(csiha.stride< 2 >(), 80);
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_stride< 1 >() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_stride< 2 >() == 35, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.get_initial_offset() == 14, "init. offset check failed");
 
     // create unallocated data_store
     data_store_t ds;
