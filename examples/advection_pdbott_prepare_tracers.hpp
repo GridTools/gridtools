@@ -120,7 +120,7 @@ namespace adv_prepare_tracers {
         for (int_t l = 0; l < vec_size; ++l) {
             storage_t s_ref_(meta_data_, 0.);
             reference(list_in_[l], rho, s_ref_);
-            result = result && verif.verify(grid_, (list_out_[l]), s_ref_, halos);
+            result = verif.verify(grid_, s_ref_, list_out_[l], halos) && result;
         }
 
         return result;

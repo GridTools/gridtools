@@ -305,7 +305,7 @@ namespace gridtools {
      */
 
     template < uint_t RepeatFunctor, bool IsStateful, typename Backend, typename Grid, typename... MssDescriptors >
-    struct intermediate {
+    class intermediate {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
@@ -322,6 +322,7 @@ namespace gridtools {
         using placeholders_t = typename extract_placeholders< all_mss_descriptors_t >::type;
         using DomainType = aggregator_type< placeholders_t >;
 
+      public:
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
@@ -330,6 +331,7 @@ namespace gridtools {
                 placeholder_to_extent_map< all_mss_descriptors_t, grid_traits_t, placeholders_t >,
                 boost::mpl::void_ >::type;
 
+      private:
         template < typename MssDescs >
         using convert_to_mss_components_array_t =
             typename build_mss_components_array< typename Backend::mss_fuse_esfs_strategy,
@@ -354,27 +356,29 @@ namespace gridtools {
         // get the maximum extent (used to retrieve the size of the temporaries)
         typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_fusion_list_t >::type max_i_extent_t;
 
+      public:
         // creates an mpl sequence of local domains
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             storage_wrapper_list_t,
             IsStateful >::type mss_local_domains_t;
 
+      private:
         // creates a fusion vector of local domains
         typedef typename boost::fusion::result_of::as_vector< mss_local_domains_t >::type mss_local_domain_list_t;
 
         using arg_storage_pair_fusion_list_t = typename DomainType::arg_storage_pair_fusion_list_t;
 
         // member fields
-        DomainType m_domain;
-
-        mss_local_domain_list_t m_mss_local_domain_list;
-
         Grid m_grid;
 
         performance_meter_t m_meter;
 
+        DomainType m_domain;
+
         branch_selector_t m_branch_selector;
+
+        mss_local_domain_list_t m_mss_local_domain_list;
         view_list_fusion_t m_view_list;
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
@@ -391,9 +395,9 @@ namespace gridtools {
         };
 
       public:
-        template < typename Domain, typename... Msses >
-        intermediate(Grid const &grid, Domain const &domain, Msses &&... msses)
-            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_branch_selector(std::forward< Msses >(msses)...) {
+        template < typename... Msses >
+        intermediate(Grid const &grid, DomainType const &domain, Msses &&... msses)
+            : m_grid(grid), m_meter("NoName"), m_domain(domain), m_branch_selector(std::forward< Msses >(msses)...) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
             // instantiate all the temporaries
