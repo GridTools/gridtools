@@ -86,7 +86,7 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 1 >() == 7, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 2 >() == 35, "stride check failed.");
 
-    EXPECT_EQ(csiha.dim< 0 >(), 16);
+    EXPECT_EQ(csiha.dim< 0 >(), 7);
     EXPECT_EQ(csiha.dim< 1 >(), 5);
     EXPECT_EQ(csiha.dim< 2 >(), 3);
     EXPECT_EQ(csiha.stride< 0 >(), 1);

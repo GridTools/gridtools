@@ -84,7 +84,6 @@ namespace gridtools {
         cuda_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
             : m_cpu_ptr(new data_t[size]), m_size{size} {
             // New will align addresses according to the size(data_t)
-            printf("CONSTRUCTOR (size+Align %d) %llu\n", size + Align, this);
             cudaError_t err = cudaMalloc(&m_allocated_ptr, (size + Align) * sizeof(data_t));
             ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory in constructor.");
 
@@ -92,12 +91,6 @@ namespace gridtools {
                 ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
             m_gpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
-            ASSERT_OR_THROW(m_cpu_ptr, "---- CPU pointer seems not initialized.");
-            ASSERT_OR_THROW(m_allocated_ptr, "---- GPU allocated pointer seems not initialized.");
-            ASSERT_OR_THROW(m_gpu_ptr, "---- GPU pointer seems not initialized.");
-
-            printf("ptr gpu %llu \n", reinterpret_cast< unsigned long long >(m_gpu_ptr));
-            printf("ptr alloc %llu \n", reinterpret_cast< unsigned long long >(m_allocated_ptr));
         }
 
         /*
@@ -117,8 +110,9 @@ namespace gridtools {
                 m_state.m_hnu = true;
             } else if (own == ownership::ExternalCPU) {
                 m_cpu_ptr = external_ptr;
-                cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(data_t));
+                cudaError_t err = cudaMalloc(&m_allocated_ptr, size * sizeof(data_t));
                 ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
+                m_gpu_ptr = m_allocated_ptr;
                 m_state.m_dnu = true;
             }
             ASSERT_OR_THROW((m_gpu_ptr && m_cpu_ptr), "Failed to create cuda_storage.");
@@ -185,13 +179,10 @@ namespace gridtools {
          * @brief clone_to_device implementation for cuda_storage.
          */
         void clone_to_device_impl() {
-            printf("POINTER %llu\n", this);
             ASSERT_OR_THROW(m_cpu_ptr, "CPU pointer seems not initialized.");
             ASSERT_OR_THROW(m_allocated_ptr, "GPU allocated pointer seems not initialized.");
             ASSERT_OR_THROW(m_gpu_ptr, "GPU pointer seems not initialized.");
 
-            printf("ptr gpu %llu \n", reinterpret_cast< unsigned long long >(m_gpu_ptr));
-            printf("ptr alloc %llu \n", reinterpret_cast< unsigned long long >(m_allocated_ptr));
             cudaError_t err =
                 cudaMemcpy((void *)m_gpu_ptr, (void *)this->m_cpu_ptr, m_size * sizeof(data_t), cudaMemcpyHostToDevice);
             ASSERT_OR_THROW((err == cudaSuccess), "failed to clone data to the device.");
