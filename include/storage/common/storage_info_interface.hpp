@@ -211,7 +211,7 @@ namespace gridtools {
         GT_FUNCTION constexpr bool check_bounds(gt_integer_sequence< uint_t, Ints... >, Coords... coords) const {
             return accumulate(logical_and(),
                 true,
-                ((layout_t::template at< Ints >() < 0) or ((coords >= 0) and (coords < m_dims[Ints])))...);
+                ((layout_t::template at< Ints >() < 0) or (((int)coords >= 0) and (coords < m_dims[Ints])))...);
         }
 
       public:
