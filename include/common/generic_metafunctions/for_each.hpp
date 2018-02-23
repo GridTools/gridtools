@@ -35,16 +35,26 @@
 */
 #pragma once
 
-namespace gridtools {
+#include "../host_device.hpp"
 
-    /**
-     *  @brief A class that represents the state machine that is used to determine
-     *  if a storage is currently on the host or on the device and if the
-     *  data on the host or the device is outdated and needs to be updated.
-     */
-    struct state_machine {
-        bool m_hnu; // hnu = host needs update, set to true if a non-read-only device view is instantiated.
-        bool m_dnu; // dnu = device needs update, set to true if a non-read-only host view is instantiated.
-        state_machine() : m_hnu(false), m_dnu(false) {}
+namespace gridtools {
+    namespace _impl {
+        template < class List >
+        struct for_each_f;
+
+        template < template < class... > class L, class... Ts >
+        struct for_each_f< L< Ts... > > {
+            template < class Fun >
+            GT_FUNCTION_WARNING void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
+    }
+
+    /// Calls fun(T{}) for each element of the type list List.
+    template < class List, class Fun >
+    GT_FUNCTION_WARNING Fun for_each(Fun const &fun) {
+        _impl::for_each_f< List >{}(fun);
+        return fun;
     };
 }

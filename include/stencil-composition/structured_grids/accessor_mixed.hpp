@@ -39,7 +39,6 @@
 #include "accessor.hpp"
 
 namespace gridtools {
-#ifdef CUDA8
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -150,5 +149,4 @@ the dimension is chosen
     struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
         typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
-#endif // CUDA8
 } // namespace gridtools

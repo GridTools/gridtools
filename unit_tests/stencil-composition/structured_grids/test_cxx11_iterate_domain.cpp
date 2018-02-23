@@ -208,7 +208,6 @@ namespace test_iterate_domain {
         inv.get< 1, 1 >()(0, 0, 0, 0) = 11.;
         inv.get< 2, 0 >()(0, 0, 0, 0) = 20.;
 
-#ifdef CUDA8
         assert(
             it_domain(alias< inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >, dimension< 6 > >::set< 0 >()) == 0.);
         assert(
@@ -399,8 +398,6 @@ namespace test_iterate_domain {
             alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > >::set< 1,
                 1 >;
         assert(&it_domain(acc_t(dimension< 1 >(1))) == &it_domain(acc_(dimension< 1 >(1))));
-
-#endif
 
         // check strides initialization
         // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.

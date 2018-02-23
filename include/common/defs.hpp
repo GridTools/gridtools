@@ -35,16 +35,6 @@
 */
 #pragma once
 
-#define DEFS_GUARD
-
-#if !defined(__CUDACC__)
-#define CUDA8
-#else
-#if (GT_CUDA_VERSION > 75)
-#define CUDA8
-#endif
-#endif
-
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
