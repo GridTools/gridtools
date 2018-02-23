@@ -73,6 +73,6 @@ namespace gridtools {
             typename base_t::storage_traits_t::template custom_layout_storage_info_t< Index, LayoutMap, Halo >;
 
         template < typename ValueType, typename StorageInfo >
-        using storage_t = typename base_t::storage_traits_t::template data_store_t< ValueType, StorageInfo >;
+        using data_store_t = typename base_t::storage_traits_t::template data_store_t< ValueType, StorageInfo >;
     };
 } // namespace gridtools

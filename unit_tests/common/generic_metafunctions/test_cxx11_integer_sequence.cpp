@@ -33,9 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "common/generic_metafunctions/gt_integer_sequence.hpp"
+
+#include <type_traits>
 #include "gtest/gtest.h"
 #include <boost/type_traits/is_same.hpp>
-#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "common/array.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
 
@@ -62,6 +64,14 @@ struct get_component_type {
 
     static constexpr int value = Elem::value;
 };
+
+GRIDTOOLS_STATIC_ASSERT((std::is_same< gt_integer_sequence< int >::value_type, int >::value), "");
+GRIDTOOLS_STATIC_ASSERT((gt_integer_sequence< int, 1, 2, 3 >::size() == 3), "");
+
+GRIDTOOLS_STATIC_ASSERT(
+    (std::is_same< make_gt_integer_sequence< int, 3 >, gt_integer_sequence< int, 0, 1, 2 > >::value), "");
+GRIDTOOLS_STATIC_ASSERT(
+    (std::is_same< make_gt_integer_sequence< bool, 1 >, gt_integer_sequence< bool, false > >::value), "");
 
 TEST(integer_sequence, fill_array) {
 
@@ -94,6 +104,18 @@ TEST(integer_sequence, fill_templated_container) {
         (boost::is_same< extent_test< 0, 1, -2, 3 >, extent_t >::value), "Error in test_integer_sequence");
 }
 
+TEST(integer_sequence, Append) {
+    using s1 = gt_integer_sequence< std::size_t, 2, 1, 3 >;
+    using s2 = gt_integer_sequence< std::size_t, 5, 6 >;
+    using s3 = gt_integer_sequence< std::size_t >;
+
+    EXPECT_TRUE((std::is_same< append< s1, s2 >::type, gt_integer_sequence< std::size_t, 2, 1, 3, 5, 6 > >::value));
+
+    EXPECT_TRUE((std::is_same< append< s1, s3 >::type, gt_integer_sequence< std::size_t, 2, 1, 3 > >::value));
+
+    EXPECT_TRUE((std::is_same< append< s3, s1 >::type, gt_integer_sequence< std::size_t, 2, 1, 3 > >::value));
+}
+
 template < int Idx >
 struct transform {
 
@@ -107,7 +129,7 @@ struct transform {
 };
 
 struct lambda {
-    constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
+    GT_FUNCTION constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
         return add * (i + j + k + l);
     }
 };

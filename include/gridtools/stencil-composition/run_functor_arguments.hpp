@@ -54,7 +54,7 @@ namespace gridtools {
     template < typename BackendIds,
         typename LocalDomain,
         typename EsfSequence,
-        typename ExtendSizes,
+        typename ExtentSizes,
         typename MaxExtent,
         typename CacheSequence,
         typename ProcessingElementsBlockSize,
@@ -68,7 +68,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtendSizes, is_extent >::value),
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentSizes, is_extent >::value),
             "There seems to be a stage in the computation which does not contain any output field. Check that at least "
             "one accessor in each stage is defined as \'inout\'");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), GT_INTERNAL_ERROR);
@@ -80,7 +80,7 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
-        typedef ExtendSizes extent_sizes_t;
+        typedef ExtentSizes extent_sizes_t;
         typedef MaxExtent max_extent_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
@@ -97,7 +97,7 @@ namespace gridtools {
     template < typename BackendIds,
         typename LocalDomain,
         typename EsfSequence,
-        typename ExtendSizes,
+        typename ExtentSizes,
         typename MaxExtent,
         typename CacheSequence,
         typename ProcessingElementsBlockSize,
@@ -108,7 +108,7 @@ namespace gridtools {
     struct is_iterate_domain_arguments< iterate_domain_arguments< BackendIds,
         LocalDomain,
         EsfSequence,
-        ExtendSizes,
+        ExtentSizes,
         MaxExtent,
         CacheSequence,
         ProcessingElementsBlockSize,
@@ -132,7 +132,7 @@ namespace gridtools {
                                               //    local domain
         typename LoopIntervals,               // loop intervals
         typename FunctorsMap,                 // functors map
-        typename ExtendSizes,                 // extents of each ESF
+        typename ExtentSizes,                 // extents of each ESF
         typename LocalDomain,                 // local domain type
         typename CacheSequence,               // sequence of user specified caches
         typename IsIndependentSeq, // sequence of boolenans (one per functor), stating if it is contained in a
@@ -165,7 +165,7 @@ namespace gridtools {
         typedef EsfArgsMapSequence esf_args_map_sequence_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
-        typedef ExtendSizes extent_sizes_t;
+        typedef ExtentSizes extent_sizes_t;
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         typedef typename boost::mpl::fold< extent_sizes_t,
             typename grid_traits_t::null_extent_t,
@@ -177,7 +177,7 @@ namespace gridtools {
             iterate_domain_arguments< BackendIds,
                 LocalDomain,
                 EsfSequence,
-                ExtendSizes,
+                ExtentSizes,
                 max_extent_t,
                 CacheSequence,
                 ProcessingElementsBlockSize,
@@ -205,7 +205,7 @@ namespace gridtools {
         typename EsfArgsMapSequence,
         typename LoopIntervals,
         typename FunctorsMap,
-        typename ExtendSizes,
+        typename ExtentSizes,
         typename LocalDomain,
         typename CacheSequence,
         typename IsIndependentSequence,
@@ -222,7 +222,7 @@ namespace gridtools {
         EsfArgsMapSequence,
         LoopIntervals,
         FunctorsMap,
-        ExtendSizes,
+        ExtentSizes,
         LocalDomain,
         CacheSequence,
         IsIndependentSequence,

@@ -47,7 +47,7 @@ namespace test_iterate_domain {
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
+    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis_t;
 
     typedef layout_map< 2, 1, 0 > layout_ijk_t;
     typedef layout_map< 0, 1, 2 > layout_kji_t;
@@ -124,10 +124,10 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     gridtools::aggregator_type< accessor_list > domain(
         read_only_texture_arg, out, read_only_bypass_arg, read_only_non_texture_type_arg, shared_mem_arg, kcache_arg);
 
-    uint_t di[5] = {4, 4, 4, d1 - 4 - 1, d1};
-    uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
+    halo_descriptor di{4, 4, 4, d1 - 4 - 1, d1};
+    halo_descriptor dj{4, 4, 4, d2 - 4 - 1, d2};
 
-    gridtools::grid< axis > grid(di, dj);
+    gridtools::grid< axis_t > grid(di, dj);
     grid.value_list[0] = 0;
     grid.value_list[1] = d3 - 1;
 
@@ -156,7 +156,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         p_kcache_arg())) esf_t;
 
     typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-    typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
+    typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
     typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
 
@@ -170,7 +170,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             caches_t,
             block_size< 32, 4, 1 >,
             block_size< 32, 4, 1 >,
-            gridtools::grid< axis >,
+            gridtools::grid< axis_t >,
             boost::mpl::false_,
             notype > > it_domain_t;
 

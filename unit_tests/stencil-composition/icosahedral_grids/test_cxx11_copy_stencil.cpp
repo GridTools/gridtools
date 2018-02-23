@@ -37,26 +37,16 @@
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace cs_test {
 
-#ifdef __CUDACC__
-    using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
-#else
-#ifdef BACKEND_BLOCK
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Block >;
-#else
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Naive >;
-#endif
-#endif
-
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
     template < uint_t Color >
     struct test_functor {
@@ -75,7 +65,7 @@ using namespace cs_test;
 
 TEST(test_copy_stencil, run) {
 
-    using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
+    using cell_storage_type = typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
@@ -108,12 +98,12 @@ TEST(test_copy_stencil, run) {
     typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
     gridtools::aggregator_type< accessor_list_t > domain(in_cells, out_cells);
-    array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-    array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-    gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
-    grid_.value_list[0] = halo_k;
-    grid_.value_list[1] = d3 - 1 - halo_k;
+    halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+    halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+
+    gridtools::grid< axis< 1 >::axis_interval_t, icosahedral_topology_t > grid_(
+        icosahedral_grid, di, dj, {halo_k, d3 - 1 - halo_k});
 
     auto copy = gridtools::make_computation< backend_t >(
         domain,

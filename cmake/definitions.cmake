@@ -22,16 +22,7 @@ if(STRUCTURED_GRIDS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
 endif()
 
-add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
-
-## get boost ##
-if(WIN32)
-  # Auto-linking happens on Windows, so we don't need to specify specific components
-  find_package( Boost 1.58 REQUIRED )
-else()
-  # On other platforms, me must be specific about which libs are required
-  find_package( Boost 1.58 REQUIRED )
-endif()
+find_package( Boost 1.58 REQUIRED )
 
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
@@ -41,11 +32,9 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT USE_GPU)
+if(NOT ENABLE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
-endif(NOT USE_GPU)
-
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ")
+endif(NOT ENABLE_CUDA)
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
@@ -60,27 +49,27 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
 message (STATUS "Building profiled executables")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD}")
+
+if(ENABLE_HOST)
+  set(HOST_BACKEND_DEFINE "BACKEND_HOST")
+endif(ENABLE_HOST)
 
 ## cuda support ##
-if( USE_GPU )
-  message(STATUS "Using GPU")
+if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${GT_CUDA_VERSION}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "${BOOST_FUSION_MAX_SIZE_FLAGS}")
+  if( ${CUDA_VERSION} VERSION_LESS "80" )
+    error(STATUS "CUDA 7 or lower does not supported")
+  endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  if( ${CUDA_VERSION} VERSION_GREATER "60")
-      set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
-  else()
-      error(STATUS "CUDA 6.0 or lower does not supported")
-  endif()
+  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
@@ -99,6 +88,7 @@ if( USE_GPU )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
 
+  set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
 else()
   set (CUDA_LIBRARIES "")
 endif()
@@ -117,13 +107,9 @@ endif()
 
 Find_Package( OpenMP )
 
-
 ## openmp ##
 if(OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-    set( PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project" )
-else()
-    set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil" )
 endif()
 
 ## performance meters ##
@@ -131,45 +117,20 @@ if(ENABLE_PERFORMANCE_METERS)
     add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
-# always use fopenmp and lpthread as cc/ld flags
+# always use lpthread as cc/ld flags
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
 set ( exe_LIBS -lpthread ${exe_LIBS} )
 
-## papi wrapper ##
-if ( PAPI_WRAP_LIBRARY )
-  find_package(PapiWrap)
-  if ( PAPI_WRAP_FOUND )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
-    set( PAPI_WRAP_MODULE "ON" )
-    include_directories( "${PAPI_WRAP_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_WRAP_LIBRARIES}" )
-  else()
-    message ("papi-wrap not found. Please set PAPI_WRAP_PREFIX to the root path of the papi-wrap library. papi-wrap not used!")
-  endif()
-endif()
-
-## papi ##
-if(USE_PAPI)
-  find_package(PAPI REQUIRED)
-  if(PAPI_FOUND)
-    include_directories( "${PAPI_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_LIBRARIES}" )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI" )
-  else()
-    message("PAPI library not found. set the PAPI_PREFIX")
-  endif()
-endif()
-
 ## precision ##
 if(SINGLE_PRECISION)
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
   endif()
   add_definitions("-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
   add_definitions("-DFLOAT_PRECISION=8") 

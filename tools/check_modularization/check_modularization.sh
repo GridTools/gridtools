@@ -33,7 +33,7 @@ are_independent "boundary-conditions" "communication" #maybe they can have a dep
 are_independent "boundary-conditions" "tools"
 
 no_dependency "communication" "storage"
-#are_independent "communication" "storage" #TODO: violated by partitioner
+are_independent "communication" "storage"
 
 no_dependency "storage" "stencil-composition"
 no_dependency "storage" "boundary-conditions"

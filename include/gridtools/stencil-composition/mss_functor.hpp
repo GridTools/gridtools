@@ -42,7 +42,6 @@
 
 #pragma once
 
-#include "common/meta_array.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss_local_domain.hpp"
 #include "mss.hpp"
@@ -101,10 +100,11 @@ namespace gridtools {
         typename Grid,
         typename MssLocalDomainArray,
         typename BackendIds,
-        typename ReductionData >
+        typename ReductionData,
+        typename ExecutionInfo >
     struct mss_functor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
@@ -135,16 +135,15 @@ namespace gridtools {
         MssLocalDomainArray &m_local_domain_lists;
         const Grid &m_grid;
         ReductionData &m_reduction_data;
-        const uint_t m_block_idx, m_block_idy;
+        const ExecutionInfo m_execution_info;
 
       public:
         mss_functor(MssLocalDomainArray &local_domain_lists,
             const Grid &grid,
             ReductionData &reduction_data,
-            const int block_idx,
-            const int block_idy)
+            const ExecutionInfo &execution_info)
             : m_local_domain_lists(local_domain_lists), m_grid(grid), m_reduction_data(reduction_data),
-              m_block_idx(block_idx), m_block_idy(block_idy) {}
+              m_execution_info(execution_info) {}
 
         template < typename T1, typename T2, typename Seq, typename NextSeq >
         struct condition_for_async {
@@ -161,9 +160,8 @@ namespace gridtools {
         void operator()(Index const &) const {
             typedef typename boost::fusion::result_of::value_at< MssLocalDomainArray, Index >::type mss_local_domain_t;
             GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< mss_local_domain_t >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(
-                (Index::value < boost::mpl::size< typename MssComponentsArray::elements >::value), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::at< typename MssComponentsArray::elements, Index >::type mss_components_t;
+            GRIDTOOLS_STATIC_ASSERT((Index::value < boost::mpl::size< MssComponentsArray >::value), GT_INTERNAL_ERROR);
+            typedef typename boost::mpl::at< MssComponentsArray, Index >::type mss_components_t;
 
             typedef typename mss_local_domain_list< mss_local_domain_t >::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map< mss_local_domain_t >::type local_domain_esf_args_map_t;
@@ -283,7 +281,7 @@ namespace gridtools {
 
             // now the corresponding backend has to execute all the functors of the mss
             backend_traits_from_id< BackendIds::s_backend_id >::template mss_loop< run_functor_args_t >::template run(
-                local_domain, m_grid, m_reduction_data, m_block_idx, m_block_idy);
+                local_domain, m_grid, m_reduction_data, m_execution_info);
         }
     };
 } // namespace gridtools

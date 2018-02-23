@@ -47,6 +47,7 @@
 #include "functor_do_method_lookup_maps.hpp"
 #include "caches/cache.hpp"
 #include "caches/cache_metafunctions.hpp"
+#include "caches/cache_traits.hpp"
 #include "stencil-composition/esf.hpp"
 #include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"

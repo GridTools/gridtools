@@ -49,31 +49,18 @@ namespace gridtools {
         typedef typename arg_holds_data_field< typename Arg::type >::type type;
     };
 
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct arg_holds_data_field_h< arg< I, Storage, Location, Temporary > > {
-        typedef typename arg_holds_data_field< arg< I, Storage, Location, Temporary > >::type type;
+    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
+    struct arg_holds_data_field_h< arg< I, DataStoreType, Location, Temporary > > {
+        typedef typename arg_holds_data_field< arg< I, DataStoreType, Location, Temporary > >::type type;
     };
 
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct get_storage_from_arg;
+    struct get_data_store_from_arg;
 
     template < unsigned I, typename T, typename L, bool B >
-    struct get_storage_from_arg< arg< I, T, L, B > > {
+    struct get_data_store_from_arg< arg< I, T, L, B > > {
         typedef T type;
-    };
-
-    template < unsigned I, typename T, typename L, bool B >
-    struct get_storage_from_arg< arg< I, std::vector< T >, L, B > > {
-        typedef T type;
-    };
-
-    // metafunction to access the metadata type given the arg
-    template < typename T >
-    struct get_storage_info_from_arg {
-        GRIDTOOLS_STATIC_ASSERT((is_arg< T >::value), GT_INTERNAL_ERROR_MSG("Given type is not an arg."));
-        typedef typename get_storage_from_arg< T >::type storage_t;
-        typedef typename storage_t::storage_info_t type;
     };
 
 } // namespace gridtools

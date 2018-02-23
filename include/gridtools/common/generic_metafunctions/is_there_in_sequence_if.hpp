@@ -35,9 +35,10 @@
 */
 #pragma once
 
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/find.hpp>
-#include "is_not_same.hpp"
+#include <type_traits>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/transform_view.hpp>
+#include <boost/mpl/logical.hpp>
 
 namespace gridtools {
 
@@ -46,10 +47,7 @@ namespace gridtools {
      * return true if the predicate returns true when applied, for at least one of the elements in the Sequence
      */
     template < typename Sequence, typename Pred >
-    struct is_there_in_sequence_if {
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< Sequence >::value), "Wrong input sequence");
-        typedef typename is_not_same< typename boost::mpl::find_if< Sequence, Pred >::type,
-            typename boost::mpl::end< Sequence >::type >::type type;
-        BOOST_STATIC_CONSTANT(bool, value = (type::value));
-    };
+    struct is_there_in_sequence_if : boost::mpl::fold< boost::mpl::transform_view< Sequence, Pred >,
+                                         std::false_type,
+                                         boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type {};
 }
