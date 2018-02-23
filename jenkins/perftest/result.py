@@ -2,7 +2,7 @@
 
 import json
 
-from perftest import ArgumentError, config, logger, utils
+from perftest import ArgumentError, logger, utils
 
 
 def _items_as_attrs(x):
@@ -52,8 +52,9 @@ class Result(dict):
                      'times': times,
                      'datetime': utils.timestr(),
                      'config': {
-                         'configname': config.get_configname(),
-                         'hostname': config.get_hostname()
+                         'configname': runtime.config.name,
+                         'hostname': runtime.config.hostname,
+                         'systemname': runtime.config.systemname,
                      }})
 
     def write(self, filename):
