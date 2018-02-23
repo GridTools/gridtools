@@ -5,9 +5,6 @@ import os
 from perftest.stencils import Stencil
 
 
-domains = [(16, 16, 8)]
-
-
 def path(stencil):
     return os.path.join('examples', stencil)
 

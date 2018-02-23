@@ -22,12 +22,11 @@ def plot(mode, infiles, outfile):
 
 def run(runtime, grid, precision, backend, domain, runs, outfile, config):
     import perftest.runtime
+    import perftest.config
 
-    if config is not None:
-        import perftest.config
-        perftest.config.load_config(config)
+    config = perftest.config.load(config)
 
-    rt = perftest.runtime.get(runtime, grid, precision, backend)
+    rt = config.runtime(runtime, grid, precision, backend)
     rt.run(domain, runs).write(outfile)
 
 

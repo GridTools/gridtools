@@ -10,22 +10,22 @@ import textwrap
 from perftest import JobError, logger
 
 
-def run(commands, sbatch_gen=None):
+def run(commands, config=None):
     if isinstance(commands, str):
         commands = [commands]
-    futures = [asyncio.ensure_future(_run(c, sbatch_gen)) for c in commands]
+    futures = [asyncio.ensure_future(_run(c, config)) for c in commands]
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*futures))
 
     return [future.result() for future in futures]
 
 
-def _submit(command, sbatch_gen=None):
-    if sbatch_gen is None:
-        from perftest import config
-        sbatch_gen = config.get_sbatch
+def _submit(command, config):
+    if config is None:
+        import perftest.config
+        config = perftest.config.load(config)
 
     with tempfile.NamedTemporaryFile(suffix='.sh', mode='w') as sbatch:
-        sbatchstr = sbatch_gen(command)
+        sbatchstr = config.sbatch(command)
         logger.debug(f'Generated sbatch file:\n' +
                      textwrap.indent(sbatchstr, '    '))
         sbatch.write(sbatchstr)

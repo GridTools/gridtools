@@ -11,7 +11,7 @@ from perftest import logger, result, runtools, stencils, utils
 
 
 class Runtime(metaclass=abc.ABCMeta):
-    def __init__(self, grid, precision, backend):
+    def __init__(self, config, grid, precision, backend):
         if grid not in self.grids:
             sup = ', '.join(f'"{g}"' for g in self.grids)
             raise ArgumentError(
@@ -24,17 +24,18 @@ class Runtime(metaclass=abc.ABCMeta):
             sup = ', '.join(f'"{b}"' for b in self.backends)
             raise ArgumentError(
                     f'Invalid backend "{backend}", supported are {sup}')
+        self.config = config
         self.grid = grid
         self.precision = precision
         self.backend = backend
+        self.stencils = stencils.load(grid)
 
     def run(self, domain, runs):
-        stencil_list = stencils.instantiate(self.grid)
-        commands = [self.command(s, domain) for s in stencil_list]
+        commands = [self.command(s, domain) for s in self.stencils]
 
         allcommands = [c for c in commands for _ in range(runs)]
         logger.info('Running stencils')
-        alloutputs = runtools.run(allcommands)
+        alloutputs = runtools.run(allcommands, self.config)
         logger.info('Running stencils finished')
 
         alltimes = [self._parse_time(o) for o in alloutputs]
@@ -46,7 +47,6 @@ class Runtime(metaclass=abc.ABCMeta):
 
         return result.Result(runtime=self,
                              domain=domain,
-                             stencils=stencil_list,
                              meantimes=meantimes,
                              stdevtimes=stdevtimes)
 
@@ -64,7 +64,7 @@ class Runtime(metaclass=abc.ABCMeta):
 
     @property
     def name(self):
-        return re.sub(r'(.*)Runtime', r'\1', self.__class__.__name__).lower()
+        return re.sub(r'(.*)Runtime', r'\1', type(self).__name__).lower()
 
     @abc.abstractproperty
     def version(self):
@@ -137,9 +137,3 @@ class GridtoolsRuntimeBase(Runtime):
         halo = stencil.halo
         ni, nj, nk = ni + 2 * halo, nj + 2 * halo, nk + 2 * halo
         return f'{binary} {ni} {nj} {nk} 10'
-
-
-def get(runtime, grid, precision, backend):
-    from perftest import config
-    cls = config.get_runtime(runtime)
-    return cls(grid=grid, precision=precision, backend=backend)

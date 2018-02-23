@@ -24,24 +24,23 @@ def _items_as_attrs(x):
 @_items_as_attrs
 class Result(dict):
     def __init__(self, filename=None, runtime=None, domain=None,
-                 stencils=None, meantimes=None, stdevtimes=None):
+                 meantimes=None, stdevtimes=None):
         if filename:
             self._init_from_file(filename)
         else:
-            self._init_from_run(runtime, domain, stencils,
-                                meantimes, stdevtimes)
+            self._init_from_run(runtime, domain, meantimes, stdevtimes)
 
     def _init_from_file(self, filename):
         with open(filename, 'r') as fp:
             self.update(json.load(fp))
         logger.info(f'Successfully loaded result from {filename}')
 
-    def _init_from_run(self, runtime, domain, stencils, meantimes, stdevtimes):
-        if None in (runtime, domain, stencils, meantimes, stdevtimes):
+    def _init_from_run(self, runtime, domain, meantimes, stdevtimes):
+        if None in (runtime, domain, meantimes, stdevtimes):
             raise ArgumentError('Invalid arguments')
 
         times = [{'stencil': s.name, 'mean': m, 'stdev': d} for s, m, d in
-                 zip(stencils, meantimes, stdevtimes)]
+                 zip(runtime.stencils, meantimes, stdevtimes)]
 
         self.update({'runtime': {'name': runtime.name,
                                  'version': runtime.version,
