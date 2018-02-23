@@ -173,14 +173,13 @@ namespace gridtools {
 
     template < int... LayoutArgs >
     struct get_strides< layout_map< LayoutArgs... > > {
-        template < typename... Dims >
-        GT_FUNCTION static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                                        typename is_all_integral< Dims... >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
+        template < typename... Dims,
+            typename std::enable_if< sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral< Dims... >::value,
+                int >::type = 0 >
+        GT_FUNCTION static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dims... ds) {
             typedef layout_map< LayoutArgs... > Layout;
             return (array< uint_t, Layout::masked_length >){
-                get_strides_aux< Layout >::template get_stride< LayoutArgs >(d...)...};
+                get_strides_aux< Layout >::template get_stride< LayoutArgs >(ds...)...};
         }
     };
 

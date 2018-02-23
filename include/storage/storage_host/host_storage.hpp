@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <assert.h>
+#include <utility>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
@@ -111,6 +111,15 @@ namespace gridtools {
         }
 
         /*
+         * @brief swap implementation for host_storage
+         */
+        void swap_impl(host_storage &other) {
+            using std::swap;
+            swap(m_cpu_ptr, other.m_cpu_ptr);
+            swap(m_ownership, other.m_ownership);
+        }
+
+        /*
          * @brief retrieve the host data pointer.
          * @return data pointer
          */
@@ -123,11 +132,6 @@ namespace gridtools {
          * @brief get_ptrs implementation for host_storage.
          */
         ptrs_t get_ptrs_impl() const { return m_cpu_ptr; }
-
-        /*
-         * @brief set_ptrs implementation for host_storage.
-         */
-        void set_ptrs_impl(ptrs_t ptr) { m_cpu_ptr = ptr; }
 
         /*
          * @brief valid implementation for host_storage.

@@ -375,10 +375,8 @@ namespace gridtools {
                 "snapshot)");
 
             const int_t idx = get_datafield_offset< data_store_t >::get(accessor);
-#ifdef CUDA8
             assert(
                 idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
-#endif
             return data_pointer().template get< index_t::value >()[idx];
         }
 
@@ -449,9 +447,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
-#ifdef CUDA8
             assert(storage_pointer);
-#endif
             return *(storage_pointer + pointer_offset);
         }
 
@@ -520,17 +516,6 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-        /** @brief method called in the Do methods of the functors
-
-            Overload of the operator() for expressions.
-        */
-        template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
-            -> decltype(expressions::evaluation::value(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
-            return expressions::evaluation::value((*this), arg);
-        }
-
         /** @brief method called in the Do methods of the functors.
 
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
@@ -581,13 +566,9 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CUDA8
         assert(storage_pointer);
-#endif
         data_t *RESTRICT real_storage_pointer = static_cast< data_t * >(storage_pointer);
-#ifdef CUDA8
         assert(real_storage_pointer);
-#endif
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
@@ -596,7 +577,7 @@ namespace gridtools {
             compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-        GTASSERT((pointer_oob_check< backend_traits_t,
+        assert((pointer_oob_check< backend_traits_t,
             processing_elements_block_size_t,
             local_domain_t,
             arg_t,

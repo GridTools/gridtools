@@ -521,16 +521,6 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct get_storage_type {
-        typedef T type;
-    };
-
-    template < typename T >
-    struct get_storage_type< std::vector< pointer< T > > > {
-        typedef T type;
-    };
-
-    template < typename T >
     struct get_datafield_offset {
         template < typename Acc >
         GT_FUNCTION static constexpr uint_t get(Acc const &a) {
@@ -561,8 +551,7 @@ namespace gridtools {
     struct get_arg_value_type_from_accessor {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
-        typedef typename get_storage_type<
-            typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::data_store_t >::type::data_t type;
+        typedef typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::data_store_t::data_t type;
     };
 
     /**

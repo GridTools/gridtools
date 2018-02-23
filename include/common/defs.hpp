@@ -35,16 +35,6 @@
 */
 #pragma once
 
-#define DEFS_GUARD
-
-#if !defined(__CUDACC__)
-#define CUDA8
-#else
-#if (GT_CUDA_VERSION > 75)
-#define CUDA8
-#endif
-#endif
-
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
@@ -336,16 +326,5 @@ namespace gridtools {
     using static_size_t = boost::mpl::integral_c< size_t, N >;
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
-
-    template < typename T >
-    struct is_static_integral : boost::mpl::false_ {};
-
-    template < typename T, T N >
-    struct is_static_integral< boost::mpl::integral_c< T, N > > : boost::mpl::true_ {};
-    /**
-       @}
-     */
-
-    //######################################################
 
 } // namespace gridtools

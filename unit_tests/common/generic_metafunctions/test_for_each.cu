@@ -33,21 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/is_aggregate.hpp"
-#include "common/array.hpp"
-#include "common/pointer.hpp"
-
-using namespace gridtools;
-
-TEST(array, test_is_aggregate) {
-    GRIDTOOLS_STATIC_ASSERT((is_aggregate< int >::value), "Error");
-
-    typedef array< uint_t, 4 > array_t;
-    GRIDTOOLS_STATIC_ASSERT((is_aggregate< array_t >::value), "Error");
-
-    typedef pointer< double > ptr_t;
-    GRIDTOOLS_STATIC_ASSERT((!is_aggregate< ptr_t >::value), "Error");
-
-    ASSERT_TRUE(true);
-}
+#include "test_for_each.cpp"

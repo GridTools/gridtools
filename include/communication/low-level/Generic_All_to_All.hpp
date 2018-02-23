@@ -86,7 +86,7 @@ namespace gridtools {
             \param[in] dt MPI datatype
             \param[in] p Pointer to the data of type value_type
          */
-        packet(MPI::Datatype const &dt, value_type *p) : mpidt(dt), ptr(p), send_r(), recv_r() {}
+        packet(MPI_Datatype const &dt, value_type *p) : mpidt(dt), ptr(p), send_r(), recv_r() {}
 
         /** Function to check if the packet is actually associated with
             some data or not. If not the MPI send or recv is not

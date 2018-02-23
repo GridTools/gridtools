@@ -34,19 +34,27 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../host_device.hpp"
+
 namespace gridtools {
+    namespace _impl {
+        template < class List >
+        struct for_each_f;
 
-    template < ushort_t ID >
-    struct gt_get {
+        template < template < class... > class L, class... Ts >
+        struct for_each_f< L< Ts... > > {
+            template < class Fun >
+            GT_FUNCTION_WARNING void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
+    }
 
-        template < typename First, typename... T >
-        GT_FUNCTION static constexpr const First apply(First const &first_, T const &... rest_) {
-            return (ID == 0) ? first_ : gt_get< ID - 1 >::apply(rest_...);
-        }
-
-        template < typename First >
-        GT_FUNCTION static constexpr const First apply(First const &first_) {
-            return first_;
-        }
+    /// Calls fun(T{}) for each element of the type list List.
+    template < class List, class Fun >
+    GT_FUNCTION_WARNING Fun for_each(Fun const &fun) {
+        _impl::for_each_f< List >{}(fun);
+        return fun;
     };
-} // namespace gridtools
+}

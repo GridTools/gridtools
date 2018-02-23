@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include <boost/noncopyable.hpp>
-
 namespace gridtools {
 
     /** \ingroup storage
@@ -47,9 +45,8 @@ namespace gridtools {
      *  @brief A class that represents the state machine that is used to determine
      *  if a storage is currently on the host or on the device and if the
      *  data on the host or the device is outdated and needs to be updated.
-     *  Instances of this class are noncopyable.
      */
-    struct state_machine : boost::noncopyable {
+    struct state_machine {
         bool m_hnu; // hnu = host needs update, set to true if a non-read-only device view is instantiated.
         bool m_dnu; // dnu = device needs update, set to true if a non-read-only host view is instantiated.
         state_machine() : m_hnu(false), m_dnu(false) {}

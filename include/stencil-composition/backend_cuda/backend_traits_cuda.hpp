@@ -207,8 +207,7 @@ namespace gridtools {
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
+                const execution_info_cuda &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
@@ -218,7 +217,7 @@ namespace gridtools {
 
                 typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
                     kernel_functor_executor_t;
-                kernel_functor_executor_t(local_domain, grid, bi, bj)();
+                kernel_functor_executor_t(local_domain, grid)();
             }
         };
 

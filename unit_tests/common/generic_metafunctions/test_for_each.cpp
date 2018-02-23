@@ -33,12 +33,38 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+
+#include <common/generic_metafunctions/for_each.hpp>
+
+#include <type_traits>
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <common/host_device.hpp>
+
 namespace gridtools {
-    template < typename T >
-    struct is_fusion_vector : boost::mpl::false_ {};
 
-    template < typename... T >
-    struct is_fusion_vector< boost::fusion::vector< T... > > : boost::mpl::true_ {};
+    struct f {
+        int *&dst;
 
-} // namespace gridtools
+        template < class T >
+        GT_FUNCTION_WARNING void operator()(T) const {
+            *(dst++) = T::value;
+        }
+    };
+
+    template < class... >
+    struct lst;
+
+    template < int I >
+    using int_t = std::integral_constant< int, I >;
+
+    TEST(for_each, functional) {
+        int vals[3];
+        int *cur = vals;
+        for_each< lst< int_t< 0 >, int_t< 42 >, int_t< 3 > > >(f{cur});
+        EXPECT_EQ(cur, vals + 3);
+        EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
+    }
+}

@@ -285,7 +285,6 @@ namespace gridtools {
             boost::mpl::insert< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type type;
     };
 
-#ifdef CUDA8
     /*
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
@@ -300,8 +299,6 @@ namespace gridtools {
 
         typedef typename is_sequence_of< VectorOfPairs, _check >::type type;
     };
-
-#endif
 
     /*
       Given an array of pairs (placeholder, extent) checks if all

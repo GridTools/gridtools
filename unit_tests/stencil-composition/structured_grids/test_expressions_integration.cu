@@ -33,6 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifdef CUDA8
 #include "test_expressions_integration.cpp"
-#endif
