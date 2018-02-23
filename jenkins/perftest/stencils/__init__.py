@@ -7,13 +7,33 @@ from perftest import logger
 
 
 class Stencil():
+    """Base class for all stencils."""
+
     @property
     def name(self):
+        """Lower case stencil name.
+
+        Returns:
+            The CamelCase class name transformed to a lower case, space
+            separated string.
+        """
+
         clsname = type(self).__name__
         return re.sub(r'(.)([A-Z]+)', r'\1 \2', clsname).lower()
 
 
 def load(grid):
+    """Stencil loading functions.
+
+    Loads all stencils for the given grid from the respective module.
+
+    Args:
+        grid: Name of the grid for which the stencils should be loaded.
+
+    Returns:
+        A list of all stencils provided for the given type.
+    """
+
     logger.debug(f'Trying to import stencils for grid "{grid}"')
     mod = importlib.import_module('perftest.stencils.' + grid)
 

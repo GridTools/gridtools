@@ -11,6 +11,11 @@ from perftest import logger, result, runtools, stencils, utils
 
 
 class Runtime(metaclass=abc.ABCMeta):
+    """Base class of all runtimes.
+
+    A runtime class represents a software for running stencils, currently
+    STELLA or Gridtools.
+    """
     def __init__(self, config, grid, precision, backend):
         if grid not in self.grids:
             sup = ', '.join(f'"{g}"' for g in self.grids)
@@ -31,6 +36,18 @@ class Runtime(metaclass=abc.ABCMeta):
         self.stencils = stencils.load(grid)
 
     def run(self, domain, runs):
+        """Method to run all stencils on the given `domain` size.
+
+        Computes mean and stdev of the run times for all stencils for the
+        given number of `runs`.
+
+        Args:
+            domain: Domain size as a tuple or list.
+            runs: Number of runs to do.
+
+        Returns:
+            A `perftest.result.Result` object with the collected times.
+        """
         commands = [self.command(s, domain) for s in self.stencils]
 
         allcommands = [c for c in commands for _ in range(runs)]
@@ -52,6 +69,14 @@ class Runtime(metaclass=abc.ABCMeta):
 
     @staticmethod
     def _parse_time(output):
+        """Parses the ouput of a STELLA or Gridtools run for the run time.
+
+        Args:
+            output: STELLA or Gridtools stdout output.
+
+        Returns:
+            Run time in seconds.
+        """
         p = re.compile(r'.*\[s\]\s*([0-9.]+).*', re.MULTILINE | re.DOTALL)
         m = p.match(output)
         if not m:
@@ -64,35 +89,43 @@ class Runtime(metaclass=abc.ABCMeta):
 
     @property
     def name(self):
-        return re.sub(r'(.*)Runtime', r'\1', type(self).__name__).lower()
+        """Name, class name converted to lower case and 'Runtime' stripped."""
+        return type(self).__name__.lower().rstrip('runtime')
 
     @abc.abstractproperty
     def version(self):
+        """Version number or hash."""
         pass
 
     @abc.abstractproperty
     def datetime(self):
+        """(Build or commit) date of the software as a string."""
         pass
 
     @abc.abstractmethod
     def path(self):
+        """Base path of all binaries."""
         pass
 
     @abc.abstractmethod
     def binary(self, stencil):
+        """Stencil-dependent path to the binary."""
         pass
 
     @abc.abstractmethod
     def command(self, stencil, domain):
+        """Full command to run the given stencil on the given dommain."""
         pass
 
 
 class StellaRuntimeBase(Runtime):
+    """Base class for all STELLA runtimes."""
     grids = ['strgrid']
     precisions = ['float', 'double']
     backends = ['cuda', 'host']
 
     def binary(self, stencil):
+        """STELLA binary path."""
         suffix = 'CUDA' if self.backend == 'cuda' else ''
         binary = os.path.join(self.path, f'StandaloneStencils{suffix}')
         if not os.path.isfile(binary):
@@ -100,6 +133,7 @@ class StellaRuntimeBase(Runtime):
         return binary
 
     def command(self, stencil, domain):
+        """STELLA run command."""
         binary = self.binary(stencil)
         ni, nj, nk = domain
         filt = stencil.stella_filter
@@ -107,17 +141,20 @@ class StellaRuntimeBase(Runtime):
 
 
 class GridtoolsRuntimeBase(Runtime):
+    """Base class for all Gridtools runtimes."""
     grids = ['strgrid', 'icgrid']
     precisions = ['float', 'double']
     backends = ['cuda', 'host']
 
     @property
     def version(self):
+        """Gridtools git commit hash."""
         return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
                                        cwd=self.path).decode().strip()
 
     @property
     def datetime(self):
+        """Gridtools git commit date and time."""
         commit = self.version
         posixtime = subprocess.check_output(['git', 'show', '-s',
                                              '--format=%ct', commit],
@@ -125,6 +162,7 @@ class GridtoolsRuntimeBase(Runtime):
         return utils.timestr_from_posix(posixtime)
 
     def binary(self, stencil):
+        """Stencil-dependent Gridtools binary path."""
         binary = getattr(stencil, 'gridtools_' + self.backend.lower())
         binary = os.path.join(self.path, binary)
         if not os.path.isfile(binary):
@@ -132,6 +170,7 @@ class GridtoolsRuntimeBase(Runtime):
         return binary
 
     def command(self, stencil, domain):
+        """Gridtools run command."""
         binary = self.binary(stencil)
         ni, nj, nk = domain
         halo = stencil.halo

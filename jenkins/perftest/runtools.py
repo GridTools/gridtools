@@ -11,6 +11,18 @@ from perftest import JobError, logger
 
 
 def run(commands, config=None):
+    """Runs the given command(s) using SLURM.
+
+    `config` must be a `perftest.config.Config` object or None, in which case
+    the default configuration for the current system is loaded.
+
+    Args:
+        commands: A string or a list of strings, console command(s) to run.
+        config:  (Default value = None) The config to use or None for default.
+
+    Returns:
+        A list of collected console outputs of all commands.
+    """
     if isinstance(commands, str):
         commands = [commands]
     futures = [asyncio.ensure_future(_run(c, config)) for c in commands]
@@ -20,6 +32,8 @@ def run(commands, config=None):
 
 
 def _submit(command, config):
+    """Submits a command to SLURM using sbatch."""
+
     if config is None:
         import perftest.config
         config = perftest.config.load(config)
@@ -46,6 +60,8 @@ def _submit(command, config):
 
 
 async def _wait(task_id, outpath):
+    """Asynchronously waits for a running SLURM job by polling."""
+
     wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
     while True:
         sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
@@ -89,5 +105,6 @@ async def _wait(task_id, outpath):
 
 
 async def _run(command, sbatch_template=None):
+    """Asynchronous run command."""
     task_id, outpath = _submit(command, sbatch_template)
     return await _wait(task_id, outpath)

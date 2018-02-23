@@ -16,14 +16,17 @@ prop_cycle = matplotlib.rcParams['axes.prop_cycle']
 
 
 def figsize(rows=1, cols=1):
+    """Default figsize for a plot with given subplot rows and columns."""
     return (7 * rows, 5 * cols)
 
 
 def discrete_colors(n):
+    """Generates `n` discrete colors for plotting."""
     return [c['color'] for c in itertools.islice(iter(prop_cycle), n)]
 
 
 def get_titles(results):
+    """Generates plot titles."""
     common, diff = result.compare(r.runtime for r in results)
 
     def titlestr(v):
@@ -40,6 +43,8 @@ def get_titles(results):
 
 
 def compare(*results):
+    """Plots run time comparison of all results, one subplot per stencil."""
+
     stencils, meantimes, stdevtimes = result.times_by_stencil(results)
 
     rows = math.floor(math.sqrt(len(stencils)))
@@ -74,6 +79,8 @@ def compare(*results):
 
 
 def history(*results, key='runtime'):
+    """Plots run time history of all results."""
+
     stencils, meantimes, stdevtimes = result.times_by_stencil(results)
 
     def get_date(result):
