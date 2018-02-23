@@ -31,7 +31,7 @@ class Config:
 
         logger.debug(f'Trying to load config "{self.name}"')
         self._config = importlib.import_module('perftest.config.' + self.name)
-        logger.debug(f'Successfully loaded config "{self.name}"')
+        logger.info(f'Successfully loaded config "{self.name}"')
 
     def runtime(self, runtime, *args, **kwargs):
         logger.debug(f'Trying to get runtime "{runtime}"')

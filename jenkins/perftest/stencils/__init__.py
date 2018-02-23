@@ -23,5 +23,5 @@ def load(grid):
             stencils.append(v())
 
     sstr = ', '.join(f'"{s.name}"' for s in stencils)
-    logger.debug(f'Successfully imported stencils {sstr} for grid "{grid}"')
+    logger.info(f'Successfully imported stencils {sstr} for grid "{grid}"')
     return stencils
