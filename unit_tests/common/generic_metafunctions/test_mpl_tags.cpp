@@ -37,6 +37,8 @@
 #include <gtest/gtest.h>
 #include <common/defs.hpp>
 #include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <common/generic_metafunctions/mpl_tags.hpp>
 
 TEST(integralconstant, comparison) {
     GRIDTOOLS_STATIC_ASSERT(

@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <boost/mpl/integral_c_tag.hpp>
 #include <boost/mpl/comparison.hpp>
 #include <boost/mpl/arithmetic.hpp>
 #include <type_traits>
