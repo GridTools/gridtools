@@ -35,10 +35,17 @@
 */
 
 #pragma once
-#include "accessor_fwd.hpp"
-#include "accessor.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/dimension.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../accessor_fwd.hpp"
+#include "../accessor_metafunctions.hpp"
 
 namespace gridtools {
+
+    template < ushort_t, int_t >
+    struct pair_;
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -48,19 +55,39 @@ namespace gridtools {
        queried dimension is not found it looks up in the dynamic dimensions. Note that this
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
-    template < typename ArgType, typename... Pair >
-    struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
-        typedef typename ArgType::index_t index_t;
-        typedef typename ArgType::base_t base_t;
-        typedef typename ArgType::offset_tuple_t offset_tuple_t;
-        typedef typename ArgType::extent_t extent_t;
+    template < class Base, class... Pairs >
+    struct accessor_mixed;
 
-        using super = offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >;
-        /**inheriting all constructors from offset_tuple*/
-        using offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >::offset_tuple_mixed;
+    template < class Base, ushort_t... Inxs, int_t... Vals >
+    struct accessor_mixed< Base, pair_< Inxs, Vals >... > : Base {
+        template < class... Ts >
+        GT_FUNCTION explicit constexpr accessor_mixed(Ts... args)
+            : Base(dimension< Inxs >(Vals)..., args...) {}
+        template < class OtherBase >
+        GT_FUNCTION constexpr accessor_mixed(accessor_mixed< OtherBase, pair_< Inxs, Vals >... > const &src)
+            : Base(src) {}
 
-        GT_FUNCTION
-        constexpr const super &offsets() const { return *this; }
+      private:
+        template < ushort_t I >
+        using key_t = std::integral_constant< ushort_t, I >;
+
+        template < int_t Val >
+        using val_t = std::integral_constant< int_t, Val >;
+
+        using offset_map_t = meta::list< meta::list< key_t< Base::n_dimensions - Inxs >, val_t< Vals > >... >;
+
+        template < int_t I >
+        using find_t = meta::mp_find< offset_map_t, key_t< I > >;
+
+      public:
+        template < ushort_t I, class Found = find_t< I > >
+        GT_FUNCTION constexpr typename std::enable_if< !std::is_void< Found >::value, int_t >::type get() const {
+            return meta::second< Found >::value;
+        }
+        template < ushort_t I, class Found = find_t< I > >
+        GT_FUNCTION constexpr typename std::enable_if< std::is_void< Found >::value, int_t >::type get() const {
+            return Base::template get< I >();
+        }
     };
 
     /**
@@ -82,18 +109,14 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
 the dimension is chosen
     */
     template < typename AccessorType, typename... Known >
-    struct alias {
+    struct alias;
+
+    template < typename AccessorType, ushort_t... Inxs >
+    struct alias< AccessorType, dimension< Inxs >... > {
         GRIDTOOLS_STATIC_ASSERT(is_accessor< AccessorType >::value,
             "wrong type. If you want to generalize the alias "
             "to something more generic than an offset_tuple "
             "remove this assert.");
-        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), GT_INTERNAL_ERROR);
-
-        template < int_t Arg1, int_t Arg2 >
-        struct pair_ {
-            static const constexpr int_t first = Arg1;
-            static const constexpr int_t second = Arg2;
-        };
 
         /**
            @brief compile-time aliases, the offsets specified in this way are assured to be compile-time
@@ -102,42 +125,8 @@ the dimension is chosen
            For a usage example check the examples folder
         */
         template < int_t... Args >
-        using set = accessor_mixed< AccessorType, pair_< Known::index, Args >... >;
-
-        /**@brief constructor
-       \param args are the offsets which are already known*/
-        template < typename... Args >
-        GT_FUNCTION constexpr alias(Args /*&&*/... args)
-            : m_knowns{(int_t)args...} {}
-
-        typedef boost::mpl::vector< Known... > dim_vector;
-
-        /** @brief operator calls the constructor of the offset_tuple
-
-            \param unknowns are the parameters which were not known beforehand. They might be instances of
-            the dimension class. Together with the m_knowns offsets form the arguments to be
-            passed to the AccessorType functor (which is normally an instance of offset_tuple)
-        */
-        template < typename... Unknowns >
-        GT_FUNCTION AccessorType /*&&*/ operator()(Unknowns /*&&*/... unknowns) const {
-#ifdef PEDANTIC // the runtime arguments are not necessarily dimension<>()
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Unknowns >::value...), GT_INTERNAL_ERROR);
-#endif
-            return AccessorType(
-                dimension< Known::index >(m_knowns[boost::mpl::find< dim_vector, Known >::type::pos::value])...,
-                unknowns...);
-        }
-
-      private:
-        // store the list of offsets which are already known on an array
-        int_t m_knowns[sizeof...(Known)];
+        using set = accessor_mixed< AccessorType, pair_< Inxs, Args >... >;
     };
-
-    template < typename ArgType >
-    struct is_accessor_mixed;
-
-    template < typename... Types >
-    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
 
     template < typename... Types >
     struct is_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
@@ -149,4 +138,4 @@ the dimension is chosen
     struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
         typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
-} // namespace gridtools
+}
