@@ -33,57 +33,33 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "array.hpp"
-#include <vector>
 
-namespace gridtools {
-    template < typename T, size_t D >
-    std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
-        s << " {  ";
-        for (int i = 0; i < D - 1; ++i) {
-            s << a[i] << ", ";
-        }
-        s << a[D - 1] << "  } ";
+#include <gtest/gtest.h>
+#include <common/defs.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <common/generic_metafunctions/mpl_tags.hpp>
 
-        return s;
-    }
+TEST(integralconstant, comparison) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::greater< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value), "");
 
-    template < typename T, size_t D >
-    std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v(D);
-        for (int i = 0; i < D; ++i) {
-            v.at(i) = a[i];
-        }
-        return v;
-    }
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::less< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value), "");
 
-    namespace impl {
-        template < typename Value >
-        struct array_initializer {
-            template < int Idx >
-            struct type {
-                constexpr type() {}
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::greater_equal< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value),
+        "");
 
-                template < long unsigned int ndims >
-                constexpr static Value apply(const std::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-            };
-        };
-    }
-} // namespace gridtools
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::less_equal< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value),
+        "");
+}
 
-template < typename T, typename U, size_t D >
-bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
-
-    // sort and check for equivalence
-    gridtools::array< T, D > a0 = a;
-    gridtools::array< U, D > b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
+TEST(integralconstant, arithmetic) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::plus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 9), "");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::minus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 1),
+        "");
 }

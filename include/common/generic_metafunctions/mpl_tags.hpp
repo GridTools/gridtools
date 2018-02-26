@@ -33,57 +33,54 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-#include "array.hpp"
-#include <vector>
 
-namespace gridtools {
-    template < typename T, size_t D >
-    std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
-        s << " {  ";
-        for (int i = 0; i < D - 1; ++i) {
-            s << a[i] << ", ";
-        }
-        s << a[D - 1] << "  } ";
+#include <boost/mpl/integral_c_tag.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <type_traits>
 
-        return s;
-    }
+namespace boost {
+    namespace mpl {
+        template < class T, T V >
+        struct equal_to_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-    template < typename T, size_t D >
-    std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v(D);
-        for (int i = 0; i < D; ++i) {
-            v.at(i) = a[i];
-        }
-        return v;
-    }
+        template < class T, T V >
+        struct not_equal_to_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-    namespace impl {
-        template < typename Value >
-        struct array_initializer {
-            template < int Idx >
-            struct type {
-                constexpr type() {}
+        template < class T, T V >
+        struct less_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-                template < long unsigned int ndims >
-                constexpr static Value apply(const std::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-            };
+        template < class T, T V >
+        struct less_equal_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct greater_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct greater_equal_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct plus_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct minus_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
         };
     }
-} // namespace gridtools
-
-template < typename T, typename U, size_t D >
-bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
-
-    // sort and check for equivalence
-    gridtools::array< T, D > a0 = a;
-    gridtools::array< U, D > b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
 }
