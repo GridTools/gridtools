@@ -168,18 +168,9 @@ namespace gridtools {
         /**
         * Function computing the log function
         */
-        template < typename Value >
-        GT_FUNCTION Value log(const Value x);
+        GT_FUNCTION float log(const float x) { return ::logf(x); }
 
-        template <>
-        GT_FUNCTION float log(const float x) {
-            return ::logf(x);
-        }
-
-        template <>
-        GT_FUNCTION double log(const double x) {
-            return ::log(x);
-        }
+        GT_FUNCTION double log(const double x) { return ::log(x); }
 #else
         template < typename Value >
         GT_FUNCTION Value log(const Value x) {
