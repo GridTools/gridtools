@@ -91,7 +91,7 @@ def load(filename):
                         precision=d['precision'],
                         backend=d['backend'])
 
-    d = d['config']
+    d = data['config']
     config_data = Data(configname=d['configname'],
                        hostname=d['hostname'],
                        systemname=d['systemname'])
