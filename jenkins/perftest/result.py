@@ -83,7 +83,7 @@ def load(filename):
                     domain=data['domain'],
                     datetime=data['datetime'])
     logger.info(f'Successfully loaded result from {filename}')
-    return resut
+    return result
 
 
 def times_by_stencil(results):
@@ -120,4 +120,4 @@ def compare(results):
               if all(first[k] == r[k] for r in rest)}
     diff = [{k: v for k, v in r.items() if k not in common.keys()}
             for r in results]
-    return _items_as_attrs(common), _items_as_attrs(diff)
+    return Data(common), Data(diff)
