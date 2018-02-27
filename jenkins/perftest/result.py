@@ -27,7 +27,7 @@ class Result(Data):
         return [t.stdev for t in self.times]
 
 
-def from_data(filename, runtime, domain, meantimes, stdevtimes):
+def from_data(runtime, domain, meantimes, stdevtimes):
     """Creates a Data object from collected data.
 
     Args:
