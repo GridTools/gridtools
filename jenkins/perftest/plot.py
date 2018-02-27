@@ -85,12 +85,12 @@ def history(results, key='runtime'):
 
     def get_date(result):
         if key == 'runtime':
-            timestr = result.runtime.datetime
+            datetime = result.runtime.datetime
         elif key == 'job':
-            timestr = result.datetime
+            datetime = result.datetime
         else:
             raise ArgumentError('"key" argument must be "runtime" or "job"')
-        return matplotlib.dates.date2num(utils.datetime_from_timestr(timestr))
+        return matplotlib.dates.date2num(datetime)
 
     dates = [get_date(r) for r in results]
 

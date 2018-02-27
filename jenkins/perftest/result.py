@@ -2,7 +2,7 @@
 
 import json
 
-from perftest import ArgumentError, logger, utils
+from perftest import ArgumentError, logger, time
 
 
 class Data(dict):
@@ -55,12 +55,15 @@ def from_data(runtime, domain, meantimes, stdevtimes):
                   times=times_data,
                   config=config_data,
                   domain=domain,
-                  datetime=utils.timestr())
+                  datetime=time.now())
 
 
 def save(filename, data):
     def convert(d):
-        return {k: v for k, v in d.items()}
+        if isinstance(d, Data):
+            return {k: v for k, v in d.items()}
+        elif isinstance(d, time.datetime):
+            return time.timestr(d)
 
     with open(filename, 'w') as fp:
         json.dump(data, fp, indent=4, sort_keys=True, default=convert)
@@ -77,13 +80,29 @@ def load(filename):
     runtime_data = Data(**data['runtime'])
     config_data = Data(**data['config'])
 
+    times_data = [Data(stencil=d['stencil'], mean=d['mean'], stdev=d['stdev'])
+                  for d in data['times']]
+
+    d = data['runtime']
+    runtime_data = Data(name=d['name'],
+                        version=d['version'],
+                        datetime=time.from_timestr(d['datetime']),
+                        grid=d['grid'],
+                        precision=d['precision'],
+                        backend=d['backend'])
+
+    d = d['config']
+    config_data = Data(configname=d['configname'],
+                       hostname=d['hostname'],
+                       systemname=d['systemname'])
+
     result = Result(runtime=runtime_data,
                     times=times_data,
                     config=config_data,
                     domain=data['domain'],
-                    datetime=data['datetime'])
+                    datetime=time.from_timestr(data['datetime']))
     logger.info(f'Successfully loaded result from {filename}')
-    return resut
+    return result
 
 
 def times_by_stencil(results):
@@ -120,4 +139,4 @@ def compare(results):
               if all(first[k] == r[k] for r in rest)}
     diff = [{k: v for k, v in r.items() if k not in common.keys()}
             for r in results]
-    return _items_as_attrs(common), _items_as_attrs(diff)
+    return Data(common), Data(diff)

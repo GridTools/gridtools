@@ -4,7 +4,7 @@ import os
 import subprocess
 import textwrap
 
-from perftest import utils, runtime
+from perftest import runtime, time
 
 
 class StellaRuntime(runtime.StellaRuntimeBase):
@@ -16,7 +16,7 @@ class StellaRuntime(runtime.StellaRuntimeBase):
     def datetime(self):
         posixtime = subprocess.check_output(['stat', '--format=%Y',
                                              self.path])
-        return utils.timestr_from_posix(posixtime)
+        return time.from_posix(posixtime)
 
     @property
     def path(self):

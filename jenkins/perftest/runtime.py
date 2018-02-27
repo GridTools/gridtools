@@ -7,7 +7,7 @@ import statistics
 import subprocess
 
 from perftest import NotFoundError, ParseError, ArgumentError
-from perftest import logger, result, runtools, stencils, utils
+from perftest import logger, result, runtools, stencils, time
 
 
 class Runtime(metaclass=abc.ABCMeta):
@@ -166,7 +166,7 @@ class GridtoolsRuntimeBase(Runtime):
         posixtime = subprocess.check_output(['git', 'show', '-s',
                                              '--format=%ct', commit],
                                             cwd=self.path).decode().strip()
-        return utils.timestr_from_posix(posixtime)
+        return time.from_posix(posixtime)
 
     def binary(self, stencil):
         """Stencil-dependent Gridtools binary path."""
