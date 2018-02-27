@@ -42,21 +42,11 @@ def sbatch(command):
     return textwrap.dedent(f"""\
         #!/bin/bash -l
         #SBATCH --job-name=gridtools_perftest
-        #SBATCH --nodes=1
-        #SBATCH --ntasks=1
-        #SBATCH --ntasks-per-node=1
         #SBATCH --partition=debug
-        #SBATCH --time=00:15:00
         #SBATCH --gres=gpu:1
-        #SBATCH --cpus-per-task=12
+        #SBATCH --time=00:10:00
 
-        module load craype-network-infiniband
-        module load craype-haswell
-        module load craype-accel-nvidia35
-        module load cray-libsci
         module load cudatoolkit/8.0.61
-        module load mvapich2gdr_gnu/2.2_cuda_8.0
-        module load gcc/5.4.0-2.26
 
         export CUDA_ARCH=sm_37
         export CUDA_AUTO_BOOST=0
@@ -64,8 +54,6 @@ def sbatch(command):
         export G2G=1
 
         export OMP_PROC_BIND=true
-        export OMP_PLACES=threads
-        export OMP_NUM_THREADS=12
 
         export MALLOC_MMAP_MAX_=0
         export MALLOC_TRIM_THRESHOLD_=536870912
