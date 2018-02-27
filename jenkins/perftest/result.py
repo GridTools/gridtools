@@ -6,11 +6,23 @@ from perftest import ArgumentError, logger, time
 
 
 class Data(dict):
+    """Base class for all result data.
+
+    This class derives from `dict`, but overrides __getattr__ to additionally
+    allow item access with attribute syntax.
+    """
+
     def __getattr__(self, name):
+        """Redirects accesses to unknown attributes to item accesses."""
         return self[name]
+
+    def __repr__(self):
+        return 'Data(' + ', '.join(f'{k}={v!r}' for k, v in self.items()) + ')'
 
 
 class Result(Data):
+    """Class for storing the result data of a run."""
+
     @property
     def stencils(self):
         """List of all stencils (names of stencils)."""
@@ -28,7 +40,7 @@ class Result(Data):
 
 
 def from_data(runtime, domain, meantimes, stdevtimes):
-    """Creates a Data object from collected data.
+    """Creates a Result object from collected data.
 
     Args:
         runtime: A `perftest.runtime.Runtime` object.
@@ -36,7 +48,6 @@ def from_data(runtime, domain, meantimes, stdevtimes):
         meantimes: List of mean run times per stencil.
         stdevtimes: List of stdev run times perf stencil.
     """
-
     times_data = [Data(stencil=s.name, mean=m, stdev=d) for s, m, d in
                   zip(runtime.stencils, meantimes, stdevtimes)]
 
@@ -59,6 +70,14 @@ def from_data(runtime, domain, meantimes, stdevtimes):
 
 
 def save(filename, data):
+    """Saves the result data to the given a json file.
+
+    Overwrites the file if it already exists.
+
+    Args:
+        filename: The name of the output file.
+        data: An instance of `Result`.
+    """
     def convert(d):
         if isinstance(d, Data):
             return {k: v for k, v in d.items()}
@@ -72,7 +91,11 @@ def save(filename, data):
 
 
 def load(filename):
-    """Loads result data from the given file."""
+    """Loads result data from the given json file.
+
+    Args:
+        filename: The name of the input file.
+    """
     with open(filename, 'r') as fp:
         data = json.load(fp)
 
@@ -130,8 +153,8 @@ def compare(results):
         results: A list of `Result` objects.
 
     Returns:
-        A tuple of one object holding all common result attributes and a list
-        of objects holding all other (unequal) attributes.
+        A tuple of one `Data` object holding all common result attributes and
+        a list of `Data` objects holding all other (unequal) attributes.
     """
     first, *rest = results
     common_keys = set(first.keys()).intersection(*(r.keys() for r in rest))
