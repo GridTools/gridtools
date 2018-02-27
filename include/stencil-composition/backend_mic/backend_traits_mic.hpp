@@ -92,7 +92,8 @@ namespace gridtools {
         */
         static uint_t n_i_pes(uint_t = 0) {
 #ifdef STRUCTURED_GRIDS
-            return -1;
+            /* This function is not used in the MIC backend for structured grids. */
+            return 0;
 #else
             return omp_get_max_threads();
 #endif
@@ -105,7 +106,8 @@ namespace gridtools {
         */
         static uint_t n_j_pes(uint_t = 0) {
 #ifdef STRUCTURED_GRIDS
-            return -1;
+            /* This function is not used in the MIC backend for structured grids. */
+            return 0;
 #else
             return 1;
 #endif
@@ -117,7 +119,8 @@ namespace gridtools {
          */
         static uint_t processing_element_i() {
 #ifdef STRUCTURED_GRIDS
-            return -1;
+            /* This function is not used in the MIC backend for structured grids. */
+            return 0;
 #else
             return omp_get_thread_num();
 #endif
@@ -129,7 +132,8 @@ namespace gridtools {
          */
         static uint_t processing_element_j() {
 #ifdef STRUCTURED_GRIDS
-            return -1;
+            /* This function is not used in the MIC backend for structured grids. */
+            return 0;
 #else
             return 0;
 #endif
