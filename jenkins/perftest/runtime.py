@@ -48,24 +48,31 @@ class Runtime(metaclass=abc.ABCMeta):
         Returns:
             A `perftest.result.Result` object with the collected times.
         """
+        # Get commands per stencil
         commands = [self.command(s, domain) for s in self.stencils]
 
+        # Multiply commands by number of runs
         allcommands = [c for c in commands for _ in range(runs)]
+
+        # Run commands
         logger.info('Running stencils')
         alloutputs = runtools.run(allcommands, self.config)
         logger.info('Running stencils finished')
 
+        # Parse outputs
         alltimes = [self._parse_time(o) for o in alloutputs]
 
+        # Group times per stencil
         times = [alltimes[i:i+runs] for i in range(0, len(alltimes), runs)]
 
+        # Compute statistics
         meantimes = [statistics.mean(t) for t in times]
         stdevtimes = [statistics.stdev(t) if len(t) > 1 else 0 for t in times]
 
-        return result.Result(runtime=self,
-                             domain=domain,
-                             meantimes=meantimes,
-                             stdevtimes=stdevtimes)
+        return result.from_data(runtime=self,
+                                domain=domain,
+                                meantimes=meantimes,
+                                stdevtimes=stdevtimes)
 
     @staticmethod
     def _parse_time(output):

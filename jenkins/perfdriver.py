@@ -10,24 +10,26 @@ def plot(mode, infiles, outfile):
     import perftest.plot
     import perftest.result
 
-    results = [perftest.result.Result(f) for f in infiles]
+    results = [perftest.result.load(f) for f in infiles]
 
     if mode == 'compare':
-        fig = perftest.plot.compare(*results)
+        fig = perftest.plot.compare(results)
     elif mode == 'history':
-        fig = perftest.plot.history(*results)
+        fig = perftest.plot.history(results)
 
     fig.savefig(outfile)
 
 
 def run(runtime, grid, precision, backend, domain, runs, outfile, config):
-    import perftest.runtime
     import perftest.config
+    import perftest.result
+    import perftest.runtime
 
     config = perftest.config.load(config)
 
     rt = config.runtime(runtime, grid, precision, backend)
-    rt.run(domain, runs).write(outfile)
+    result = rt.run(domain, runs)
+    perftest.result.save(outfile, result)
 
 
 if __name__ == '__main__':

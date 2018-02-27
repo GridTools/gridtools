@@ -5,103 +5,85 @@ import json
 from perftest import ArgumentError, logger, utils
 
 
-def _items_as_attrs(x):
-    """Function that allows to access (dict) items as attributes.
-
-    Args:
-        x: A dict-like object or type.
-
-    Returns:
-        Object or type `x` wrapped into a class that redirects __getattr__
-        to __getitem__.
-    """
-    istype = isinstance(x, type)
-
-    class Wrapper(x if istype else type(x)):
-        """ """
-        def __getattr__(self, name):
-            try:
-                return getattr(super(), name)
-            except AttributeError:
-                return _items_as_attrs(self.__getitem__(name))
-
-        def __getitem__(self, name):
-            return _items_as_attrs(super().__getitem__(name))
-
-    return Wrapper if istype else Wrapper(x)
+class Data(dict):
+    def __getattr__(self, name):
+        return self[name]
 
 
-@_items_as_attrs
-class Result(dict):
-    """A class to store run result data.
-
-    Currently this class is derived from `dict` to conveniently support loading
-    and storing of data to and from json. Direct access to the underlying
-    `dict` items as attributes is allowed by `_items_as_attrs`.
-    """
-    def __init__(self, filename=None, runtime=None, domain=None,
-                 meantimes=None, stdevtimes=None):
-        if filename:
-            self._init_from_file(filename)
-        else:
-            self._init_from_run(runtime, domain, meantimes, stdevtimes)
-
-    def _init_from_file(self, filename):
-        """Loads result data from the given file."""
-        with open(filename, 'r') as fp:
-            self.update(json.load(fp))
-        logger.info(f'Successfully loaded result from {filename}')
-
-    def _init_from_run(self, runtime, domain, meantimes, stdevtimes):
-        """Initializes result object from collected data.
-
-        Args:
-            runtime: A `perftest.runtime.Runtime` object.
-            domain: The domain size as a tuple or list.
-            meantimes: List of mean run times per stencil.
-            stdevtimes: List of stdev run times perf stencil.
-        """
-        if None in (runtime, domain, meantimes, stdevtimes):
-            raise ArgumentError('Invalid arguments')
-
-        times = [{'stencil': s.name, 'mean': m, 'stdev': d} for s, m, d in
-                 zip(runtime.stencils, meantimes, stdevtimes)]
-
-        self.update({'runtime': {'name': runtime.name,
-                                 'version': runtime.version,
-                                 'datetime': runtime.datetime,
-                                 'grid': runtime.grid,
-                                 'precision': runtime.precision,
-                                 'backend': runtime.backend},
-                     'domain': domain,
-                     'times': times,
-                     'datetime': utils.timestr(),
-                     'config': {
-                         'configname': runtime.config.name,
-                         'hostname': runtime.config.hostname,
-                         'systemname': runtime.config.systemname,
-                     }})
-
-    def write(self, filename):
-        """Writes result data to the given file."""
-        with open(filename, 'w') as fp:
-            json.dump(self, fp, indent=4, sort_keys=True)
-        logger.info(f'Wrote result to "{filename}"')
-
+class Result(Data):
     @property
     def stencils(self):
         """List of all stencils (names of stencils)."""
-        return [t['stencil'] for t in self['times']]
+        return [t.stencil for t in self.times]
 
     @property
     def meantimes(self):
         """List of all stencils' mean computation time."""
-        return [t['mean'] for t in self['times']]
+        return [t.mean for t in self.times]
 
     @property
     def stdevtimes(self):
         """List of all stencils' computation time stdandard deviation."""
-        return [t['stdev'] for t in self['times']]
+        return [t.stdev for t in self.times]
+
+
+def from_data(filename, runtime, domain, meantimes, stdevtimes):
+    """Creates a Data object from collected data.
+
+    Args:
+        runtime: A `perftest.runtime.Runtime` object.
+        domain: The domain size as a tuple or list.
+        meantimes: List of mean run times per stencil.
+        stdevtimes: List of stdev run times perf stencil.
+    """
+
+    times_data = [Data(stencil=s.name, mean=m, stdev=d) for s, m, d in
+                  zip(runtime.stencils, meantimes, stdevtimes)]
+
+    runtime_data = Data(name=runtime.name,
+                        version=runtime.version,
+                        datetime=runtime.datetime,
+                        grid=runtime.grid,
+                        precision=runtime.precision,
+                        backend=runtime.backend)
+
+    config_data = Data(configname=runtime.config.name,
+                       hostname=runtime.config.hostname,
+                       systemname=runtime.config.systemname)
+
+    return Result(runtime=runtime_data,
+                  times=times_data,
+                  config=config_data,
+                  domain=domain,
+                  datetime=utils.timestr())
+
+
+def save(filename, data):
+    def convert(d):
+        return {k: v for k, v in d.items()}
+
+    with open(filename, 'w') as fp:
+        json.dump(data, fp, indent=4, sort_keys=True, default=convert)
+    logger.info(f'Successfully saved result to {filename}')
+
+
+
+def load(filename):
+    """Loads result data from the given file."""
+    with open(filename, 'r') as fp:
+        data = json.load(fp)
+
+    times_data = [Data(**d) for d in data['times']]
+    runtime_data = Data(**data['runtime'])
+    config_data = Data(**data['config'])
+
+    result = Result(runtime=runtime_data,
+                    times=times_data,
+                    config=config_data,
+                    domain=data['domain'],
+                    datetime=data['datetime'])
+    logger.info(f'Successfully loaded result from {filename}')
+    return resut
 
 
 def times_by_stencil(results):

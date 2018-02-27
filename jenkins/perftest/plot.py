@@ -42,7 +42,7 @@ def get_titles(results):
     return suptitle, titles
 
 
-def compare(*results):
+def compare(results):
     """Plots run time comparison of all results, one subplot per stencil."""
 
     stencils, meantimes, stdevtimes = result.times_by_stencil(results)
@@ -78,7 +78,7 @@ def compare(*results):
     return fig
 
 
-def history(*results, key='runtime'):
+def history(results, key='runtime'):
     """Plots run time history of all results."""
 
     stencils, meantimes, stdevtimes = result.times_by_stencil(results)
