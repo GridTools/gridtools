@@ -69,10 +69,10 @@ namespace gridtools {
 
       private:
         data_t *m_gpu_ptr = nullptr;
-        data_t *m_allocated_ptr = nullptr;
         data_t *m_cpu_ptr = nullptr;
         state_machine m_state;
         uint_t m_size;
+        short_t m_offset;
         ownership m_ownership = ownership::Full;
 
       public:
@@ -84,6 +84,7 @@ namespace gridtools {
         cuda_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
             : m_cpu_ptr(new data_t[size]), m_size{size} {
             // New will align addresses according to the size(data_t)
+            data_t *m_allocated_ptr;
             cudaError_t err = cudaMalloc(&m_allocated_ptr, (size + Align) * sizeof(data_t));
             ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory in constructor.");
 
@@ -91,6 +92,7 @@ namespace gridtools {
                 ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
             m_gpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
+            m_offset = m_allocated_ptr - m_gpu_ptr;
         }
 
         /*
@@ -110,9 +112,11 @@ namespace gridtools {
                 m_state.m_hnu = true;
             } else if (own == ownership::ExternalCPU) {
                 m_cpu_ptr = external_ptr;
+                data_t *m_allocated_ptr;
                 cudaError_t err = cudaMalloc(&m_allocated_ptr, size * sizeof(data_t));
                 ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
                 m_gpu_ptr = m_allocated_ptr;
+                m_offset = m_allocated_ptr - m_gpu_ptr;
                 m_state.m_dnu = true;
             }
             ASSERT_OR_THROW((m_gpu_ptr && m_cpu_ptr), "Failed to create cuda_storage.");
@@ -142,7 +146,7 @@ namespace gridtools {
             if ((m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full) && m_cpu_ptr)
                 delete[] m_cpu_ptr;
             if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr)
-                cudaFree(m_allocated_ptr);
+                cudaFree(m_gpu_ptr - m_offset);
         }
 
         /*
@@ -151,7 +155,7 @@ namespace gridtools {
         void swap_impl(cuda_storage &other) {
             using std::swap;
             swap(m_gpu_ptr, other.m_gpu_ptr);
-            swap(m_allocated_ptr, other.m_allocated_ptr);
+            swap(m_offset, other.m_offset);
             swap(m_cpu_ptr, other.m_cpu_ptr);
             swap(m_state, other.m_state);
             swap(m_size, other.m_size);
@@ -181,7 +185,6 @@ namespace gridtools {
          */
         void clone_to_device_impl() {
             ASSERT_OR_THROW(m_cpu_ptr, "CPU pointer seems not initialized.");
-            ASSERT_OR_THROW(m_allocated_ptr, "GPU allocated pointer seems not initialized.");
             ASSERT_OR_THROW(m_gpu_ptr, "GPU pointer seems not initialized.");
 
             cudaError_t err =
