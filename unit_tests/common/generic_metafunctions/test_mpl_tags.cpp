@@ -33,21 +33,33 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "test_offset_tuple.hpp"
 
-using namespace gridtools;
+#include <gtest/gtest.h>
+#include <common/defs.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <common/generic_metafunctions/mpl_tags.hpp>
 
-TEST(offset_tuple, test_offset_tuple) {
+TEST(integralconstant, comparison) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::greater< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value), "");
 
-    bool result;
-    test_offset_tuple(&result);
-    ASSERT_TRUE(result);
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::less< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value), "");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::greater_equal< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value),
+        "");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::less_equal< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value),
+        "");
 }
 
-TEST(offset_tuple, test_offset_tuple_array_and_dim) {
-
-    bool result;
-    test_offset_tuple_array_and_dim(&result);
-    ASSERT_TRUE(result);
+TEST(integralconstant, arithmetic) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::plus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 9), "");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::minus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 1),
+        "");
 }

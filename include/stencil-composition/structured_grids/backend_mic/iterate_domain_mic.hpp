@@ -145,7 +145,7 @@ namespace gridtools {
                             StorageInfoIndex::value >::type >::type >::type >::type;
 
                 m_index_array[StorageInfoIndex::value] =
-                    m_it_domain.compute_offset< storage_info_t >(accessor_base< 0, enumtype::inout, extent<>, 3 >());
+                    m_it_domain.compute_offset< storage_info_t >(accessor_base< storage_info_t::ndims >());
             }
 
           private:

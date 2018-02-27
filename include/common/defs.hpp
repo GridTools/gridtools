@@ -35,16 +35,6 @@
 */
 #pragma once
 
-#define DEFS_GUARD
-
-#if !defined(__CUDACC__)
-#define CUDA8
-#else
-#if (GT_CUDA_VERSION > 75)
-#define CUDA8
-#endif
-#endif
-
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
@@ -54,7 +44,6 @@
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/vector.hpp>
-#include <vector>
 
 /**
    @file
@@ -65,6 +54,8 @@
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
+#include "./generic_metafunctions/mpl_tags.hpp"
+#include <type_traits>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
@@ -321,16 +312,17 @@ namespace gridtools {
     using uint_t = unsigned int;
     using ushort_t = unsigned int;
     template < int_t N >
-    using static_int = boost::mpl::integral_c< int_t, N >;
+    using static_int = std::integral_constant< int_t, N >;
     template < uint_t N >
-    using static_uint = boost::mpl::integral_c< uint_t, N >;
+    using static_uint = std::integral_constant< uint_t, N >;
     template < short_t N >
-    using static_short = boost::mpl::integral_c< short_t, N >;
+    using static_short = std::integral_constant< short_t, N >;
     template < ushort_t N >
-    using static_ushort = boost::mpl::integral_c< ushort_t, N >;
+    using static_ushort = std::integral_constant< ushort_t, N >;
+
     template < size_t N >
-    using static_size_t = boost::mpl::integral_c< size_t, N >;
+    using static_size_t = std::integral_constant< size_t, N >;
     template < bool B >
-    using static_bool = boost::mpl::integral_c< bool, B >;
+    using static_bool = std::integral_constant< bool, B >;
 
 } // namespace gridtools
