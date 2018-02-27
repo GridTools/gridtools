@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include "storage_wrapper.hpp"
+
 namespace gridtools {
 
     /**@brief metafunction that counts the total number of data fields which are neceassary for this functor (i.e.

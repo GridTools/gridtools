@@ -38,8 +38,6 @@
 namespace gridtools {
 
     template < typename T >
-    struct is_condition;
-    template < typename T >
     struct is_mss_descriptor;
     template < typename T >
     struct is_reduction_descriptor;
@@ -50,6 +48,6 @@ namespace gridtools {
      */
 
     template < typename T >
-    struct is_computation_token : boost::mpl::or_< boost::mpl::or_< is_condition< T >, is_mss_descriptor< T > >,
-                                      is_reduction_descriptor< T > >::type {};
+    using is_computation_token =
+        boost::mpl::or_< boost::mpl::or_< is_mss_descriptor< T > >, is_reduction_descriptor< T > >;
 }

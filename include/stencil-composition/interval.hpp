@@ -45,7 +45,7 @@
 #include "level_metafunctions.hpp"
 #include "../common/host_device.hpp"
 #include "../common/gt_assert.hpp"
-#include "../common/generic_metafunctions/is_all.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 #include "sfinae.hpp"
 
 namespace gridtools {
@@ -161,7 +161,7 @@ namespace gridtools {
     namespace _impl {
         template < typename... Intervals >
         struct join_interval {
-            GRIDTOOLS_STATIC_ASSERT((is_all< is_interval, Intervals... >::value),
+            GRIDTOOLS_STATIC_ASSERT((meta::conjunction< is_interval< Intervals >... >::value),
                 GT_INTERNAL_ERROR_MSG("Expected all types to be intervals."));
             using from_levels_vector = sort_levels< typename Intervals::FromLevel... >;
             using to_levels_vector = sort_levels< typename Intervals::ToLevel... >;

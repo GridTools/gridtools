@@ -99,8 +99,7 @@ namespace test_iterate_domain {
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute< enumtype::forward >(),
                 gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
-        auto computation_ =
-            make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
 
@@ -108,7 +107,7 @@ namespace test_iterate_domain {
         computation_->steady();
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
+        typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
         typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
 
@@ -200,7 +199,7 @@ namespace test_iterate_domain {
         // check field storage access
 
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-        it_domain.set_index(0);
+        it_domain.reset_index();
         auto inv = make_field_host_view(in);
         inv.get< 0, 0 >()(0, 0, 0, 0) = 0.; // is accessor<0>
         inv.get< 0, 1 >()(0, 0, 0, 0) = 1.;
@@ -209,7 +208,6 @@ namespace test_iterate_domain {
         inv.get< 1, 1 >()(0, 0, 0, 0) = 11.;
         inv.get< 2, 0 >()(0, 0, 0, 0) = 20.;
 
-#ifdef CUDA8
         assert(
             it_domain(alias< inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >, dimension< 6 > >::set< 0 >()) == 0.);
         assert(
@@ -311,14 +309,14 @@ namespace test_iterate_domain {
         // check index initialization and increment
 
         array< int_t, 3 > index;
-        it_domain.get_index(index);
+        index = it_domain.index();
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
         index[0] += 3;
         index[1] += 2;
         index[2] += 1;
         it_domain.set_index(index);
 
-        it_domain.get_index(index);
+        index = it_domain.index();
         assert(index[0] == 3 && index[1] == 2 && index[2] == 1);
 
         auto mdo = out.template get< 0, 0 >().get_storage_info_ptr();
@@ -329,7 +327,7 @@ namespace test_iterate_domain {
         it_domain.increment< 0, static_uint< 1 > >(); // increment i
         it_domain.increment< 1, static_uint< 1 > >(); // increment j
         it_domain.increment< 2, static_uint< 1 > >(); // increment k
-        it_domain.get_index(new_index);
+        new_index = it_domain.index();
 
         // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra
         // stride
@@ -393,15 +391,6 @@ namespace test_iterate_domain {
 
         assert((
             (float_type *)(&outv.get< 1, 1 >()(0, 0) + new_index[2] + mdo->template stride< 1 >() == &it_domain(c2_))));
-
-        // check runtime alias arguments
-        alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > > acc_(1, 1);
-        using acc_t =
-            alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > >::set< 1,
-                1 >;
-        assert(&it_domain(acc_t(dimension< 1 >(1))) == &it_domain(acc_(dimension< 1 >(1))));
-
-#endif
 
         // check strides initialization
         // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.

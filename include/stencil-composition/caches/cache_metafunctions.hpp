@@ -131,14 +131,14 @@ namespace gridtools {
      * of a given accessor
      * @tparam cacheType type of cache
      * @tparam CacheSequence sequence of caches specified by the user
-     * @tparam CacheExtendsMap map of <cache, extent> determining the extent size of each cache
+     * @tparam CacheExtentsMap map of <cache, extent> determining the extent size of each cache
      * @tparam BlockSize the physical domain block size
      * @tparam LocalDomain the fused local domain
      */
 
     template < cache_type cacheType,
         typename CacheSequence,
-        typename CacheExtendsMap,
+        typename CacheExtentsMap,
         typename BlockSize,
         typename LocalDomain >
     struct get_cache_storage_tuple {
@@ -163,7 +163,7 @@ namespace gridtools {
             typedef typename boost::mpl::if_< is_storage_wrapper< storage_wrapper_t >,
                 cache_storage< Cache,
                                                   block_size_t,
-                                                  typename boost::mpl::at< CacheExtendsMap, Cache >::type,
+                                                  typename boost::mpl::at< CacheExtentsMap, Cache >::type,
                                                   storage_wrapper_t >,
                 boost::mpl::void_ >::type type;
         };

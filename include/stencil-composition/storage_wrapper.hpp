@@ -45,7 +45,6 @@
 #include "../storage/storage-facility.hpp"
 
 #include "../common/array.hpp"
-#include "../common/pointer.hpp"
 #include "arg.hpp"
 #include "tile.hpp"
 

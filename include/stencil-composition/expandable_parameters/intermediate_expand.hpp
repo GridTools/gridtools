@@ -71,6 +71,8 @@
 #include "../grid.hpp"
 #include "../intermediate.hpp"
 #include "../intermediate_impl.hpp"
+#include "../mss_components_metafunctions.hpp"
+#include "../conditionals/condition_tree.hpp"
 #include "expand_factor.hpp"
 
 namespace gridtools {
@@ -185,6 +187,21 @@ namespace gridtools {
                                      convert_arg_storage_pair< N >()));
             }
 
+            template < uint_t N >
+            struct convert_mss_descriptors_tree_f {
+                template < typename T >
+                auto operator()(T const &src) const
+                    GT_AUTO_RETURN((condition_tree_transform(src, fix_mss_arg_indices_f< N >{})));
+            };
+
+            template < uint_t N, typename MssDescriptorsTree >
+            auto convert_mss_descriptors_tree(MssDescriptorsTree const &src)
+                GT_AUTO_RETURN(convert_mss_descriptors_tree_f< N >{}(src));
+
+            template < uint_t N, typename MssDescriptorsTree >
+            using converted_mss_descriptors_tree =
+                typename std::result_of< convert_mss_descriptors_tree_f< N >(MssDescriptorsTree const &) >::type;
+
             struct assign_storage {
                 size_t m_offset;
                 template < typename Src, typename Dst, uint_t N >
@@ -255,33 +272,28 @@ namespace gridtools {
        In case the total number of parameters is a multiple of the expand factor, the second
        intermediate object does not get instantiated.
      */
-    template < typename Backend,
-        typename MssDescriptorArray,
+    template < typename ExpandFactor,
+        bool IsStateful,
+        typename Backend,
         typename Aggregator,
         typename Grid,
-        typename ConditionalsSet,
-        typename ReductionType,
-        bool IsStateful,
-        typename ExpandFactor >
-    class intermediate_expand : public computation< Aggregator, ReductionType > {
+        typename... MssDescriptorTrees >
+    class intermediate_expand : public computation< Aggregator > {
+        GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (std::is_same< ReductionType, notype >::value), "Reduction is not allowed with expandable parameters");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< std::true_type,
+                                    is_condition_tree_of< MssDescriptorTrees, is_computation_token >... >::value),
+            "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         template < uint_t N >
-        using converted_intermediate = intermediate< Backend,
-            MssDescriptorArray,
+        using converted_intermediate = intermediate< N,
+            IsStateful,
+            Backend,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
-            ConditionalsSet,
-            ReductionType,
-            IsStateful,
-            N >;
+            _impl::expand_detail::converted_mss_descriptors_tree< N, MssDescriptorTrees >... >;
 
         using base_t = typename intermediate_expand::computation;
         using base_t::m_domain;
@@ -289,7 +301,16 @@ namespace gridtools {
         // private members
         const size_t m_size;
         const std::unique_ptr< converted_intermediate< ExpandFactor::value > > m_intermediate;
-        const std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
+        // For some reason nvcc goes nuts here (even though the previous line is OK):
+        // const std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
+        // I have to expand `converted_intermediate` alias manually:
+        const std::unique_ptr< intermediate< 1,
+            IsStateful,
+            Backend,
+            _impl::expand_detail::converted_aggregator_type< 1, Aggregator >,
+            Grid,
+            _impl::expand_detail::converted_mss_descriptors_tree< 1, MssDescriptorTrees >... > >
+            m_intermediate_remainder;
 
       public:
         /**
@@ -299,13 +320,14 @@ namespace gridtools {
            dimension given by  @ref gridtools::expand_factor
          */
         template < typename Domain >
-        intermediate_expand(Domain &&domain, Grid const &grid, ConditionalsSet const &conditionals)
+        intermediate_expand(Domain &&domain, Grid const &grid, MssDescriptorTrees const &... mss_descriptor_trees)
             : base_t(std::forward< Domain >(domain)), m_size(_impl::expand_detail::get_expandable_size(m_domain)),
               m_intermediate(m_size >= ExpandFactor::value
-                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, conditionals)
+                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, mss_descriptor_trees...)
                                  : nullptr),
-              m_intermediate_remainder(
-                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {}
+              m_intermediate_remainder(m_size % ExpandFactor::value
+                                           ? create_intermediate< 1 >(m_domain, grid, mss_descriptor_trees...)
+                                           : nullptr) {}
 
         /**
            @brief run the execution
@@ -316,7 +338,7 @@ namespace gridtools {
            iterations, if the number of parameters is not multiple of the expand factor, the remaining
            chunck of storage pointers is consumed.
          */
-        ReductionType run() override {
+        notype run() override {
             assign_and_call(_impl::expand_detail::run{});
             return {};
         }
@@ -376,8 +398,11 @@ namespace gridtools {
 
       private:
         template < uint_t N, typename Res = converted_intermediate< N > >
-        static Res *create_intermediate(const Aggregator &src, Grid const &grid, const ConditionalsSet &conditionals) {
-            return new Res(_impl::expand_detail::convert_aggregator< N >(src), grid, conditionals);
+        static Res *create_intermediate(
+            const Aggregator &src, Grid const &grid, MssDescriptorTrees const &... mss_descriptor_trees) {
+            return new Res(_impl::expand_detail::convert_aggregator< N >(src),
+                grid,
+                _impl::expand_detail::convert_mss_descriptors_tree< N >(mss_descriptor_trees)...);
         }
 
         template < typename Dst >

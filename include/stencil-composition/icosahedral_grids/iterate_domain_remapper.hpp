@@ -41,8 +41,10 @@
 
 #pragma once
 #include "../iterate_domain_metafunctions.hpp"
-#include "stencil-composition/accessor.hpp"
+#include "../accessor.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../position_offset_type.hpp"
 
 namespace gridtools {
 
@@ -135,7 +137,7 @@ namespace gridtools {
                 typename remap_accessor_type< Accessor, esf_args_map_t >::type >;
 
             GT_FUNCTION
-            array< uint_t, 4 > const &position() const { return m_iterate_domain.position(); }
+            position_offset_type const &position() const { return m_iterate_domain.position(); }
 
             GT_FUNCTION
             explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
@@ -200,19 +202,6 @@ namespace gridtools {
             };
 
             /**
-             * returns true if variadic pack is a pack of accessors and the location type of the neighbors is not the
-             * same
-             * as
-             * the location type of the ESF.
-             */
-            template < typename NeighborsLocationType, typename EsfLocationType, typename... Accessors >
-            struct accessors_on_different_color_neighbors {
-                typedef typename boost::mpl::and_<
-                    typename is_sequence_of< typename variadic_to_vector< Accessors... >::type, is_accessor >::type,
-                    typename is_not_same< NeighborsLocationType, EsfLocationType >::type >::type type;
-            };
-
-            /**
              * data structure that holds data needed by the reduce_tuple functor
              * @tparam ValueType value type of the computation
              * @tparam NeighborsArray type locates the position of a neighbor element in the grid. If can be:
@@ -258,7 +247,7 @@ namespace gridtools {
                     (boost::is_same<
                          typename boost::remove_const< typename boost::remove_reference< NeighborsArray >::type >::type,
                          unsigned int >::value ||
-                        is_array< typename boost::remove_const<
+                        is_position_offset_type< typename boost::remove_const<
                             typename boost::remove_reference< NeighborsArray >::type >::type >::value),
                     GT_INTERNAL_ERROR);
 
@@ -333,11 +322,11 @@ namespace gridtools {
                 typename LocationTypeT,
                 typename Reduction,
                 typename EsfLocationType,
-                typename... Accessors >
-            GT_FUNCTION typename boost::enable_if<
-                typename accessors_on_different_color_neighbors< LocationTypeT, EsfLocationType, Accessors... >::type,
-                ValueType >::type
-            evaluate(EsfLocationType,
+                typename... Accessors,
+                typename std::enable_if< !std::is_same< LocationTypeT, EsfLocationType >::value &&
+                                             meta::conjunction< is_accessor< Accessors >... >::value,
+                    int >::type = 0 >
+            GT_FUNCTION ValueType evaluate(EsfLocationType,
                 on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
 
                 // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,

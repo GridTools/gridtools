@@ -113,7 +113,6 @@ namespace gridtools {
                 return m_iterate_domain(tmp_);
             }
 
-#ifdef CUDA8
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor, typename... Pairs >
             GT_FUNCTION auto operator()(accessor_mixed< Accessor, Pairs... > const &arg) -> decltype(m_iterate_domain(
@@ -123,7 +122,6 @@ namespace gridtools {
                 // const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(remap_accessor_t(arg));
             }
-#endif // CUDA8
 
             /**@brief returns the dimension of the storage corresponding to the given accessor
 

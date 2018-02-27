@@ -37,6 +37,8 @@
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
 
@@ -138,10 +140,9 @@ std::ostream &operator<<(std::ostream &s, functor3) { return s << "functor3"; }
 std::ostream &operator<<(std::ostream &s, functor4) { return s << "functor4"; }
 std::ostream &operator<<(std::ostream &s, functor5) { return s << "functor5"; }
 std::ostream &operator<<(std::ostream &s, functor6) { return s << "functor6"; }
-#define BACKEND backend< Host, GRIDBACKEND, Block >
 
-typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
+typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
 
 typedef arg< 0, storage_t > o0;
 typedef arg< 1, storage_t > o1;
@@ -172,7 +173,7 @@ int main() {
         functor6__())) mss_t;
     typedef boost::mpl::vector< o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3 > placeholders;
 
-    typedef compute_extents_of< init_map_of_extents< placeholders >::type, 1 >::for_mss< mss_t >::type final_map;
+    typedef compute_extents_of< init_map_of_extents< placeholders >::type >::for_mss< mss_t >::type final_map;
 
     GRIDTOOLS_STATIC_ASSERT(
         (std::is_same< boost::mpl::at< final_map, o0 >::type, extent< -5, 11, -10, 10, -5, 13 > >::type::value),

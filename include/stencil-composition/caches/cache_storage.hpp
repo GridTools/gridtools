@@ -40,7 +40,6 @@
 #include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../../common/offset_tuple.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../offset_computation.hpp"
@@ -72,7 +71,7 @@ namespace gridtools {
      * @tparam Cache a cache_impl type of the cache for which this class provides storage functionality
      * @tparam BlockSize physical block size (in IJ dims) that determines the size of the cache storage in the
      * scratchpad
-     * @tparam Extend extent at which the cache is used (used also to determine the size of storage)
+     * @tparam Extent extent at which the cache is used (used also to determine the size of storage)
      * @tparam StorageWrapper storage wrapper containing the storage of the arg being cached
      */
     template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >
