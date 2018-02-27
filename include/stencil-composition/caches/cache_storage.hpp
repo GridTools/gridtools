@@ -40,7 +40,6 @@
 #include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../../common/offset_tuple.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../offset_computation.hpp"

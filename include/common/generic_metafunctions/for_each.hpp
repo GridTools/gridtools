@@ -35,17 +35,26 @@
 */
 #pragma once
 
+#include "../host_device.hpp"
+
 namespace gridtools {
+    namespace _impl {
+        template < class List >
+        struct for_each_f;
 
-    template < typename T >
-    struct is_array;
+        template < template < class... > class L, class... Ts >
+        struct for_each_f< L< Ts... > > {
+            template < class Fun >
+            GT_FUNCTION_WARNING void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
+    }
 
-    template < typename T >
-    struct is_offset_tuple;
-
-    // metafunction determines whether an argument is an offset_tuple or an array
-    template < typename T >
-    struct is_tuple_or_array
-        : boost::mpl::or_< typename is_offset_tuple< T >::type, typename is_array< T >::type >::type {};
-
-} // namespace gridtools
+    /// Calls fun(T{}) for each element of the type list List.
+    template < class List, class Fun >
+    GT_FUNCTION_WARNING Fun for_each(Fun const &fun) {
+        _impl::for_each_f< List >{}(fun);
+        return fun;
+    };
+}
