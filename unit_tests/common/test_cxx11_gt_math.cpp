@@ -33,42 +33,25 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "common/defs.hpp"
 #include "common/gt_math.hpp"
 #include "tools/verifier.hpp"
+#include "gtest/gtest.h"
 using namespace gridtools;
 
 template < typename Value >
 struct test_pow {
-    static bool GT_FUNCTION Do(Value val, Value result) {
-        if (!compare_below_threshold(
-                math::pow(val, val), result, boost::is_same< double, Value >::value ? 1e-14 : 1e-6))
-            return false;
-
-        return true;
-    }
+    static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::pow(val, val), result); }
 };
 
 template < typename Value >
 struct test_log {
-    static bool GT_FUNCTION Do(Value val, Value result) {
-        if (!compare_below_threshold(math::log(val), result, boost::is_same< double, Value >::value ? 1e-14 : 1e-6))
-            return false;
-
-        return true;
-    }
+    static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::log(val), result); }
 };
 
 template < typename Value >
 struct test_exp {
-    static bool GT_FUNCTION Do(Value val, Value result) {
-
-        if (!compare_below_threshold(math::exp(val), result, boost::is_same< double, Value >::value ? 1e-14 : 1e-6))
-            return false;
-
-        return true;
-    }
+    static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::exp(val), result); }
 };
 
 struct test_fabs {

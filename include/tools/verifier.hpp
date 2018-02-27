@@ -39,11 +39,27 @@
 #include "common/array_addons.hpp"
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"
+#include <iostream>
 
 namespace gridtools {
 
+    template < class T >
+    class default_precision {
+        static double value;
+
+      public:
+        operator double() const { return value; }
+    };
+
+    template <>
+    double default_precision< float >::value = 1e-6;
+
+    template <>
+    double default_precision< double >::value = 1e-14;
+
     template < typename value_type >
-    GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
+    GT_FUNCTION bool compare_below_threshold(
+        value_type expected, value_type actual, double precision = default_precision< value_type >()) {
         value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
         value_type absolute_error = math::fabs(expected - actual);
         value_type relative_error = absolute_error / absmax;
