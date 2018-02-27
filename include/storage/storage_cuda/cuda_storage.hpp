@@ -68,9 +68,9 @@ namespace gridtools {
         typedef state_machine state_machine_t;
 
       private:
-        data_t *m_cpu_ptr;
-        data_t *m_allocated_ptr = nullptr;
         data_t *m_gpu_ptr = nullptr;
+        data_t *m_allocated_ptr = nullptr;
+        data_t *m_cpu_ptr = nullptr;
         state_machine m_state;
         uint_t m_size;
         ownership m_ownership = ownership::Full;
