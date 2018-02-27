@@ -84,7 +84,7 @@ namespace gridtools {
 
     /* data structure that can be used to store the data pointers of a given list of storages */
     template < typename StorageWrapperList, int I = boost::mpl::size< StorageWrapperList >::value - 1 >
-    struct data_ptr_cached /* @cond */ : data_ptr_cached< StorageWrapperList, I - 1 > /* @endcond */ {
+    struct data_ptr_cached /** @cond */ : data_ptr_cached< StorageWrapperList, I - 1 > /** @endcond */ {
         typedef data_ptr_cached< StorageWrapperList, I - 1 > super;
         typedef typename boost::mpl::at_c< StorageWrapperList, I >::type storage_wrapper_t;
         typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
@@ -147,7 +147,7 @@ namespace gridtools {
        \tparam StorageInfoList typelist of the storages
     */
     template < ushort_t ID, typename StorageInfoList >
-    struct strides_cached /* @cond */ : public strides_cached< ID - 1, StorageInfoList > /* @endcond */ {
+    struct strides_cached /** @cond */ : public strides_cached< ID - 1, StorageInfoList > /** @endcond */ {
         GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageInfoList >::value > ID,
             GT_INTERNAL_ERROR_MSG("strides index exceeds the number of storages"));
         typedef typename boost::mpl::at_c< StorageInfoList, ID >::type storage_info_ptr_t;

@@ -115,7 +115,6 @@ namespace gridtools {
           public:
             /**
             * @brief core of the kernel execution
-            * @tparam Traits traits class defined in run_functor_traits
             */
             explicit execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,

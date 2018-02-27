@@ -117,7 +117,7 @@ namespace gridtools {
 
        \code
        using newmap = compute_extents_of<oldmap>::for_mss<mss>::type;
-       \endvcode
+       \endcode
 
        \tparam PlaceholdersMap placeholders to extents map from where to start
      */

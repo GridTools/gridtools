@@ -246,7 +246,7 @@ namespace gridtools {
         /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
          *
-         * @param info Storage_info instance
+         * @param info StorageInfo instance
          */
         void allocate(StorageInfo const &info) {
             ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),

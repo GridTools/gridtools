@@ -109,6 +109,6 @@ namespace gridtools {
     template < typename Arg1, int Exponent >
     struct is_expr< expr_pow< Arg1, Exponent > > : boost::mpl::true_ {};
 
-    /*@}*/
+    /** @} */
 
 } // namespace gridtools
