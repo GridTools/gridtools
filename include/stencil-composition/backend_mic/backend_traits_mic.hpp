@@ -85,33 +85,55 @@ namespace gridtools {
             typedef _impl_mic::run_functor_mic< Arguments > run_functor_t;
         };
 
-#ifndef STRUCTURED_GRIDS
         /** This is the function used by the specific backend to inform the
             generic backend and the temporary storage allocator how to
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_i_pes(uint_t = 0) { return omp_get_max_threads(); }
+        static uint_t n_i_pes(uint_t = 0) {
+#ifdef STRUCTURED_GRIDS
+            return -1;
+#else
+            return omp_get_max_threads();
+#endif
+        }
 
         /** This is the function used by the specific backend to inform the
             generic backend and the temporary storage allocator how to
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_j_pes(uint_t = 0) { return 1; }
+        static uint_t n_j_pes(uint_t = 0) {
+#ifdef STRUCTURED_GRIDS
+            return -1;
+#else
+            return 1;
+#endif
+        }
 
         /** This is the function used by the specific backend
          *  that determines the i coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
-        static uint_t processing_element_i() { return omp_get_thread_num(); }
+        static uint_t processing_element_i() {
+#ifdef STRUCTURED_GRIDS
+            return -1;
+#else
+            return omp_get_thread_num();
+#endif
+        }
 
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
-        static uint_t processing_element_j() { return 0; }
+        static uint_t processing_element_j() {
+#ifdef STRUCTURED_GRIDS
+            return -1;
+#else
+            return 0;
 #endif
+        }
 
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
