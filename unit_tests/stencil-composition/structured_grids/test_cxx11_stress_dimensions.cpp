@@ -226,10 +226,10 @@ namespace assembly {
                                          f{i, j, k, di, dj, dk} +
                                      phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj, dk, qp + q} *
                                          jac{i, j, k, di + q} * f{i, j, k, di + 1, dj, dk} +
-                                     phi{di + I, dj + J, dk + K, qp + q} * psi{dj + 1, dj, dk, qp + q} *
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj, dk, qp + q} *
                                          jac{i, j, k, di + q} * f{i, j, k, di, dj + 1, dk} +
-                                     phi{di + I, dj + J, dk + K, qp + q} * psi{dk + 1, dj, dk, qp + q} *
-                                         jac{i, j, k, di + q} * f{i, k, k, di, dj, dk + 1} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj, dk, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di, dj, dk + 1} +
                                      phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj + 1, dk, qp + q} *
                                          jac{i, j, k, di + q} * f{i, j, k, di + 1, dj + 1, dk} +
                                      phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj, dk + 1, qp + q} *
