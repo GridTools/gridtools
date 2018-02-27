@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 
-from perftest import ArgumentError, logger, result, utils
+from perftest import ArgumentError, logger, result, time
 
 
 plt.style.use('ggplot')
@@ -30,9 +30,9 @@ def get_titles(results):
     common, diff = result.compare(r.runtime for r in results)
 
     def titlestr(v):
-        try:
-            return utils.short_timestr(v)
-        except ArgumentError:
+        if isinstance(v, time.datetime):
+            return time.short_timestr(v)
+        else:
             s = str(v).title()
             return s if len(s) < 30 else s[:27] + '...'
 
