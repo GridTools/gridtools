@@ -82,6 +82,8 @@
 #include <common/make_array.hpp>
 #include "helpers_impl.hpp"
 
+#include <vector>
+
 namespace gridtools {
 
     template < typename HaloExch, typename proc_layout_abs >

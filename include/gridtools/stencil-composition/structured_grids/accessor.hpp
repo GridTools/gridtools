@@ -35,11 +35,13 @@
 */
 
 #pragma once
-#include "../accessor_base.hpp"
-#include "../arg.hpp"
-#include "../../common/dimension.hpp"
-#include "../../common/generic_metafunctions/static_if.hpp"
 
+#include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
+#include "../accessor_base.hpp"
+#include "extent.hpp"
 /**
    @file
 
@@ -79,25 +81,17 @@ namespace gridtools {
         enumtype::intent Intent = enumtype::in,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t Number = 3 >
-    struct accessor : public accessor_base< ID, Intent, Extent, Number > {
-        typedef accessor_base< ID, Intent, Extent, Number > super;
-        typedef typename super::index_t index_t;
-        typedef typename super::offset_tuple_t offset_tuple_t;
+    struct accessor : accessor_base< Number > {
+        using index_t = static_uint< ID >;
+        static constexpr enumtype::intent intent = Intent;
+        using extent_t = Extent;
 
         /**inheriting all constructors from accessor_base*/
-        using super::accessor_base;
+        using accessor_base< Number >::accessor_base;
 
-        // workaround in order to support using the "normal" accessor even for non rectangular data fields
-        // see the implementation of get_data_field_index (specialization of non rectangular data field):
-        // for a non rectangular data field, the components need to be accessed with the constexpr (in order
-        // to avoid having to loop over all components in order to compute the offset of certain snapshot).
-        // That forces to use an accessor_mixed, unless we are only accessing the first component.
-        // In order to allow accessing the first component with a "normal" accessor we need to provide this
-        // dummy get_constexpr that returns always 0
-        template < short_t Idx >
-        GT_FUNCTION static constexpr int_t get_constexpr() {
-            return 0;
-        }
+        template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
+        GT_FUNCTION constexpr accessor(accessor< OtherID, Intent, Extent, Number > const &src)
+            : accessor_base< Number >(src) {}
     };
 
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
