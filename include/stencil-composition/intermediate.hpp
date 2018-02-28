@@ -452,7 +452,7 @@ namespace gridtools {
 
         template < class Views >
         void update_local_domains(Views const &views) {
-            _impl::update_local_domains< Backend >(views, m_mss_local_domain_list);
+            _impl::update_local_domains(views, m_mss_local_domain_list);
         }
 
         template < class Seq >

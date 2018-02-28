@@ -168,9 +168,6 @@ namespace gridtools {
 
         using make_view_f = typename backend_traits_t::make_view_f;
 
-        /// Method to extract a storage_info pointer.
-        using extract_storage_info_ptr_f = typename backend_traits_t::extract_storage_info_ptr_f;
-
         /**
             Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
            storage info)

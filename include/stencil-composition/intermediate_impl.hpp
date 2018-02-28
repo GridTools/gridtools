@@ -152,12 +152,12 @@ namespace gridtools {
             return permute_to< Res >(boost::fusion::as_vector(boost::fusion::transform(src, get_storage_info_ptr_f{})));
         }
 
-        template < class Backend, class Arg, class LocalDomain, class View >
+        template < class Arg, class LocalDomain, class View >
         void set_view_to_local_domain(LocalDomain &local_domain, View const &view) {
             namespace f = boost::fusion;
             advanced::copy_raw_pointers(view, f::at_key< Arg >(local_domain.m_local_data_ptrs));
             *f::find< typename View::storage_info_t const * >(local_domain.m_local_storage_info_ptrs) =
-                typename Backend::extract_storage_info_ptr_f{}(&view.storage_info());
+                &view.storage_info();
         }
 
         template < typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void >
@@ -233,14 +233,14 @@ namespace gridtools {
                 bound_arg_storage_pair< Arg, DataStorage > &&src) const;
         };
 
-        template < class Backend, class LocalDomain >
+        template < class LocalDomain >
         struct set_view_to_local_domain_f {
             LocalDomain &m_local_domain;
             template < class Arg, class View >
             typename std::enable_if< local_domain_has_arg< LocalDomain, Arg >::value, bool >::type operator()(
                 view_info< Arg, View > const &info) const {
                 if (info.enable_update)
-                    set_view_to_local_domain< Backend, Arg >(m_local_domain, info.view);
+                    set_view_to_local_domain< Arg >(m_local_domain, info.view);
                 return info.enable_update;
             }
             template < class Arg, class View >
@@ -250,16 +250,14 @@ namespace gridtools {
             }
         };
 
-        template < class Backend, class ViewInfos >
+        template < class ViewInfos >
         struct update_local_domain_f {
             ViewInfos const &m_view_infos;
 
             template < class LocalDomain >
             void operator()(LocalDomain &local_domain) const {
                 namespace f = boost::fusion;
-                if (f::count(
-                        f::transform(m_view_infos, set_view_to_local_domain_f< Backend, LocalDomain >{local_domain}),
-                        true))
+                if (f::count(f::transform(m_view_infos, set_view_to_local_domain_f< LocalDomain >{local_domain}), true))
                     local_domain.clone_to_device();
             }
         };
@@ -281,11 +279,11 @@ namespace gridtools {
         auto flatten_mss_local_domains(T &&src) GT_AUTO_RETURN(
             boost::fusion::flatten(make_transform_view(std::forward< T >(src), get_local_domain_ref_list_f{})));
 
-        template < class Backend, class ViewInfos, class MssLocalDomains >
+        template < class ViewInfos, class MssLocalDomains >
         void update_local_domains(ViewInfos const &view_infos, MssLocalDomains &mss_local_domains) {
             auto vec = boost::fusion::as_vector(view_infos);
             boost::fusion::for_each(
-                flatten_mss_local_domains(mss_local_domains), update_local_domain_f< Backend, decltype(vec) >{vec});
+                flatten_mss_local_domains(mss_local_domains), update_local_domain_f< decltype(vec) >{vec});
         }
 
         template < class MaxExtent, class Backend, class StorageWrapperList, class Grid >
