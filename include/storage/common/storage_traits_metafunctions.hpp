@@ -50,30 +50,37 @@
 
 namespace gridtools {
 
-    /* Layout map extender, takes a given layout and extends it by n dimensions (ascending and descending version) */
-    template < uint_t Dim, uint_t Current, typename Layout >
-    struct layout_map_ext_asc;
+    /** \ingroup storage
+     * @{
+     */
 
-    template < uint_t Dim, uint_t Current, int... Dims >
-    struct layout_map_ext_asc< Dim, Current, layout_map< Dims... > >
-        : layout_map_ext_asc< Dim - 1, Current + 1, layout_map< Dims..., Current > > {};
+    namespace _impl {
+        /* Layout map extender, takes a given layout and extends it by n dimensions (ascending and descending version)
+         */
+        template < uint_t Dim, uint_t Current, typename Layout >
+        struct layout_map_ext_asc;
 
-    template < uint_t Current, int... Dims >
-    struct layout_map_ext_asc< 0, Current, layout_map< Dims... > > {
-        typedef layout_map< Dims... > type;
-    };
+        template < uint_t Dim, uint_t Current, int... Dims >
+        struct layout_map_ext_asc< Dim, Current, layout_map< Dims... > >
+            : layout_map_ext_asc< Dim - 1, Current + 1, layout_map< Dims..., Current > > {};
 
-    template < uint_t Ext, typename Layout >
-    struct layout_map_ext_dsc;
+        template < uint_t Current, int... Dims >
+        struct layout_map_ext_asc< 0, Current, layout_map< Dims... > > {
+            typedef layout_map< Dims... > type;
+        };
 
-    template < uint_t Ext, int... Dims >
-    struct layout_map_ext_dsc< Ext, layout_map< Dims... > >
-        : layout_map_ext_dsc< Ext - 1, layout_map< Dims..., Ext - 1 > > {};
+        template < uint_t Ext, typename Layout >
+        struct layout_map_ext_dsc;
 
-    template < int... Dims >
-    struct layout_map_ext_dsc< 0, layout_map< Dims... > > {
-        typedef layout_map< Dims... > type;
-    };
+        template < uint_t Ext, int... Dims >
+        struct layout_map_ext_dsc< Ext, layout_map< Dims... > >
+            : layout_map_ext_dsc< Ext - 1, layout_map< Dims..., Ext - 1 > > {};
+
+        template < int... Dims >
+        struct layout_map_ext_dsc< 0, layout_map< Dims... > > {
+            typedef layout_map< Dims... > type;
+        };
+    } // namespace _impl
 
     /* get a standard layout_map (n-dimensional and ascending or descending) */
     template < uint_t Dim, bool Asc >
@@ -93,7 +100,7 @@ namespace gridtools {
     template < uint_t Dim >
     struct get_layout< Dim, true > {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
-        typedef typename layout_map_ext_asc< Dim - 3, 0, layout_map< Dim - 3, Dim - 2, Dim - 1 > >::type type;
+        typedef typename _impl::layout_map_ext_asc< Dim - 3, 0, layout_map< Dim - 3, Dim - 2, Dim - 1 > >::type type;
     };
 
     // get a multidimensional layout in descending order (e.g., gpu backend)
@@ -110,7 +117,7 @@ namespace gridtools {
     template < uint_t Dim >
     struct get_layout< Dim, false > {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
-        typedef typename layout_map_ext_dsc< Dim - 1, layout_map< Dim - 1 > >::type type;
+        typedef typename _impl::layout_map_ext_dsc< Dim - 1, layout_map< Dim - 1 > >::type type;
     };
 
     /* specializations up to 3-dimensional for both i-first and k-first layouts */
@@ -213,4 +220,8 @@ namespace gridtools {
             boost::mpl::int_< -1 > >::type masked_vec;
         typedef typename fix_values< masked_vec, layout_map< select_dimension< Dims, Bitmask >::value... > >::type type;
     };
+
+    /**
+     * @}
+     */
 }

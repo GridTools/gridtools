@@ -98,6 +98,7 @@ namespace gridtools {
         /** Constructor that takes an MPI CART communicator, already configured, and use it to set up the process grid.
             \param c Object containing information about periodicities as defined in \ref boollist_concept
             \param comm MPI Communicator describing the MPI 3D computing grid
+            \param dims Array of dimensions of the processor grid
         */
         template < typename Array >
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm, Array const &dims)

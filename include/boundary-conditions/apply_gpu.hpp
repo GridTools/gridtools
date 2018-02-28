@@ -47,6 +47,10 @@ gridtools::halo_descriptor
 */
 namespace gridtools {
 
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     /**
        @brief kernel to appy boundary conditions to the data fields requested
      */
@@ -203,5 +207,7 @@ namespace gridtools {
             cudaDeviceSynchronize();
         }
     };
+
+    /** @} */
 
 } // namespace gridtools

@@ -46,6 +46,10 @@
 #include "storage/storage_cuda/cuda_storage_info.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
+
     template < enumtype::platform T >
     struct storage_traits_from_id;
 
@@ -80,4 +84,8 @@ namespace gridtools {
             typedef cuda_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
         };
     };
+
+    /**
+     * @}
+     */
 }

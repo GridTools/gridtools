@@ -46,7 +46,15 @@
 #endif
 #include "storage_traits_host.hpp"
 
+/**
+ * \defgroup storage Storage
+ */
+
 namespace gridtools {
+
+    /** \ingroup storage
+     * @{
+     */
 
     /**
      * @brief storage traits used to retrieve the correct storage_info, data_store, and data_store_field types.
@@ -78,4 +86,8 @@ namespace gridtools {
         template < typename ValueType, typename StorageInfo, uint_t... N >
         using data_store_field_t = data_store_field< data_store_t< ValueType, StorageInfo >, N... >;
     };
+
+    /**
+     * @}
+     */
 }

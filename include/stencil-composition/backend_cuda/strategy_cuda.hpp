@@ -52,7 +52,7 @@ namespace gridtools {
     struct strategy_from_id_cuda;
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Naive strategy
+       @brief specialization for the \ref enumtype::Naive strategy
     */
     template <>
     struct strategy_from_id_cuda< enumtype::Naive > {};
@@ -64,7 +64,8 @@ namespace gridtools {
     struct execution_info_cuda {};
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Block strategy
+       @brief specialization for the \ref enumtype::Block strategy
+       Empty as not used in the CUDA backend
     */
     template <>
     struct strategy_from_id_cuda< enumtype::Block > {

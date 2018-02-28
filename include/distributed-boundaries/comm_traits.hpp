@@ -37,10 +37,14 @@
 #pragma once
 
 #include "../gridtools.hpp"
+
 #include "../stencil-composition/stencil-composition.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
 
 namespace gridtools {
+
+    /** \ingroup Distributed-Boundaries
+     * @{ */
 
     template < typename StorageType, typename Arch >
     struct comm_traits {
@@ -62,5 +66,7 @@ namespace gridtools {
         using data_layout = typename StorageType::storage_info_t::layout_t;
         using value_type = typename StorageType::data_t;
     };
+
+    /** @} */
 
 } // namespace gridtools
