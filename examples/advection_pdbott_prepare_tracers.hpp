@@ -105,7 +105,6 @@ namespace adv_prepare_tracers {
                 make_multistage(enumtype::execute< enumtype::forward >(),
                                               make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
-        comp_.steady();
         comp_.run();
 
 #ifdef BENCHMARK

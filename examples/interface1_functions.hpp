@@ -219,12 +219,6 @@ namespace horizontal_diffusion_functions {
         typedef arg< 3, storage_type > p_in;
         typedef arg< 4, storage_type > p_out;
 
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain_(coeff, in, out);
-
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -235,8 +229,10 @@ namespace horizontal_diffusion_functions {
         auto grid_ = make_grid(di, dj, d3);
 
         auto horizontal_diffusion = gridtools::make_computation< backend_t >(
-            domain_,
             grid_,
+            p_coeff{} = coeff,
+            p_in{} = in,
+            p_out{} = out,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 define_caches(cache< IJ, cache_io_policy::local >(p_flx(), p_fly())),
@@ -245,8 +241,6 @@ namespace horizontal_diffusion_functions {
                 (gridtools::make_stage< flx_function >(p_flx(), p_in()),
                     gridtools::make_stage< fly_function >(p_fly(), p_in())),
                 gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
-
-        horizontal_diffusion.steady();
 
         cache_flusher flusher(cache_flusher_size);
 

@@ -74,21 +74,20 @@ namespace {
 
     using p_in = arg< 0, data_store_t >;
     using p_out = arg< 1, data_store_t >;
-    using domain_t = aggregator_type< m::vector< p_in, p_out > >;
 
     auto make_grid(data_store_t data_store) -> decltype(make_grid(0, 0, 0)) {
         auto dims = data_store.dims();
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
-    auto make_copy_stencil(data_store_t in, data_store_t out)
-        GT_AUTO_RETURN(make_computation< backend_t >(domain_t{p_in{} = in, p_out{} = out},
-            make_grid(out),
+    auto make_copy_stencil(data_store_t const &in, data_store_t const &out)
+        GT_AUTO_RETURN(make_computation< backend_t >(make_grid(out),
+            p_in{} = in,
+            p_out{} = out,
             make_multistage(execute< forward >(), make_stage< copy_functor >(p_in{}, p_out{}))));
     GT_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(std::declval< data_store_t >(), std::declval< data_store_t >()));
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run));
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(steady_stencil, void(stencil_t &), std::mem_fn(&stencil_t::steady));
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
 }

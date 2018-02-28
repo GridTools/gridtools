@@ -207,10 +207,6 @@ namespace assembly {
         typedef arg< 3, decltype(f) > p_f;
         typedef arg< 4, decltype(result) > p_result;
 
-        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
-
-        aggregator_type< accessor_list > domain(
-            (p_phi() = g_phi), (p_psi() = g_psi), (p_jac() = jac), (p_f() = f), (p_result() = result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -221,13 +217,16 @@ namespace assembly {
         auto grid = make_grid(di, dj, d3 - 1);
 
         auto fe_comp =
-            make_computation< backend_t >(domain,
-                grid,
+            make_computation< backend_t >(grid,
+                p_phi{} = g_phi,
+                p_psi{} = g_psi,
+                p_jac{} = jac,
+                p_f{} = f,
+                p_result{} = result,
                 make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
                                               make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
-        fe_comp.steady();
         fe_comp.run();
         fe_comp.sync_all();
 

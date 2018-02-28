@@ -46,7 +46,6 @@ program main
     out_handle = create_data_store(i, j, k, out)
     stencil = create_copy_stencil(in_handle, out_handle)
 
-    call steady_stencil(stencil)
     call run_stencil(stencil)
     call sync_data_store(in_handle)
     call sync_data_store(out_handle)
