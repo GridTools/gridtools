@@ -33,26 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "mss.hpp"
-#include "reductions/reduction_descriptor.hpp"
+
+#include <common/split_args.hpp>
+
+#include <tuple>
+#include <type_traits>
+#include <gtest/gtest.h>
 
 namespace gridtools {
 
-    template < typename T1, typename T2, typename T3 >
-    struct mss_descriptor;
-    /**
-     * type traits for a-mss descriptor. Amss descriptor is any descriptor that implements the concept
-     * a MSS: currently mss_descriptor and reduction_descriptor
-     */
-    template < typename T >
-    struct amss_descriptor_is_reduction;
-
-    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSeq >
-    struct amss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSeq > >
-        : boost::mpl::false_ {};
-
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct amss_descriptor_is_reduction< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > >
-        : boost::mpl::true_ {};
+    TEST(split_args, functional) {
+        int val = 1;
+        const int c_val = 2;
+        auto testee = split_args< std::is_lvalue_reference >(42, c_val, 0., val, c_val);
+        static_assert(
+            std::is_same< decltype(testee),
+                std::pair< std::tuple< int const &, int &, int const & >, std::tuple< int &&, double && > > >{},
+            "");
+        EXPECT_EQ(std::make_tuple(2, 1, 2), testee.first);
+        EXPECT_EQ(std::make_tuple(42, 0.), testee.second);
+    }
 }

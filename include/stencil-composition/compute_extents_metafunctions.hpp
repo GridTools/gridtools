@@ -41,7 +41,6 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "../common/gt_assert.hpp"
-#include "amss_descriptor.hpp"
 #include "esf_metafunctions.hpp"
 #include "grid_traits_metafunctions.hpp"
 #include "linearize_mss_functions.hpp"

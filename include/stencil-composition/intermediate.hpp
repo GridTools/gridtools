@@ -59,7 +59,6 @@
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/max_element.hpp>
 
-#include "amss_descriptor.hpp"
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
@@ -112,14 +111,7 @@ namespace gridtools {
 
     template < typename Placeholder >
     struct create_view {
-        using type = typename _impl::get_view_t::apply< typename get_data_store_from_arg< Placeholder >::type >::type;
-    };
-
-    template < typename Placeholders >
-    struct create_view_fusion_map {
-        using arg_and_view_seq = boost::mpl::transform_view< Placeholders,
-            boost::fusion::pair< boost::mpl::_, create_view< boost::mpl::_ > > >;
-        using type = typename boost::fusion::result_of::as_map< arg_and_view_seq >::type;
+        using type = typename _impl::get_view< typename get_data_store_from_arg< Placeholder >::type >::type;
     };
 
     template < typename Backend, typename Placeholders, typename MssComponentsArray >
@@ -304,7 +296,12 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
 
-    template < uint_t RepeatFunctor, bool IsStateful, typename Backend, typename Grid, typename... MssDescriptors >
+    template < uint_t RepeatFunctor,
+        bool IsStateful,
+        class Backend,
+        class Grid,
+        class BoundPlaceholders,
+        class... MssDescriptors >
     class intermediate {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
@@ -315,12 +312,37 @@ namespace gridtools {
 
         using branch_selector_t = branch_selector< MssDescriptors... >;
         using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
+        using return_type = decltype(std::declval< branch_selector_t >().apply(_impl::dummy_run_f{}));
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::grid_traits_t grid_traits_t;
 
         using placeholders_t = typename extract_placeholders< all_mss_descriptors_t >::type;
-        using DomainType = aggregator_type< placeholders_t >;
+        using tmp_arg_storage_pair_fusion_list_t = typename boost::fusion::result_of::as_vector<
+            boost::mpl::transform_view< boost::mpl::filter_view< placeholders_t, is_tmp_arg< boost::mpl::_ > >,
+                _impl::l_get_arg_storage_pair_type > >::type;
+        using non_tmp_placeholders_t =
+            boost::mpl::filter_view< placeholders_t, boost::mpl::not_< is_tmp_arg< boost::mpl::_ > > >;
+
+        using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
+
+        template < class T >
+        using is_placeholder_in_domain = boost::mpl::contains< non_tmp_placeholders_t, T >;
+
+        GRIDTOOLS_STATIC_ASSERT((meta::apply< meta::all_of< is_placeholder_in_domain >, BoundPlaceholders >::value),
+            "some placeholders are not used in mss descriptors");
+
+        template < class T >
+        using placeholder_to_bound_arg_storage_pair = _impl::bound_arg_storage_pair< T, typename T::data_store_t >;
+
+        using bound_arg_storage_pair_fusion_list_t = meta::apply< meta::rename< std::tuple >,
+            meta::apply< meta::transform< placeholder_to_bound_arg_storage_pair >, BoundPlaceholders > >;
+
+        template < class T >
+        using placeholder_to_bound_arg_storage_pair_param_ctor = arg_storage_pair< T, typename T::data_store_t >;
+
+        using bound_arg_storage_pair_param_ctor_t = meta::apply< meta::rename< std::tuple >,
+            meta::apply< meta::transform< placeholder_to_bound_arg_storage_pair_param_ctor >, BoundPlaceholders > >;
 
       public:
         // First we need to compute the association between placeholders and extents.
@@ -342,19 +364,12 @@ namespace gridtools {
 
         typedef convert_to_mss_components_array_t< all_mss_descriptors_t > mss_components_array_t;
 
-        // creates a fusion sequence of views
-        typedef typename create_view_fusion_map< placeholders_t >::type view_list_fusion_t;
-
         // create storage_wrapper_list
         typedef typename create_storage_wrapper_list< Backend, placeholders_t, mss_components_array_t >::type
             storage_wrapper_list_t;
 
-        // create storage_wrapper_fusion_list
-        typedef
-            typename boost::fusion::result_of::as_vector< storage_wrapper_list_t >::type storage_wrapper_fusion_list_t;
-
         // get the maximum extent (used to retrieve the size of the temporaries)
-        typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_fusion_list_t >::type max_i_extent_t;
+        typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_list_t >::type max_i_extent_t;
 
       public:
         // creates an mpl sequence of local domains
@@ -366,21 +381,6 @@ namespace gridtools {
       private:
         // creates a fusion vector of local domains
         typedef typename boost::fusion::result_of::as_vector< mss_local_domains_t >::type mss_local_domain_list_t;
-
-        using arg_storage_pair_fusion_list_t = typename DomainType::arg_storage_pair_fusion_list_t;
-
-        // member fields
-        Grid m_grid;
-
-        performance_meter_t m_meter;
-
-        DomainType m_domain;
-
-        branch_selector_t m_branch_selector;
-
-        mss_local_domain_list_t m_mss_local_domain_list;
-        view_list_fusion_t m_view_list;
-        storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
         struct run_f {
             template < typename MssDescs >
@@ -394,46 +394,39 @@ namespace gridtools {
             }
         };
 
+        // member fields
+        Grid m_grid;
+        performance_meter_t m_meter;
+        branch_selector_t m_branch_selector;
+        storage_info_map_t m_storage_info_map;
+        tmp_arg_storage_pair_fusion_list_t m_tmp_arg_storage_pair_fusion_list;
+        bound_arg_storage_pair_fusion_list_t m_bound_arg_storage_pair_fusion_list;
+        mss_local_domain_list_t m_mss_local_domain_list;
+
       public:
-        template < typename... Msses >
-        intermediate(Grid const &grid, DomainType const &domain, Msses &&... msses)
-            : m_grid(grid), m_meter("NoName"), m_domain(domain), m_branch_selector(std::forward< Msses >(msses)...) {
+        intermediate(Grid const &grid,
+            bound_arg_storage_pair_param_ctor_t &&arg_storage_pairs,
+            std::tuple< MssDescriptors... > &&msses)
+            : m_grid(grid), m_meter("NoName"), m_branch_selector(std::move(msses)),
+              m_tmp_arg_storage_pair_fusion_list(dedup_storage_info(_impl::make_tmp_arg_storage_pairs< max_i_extent_t,
+                  Backend,
+                  storage_wrapper_list_t,
+                  tmp_arg_storage_pair_fusion_list_t >(grid))),
+              m_bound_arg_storage_pair_fusion_list(as_std_tuple(dedup_storage_info(std::move(arg_storage_pairs)))) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
-            // instantiate all the temporaries
-            boost::mpl::for_each< storage_wrapper_fusion_list_t >(
-                _impl::instantiate_tmps< max_i_extent_t, DomainType, Grid, Backend >(m_domain, m_grid));
-        }
-
-        void steady() {
-            // sync the data stores that should be synced
-            boost::fusion::for_each(get_arg_storage_pairs(), _impl::sync_data_stores());
-            // fill view list
-            _impl::instantiate_views< Backend >(get_arg_storage_pairs(), m_view_list);
-            // fill storage_wrapper_list
-            boost::fusion::for_each(
-                m_storage_wrapper_list, _impl::initialize_storage_wrappers< view_list_fusion_t >(m_view_list));
-            // setup the computation for given backend (e.g., move grid to device)
             typename Backend::setup_grid_f{}(m_grid);
-            // instantiate mss_local_domains and wrapped local_domains with the right view_wrappers
-            boost::fusion::for_each(m_mss_local_domain_list,
-                _impl::instantiate_mss_local_domain< Backend, storage_wrapper_fusion_list_t, DomainType, IsStateful >(
-                                        m_storage_wrapper_list, m_domain));
+            update_local_domains(make_joint_view(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
+                make_view_infos(m_bound_arg_storage_pair_fusion_list)));
         }
 
-        void sync_all() {
-            // sync the data stores that should be synced
-            boost::fusion::for_each(get_arg_storage_pairs(), _impl::sync_data_stores());
-        }
+        void sync_all() { boost::fusion::for_each(m_bound_arg_storage_pair_fusion_list, _impl::sync_f{}); }
 
-        decltype(std::declval< branch_selector_t >().apply(_impl::dummy_run_f{})) run() {
-            // check if all views are still consistent, otherwise we have to call steady again
-            _impl::check_view_consistency< DomainType > check_views(m_domain);
-            boost::fusion::for_each(m_view_list, check_views);
-            if (!check_views.is_consistent()) {
-                steady();
-            }
-
+        template < class... Args, class... DataStores >
+        return_type run(arg_storage_pair< Args, DataStores > const &... src) {
+            // TODO(anstaf): check that src is legit
+            update_local_domains(make_joint_view(make_view_infos(m_bound_arg_storage_pair_fusion_list),
+                make_view_infos(dedup_storage_info(boost::fusion::make_vector(std::cref(src)...)))));
             m_meter.start();
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
             m_meter.pause();
@@ -448,10 +441,23 @@ namespace gridtools {
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
-        // TODO(anstaf): This accessor breaks encapsulation and needed only for intermedite_expand implementation.
-        //               Refactor ASAP.
-        arg_storage_pair_fusion_list_t &get_arg_storage_pairs() { return m_domain.get_arg_storage_pairs(); }
-        arg_storage_pair_fusion_list_t const &get_arg_storage_pairs() const { return m_domain.get_arg_storage_pairs(); }
+      private:
+        template < class Src >
+        static auto make_view_infos(Src &src)
+            GT_AUTO_RETURN(make_transform_view(src, _impl::make_view_info_f< Backend >{}));
+
+        template < class Src >
+        static auto make_view_infos(Src const &src)
+            GT_AUTO_RETURN(make_transform_view(src, _impl::make_view_info_f< Backend >{}));
+
+        template < class Views >
+        void update_local_domains(Views const &views) {
+            _impl::update_local_domains< Backend >(views, m_mss_local_domain_list);
+        }
+
+        template < class Seq >
+        auto dedup_storage_info(const Seq &seq) GT_AUTO_RETURN(
+            boost::fusion::transform(seq, _impl::dedup_storage_info_f< storage_info_map_t >{m_storage_info_map}));
     };
 
     /**

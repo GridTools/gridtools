@@ -61,8 +61,16 @@ namespace gridtools {
             \param i The index of the pointer in the arrays of raw pointers
         */
         template < typename DataView >
-        inline typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
+        typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i];
+        }
+
+        template < typename Src, typename Dst >
+        void copy_raw_pointers(Src const &src, Dst &dst) {
+            using std::copy;
+            using std::begin;
+            using std::end;
+            copy(begin(src.m_raw_ptrs), end(src.m_raw_ptrs), begin(dst));
         }
 
         /** Function to obtain the address of the first element of the view,
@@ -259,6 +267,9 @@ namespace gridtools {
 
         template < typename T >
         friend typename T::data_t *advanced::get_initial_address_of(T const &, int);
+
+        template < typename Src, typename Dst >
+        friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
     };
 
     template < typename T >

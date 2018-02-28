@@ -160,12 +160,6 @@ namespace horizontal_diffusion {
         typedef arg< 4, storage_type > p_in;
         typedef arg< 5, storage_type > p_out;
 
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_lap, p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_coeff() = coeff));
-
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
@@ -182,8 +176,10 @@ namespace horizontal_diffusion {
         */
 
         auto horizontal_diffusion = gridtools::make_computation< backend_t >(
-            domain,
             grid,
+            p_in() = in,
+            p_out() = out,
+            p_coeff() = coeff,         // assign placeholders
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
@@ -193,7 +189,6 @@ namespace horizontal_diffusion {
                     gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
                 gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
-        horizontal_diffusion.steady();
         horizontal_diffusion.run();
 
         repository.out().sync();

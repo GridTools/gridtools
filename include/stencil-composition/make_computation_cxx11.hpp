@@ -39,6 +39,8 @@
 #include <utility>
 
 #include "../common/defs.hpp"
+#include "../common/split_args.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 #include "expandable_parameters/expand_factor.hpp"
 #include "expandable_parameters/intermediate_expand.hpp"
 #include "intermediate.hpp"
@@ -46,10 +48,28 @@
 namespace gridtools {
     namespace _impl {
 
-        template < bool Positional, typename Backend, typename Domain, typename Grid, typename... MssDescriptorTrees >
-        intermediate< 1, Positional, Backend, Grid, typename std::decay< MssDescriptorTrees >::type... >
-        make_computation(Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return {grid, std::forward< Domain >(domain), std::forward< MssDescriptorTrees >(mss_descriptor_trees)...};
+        template < typename T >
+        using get_placeholder = typename std::decay< T >::type::arg_t;
+
+        template < typename Src >
+        using get_placeholders = meta::apply< meta::transform< get_placeholder >, Src >;
+
+        template < typename T >
+        using is_arg_storage_pair_decayed = is_arg_storage_pair< meta::t_< std::decay< T > > >;
+
+        template < bool Positional,
+            typename Backend,
+            typename Grid,
+            typename ArgStoragePairs,
+            typename... MssDescriptorTrees >
+        intermediate< 1,
+            Positional,
+            Backend,
+            Grid,
+            get_placeholders< ArgStoragePairs >,
+            meta::t_< std::decay< MssDescriptorTrees > >... >
+        make_computation(const Grid &grid, std::pair< ArgStoragePairs, std::tuple< MssDescriptorTrees... > > &&args) {
+            return {grid, std::move(args.first), std::move(args.second)};
         }
 
         template < typename Expand,
@@ -67,9 +87,10 @@ namespace gridtools {
             typename Backend,
             typename Arg,
             typename... Args,
-            typename std::enable_if< is_aggregator_type< typename std::decay< Arg >::type >::value, int >::type = 0 >
-        auto make_computation_dispatch(Arg &&arg, Args &&... args) GT_AUTO_RETURN(
-            (make_computation< Positional, Backend >(std::forward< Arg >(arg), std::forward< Args >(args)...)));
+            typename std::enable_if< is_grid< typename std::decay< Arg >::type >::value, int >::type = 0 >
+        auto make_computation_dispatch(Arg &&arg, Args &&... args)
+            GT_AUTO_RETURN((make_computation< Positional, Backend >(
+                std::forward< Arg >(arg), split_args< is_arg_storage_pair_decayed >(std::forward< Args >(args)...))));
 
         template < bool Positional,
             typename Backend,

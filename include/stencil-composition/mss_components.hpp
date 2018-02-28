@@ -38,7 +38,7 @@
 #include "reductions/reduction_descriptor.hpp"
 #include "esf_metafunctions.hpp"
 #include "mss_metafunctions.hpp"
-#include "./linearize_mss_functions.hpp"
+#include "linearize_mss_functions.hpp"
 #include "functor_decorator.hpp"
 
 namespace gridtools {

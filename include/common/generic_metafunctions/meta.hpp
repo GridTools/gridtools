@@ -544,11 +544,23 @@ namespace gridtools {
             using type = flatten< list< Lists... > >;
         };
 
+        template < class, class... >
+        struct lazy_push_front;
+        template < template < class... > class L, class... Us, class... Ts >
+        struct lazy_push_front< L< Us... >, Ts... > {
+            using type = L< Ts..., Us... >;
+        };
         template < class List, class... Ts >
-        using push_front = concat< apply< ctor< List >, Ts... >, List >;
+        using push_front = t_< lazy_push_front< List, Ts... > >;
 
+        template < class, class... >
+        struct lazy_push_back;
+        template < template < class... > class L, class... Us, class... Ts >
+        struct lazy_push_back< L< Us... >, Ts... > {
+            using type = L< Us..., Ts... >;
+        };
         template < class List, class... Ts >
-        using push_back = concat< List, list< Ts... > >;
+        using push_back = t_< lazy_push_back< List, Ts... > >;
 
         /**
          *  Zip lists
