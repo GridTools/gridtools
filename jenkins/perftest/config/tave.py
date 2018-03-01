@@ -25,7 +25,7 @@ def sbatch(command):
     return textwrap.dedent(f"""\
         #!/bin/bash -l
         #SBATCH --job-name=gridtools_perftest
-        #SBATCH --time=00:15:00
+        #SBATCH --time=00:10:00
         #SBATCH --constraint=flat,quad
         #SBATCH --reservation=knl
 
