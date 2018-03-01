@@ -162,4 +162,4 @@ def compare(results):
               if all(first[k] == r[k] for r in rest)}
     diff = [{k: v for k, v in r.items() if k not in common.keys()}
             for r in results]
-    return Data(common), Data(diff)
+    return Data(common), [Data(d) for d in diff]

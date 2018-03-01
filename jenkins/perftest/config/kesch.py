@@ -43,8 +43,8 @@ def sbatch(command):
         #!/bin/bash -l
         #SBATCH --job-name=gridtools_perftest
         #SBATCH --partition=debug
-        #SBATCH --time=00:15:00
         #SBATCH --gres=gpu:1
+        #SBATCH --time=00:10:00
 
         module load cudatoolkit/8.0.61
 
@@ -54,8 +54,6 @@ def sbatch(command):
         export G2G=1
 
         export OMP_PROC_BIND=true
-        export OMP_PLACES=threads
-        export OMP_NUM_THREADS=12
 
         export MALLOC_MMAP_MAX_=0
         export MALLOC_TRIM_THRESHOLD_=536870912

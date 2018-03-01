@@ -27,7 +27,7 @@ def discrete_colors(n):
 
 def get_titles(results):
     """Generates plot titles."""
-    common, diff = result.compare(r.runtime for r in results)
+    common, diff = result.compare([r.runtime for r in results])
 
     def titlestr(v):
         if isinstance(v, time.datetime):
