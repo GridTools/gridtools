@@ -10,13 +10,16 @@ def plot(args):
     import perftest.plot
     import perftest.result
 
+    # load results from files
     results = [perftest.result.load(f) for f in args.input]
 
+    # plot
     if mode == 'compare':
         fig = perftest.plot.compare(results)
     elif mode == 'history':
         fig = perftest.plot.history(results)
 
+    # save result
     fig.savefig(args.output)
 
 
@@ -25,10 +28,16 @@ def run(args):
     import perftest.result
     import perftest.runtime
 
+    # load configuration for current machine
     config = perftest.config.load(args.config)
 
+    # get runtime
     rt = config.runtime(args.runtime, args.grid, args.precision, args.backend)
+
+    # run jobs
     result = rt.run(args.domain, args.runs)
+
+    # save result
     perftest.result.save(args.output, result)
 
 
@@ -39,6 +48,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers(dest='action', help='Action to perform')
     subparsers.required = True
 
+    # command line aguments for `run` action
     run_parser = subparsers.add_parser('run')
     run_parser.set_defaults(func=run)
     run_parser.add_argument('--runtime', '-r', required=True,
@@ -54,6 +64,7 @@ if __name__ == '__main__':
     run_parser.add_argument('--output', '-o', required=True)
     run_parser.add_argument('--config', '-c')
 
+    # command line aguments for `plot` action
     plot_parser = subparsers.add_parser('plot')
     plot_parser.set_defaults(func=plot)
     plot_parser.add_argument('--mode', '-m', default='compare',
