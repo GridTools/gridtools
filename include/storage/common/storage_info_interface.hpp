@@ -186,7 +186,9 @@ namespace gridtools {
          * @param indices pack of offsets
          * @return index
          */
-        template < typename IntT, typename... Args >
+        template < typename IntT,
+            typename... Args,
+            typename std::enable_if< std::is_integral< IntT >::value, int >::type = 0 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) == ndims), int >::type index_part(
             gridtools::array< IntT, ndims > const &idx, Args... indices) const {
             return index(indices...);

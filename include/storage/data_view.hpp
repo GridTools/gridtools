@@ -164,7 +164,7 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        template < typename IntT > // TODO protection?
+        template < typename IntT = int, typename std::enable_if< std::is_integral< IntT >::value, int >::type = 0 >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(gridtools::array< IntT, storage_info_t::ndims > const &arr) const {
             return m_raw_ptrs[0][m_storage_info->index(arr)];
