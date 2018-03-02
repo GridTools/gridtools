@@ -14,9 +14,9 @@ def plot(args):
     results = [perftest.result.load(f) for f in args.input]
 
     # plot
-    if mode == 'compare':
+    if args.mode == 'compare':
         fig = perftest.plot.compare(results)
-    elif mode == 'history':
+    elif args.mode == 'history':
         fig = perftest.plot.history(results)
 
     # save result

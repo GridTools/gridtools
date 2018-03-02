@@ -2,7 +2,7 @@
 
 import json
 
-from perftest import ArgumentError, logger, time
+from perftest import ArgumentError, logger, ParseError, time
 
 
 version = 0.1
@@ -93,7 +93,6 @@ def save(filename, data):
     logger.info(f'Successfully saved result to {filename}')
 
 
-
 def load(filename):
     """Loads result data from the given json file.
 
@@ -130,8 +129,8 @@ def load(filename):
                     times=times_data,
                     config=config_data,
                     domain=data['domain'],
-                    datetime=time.from_timestr(data['datetime'],
-                    version=data['version']))
+                    datetime=time.from_timestr(data['datetime']),
+                    version=data['version'])
     logger.info(f'Successfully loaded result from {filename}')
     return result
 
