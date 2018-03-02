@@ -46,7 +46,7 @@
 #include "independent_esf.hpp"
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids//accessor_metafunctions.hpp"
+#include "structured_grids/accessor_metafunctions.hpp"
 #include "structured_grids/esf_metafunctions.hpp"
 #else
 #include "icosahedral_grids/accessor_metafunctions.hpp"
@@ -285,7 +285,6 @@ namespace gridtools {
             boost::mpl::insert< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type type;
     };
 
-#ifdef CUDA8
     /*
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
@@ -295,13 +294,11 @@ namespace gridtools {
         template < typename Pair >
         struct _check {
             using type = static_bool<
-                accumulate_tparams_until< int_t, equal, logical_and, typename Pair::second, Extent, Limit >::value >;
+                accumulate_tparams_until< equal, logical_and, typename Pair::second, Extent, Limit >::value >;
         };
 
         typedef typename is_sequence_of< VectorOfPairs, _check >::type type;
     };
-
-#endif
 
     /*
       Given an array of pairs (placeholder, extent) checks if all

@@ -36,17 +36,16 @@
 
 #pragma once
 
-#include <tools/verifier.hpp>
+#include "../benchmarker.hpp"
 #include "curl_functors.hpp"
 #include "div_functors.hpp"
 #include "grad_functors.hpp"
 #include "operators_repository.hpp"
-#include "../benchmarker.hpp"
+#include <tools/verifier.hpp>
 
 namespace ico_operators {
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
     template < uint_t Color >
     struct lap_functor {
@@ -56,7 +55,8 @@ namespace ico_operators {
         typedef in_accessor< 3, icosahedral_topology_t::edges > edge_length_reciprocal;
         typedef inout_accessor< 4, icosahedral_topology_t::edges > out_edges;
         typedef boost::mpl::
-            vector< in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges > arg_list;
+            vector< in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges >
+                arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
@@ -90,12 +90,10 @@ namespace ico_operators {
 
         typedef gridtools::layout_map< 2, 1, 0 > layout_t;
 
-        array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-        array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+        halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+        halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, d3);
 
         using edge_storage_type = repository::edge_storage_type;
         using vertex_storage_type = repository::vertex_storage_type;
@@ -172,7 +170,8 @@ namespace ico_operators {
                 p_dual_area_reciprocal,
                 p_dual_edge_length,
                 p_curl_weights,
-                p_edge_orientation > accessor_list_t;
+                p_edge_orientation >
+                accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(edge_length,
                 cell_area_reciprocal,
@@ -229,7 +228,8 @@ namespace ico_operators {
                 p_curl_on_vertices,
                 p_dual_edge_length_reciprocal,
                 p_edge_length_reciprocal,
-                p_out_edges > accessor_list_t;
+                p_out_edges >
+                accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
                 in_edges, div_weights, curl_weights, dual_edge_length_reciprocal, edge_length_reciprocal, out_edges);
@@ -300,7 +300,8 @@ namespace ico_operators {
                 p_curl_on_vertices,
                 p_dual_edge_length_reciprocal,
                 p_edge_length_reciprocal,
-                p_out_edges > accessor_list_t;
+                p_out_edges >
+                accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(in_edges,
                 edge_length,

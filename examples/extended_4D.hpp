@@ -35,44 +35,43 @@
 */
 #pragma once
 
+#include <boost/type_traits/conditional.hpp>
+
 #include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
 #include "extended_4D_verify.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef __CUDACC__
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< 1, 2, 3, 0 > > metadata_local_quad_t;
-#endif
+using layout_map_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< 3, 4, 5, 0, 1, 2 >,
+    layout_map< 5, 4, 3, 2, 1, 0 > >::type;
+using layout_map_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< 1, 2, 3, 0 >,
+    layout_map< 3, 2, 1, 0 > >::type;
 
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_t;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_global_quad_t > storage_global_quad_t;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad_t > storage_local_quad_t;
+template < unsigned Id, typename Layout >
+using special_storage_info_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< Id,
+    Layout,
+    zero_halo< Layout::masked_length > >::type;
+
+using storage_info_t = special_storage_info_t< 0, layout_map_t >;
+using storage_info_global_quad_t = special_storage_info_t< 1, layout_map_quad_t >;
+using storage_info_local_quad_t = special_storage_info_t< 2, layout_map_quad_t >;
+
+using storage_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_t >;
+using storage_global_quad_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_global_quad_t >;
+using storage_local_quad_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_local_quad_t >;
 
 /**
   @file
   @brief This file shows a possible usage of the extension to storages with more than 3 space dimensions.
 
   We recall that the space dimensions simply identify the number of indexes/strides required to access
-  a contiguous chunck of storage. The number of space dimensions is fully arbitrary.
+  a contiguous chunk of storage. The number of space dimensions is fully arbitrary.
 
   In particular, we show how to perform a nested inner loop on the extra dimension(s). Possible scenarios
   where this can be useful could be:
@@ -102,7 +101,7 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad
 
 namespace assembly {
 
-    /**this is a user-defined class which will be used from whithin the user functor
+    /**this is a user-defined class which will be used from within the user functor
      by calling its  operator(). It can represent in this case values which are local to the elements
      e.g. values of the basis functions in the quad points. */
     template < typename ValueType, typename Layout, uint_t... Dims >
@@ -128,9 +127,6 @@ namespace assembly {
         value_type m_values[accumulate(multiplies(), Dims...)];
     };
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     struct integration {
         typedef global_accessor< 0 > phi_t;
         typedef global_accessor< 1 > psi_t;
@@ -140,7 +136,7 @@ namespace assembly {
         typedef boost::mpl::vector< phi_t, psi_t, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             dimension< 1 > i;
             dimension< 2 > j;
             dimension< 3 > k;
@@ -159,14 +155,14 @@ namespace assembly {
                         // check the initialization to 0
                         assert(eval(result(i, j, k, di + I, dj + J, dk + K)) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result(di + I, dj + J, dk + K, qp)) +=
+                            eval(result(di + I, dj + J, dk + K)) +=
                                 eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
                                      phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
                                          f{i, j, k, di + 1, dj, dk} +
                                      phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
                                          f{i, j, k, di, dj + 1, dk} +
                                      phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
-                                         f{i, k, k, di, dj, dk + 1} +
+                                         f{i, j, k, di, dj, dk + 1} +
                                      phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
                                          f{i, j, k, di + 1, dj + 1, dk} +
                                      phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
@@ -181,8 +177,6 @@ namespace assembly {
         }
     };
 
-    std::ostream &operator<<(std::ostream &s, integration const) { return s << "integration"; }
-
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
         static const uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
@@ -195,13 +189,13 @@ namespace assembly {
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
-        metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
-        storage_global_quad_t jac(integration_metadata, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
+        storage_info_global_quad_t integration_storage_info(d1, d2, d3, nbQuadPt);
+        storage_global_quad_t jac(integration_storage_info, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
 
-        auto g_phi = BACKEND::make_global_parameter(phi);
-        auto g_psi = BACKEND::make_global_parameter(psi);
+        auto g_phi = backend_t::make_global_parameter(phi);
+        auto g_psi = backend_t::make_global_parameter(psi);
 
-        metadata_t meta_(d1, d2, d3, b1, b2, b3);
+        storage_info_t meta_(d1, d2, d3, b1, b2, b3);
         storage_t f(meta_, (float_type)1.3, "f");
         storage_t result(meta_, (float_type)0., "result");
 
@@ -213,25 +207,23 @@ namespace assembly {
 
         typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
 
-        gridtools::aggregator_type< accessor_list > domain(
+        aggregator_type< accessor_list > domain(
             (p_phi() = g_phi), (p_psi() = g_psi), (p_jac() = jac), (p_f() = f), (p_result() = result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
            hile the vertical ones are set according the the axis property soon after
         */
-        uint_t di[5] = {1, 1, 1, d1 - 3, d1};
-        uint_t dj[5] = {1, 1, 1, d2 - 3, d2};
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 2;
+        halo_descriptor di{1, 1, 1, d1 - 3, d1};
+        halo_descriptor dj{1, 1, 1, d2 - 3, d2};
+        auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp = make_computation< gridtools::BACKEND >(
-            domain,
-            grid,
-            make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
-            (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+        auto fe_comp =
+            make_computation< backend_t >(domain,
+                grid,
+                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
+                (execute< forward >(), //!\todo parameter used only for overloading purpose?
+                                              make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

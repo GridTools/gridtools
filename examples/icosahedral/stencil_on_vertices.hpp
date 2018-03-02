@@ -33,33 +33,22 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
-#include "../benchmarker.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace sov {
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-    using backend_t = BACKEND;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
     template < uint_t Color >
     struct test_on_vertices_functor {
@@ -85,7 +74,7 @@ namespace sov {
         uint_t d3 = z;
 
         using vertex_storage_type =
-            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, double >;
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -117,12 +106,11 @@ namespace sov {
         typedef boost::mpl::vector< p_in_vertices, p_out_vertices > accessor_list_t;
 
         gridtools::aggregator_type< accessor_list_t > domain(in_vertices, out_vertices);
-        array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-        array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+        halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+
+        auto grid_ = make_grid(di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,

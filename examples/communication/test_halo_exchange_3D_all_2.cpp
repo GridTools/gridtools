@@ -245,8 +245,11 @@ namespace halo_exchange_3D_all_2 {
         gettimeofday(&start_tv, NULL);
 
         he.post_receives();
+#ifdef VECTOR_INTERFACE
         he.pack(vect);
-
+#else
+        he.pack(vect[0], vect[1], vect[2]);
+#endif
         //  MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop1_tv, NULL);
 
@@ -257,7 +260,11 @@ namespace halo_exchange_3D_all_2 {
         // MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop2_tv, NULL);
 
+#ifdef VECTOR_INTERFACE
         he.unpack(vect);
+#else
+        he.unpack(vect[0], vect[1], vect[2]);
+#endif
 
         MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop3_tv, NULL);
@@ -450,6 +457,7 @@ namespace halo_exchange_3D_all_2 {
 #ifdef GCL_TRACE
         gridtools::stats_collector_3D.recording(true);
 #endif
+
 #ifdef BENCH
         for (int i = 0; i < BENCH; ++i) {
             file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";

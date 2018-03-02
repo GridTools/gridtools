@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../common/gpu_clone.hpp"
 #include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
-#include "../../common/gpu_clone.hpp"
-#include "unstructured_mesh.hpp"
 #include "topology_traits.hpp"
+#include "unstructured_mesh.hpp"
 
 namespace gridtools {
 
@@ -84,10 +84,11 @@ namespace gridtools {
             typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
                                              is_unstructured_mesh< GridTopology >::value,
                 int >::type = 0 >
-        explicit grid(const array< uint_t, 5 > &i, const array< uint_t, 5 > &j, GridTopology &umesh)
-            : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
-                  halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
-              m_umesh(&umesh) {}
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const decltype(grid_base< Axis >::value_list) &value_list,
+            GridTopology &umesh)
+            : grid_base< Axis >(direction_i, direction_j, value_list), m_umesh(&umesh) {}
 
         // ctr API of the grid that uses an structured topology. Since no runtime
         // mesh information is required, the ctr only accepts domain size properties
@@ -110,6 +111,26 @@ namespace gridtools {
             assert(m_umesh);
             return *m_umesh;
         }
+        template < typename T = GridTopology,
+            typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
+                                             !is_unstructured_mesh< GridTopology >::value,
+                int >::type = 0 >
+        DEPRECATED_REASON(
+            GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
+            "This constructor does not initialize the vertical axis, use the constructor with 4 arguments.")
+            : grid_base< Axis >(direction_i, direction_j) {}
+
+        template < typename T = GridTopology,
+            typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
+                                             !is_unstructured_mesh< GridTopology >::value,
+                int >::type = 0 >
+        GT_FUNCTION explicit grid(GridTopology &grid_topology,
+            halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const decltype(grid_base< Axis >::value_list) &value_list)
+            : grid_base< Axis >(direction_i, direction_j, value_list) {}
+
+        GT_FUNCTION grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         unstructured_mesh_t const &grid_topology() const {
@@ -123,4 +144,29 @@ namespace gridtools {
 
     template < typename Axis, typename GridTopology >
     struct is_grid< grid< Axis, GridTopology > > : boost::mpl::true_ {};
+
+    template < typename Axis, typename GridTopology >
+    GT_FUNCTION_HOST grid< typename Axis::axis_interval_t, GridTopology > make_grid(
+        GridTopology grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j, Axis axis) {
+        return grid< typename Axis::axis_interval_t, GridTopology >(
+            grid_topology, direction_i, direction_j, _impl::intervals_to_indices(axis.interval_sizes()));
+    }
+    template < typename GridTopology >
+    GT_FUNCTION_HOST grid< axis< 1 >::axis_interval_t, GridTopology > make_grid(
+        GridTopology grid_topology, uint_t di, uint_t dj, uint_t dk) {
+        return make_grid(grid_topology, halo_descriptor(di), halo_descriptor(dj), axis< 1 >(dk));
+    }
+    template < typename Axis, typename GridTopology >
+    GT_FUNCTION_HOST grid< typename Axis::axis_interval_t, GridTopology > make_grid(
+        GridTopology grid_topology, uint_t di, uint_t dj, Axis axis) {
+        return grid< typename Axis::axis_interval_t, GridTopology >(grid_topology,
+            halo_descriptor(di),
+            halo_descriptor(dj),
+            _impl::intervals_to_indices(axis.interval_sizes()));
+    }
+    template < typename GridTopology >
+    GT_FUNCTION_HOST grid< axis< 1 >::axis_interval_t, GridTopology > make_grid(
+        GridTopology grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j, uint_t dk) {
+        return make_grid(grid_topology, direction_i, direction_j, axis< 1 >(dk));
+    }
 }

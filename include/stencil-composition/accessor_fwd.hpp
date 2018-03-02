@@ -46,7 +46,7 @@ namespace gridtools {
     struct is_accessor;
 
     template < typename T >
-    struct is_any_accessor;
+    struct is_grid_accessor;
 
     /**
      * Struct to test if an argument is a temporary

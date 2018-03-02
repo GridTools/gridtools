@@ -37,25 +37,10 @@
 #include <iostream>
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND_ARCH Host
-typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
-#else
-#define BACKEND_ARCH Host
-typedef backend< BACKEND_ARCH, GRIDBACKEND, Naive > be;
-#endif
-#endif
-
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
 namespace data_store_field_test {
 
@@ -67,7 +52,7 @@ namespace data_store_field_test {
         typedef boost::mpl::vector< pin, pout > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             // copy first component elements
             eval(pout(comp(0), snap(0))) = eval(pin(comp(0), snap(0)));
             // copy second component elements
@@ -85,10 +70,10 @@ namespace data_store_field_test {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
-        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_ty >
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_ty >
             data_store_t; // data store type
-        typedef storage_traits< BACKEND_ARCH >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
+        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
             data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
         storage_info_ty si(d1, d2, d3);
@@ -127,19 +112,17 @@ namespace data_store_field_test {
 
         uint_t halo_size = 0;
 
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - 1 - halo_size, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - 1 - halo_size, d2};
 
-        grid< axis > gr(di, dj);
-        gr.value_list[0] = 0;
-        gr.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, d3);
 
-        auto comp = make_computation< be >(domain,
-            gr,
+        auto comp = make_computation< backend_t >(domain,
+            grid_,
             make_multistage(execute< forward >(),
-                                               define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
-                                               make_stage< A >(p_in(), p_tmp()),
-                                               make_stage< A >(p_tmp(), p_out())));
+                                                      define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
+                                                      make_stage< A >(p_in(), p_tmp()),
+                                                      make_stage< A >(p_tmp(), p_out())));
 
         comp->ready();
         comp->steady();

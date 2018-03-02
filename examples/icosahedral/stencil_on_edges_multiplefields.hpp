@@ -41,33 +41,22 @@
  * sum_reduce(edges) {sign_edge * lengh_edge}
  * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
  */
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
-#include "../benchmarker.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace soem {
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-    using backend_t = BACKEND;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
     template < uint_t Color >
     struct test_on_edges_functor {
@@ -91,7 +80,8 @@ namespace soem {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
+        using edge_storage_type =
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::edges, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -128,12 +118,11 @@ namespace soem {
         typedef boost::mpl::vector< p_in_edges1, p_in_edges2, p_out_edges > accessor_list_t;
 
         gridtools::aggregator_type< accessor_list_t > domain(in_edges1, in_edges2, out_edges);
-        array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-        array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+        halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+
+        auto grid_ = make_grid(di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,

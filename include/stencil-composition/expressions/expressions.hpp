@@ -38,6 +38,7 @@
 #include "common/defs.hpp"
 #include "common/string_c.hpp"
 #include "common/gt_math.hpp"
+#include "common/dimension.hpp"
 
 /**@file
    @brief Expression templates definition.

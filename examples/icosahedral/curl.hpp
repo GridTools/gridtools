@@ -35,14 +35,14 @@
 */
 #pragma once
 
+#include "../benchmarker.hpp"
+#include "curl_functors.hpp"
+#include "operator_defs.hpp"
+#include "operators_repository.hpp"
+#include "tools/verifier.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "operators_repository.hpp"
-#include "../benchmarker.hpp"
-#include "operator_defs.hpp"
-#include "curl_functors.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -89,12 +89,10 @@ namespace ico_operators {
 
         curl_weights = vertices_4d_storage_type(*curl_weights.get_storage_info_ptr(), 0.0);
 
-        array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-        array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+        halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+        halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, d3);
 
         bool result = true;
 

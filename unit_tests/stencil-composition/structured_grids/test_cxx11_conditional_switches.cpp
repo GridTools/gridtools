@@ -35,26 +35,12 @@
 */
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/conditionals/condition_pool.hpp>
+
+#include "backend_select.hpp"
 
 namespace test_conditional_switches {
     using namespace gridtools;
     using namespace enumtype;
-
-#define BACKEND_BLOCK
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     template < uint_t Id >
     struct functor1 {
@@ -65,7 +51,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -79,7 +65,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -87,16 +73,14 @@ namespace test_conditional_switches {
     bool test() {
 
         bool p = true;
-        auto cond_ = new_switch_variable([&p]() { return p ? 0 : 5; });
-        auto nested_cond_ = new_switch_variable([]() { return 1; });
-        auto other_cond_ = new_switch_variable([&p]() { return p ? 1 : 2; });
+        auto cond_ = [&p]() { return p ? 0 : 5; };
+        auto nested_cond_ = []() { return 1; };
+        auto other_cond_ = [&p]() { return p ? 1 : 2; };
 
-        grid< axis > grid_({0, 0, 0, 0, 1}, {0, 0, 0, 0, 1});
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = 1;
+        auto grid_ = make_grid(1, 1, 2);
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
             data_store_t;
 
         storage_info_t meta_data_(8, 8, 8);
@@ -107,7 +91,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
         aggregator_type< arg_list > domain_(dummy);
 
-        auto comp_ = make_computation< BACKEND >(
+        auto comp_ = make_computation< backend_t >(
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),

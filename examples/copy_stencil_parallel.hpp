@@ -49,6 +49,8 @@
 #include <tools/mpi_unit_test_driver/mpi_listener.hpp>
 #include <tools/mpi_unit_test_driver/device_binding.hpp>
 
+#include "backend_select.hpp"
+
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/
 
@@ -60,19 +62,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#else
-#define BACKEND_ARCH Host
-#endif
-
-using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
-
 namespace copy_stencil {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         typedef accessor< 0, enumtype::in > in;
@@ -81,7 +71,7 @@ namespace copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -110,8 +100,8 @@ namespace copy_stencil {
         MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
 
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > storage_t;
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
 
         typedef gridtools::halo_exchange_dynamic_ut< typename storage_info_t::layout_t,
             gridtools::layout_map< 0, 1, 2 >,
@@ -175,10 +165,9 @@ namespace copy_stencil {
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
-            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]});
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
+            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
+            d3);
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
@@ -187,7 +176,7 @@ namespace copy_stencil {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
-        auto copy = gridtools::make_computation< BACKEND >(domain,
+        auto copy = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
@@ -225,7 +214,7 @@ namespace copy_stencil {
         halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
         typename gridtools::boundary< boundary_conditions,
-            BACKEND_ARCH,
+            backend_t::s_backend_id,
             typename gridtools::proc_grid_predicate< decltype(c_grid) > >(
             halos, boundary_conditions(), gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
             .apply(in, out);
