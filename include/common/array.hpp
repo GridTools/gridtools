@@ -170,13 +170,13 @@ namespace gridtools {
     class tuple_size< array< T, D > > : public gridtools::static_size_t< D > {};
 
     template < size_t I, typename T, size_t D >
-    constexpr T &get(array< T, D > &arr) noexcept {
+    GT_FUNCTION constexpr T &get(array< T, D > &arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
         return arr[I];
     }
 
     template < size_t I, typename T, size_t D >
-    constexpr const T &get(const array< T, D > &arr) noexcept {
+    GT_FUNCTION constexpr const T &get(const array< T, D > &arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
         return arr[I];
     }

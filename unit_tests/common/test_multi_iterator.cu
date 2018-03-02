@@ -37,29 +37,40 @@
 #include "test_multi_iterator.cpp"
 
 static const uint_t Size = 2;
-using result_t = gridtools::array< size_t, Size * Size >;
+// using result_t = gridtools::array< size_t, Size * Size >;
 
-GT_FUNCTION int linear_index(size_t a, size_t b) { return a * Size + b; }
+GT_FUNCTION int linear_index(gridtools::array< size_t, 2 > &index) { return index[0] * Size + index[1]; }
 
-__global__ void exec(result_t *out_ptr) {
-    result_t &out = *out_ptr;
+__global__ void test_kernel1234(int *out_ptr) {
+    //    int &out = *out_ptr;
+    //    printf("bla\n");
 
-    for (size_t i = 0; i < Size * Size; ++i)
-        out[i] = 0;
-
-    // fill the array with its linearized index
-    make_multi_iterator(Size, Size).iterate([&](size_t a, size_t b) { out[linear_index(a, b)] = linear_index(a, b); });
+    //    for (size_t i = 0; i < Size * Size; ++i)
+    //        out[i] = 0;
+    //    for (size_t i = 0; i < Size * Size; ++i)
+    //        out_ptr[i] = 1;
+    //
+    //    auto cube_view = make_hypercube_view(hypercube< 2 >{range{0, Size}, range{0, Size}});
+    //
+    //    // fill the array with its linearized index
+    //    for (auto pos : cube_view) {
+    //        printf("pos: %d/%d\n", pos[0], pos[1]);
+    //        out_ptr[linear_index(pos)] = linear_index(pos);
+    //    }
+    out_ptr[0] = 123;
+    out_ptr[2] = 123;
 };
 
 TEST(multi_iterator, iterate_on_device) {
-    result_t *out;
-    cudaMalloc(&out, sizeof(result_t));
+    int *out;
+    cudaMalloc(&out, sizeof(int) * Size * Size);
 
-    exec<<< 1, 1 >>>(out);
+    //        test_kernel1234<<< 32, 32 >>>(out);
+    //    cudaDeviceSynchronize();
 
-    result_t host_out;
-    cudaMemcpy(&host_out, out, sizeof(result_t), cudaMemcpyDeviceToHost);
+    int host_out[Size * Size];
+    cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost);
 
     for (size_t i = 0; i < Size * Size; ++i)
-        ASSERT_EQ(i, host_out[i]);
+        ASSERT_EQ(i, host_out[i]) << "at i = " << i;
 }

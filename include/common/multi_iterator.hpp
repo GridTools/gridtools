@@ -61,7 +61,7 @@ namespace gridtools {
          * @brief returns the I-th entry of each element (array or tuple) of the array as an array
          */
         template < size_t I, size_t D, typename Pair >
-        array< size_t, D > transpose(const array< Pair, D > &container_of_pairs) {
+        GT_FUNCTION array< size_t, D > transpose(const array< Pair, D > &container_of_pairs) {
             array< size_t, D > tmp;
             for (size_t i = 0; i < D; ++i)
                 tmp[i] = get< I >(container_of_pairs[i]);
@@ -78,7 +78,7 @@ namespace gridtools {
     template < size_t D >
     class hypercube_view {
       public:
-        hypercube_view(const hypercube< D > &cube)
+        GT_FUNCTION hypercube_view(const hypercube< D > &cube)
             : begin_{impl_::begin_of_hypercube(cube)}, end_{impl_::end_of_hypercube(cube)} {}
 
         struct grid_iterator {
@@ -86,12 +86,13 @@ namespace gridtools {
             const array< size_t, D > begin_;
             const array< size_t, D > end_;
 
-            grid_iterator(const array< size_t, D > &pos, const array< size_t, D > &begin, const array< size_t, D > &end)
+            GT_FUNCTION grid_iterator(
+                const array< size_t, D > &pos, const array< size_t, D > &begin, const array< size_t, D > &end)
                 : pos_{pos}, begin_{begin}, end_{end} {}
 
-            operator array< size_t, D >() const { return pos_; }
+            GT_FUNCTION operator array< size_t, D >() const { return pos_; }
 
-            grid_iterator &operator++() {
+            GT_FUNCTION grid_iterator &operator++() {
                 for (size_t i = 0; i < D; ++i) {
                     size_t index = D - i - 1;
                     if (pos_[index] + 1 < end_[index]) {
@@ -107,23 +108,25 @@ namespace gridtools {
                 return *this;
             }
 
-            grid_iterator operator++(int) {
+            GT_FUNCTION grid_iterator operator++(int) {
                 grid_iterator tmp(*this);
                 operator++();
                 return tmp;
             }
 
-            array< size_t, D > &operator*() { return pos_; }
+            GT_FUNCTION array< size_t, D > &operator*() { return pos_; }
 
-            bool operator==(const grid_iterator &other) const { return pos_ == other.pos_; }
+            GT_FUNCTION bool operator==(const grid_iterator &other) const { return pos_ == other.pos_; }
 
-            bool operator!=(const grid_iterator &other) const { return !operator==(other); }
+            GT_FUNCTION bool operator!=(const grid_iterator &other) const { return !operator==(other); }
         };
 
-        grid_iterator begin() const { return grid_iterator{begin_, begin_, end_}; }
-        grid_iterator end() const { return grid_iterator{end_, begin_, end_}; }
+        GT_FUNCTION grid_iterator begin() const { return grid_iterator{begin_, begin_, end_}; }
+        GT_FUNCTION grid_iterator end() const { return grid_iterator{end_, begin_, end_}; }
 
-        bool operator==(const hypercube_view &other) const { return begin_ == other.begin_ && end_ == other.end_; }
+        GT_FUNCTION bool operator==(const hypercube_view &other) const {
+            return begin_ == other.begin_ && end_ == other.end_;
+        }
 
       private:
         array< size_t, D > begin_;

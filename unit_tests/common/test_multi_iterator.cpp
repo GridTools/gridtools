@@ -74,6 +74,8 @@ TEST_F(test_hypercube_view, iteration) {
     ASSERT_EQ(count, out.size()) << " iterated over too many elements";
 }
 
+#ifndef __CUDACC__
+// make_hypercube_view with ranges does not work with CUDA9.1 and earlier
 TEST_F(test_hypercube_view, make_hypercube_view_from_ranges) {
     hypercube_view< 3 > expect(hypercube< 3 >{i_range, j_range, k_range});
 
@@ -81,6 +83,7 @@ TEST_F(test_hypercube_view, make_hypercube_view_from_ranges) {
 
     ASSERT_EQ(expect, view);
 }
+#endif
 
 TEST_F(test_hypercube_view, make_hypercube_view_from_hypercube) {
     hypercube_view< 3 > expect(hypercube< 3 >{i_range, j_range, k_range});
