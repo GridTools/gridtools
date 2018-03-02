@@ -52,25 +52,40 @@ if __name__ == '__main__':
     run_parser = subparsers.add_parser('run')
     run_parser.set_defaults(func=run)
     run_parser.add_argument('--runtime', '-r', required=True,
-                            choices=['stella', 'gridtools'])
+                            choices=['stella', 'gridtools'],
+                            help='runtime system to use')
     run_parser.add_argument('--backend', '-b', required=True,
-                            choices=['cuda', 'host'])
+                            choices=['cuda', 'host'],
+                            help='backend to use')
     run_parser.add_argument('--grid', '-g', required=True,
-                            choices=['strgrid', 'icgrid'])
+                            choices=['strgrid', 'icgrid'],
+                            help='grid type, structured or icosahedral')
     run_parser.add_argument('--precision', '-p', required=True,
-                            choices=['float', 'double'])
-    run_parser.add_argument('--domain', '-d', required=True, type=int, nargs=3)
-    run_parser.add_argument('--runs', default=10, type=int)
-    run_parser.add_argument('--output', '-o', required=True)
-    run_parser.add_argument('--config', '-c')
+                            choices=['float', 'double'],
+                            help='floating point type to use')
+    run_parser.add_argument('--domain', '-d', required=True, type=int,
+                            nargs=3, metavar=('ISIZE', 'JSIZE', 'KSIZE'),
+                            help='domain size (excluding halo)')
+    run_parser.add_argument('--runs', default=10, type=int,
+                            help='number of runs to do for each stencil')
+    run_parser.add_argument('--output', '-o', required=True,
+                            help='output file, should be .json')
+    run_parser.add_argument('--config', '-c',
+                            help='config name, default is machine config')
 
     # command line aguments for `plot` action
     plot_parser = subparsers.add_parser('plot')
     plot_parser.set_defaults(func=plot)
     plot_parser.add_argument('--mode', '-m', default='compare',
-                             choices=['compare', 'history'])
-    plot_parser.add_argument('--output', '-o', required=True)
-    plot_parser.add_argument('--input', '-i', required=True, nargs='+')
+                             choices=['compare', 'history'],
+                             help='plotting mode, `compare` does one bar plot'
+                                  'per stencil, `history` plots the '
+                                  'performance history of the given inputs')
+    plot_parser.add_argument('--output', '-o', required=True,
+                             help='output file, can have any extension '
+                                  'supported by matplotlib')
+    plot_parser.add_argument('--input', '-i', required=True, nargs='+',
+                             help='any number of input files')
 
     args = parser.parse_args()
     perftest.set_verbose(args.verbose)
