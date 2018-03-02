@@ -6,40 +6,41 @@ import argparse
 import perftest
 
 
-def plot(mode, infiles, outfile):
+def plot(args):
     import perftest.plot
     import perftest.result
 
-    results = [perftest.result.load(f) for f in infiles]
+    results = [perftest.result.load(f) for f in args.input]
 
     if mode == 'compare':
         fig = perftest.plot.compare(results)
     elif mode == 'history':
         fig = perftest.plot.history(results)
 
-    fig.savefig(outfile)
+    fig.savefig(args.output)
 
 
-def run(runtime, grid, precision, backend, domain, runs, outfile, config):
+def run(args):
     import perftest.config
     import perftest.result
     import perftest.runtime
 
-    config = perftest.config.load(config)
+    config = perftest.config.load(args.config)
 
-    rt = config.runtime(runtime, grid, precision, backend)
-    result = rt.run(domain, runs)
-    perftest.result.save(outfile, result)
+    rt = config.runtime(args.runtime, args.grid, args.precision, args.backend)
+    result = rt.run(args.domain, args.runs)
+    perftest.result.save(args.output, result)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--verbose', '-v', action='count', default=0)
 
-    subparsers = parser.add_subparsers(dest='command')
+    subparsers = parser.add_subparsers(dest='action', help='Action to perform')
     subparsers.required = True
 
     run_parser = subparsers.add_parser('run')
+    run_parser.set_defaults(func=run)
     run_parser.add_argument('--runtime', '-r', required=True,
                             choices=['stella', 'gridtools'])
     run_parser.add_argument('--backend', '-b', required=True,
@@ -54,20 +55,16 @@ if __name__ == '__main__':
     run_parser.add_argument('--config', '-c')
 
     plot_parser = subparsers.add_parser('plot')
+    plot_parser.set_defaults(func=plot)
     plot_parser.add_argument('--mode', '-m', default='compare',
                              choices=['compare', 'history'])
     plot_parser.add_argument('--output', '-o', required=True)
     plot_parser.add_argument('--input', '-i', required=True, nargs='+')
 
     args = parser.parse_args()
-
     perftest.set_verbose(args.verbose)
 
     try:
-        if args.command == 'run':
-            run(args.runtime, args.grid, args.precision, args.backend,
-                args.domain, args.runs, args.output, args.config)
-        elif args.command == 'plot':
-            plot(args.mode, args.input, args.output)
+        args.func(args)
     except Exception:
         perftest.logger.exception('Fatal error: exception was raised')
