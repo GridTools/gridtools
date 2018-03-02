@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import random
 import re
 import subprocess
 import tempfile
@@ -72,8 +73,10 @@ async def _wait(task_id, outpath):
     # SLURM job states for unfinished jobs
     wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
     while True:
-        # Wait for job to finish
-        await asyncio.sleep(1)
+        # Wait for job to finish, randomized sleep times are used to minimize
+        # the risk of polling SLURM too often (for different jobs, as for now
+        # polling is done per job)
+        await asyncio.sleep(random.uniform(5, 15))
 
         # Run sacct to get job status
         sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
