@@ -35,17 +35,26 @@
 */
 #pragma once
 
+#include <iosfwd>
+
 /**
 @file
 @brief definition of direction in a 3D cartesian grid
  */
 namespace gridtools {
+
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     /**
        @brief Enum defining the directions in a discrete Cartesian grid
      */
     enum sign { any_ = -2, minus_ = -1, zero_, plus_ };
-    /**
+
+    /** \ingroup Boundary-Conditions
        @brief Class defining a direction in a cartesian 3D grid.
+
        The directions correspond to the following:
        - all the three template parameters are either plus or minus: identifies a node on the cell
        \verbatim
@@ -81,18 +90,29 @@ namespace gridtools {
        .####.
        \endverbatim
        - the case in which all three are zero does not belong to the boundary and is excluded.
+
+       \tparam I_ Orientation in the I dimension
+       \tparam J_ Orientation in the J dimension
+       \tparam K_ Orientation in the K dimension
      */
-    template < sign I_, sign J_, sign K_, class Predicate = boost::enable_if_c< true >::type >
+    template < sign I_, sign J_, sign K_ >
     struct direction {
         static const sign I = I_;
         static const sign J = J_;
         static const sign K = K_;
     };
 
+    /** @brief Facility to print direction, useful for debugging
+
+        \param s Output stream
+        \param * direction Direction to be printed (only type is necessary)
+     */
     template < sign I, sign J, sign K >
     std::ostream &operator<<(std::ostream &s, direction< I, J, K > const &) {
         s << "direction<" << I << ", " << J << ", " << K << ">";
         return s;
     }
+
+    /** @} */
 
 } // namespace gridtools

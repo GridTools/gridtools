@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "array.hpp"
+#include <vector>
 
 namespace gridtools {
     template < typename T, size_t D >

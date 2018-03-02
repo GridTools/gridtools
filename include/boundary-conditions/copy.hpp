@@ -42,6 +42,10 @@
 
 namespace gridtools {
 
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     struct copy_boundary {
 
         /**   @brief On all boundary the values are copied from the last data field to the first. Minimum 2 fields. */
@@ -63,5 +67,7 @@ namespace gridtools {
             data_field1(i, j, k) = data_field2(i, j, k);
         }
     };
+
+    /** @} */
 
 } // namespace gridtools

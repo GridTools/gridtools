@@ -37,7 +37,7 @@
 #pragma once
 
 #include <array>
-#include <assert.h>
+#include <utility>
 
 #include <boost/mpl/bool.hpp>
 
@@ -47,6 +47,9 @@
 #include "../storage_host/host_storage.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /*
      * @brief The CUDA storage implementation. This class owns the CPU and GPU pointer
@@ -131,6 +134,18 @@ namespace gridtools {
                 delete[] m_cpu_ptr;
             if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr)
                 cudaFree(m_gpu_ptr);
+        }
+
+        /*
+         * @brief swap implementation for cuda_storage
+         */
+        void swap_impl(cuda_storage &other) {
+            using std::swap;
+            swap(m_gpu_ptr, other.m_gpu_ptr);
+            swap(m_cpu_ptr, other.m_cpu_ptr);
+            swap(m_state, other.m_state);
+            swap(m_size, other.m_size);
+            swap(m_ownership, other.m_ownership);
         }
 
         /*
@@ -227,14 +242,6 @@ namespace gridtools {
         ptrs_t get_ptrs_impl() const { return {m_cpu_ptr, m_gpu_ptr}; }
 
         /*
-         * @brief set_ptrs implementation for cuda_storage.
-         */
-        void set_ptrs_impl(ptrs_t const &ptrs) {
-            m_gpu_ptr = ptrs[1];
-            m_cpu_ptr = ptrs[0];
-        }
-
-        /*
          * @brief valid implementation for cuda_storage.
          */
         bool valid_impl() const { return m_cpu_ptr && m_gpu_ptr; }
@@ -246,4 +253,8 @@ namespace gridtools {
 
     template < typename T >
     struct is_cuda_storage< cuda_storage< T > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

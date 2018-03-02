@@ -36,6 +36,9 @@
 
 #pragma once
 
+/** \defgroup Distributed-Boundaries Distributed Boundary Conditions
+ */
+
 #include "./bound_bc.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
@@ -73,6 +76,9 @@ namespace gridtools {
         };
     } // namespace _workaround
 
+    /** \ingroup Distributed-Boundaries
+     * @{ */
+
     /**
         @brief This class takes a communication traits class and provide a facility to
         perform boundary conditions and communications in a single call.
@@ -106,7 +112,7 @@ namespace gridtools {
                           d);
         \endverbatim
 
-        \tparal CTraits Communication traits. To see an example see gridtools::comm_traits
+        \tparam CTraits Communication traits. To see an example see gridtools::comm_traits
     */
     template < typename CTraits >
     struct distributed_boundaries {
@@ -128,13 +134,13 @@ namespace gridtools {
         /**
             @brief Constructor of distributed_boundaries.
 
-            \param gridtools::halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for
+            \param halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for
            communication
             \param period Periodicity specification, a gridtools::boollist with three elements, one for each dimension.
            true mean the dimension is periodic
             \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a
            runtime error (probably segmentation fault), passing less will underutilize the memory
-            \param MPI_Comm MPI communicator to use in the halo update operation.
+            \param CartComm MPI communicator to use in the halo update operation.
         */
         distributed_boundaries(
             array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)
@@ -176,7 +182,7 @@ namespace gridtools {
             }
 
             using execute_in_order = int[];
-            execute_in_order{(apply_boundary(jobs), 0)...};
+            (void)execute_in_order{(apply_boundary(jobs), 0)...};
             call_pack(all_stores_for_exc,
                 typename make_gt_integer_sequence< uint_t,
                           std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
@@ -249,5 +255,7 @@ namespace gridtools {
         template < typename Stores, uint_t... Ids >
         static void call_unpack(Stores const &stores, gt_integer_sequence< uint_t >) {}
     };
+
+    /** @} */
 
 } // namespace gridtools

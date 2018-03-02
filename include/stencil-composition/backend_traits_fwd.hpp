@@ -56,8 +56,6 @@ namespace gridtools {
 
     /**
        @brief wasted code because of the lack of constexpr
-       its specializations, given the backend subclass of \ref gridtools::_impl::run_functor, returns the corresponding
-       enum of type \ref gridtools::_impl::BACKEND .
     */
     template < class RunFunctor >
     struct backend_type;

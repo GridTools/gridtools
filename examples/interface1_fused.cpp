@@ -33,37 +33,44 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-namespace gridtools {
-    /**@brief metafunction for applying a parameter pack in reversed order
+#include "gtest/gtest.h"
+#include "Options.hpp"
+#include "interface1_fused.hpp"
 
-       usage example:
-       reverse<4, 3, 2>::apply<ToBeReversed, ExtraArgument, 8>::type::type
-       gives
-       ToBeReversed<ExtraArgument, 8, 2, 3, 4>::type
-    */
-    // forward decl
-    template < uint_t... Tn >
-    struct reverse_pack;
+int main(int argc, char **argv) {
 
-    // recursion anchor
-    template <>
-    struct reverse_pack<> {
-        template < template < typename, uint_t... > class ToBeReversed, typename ExtraArgument, uint_t... Un >
-        struct apply {
-            typedef ToBeReversed< ExtraArgument, Un... > type;
-        };
-    };
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
 
-    // recursion
-    template < uint_t T, uint_t... Tn >
-    struct reverse_pack< T, Tn... > {
-        template < template < typename ExtraArgument, uint_t... > class ToBeReversed,
-            typename ExtraArgument,
-            uint_t... Un >
-        struct apply {
-            // bubble 1st parameter backwards
-            typedef typename reverse_pack< Tn... >::template apply< ToBeReversed, ExtraArgument, T, Un... >::type type;
-        };
-    };
-} // namespace gridtools
+    if (argc < 4) {
+        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
+               "and tstep is the number of timesteps to run in a benchmark run\n");
+        return 1;
+    }
+
+    for (int i = 0; i != 3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    }
+
+    if (argc > 4) {
+        Options::getInstance().m_size[3] = atoi(argv[4]);
+    }
+    if (argc == 6) {
+        if ((std::string(argv[5]) == "-d"))
+            Options::getInstance().m_verify = false;
+    }
+    return RUN_ALL_TESTS();
+}
+
+TEST(HorizontalDiffusion, Test) {
+    uint_t x = Options::getInstance().m_size[0];
+    uint_t y = Options::getInstance().m_size[1];
+    uint_t z = Options::getInstance().m_size[2];
+    uint_t t = Options::getInstance().m_size[3];
+    bool verify = Options::getInstance().m_verify;
+
+    if (t == 0)
+        t = 1;
+
+    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
+}

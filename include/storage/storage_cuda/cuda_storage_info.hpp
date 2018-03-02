@@ -43,6 +43,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /*
      * @brief The cuda storage info implementation.
      * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
@@ -66,13 +70,11 @@ namespace gridtools {
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
+        template < typename... Dims,
+            typename std::enable_if< sizeof...(Dims) == ndims && is_all_integral_or_enum< Dims... >::value,
+                int >::type = 0 >
         explicit constexpr cuda_storage_info(Dims... dims_)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                                        typename is_all_integral_or_enum< Dims... >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
-        }
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {}
 
         /*
          * @brief cuda_storage_info constructor.
@@ -111,4 +113,8 @@ namespace gridtools {
 
     template < uint_t Id, typename Layout, typename Halo, typename Alignment >
     struct is_cuda_storage_info< cuda_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

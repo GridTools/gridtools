@@ -36,9 +36,6 @@
 #pragma once
 #include <type_traits>
 #include <boost/type_traits/remove_reference.hpp>
-#include "../../common/generic_metafunctions/is_not_same.hpp"
-#include "../../common/generic_metafunctions/apply_to_sequence.hpp"
-#include "../../common/generic_metafunctions/is_not_same.hpp"
 #include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
@@ -397,7 +394,7 @@ namespace gridtools {
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
            placeholder
-           \param arg placeholder containing the storage ID and the offsets
+           \param accessor accessor proxying the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
         // TODO This should be merged with structured grids
@@ -435,7 +432,7 @@ namespace gridtools {
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-            GTASSERT((pointer_oob_check< backend_traits_t,
+            assert((pointer_oob_check< backend_traits_t,
                 processing_elements_block_size_t,
                 local_domain_t,
                 arg_t,
@@ -473,7 +470,7 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
-            GTASSERT((pointer_oob_check< backend_traits_t,
+            assert((pointer_oob_check< backend_traits_t,
                 processing_elements_block_size_t,
                 local_domain_t,
                 arg_t,
@@ -490,15 +487,15 @@ namespace gridtools {
          * It dereferences the value of an accessor given its 4d (i,c,j,k) position_offset
          */
         template < uint_t ID,
-            enumtype::intend Intend,
+            enumtype::intent Intent,
             typename LocationType,
             typename Extent,
             ushort_t FieldDimensions >
         GT_FUNCTION typename std::remove_reference<
-            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
-        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
+            typename accessor_return_type< accessor< ID, Intent, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intent, LocationType, Extent, FieldDimensions >,
             position_offset_type const &RESTRICT position_offset) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            using accessor_t = accessor< ID, Intent, LocationType, Extent, FieldDimensions >;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
 

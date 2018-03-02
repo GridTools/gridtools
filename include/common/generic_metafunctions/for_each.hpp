@@ -34,11 +34,27 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../host_device.hpp"
+
 namespace gridtools {
-    template < typename T >
-    struct is_fusion_vector : boost::mpl::false_ {};
+    namespace _impl {
+        template < class List >
+        struct for_each_f;
 
-    template < typename... T >
-    struct is_fusion_vector< boost::fusion::vector< T... > > : boost::mpl::true_ {};
+        template < template < class... > class L, class... Ts >
+        struct for_each_f< L< Ts... > > {
+            template < class Fun >
+            GT_FUNCTION_WARNING void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
+    }
 
-} // namespace gridtools
+    /// Calls fun(T{}) for each element of the type list List.
+    template < class List, class Fun >
+    GT_FUNCTION_WARNING Fun for_each(Fun const &fun) {
+        _impl::for_each_f< List >{}(fun);
+        return fun;
+    };
+}

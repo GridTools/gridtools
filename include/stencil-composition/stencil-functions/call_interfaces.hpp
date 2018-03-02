@@ -38,8 +38,8 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/mpl.hpp>
 
-#include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../accessor.hpp"
 #include "../functor_decorator.hpp"
@@ -117,7 +117,7 @@ namespace gridtools {
             }
 
             template < typename Accessor >
-            using passed_argument_is_accessor_t = typename is_any_accessor< get_passed_argument_t< Accessor > >::type;
+            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_t< Accessor > >::type;
 
             template < typename Accessor >
             using is_out_arg = boost::mpl::bool_< Accessor::index_t::value == OutArg >;
@@ -300,8 +300,7 @@ namespace gridtools {
                 (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
                 "The first argument must be an iterate_domain or a function_aggregator");
 
-            typedef typename boost::fusion::result_of::as_vector<
-                typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
+            typedef typename boost::fusion::result_of::as_vector< PassedArguments >::type accessors_list_t;
 
             CallerAggregator &m_caller_aggregator;
             accessors_list_t const m_accessors_list;
@@ -319,8 +318,7 @@ namespace gridtools {
             using get_passed_argument_t = typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type;
 
             template < typename Accessor >
-            using passed_argument_is_any_accessor_t =
-                typename is_any_accessor< get_passed_argument_t< Accessor > >::type;
+            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_t< Accessor > >::type;
 
             template < typename Accessor >
             GT_FUNCTION constexpr auto get_passed_argument() const
@@ -339,7 +337,7 @@ namespace gridtools {
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< not is_global_accessor< Accessor >::value &&
-                                                                   passed_argument_is_any_accessor_t< Accessor >::value,
+                                                                   passed_argument_is_accessor_t< Accessor >::value,
                 accessor_return_type_t< get_passed_argument_t< Accessor > > >::type
             operator()(Accessor const &accessor) const {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_t< Accessor > >::value),
@@ -355,7 +353,8 @@ namespace gridtools {
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< is_global_accessor< Accessor >::value &&
-                                                                   passed_argument_is_any_accessor_t< Accessor >::value,
+
+                                                                   passed_argument_is_accessor_t< Accessor >::value,
                 accessor_return_type_t< get_passed_argument_t< Accessor > > >::type
             operator()(Accessor const &accessor) const {
                 GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_t< Accessor > >::value),
@@ -367,7 +366,7 @@ namespace gridtools {
              * @brief Passed argument is a local variable (not an accessor)
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_any_accessor_t< Accessor >::value,
+            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor_t< Accessor >::value,
                 typename boost::remove_reference< typename boost::fusion::result_of::at_c< accessors_list_t,
                     Accessor::index_t::value >::type >::type::type >::type &
             operator()(Accessor const &) const {

@@ -37,7 +37,9 @@
 #include "../iterate_domain.hpp"
 #include "../extent.hpp"
 
-/** @file iterate_domain for expandable parameters*/
+/** @file
+    iterate_domain for expandable parameters
+*/
 
 namespace gridtools {
 
@@ -89,7 +91,7 @@ namespace gridtools {
 
        \param arg the vector accessor
      */
-        template < uint_t ACC_ID, enumtype::intend Intent, typename LocationType, typename Extent, uint_t Size >
+        template < uint_t ACC_ID, enumtype::intent Intent, typename LocationType, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type
         operator()(vector_accessor< ACC_ID, Intent, LocationType, Extent, Size > const &arg) const {

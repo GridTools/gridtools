@@ -49,6 +49,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     namespace advanced {
         /** Function to access the protected data member of the views
             containing the raw pointers.  This is an interface we want to avoid
@@ -267,4 +271,8 @@ namespace gridtools {
 
     template < typename Storage, access_mode AccessMode >
     struct is_data_view< data_view< Storage, AccessMode > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

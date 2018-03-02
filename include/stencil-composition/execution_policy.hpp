@@ -41,7 +41,8 @@
 #include "run_functor_arguments_fwd.hpp"
 
 /**
-@file Implementation of the k loop execution policy
+@file
+Implementation of the k loop execution policy
 The policies which are currently considered are
  - forward: the k loop is executed upward, increasing the value of the iterator on k. This is the option to be used when
 the stencil operations at level k depend on the fields at level k-1 (forward substitution).
@@ -86,11 +87,9 @@ namespace gridtools {
 
             template < typename IterationPolicy, typename Interval >
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
-#ifdef CUDA8
                 assert(from >= 0);
                 assert(to >= 0);
                 assert(to >= from);
-#endif
                 typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
                     run_esf_functor_t;
 

@@ -45,6 +45,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     struct state_machine;
 
     /*
@@ -102,6 +106,13 @@ namespace gridtools {
         state_machine *get_state_machine_ptr() { return static_cast< Derived * >(this)->get_state_machine_ptr_impl(); }
 
         /*
+         * @brief This method swaps the data of two storages.
+         */
+        void swap(storage_interface &other) {
+            return static_cast< Derived * >(this)->swap_impl(static_cast< Derived & >(other));
+        }
+
+        /*
          * @brief This method retrieves all pointers that are contained in the storage (in case of host_storage
          * only one pointer, in case of cuda_storage two pointers).
          * @return struct that contains the pointer(s)
@@ -109,15 +120,6 @@ namespace gridtools {
         template < typename T >
         T get_ptrs() const {
             return static_cast< Derived const * >(this)->get_ptrs_impl();
-        }
-
-        /*
-         * @brief This method resets the pointer(s) that are contained in a storage.
-         * @param ptrs struct that contains the pointer(s)
-         */
-        template < typename T >
-        void set_ptrs(T const &ptrs) {
-            static_cast< Derived * >(this)->set_ptrs_impl(ptrs);
         }
 
         /*
@@ -129,4 +131,8 @@ namespace gridtools {
 
     template < typename T >
     struct is_storage : boost::is_base_of< storage_interface< T >, T > {};
+
+    /**
+     * @}
+     */
 }

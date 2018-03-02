@@ -38,7 +38,9 @@
 #include "../iterate_domain.hpp"
 #include "../sfinae.hpp"
 
-/** @file iterate_domain for expandable parameters*/
+/** @file
+    iterate_domain for expandable parameters
+*/
 
 namespace gridtools {
 
@@ -91,7 +93,7 @@ namespace gridtools {
        \param arg the vector accessor
      */
         // rvalue
-        template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
+        template < uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, Extent, Size > >::type
         operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {
@@ -103,6 +105,17 @@ namespace gridtools {
             tmp_.template set< 0 >(ID);
 
             return super::operator()(tmp_);
+        }
+
+        /** @brief method called in the Do methods of the functors
+
+            Overload of the operator() for expressions.
+        */
+        template < typename... Arguments, template < typename... Args > class Expression >
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
+            -> decltype(expressions::evaluation::value(*this, arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
+            return expressions::evaluation::value((*this), arg);
         }
     };
 

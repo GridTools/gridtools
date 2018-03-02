@@ -287,7 +287,7 @@ namespace gridtools {
                                     is_condition_tree_of< MssDescriptorTrees, is_computation_token >... >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
-        template < uint N >
+        template < uint_t N >
         using converted_intermediate = intermediate< N,
             IsStateful,
             Backend,
@@ -316,7 +316,7 @@ namespace gridtools {
         /**
            @brief constructor
 
-           Given expandable parameters with size N, creates other @ref gristools::expandable_parameters storages with
+           Given expandable parameters with size N, creates other expandable parameters storages with
            dimension given by  @ref gridtools::expand_factor
          */
         template < typename Domain >

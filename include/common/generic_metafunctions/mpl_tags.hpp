@@ -33,21 +33,54 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/is_aggregate.hpp"
-#include "common/array.hpp"
-#include "common/pointer.hpp"
 
-using namespace gridtools;
+#pragma once
 
-TEST(array, test_is_aggregate) {
-    GRIDTOOLS_STATIC_ASSERT((is_aggregate< int >::value), "Error");
+#include <boost/mpl/integral_c_tag.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <type_traits>
 
-    typedef array< uint_t, 4 > array_t;
-    GRIDTOOLS_STATIC_ASSERT((is_aggregate< array_t >::value), "Error");
+namespace boost {
+    namespace mpl {
+        template < class T, T V >
+        struct equal_to_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-    typedef pointer< double > ptr_t;
-    GRIDTOOLS_STATIC_ASSERT((!is_aggregate< ptr_t >::value), "Error");
+        template < class T, T V >
+        struct not_equal_to_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-    ASSERT_TRUE(true);
+        template < class T, T V >
+        struct less_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct less_equal_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct greater_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct greater_equal_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct plus_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct minus_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+    }
 }

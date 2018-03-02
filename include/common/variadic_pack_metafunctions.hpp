@@ -120,7 +120,7 @@ namespace gridtools {
      *  that is part of a variadic pack or fails if the element does not exist.
      *  @tparam First type of the first variadic pack element
      *  @tparam Rest type of the remaining variadic pack elements
-     *  @param index the starting index
+     *  @param start_index the starting index
      *  @param needle The value that should be found
      *  @param r other variadic pack elements
      *  @return the index of the queried element

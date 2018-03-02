@@ -33,19 +33,38 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+
+#include <common/generic_metafunctions/for_each.hpp>
+
+#include <type_traits>
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <common/host_device.hpp>
 
 namespace gridtools {
 
-    template < typename T >
-    struct is_array;
+    struct f {
+        int *&dst;
 
-    template < typename T >
-    struct is_offset_tuple;
+        template < class T >
+        GT_FUNCTION_WARNING void operator()(T) const {
+            *(dst++) = T::value;
+        }
+    };
 
-    // metafunction determines whether an argument is an offset_tuple or an array
-    template < typename T >
-    struct is_tuple_or_array
-        : boost::mpl::or_< typename is_offset_tuple< T >::type, typename is_array< T >::type >::type {};
+    template < class... >
+    struct lst;
 
-} // namespace gridtools
+    template < int I >
+    using int_t = std::integral_constant< int, I >;
+
+    TEST(for_each, functional) {
+        int vals[3];
+        int *cur = vals;
+        for_each< lst< int_t< 0 >, int_t< 42 >, int_t< 3 > > >(f{cur});
+        EXPECT_EQ(cur, vals + 3);
+        EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
+    }
+}

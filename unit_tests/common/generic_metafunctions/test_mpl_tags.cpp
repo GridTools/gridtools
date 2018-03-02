@@ -33,20 +33,33 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "../defs.hpp"
-#include "accumulate.hpp"
 
-namespace gridtools {
-    /**
-     * @brief checks if all Types in variadic pack fulfill the Condition (true if empty)
-     */
-    template < template < typename > class Condition, typename... Types >
-    using is_all = boost::mpl::bool_< accumulate(logical_and(), true, Condition< Types >::type::value...) >;
+#include <gtest/gtest.h>
+#include <common/defs.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <common/generic_metafunctions/mpl_tags.hpp>
 
-    /**
-     * @brief SFINAE for the case in which all the components of a parameter pack match a certain condition
-     */
-    template < template < typename > class Condition, typename... Types >
-    using all_ = typename boost::enable_if_c< is_all< Condition, Types... >::type::value, bool >::type;
+TEST(integralconstant, comparison) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::greater< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value), "");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::less< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value), "");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::greater_equal< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value),
+        "");
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::less_equal< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value),
+        "");
+}
+
+TEST(integralconstant, arithmetic) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::plus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 9), "");
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::minus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 1),
+        "");
 }

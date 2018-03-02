@@ -35,8 +35,11 @@
 */
 #pragma once
 
+#include <boost/fusion/include/vector.hpp>
+
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
 
@@ -68,21 +71,20 @@ namespace gridtools {
     };
 
     /**
-       @brief object to be accessed regardless the current iteration point
+       @brief Object to be accessed regardless of the current iteration point. A global_accessor is always read-only.
 
        \tparam I unique accessor identifier
-       \tparam Intend the global accessors must me read-only
 
        This accessor allows the user to call a user function contained in a user-defined object.
        Calling the parenthesis operator on the global_accessor generates an instance of
        ```global_accessor_with_arguments```.
      */
-    template < uint_t I, enumtype::intend Intend = enumtype::in >
+    template < uint_t I >
     struct global_accessor {
 
-        static const constexpr enumtype::intend intent = Intend;
+        static const constexpr enumtype::intent intent = enumtype::in;
 
-        typedef global_accessor< I, Intend > type;
+        typedef global_accessor< I > type;
 
         typedef static_uint< I > index_t;
 
@@ -92,7 +94,7 @@ namespace gridtools {
 
         // copy ctor from another global_accessor with different index
         template < uint_t OtherIndex >
-        GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex, Intend > &other) {}
+        GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex > &other) {}
 
         /** @brief generates a global_accessor_with_arguments and returns it by value */
         template < typename... Args >
@@ -100,20 +102,4 @@ namespace gridtools {
             return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
         }
     };
-
-    template < typename Type >
-    struct is_global_accessor : boost::false_type {};
-
-    template < uint_t I, enumtype::intend Intend >
-    struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
-
-    template < typename Global, typename... Args >
-    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
-
-    template < typename T >
-    struct is_global_accessor_with_arguments : boost::false_type {};
-
-    template < typename Global, typename... Args >
-    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
-
 } // namespace gridtools
