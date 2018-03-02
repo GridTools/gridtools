@@ -36,13 +36,9 @@
 
 #pragma once
 
-#include "generic_metafunctions/gt_integer_sequence.hpp"
-#include "generic_metafunctions/is_all_integrals.hpp"
-#include "pair.hpp"
-#include "array.hpp"
-#include "array_addons.hpp"
 #include "defs.hpp"
 #include "host_device.hpp"
+#include "array.hpp"
 
 namespace gridtools {
     class range : public array< size_t, 2 > {
