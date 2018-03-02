@@ -5,6 +5,9 @@ import json
 from perftest import ArgumentError, logger, time
 
 
+version = 0.1
+
+
 class Data(dict):
     """Base class for all result data.
 
@@ -66,7 +69,8 @@ def from_data(runtime, domain, meantimes, stdevtimes):
                   times=times_data,
                   config=config_data,
                   domain=domain,
-                  datetime=time.now())
+                  datetime=time.now(),
+                  version=version)
 
 
 def save(filename, data):
@@ -99,6 +103,9 @@ def load(filename):
     with open(filename, 'r') as fp:
         data = json.load(fp)
 
+    if data['version'] != 0.1:
+        raise ParseError('Unknown result file version')
+
     times_data = [Data(**d) for d in data['times']]
     runtime_data = Data(**data['runtime'])
     config_data = Data(**data['config'])
@@ -123,7 +130,8 @@ def load(filename):
                     times=times_data,
                     config=config_data,
                     domain=data['domain'],
-                    datetime=time.from_timestr(data['datetime']))
+                    datetime=time.from_timestr(data['datetime'],
+                    version=data['version']))
     logger.info(f'Successfully loaded result from {filename}')
     return result
 
