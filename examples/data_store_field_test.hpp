@@ -107,9 +107,6 @@ namespace data_store_field_test {
         typedef arg< 1, data_store_field_t > p_out;
         typedef tmp_arg< 2, data_store_field_t > p_tmp;
 
-        typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
-        aggregator_type< accessor_list > domain(dsf_in, dsf_out);
-
         uint_t halo_size = 0;
 
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
@@ -117,14 +114,14 @@ namespace data_store_field_test {
 
         auto grid_ = make_grid(di, dj, d3);
 
-        auto comp = make_computation< backend_t >(domain,
-            grid_,
+        auto comp = make_computation< backend_t >(grid_,
+            p_in() = dsf_in,
+            p_out() = dsf_out,
             make_multistage(execute< forward >(),
                                                       define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
                                                       make_stage< A >(p_in(), p_tmp()),
                                                       make_stage< A >(p_tmp(), p_out())));
 
-        comp.steady();
         comp.run();
         comp.sync_all();
 

@@ -295,14 +295,27 @@ namespace gridtools {
      * @class
      *  @brief structure collecting helper metafunctions
      */
+    template < uint_t RepeatFunctor,
+        bool IsStateful,
+        class Backend,
+        class Grid,
+        class BoundArgStoragePairs,
+        class MssDescriptors >
+    class intermediate;
 
     template < uint_t RepeatFunctor,
         bool IsStateful,
         class Backend,
         class Grid,
-        class BoundPlaceholders,
+        class... BoundPlaceholders,
+        class... BoundDataStores,
         class... MssDescriptors >
-    class intermediate {
+    class intermediate< RepeatFunctor,
+        IsStateful,
+        Backend,
+        Grid,
+        std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... >,
+        std::tuple< MssDescriptors... > > {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
@@ -326,23 +339,12 @@ namespace gridtools {
 
         using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
 
-        template < class T >
-        using is_placeholder_in_domain = boost::mpl::contains< non_tmp_placeholders_t, T >;
-
-        GRIDTOOLS_STATIC_ASSERT((meta::apply< meta::all_of< is_placeholder_in_domain >, BoundPlaceholders >::value),
+        GRIDTOOLS_STATIC_ASSERT(
+            (meta::conjunction< boost::mpl::contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
             "some placeholders are not used in mss descriptors");
 
-        template < class T >
-        using placeholder_to_bound_arg_storage_pair = _impl::bound_arg_storage_pair< T, typename T::data_store_t >;
-
-        using bound_arg_storage_pair_fusion_list_t = meta::apply< meta::rename< std::tuple >,
-            meta::apply< meta::transform< placeholder_to_bound_arg_storage_pair >, BoundPlaceholders > >;
-
-        template < class T >
-        using placeholder_to_bound_arg_storage_pair_param_ctor = arg_storage_pair< T, typename T::data_store_t >;
-
-        using bound_arg_storage_pair_param_ctor_t = meta::apply< meta::rename< std::tuple >,
-            meta::apply< meta::transform< placeholder_to_bound_arg_storage_pair_param_ctor >, BoundPlaceholders > >;
+        using bound_arg_storage_pair_fusion_list_t =
+            std::tuple< _impl::bound_arg_storage_pair< BoundPlaceholders, BoundDataStores >... >;
 
       public:
         // First we need to compute the association between placeholders and extents.
@@ -405,8 +407,8 @@ namespace gridtools {
 
       public:
         intermediate(Grid const &grid,
-            bound_arg_storage_pair_param_ctor_t &&arg_storage_pairs,
-            std::tuple< MssDescriptors... > &&msses)
+            std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... > arg_storage_pairs,
+            std::tuple< MssDescriptors... > msses)
             : m_grid(grid), m_meter("NoName"), m_branch_selector(std::move(msses)),
               m_tmp_arg_storage_pair_fusion_list(dedup_storage_info(_impl::make_tmp_arg_storage_pairs< max_i_extent_t,
                   Backend,

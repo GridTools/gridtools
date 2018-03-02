@@ -81,6 +81,13 @@ namespace gridtools {
                 return {std::move(src), *stored};
             }
 
+            template < class DataStore, uint_t... N >
+            data_store_field< DataStore, N... > operator()(data_store_field< DataStore, N... > src) const {
+                for (auto &item : src.m_field)
+                    item = this->operator()(item);
+                return src;
+            }
+
             template < class Arg, class DataStore >
             arg_storage_pair< Arg, DataStore > operator()(arg_storage_pair< Arg, DataStore > const &src) const {
                 return this->operator()(src.m_value);
@@ -157,7 +164,7 @@ namespace gridtools {
             namespace f = boost::fusion;
             advanced::copy_raw_pointers(view, f::at_key< Arg >(local_domain.m_local_data_ptrs));
             *f::find< typename View::storage_info_t const * >(local_domain.m_local_storage_info_ptrs) =
-                &view.storage_info();
+                advanced::storage_info_ptr(view);
         }
 
         template < typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void >

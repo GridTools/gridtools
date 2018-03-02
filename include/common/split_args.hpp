@@ -51,12 +51,6 @@ namespace gridtools {
                 using apply = Pred< meta::first< L > >;
             };
 
-            template < template < class... > class Pred >
-            struct not_ {
-                template < class T >
-                using apply = meta::negation< Pred< T > >;
-            };
-
             template < template < class... > class Pred, class Args >
             using make_filtered_indicies = meta::apply< meta::transform< meta::second >,
                 meta::apply< meta::filter< apply_to_first< Pred >::template apply >,
@@ -71,12 +65,15 @@ namespace gridtools {
                 get_part_helper(std::forward< Args >(args), (make_filtered_indicies< Pred, Args > *)(nullptr)));
 
             template < template < class... > class Pred, class Args >
-            auto get_parts(Args &&args) GT_AUTO_RETURN(std::make_pair(get_part< Pred >(std::forward< Args >(args)),
-                get_part< not_< Pred >::template apply >(std::forward< Args >(args))));
+            auto split_args_tuple(Args &&args)
+                GT_AUTO_RETURN(std::make_pair(get_part< Pred >(std::forward< Args >(args)),
+                    get_part< meta::not_< Pred >::template apply >(std::forward< Args >(args))));
         }
     }
 
+    using _impl::_split_args::split_args_tuple;
+
     template < template < class... > class Pred, class... Args >
     auto split_args(Args &&... args)
-        GT_AUTO_RETURN(_impl::_split_args::get_parts< Pred >(std::forward_as_tuple(std::forward< Args >(args)...)));
+        GT_AUTO_RETURN(split_args_tuple< Pred >(std::forward_as_tuple(std::forward< Args >(args)...)));
 }

@@ -96,19 +96,15 @@ namespace test_expandable_parameters {
         typedef arg< 1, std::vector< storage_t > > p_list_in;
         typedef tmp_arg< 2, std::vector< storage_t > > p_list_tmp;
 
-        typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
-
-        aggregator_type< args_t > domain_(list_out_, list_in_);
-
         auto comp_ = make_computation< backend_t >(expand_factor< 2 >(),
-            domain_,
             grid_,
+            p_list_out{} = list_out_,
+            p_list_in{} = list_in_,
             make_multistage(enumtype::execute< enumtype::forward >(),
                                                        define_caches(cache< IJ, cache_io_policy::local >(p_list_tmp())),
                                                        make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                        make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 
-        comp_.steady();
         comp_.run();
         comp_.sync_all();
 

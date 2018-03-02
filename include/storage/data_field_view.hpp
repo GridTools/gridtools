@@ -150,4 +150,9 @@ namespace gridtools {
 
     template < typename T, access_mode AccessMode >
     struct is_data_field_view< data_field_view< T, AccessMode > > : boost::mpl::true_ {};
+
+    namespace advanced {
+        template < typename T, access_mode AccessMode >
+        auto storage_info_ptr(data_field_view< T, AccessMode > const &src) GT_AUTO_RETURN(src.m_storage_infos[0]);
+    }
 }

@@ -277,4 +277,9 @@ namespace gridtools {
 
     template < typename Storage, access_mode AccessMode >
     struct is_data_view< data_view< Storage, AccessMode > > : boost::mpl::true_ {};
+
+    namespace advanced {
+        template < typename Storage, access_mode AccessMode >
+        auto storage_info_ptr(data_view< Storage, AccessMode > const &src) GT_AUTO_RETURN(&src.storage_info());
+    }
 }

@@ -793,5 +793,11 @@ namespace gridtools {
 
         template < class List, size_t N, class New >
         using replace_at_c = replace_at< List, std::integral_constant< size_t, N >, New >;
+
+        template < template < class... > class Pred >
+        struct not_ {
+            template < class T >
+            using apply = negation< Pred< T > >;
+        };
     }
 }
