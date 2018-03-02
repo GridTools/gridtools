@@ -41,9 +41,9 @@
 
 // Just a wrapper around an array to make clear that the intention is to test field elements
 template < size_t N >
-class multiplet : public gridtools::array< long int, N > {
+class multiplet : public gridtools::array< size_t, N > {
   public:
     template < typename... T, typename = gridtools::all_integral< T... > >
     multiplet(T... values)
-        : gridtools::array< long int, N >{{(long int)values...}} {}
+        : gridtools::array< size_t, N >{{(size_t)values...}} {}
 };

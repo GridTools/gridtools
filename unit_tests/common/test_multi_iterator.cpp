@@ -36,42 +36,40 @@
 
 #include <gtest/gtest.h>
 #include "common/multi_iterator.hpp"
-#include "common/array.hpp"
-#include "common/make_array.hpp"
+#include <vector>
 #include "../tools/multiplet.hpp"
 
 using namespace gridtools;
-
-using range_t = pair< uint_t, uint >;
 
 template < typename T >
 void print(array< T, 3 > a) {
     std::cout << a << std::endl;
 }
 
-TEST(test_hypercube_iterator, basic) {
-    hypercube< size_t, 3 > cube3d(range< size_t >(1, 3), range< size_t >(5, 7), range< size_t >(1, 2));
-    hypercube_view< size_t, 3 > view(cube3d);
+class test_hypercube_view : public testing::Test {
+  public:
+    const range i_range = {1, 3};
+    const range j_range = {4, 8};
+    const range k_range = {2, 10};
 
-    //    auto view = make_hypercube_view(make_range(0, 2), make_range(1, 2), make_range(0, 2));
-    //
+    const size_t size =
+        (i_range.begin() - i_range.end()) + (j_range.begin() - j_range.end()) + (j_range.begin() - j_range.end());
+};
+
+TEST_F(test_hypercube_view, make_hypercube_view) {
+    std::vector< multiplet< 3 > > out;
+
+    auto view = make_hypercube_view(i_range, j_range, k_range);
     for (auto it : view) {
-        print(it);
+        out.emplace_back(it[0], it[1], it[2]);
     }
+
+    size_t count = 0;
+    for (size_t i = i_range.begin(); i < i_range.end(); ++i)
+        for (size_t j = j_range.begin(); j < j_range.end(); ++j)
+            for (size_t k = k_range.begin(); k < k_range.end(); ++k) {
+                ASSERT_EQ((multiplet< 3 >{i, j, k}), out[count]);
+                count++;
+            }
+    ASSERT_EQ(count, out.size()) << " iterated over too many elements";
 }
-
-// TEST(test_hypercube_iterator, 3D_range) {
-//    auto view = make_hypercube_view(make_range(0, 2), make_range(1, 2), make_range(0, 2));
-//
-//    for (auto it : view) {
-//        print(it);
-//    }
-//}
-
-// TEST(test_hypercube_iterator, 3D_brace_enclosed_init_list) {
-//    auto view = make_hypercube_view({0, 2}, {1, 2}, {0, 2});
-//
-//    for (auto it : view) {
-//        print(it);
-//    }
-//}
