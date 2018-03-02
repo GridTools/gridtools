@@ -47,6 +47,7 @@
 namespace gridtools {
     class range : public array< size_t, 2 > {
       public:
+        range() = default;
         GT_FUNCTION range(size_t b, size_t e) : array{{b, e}} {}
         GT_FUNCTION size_t begin() const { return this->operator[](0); }
         GT_FUNCTION size_t end() const { return this->operator[](1); }
@@ -122,6 +123,8 @@ namespace gridtools {
         grid_iterator begin() const { return grid_iterator{begin_, begin_, end_}; }
         grid_iterator end() const { return grid_iterator{end_, begin_, end_}; }
 
+        bool operator==(const hypercube_view &other) const { return begin_ == other.begin_ && end_ == other.end_; }
+
       private:
         array< size_t, D > begin_;
         array< size_t, D > end_;
@@ -130,4 +133,7 @@ namespace gridtools {
     template < typename... Range > // TODO assert all types supporting range concept
     GT_FUNCTION auto make_hypercube_view(Range... r)
         GT_AUTO_RETURN(hypercube_view< sizeof...(Range) >(hypercube< sizeof...(Range) >{r...}));
+
+    template < size_t D >
+    GT_FUNCTION auto make_hypercube_view(const hypercube< D > &cube) GT_AUTO_RETURN(hypercube_view< D >(cube));
 }

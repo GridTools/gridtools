@@ -56,10 +56,10 @@ class test_hypercube_view : public testing::Test {
         (i_range.begin() - i_range.end()) + (j_range.begin() - j_range.end()) + (j_range.begin() - j_range.end());
 };
 
-TEST_F(test_hypercube_view, make_hypercube_view) {
+TEST_F(test_hypercube_view, iteration) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(i_range, j_range, k_range);
+    hypercube_view< 3 > view(hypercube< 3 >{i_range, j_range, k_range});
     for (auto it : view) {
         out.emplace_back(it[0], it[1], it[2]);
     }
@@ -72,4 +72,20 @@ TEST_F(test_hypercube_view, make_hypercube_view) {
                 count++;
             }
     ASSERT_EQ(count, out.size()) << " iterated over too many elements";
+}
+
+TEST_F(test_hypercube_view, make_hypercube_view_from_ranges) {
+    hypercube_view< 3 > expect(hypercube< 3 >{i_range, j_range, k_range});
+
+    auto view = make_hypercube_view(i_range, j_range, k_range);
+
+    ASSERT_EQ(expect, view);
+}
+
+TEST_F(test_hypercube_view, make_hypercube_view_from_hypercube) {
+    hypercube_view< 3 > expect(hypercube< 3 >{i_range, j_range, k_range});
+
+    auto view = make_hypercube_view(hypercube< 3 >{i_range, j_range, k_range});
+
+    ASSERT_EQ(expect, view);
 }
