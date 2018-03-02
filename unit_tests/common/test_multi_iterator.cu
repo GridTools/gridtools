@@ -36,37 +36,25 @@
 
 #include "test_multi_iterator.cpp"
 
-static const uint_t Size = 2;
-// using result_t = gridtools::array< size_t, Size * Size >;
+static const int Size = 2;
 
 GT_FUNCTION int linear_index(gridtools::array< size_t, 2 > &index) { return index[0] * Size + index[1]; }
 
 __global__ void test_kernel1234(int *out_ptr) {
-    //    int &out = *out_ptr;
-    //    printf("bla\n");
+    for (size_t i = 0; i < Size * Size; ++i)
+        out_ptr[i] = -1;
 
-    //    for (size_t i = 0; i < Size * Size; ++i)
-    //        out[i] = 0;
-    //    for (size_t i = 0; i < Size * Size; ++i)
-    //        out_ptr[i] = 1;
-    //
-    //    auto cube_view = make_hypercube_view(hypercube< 2 >{range{0, Size}, range{0, Size}});
-    //
-    //    // fill the array with its linearized index
-    //    for (auto pos : cube_view) {
-    //        printf("pos: %d/%d\n", pos[0], pos[1]);
-    //        out_ptr[linear_index(pos)] = linear_index(pos);
-    //    }
-    out_ptr[0] = 123;
-    out_ptr[2] = 123;
+    auto cube_view = make_hypercube_view(hypercube< 2 >{range{0, Size}, range{0, Size}});
+    for (auto pos : cube_view) {
+        out_ptr[linear_index(pos)] = linear_index(pos);
+    }
 };
 
 TEST(multi_iterator, iterate_on_device) {
     int *out;
     cudaMalloc(&out, sizeof(int) * Size * Size);
 
-    //        test_kernel1234<<< 32, 32 >>>(out);
-    //    cudaDeviceSynchronize();
+    test_kernel1234<<< 1, 1 >>>(out);
 
     int host_out[Size * Size];
     cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost);
