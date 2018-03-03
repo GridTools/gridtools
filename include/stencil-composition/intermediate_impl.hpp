@@ -210,7 +210,7 @@ namespace gridtools {
 
         struct sync_f {
             template < class Arg, class DataStorage >
-            void operator()(bound_arg_storage_pair< Arg, DataStorage > &obj) const {
+            void operator()(bound_arg_storage_pair< Arg, DataStorage > const &obj) const {
                 obj.m_data_storage.sync();
             }
         };

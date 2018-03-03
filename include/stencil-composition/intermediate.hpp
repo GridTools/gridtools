@@ -422,7 +422,7 @@ namespace gridtools {
                 make_view_infos(m_bound_arg_storage_pair_fusion_list)));
         }
 
-        void sync_all() { boost::fusion::for_each(m_bound_arg_storage_pair_fusion_list, _impl::sync_f{}); }
+        void sync_all() const { boost::fusion::for_each(m_bound_arg_storage_pair_fusion_list, _impl::sync_f{}); }
 
         template < class... Args, class... DataStores >
         return_type run(arg_storage_pair< Args, DataStores > const &... src) {
@@ -435,9 +435,9 @@ namespace gridtools {
             return res;
         }
 
-        std::string print_meter() { return m_meter.to_string(); }
+        std::string print_meter() const { return m_meter.to_string(); }
 
-        double get_meter() { return m_meter.total_time(); }
+        double get_meter() const { return m_meter.total_time(); }
 
         void reset_meter() { m_meter.reset(); }
 

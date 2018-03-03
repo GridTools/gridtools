@@ -110,10 +110,6 @@ namespace gridtools {
                 };
             };
 
-            template < uint_t N, typename Placeholders >
-            using converted_placeholders =
-                typename boost::mpl::transform< Placeholders, convert_placeholder< N > >::type;
-
             struct get_value_size {
                 template < class T >
                 size_t operator()(T const &t) const {
@@ -183,20 +179,13 @@ namespace gridtools {
                     GT_AUTO_RETURN(condition_tree_transform(src, fix_mss_arg_indices_f< N >{}));
             };
 
-            template < uint_t N >
-            struct convert_mss_descriptors_trees_f {
-                template < class... Ts >
-                auto operator()(std::tuple< Ts... > const &src) const
-                    GT_AUTO_RETURN(as_std_tuple(boost::fusion::transform(src, convert_mss_descriptors_tree_f< N >{})));
-            };
-
-            template < uint_t N, typename MssDescriptorsTree >
-            auto convert_mss_descriptors_tree(MssDescriptorsTree const &src)
-                GT_AUTO_RETURN(convert_mss_descriptors_tree_f< N >{}(src));
+            template < uint_t N, class... Ts >
+            auto convert_mss_descriptors_trees(std::tuple< Ts... > const &src)
+                GT_AUTO_RETURN(as_std_tuple(boost::fusion::transform(src, convert_mss_descriptors_tree_f< N >{})));
 
             template < uint_t N, typename MssDescriptorsTrees >
             using converted_mss_descriptors_trees =
-                decltype(convert_mss_descriptors_trees_f< N >{}(std::declval< MssDescriptorsTrees const & >()));
+                decltype(convert_mss_descriptors_trees< N >(std::declval< MssDescriptorsTrees const & >()));
 
             template < class Intermediate >
             struct run_f {
@@ -269,11 +258,10 @@ namespace gridtools {
             std::pair< ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs > &&arg_refs,
             MssDescriptorTrees const &msses)
             : m_expandable_bound_arg_storage_pairs{std::move(arg_refs.first)},
-              m_intermediate{grid,
-                  arg_refs.second,
-                  _impl::expand_detail::convert_mss_descriptors_trees_f< ExpandFactor >{}(msses)},
+              m_intermediate{
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)},
               m_intermediate_remainder{
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees_f< 1 >{}(msses)} {}
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)} {}
 
       public:
         template < class BoundArgStoragePairsRefs >
@@ -302,18 +290,18 @@ namespace gridtools {
             return {};
         }
 
-        void sync_all() {
+        void sync_all() const {
             boost::fusion::for_each(m_expandable_bound_arg_storage_pairs, _impl::expand_detail::sync_f{});
             m_intermediate.sync_all();
             m_intermediate_remainder.sync_all();
         }
 
-        std::string print_meter() {
+        std::string print_meter() const {
             assert(false);
             return {};
         }
 
-        double get_meter() { return m_intermediate.get_meter() + m_intermediate_remainder.get_meter(); }
+        double get_meter() const { return m_intermediate.get_meter() + m_intermediate_remainder.get_meter(); }
 
         void reset_meter() {
             m_intermediate.reset_meter();
