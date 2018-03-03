@@ -119,7 +119,7 @@ namespace gridtools {
             : m_impl(new impl< Obj >{std::move(obj)}) {
             GRIDTOOLS_STATIC_ASSERT((!std::is_same< typename std::decay< Obj >::type, computation >::value),
                 GT_INTERNAL_ERROR_MSG("computation move ctor got shadowed"));
-            // TODO(anstaf): Check that Obj satisfies computaion concept here.
+            // TODO(anstaf): Check that Obj satisfies computation concept here.
         }
 
         explicit operator bool() const { return !!m_impl; }
