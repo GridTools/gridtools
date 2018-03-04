@@ -52,13 +52,8 @@ namespace test_expandable_parameters {
 
     struct functor_exp {
 
-#ifdef REASSIGN_DOMAIN
-        typedef accessor< 0, enumtype::inout > parameters_out;
-        typedef accessor< 1, enumtype::in > parameters_in;
-#else
         typedef vector_accessor< 0, enumtype::inout > parameters_out;
         typedef vector_accessor< 1, enumtype::in > parameters_in;
-#endif
 
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 

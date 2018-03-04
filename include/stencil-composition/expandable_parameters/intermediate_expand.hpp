@@ -121,17 +121,20 @@ namespace gridtools {
             };
 
             template < typename ArgStoragePairs >
-            size_t get_expandable_size(ArgStoragePairs const &src) {
+            typename std::enable_if< !boost::mpl::empty< ArgStoragePairs >::value, size_t >::type get_expandable_size(
+                ArgStoragePairs const &src) {
                 namespace f = boost::fusion;
-                namespace m = boost::mpl;
-                auto sizes = f::transform(f::filter_if< is_expandable< m::_ > >(src), get_value_size{});
-                if (f::empty(sizes))
-                    // If there is nothing to expand we are going to compute stensil once.
-                    return 1;
+                auto sizes = f::transform(src, get_value_size{});
                 size_t res = f::front(sizes);
-                assert(
-                    f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
+                assert(f::any(sizes, [=](size_t size) { return size == res; }));
                 return res;
+            }
+
+            template < typename ArgStoragePairs >
+            typename std::enable_if< boost::mpl::empty< ArgStoragePairs >::value, size_t >::type get_expandable_size(
+                ArgStoragePairs const &src) {
+                // If there is nothing to expand we are going to compute stensil once.
+                return 1;
             }
 
             template < uint_t N >
