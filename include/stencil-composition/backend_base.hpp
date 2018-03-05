@@ -51,7 +51,6 @@
 
 #include "../common/pair.hpp"
 #include "./accessor.hpp"
-#include "./aggregator_type.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
 #include "./mss_local_domain.hpp"

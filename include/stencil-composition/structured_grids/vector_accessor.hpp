@@ -36,6 +36,7 @@
 
 #pragma once
 #include "../accessor_fwd.hpp"
+#include "accessor_metafunctions.hpp"
 #include "../extent.hpp"
 
 /** @file vector accessor */

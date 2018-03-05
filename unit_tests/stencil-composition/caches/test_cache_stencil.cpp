@@ -130,18 +130,15 @@ class cache_stencil : public ::testing::Test {
 
 TEST_F(cache_stencil, ij_cache) {
     SetUp();
-    typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto stencil = make_computation< backend_t >(domain,
-        m_grid,
+    auto stencil = make_computation< backend_t >(m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
         make_multistage // mss_descriptor
         (execute< forward >(),
                                                      define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
                                                      make_stage< functor1 >(p_in(), p_buff()),
                                                      make_stage< functor1 >(p_buff(), p_out())));
-
-    stencil.steady();
 
     stencil.run();
 
@@ -171,19 +168,15 @@ TEST_F(cache_stencil, ij_cache_offset) {
         }
     }
 
-    typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
-
-    auto stencil = make_computation< backend_t >(domain,
-        m_grid,
+    auto stencil = make_computation< backend_t >(m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
         make_multistage // mss_descriptor
         (execute< forward >(),
                                                      // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
                                                      make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
                                                      make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
                                                      ));
-
-    stencil.steady();
 
     stencil.run();
 
@@ -213,12 +206,10 @@ TEST_F(cache_stencil, multi_cache) {
         }
     }
 
-    typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
-
     auto stencil =
-        make_computation< backend_t >(domain,
-            m_grid,
+        make_computation< backend_t >(m_grid,
+            p_in() = m_in,
+            p_out() = m_out,
             make_multistage // mss_descriptor
             (execute< forward >(),
                                           // test if define_caches works properly with multiple vectors of caches.
@@ -231,8 +222,6 @@ TEST_F(cache_stencil, multi_cache) {
                                           make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
                                           make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
                                           ));
-    stencil.steady();
-
     stencil.run();
 
     stencil.sync_all();

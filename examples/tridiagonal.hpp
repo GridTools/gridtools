@@ -181,17 +181,6 @@ namespace tridiagonal {
         typedef arg< 3, storage_type > p_rhs;  // d
         typedef arg< 4, storage_type > p_out;
 
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_inf, p_diag, p_sup, p_rhs, p_out > accessor_list;
-
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(inf, diag, sup, rhs, out);
-
         auto grid = make_grid(d1, d2, axis_t(d3));
 
         /*
@@ -205,8 +194,12 @@ namespace tridiagonal {
          */
 
         auto solver = gridtools::make_computation< backend_t >(
-            domain,
             grid,
+            p_inf() = inf,
+            p_diag() = diag,
+            p_sup() = sup,
+            p_rhs() = rhs,
+            p_out() = out,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< forward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
@@ -215,8 +208,6 @@ namespace tridiagonal {
             (execute< backward >(),
                 gridtools::make_stage< backward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ));
-
-        solver.steady();
 
         solver.run();
 

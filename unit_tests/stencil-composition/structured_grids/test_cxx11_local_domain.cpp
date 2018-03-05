@@ -78,10 +78,11 @@ typedef intermediate< 1,
     false,
     backend< Host, GRIDBACKEND, Naive >,
     grid< axis< 1 >::axis_interval_t >,
-    decltype(make_multistage // mss_descriptor
-                          (execute< forward >(),
-                              make_stage< dummy_functor >(p_in(), p_buff()),
-                              make_stage< dummy_functor >(p_buff(), p_out()))) > intermediate_t;
+    std::tuple<>,
+    std::tuple< decltype(make_multistage // mss_descriptor
+        (execute< forward >(),
+            make_stage< dummy_functor >(p_in(), p_buff()),
+            make_stage< dummy_functor >(p_buff(), p_out()))) > > intermediate_t;
 
 typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 

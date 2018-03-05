@@ -113,9 +113,6 @@ namespace positional_copy_stencil {
 
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
         /* typedef arg<1, vec_field_type > p_out; */
 
@@ -124,31 +121,29 @@ namespace positional_copy_stencil {
         storage_t in(meta_, -3.5, "in");
         storage_t out(meta_, 1.5, "out");
 
-        gridtools::aggregator_type< accessor_list > domain(in, out);
-
         auto grid = make_grid(d1, d2, d3);
 
         auto init = gridtools::make_positional_computation< backend_t >(
-            domain,
             grid,
+            p_in{} = in,
+            p_out{} = out,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
                     )));
 
-        init.steady();
         init.run();
         init.sync_all();
 
         auto copy =
-            gridtools::make_computation< backend_t >(domain,
-                grid,
+            gridtools::make_computation< backend_t >(grid,
+                p_in{} = in,
+                p_out{} = out,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                                                          gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
                                                              ,
                                                              p_out())));
-        copy.steady();
         copy.run();
         copy.sync_all();
 

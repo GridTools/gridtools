@@ -195,19 +195,27 @@ namespace gridtools {
     }
 
     namespace _impl {
-        /**
-           This is a functor used to iterate with boost::fusion::any
-           to check that grid size is small enough to not make the
-           stencil go out of bound on data fields.
 
-           \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
-           \tparam Grid The Grid
-        */
-        template < typename GridTraits, typename Grid >
-        struct check_with {
+        // Here we need to use the at_ interface instead of
+        // the at, since at_ does not assert out-of-bound
+        // queries, but actually returns -1.
+        template < int I, class Layout >
+        using exists_in_layout = meta::bool_constant< Layout::template at_< I >::value != -1 >;
+
+        template < int I, uint_t Id, class Layout, class Halo, class Alignment >
+        typename std::enable_if< exists_in_layout< I, Layout >::value, bool >::type storage_info_dim_fits(
+            storage_info_interface< Id, Layout, Halo, Alignment > const &storage_info, int val) {
+            return val + 1 <= storage_info.template dim< I >();
+        }
+        template < int I, uint_t Id, class Layout, class Halo, class Alignment >
+        typename std::enable_if< !exists_in_layout< I, Layout >::value, bool >::type storage_info_dim_fits(
+            storage_info_interface< Id, Layout, Halo, Alignment > const &, int) {
+            return true;
+        }
+
+        template < class GridTraits, class Grid >
+        struct storage_info_fits_grid_f {
             Grid const &grid;
-
-            check_with(Grid const &grid) : grid(grid) {}
 
             /**
                The element of the metadata set that describe the sizes
@@ -218,13 +226,8 @@ namespace gridtools {
                \tparam The type element of a metadata set which is a pointer to a metadata
                \param mde The element of a metadata set which is a pointer to a metadata
              */
-            template < typename MetaDataElem >
-            bool operator()(MetaDataElem const *mde) const {
-                bool result = true;
-
-                // Here we need to use the at_ interface instead of
-                // the at, since at_ does not assert out-of-bound
-                // queries, but actually returns -1.
+            template < uint_t Id, class Layout, class Halo, class Alignment >
+            bool operator()(storage_info_interface< Id, Layout, Halo, Alignment > const &src) const {
 
                 // TODO: This check may be not accurate since there is
                 // an ongoing change in the convention for storage and
@@ -232,56 +235,33 @@ namespace gridtools {
                 // there was not distinction between halo and core
                 // region in the storage. The distinction was made
                 // solely in the grid. Now the storage makes that
-                // distinction, ad when aqllocating the data the halo
-                // is also allocated. So for instance a stoage of
+                // distinction, ad when allocating the data the halo
+                // is also allocated. So for instance a storage of
                 // 3x3x3 with halo of <1,1,1> will allocate a 5x5x5
                 // storage. The grid is the same as before. The first
                 // step will be to update the storage to point as
-                // first eleent the (1,1,1) element and then to get
+                // first element the (1,1,1) element and then to get
                 // the grid to not specifying halos (at least in the
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                if (MetaDataElem::layout_t::template at_< GridTraits::dim_k_t::value >::value >= 0) {
-                    result = result && (grid.k_max() + 1 <= mde->template dim< GridTraits::dim_k_t::value >());
-                }
-
-                if (MetaDataElem::layout_t::template at_< GridTraits::dim_j_t::value >::value >= 0) {
-                    result = result && (grid.j_high_bound() + 1 <= mde->template dim< GridTraits::dim_j_t::value >());
-                }
-
-                if (MetaDataElem::layout_t::template at_< GridTraits::dim_i_t::value >::value >= 0) {
-                    result = result && (grid.i_high_bound() + 1 <= mde->template dim< GridTraits::dim_i_t::value >());
-                }
-
-                return !result;
+                return storage_info_dim_fits< GridTraits::dim_k_t::value >(src, grid.k_max()) &&
+                       storage_info_dim_fits< GridTraits::dim_j_t::value >(src, grid.j_high_bound()) &&
+                       storage_info_dim_fits< GridTraits::dim_i_t::value >(src, grid.i_high_bound());
             }
         };
+
     } // namespace _impl
 
     /**
-       Given the Aggregator this function checks that the
-       iteration space of the grid would not cause out of bound
-       accesses from the stencil execution. This function is
-       automatically called when constructing a computation.
-
-       \tparam GridTraits The traits in the grid in question to get the indices of the relevant coordinates
-       \tparam Grid The type of the grid (normally deduced by the argument)
-       \tparam Aggregator The aggregator (normally deduced by the argument)
-
-       \param grid The grid to check
-       \param aggrs The aggregator
-    */
-    template < typename GridTraits, typename Grid, typename Aggregator >
-    void check_fields_sizes(Grid const &grid, Aggregator const &aggr) {
-        auto metadata_view = _impl::get_storage_info_ptrs(aggr.get_arg_storage_pairs());
-        bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< GridTraits, Grid >(grid));
-        if (is_wrong) {
-            throw std::runtime_error(
-                "Error: Iteration space size is bigger than some storages sizes, this would likely "
-                "result in access violation. Please check storage sizes against grid sizes, "
-                "including the axis levels.");
-        }
+     *   This functor checks that grid size is small enough to not make the stencil go out of bound on data fields.
+     *
+     *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
+     *   \tparam Grid The Grid
+     */
+    template < class GridTraits, class Grid >
+    _impl::storage_info_fits_grid_f< GridTraits, Grid > storage_info_fits_grid(Grid const &grid) {
+        return {grid};
     }
 
     namespace _impl {
@@ -415,6 +395,7 @@ namespace gridtools {
                   storage_wrapper_list_t,
                   tmp_arg_storage_pair_fusion_list_t >(grid))),
               m_bound_arg_storage_pair_fusion_list(as_std_tuple(dedup_storage_info(std::move(arg_storage_pairs)))) {
+
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
             typename Backend::setup_grid_f{}(m_grid);

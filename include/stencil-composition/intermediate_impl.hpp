@@ -39,11 +39,13 @@
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/include/flatten.hpp>
 #include <boost/fusion/include/count.hpp>
+#include <boost/optional.hpp>
 
 #include "common/generic_metafunctions/copy_into_set.hpp"
 #include "common/fusion.hpp"
 #include "common/permute_to.hpp"
 #include "common/functional.hpp"
+#include "common/vector_traits.hpp"
 
 #include "mss_local_domain.hpp"
 #include "tile.hpp"
@@ -114,51 +116,6 @@ namespace gridtools {
                 boost::mpl::set0<> >::type,
             get_storage_info_map_element< boost::mpl::_ > > >::type;
 
-        template < typename ArgStoragePair >
-        struct get_meta_ptr {
-            using type = typename ArgStoragePair::arg_t::data_store_t::storage_info_t const *;
-        };
-
-        template < typename ArgStoragePairs >
-        using get_storage_info_ptrs_t = typename boost::fusion::result_of::as_set<
-            typename copy_into_set< boost::mpl::transform_view< ArgStoragePairs, get_meta_ptr< boost::mpl::_ > >,
-                boost::mpl::set0<> >::type >::type;
-
-        struct get_data_store_f {
-            template < typename S >
-            S const &operator()(S const &src) const {
-                return src;
-            }
-            template < typename S, uint_t... N >
-            S const &operator()(data_store_field< S, N... > const &src) const {
-                return src.template get< 0, 0 >();
-            }
-        };
-
-        struct get_storage_info_ptr_f {
-            template < typename Src >
-            auto operator()(Src const &src) const
-                GT_AUTO_RETURN(get_data_store_f{}(src.m_value).get_storage_info_ptr().get());
-#ifdef BOOST_RESULT_OF_USE_TR1
-            template < typename >
-            struct result;
-            template < typename A, typename DS >
-            struct result< get_storage_info_ptr_f(arg_storage_pair< A, DS >) > {
-                using data_store_t =
-                    typename std::decay< typename std::result_of< get_data_store_f(DS const &) >::type >::type;
-                using type = typename data_store_t::storage_info_t const *;
-            };
-            template < typename Src >
-            struct result< get_storage_info_ptr_f(Src &) >
-                : result< get_storage_info_ptr_f(typename std::decay< Src >::type) > {};
-#endif
-        };
-
-        template < typename ArgStoragePairs, typename Res = get_storage_info_ptrs_t< ArgStoragePairs > >
-        Res get_storage_info_ptrs(ArgStoragePairs const &src) {
-            return permute_to< Res >(boost::fusion::as_vector(boost::fusion::transform(src, get_storage_info_ptr_f{})));
-        }
-
         template < class Arg, class LocalDomain, class View >
         void set_view_to_local_domain(LocalDomain &local_domain, View const &view) {
             namespace f = boost::fusion;
@@ -190,21 +147,22 @@ namespace gridtools {
 
         template < class Arg, class DataStorage >
         struct bound_arg_storage_pair {
+            using view_t = typename get_view< DataStorage >::type;
+
             DataStorage m_data_storage;
-            typename get_view< DataStorage >::type m_view = {};
+            boost::optional< view_t > m_view;
 
             bound_arg_storage_pair(arg_storage_pair< Arg, DataStorage > const &src) : m_data_storage{src.m_value} {}
             bound_arg_storage_pair(arg_storage_pair< Arg, DataStorage > &&src) noexcept
                 : m_data_storage{std::move(src.m_value)} {}
 
             template < class Backend >
-            bool update_view() {
-                bool need_update = !check_consistency(m_data_storage, m_view);
-                if (need_update) {
-                    m_data_storage.sync();
-                    m_view = typename Backend::make_view_f{}(m_data_storage);
-                }
-                return need_update;
+            boost::optional< view_t > updated_view() {
+                if (m_view && check_consistency(m_data_storage, *m_view))
+                    return boost::none;
+                m_data_storage.sync();
+                m_view = typename Backend::make_view_f{}(m_data_storage);
+                return m_view;
             }
         };
 
@@ -215,44 +173,38 @@ namespace gridtools {
             }
         };
 
-        template < class Arg, class View >
-        struct view_info {
-            View view;
-            bool enable_update;
-        };
+        template < class Arg, class DataStorage >
+        using view_info_t = boost::fusion::pair< Arg, boost::optional< typename get_view< DataStorage >::type > >;
 
         template < class Backend >
         struct make_view_info_f {
             template < class Arg, class DataStorage >
-            view_info< Arg, typename get_view< DataStorage >::type > operator()(
-                arg_storage_pair< Arg, DataStorage > const &src) const {
+            view_info_t< Arg, DataStorage > operator()(arg_storage_pair< Arg, DataStorage > const &src) const {
                 src.m_value.sync();
-                return {typename Backend::make_view_f{}(src.m_value), true};
+                return typename Backend::make_view_f{}(src.m_value);
             }
             template < class Arg, class DataStorage >
-            view_info< Arg, typename get_view< DataStorage >::type const & > operator()(
-                bound_arg_storage_pair< Arg, DataStorage > &src) const {
-                bool enable_update = src.template update_view< Backend >();
-                return {src.m_view, enable_update};
+            view_info_t< Arg, DataStorage > operator()(bound_arg_storage_pair< Arg, DataStorage > &src) const {
+                return src.template updated_view< Backend >();
             }
             template < class Arg, class DataStorage >
-            view_info< Arg, typename get_view< DataStorage >::type const & > operator()(
-                bound_arg_storage_pair< Arg, DataStorage > &&src) const;
+            view_info_t< Arg, DataStorage > operator()(bound_arg_storage_pair< Arg, DataStorage > &&src) const;
         };
 
         template < class LocalDomain >
         struct set_view_to_local_domain_f {
             LocalDomain &m_local_domain;
-            template < class Arg, class View >
+            template < class Arg, class OptView >
             typename std::enable_if< local_domain_has_arg< LocalDomain, Arg >::value, bool >::type operator()(
-                view_info< Arg, View > const &info) const {
-                if (info.enable_update)
-                    set_view_to_local_domain< Arg >(m_local_domain, info.view);
-                return info.enable_update;
+                boost::fusion::pair< Arg, OptView > const &info) const {
+                if (!info.second)
+                    return false;
+                set_view_to_local_domain< Arg >(m_local_domain, *info.second);
+                return true;
             }
-            template < class Arg, class View >
+            template < class Arg, class OptView >
             typename std::enable_if< !local_domain_has_arg< LocalDomain, Arg >::value, bool >::type operator()(
-                view_info< Arg, View > const &info) const {
+                boost::fusion::pair< Arg, OptView > const &info) const {
                 return false;
             }
         };
@@ -483,5 +435,11 @@ namespace gridtools {
                     typename get_storage_wrapper< tileI, tileJ >::template apply< boost::mpl::_2 > > >::type type;
         };
 
+        struct l_get_arg_storage_pair_type {
+            template < typename Arg >
+            struct apply {
+                typedef arg_storage_pair< Arg, typename Arg::data_store_t > type;
+            };
+        };
     } // namespace _impl
 } // namespace gridtools

@@ -72,11 +72,6 @@ namespace gridtools {
         bool m_device_view;
 
         /**
-         * @brief data_field_view constructor
-         */
-        data_field_view() {}
-
-        /**
          * @brief data_field_view constructor. This constructor is normally not called by the user because it is more
          * convenient to use the provided make functions.
          * @param data_ptrs list of pointers to the data

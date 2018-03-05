@@ -88,12 +88,9 @@ namespace test_conditional_switches {
         typedef arg< 0, data_store_t > p_dummy;
         typedef tmp_arg< 1, data_store_t > p_dummy_tmp;
 
-        typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
-        aggregator_type< arg_list > domain_(dummy);
-
         auto comp_ = make_computation< backend_t >(
-            domain_,
             grid_,
+            p_dummy{} = dummy,
             make_multistage(enumtype::execute< enumtype::forward >(),
                 make_stage< functor1< 0 > >(p_dummy(), p_dummy_tmp()),
                 make_stage< functor2< 0 > >(p_dummy(), p_dummy_tmp())),
@@ -130,7 +127,6 @@ namespace test_conditional_switches {
                 make_stage< functor1< 400 > >(p_dummy(), p_dummy_tmp()),
                 make_stage< functor2< 400 > >(p_dummy(), p_dummy_tmp())));
 
-        comp_.steady();
         comp_.run();
         dummy.sync();
         bool result = make_host_view(dummy)(0, 0, 0) == 842;

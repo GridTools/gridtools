@@ -76,15 +76,8 @@ TEST(testdomain, iterate_domain_with_extents) {
     typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
     typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
-    storage_info_t si(1, 1, 1);
-    data_store_t in(si);
-    data_store_t out(si);
-
     typedef arg< 0, data_store_t > p_in;
     typedef arg< 1, data_store_t > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain(in, out);
 
     halo_descriptor di = {0, 0, 0, 2, 5};
     halo_descriptor dj = {0, 0, 0, 2, 5};
@@ -93,7 +86,7 @@ TEST(testdomain, iterate_domain_with_extents) {
     {
         auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()));
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -103,7 +96,7 @@ TEST(testdomain, iterate_domain_with_extents) {
         auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in()));
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -118,7 +111,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
 
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -133,7 +126,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
 
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(

@@ -91,20 +91,16 @@ namespace test_iterate_domain {
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_buff_t > p_buff;
         typedef arg< 2, storage_out_t > p_out;
-        typedef boost::mpl::vector< p_in, p_buff, p_out > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain(in, buff, out);
 
         auto grid = make_grid(d1, d2, d3);
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute< enumtype::forward >(),
                 gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
-        auto computation_ = make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(
+            grid, p_in() = in, p_buff() = buff, p_out() = out, mss_);
 
         typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
-
-        computation_.steady();
 
         typedef std::decay< decltype(computation_) >::type intermediate_t;
         typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;

@@ -117,23 +117,14 @@ namespace test_reduction {
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(in, out);
-
         // Definition of the physical dimensions of the problem.
         auto grid = make_grid(d1, d2, axis_t(d3));
 
-        auto sum_red_ = make_computation< backend_t >(domain,
-            grid,
+        auto sum_red_ = make_computation< backend_t >(grid,
+            p_in{} = in,
+            p_out{} = out,
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
-
-        sum_red_.steady();
 
         float_type sum_redt = sum_red_.run();
         float_type precision;
@@ -151,12 +142,11 @@ namespace test_reduction {
         std::cout << "Sum Reduction : " << sum_red_.print_meter() << std::endl;
 #endif
 
-        auto prod_red_ = make_computation< backend_t >(domain,
-            grid,
+        auto prod_red_ = make_computation< backend_t >(grid,
+            p_in{} = in,
+            p_out{} = out,
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
-
-        prod_red_.steady();
 
         float_type prod_redt = prod_red_.run();
 

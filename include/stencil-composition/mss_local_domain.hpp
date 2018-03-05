@@ -45,7 +45,6 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
 
-#include "aggregator_type.hpp"
 #include "backend_traits_fwd.hpp"
 #include "local_domain.hpp"
 #include "local_domain_metafunctions.hpp"

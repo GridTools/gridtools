@@ -95,13 +95,12 @@ namespace adv_prepare_tracers {
         typedef arg< 0, std::vector< storage_t > > p_list_out;
         typedef arg< 1, std::vector< storage_t > > p_list_in;
         typedef arg< 2, storage_t > p_rho;
-        typedef boost::mpl::vector< p_list_out, p_list_in, p_rho > args_t;
-
-        aggregator_type< args_t > domain_(list_out_, list_in_, rho);
         auto comp_ =
             make_computation< backend_t >(expand_factor< 2 >(),
-                domain_,
                 grid_,
+                p_list_out{} = list_out_,
+                p_list_in{} = list_in_,
+                p_rho{} = rho,
                 make_multistage(enumtype::execute< enumtype::forward >(),
                                               make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 

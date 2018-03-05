@@ -88,15 +88,11 @@ namespace test_cycle_and_swap {
         auto grid = make_grid((uint_t)1, (uint_t)1, (uint_t)1);
 
         typedef arg< 0, data_store_field_t > p_i_data;
-        typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        aggregator_type< accessor_list > domain(i_data);
-
-        auto comp = gridtools::make_computation< backend_t >(domain,
-            grid,
+        auto comp = gridtools::make_computation< backend_t >(grid,
+            p_i_data() = i_data,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
-        comp.steady();
         comp.run();
         i_data.sync();
         swap< 0, 0 >::with< 0, 1 >(i_data);
@@ -143,12 +139,9 @@ namespace test_cycle_and_swap {
         auto grid = make_grid(di, dj, d3);
 
         typedef arg< 0, data_store_field_t > p_i_data;
-        typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        aggregator_type< accessor_list > domain(i_data);
-
-        auto comp = gridtools::make_computation< backend_t >(domain,
-            grid,
+        auto comp = gridtools::make_computation< backend_t >(grid,
+            p_i_data() = i_data,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
@@ -176,7 +169,6 @@ namespace test_cycle_and_swap {
                 }
             }
         }
-        comp.steady();
         comp.run();
         i_data.sync();
         swap< 0, 0 >::with< 0, 1 >(i_data);
@@ -226,15 +218,11 @@ namespace test_cycle_and_swap {
         auto grid = make_grid(di, dj, (uint_t)1);
 
         typedef arg< 0, data_store_field_t > p_i_data;
-        typedef boost::mpl::vector< p_i_data > accessor_list;
 
-        aggregator_type< accessor_list > domain(i_data);
-
-        auto comp = gridtools::make_computation< backend_t >(domain,
-            grid,
+        auto comp = gridtools::make_computation< backend_t >(grid,
+            p_i_data() = i_data,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
-        comp.steady();
         comp.run();
         i_data.sync();
         cycle< 0 >::by< 1 >(i_data);

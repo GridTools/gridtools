@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../common/generic_metafunctions/binary_ops.hpp"
 #include "dimension_fwd.hpp"
 #include "accessor_fwd.hpp"
 
