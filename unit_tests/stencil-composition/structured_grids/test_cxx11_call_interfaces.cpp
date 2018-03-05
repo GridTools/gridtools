@@ -598,6 +598,11 @@ class call_proc_interface : public testing::Test {
         out1.sync();
         out2.sync();
     }
+    template < typename Computation >
+    void execute_computation2(Computation &comp) {
+        comp.run(p_in() = in, p_out1() = out1);
+        out1.sync();
+    }
 };
 
 namespace call_proc_interface_functors {
@@ -769,7 +774,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
             gridtools::make_stage< call_proc_interface_functors::call_copy_functor_with_expression >(
                                        p_in(), p_out1())));
 
-    execute_computation(comp);
+    execute_computation2(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
 }
@@ -820,7 +825,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_default_interval) {
             gridtools::make_stage< call_proc_interface_functors::call_copy_functor_default_interval >(
                                        p_in(), p_out1())));
 
-    execute_computation(comp);
+    execute_computation2(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
 }
@@ -832,7 +837,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_default_interval_with_offset_in
             gridtools::make_stage< call_proc_interface_functors::call_copy_functor_default_interval_with_offset_in_k >(
                                        p_in(), p_out1())));
 
-    execute_computation(comp);
+    execute_computation2(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
 }

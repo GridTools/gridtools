@@ -310,18 +310,28 @@ namespace gridtools {
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::grid_traits_t grid_traits_t;
 
-        using placeholders_t = typename extract_placeholders< all_mss_descriptors_t >::type;
-        using tmp_arg_storage_pair_fusion_list_t = typename boost::fusion::result_of::as_vector<
-            boost::mpl::transform_view< boost::mpl::filter_view< placeholders_t, is_tmp_arg< boost::mpl::_ > >,
-                _impl::l_get_arg_storage_pair_type > >::type;
-        using non_tmp_placeholders_t =
-            boost::mpl::filter_view< placeholders_t, boost::mpl::not_< is_tmp_arg< boost::mpl::_ > > >;
+        using mpl_placeholders_t = typename extract_placeholders< all_mss_descriptors_t >::type;
+        using placeholders_t = copy_into_variadic< mpl_placeholders_t, std::tuple<> >;
+        using tmp_placeholders_t = meta::apply< meta::filter< is_tmp_arg >, placeholders_t >;
+        using non_tmp_placeholders_t = meta::apply< meta::filter< meta::not_< is_tmp_arg >::apply >, placeholders_t >;
 
-        using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
+        using tmp_arg_storage_pair_fusion_list_t = typename boost::fusion::result_of::as_vector<
+            boost::mpl::transform_view< tmp_placeholders_t, _impl::l_get_arg_storage_pair_type > >::type;
 
         GRIDTOOLS_STATIC_ASSERT(
-            (meta::conjunction< boost::mpl::contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
-            "some placeholders are not used in mss descriptors");
+            (meta::conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
+            "some bound placeholders are not used in mss descriptors");
+
+        GRIDTOOLS_STATIC_ASSERT((std::is_same< meta::dedup< meta::list< BoundPlaceholders... > >,
+                                    meta::list< BoundPlaceholders... > >::value),
+            "bound placeholders should be all different");
+
+        template < class Arg >
+        using is_free = meta::negation< meta::st_contains< meta::list< BoundPlaceholders... >, Arg > >;
+
+        using free_placeholders_t = meta::apply< meta::filter< is_free >, non_tmp_placeholders_t >;
+
+        using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
 
         using bound_arg_storage_pair_fusion_list_t =
             std::tuple< _impl::bound_arg_storage_pair< BoundPlaceholders, BoundDataStores >... >;
@@ -406,8 +416,14 @@ namespace gridtools {
         void sync_all() const { boost::fusion::for_each(m_bound_arg_storage_pair_fusion_list, _impl::sync_f{}); }
 
         template < class... Args, class... DataStores >
-        return_type run(arg_storage_pair< Args, DataStores > const &... src) {
-            // TODO(anstaf): check that src is legit
+        typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
+            arg_storage_pair< Args, DataStores > const &... src) {
+            GRIDTOOLS_STATIC_ASSERT((meta::conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
+                "some placeholders are not used in mss descriptors");
+            GRIDTOOLS_STATIC_ASSERT(
+                (std::is_same< meta::dedup< meta::list< Args... > >, meta::list< Args... > >::value),
+                "free placeholders should be all different");
+
             update_local_domains(make_joint_view(make_view_infos(m_bound_arg_storage_pair_fusion_list),
                 make_view_infos(dedup_storage_info(boost::fusion::make_vector(std::cref(src)...)))));
             m_meter.start();
