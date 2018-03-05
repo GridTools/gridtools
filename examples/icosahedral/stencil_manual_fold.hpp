@@ -129,23 +129,19 @@ namespace smf {
         typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
         typedef arg< 1, edges_of_cells_storage_type, enumtype::cells > p_weight_edges;
 
-        typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
-
-        gridtools::aggregator_type< accessor_list_t > domain(cell_area, weight_edges);
-
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
-            domain,
             grid_,
+            p_cell_area() = cell_area,
+            p_weight_edges() = weight_edges,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_cell_area(), p_weight_edges())));
-        stencil_.steady();
         stencil_.run();
 
         cell_area.sync();

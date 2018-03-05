@@ -121,20 +121,16 @@ namespace ico_operators {
             typedef arg< 2, edges_of_cells_storage_type, enumtype::cells > p_orientation_of_normal;
             typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
 
-            typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights >
-                accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(
-                edge_length, cell_area_reciprocal, orientation_of_normal, div_weights);
-
             auto stencil_prep = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_edge_length{} = edge_length,
+                p_cell_area_reciprocal{} = cell_area_reciprocal,
+                p_orientation_of_normal{} = orientation_of_normal,
+                p_div_weights{} = div_weights,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                         p_edge_length(), p_cell_area_reciprocal(), p_orientation_of_normal(), p_div_weights())));
-            stencil_prep.steady();
             stencil_prep.run();
             stencil_prep.sync_all();
         }
@@ -144,19 +140,16 @@ namespace ico_operators {
             typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
             typedef arg< 2, edges_4d_storage_type, enumtype::edges > p_l_over_A;
 
-            typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_l_over_A > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(edge_length, cell_area_reciprocal, l_over_A);
-
             auto stencil_prep_on_edges = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_edge_length{} = edge_length,
+                p_cell_area_reciprocal{} = cell_area_reciprocal,
+                p_l_over_A{} = l_over_A,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< div_prep_functor_on_edges,
                         icosahedral_topology_t,
                         icosahedral_topology_t::edges >(p_edge_length(), p_cell_area_reciprocal(), p_l_over_A())));
-            stencil_prep_on_edges.steady();
             stencil_prep_on_edges.run();
             stencil_prep_on_edges.sync_all();
         }
@@ -171,18 +164,15 @@ namespace ico_operators {
             typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
             typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
-            typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(in_edges, div_weights, out_cells);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_div_weights{} = div_weights,
+                p_out_cells{} = out_cells,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< div_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                         p_in_edges(), p_div_weights(), p_out_cells())));
-            stencil_.steady();
             stencil_.run();
 
             in_edges.sync();
@@ -204,19 +194,16 @@ namespace ico_operators {
             typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
             typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
-            typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(in_edges, div_weights, out_cells);
-
             auto stencil_reduction_into_scalar = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_div_weights{} = div_weights,
+                p_out_cells{} = out_cells,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< div_functor_reduction_into_scalar,
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(p_in_edges(), p_div_weights(), p_out_cells())));
-            stencil_reduction_into_scalar.steady();
             stencil_reduction_into_scalar.run();
 
             in_edges.sync();
@@ -240,22 +227,18 @@ namespace ico_operators {
             typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
             typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
 
-            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
-                accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(
-                in_edges, edge_length, cell_area_reciprocal, out_cells);
-
             auto stencil_flow_convention = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_edge_length{} = edge_length,
+                p_cell_area_reciprocal{} = cell_area_reciprocal,
+                p_out_cells{} = out_cells,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(
                         p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
-            stencil_flow_convention.steady();
             stencil_flow_convention.run();
 
             in_edges.sync();

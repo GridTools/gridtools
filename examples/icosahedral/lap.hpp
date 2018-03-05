@@ -161,28 +161,16 @@ namespace ico_operators {
             typedef arg< 6, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
             typedef arg< 7, edges_of_vertices_storage_type, enumtype::vertices > p_edge_orientation;
 
-            typedef boost::mpl::vector< p_edge_length,
-                p_cell_area_reciprocal,
-                p_orientation_of_normal,
-                p_div_weights,
-
-                p_dual_area_reciprocal,
-                p_dual_edge_length,
-                p_curl_weights,
-                p_edge_orientation > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(edge_length,
-                cell_area_reciprocal,
-                orientation_of_normal,
-                div_weights,
-                dual_area_reciprocal,
-                dual_edge_length,
-                curl_weights,
-                edge_orientation);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_edge_length{} = edge_length,
+                p_cell_area_reciprocal{} = cell_area_reciprocal,
+                p_orientation_of_normal{} = orientation_of_normal,
+                p_div_weights{} = div_weights,
+                p_dual_area_reciprocal{} = dual_area_reciprocal,
+                p_dual_edge_length{} = dual_edge_length,
+                p_curl_weights{} = curl_weights,
+                p_edge_orientation{} = edge_orientation,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
@@ -191,7 +179,6 @@ namespace ico_operators {
                         icosahedral_topology_t,
                         icosahedral_topology_t::vertices >(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
-            stencil_.steady();
             stencil_.run();
             stencil_.sync_all();
         }
@@ -218,21 +205,14 @@ namespace ico_operators {
             // output
             typedef arg< 7, edge_storage_type, enumtype::edges > p_out_edges;
 
-            typedef boost::mpl::vector< p_in_edges,
-                p_div_weights,
-                p_div_on_cells,
-                p_curl_weights,
-                p_curl_on_vertices,
-                p_dual_edge_length_reciprocal,
-                p_edge_length_reciprocal,
-                p_out_edges > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(
-                in_edges, div_weights, curl_weights, dual_edge_length_reciprocal, edge_length_reciprocal, out_edges);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_div_weights{} = div_weights,
+                p_curl_weights{} = curl_weights,
+                p_dual_edge_length_reciprocal{} = dual_edge_length_reciprocal,
+                p_edge_length_reciprocal{} = edge_length_reciprocal,
+                p_out_edges{} = out_edges,
                 gridtools::make_multistage(
                     execute< forward >(),
                     make_stage< div_functor_reduction_into_scalar,
@@ -246,7 +226,6 @@ namespace ico_operators {
                         p_edge_length_reciprocal(),
                         p_out_edges())));
 
-            stencil_.steady();
             stencil_.run();
 
             in_edges.sync();
@@ -286,29 +265,16 @@ namespace ico_operators {
             // output
             typedef arg< 9, edge_storage_type, enumtype::edges > p_out_edges;
 
-            typedef boost::mpl::vector< p_in_edges,
-                p_edge_length,
-                p_cell_area_reciprocal,
-                p_div_on_cells,
-                p_dual_area_reciprocal,
-                p_dual_edge_length,
-                p_curl_on_vertices,
-                p_dual_edge_length_reciprocal,
-                p_edge_length_reciprocal,
-                p_out_edges > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(in_edges,
-                edge_length,
-                cell_area_reciprocal,
-                dual_area_reciprocal,
-                dual_edge_length,
-                dual_edge_length_reciprocal,
-                edge_length_reciprocal,
-                out_edges);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_edge_length{} = edge_length,
+                p_cell_area_reciprocal{} = cell_area_reciprocal,
+                p_dual_area_reciprocal{} = dual_area_reciprocal,
+                p_dual_edge_length{} = dual_edge_length,
+                p_dual_edge_length_reciprocal{} = dual_edge_length_reciprocal,
+                p_edge_length_reciprocal{} = edge_length_reciprocal,
+                p_out_edges{} = out_edges,
                 gridtools::make_multistage(
                     execute< forward >(),
                     define_caches(cache< IJ, cache_io_policy::local >(p_div_on_cells())), // p_curl_on_vertices())),
@@ -326,7 +292,6 @@ namespace ico_operators {
                         p_edge_length_reciprocal(),
                         p_out_edges())));
 
-            stencil_.steady();
             stencil_.run();
 
             in_edges.sync();

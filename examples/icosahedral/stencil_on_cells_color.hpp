@@ -114,24 +114,20 @@ namespace socc {
         typedef arg< 0, cell_storage_type, enumtype::cells > p_in_cells;
         typedef arg< 1, cell_storage_type, enumtype::cells > p_out_cells;
 
-        typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
-
-        gridtools::aggregator_type< accessor_list_t > domain(in_cells, out_cells);
-
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
-            domain,
             grid_,
+            p_in_cells() = in_cells,
+            p_out_cells() = out_cells,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< on_cells_color_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_cells(), p_out_cells())));
 
-        stencil_.steady();
         stencil_.run();
 
         out_cells.sync();
