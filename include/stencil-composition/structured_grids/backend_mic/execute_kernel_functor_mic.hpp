@@ -103,19 +103,24 @@ namespace gridtools {
                 const int_t k_first = m_grid.template value_at< typename iteration_policy_t::from >();
                 const int_t k_last = m_grid.template value_at< typename iteration_policy_t::to >();
 
+                constexpr int_t veclength = 16;
+
+                run_esf_functor_t run_esf(m_it_domain);
                 m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
-// TODO: fix vectorization for ICC
-#pragma ivdep
-#pragma omp simd
-                    for (int_t i = i_first; i < i_last; ++i) {
-                        run_esf_functor_t run_esf(m_it_domain);
-                        m_it_domain.set_i_block_index(i);
+                    // TODO: software prefetching and ESF loop inside outer i loop if possible?
+                    for (int_t i_vecfirst = i_first; i_vecfirst < i_last; i_vecfirst += veclength) {
+                        const int_t i_veclast = i_vecfirst + veclength > i_last ? i_last : i_vecfirst + veclength;
                         for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
                              iteration_policy_t::increment(k)) {
                             m_it_domain.set_k_block_index(k);
-                            run_esf(index);
+#pragma ivdep
+#pragma omp simd
+                            for (int_t i = i_vecfirst; i < i_veclast; ++i) {
+                                m_it_domain.set_i_block_index(i);
+                                run_esf(index);
+                            }
                         }
                     }
                 }
@@ -168,7 +173,6 @@ namespace gridtools {
                 m_it_domain.set_k_block_index(m_execution_info.k);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
-// TODO: fix vectorization for ICC
 #pragma ivdep
 #pragma omp simd
                     for (int_t i = i_first; i < i_last; ++i) {
