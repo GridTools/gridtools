@@ -112,6 +112,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
     # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'")
+    # slightly improve performance
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-subscript-in-range -qoverride-limits")
 endif()
 
 Find_Package( OpenMP )
