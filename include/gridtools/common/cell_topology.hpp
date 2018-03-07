@@ -36,7 +36,8 @@
 #pragma once
 
 /**
-   @file traits classes for the various grid topologies
+   @file
+   traits classes for the various grid topologies
 */
 
 namespace gridtools {

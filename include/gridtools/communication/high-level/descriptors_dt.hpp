@@ -339,10 +339,11 @@ namespace gridtools {
 #endif
 
         /**
-           Constructor
+           \brief Constructor
 
            \param[in] c The object of the class used to specify periodicity in each dimension
            \param[in] comm MPI communicator (typically MPI_Comm_world)
+           \param[in] dimensions array of dimensions of the process grid
         */
         template < typename Array >
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const *dimensions)

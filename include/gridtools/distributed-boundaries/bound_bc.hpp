@@ -44,6 +44,9 @@
 namespace gridtools {
     namespace _impl {
 
+        /** \ingroup Distributed-Boundaries
+         * @{ */
+
         /** \internal
             @brief Tag type to indicate that a type is a placeholder
         */
@@ -203,7 +206,12 @@ namespace gridtools {
         struct contains_placeholders< std::tuple< T, Ts... >,
             typename std::enable_if< (std::is_placeholder< T >::value > 0), void >::type > : boost::true_type {};
 
+        /** @} */
+
     } // namespace _impl
+
+    /** \ingroup Distributed-Boundaries
+     * @{ */
 
     /**
      * @brief class to associate data store to gridtools::boundary class for
@@ -330,5 +338,7 @@ namespace gridtools {
 
     template < typename... T >
     struct is_bound_bc< bound_bc< T... > > : std::true_type {};
+
+    /** @} */
 
 } // namespace gridtools

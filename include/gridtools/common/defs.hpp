@@ -137,6 +137,10 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+/**
+ * @brief Main namespace containing all the provided libraries and
+ * functionalities
+ */
 namespace gridtools {
     /** \namespace enumtype
        @brief enumeration types*/
@@ -280,7 +284,7 @@ namespace gridtools {
 /**
    @section typedefs Gridtools types definitions
    @{
-   @NOTE: the integer types are all signed,
+   @note the integer types are all signed,
    also the ones which should be logically unsigned (uint_t). This is due
    to a GCC (4.8.2) bug which is preventing vectorization of nested loops
    with an unsigned iteration index.

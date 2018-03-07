@@ -47,6 +47,9 @@
 #include "../storage_host/host_storage.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /*
      * @brief The CUDA storage implementation. This class owns the CPU and GPU pointer
@@ -250,4 +253,8 @@ namespace gridtools {
 
     template < typename T >
     struct is_cuda_storage< cuda_storage< T > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

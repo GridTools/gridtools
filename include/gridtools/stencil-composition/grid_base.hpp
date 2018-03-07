@@ -93,9 +93,9 @@ namespace gridtools {
 
         /**
          * @brief standard ctor
-         * @param halo_descriptor in i direction
-         * @param halo_descriptor in j direction
-         * @param gridtools::array with splitter positions
+         * @param direction_i halo_descriptor in i direction
+         * @param direction_j halo_descriptor in j direction
+         * @param value_list gridtools::array with splitter positions
          */
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i,
