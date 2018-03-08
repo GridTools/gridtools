@@ -125,6 +125,7 @@ namespace gridtools {
 
            \param[in] c The object of the class used to specify periodicity in each dimension
            \param[in] comm MPI communicator (typically MPI_Comm_world)
+           \param[in] dimensions array of dimensions of the process grid
         */
         template < typename Array >
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const *dimensions)
@@ -168,7 +169,7 @@ namespace gridtools {
         /**
            Function to setup internal data structures for data exchange and preparing eventual underlying layers
 
-           \param max_fields_n Maximum number of data fields that will be passed to the communication functions
+           \param * Maximum number of data fields that will be passed to the communication functions
         */
         void setup(int) { halo.setup(); }
 

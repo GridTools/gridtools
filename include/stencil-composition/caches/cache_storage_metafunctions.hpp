@@ -37,7 +37,8 @@
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 /**
-   @file metafunctions used in the cache_storage class
+   @file
+   Metafunctions used in the cache_storage class
 */
 
 namespace gridtools {
@@ -58,7 +59,8 @@ namespace gridtools {
         struct compute_meta_storage;
 
         /**
-           @class computing the correct storage_info type for the cache storage
+           Computing the correct storage_info type for the cache storage
+
            \tparam Layout memory layout of the cache storage
            \tparam Plus the positive extents in all directions
            \tparam Plus the negative extents in all directions
@@ -125,7 +127,7 @@ namespace gridtools {
         template < typename T >
         struct generate_layout_map;
 
-        /**@class automatically generates the layout map for the cache storage. By default
+        /** Automatically generates the layout map for the cache storage. By default
            i and j have the smallest stride. The largest stride is in the field dimension. This reduces bank conflicts.
          */
         template < uint_t... Id >

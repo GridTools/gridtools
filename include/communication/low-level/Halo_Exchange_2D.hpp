@@ -157,7 +157,7 @@ namespace gridtools {
        \endcode
 
 
-       A running example can be found in the included example. \example test_halo_exchange_3D.cpp \example
+       A running example can be found in the included example. \example test_halo_exchange_3D_all.cpp \example
      test_halo_exchange_2D.cpp
      */
     template < typename PROC_GRID, int ALIGN = 1 >

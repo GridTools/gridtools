@@ -39,7 +39,8 @@
 #include "binary_ops.hpp"
 #include <algorithm>
 
-/**@file @brief implementation of a compile-time accumulator and constexpr max and min functions
+/**@file
+   @brief Implementation of a compile-time accumulator and constexpr max and min functions
 
    The accumulator allows to perform operations on static const value to
    be passed as template argument.

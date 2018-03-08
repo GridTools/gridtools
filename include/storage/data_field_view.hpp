@@ -80,8 +80,8 @@ namespace gridtools {
          * @brief data_field_view constructor. This constructor is normally not called by the user because it is more
          * convenient to use the provided make functions.
          * @param data_ptrs list of pointers to the data
-         * @param info_ptr list of pointers to the storage_infos
-         * @param state_ptr list of pointers to the state machines
+         * @param info_ptrs list of pointers to the storage_infos
+         * @param state_machines list of pointers to the state machines
          * @param offsets list of accumulated offsets (e.g., coordinate sizes 1,2,3 will result in offsets 0, 1, 3)
          * @param device_view true if device view, false otherwise
          */
@@ -145,6 +145,7 @@ namespace gridtools {
         }
     };
 
+    /// @brief simple metafunction to check if a type is a data_field_view
     template < typename T >
     struct is_data_field_view : boost::mpl::false_ {};
 

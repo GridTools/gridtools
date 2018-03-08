@@ -49,6 +49,10 @@ direation, an arbitrary number of data fields, and the coordinates ID)
 */
 namespace gridtools {
 
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     template < typename BoundaryFunction,
         typename Predicate = default_predicate,
         typename HaloDescriptors = array< halo_descriptor, 3u > >
@@ -164,5 +168,7 @@ namespace gridtools {
         /** fixing compilation */
         void apply() const {}
     };
+
+    /** @} */
 
 } // namespace gridtools

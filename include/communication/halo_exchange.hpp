@@ -366,8 +366,7 @@ namespace gridtools {
             : hd(c.template permute< layout2proc_map_abs >(), _impl::_make_comm(comm, dims)) {}
 
         /**
-           Same signature of \ref halo_exchange_dynamic_ut::halo_exchange_dynamic_ut::(typename grid_type::period_type
-           const &, MPI_Comm const &, array<ValueType, Size> &&) [this] but takes the dims array as reference, in case
+           Same signature of halo_exchange_dynamic_ut [this] constructor but takes the dims array as reference, in case
            the output of the MPI_Cart_create is needed.
 
             \tparam ValueType Value type of the GridTools array of dimensions (deduced)

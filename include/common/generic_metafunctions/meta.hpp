@@ -36,7 +36,8 @@
 #pragma once
 
 /**
- *  @file Minimalistic C++11 metaprogramming library.
+ *  @file
+ *  Minimalistic C++11 metaprogramming library.
  *
  *  Basic Concepts
  *  ==============
