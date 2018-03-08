@@ -47,8 +47,7 @@ namespace gridtools {
      * @tparam Interval interval where the functor gets executed
      */
     template < typename RunFunctorArguments, typename Interval >
-    struct run_esf_functor_mic
-        : public run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > // CRTP
+    struct run_esf_functor_mic : public run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > // CRTP
     {
         GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
         typedef run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > super;
@@ -129,12 +128,6 @@ namespace gridtools {
             typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (EsfArguments::is_reduction_t::value), "Reductions not supported at the moment for icosahedral grids");
-            //            typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
-            //            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong
-            //            type");
-            //            typedef typename EsfArguments::functor_t functor_t;
-            //            this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
-            //                functor_t::f_type::Do(this->m_iterate_domain, IntervalType())));
         }
     };
 }
