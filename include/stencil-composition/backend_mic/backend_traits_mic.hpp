@@ -93,10 +93,9 @@ namespace gridtools {
         static uint_t n_i_pes(uint_t = 0) {
 #ifdef STRUCTURED_GRIDS
             /* This function is not used in the MIC backend for structured grids. */
-            return 0;
-#else
-            return omp_get_max_threads();
+            assert(false);
 #endif
+            return omp_get_max_threads();
         }
 
         /** This is the function used by the specific backend to inform the
@@ -107,10 +106,9 @@ namespace gridtools {
         static uint_t n_j_pes(uint_t = 0) {
 #ifdef STRUCTURED_GRIDS
             /* This function is not used in the MIC backend for structured grids. */
-            return 0;
-#else
-            return 1;
+            assert(false);
 #endif
+            return 1;
         }
 
         /** This is the function used by the specific backend
@@ -120,10 +118,9 @@ namespace gridtools {
         static uint_t processing_element_i() {
 #ifdef STRUCTURED_GRIDS
             /* This function is not used in the MIC backend for structured grids. */
-            return 0;
-#else
-            return omp_get_thread_num();
+            assert(false);
 #endif
+            return omp_get_thread_num();
         }
 
         /** This is the function used by the specific backend
@@ -133,10 +130,9 @@ namespace gridtools {
         static uint_t processing_element_j() {
 #ifdef STRUCTURED_GRIDS
             /* This function is not used in the MIC backend for structured grids. */
-            return 0;
-#else
-            return 0;
+            assert(false);
 #endif
+            return 0;
         }
 
         template < uint_t Id, typename BlockSize >
