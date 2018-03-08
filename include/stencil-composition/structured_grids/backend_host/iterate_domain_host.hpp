@@ -167,9 +167,6 @@ namespace gridtools {
       private:
         data_ptr_cached_t *RESTRICT m_data_pointer;
         strides_cached_t *RESTRICT m_strides;
-
-        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< iterate_domain_host >(
-            iterate_domain_host &);
     };
 
     template < template < class > class IterateDomainBase, typename IterateDomainArguments >

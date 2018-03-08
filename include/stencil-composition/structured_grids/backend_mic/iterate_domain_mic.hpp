@@ -57,11 +57,6 @@ namespace gridtools {
         using type = enumtype::enum_type< enumtype::platform, enumtype::Mic >;
     };
 
-    namespace advanced {
-        template < typename IDomain >
-        inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id);
-    } // namespace advanced
-
     /**
      * @brief Iterate domain class for the MIC backend.
      */
@@ -381,12 +376,6 @@ namespace gridtools {
         int_t k() const { return m_k_block_index; }
 
       private:
-        GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer() { return m_data_pointer; }
-
-        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< iterate_domain_mic >(
-            iterate_domain_mic &);
-
         /** @brief Computes stride for a storage_info along given coordinate. */
         template < typename StorageInfo, int_t Coordinate >
         GT_FUNCTION int_t stride() const {
