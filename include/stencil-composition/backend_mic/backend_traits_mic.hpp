@@ -55,12 +55,6 @@
 @brief type definitions and structures specific for the Mic backend
 */
 namespace gridtools {
-    namespace _impl_mic {
-        /**forward declaration*/
-        template < typename Arguments >
-        struct run_functor_mic;
-    }
-
     /**Traits struct, containing the types which are specific for the mic backend*/
     template <>
     struct backend_traits_from_id< enumtype::Mic > {
@@ -78,11 +72,6 @@ namespace gridtools {
             auto operator()(data_store< S, SI > const &src) const GT_AUTO_RETURN(make_host_view(src));
             template < typename S, uint_t... N >
             auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_host_view(src));
-        };
-
-        template < typename Arguments >
-        struct execute_traits {
-            typedef _impl_mic::run_functor_mic< Arguments > run_functor_t;
         };
 
         /** This is the function used by the specific backend to inform the
