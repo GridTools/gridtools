@@ -6,9 +6,4 @@ macro( gridtools_setup_boost )
     list( APPEND GRIDTOOLS_SYSTEM_INCLUDE_DIRS "${dir}" )
   endforeach()
 
-  # A bug in boost requires these definitions to be exported
-  list( APPEND GRIDTOOLS_DEFINITIONS
-    "-DBOOST_NO_CXX11_DECLTYPE"
-  )
-
 endmacro()
