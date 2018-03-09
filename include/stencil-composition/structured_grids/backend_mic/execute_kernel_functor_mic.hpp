@@ -49,20 +49,117 @@ namespace gridtools {
     namespace _impl {
 
         /**
+         * @brief Meta function to check if all ESFs can be computed independently per column. This is possible if the
+         * max extent is zero, i.e. there are no dependencies between the ESFs with offsets along i or j.
+         */
+        template < typename RunFunctorArguments >
+        using enable_inner_k_fusion = std::integral_constant< bool,
+            RunFunctorArguments::max_extent_t::iminus::value == 0 &&
+                RunFunctorArguments::max_extent_t::iplus::value == 0 &&
+                RunFunctorArguments::max_extent_t::jminus::value == 0 &&
+                RunFunctorArguments::max_extent_t::jplus::value == 0 &&
+                /* TODO: enable. This is currently disabled as the performance is not satisfying, probably due to
+                   missing vector-sized k-caches and possibly alignment issues. */
+                false >;
+
+        constexpr int_t veclength_mic = 64 / sizeof(float_type);
+
+        /**
          * @brief Class for inner (block-level) looping.
          */
-        template < typename RunFunctorArguments, typename Interval, typename ExecutionInfo >
+        template < typename RunFunctorArguments, typename Interval, typename ExecutionInfo, typename Enable = void >
         class inner_functor_mic;
 
         /**
          * @brief Class for inner (block-level) looping.
-         * Specialization for stencils with serial execution along k-axis.
+         * Specialization for stencils with serial execution along k-axis and max extent 0.
          *
          * @tparam RunFunctorArguments Run functor arguments.
          * @tparam Interval K-axis interval where the functors should be executed.
          */
         template < typename RunFunctorArguments, typename Interval >
-        class inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kserial_mic > {
+        class inner_functor_mic< RunFunctorArguments,
+            Interval,
+            execinfo_block_kserial_mic,
+            typename std::enable_if< enable_inner_k_fusion< RunFunctorArguments >::value >::type > {
+            using grid_t = typename RunFunctorArguments::grid_t;
+            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+
+          public:
+            GT_FUNCTION inner_functor_mic(iterate_domain_t &it_domain,
+                const grid_t &grid,
+                const execinfo_block_kserial_mic &execution_info,
+                int_t i_vecfirst,
+                int_t i_veclast)
+                : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info), m_i_vecfirst(i_vecfirst),
+                  m_i_veclast(i_veclast) {}
+
+            /**
+             * @brief Executes the corresponding functor in the given interval.
+             *
+             * @param index Index in the functor list of the ESF functor that should be executed.
+             */
+            template < typename Index >
+            GT_FUNCTION void operator()(const Index &index) const {
+                using backend_traits_t = backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >;
+                using grid_traits_t = grid_traits_from_id< RunFunctorArguments::backend_ids_t::s_grid_type_id >;
+
+                using interval_from_t = typename index_to_level< typename Interval::first >::type;
+                using interval_to_t = typename index_to_level< typename Interval::second >::type;
+                using execution_type_t = typename RunFunctorArguments::execution_type_t;
+                using iteration_policy_t = ::gridtools::_impl::iteration_policy< interval_from_t,
+                    interval_to_t,
+                    typename grid_traits_t::dim_k_t,
+                    execution_type_t::type::iteration >;
+
+                using run_esf_functor_t =
+                    typename backend_traits_t::run_esf_functor_h_t::template apply< RunFunctorArguments,
+                        Interval >::type;
+
+                using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
+                using extent_t = typename boost::mpl::at< extent_sizes_t, Index >::type;
+
+                const int_t k_first = m_grid.template value_at< typename iteration_policy_t::from >();
+                const int_t k_last = m_grid.template value_at< typename iteration_policy_t::to >();
+
+                /* Prefetching is only done for the first ESF, as we assume the following ESFs access the same data
+                 * that's already in cache then. The prefetching distance is currently always 2 k-levels. */
+                if (Index::value == 0)
+                    m_it_domain.set_prefetch_distance(k_first <= k_last ? 2 : -2);
+
+                run_esf_functor_t run_esf(m_it_domain);
+                for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
+                    m_it_domain.set_k_block_index(k);
+#pragma ivdep
+#pragma omp simd
+                    for (int_t i = m_i_vecfirst; i < m_i_veclast; ++i) {
+                        m_it_domain.set_i_block_index(i);
+                        run_esf(index);
+                    }
+                }
+
+                m_it_domain.set_prefetch_distance(0);
+            }
+
+          private:
+            iterate_domain_t &m_it_domain;
+            const grid_t &m_grid;
+            const execinfo_block_kserial_mic &m_execution_info;
+            const int_t m_i_vecfirst, m_i_veclast;
+        };
+
+        /**
+         * @brief Class for inner (block-level) looping.
+         * Specialization for stencils with serial execution along k-axis and non-zero max extent.
+         *
+         * @tparam RunFunctorArguments Run functor arguments.
+         * @tparam Interval K-axis interval where the functors should be executed.
+         */
+        template < typename RunFunctorArguments, typename Interval >
+        class inner_functor_mic< RunFunctorArguments,
+            Interval,
+            execinfo_block_kserial_mic,
+            typename std::enable_if< !enable_inner_k_fusion< RunFunctorArguments >::value >::type > {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
@@ -103,24 +200,18 @@ namespace gridtools {
                 const int_t k_first = m_grid.template value_at< typename iteration_policy_t::from >();
                 const int_t k_last = m_grid.template value_at< typename iteration_policy_t::to >();
 
-                constexpr int_t veclength = 16;
-
                 run_esf_functor_t run_esf(m_it_domain);
                 m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
-                    // TODO: software prefetching and ESF loop inside outer i loop if possible?
-                    for (int_t i_vecfirst = i_first; i_vecfirst < i_last; i_vecfirst += veclength) {
-                        const int_t i_veclast = i_vecfirst + veclength > i_last ? i_last : i_vecfirst + veclength;
-                        for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
-                             iteration_policy_t::increment(k)) {
-                            m_it_domain.set_k_block_index(k);
+                    for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
+                         iteration_policy_t::increment(k)) {
+                        m_it_domain.set_k_block_index(k);
 #pragma ivdep
 #pragma omp simd
-                            for (int_t i = i_vecfirst; i < i_veclast; ++i) {
-                                m_it_domain.set_i_block_index(i);
-                                run_esf(index);
-                            }
+                        for (int_t i = i_first; i < i_last; ++i) {
+                            m_it_domain.set_i_block_index(i);
+                            run_esf(index);
                         }
                     }
                 }
@@ -140,7 +231,7 @@ namespace gridtools {
          * @tparam Interval K-axis interval where the functors should be executed.
          */
         template < typename RunFunctorArguments, typename Interval >
-        class inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kparallel_mic > {
+        class inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kparallel_mic, void > {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
@@ -191,15 +282,66 @@ namespace gridtools {
         /**
          * @brief Class for per-block looping on a single interval.
          */
-        template < typename RunFunctorArguments, typename ExecutionInfo >
+        template < typename RunFunctorArguments, typename ExecutionInfo, typename Enable = void >
         class interval_functor_mic;
 
         /**
          * @brief Class for per-block looping on a single interval.
-         * Specialization for stencils with serial execution along k-axis.
+         * Specialization for stencils with serial execution along k-axis and max extent of 0.
          */
         template < typename RunFunctorArguments >
-        class interval_functor_mic< RunFunctorArguments, execinfo_block_kserial_mic > {
+        class interval_functor_mic< RunFunctorArguments,
+            execinfo_block_kserial_mic,
+            typename std::enable_if< enable_inner_k_fusion< RunFunctorArguments >::value >::type > {
+            using grid_t = typename RunFunctorArguments::grid_t;
+            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+
+          public:
+            GT_FUNCTION interval_functor_mic(
+                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mic &execution_info)
+                : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
+
+            /**
+             * @brief Runs all functors in RunFunctorArguments on the given interval.
+             */
+            template < typename Interval >
+            GT_FUNCTION void operator()(const Interval &) const {
+                using extent_t = typename RunFunctorArguments::max_extent_t;
+                using functor_list_t = typename RunFunctorArguments::functor_list_t;
+                using range_t = meta::make_indices< boost::mpl::size< functor_list_t >::value >;
+                using inner_functor_t = inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kserial_mic >;
+
+                const int_t i_first = extent_t::iminus::value;
+                const int_t i_last = m_execution_info.i_block_size + extent_t::iplus::value;
+                const int_t j_first = extent_t::jminus::value;
+                const int_t j_last = m_execution_info.j_block_size + extent_t::jplus::value;
+
+                m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
+                for (int_t j = j_first; j < j_last; ++j) {
+                    m_it_domain.set_j_block_index(j);
+                    for (int_t i_vecfirst = i_first; i_vecfirst < i_last; i_vecfirst += veclength_mic) {
+                        const int_t i_veclast =
+                            i_vecfirst + veclength_mic > i_last ? i_last : i_vecfirst + veclength_mic;
+                        gridtools::for_each< range_t >(
+                            inner_functor_t(m_it_domain, m_grid, m_execution_info, i_vecfirst, i_veclast));
+                    }
+                }
+            }
+
+          private:
+            iterate_domain_t &m_it_domain;
+            const grid_t &m_grid;
+            const execinfo_block_kserial_mic &m_execution_info;
+        };
+
+        /**
+         * @brief Class for per-block looping on a single interval.
+         * Specialization for stencils with serial execution along k-axis and non-zero max extent.
+         */
+        template < typename RunFunctorArguments >
+        class interval_functor_mic< RunFunctorArguments,
+            execinfo_block_kserial_mic,
+            typename std::enable_if< !enable_inner_k_fusion< RunFunctorArguments >::value >::type > {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
@@ -230,8 +372,8 @@ namespace gridtools {
          * @brief Class for per-block looping on a single interval.
          * Specialization for stencils with parallel execution along k-axis.
          */
-        template < typename RunFunctorArguments >
-        class interval_functor_mic< RunFunctorArguments, execinfo_block_kparallel_mic > {
+        template < typename RunFunctorArguments, typename Enable >
+        class interval_functor_mic< RunFunctorArguments, execinfo_block_kparallel_mic, Enable > {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
@@ -292,6 +434,8 @@ namespace gridtools {
                 using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
+
+                using max_extent_t = typename RunFunctorArguments::max_extent_t;
 
                 boost::mpl::for_each< loop_intervals_t >(
                     gridtools::_impl::interval_functor_mic< RunFunctorArguments, ExecutionInfo >(
