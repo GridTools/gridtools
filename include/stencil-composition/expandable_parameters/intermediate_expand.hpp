@@ -65,6 +65,7 @@
 #include "../../common/fusion.hpp"
 
 #include "../../common/split_args.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
 
 #include "../../storage/data_store_field.hpp"
@@ -160,20 +161,11 @@ namespace gridtools {
                 operator()(arg_storage_pair< Arg, DataStoreType > const &src) const {
                     return {m_convert_data_store(src.m_value)};
                 }
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-                template < typename >
-                struct result;
-                template < typename Arg, typename DataStoreType >
-                struct result< convert_arg_storage_pair_f(arg_storage_pair< Arg, DataStoreType > const &) > {
-                    using type = arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                        typename convert_data_store_type< N, DataStoreType >::type >;
-                };
-#endif
             };
 
             template < uint_t N, class ArgStoragePairs >
             auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs &src)
-                GT_AUTO_RETURN(boost::fusion::transform(src, convert_arg_storage_pair_f< N >{offset}));
+                GT_AUTO_RETURN(tuple_util::transform(convert_arg_storage_pair_f< N >{offset}, src));
 
             template < uint_t N >
             struct convert_mss_descriptors_tree_f {
@@ -184,7 +176,7 @@ namespace gridtools {
 
             template < uint_t N, class... Ts >
             auto convert_mss_descriptors_trees(std::tuple< Ts... > const &src)
-                GT_AUTO_RETURN(as_std_tuple(boost::fusion::transform(src, convert_mss_descriptors_tree_f< N >{})));
+                GT_AUTO_RETURN(tuple_util::transform(convert_mss_descriptors_tree_f< N >{}, src));
 
             template < uint_t N, typename MssDescriptorsTrees >
             using converted_mss_descriptors_trees =
@@ -194,12 +186,16 @@ namespace gridtools {
             struct run_f {
                 Intermediate &m_intermediate;
                 template < class... Args >
-                auto operator()(Args const &... args) const GT_AUTO_RETURN(m_intermediate.run(args...));
+                void operator()(Args const &... args) const {
+                    m_intermediate.run(args...);
+                }
+                using result_type = void;
             };
 
             template < class Intermediate, class Args >
-            auto invoke_run(Intermediate &intermediate, Args &&args)
-                GT_AUTO_RETURN(boost::fusion::invoke(run_f< Intermediate >{intermediate}, args));
+            void invoke_run(Intermediate &intermediate, Args &&args) {
+                boost::fusion::invoke(run_f< Intermediate >{intermediate}, args);
+            }
 
             struct sync_f {
                 template < class Arg, class DataStore >
@@ -277,18 +273,18 @@ namespace gridtools {
         template < class... Args, class... DataStores >
         notype run(arg_storage_pair< Args, DataStores > const &... args) {
             auto arg_groups = split_args< _impl::expand_detail::is_expandable_decayed >(args...);
-            auto expandable_args = make_joint_view(m_expandable_bound_arg_storage_pairs, arg_groups.first);
+            auto expandable_args = std::tuple_cat(m_expandable_bound_arg_storage_pairs, arg_groups.first);
             const auto &plain_args = arg_groups.second;
             size_t size = _impl::expand_detail::get_expandable_size(expandable_args);
             size_t offset = 0;
             for (; size - offset >= ExpandFactor; offset += ExpandFactor) {
                 auto converted_args =
                     _impl::expand_detail::convert_arg_storage_pairs< ExpandFactor >(offset, expandable_args);
-                _impl::expand_detail::invoke_run(m_intermediate, make_joint_view(plain_args, converted_args));
+                _impl::expand_detail::invoke_run(m_intermediate, std::tuple_cat(plain_args, converted_args));
             }
             for (; offset < size; ++offset) {
                 auto converted_args = _impl::expand_detail::convert_arg_storage_pairs< 1 >(offset, expandable_args);
-                _impl::expand_detail::invoke_run(m_intermediate_remainder, make_joint_view(plain_args, converted_args));
+                _impl::expand_detail::invoke_run(m_intermediate_remainder, std::tuple_cat(plain_args, converted_args));
             }
             return {};
         }

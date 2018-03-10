@@ -115,16 +115,6 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     typedef arg< 4, storage_t > p_shared_mem_arg;
     typedef arg< 5, storage_t > p_kcache_arg;
 
-    typedef boost::mpl::vector< p_read_only_texture_arg,
-        p_out,
-        p_read_only_bypass_arg,
-        p_read_only_non_texture_type_arg,
-        p_shared_mem_arg,
-        p_kcache_arg > accessor_list;
-
-    gridtools::aggregator_type< accessor_list > domain(
-        read_only_texture_arg, out, read_only_bypass_arg, read_only_non_texture_type_arg, shared_mem_arg, kcache_arg);
-
     halo_descriptor di{4, 4, 4, d1 - 4 - 1, d1};
     halo_descriptor dj{4, 4, 4, d2 - 4 - 1, d2};
 
@@ -137,8 +127,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         cache< K, cache_io_policy::local >(p_kcache_arg())));
 
     auto computation_ =
-        gridtools::make_computation< backend_t >(domain,
-            grid,
+        gridtools::make_computation< backend_t >(grid,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                                                      caches_t(),
@@ -212,6 +201,4 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         (it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
     GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_kcache_reg< dummy_functor::shared_mem_arg >::type::value), "Error");
-
-    ASSERT_TRUE(true);
 }

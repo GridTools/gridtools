@@ -166,22 +166,15 @@ TEST_F(kcachef, local_forward) {
     typedef arg< 1, storage_t > p_out;
     typedef tmp_arg< 2, storage_t > p_buff;
 
-    typedef boost::mpl::vector< p_in, p_out, p_buff > accessor_list;
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-    // that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-    // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
     auto kcache_stencil =
-        gridtools::make_computation< backend_t >(domain,
-            m_grid,
+        gridtools::make_computation< backend_t >(m_grid,
+            p_in() = m_in,
+            p_out() = m_out,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                                                      define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
@@ -189,8 +182,6 @@ TEST_F(kcachef, local_forward) {
                                                          ,
                                                          p_out(),
                                                          p_buff())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 
@@ -222,17 +213,10 @@ TEST_F(kcachef, local_backward) {
     typedef arg< 1, storage_t > p_out;
     typedef tmp_arg< 2, storage_t > p_buff;
 
-    typedef boost::mpl::vector< p_in, p_out, p_buff > accessor_list;
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-    // that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-    // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
     auto kcache_stencil =
-        gridtools::make_computation< backend_t >(domain,
-            m_grid,
+        gridtools::make_computation< backend_t >(m_grid,
+            p_in() = m_in,
+            p_out() = m_out,
             gridtools::make_multistage // mss_descriptor
             (execute< backward >(),
                                                      define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
@@ -240,8 +224,6 @@ TEST_F(kcachef, local_backward) {
                                                          ,
                                                          p_out(),
                                                          p_buff())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 
@@ -284,12 +266,10 @@ TEST_F(kcachef, biside_forward) {
     typedef arg< 1, storage_t > p_out;
     typedef tmp_arg< 2, storage_t > p_buff;
 
-    typedef boost::mpl::vector< p_in, p_out, p_buff > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
     auto kcache_stencil = gridtools::make_computation< backend_t >(
-        domain,
         m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
             define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
@@ -297,8 +277,6 @@ TEST_F(kcachef, biside_forward) {
                 ,
                 p_out(),
                 p_buff())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 
@@ -342,22 +320,15 @@ TEST_F(kcachef, biside_backward) {
     typedef arg< 1, storage_t > p_out;
     typedef tmp_arg< 2, storage_t > p_buff;
 
-    typedef boost::mpl::vector< p_in, p_out, p_buff > accessor_list;
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-    // that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-    // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
     auto kcache_stencil = gridtools::make_computation< backend_t >(
-        domain,
         m_gridb,
+        p_in() = m_in,
+        p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
         (execute< backward >(),
             define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
@@ -365,8 +336,6 @@ TEST_F(kcachef, biside_backward) {
                 ,
                 p_out(),
                 p_buff())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 

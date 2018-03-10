@@ -420,7 +420,7 @@ namespace gridtools {
 
         template < class... Args, class... DataStores >
         typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
-            arg_storage_pair< Args, DataStores > const &... src) {
+            arg_storage_pair< Args, DataStores > const &... srcs) {
             GRIDTOOLS_STATIC_ASSERT((meta::conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
                 "some placeholders are not used in mss descriptors");
             GRIDTOOLS_STATIC_ASSERT(
@@ -428,7 +428,7 @@ namespace gridtools {
                 "free placeholders should be all different");
 
             update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_fusion_list),
-                make_view_infos(dedup_storage_info(std::make_tuple(std::cref(src)...)))));
+                make_view_infos(dedup_storage_info(std::tie(srcs...)))));
             m_meter.start();
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
             m_meter.pause();
@@ -454,9 +454,8 @@ namespace gridtools {
         }
 
         template < class Seq >
-        Seq dedup_storage_info(Seq const &seq) {
-            return tuple_util::transform(_impl::dedup_storage_info_f< storage_info_map_t >{m_storage_info_map}, seq);
-        }
+        auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
+            tuple_util::transform(_impl::dedup_storage_info_f< storage_info_map_t >{m_storage_info_map}, seq));
     };
 
     /**

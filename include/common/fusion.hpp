@@ -109,10 +109,9 @@ namespace gridtools {
         return boost::fusion::transform_view< const identities, _impl::generator_f< F > >({}, {f});
     }
 
-    namespace _impl {
-        template < class Seq, size_t... Is >
-        auto as_std_tuple_random_access_helper(Seq &&seq, gt_index_sequence< Is... >)
-            GT_AUTO_RETURN(std::forward_as_tuple(boost::fusion::at_c< Is >(std::forward< Seq >(seq))...));
+    template < class... Ts >
+    std::tuple< Ts... > &as_std_tuple(std::tuple< Ts... > &seq) {
+        return seq;
     }
 
     template < class... Ts >
@@ -125,17 +124,9 @@ namespace gridtools {
         return seq;
     }
 
-    //    template < class Seq,
-    //        class Decayed = typename std::decay< Seq >::type,
-    //        typename std::enable_if< boost::fusion::traits::is_random_access< Decayed >::value, int >::type = 0 >
-    //    auto as_std_tuple(Seq &&seq) GT_AUTO_RETURN(_impl::as_std_tuple_random_access_helper(
-    //        std::forward< Seq >(seq), make_gt_index_sequence< boost::fusion::result_of::size< Decayed >::type::value
-    //        >{}));
-
     template < typename Seq,
         class Decayed = typename std::decay< Seq >::type,
-        typename Res = copy_into_variadic< Decayed, std::tuple<> > //,
-        /*typename std::enable_if< !boost::fusion::traits::is_random_access< Decayed >::value, int >::type = 0 */ >
+        typename Res = copy_into_variadic< Decayed, std::tuple<> > >
     Res as_std_tuple(Seq &&seq) {
         Res res;
         boost::fusion::move(std::forward< Seq >(seq), res);

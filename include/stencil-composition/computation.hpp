@@ -61,6 +61,7 @@ namespace gridtools {
                 ReturnType operator()(Args &&... args) const {
                     return m_obj.run(std::forward< Args >(args)...);
                 }
+                using result_type = ReturnType;
             };
             template < class Obj >
             struct run_f< void, Obj > {
@@ -70,6 +71,7 @@ namespace gridtools {
                 void operator()(Args &&... args) const {
                     m_obj.run(std::forward< Args >(args)...);
                 }
+                using result_type = void;
             };
             template < class ReturnType, class Obj, class Args >
             ReturnType invoke_run(Obj &obj, Args const &args) {

@@ -152,20 +152,16 @@ TEST_F(kcachef, bpfilll_forward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-    aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
     auto kcache_stencil =
-        make_computation< backend_t >(domain,
-            m_grid,
+        make_computation< backend_t >(m_grid,
+            p_in() = m_in,
+            p_out() = m_out,
             make_multistage // mss_descriptor
             (execute< forward >(),
                                           define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_in())),
                                           make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
                                               ,
                                               p_out())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 
@@ -198,20 +194,16 @@ TEST_F(kcachef, bpfilll_backward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-    aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
     auto kcache_stencil =
-        make_computation< backend_t >(domain,
-            m_gridb,
+        make_computation< backend_t >(m_gridb,
+            p_in() = m_in,
+            p_out() = m_out,
             make_multistage // mss_descriptor
             (execute< backward >(),
                                           define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_in())),
                                           make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
                                               ,
                                               p_out())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
     m_out.sync();
@@ -249,18 +241,14 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
     typedef arg< 0, storage_t > p_out;
     typedef arg< 1, storage_t > p_buff;
 
-    typedef boost::mpl::vector< p_out, p_buff > accessor_list;
-    aggregator_type< accessor_list > domain((p_buff() = buff), (p_out() = m_out));
-
     auto kcache_stencil =
-        make_computation< backend_t >(domain,
-            m_grid,
+        make_computation< backend_t >(m_grid,
+            p_buff() = buff,
+            p_out() = m_out,
             make_multistage // mss_descriptor
             (execute< forward >(),
                                           define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
                                           make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 
@@ -299,18 +287,14 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
     typedef arg< 0, storage_t > p_out;
     typedef arg< 1, storage_t > p_buff;
 
-    typedef boost::mpl::vector< p_out, p_buff > accessor_list;
-    aggregator_type< accessor_list > domain((p_buff() = buff), (p_out() = m_out));
-
     auto kcache_stencil =
-        make_computation< backend_t >(domain,
-            m_gridb,
+        make_computation< backend_t >(m_gridb,
+            p_buff() = buff,
+            p_out() = m_out,
             make_multistage // mss_descriptor
             (execute< backward >(),
                                           define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
                                           make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
-
-    kcache_stencil.steady();
 
     kcache_stencil.run();
 

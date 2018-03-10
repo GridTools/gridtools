@@ -44,10 +44,14 @@
 
 #include <common/defs.hpp>
 
-#ifdef __CUDACC__
-#define NON_CUDA_CONSTEXR
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#define NO_CONSTEXPR
+#endif
+
+#ifdef NO_CONSTEXPR
+#define CONSTEXPR
 #else
-#define NON_CUDA_CONSTEXR constexpr
+#define CONSTEXPR constexpr
 #endif
 
 namespace custom {
@@ -55,12 +59,12 @@ namespace custom {
         int a;
         double b;
 
-        friend constexpr int do_get(std::integral_constant< size_t, 0 >, foo const &obj) { return obj.a; }
+        friend CONSTEXPR int do_get(std::integral_constant< size_t, 0 >, foo const &obj) { return obj.a; }
         friend int &do_get(std::integral_constant< size_t, 0 >, foo &obj) { return obj.a; }
-        friend constexpr int do_get(std::integral_constant< size_t, 0 >, foo &&obj) { return obj.a; }
-        friend NON_CUDA_CONSTEXR double do_get(std::integral_constant< size_t, 1 >, foo const &obj) { return obj.b; }
+        friend CONSTEXPR int do_get(std::integral_constant< size_t, 0 >, foo &&obj) { return obj.a; }
+        friend CONSTEXPR double do_get(std::integral_constant< size_t, 1 >, foo const &obj) { return obj.b; }
         friend double &do_get(std::integral_constant< size_t, 1 >, foo &obj) { return obj.b; }
-        friend NON_CUDA_CONSTEXR double do_get(std::integral_constant< size_t, 1 >, foo &&obj) { return obj.b; }
+        friend CONSTEXPR double do_get(std::integral_constant< size_t, 1 >, foo &&obj) { return obj.b; }
     };
 }
 
@@ -74,7 +78,7 @@ namespace gridtools {
             get< 0 >(obj) = 42;
             EXPECT_EQ(get< 0 >(obj), 42);
 
-#ifndef __CUDACC__
+#ifndef NO_CONSTEXPR
             constexpr custom::foo c_obj{2, 4};
             static_assert(get< 0 >(c_obj) == 2, "");
             static_assert(get< 0 >(custom::foo{3}) == 3, "");
