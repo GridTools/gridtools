@@ -84,6 +84,7 @@
 #include "extract_placeholders.hpp"
 
 #include "../common/generic_metafunctions/meta.hpp"
+#include "../common/tuple_util.hpp"
 
 /**
  * @file
@@ -310,13 +311,15 @@ namespace gridtools {
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::grid_traits_t grid_traits_t;
 
-        using mpl_placeholders_t = typename extract_placeholders< all_mss_descriptors_t >::type;
-        using placeholders_t = copy_into_variadic< mpl_placeholders_t, std::tuple<> >;
+        using placeholders_t = extract_placeholders< all_mss_descriptors_t >;
         using tmp_placeholders_t = meta::apply< meta::filter< is_tmp_arg >, placeholders_t >;
         using non_tmp_placeholders_t = meta::apply< meta::filter< meta::not_< is_tmp_arg >::apply >, placeholders_t >;
 
-        using tmp_arg_storage_pair_fusion_list_t = typename boost::fusion::result_of::as_vector<
-            boost::mpl::transform_view< tmp_placeholders_t, _impl::l_get_arg_storage_pair_type > >::type;
+        template < class Arg >
+        using to_arg_storage_pair = arg_storage_pair< Arg, typename Arg::data_store_t >;
+
+        using tmp_arg_storage_pair_fusion_list_t = meta::apply< meta::rename< std::tuple >,
+            meta::apply< meta::transform< to_arg_storage_pair >, tmp_placeholders_t > >;
 
         GRIDTOOLS_STATIC_ASSERT(
             (meta::conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
@@ -372,7 +375,7 @@ namespace gridtools {
 
       private:
         // creates a fusion vector of local domains
-        typedef typename boost::fusion::result_of::as_vector< mss_local_domains_t >::type mss_local_domain_list_t;
+        using mss_local_domain_list_t = copy_into_variadic< mss_local_domains_t, std::tuple<> >;
 
         struct run_f {
             template < typename MssDescs >
@@ -404,12 +407,12 @@ namespace gridtools {
                   Backend,
                   storage_wrapper_list_t,
                   tmp_arg_storage_pair_fusion_list_t >(grid))),
-              m_bound_arg_storage_pair_fusion_list(as_std_tuple(dedup_storage_info(std::move(arg_storage_pairs)))) {
+              m_bound_arg_storage_pair_fusion_list(dedup_storage_info(std::move(arg_storage_pairs))) {
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
             typename Backend::setup_grid_f{}(m_grid);
-            update_local_domains(make_joint_view(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
+            update_local_domains(std::tuple_cat(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
                 make_view_infos(m_bound_arg_storage_pair_fusion_list)));
         }
 
@@ -424,8 +427,8 @@ namespace gridtools {
                 (std::is_same< meta::dedup< meta::list< Args... > >, meta::list< Args... > >::value),
                 "free placeholders should be all different");
 
-            update_local_domains(make_joint_view(make_view_infos(m_bound_arg_storage_pair_fusion_list),
-                make_view_infos(dedup_storage_info(boost::fusion::make_vector(std::cref(src)...)))));
+            update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_fusion_list),
+                make_view_infos(dedup_storage_info(std::make_tuple(std::cref(src)...)))));
             m_meter.start();
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
             m_meter.pause();
@@ -442,12 +445,8 @@ namespace gridtools {
 
       private:
         template < class Src >
-        static auto make_view_infos(Src &src)
-            GT_AUTO_RETURN(make_transform_view(src, _impl::make_view_info_f< Backend >{}));
-
-        template < class Src >
-        static auto make_view_infos(Src const &src)
-            GT_AUTO_RETURN(make_transform_view(src, _impl::make_view_info_f< Backend >{}));
+        static auto make_view_infos(Src &&src)
+            GT_AUTO_RETURN(tuple_util::transform(_impl::make_view_info_f< Backend >{}, std::forward< Src >(src)));
 
         template < class Views >
         void update_local_domains(Views const &views) {
@@ -455,8 +454,9 @@ namespace gridtools {
         }
 
         template < class Seq >
-        auto dedup_storage_info(const Seq &seq) GT_AUTO_RETURN(
-            boost::fusion::transform(seq, _impl::dedup_storage_info_f< storage_info_map_t >{m_storage_info_map}));
+        Seq dedup_storage_info(Seq const &seq) {
+            return tuple_util::transform(_impl::dedup_storage_info_f< storage_info_map_t >{m_storage_info_map}, seq);
+        }
     };
 
     /**

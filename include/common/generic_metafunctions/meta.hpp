@@ -493,9 +493,21 @@ namespace gridtools {
             struct apply< S, L<> > {
                 using type = S;
             };
-            template < class S, template < class... > class L, class T, class... Ts >
-            struct apply< S, L< T, Ts... > > {
-                using type = F< T, t_< apply< S, L< Ts... > > > >;
+            template < class S, template < class... > class L, class T >
+            struct apply< S, L< T > > {
+                using type = F< T, S >;
+            };
+            template < class S, template < class... > class L, class T1, class T2 >
+            struct apply< S, L< T1, T2 > > {
+                using type = F< T1, F< T2, S > >;
+            };
+            template < class S, template < class... > class L, class T1, class T2, class T3 >
+            struct apply< S, L< T1, T2, T3 > > {
+                using type = F< T1, F< T2, F< T3, S > > >;
+            };
+            template < class S, template < class... > class L, class T1, class T2, class T3, class T4, class... Ts >
+            struct apply< S, L< T1, T2, T3, T4, Ts... > > {
+                using type = F< T1, F< T2, F< T3, F< T4, typename apply< S, L< Ts... > >::type > > > >;
             };
         };
         template < template < class... > class F >
@@ -509,9 +521,21 @@ namespace gridtools {
             struct apply< S, L<> > {
                 using type = S;
             };
-            template < class S, template < class... > class L, class T, class... Ts >
-            struct apply< S, L< T, Ts... > > {
-                using type = t_< apply< F< S, T >, L< Ts... > > >;
+            template < class S, template < class... > class L, class T >
+            struct apply< S, L< T > > {
+                using type = F< S, T >;
+            };
+            template < class S, template < class... > class L, class T1, class T2 >
+            struct apply< S, L< T1, T2 > > {
+                using type = F< F< S, T1 >, T2 >;
+            };
+            template < class S, template < class... > class L, class T1, class T2, class T3 >
+            struct apply< S, L< T1, T2, T3 > > {
+                using type = F< F< F< S, T1 >, T2 >, T3 >;
+            };
+            template < class S, template < class... > class L, class T1, class T2, class T3, class T4, class... Ts >
+            struct apply< S, L< T1, T2, T3, T4, Ts... > > {
+                using type = typename apply< F< F< F< F< S, T1 >, T2 >, T3 >, T4 >, L< Ts... > >::type;
             };
         };
         template < template < class... > class F >
@@ -582,14 +606,14 @@ namespace gridtools {
         };
 
         // internals
-        template < class T, class S >
-        using dedup_step_impl = t_< std::conditional< st_contains< S, T >::value, S, push_front< S, T > > >;
+        template < class S, class T >
+        using dedup_step_impl = t_< std::conditional< st_contains< S, T >::value, S, push_back< S, T > > >;
 
         /**
          *  Removes duplicates from the List
          */
-        template < class List, class State = clear< List > >
-        using dedup = apply< rfold< dedup_step_impl >, State, List >;
+        template < class List >
+        using dedup = apply< lfold< dedup_step_impl >, clear< List >, List >;
 
         /**
          *   Take Nth element of the List

@@ -45,6 +45,9 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
 
+#include <boost/fusion/include/std_tuple.hpp>
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
+
 #include "backend_traits_fwd.hpp"
 #include "local_domain.hpp"
 #include "local_domain_metafunctions.hpp"
@@ -108,6 +111,14 @@ namespace gridtools {
     template < enumtype::platform BackendId, typename MssType, typename StorageWrapperList, bool IsStateful >
     struct is_mss_local_domain< mss_local_domain< BackendId, MssType, StorageWrapperList, IsStateful > >
         : boost::mpl::true_ {};
+
+    template < typename T >
+    struct check_mss_local_domain {
+        static_assert(is_mss_local_domain< T >::value, "fuck");
+    };
+
+    template < enumtype::platform BackendId, typename MssType, typename StorageWrapperList, bool IsStateful >
+    struct check_mss_local_domain< mss_local_domain< BackendId, MssType, StorageWrapperList, IsStateful > > {};
 
     template < typename T >
     struct mss_local_domain_list {

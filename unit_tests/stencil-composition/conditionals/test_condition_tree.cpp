@@ -38,15 +38,11 @@
 #include <array>
 #include <functional>
 #include <type_traits>
+#include <tuple>
 
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/comparison.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/transform.hpp>
-
-#include <boost/mpl/equal.hpp>
-#include <boost/mpl/vector.hpp>
 
 #include <gtest/gtest.h>
 
@@ -57,7 +53,6 @@
 namespace gridtools {
     namespace {
         namespace f = boost::fusion;
-        namespace m = boost::mpl;
 
         template < typename Lhs, typename Rhs >
         using node_t = condition< Lhs, Rhs, std::function< bool() > >;
@@ -86,60 +81,61 @@ namespace gridtools {
 
         TEST(branch_selector, empty) {
             auto testee = make_branch_selector();
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector<> >::value, "all_leaves");
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector());
+            static_assert(std::is_same< decltype(testee)::all_leaves_t, std::tuple<> >::value, "all_leaves");
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple());
         }
 
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int > >::value, "all_leaves");
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
+            static_assert(std::is_same< decltype(testee)::all_leaves_t, std::tuple< int > >::value, "all_leaves");
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
         }
 
         TEST(branch_selector, no_conditions) {
             auto testee = make_branch_selector(1, 2);
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int > >::value, "all_leaves");
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 2));
+            static_assert(std::is_same< decltype(testee)::all_leaves_t, std::tuple< int, int > >::value, "all_leaves");
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 2));
         }
 
         TEST(branch_selector, one_condition) {
             bool key;
             auto testee = make_branch_selector(make_node(1, 2, [&] { return key; }));
             key = true;
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
             key = false;
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(2));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2));
         }
 
         TEST(branch_selector, one_condition_with_prefix) {
             bool key;
             auto testee = make_branch_selector(0, make_node(1, 2, [&] { return key; }));
             key = true;
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(0, 1));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(0, 1));
             key = false;
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(0, 2));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(0, 2));
         }
 
         TEST(branch_selector, one_condition_with_suffix) {
             bool key;
             auto testee = make_branch_selector(make_node(1, 2, [&] { return key; }), 3);
             key = true;
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 3));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 3));
             key = false;
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(2, 3));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 3));
         }
 
         TEST(branch_selector, condition_tree) {
             std::array< bool, 2 > keys;
             auto testee =
                 make_branch_selector(make_node(1, make_node(2, 3, [&] { return keys[1]; }), [&] { return keys[0]; }));
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int, int > >::value, "all_leaves");
+            static_assert(
+                std::is_same< decltype(testee)::all_leaves_t, std::tuple< int, int, int > >::value, "all_leaves");
             keys = {true};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
             keys = {false, true};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(2));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2));
             keys = {false, false};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(3));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(3));
         }
 
         TEST(branch_selector, two_conditions) {
@@ -147,13 +143,13 @@ namespace gridtools {
             auto testee = make_branch_selector(
                 make_node(1, 2, [&] { return keys[0]; }), make_node(10, 20, [&] { return keys[1]; }));
             keys = {true, true};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 10));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 10));
             keys = {true, false};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 20));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 20));
             keys = {false, true};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(2, 10));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 10));
             keys = {false, false};
-            EXPECT_EQ(testee.apply(identity{}), f::make_vector(2, 20));
+            EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 20));
         }
 
         template < size_t I >
@@ -181,9 +177,9 @@ namespace gridtools {
             auto testee = make_branch_selector(make_node(val_t< 1 >{}, val_t< 2 >{}, [&] { return key; }));
             key = true;
             transform_f< get_elem_f > fun;
-            EXPECT_EQ(testee.apply(fun), f::make_vector(1));
+            EXPECT_EQ(testee.apply(fun), std::make_tuple(1));
             key = false;
-            EXPECT_EQ(testee.apply(fun), f::make_vector(2));
+            EXPECT_EQ(testee.apply(fun), std::make_tuple(2));
         }
 
         struct second_f {

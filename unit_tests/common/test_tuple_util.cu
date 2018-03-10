@@ -34,45 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
-
-#include <tuple>
-
-#include "../common/generic_metafunctions/copy_into_variadic.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-
-namespace gridtools {
-    namespace _impl {
-        template < class Trees, template < class... > class FlattenTree >
-        using flatten_trees = meta::flatten< meta::apply< meta::transform< FlattenTree >, Trees > >;
-
-        //  Flatten an ESF tree formed by regular ESF's and independent_esf into an MPL sequence.
-        //  The result contains only regular ESF's.
-        template < class >
-        struct lazy_flatten_esf;
-        template < class T >
-        using flatten_esf = typename lazy_flatten_esf< T >::type;
-        template < class T >
-        using flatten_esfs = flatten_trees< T, flatten_esf >;
-        template < class T >
-        struct lazy_flatten_esf {
-            using type = std::tuple< T >;
-        };
-        template < class EsfSeq >
-        struct lazy_flatten_esf< independent_esf< EsfSeq > > {
-            using type = flatten_esfs< EsfSeq >;
-        };
-
-        // Extract ESFs from an MSS.
-        template < class Mss >
-        using get_esfs = flatten_esfs< copy_into_variadic< typename Mss::esf_sequence_t, std::tuple<> > >;
-
-        // Extract args from ESF.
-        template < class Esf >
-        using get_args = copy_into_variadic< typename Esf::args_t, std::tuple<> >;
-    }
-
-    template < class Msses >
-    using extract_placeholders =
-        meta::dedup< _impl::flatten_trees< _impl::flatten_trees< Msses, _impl::get_esfs >, _impl::get_args > >;
-}
+#include "test_tuple_util.cpp"

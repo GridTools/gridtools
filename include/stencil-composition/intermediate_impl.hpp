@@ -46,6 +46,7 @@
 #include "common/permute_to.hpp"
 #include "common/functional.hpp"
 #include "common/vector_traits.hpp"
+#include "common/tuple_util.hpp"
 
 #include "mss_local_domain.hpp"
 #include "tile.hpp"
@@ -181,14 +182,12 @@ namespace gridtools {
             template < class Arg, class DataStorage >
             view_info_t< Arg, DataStorage > operator()(arg_storage_pair< Arg, DataStorage > const &src) const {
                 src.m_value.sync();
-                return typename Backend::make_view_f{}(src.m_value);
+                return boost::make_optional(typename Backend::make_view_f{}(src.m_value));
             }
             template < class Arg, class DataStorage >
             view_info_t< Arg, DataStorage > operator()(bound_arg_storage_pair< Arg, DataStorage > &src) const {
                 return src.template updated_view< Backend >();
             }
-            template < class Arg, class DataStorage >
-            view_info_t< Arg, DataStorage > operator()(bound_arg_storage_pair< Arg, DataStorage > &&src) const;
         };
 
         template < class LocalDomain >
@@ -215,38 +214,28 @@ namespace gridtools {
 
             template < class LocalDomain >
             void operator()(LocalDomain &local_domain) const {
-                namespace f = boost::fusion;
-                if (f::count(f::transform(m_view_infos, set_view_to_local_domain_f< LocalDomain >{local_domain}), true))
+                if (boost::fusion::count(
+                        tuple_util::transform(set_view_to_local_domain_f< LocalDomain >{local_domain}, m_view_infos),
+                        true))
                     local_domain.clone_to_device();
             }
         };
 
-        struct add_ref_f {
+        struct get_local_domain_list_f {
+            // Mind the double parents after GT_AUTO_RETURN here. They are for the reason.
             template < class T >
-            typename std::add_lvalue_reference< T >::type operator()(T &&obj) const {
-                return obj;
-            }
+            auto operator()(T &&obj) const GT_AUTO_RETURN((std::forward< T >(obj).local_domain_list));
         };
-
-        struct get_local_domain_ref_list_f {
-            template < class T >
-            auto operator()(T &&obj) const
-                GT_AUTO_RETURN(make_transform_view(std::forward< T >(obj).local_domain_list, add_ref_f{}));
-        };
-
-        template < class T >
-        auto flatten_mss_local_domains(T &&src) GT_AUTO_RETURN(
-            boost::fusion::flatten(make_transform_view(std::forward< T >(src), get_local_domain_ref_list_f{})));
 
         template < class ViewInfos, class MssLocalDomains >
         void update_local_domains(ViewInfos const &view_infos, MssLocalDomains &mss_local_domains) {
-            auto vec = boost::fusion::as_vector(view_infos);
-            boost::fusion::for_each(
-                flatten_mss_local_domains(mss_local_domains), update_local_domain_f< decltype(vec) >{vec});
+            auto &&local_domains =
+                tuple_util::flatten(tuple_util::transform(get_local_domain_list_f{}, mss_local_domains));
+            tuple_util::for_each(update_local_domain_f< ViewInfos >{view_infos}, std::move(local_domains));
         }
 
-        template < class MaxExtent, class Backend, class StorageWrapperList, class Grid >
-        struct tmp_arg_storage_pair_generator_f {
+        template < class MaxExtent, class Backend, class StorageWrapperList >
+        struct get_tmp_arg_storage_pair_generator {
             using tmp_storage_wrappers_t = typename boost::mpl::copy_if<
                 StorageWrapperList,
                 temporary_info_from_storage_wrapper< boost::mpl::_ >,
@@ -254,45 +243,27 @@ namespace gridtools {
                     boost::mpl::map0<>,
                     boost::mpl::insert< boost::mpl::_1,
                         boost::mpl::pair< arg_from_storage_wrapper< boost::mpl::_2 >, boost::mpl::_2 > > > >::type;
-            Grid const &m_grid;
             template < class ArgStoragePair >
-            ArgStoragePair operator()() const {
-                using arg_t = typename ArgStoragePair::arg_t;
-                using data_store_t = typename ArgStoragePair::data_store_t;
-                using storage_wrapper_t = typename boost::mpl::at< tmp_storage_wrappers_t, arg_t >::type;
-                return data_store_t{Backend::template instantiate_storage_info< MaxExtent, storage_wrapper_t >(m_grid)};
-            }
+            struct apply {
+                template < class Grid >
+                ArgStoragePair operator()(Grid const &grid) const {
+                    using arg_t = typename ArgStoragePair::arg_t;
+                    using data_store_t = typename ArgStoragePair::data_store_t;
+                    using storage_wrapper_t = typename boost::mpl::at< tmp_storage_wrappers_t, arg_t >::type;
+                    return data_store_t{
+                        Backend::template instantiate_storage_info< MaxExtent, storage_wrapper_t >(grid)};
+                }
+            };
         };
 
         template < class MaxExtent, class Backend, class StorageWrapperList, class Res, class Grid >
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            return generate_sequence< Res >(
-                tmp_arg_storage_pair_generator_f< MaxExtent, Backend, StorageWrapperList, Grid >{grid});
+            using generators = meta::apply<
+                meta::transform<
+                    get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply >,
+                Res >;
+            return tuple_util::generate< generators, Res >(grid);
         }
-
-        /** @brief Functor used to synchronize all data_stores */
-        struct sync_data_stores {
-            // case for non temporary storages (perform sync)
-            template < typename T >
-            typename boost::enable_if_c< !is_tmp_arg< T >::value && is_vector< typename T::data_store_t >::value,
-                void >::type
-            operator()(T const &t) const {
-                for (auto &&item : t.m_value)
-                    item.sync();
-            }
-
-            // case for non temporary storages (perform sync)
-            template < typename T >
-            typename boost::enable_if_c< !is_tmp_arg< T >::value && !is_vector< typename T::data_store_t >::value,
-                void >::type
-            operator()(T const &t) const {
-                t.m_value.sync();
-            }
-
-            // temporary storages don't have to be synced.
-            template < typename T >
-            typename boost::enable_if_c< is_tmp_arg< T >::value, void >::type operator()(T const &t) const {}
-        };
 
         /**
          * @brief metafunction that computes the list of extents associated to each functor.

@@ -89,7 +89,7 @@ namespace gridtools {
             struct is_expandable< arg_storage_pair< Arg, DataStoreType > > : is_vector< DataStoreType > {};
 
             template < class T >
-            using is_expandable_decayed = is_expandable< meta::t_< std::decay< T > > >;
+            using is_expandable_decayed = is_expandable< typename std::decay< T >::type >;
 
             template < uint_t N, typename T >
             struct convert_data_store_type {

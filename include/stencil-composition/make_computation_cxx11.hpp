@@ -49,7 +49,7 @@ namespace gridtools {
     namespace _impl {
 
         template < class T >
-        using is_arg_storage_pair_decayed = is_arg_storage_pair< meta::t_< std::decay< T > > >;
+        using is_arg_storage_pair_decayed = is_arg_storage_pair< typename std::decay< T >::type >;
 
         template < class List >
         using decay_elements = meta::apply< meta::transform< meta::meta_t_< std::decay >::apply >, List >;

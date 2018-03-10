@@ -90,6 +90,15 @@ namespace gridtools {
             T operator()(boost::mpl::identity< T >) const {
                 return m_f.template operator()< T >();
             }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+            template < class >
+            class result;
+
+            template < class T >
+            class result< generator_f(boost::mpl::identity< T > const &) > {
+                using type = T;
+            };
+#endif
         };
     }
 
