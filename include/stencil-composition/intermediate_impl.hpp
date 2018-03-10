@@ -405,12 +405,5 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1,
                     typename get_storage_wrapper< tileI, tileJ >::template apply< boost::mpl::_2 > > >::type type;
         };
-
-        struct l_get_arg_storage_pair_type {
-            template < typename Arg >
-            struct apply {
-                typedef arg_storage_pair< Arg, typename Arg::data_store_t > type;
-            };
-        };
     } // namespace _impl
 } // namespace gridtools
