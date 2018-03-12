@@ -74,7 +74,6 @@ auto computation_ = make_computation(
     )
 );
 
-computation.steady();
 computation.run(); // run the 3rd case
 reset_conditional(c1, c2);
 computation.run(); // run the first case
