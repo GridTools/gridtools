@@ -36,7 +36,8 @@
 #pragma once
 
 /**
- *  @file Minimalistic C++11 metaprogramming library.
+ *  @file
+ *  Minimalistic C++11 metaprogramming library.
  *
  *  Basic Concepts
  *  ==============
@@ -823,5 +824,27 @@ namespace gridtools {
             template < class T >
             using apply = negation< Pred< T > >;
         };
+
+        /**
+         *   True if the template parameter is type list which elements are all different
+         */
+        template < class >
+        struct is_set : std::false_type {};
+
+        template < template < class... > class L, class... Ts >
+        struct is_set< L< Ts... > > : std::is_same< L< Ts... >, dedup< L< Ts... > > > {};
+
+        /**
+         *   is_set_fast evaluates to std::true_type if the parameter is a set.
+         *   If parameter is not a type list, predicate evaluates to std::false_type.
+         *   Compilation fails if the parameter is a type list with duplicated elements.
+         *
+         *   Its OK to use this predicate in static asserts and not OK in sfinae enablers.
+         */
+        template < class, class = void >
+        struct is_set_fast : std::false_type {};
+
+        template < template < class... > class L, class... Ts >
+        struct is_set_fast< L< Ts... >, void_t< decltype(inherit_impl< lazy< Ts >... >{}) > > : std::true_type {};
     }
 }

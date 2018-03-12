@@ -40,19 +40,6 @@
 #include "accessor_fwd.hpp"
 
 namespace gridtools {
-    // metafunction that determines if a type is a valid accessor ctr argument
-    template < typename T >
-    struct is_accessor_ctr_args {
-        typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
-            typename is_dimension< T >::type >::type type;
-    };
-
-    // metafunction that determines if a variadic pack are valid accessor ctr arguments
-    template < typename... Types >
-    using all_accessor_ctr_args =
-        typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
-            bool >::type;
-
     template < typename Accessor, typename Enable = void >
     struct is_accessor_readonly : boost::mpl::false_ {};
 

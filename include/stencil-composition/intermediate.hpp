@@ -273,7 +273,6 @@ namespace gridtools {
     }
 
     /**
-     * @class
      *  @brief structure collecting helper metafunctions
      */
     template < uint_t RepeatFunctor,

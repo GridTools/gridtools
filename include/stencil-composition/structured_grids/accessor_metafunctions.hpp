@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include "accessor_fwd.hpp"
-#include "./accessor.hpp"
 #include "../expressions/expressions.hpp"
+#include "../accessor_metafunctions.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
 
@@ -46,9 +46,6 @@ namespace gridtools {
 
     template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
     struct is_regular_accessor< accessor< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
-
-    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
-    struct is_regular_accessor< accessor_base< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_regular_accessor< const T > : is_regular_accessor< T > {};
@@ -59,17 +56,11 @@ namespace gridtools {
     template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
     struct is_accessor< accessor< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
-    struct is_accessor< accessor_base< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
-
     template < typename T >
     struct is_grid_accessor : boost::mpl::false_ {};
 
     template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
     struct is_grid_accessor< accessor< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
-
-    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
-    struct is_grid_accessor< accessor_base< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
 
     // TODO add documentation
     template < typename Accessor, unsigned Ext >

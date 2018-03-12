@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/// An unstructured set of boost::fusion related helpers
+
 #pragma once
 #include <type_traits>
 #include <utility>

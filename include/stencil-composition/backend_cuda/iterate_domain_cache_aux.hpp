@@ -55,7 +55,8 @@ namespace gridtools {
         template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
         struct flush_mem_accessor {
             /**
-             * @struct apply struct of the functor
+             * Apply struct of the functor
+             *
              * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
              */
             template < int_t Offset >
@@ -89,7 +90,7 @@ namespace gridtools {
         template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
         struct fill_mem_accessor {
             /**
-             * @struct apply struct of the functor
+             * Apply struct of the functor
              * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
              */
             template < int_t Offset >

@@ -209,9 +209,9 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
         (boost::mpl::equal<
             cache_storage_tuple_t,
             boost::fusion::map<
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 0 >,
+                boost::fusion::pair< static_uint< 0 >,
                     cache_storage< cache1_t, block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, st_wrapper_in_t > >,
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 1 >,
+                boost::fusion::pair< static_uint< 1 >,
                     cache_storage< cache2_t, block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, st_wrapper_buff_t > > > >::
                 value),
         "ERROR");
@@ -255,9 +255,9 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
         (boost::mpl::equal<
             cache_storage_tuple_t,
             boost::fusion::map<
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 3 >,
+                boost::fusion::pair< static_uint< 3 >,
                     cache_storage< cache3_t, block_size< 1, 1, 1 >, extent< 0, 0, 0, 0, 0, 1 >, st_wrapper_out_t > >,
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 2 >,
+                boost::fusion::pair< static_uint< 2 >,
                     cache_storage< cache4_t,
                                          block_size< 1, 1, 1 >,
                                          extent< 0, 0, 0, 0, -1, 1 >,

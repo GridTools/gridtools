@@ -48,6 +48,9 @@
 #include "../../common/generic_metafunctions/repeat_template.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /**
      *  @brief A class that is used to pass halo information to the storage info.
@@ -99,4 +102,8 @@ namespace gridtools {
 
     template < uint_t... N >
     struct is_halo< halo< N... > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

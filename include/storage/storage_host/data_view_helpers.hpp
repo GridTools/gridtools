@@ -49,6 +49,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /**
      * @brief function used to create views to data stores (read-write/read-only).
      * @tparam AccessMode access mode information (default is read-write).
@@ -90,4 +94,8 @@ namespace gridtools {
         return ds.valid() && (advanced::get_raw_pointer_of(dv) == ds.get_storage_ptr()->get_cpu_ptr()) &&
                (dv.m_storage_info && ds.get_storage_info_ptr().get());
     }
+
+    /**
+     * @}
+     */
 }

@@ -35,7 +35,8 @@
 */
 
 /**
- * @file Utilities for dealing with binary trees nodes are gridtools::condition instantiations.
+ * @file
+ * Utilities for dealing with binary trees nodes are gridtools::condition instantiations.
  *
  * Examples of the tree types in the context of this file:
  *   - [some type, that is not gridstool::condition instantiation] - a tree with the only leaf.
@@ -284,6 +285,7 @@ namespace gridtools {
          *  applies the provided functor with the chosen sequence as a first parameter.
          *
          *  Example (simplified usage pattern in `intermediate` class):
+         *  \verbatim
          *    template <class... MssTrees> class intermediate {
          *      branch_selector<MssTrees...> m_selector;
          *      struct run_f {
@@ -299,10 +301,11 @@ namespace gridtools {
          *        m_selector.apply(run_f{});
          *      }
          *    };
+         *  \endverbatim
          *
          * @tparam Fun - the type of the functor to be invoked.
          * @tparam Args - the types of the rest of the arguments that are passed to the functor after the branch
-         * @param fun - the functor to be invoked : fun(<selected_branch>, args...)
+         * @param fun - the functor to be invoked : `fun(<selected_branch>, args...)`
          * @param args - the rest of the arguments that are passed to the functor after the branch
          * @return - what `fun` invocation actually returns. The result type is calculated as a std::common_type
          *           functor invocations return values for all possible branches.

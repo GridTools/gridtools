@@ -33,21 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "test_offset_tuple.hpp"
-
-using namespace gridtools;
-
-TEST(offset_tuple, test_offset_tuple) {
-
-    bool result;
-    test_offset_tuple(&result);
-    ASSERT_TRUE(result);
-}
-
-TEST(offset_tuple, test_offset_tuple_array_and_dim) {
-
-    bool result;
-    test_offset_tuple_array_and_dim(&result);
-    ASSERT_TRUE(result);
-}
+#include "interface1_fused.cpp"

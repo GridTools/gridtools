@@ -49,6 +49,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     namespace advanced {
         /** Function to access the protected data member of the views
             containing the raw pointers.  This is an interface we want to avoid
@@ -282,4 +286,7 @@ namespace gridtools {
         template < typename Storage, access_mode AccessMode >
         auto storage_info_ptr(data_view< Storage, AccessMode > const &src) GT_AUTO_RETURN(&src.storage_info());
     }
+    /**
+     * @}
+     */
 }

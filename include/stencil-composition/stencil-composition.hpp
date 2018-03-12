@@ -35,6 +35,9 @@
 */
 #pragma once
 
+/** \defgroup stencil-composition Stencil Composition
+ */
+
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 #include "esf.hpp"

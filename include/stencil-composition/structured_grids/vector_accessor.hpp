@@ -39,7 +39,9 @@
 #include "accessor_metafunctions.hpp"
 #include "../extent.hpp"
 
-/** @file vector accessor */
+/** @file
+    Vector accessor
+*/
 
 namespace gridtools {
 

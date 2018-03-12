@@ -48,8 +48,7 @@ namespace gridtools {
      * All derived metadata is computed in this class
      * @tparam MssDescriptor the mss descriptor
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
-     * @tparam RepeatFunctor the length of the chunks for expandable parameters, see @ref
-     * gridtools::expandable_parameters
+     * @tparam RepeatFunctor the length of the chunks for expandable parameters
      */
     template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
     struct mss_components {

@@ -145,7 +145,7 @@ namespace gridtools {
         /**
          * metafunction that computes the return type of all operator() of an accessor.
          *
-         * If the temaplate argument is not an accessor ::type is mpl::void_
+         * If the temaplate argument is not an accessor `type` is mpl::void_
          *
          */
         template < typename Accessor >
@@ -386,8 +386,8 @@ namespace gridtools {
            For example, if the tuple is an accessor containing the offsets 1,2,3, and the
            input is a storage st_, this function returns st_(1,2,3).
 
-           \param container the input class
-           \param tuple the tuple
+           \param container_ the input class
+           \param tuple_ the tuple
          */
         template < typename Container, typename Tuple, uint_t... Ids >
         GT_FUNCTION auto static tuple_to_container(
@@ -437,7 +437,7 @@ namespace gridtools {
 
         /** @brief return a the value in gmem pointed to by a base storage pointer and an offset
          * \param storage_pointer base address to gmem
-         * \param offset to compose the address being access
+         * \param pointer_offset to compose the address being access
         */
         template < typename ReturnType,
             typename StoragePointer,
