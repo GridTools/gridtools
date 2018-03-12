@@ -48,6 +48,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /**
      * @brief function used to create views to data field stores (read-write/read-only).
      * @tparam AccessMode access mode information (default is read-write).
@@ -108,4 +112,8 @@ namespace gridtools {
         }
         return res;
     }
+
+    /**
+     * @}
+     */
 }

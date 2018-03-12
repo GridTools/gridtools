@@ -41,7 +41,7 @@ namespace gridtools {
     /**
        Metafunction that checks that an index is not out of bounds for a fusion vector
 
-       \tparam IndexType Index type (need ::value to access the value)
+       \tparam IndexType Index type (need `value` to access the value)
        \tparam FusionVector the fusion vector
      */
     template < typename IndexType, typename FusionVector >

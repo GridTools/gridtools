@@ -86,7 +86,7 @@ namespace gridtools {
     };
 
     /**
-    * @class atomic_cuda - Specialization for float
+    * Specialization for float
     * generic implementation for CUDA that provides atomic functions
     */
     template <>
@@ -156,8 +156,7 @@ namespace gridtools {
     };
 
     /**
-    * @class AtomicCUDA  - specialization for double
-    * specialization for doubles of AtomicCUDA that provides atomic functions
+    * Specialization for doubles of AtomicCUDA that provides atomic functions
     */
     template <>
     class atomic_cuda< double > {
@@ -196,9 +195,10 @@ namespace gridtools {
 
         /**
         * Function computing an atomic exchange of value of a variable
-        * @param var reference to variable which value is replaced by val
+        *
+        * @param x reference to variable which value is replaced by val
         * @param val value inserted in variable var
-        * @return the old value contained in var
+        * @return the old value contained in x
         */
         GT_FUNCTION_DEVICE static double atomic_exch(double &x, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&x);

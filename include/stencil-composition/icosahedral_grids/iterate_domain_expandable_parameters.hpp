@@ -37,7 +37,9 @@
 #include "../iterate_domain.hpp"
 #include "../extent.hpp"
 
-/** @file iterate_domain for expandable parameters*/
+/** @file
+    iterate_domain for expandable parameters
+*/
 
 namespace gridtools {
 

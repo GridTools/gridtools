@@ -36,10 +36,15 @@
 
 #pragma once
 
-/**@file expand factor*/
+/**@file
+   Expand factor for expandable parameters encoding the unrolling factor
+   for the loop over the expandable parameters.
+*/
 
 namespace gridtools {
-    /** @brief factor determining the length of the "chunks" in an expandable parameters list */
+    /** @brief factor determining the length of the "chunks" in an expandable parameters list
+        \tparam Tile The unrlolling factor
+     */
     template < ushort_t Tile >
     struct expand_factor {
         static const ushort_t value = Tile;

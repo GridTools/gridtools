@@ -52,6 +52,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     namespace {
         /**
          * @brief metafunction used to retrieve the appropriate function type that is needed in order
@@ -128,7 +132,7 @@ namespace gridtools {
         }
     }
 
-    /**
+    /** \ingroup storage
      * @brief data_store implementation. This struct wraps storage and storage information in one class.
      * It can be copied and passed around without replicating the data. Automatic cleanup is provided when
      * the last data_store that points to the data is destroyed.
@@ -163,7 +167,8 @@ namespace gridtools {
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
-         * @param info storage info instance
+         * @param info storage_info instance
+         * @param name Human readable name for the data_store
          */
         constexpr data_store(StorageInfo const &info, std::string const &name = "")
             : m_shared_storage(new storage_t(info.padded_total_length())),
@@ -174,6 +179,7 @@ namespace gridtools {
          * Additionally the data is initialized to the given value.
          * @param info storage info instance
          * @param initializer initialization value
+         * @param name Human readable name for the data_store
          */
         constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
             : m_shared_storage(new storage_t(info.padded_total_length(), initializer)),
@@ -185,6 +191,7 @@ namespace gridtools {
          * to the lambda.
          * @param info storage info instance
          * @param initializer initialization lambda
+         * @param name Human readable name for the data_store
          */
         data_store(StorageInfo const &info,
             typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
@@ -197,6 +204,15 @@ namespace gridtools {
             clone_to_device();
         }
 
+        /**
+         * @brief Re-initialize the data of the data_store with the
+         * given initializer.
+         *
+         * Indices of the data_sore element to be initialized are
+         * passed to the initializer if it is a lambda/functor
+         *
+         * @param initializer Either a value or a lambda/functor to perfrom initialization
+         */
         void re_initialize(typename appropriate_function_t< data_t, StorageInfo >::type const &initializer) {
             lambda_initializer(initializer, *m_shared_storage_info, m_shared_storage->get_cpu_ptr());
         }
@@ -208,6 +224,7 @@ namespace gridtools {
          * @param info storage info instance
          * @param external_ptr the external pointer
          * @param own ownership information
+         * @param name Human readable name for the data_store
          */
         template < typename T = data_t *,
             typename boost::enable_if_c< boost::is_pointer< T >::value && boost::is_same< data_t *, T >::value,
@@ -228,6 +245,8 @@ namespace gridtools {
 
         /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
+         *
+         * @param info StorageInfo instance
          */
         void allocate(StorageInfo const &info) {
             ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
@@ -244,7 +263,7 @@ namespace gridtools {
             m_shared_storage.reset();
         }
 
-        /*
+        /**
          * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
          * @tparam Coord queried coordinate
          * @return size of dimension (aligned, e.g. 10x10x10 storage with alignment<32> on I returns 32x10x10)
@@ -255,7 +274,7 @@ namespace gridtools {
             return m_shared_storage_info->template dim< Coord >();
         }
 
-        /*
+        /**
          * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
          * @tparam Coord queried coordinate
          * @return size of dimension (unaligned, e.g. 10x10x10 storage with alignment<32> on I returns 10x10x10)
@@ -265,7 +284,8 @@ namespace gridtools {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->template unaligned_dim< Coord >();
         }
-        /*
+
+        /**
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
@@ -274,7 +294,7 @@ namespace gridtools {
             return m_shared_storage_info->padded_total_length();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
          * @return inner domain size + halo
          */
@@ -283,7 +303,7 @@ namespace gridtools {
             return m_shared_storage_info->total_length();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
          * @return inner domain size
          */
@@ -366,10 +386,14 @@ namespace gridtools {
         explicit operator bool() const { return valid(); }
     };
 
-    // simple metafunction to check if a type is a cuda_data_store
+    /// @brief simple metafunction to check if a type is a data_store
     template < typename T >
     struct is_data_store : boost::mpl::false_ {};
 
     template < typename S, typename SI >
     struct is_data_store< data_store< S, SI > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

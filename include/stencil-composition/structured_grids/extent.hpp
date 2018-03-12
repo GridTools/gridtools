@@ -77,7 +77,7 @@ namespace gridtools {
      * Output operator for extents - for debug purposes
      *
      * @param s The ostream
-     * @param n/a Arguemnt to deduce extent type
+     * @param * Arguemnt to deduce extent type
      * @return The ostream
      */
     template < int_t I1, int_t I2, int_t I3, int_t I4, int_t I5, int_t I6 >

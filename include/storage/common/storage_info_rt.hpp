@@ -43,6 +43,10 @@
 #include "storage_info_interface.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
+
     /*
      * @brief A storage info runtime object, providing dimensions and strides but without type information of the
      * storage info. Can be used in interfaces where no strict type information is available, i.e. in the interface to
@@ -130,4 +134,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((gridtools::is_storage_info< StorageInfo >::value), "Expected a StorageInfo");
         return make_array_from< unaligned_stride_getter >(storage_info);
     }
+
+    /**
+     * @}
+     */
 }

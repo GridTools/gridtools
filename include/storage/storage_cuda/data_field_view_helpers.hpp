@@ -47,6 +47,9 @@
 #include "../data_field_view.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /**
      * @brief function used to create host views to data field stores (read-write/read-only).
@@ -153,4 +156,8 @@ namespace gridtools {
         }
         return res;
     }
+
+    /**
+     * @}
+     */
 }

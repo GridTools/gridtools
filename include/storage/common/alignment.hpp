@@ -43,6 +43,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /**
      * @brief This struct is used to pass alignment information to storage info types.
      * @tparam alignment value
@@ -108,4 +112,8 @@ namespace gridtools {
             return 0;
         }
     };
+
+    /**
+     * @}
+     */
 }

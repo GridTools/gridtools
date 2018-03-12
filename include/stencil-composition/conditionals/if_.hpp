@@ -49,7 +49,7 @@ namespace gridtools {
        \tparam Mss2 the type of the resulting multi-stage-setncil in case the condiiton is false
        \tparam Condition the type of the condition
 
-       \param cond the runtime condition, must be an instance of \ref gridtools::conditional
+       \param cond the runtime condition
        \param mss1_ dummy argument
        \param mss2_ dummy argument
 

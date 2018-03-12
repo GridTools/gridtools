@@ -51,7 +51,8 @@
 #include "wrap_type.hpp"
 #include "computation_grammar.hpp"
 
-/** @file This file implements the metafunctions to perform data dependency analysis on a
+/** @file
+    This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
     computation an extent that represents the values that need to be accessed by the stages
     of the computation in each iteration point. This "assignment" is done by using an
@@ -59,6 +60,10 @@
  */
 
 namespace gridtools {
+
+    /** \ingroup stancil-composition
+     * \{
+     */
 
     /**substituting the std::vector type in the args<> with a correspondent
        expandable_parameter placeholder*/
@@ -110,7 +115,7 @@ namespace gridtools {
        computation. The way of callyng this metafunction is to
        do the following
 
-       \begincode
+       \code
        using newmap = compute_extents_of<oldmap>::for_mss<mss>::type;
        \endcode
 
@@ -468,4 +473,7 @@ namespace gridtools {
             reduction_get_extent_for< boost::mpl::_, ExtentMap > >::type;
     };
 
+    /**
+     * @}
+     */
 } // namespace gridtools
