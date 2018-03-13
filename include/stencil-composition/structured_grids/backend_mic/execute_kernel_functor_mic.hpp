@@ -380,7 +380,10 @@ namespace gridtools {
           public:
             GT_FUNCTION interval_functor_mic(
                 iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kparallel_mic &execution_info)
-                : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
+                : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {
+                // enable ij-caches
+                m_it_domain.enable_ij_caches();
+            }
 
             /**
              * @brief Runs all functors in RunFunctorArguments on the given interval if k is inside the interval.

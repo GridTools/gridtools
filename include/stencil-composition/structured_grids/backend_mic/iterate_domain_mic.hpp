@@ -43,6 +43,7 @@
 #include "common/generic_metafunctions/for_each.hpp"
 #include "common/generic_metafunctions/meta.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
+#include "stencil-composition/iterate_domain_aux.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 #include "stencil-composition/reductions/iterate_domain_reduction.hpp"
@@ -71,6 +72,19 @@ namespace gridtools {
         using grid_traits_t = typename iterate_domain_arguments_t::grid_traits_t;
         using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
+
+        using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
+        using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
+
+        /* ij-cache types and meta functions */
+        using ij_caches_t = typename boost::mpl::copy_if< cache_sequence_t, cache_is_type< IJ > >::type;
+        using ij_cache_indices_t =
+            typename boost::mpl::transform< ij_caches_t, cache_to_index< boost::mpl::_1, local_domain_t > >::type;
+        using ij_cache_indexset_t = typename boost::mpl::fold< ij_cache_indices_t,
+            boost::mpl::set0<>,
+            boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type;
+        template < typename Accessor >
+        using accessor_is_ij_cached = typename accessor_is_cached< Accessor, ij_cache_indexset_t >::type;
 
         //***************** end of internal type definitions
       public:
@@ -125,6 +139,7 @@ namespace gridtools {
         int_t m_i_block_base;      /** Global block start index along i-axis. */
         int_t m_j_block_base;      /** Global block start index along j-axis. */
         int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
+        bool m_enable_ij_caches;   /** Enables ij-caching. */
         // ******************* end of members *******************
 
         // helper class for index array generation, only needed for the index() function
@@ -152,7 +167,8 @@ namespace gridtools {
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_i_block_index(0),
-              m_j_block_index(0), m_k_block_index(0), m_prefetch_distance(0) {
+              m_j_block_index(0), m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
+              m_enable_ij_caches(false) {
             // assign storage pointers
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 assign_storage_ptrs< backend_traits_t,
@@ -191,6 +207,9 @@ namespace gridtools {
 
         /** @brief Sets the software prefetching distance along k-axis. Zero means no software prefetching. */
         GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
+
+        /** @brief Enables ij-caches. */
+        GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
 
         template < typename T >
         GT_FUNCTION void info(T const &x) const {
@@ -425,8 +444,11 @@ namespace gridtools {
             int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
         GT_FUNCTION typename std::enable_if< (Coordinate >= 0), int_t >::type compute_offset(
             Accessor const &accessor) const {
+            // for ij-caches we just ignore the k index
+            constexpr bool ignore_index_offset = Coordinate == 2 && accessor_is_ij_cached< Accessor >::value;
             // base index offset
-            const int_t index_offset = base_offset< StorageInfo, Coordinate >();
+            const int_t index_offset =
+                (ignore_index_offset && m_enable_ij_caches) ? 0 : base_offset< StorageInfo, Coordinate >();
 
             // accessor offset in all dimensions
             constexpr int_t accessor_index = Accessor::n_dimensions - 1 - Coordinate;
