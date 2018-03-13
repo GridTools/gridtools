@@ -135,5 +135,14 @@ namespace gridtools {
             get< 0 >(flat) = 42;
             EXPECT_EQ(get< 0 >(get< 0 >(orig)), 42);
         }
+
+        TEST(drop_front, functional) { EXPECT_EQ(drop_front< 2 >(std::make_tuple(1, 2, 3, 4)), std::make_tuple(3, 4)); }
+
+        TEST(push_back, functional) { EXPECT_EQ(push_back(std::make_tuple(1, 2), 3, 4), std::make_tuple(1, 2, 3, 4)); }
+
+        TEST(fold, functional) {
+            auto f = [](int x, int y) { return x + y; };
+            EXPECT_EQ(fold(f, std::make_tuple(1, 2, 3, 4)), 10);
+        }
     }
 }

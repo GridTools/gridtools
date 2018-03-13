@@ -79,4 +79,19 @@ namespace gridtools {
         };
 #endif
     };
+
+    struct clone {
+        template < typename Arg >
+        Arg operator()(Arg const &arg) const {
+            return arg;
+        }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+        template < typename >
+        struct result;
+        template < typename Arg >
+        struct result< clone(Arg const &) > {
+            using type = Arg;
+        };
+#endif
+    };
 }

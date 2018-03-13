@@ -40,20 +40,15 @@
 #include <type_traits>
 #include <tuple>
 
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/comparison.hpp>
-#include <boost/fusion/include/transform.hpp>
-
 #include <gtest/gtest.h>
 
 #include <common/functional.hpp>
+#include <common/tuple_util.hpp>
 
 #include <stencil-composition/conditionals/condition.hpp>
 
 namespace gridtools {
     namespace {
-        namespace f = boost::fusion;
-
         template < typename Lhs, typename Rhs >
         using node_t = condition< Lhs, Rhs, std::function< bool() > >;
 
@@ -160,23 +155,13 @@ namespace gridtools {
             size_t operator()(val_t< I >) const {
                 return I;
             }
-#ifdef BOOST_RESULT_OF_USE_TR1
-            using result_type = size_t;
-#endif
-        };
-
-        template < typename Fun >
-        struct transform_f {
-            Fun m_fun;
-            template < typename Sec >
-            auto operator()(const Sec &sec) const GT_AUTO_RETURN(f::as_vector(f::transform(sec, m_fun)));
         };
 
         TEST(branch_selector, different_types) {
             bool key;
             auto testee = make_branch_selector(make_node(val_t< 1 >{}, val_t< 2 >{}, [&] { return key; }));
             key = true;
-            transform_f< get_elem_f > fun;
+            auto fun = tuple_util::transform(get_elem_f{});
             EXPECT_EQ(testee.apply(fun), std::make_tuple(1));
             key = false;
             EXPECT_EQ(testee.apply(fun), std::make_tuple(2));

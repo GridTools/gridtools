@@ -44,7 +44,6 @@
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/any.hpp>
 #include <boost/fusion/include/copy.hpp>
-#include <boost/fusion/include/invoke.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/bool.hpp>
@@ -324,8 +323,7 @@ namespace gridtools {
             (meta::conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
             "some bound placeholders are not used in mss descriptors");
 
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< meta::dedup< meta::list< BoundPlaceholders... > >,
-                                    meta::list< BoundPlaceholders... > >::value),
+        GRIDTOOLS_STATIC_ASSERT(meta::is_set_fast< meta::list< BoundPlaceholders... > >::value,
             "bound placeholders should be all different");
 
         template < class Arg >
@@ -423,8 +421,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((meta::conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
                 "some placeholders are not used in mss descriptors");
             GRIDTOOLS_STATIC_ASSERT(
-                (std::is_same< meta::dedup< meta::list< Args... > >, meta::list< Args... > >::value),
-                "free placeholders should be all different");
+                meta::is_set_fast< meta::list< Args... > >::value, "free placeholders should be all different");
 
             update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_fusion_list),
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));

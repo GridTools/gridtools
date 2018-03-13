@@ -43,6 +43,7 @@
 
 #include "generic_metafunctions/meta.hpp"
 #include "defs.hpp"
+#include "functional.hpp"
 
 namespace gridtools {
 
@@ -172,7 +173,7 @@ namespace gridtools {
                 using get_results_t = meta::transform< get_fun_result< Fun >::template apply >;
 
                 template < class I >
-                using get_transform_elem_f = transform_elem_f< I::value >;
+                using get_generator = transform_elem_f< I::value >;
 
                 Fun m_fun;
 
@@ -181,8 +182,7 @@ namespace gridtools {
                     class Res = meta::apply< get_results_t, get_accessors< Tup && >, get_accessors< Tups && >... > >
                 Res operator()(Tup &&tup, Tups &&... tups) const {
                     constexpr auto length = meta::length< typename std::decay< Tup >::type >::value;
-                    using generators =
-                        meta::apply< meta::transform< get_transform_elem_f >, meta::make_indices< length > >;
+                    using generators = meta::apply< meta::transform< get_generator >, meta::make_indices< length > >;
                     return generate_f< generators, Res >{}(
                         m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
                 }
@@ -216,41 +216,108 @@ namespace gridtools {
                 }
             };
 
-            template < template < class... > class L, class... Ts >
-            L< Ts &&... > forward_as(Ts &&... args) {
-                return {std::forward< Ts >(args)...};
-            }
-
-            template < size_t OuterI, size_t InnerI >
-            struct flatten_elem_f {
-                template < class Tup >
-                auto operator()(Tup &&tup) const GT_AUTO_RETURN(get< InnerI >(get< OuterI >(std::forward< Tup >(tup))));
-            };
-
             struct flatten_f {
+                template < size_t OuterI, size_t InnerI >
+                struct generator_f {
+                    template < class Tup >
+                    auto operator()(Tup &&tup) const
+                        GT_AUTO_RETURN(get< InnerI >(get< OuterI >(std::forward< Tup >(tup))));
+                };
+
                 template < class OuterI, class InnerI >
-                using get_flatten_elem = flatten_elem_f< OuterI::value, InnerI::value >;
+                using get_generator = generator_f< OuterI::value, InnerI::value >;
 
                 template < class OuterI, class InnerTup >
-                using inner_flatten_generators =
-                    meta::apply< meta::transform< meta::bind< get_flatten_elem, OuterI, meta::_1 >::template apply >,
+                using get_inner_generators =
+                    meta::apply< meta::transform< meta::bind< get_generator, OuterI, meta::_1 >::template apply >,
                         meta::make_indices_for< InnerTup > >;
 
                 template < class Tup,
                     class Accessors = meta::apply< meta::transform< get_accessors >, get_accessors< Tup && > >,
                     class Res = meta::flatten< Accessors > >
                 Res operator()(Tup &&tup) const {
-                    using generators = meta::flatten< meta::apply< meta::transform< inner_flatten_generators >,
+                    using generators = meta::flatten< meta::apply< meta::transform< get_inner_generators >,
                         meta::make_indices_for< Accessors >,
                         Accessors > >;
                     return generate_f< generators, Res >{}(std::forward< Tup >(tup));
                 }
             };
+
+            template < size_t N >
+            struct drop_front_f {
+                template < size_t I >
+                struct generator_f {
+                    template < class Tup >
+                    auto operator()(Tup &&tup) const GT_AUTO_RETURN(get< N + I >(std::forward< Tup >(tup)));
+                };
+
+                template < class I >
+                using get_generator = generator_f< I::value >;
+
+                template < class Tup,
+                    class Accessors = get_accessors< Tup && >,
+                    class Res = meta::drop_front< N, Accessors > >
+                Res operator()(Tup &&tup) const {
+                    using generators = meta::apply< meta::transform< get_generator >,
+                        meta::make_indices< meta::length< Accessors >::value - N > >;
+                    return generate_f< generators, Res >{}(std::forward< Tup >(tup));
+                }
+            };
+
+            template < class, class >
+            struct push_back_impl_f;
+
+            template < template < class T, T... > class L, class Int, Int... Is, class Res >
+            struct push_back_impl_f< L< Int, Is... >, Res > {
+                template < class Tup, class... Args >
+                Res operator()(Tup &&tup, Args &&... args) const {
+                    return {get< Is >(std::forward< Tup >(tup))..., std::forward< Args >(args)...};
+                }
+            };
+
+            struct push_back_f {
+                template < class Tup,
+                    class... Args,
+                    class Accessors = get_accessors< Tup && >,
+                    class Res = meta::push_back< Accessors, Args &&... > >
+                Res operator()(Tup &&tup, Args &&... args) const {
+                    return push_back_impl_f< make_gt_index_sequence< meta::length< Accessors >::value >, Res >{}(
+                        std::forward< Tup >(tup), std::forward< Args >(args)...);
+                };
+            };
+
+            template < class Fun >
+            struct fold_f {
+
+                template < class S, class T >
+                using meta_fun = meta::apply< get_fun_result< Fun >, S, T >;
+
+                Fun m_fun;
+
+                template < class State, template < class... > class L >
+                State operator()(State &&state, L<>) const {
+                    return state;
+                }
+
+                template < class State,
+                    class Tup,
+                    class Accessors = get_accessors< Tup && >,
+                    class Res = meta::apply< meta::lfold< meta_fun >, State &&, Accessors > >
+                Res operator()(State &&state, Tup &&tup) const {
+                    auto &&new_state = m_fun(std::forward< State >(state), get< 0 >(std::forward< Tup >(tup)));
+                    auto &&rest = drop_front_f< 1 >{}(std::forward< Tup >(tup));
+                    return this->operator()(std::move(new_state), std::move(rest));
+                }
+
+                template < class Tup >
+                auto operator()(Tup &&tup) const GT_AUTO_RETURN(this->operator()(
+                    get< 0 >(std::forward< Tup >(tup)), drop_front_f< 1 >{}(std::forward< Tup >(tup))));
+            };
         }
 
         template < class Fun >
-        _impl::transform_f< Fun > transform(Fun fun) {
-            return std::move(fun);
+        constexpr _impl::transform_f< Fun > transform(Fun fun) {
+            return {std::move(fun)};
         }
 
         template < class Fun, class Tup >
@@ -258,8 +325,8 @@ namespace gridtools {
             GT_AUTO_RETURN(_impl::transform_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup)));
 
         template < class Fun >
-        _impl::for_each_f< Fun > for_each(Fun fun) {
-            return std::move(fun);
+        constexpr _impl::for_each_f< Fun > for_each(Fun fun) {
+            return {std::move(fun)};
         }
 
         template < class Fun, class Tup >
@@ -267,7 +334,7 @@ namespace gridtools {
             _impl::for_each_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup));
         }
 
-        inline _impl::flatten_f flatten() { return {}; }
+        inline constexpr _impl::flatten_f flatten() { return {}; }
 
         template < class Tup >
         auto flatten(Tup &&tup) GT_AUTO_RETURN(flatten()(std::forward< Tup >(tup)));
@@ -276,5 +343,33 @@ namespace gridtools {
         Res generate(Args &&... args) {
             return _impl::generate_f< Generators, Res >{}(std::forward< Args >(args)...);
         }
+
+        template < size_t N >
+        constexpr _impl::drop_front_f< N > drop_front() {
+            return {};
+        }
+
+        template < size_t N, class Tup >
+        auto drop_front(Tup &&tup) GT_AUTO_RETURN(drop_front< N >()(std::forward< Tup >(tup)));
+
+        inline constexpr _impl::push_back_f push_back() { return {}; }
+
+        template < class Tup, class... Args >
+        auto push_back(Tup &&tup, Args &&... args)
+            GT_AUTO_RETURN(push_back()(std::forward< Tup >(tup), std::forward< Args >(args)...));
+
+        template < class Fun >
+        constexpr _impl::fold_f< Fun > fold(Fun fun) {
+            return {std::move(fun)};
+        }
+
+        template < class Fun, class Arg, class... Args >
+        auto fold(Fun &&fun, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+            _impl::fold_f< Fun >{std::forward< Fun >(fun)}(std::forward< Arg >(arg), std::forward< Args >(args)...));
+
+        inline constexpr _impl::transform_f< clone > deep_copy() { return {}; }
+
+        template < class Tup >
+        auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward< Tup >(tup)));
     }
 }

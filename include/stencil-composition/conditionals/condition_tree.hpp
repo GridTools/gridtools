@@ -68,14 +68,9 @@
 #include <tuple>
 #include <type_traits>
 
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/fold.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/tuple_util.hpp"
 
 #include "condition.hpp"
 
@@ -145,13 +140,13 @@ namespace gridtools {
 
             struct compose_leafs_f {
                 template < typename S, typename T >
-                auto operator()(S &&sec, T &&elem) const GT_AUTO_RETURN(boost::fusion::as_vector(
-                    boost::fusion::push_back(std::forward< S >(sec), std::forward< T >(elem))));
+                auto operator()(S &&seq, T &&elem) const GT_AUTO_RETURN(
+                    tuple_util::deep_copy(tuple_util::push_back(std::forward< S >(seq), std::forward< T >(elem))));
             };
 
             template < typename Trees >
-            auto make_tree_from_forest(Trees &&trees) GT_AUTO_RETURN((boost::fusion::fold(
-                std::forward< Trees >(trees), boost::fusion::make_vector(), compose_trees_f< compose_leafs_f >{})));
+            auto make_tree_from_forest(Trees &&trees) GT_AUTO_RETURN(
+                tuple_util::fold(compose_trees_f< compose_leafs_f >{}, std::tuple<>{}, std::forward< Trees >(trees)));
 
             template < typename TransformLeaf >
             struct transform_f {
@@ -270,7 +265,7 @@ namespace gridtools {
         tree_t m_tree;
 
       public:
-        /// MPL sequence, containing all leaves of all trees. I.e. the flat view for all trees.
+        /// An std  tuple containing all leaves of all trees. I.e. the flat view for all trees.
         using all_leaves_t = _impl::condition_tree::all_leaves_in_forest< Trees... >;
 
         template < class Seq >
@@ -325,7 +320,7 @@ namespace gridtools {
 
         template < typename Fun, typename... Args >
         auto apply(Fun &&fun, Args &&... args) const
-            GT_AUTO_RETURN((std::forward< Fun >(fun)(boost::fusion::make_vector(), std::forward< Args >(args)...)));
+            GT_AUTO_RETURN((std::forward< Fun >(fun)(std::tuple<>{}, std::forward< Args >(args)...)));
     };
 
     /// Generator for branch_selector
