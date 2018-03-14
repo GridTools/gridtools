@@ -50,17 +50,25 @@
 #define GT_FORCE_INLINE inline
 #endif
 
+/* @def GT_FUNCTION Function attribute macro to be used for host-device functions. */
+/* @def GT_FUNCTION_HOST Function attribute macro to be used for host-only functions. */
+/* @def GT_FUNCTION_DEVICE Function attribute macro to be used for device-only functions. */
+/* @def GT_FUNCTION_WARNING Function attribute macro to be used for host-only functions that might call a host-device
+ * function. This macro is only needed to supress NVCC warnings. */
+
 #ifndef GT_FUNCTION
 #ifdef __CUDACC__
+/* Function attribute macros for NVCC, see Doxygen comments above for an explanation of the macros. */
 #define GT_FUNCTION __host__ __device__ __forceinline__
 #define GT_FUNCTION_HOST __host__ __forceinline__
 #define GT_FUNCTION_DEVICE __device__ __forceinline__
-#define GT_FUNCTION_WARNING __host__ __device__
+#define GT_FUNCTION_WARNING __host__ __device__ __forceinline__
 #else
+/* Function attribute macros for other compilers, see Doxygen comments above for an explanation of the macros. */
 #define GT_FUNCTION GT_FORCE_INLINE
 #define GT_FUNCTION_HOST GT_FORCE_INLINE
 #define GT_FUNCTION_DEVICE GT_FORCE_INLINE
-#define GT_FUNCTION_WARNING
+#define GT_FUNCTION_WARNING GT_FORCE_INLINE
 #endif
 #endif
 
