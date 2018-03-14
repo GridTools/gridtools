@@ -40,6 +40,7 @@
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"
 #include "storage/common/storage_info_rt.hpp"
+#include "storage/storage-facility.hpp"
 
 namespace gridtools {
 
