@@ -25,6 +25,7 @@ function help {
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
    echo "-c      disable CPU communication tests          "
+   echo "-o      build only the given Makefile targets    "
    exit 1
 }
 
@@ -68,6 +69,8 @@ while getopts "hb:t:f:l:zmsidvq:x:inc" opt; do
     n) BUILD_ON_CN="ON"
         ;;
     c) DISABLE_CPU_MPI_TESTS="ON"
+        ;;
+    o) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
         ;;
     esac
 done
@@ -247,7 +250,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
         cat ${log_file};
     fi
 else
-    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
+    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} ${MAKE_TARGETS}
     error_code=$?
 fi
 
