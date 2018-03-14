@@ -368,6 +368,14 @@ namespace gridtools {
             struct apply_impl< L< T1, T2, Ts... >, 2 > {
                 using type = F< T1, T2 >;
             };
+            template < template < class... > class L, class T1, class T2, class T3, class... Ts >
+            struct apply_impl< L< T1, T2, T3, Ts... >, 3 > {
+                using type = F< T1, F< T2, T3 > >;
+            };
+            template < template < class... > class L, class T1, class T2, class T3, class T4, class... Ts >
+            struct apply_impl< L< T1, T2, T3, T4, Ts... >, 4 > {
+                using type = F< F< T1, T2 >, F< T3, T4 > >;
+            };
             template < class List >
             using apply = t_< apply_impl< List, length< List >::value > >;
         };

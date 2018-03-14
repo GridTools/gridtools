@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "mss.hpp"
-#include "reductions/reduction_descriptor.hpp"
+#include "./mss.hpp"
+#include "./reductions/reduction_descriptor.hpp"
 
 /**
 @file
