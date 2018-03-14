@@ -62,7 +62,7 @@ if( ENABLE_CUDA )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   if( ${CUDA_VERSION} VERSION_LESS "80" )
-    error(STATUS "CUDA 7 or lower does not supported")
+    message(ERROR " CUDA 7.X or lower is not supported")
   endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
