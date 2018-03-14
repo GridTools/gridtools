@@ -42,7 +42,6 @@
 #include <boost/optional.hpp>
 
 #include "common/generic_metafunctions/copy_into_set.hpp"
-#include "common/fusion.hpp"
 #include "common/functional.hpp"
 #include "common/vector_traits.hpp"
 #include "common/tuple_util.hpp"

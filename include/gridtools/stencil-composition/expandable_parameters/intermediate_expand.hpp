@@ -62,7 +62,6 @@
 #include "../../common/defs.hpp"
 #include "../../common/vector_traits.hpp"
 #include "../../common/functional.hpp"
-#include "../../common/fusion.hpp"
 
 #include "../../common/split_args.hpp"
 #include "../../common/tuple_util.hpp"
