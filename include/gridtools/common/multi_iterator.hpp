@@ -75,7 +75,7 @@ namespace gridtools {
     class hypercube_view {
       public:
         GT_FUNCTION hypercube_view(const hypercube< D > &cube)
-            : begin_{impl_::begin_of_hypercube(cube)}, end_{impl_::end_of_hypercube(cube)} {}
+            : begin_(impl_::begin_of_hypercube(cube)), end_(impl_::end_of_hypercube(cube)) {}
 
         struct grid_iterator {
             array< size_t, D > pos_;
@@ -84,7 +84,7 @@ namespace gridtools {
 
             GT_FUNCTION grid_iterator(
                 const array< size_t, D > &pos, const array< size_t, D > &begin, const array< size_t, D > &end)
-                : pos_{pos}, begin_{begin}, end_{end} {}
+                : pos_(pos), begin_(begin), end_(end) {}
 
             GT_FUNCTION operator array< size_t, D >() const { return pos_; }
 
