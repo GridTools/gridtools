@@ -283,7 +283,7 @@ namespace gridtools {
                 Res operator()(Tup &&tup, Args &&... args) const {
                     return push_back_impl_f< make_gt_index_sequence< meta::length< Accessors >::value >, Res >{}(
                         std::forward< Tup >(tup), std::forward< Args >(args)...);
-                };
+                }
             };
 
             template < class Fun >
