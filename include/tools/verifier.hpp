@@ -80,8 +80,10 @@ namespace gridtools {
             }
             auto cube_view = make_hypercube_view(bounds);
 
-            auto expected_view = make_host_view(expected_field);
-            auto actual_view = make_host_view(actual_field);
+            expected_field.sync();
+            auto expected_view = make_host_view< access_mode::ReadOnly >(expected_field);
+            actual_field.sync();
+            auto actual_view = make_host_view< access_mode::ReadOnly >(actual_field);
 
             size_t error_count = 0;
             for (auto pos : cube_view) {
