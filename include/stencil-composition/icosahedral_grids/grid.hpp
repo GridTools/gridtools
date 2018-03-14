@@ -34,11 +34,33 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../common/gpu_clone.hpp"
 #include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
-#include "../../common/gpu_clone.hpp"
+#include "topology_traits.hpp"
+#include "unstructured_mesh.hpp"
 
 namespace gridtools {
+
+    /* functor class that will apply the clone to the gpu of a mesh.
+     * Contains two specializations depending on the type of topology.
+     * If the topology is not of unstructured mesh type, the clone operation is ignored
+     */
+    struct mesh_cloner {
+      public:
+        template < typename T, typename boost::enable_if< typename is_unstructured_mesh< T >::type, int >::type = 0 >
+        T *apply(T *umesh) const {
+            umesh->clone_to_device();
+            return umesh->gpu_object_ptr;
+        }
+
+        template < typename T, typename boost::disable_if< typename is_unstructured_mesh< T >::type, int >::type = 0 >
+        T *apply(T *umesh) const {
+            return umesh;
+        }
+    };
+
+    struct empty {};
 
     template < typename Axis, typename GridTopology >
     struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
@@ -47,36 +69,74 @@ namespace gridtools {
 
         typedef GridTopology grid_topology_t;
 
+        using unstructured_mesh_t =
+            typename boost::mpl::if_c< is_unstructured_mesh< GridTopology >::value, GridTopology, empty >::type;
+
       private:
-        GridTopology m_grid_topology;
+        unstructured_mesh_t *m_umesh;
 
       public:
         static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
 
-        DEPRECATED_REASON(GT_FUNCTION explicit grid(
-                              GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j),
-            "Use constructor with halo_descriptors")
-            : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
-                  halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
-              m_grid_topology(grid_topology) {}
+        // ctr API of the grid that uses an unstructured mesh topology, where the require
+        // mesh object is passed by argument
+        template < typename T = GridTopology,
+            typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
+                                             is_unstructured_mesh< GridTopology >::value,
+                int >::type = 0 >
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const decltype(grid_base< Axis >::value_list) &value_list,
+            GridTopology &umesh)
+            : grid_base< Axis >(direction_i, direction_j, value_list), m_umesh(&umesh) {}
 
-        DEPRECATED_REASON(
-            GT_FUNCTION explicit grid(
-                GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j),
-            "This constructor does not initialize the vertical axis, use the constructor with 4 arguments.")
-            : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
+        // ctr API of the grid that uses an structured topology. Since no runtime
+        // mesh information is required, the ctr only accepts domain size properties
+        template < typename T = GridTopology,
+            typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
+                                             !is_unstructured_mesh< GridTopology >::value,
+                int >::type = 0 >
+        explicit grid(const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
+            : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
+                  halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])) {}
+
+        void clone_to_device() {
+            m_umesh = mesh_cloner().apply(m_umesh);
+            clonable_to_gpu< grid< Axis, GridTopology > >::clone_to_device();
+        }
+        GT_FUNCTION_DEVICE grid(grid const &other) : grid_base< Axis >(other), m_umesh(other.m_umesh) {}
 
         GT_FUNCTION
-        explicit grid(GridTopology &grid_topology,
+        unstructured_mesh_t &umesh() {
+            assert(m_umesh);
+            return *m_umesh;
+        }
+        template < typename T = GridTopology,
+            typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
+                                             !is_unstructured_mesh< GridTopology >::value,
+                int >::type = 0 >
+        DEPRECATED_REASON(
+            GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
+            "This constructor does not initialize the vertical axis, use the constructor with 4 arguments.")
+            : grid_base< Axis >(direction_i, direction_j) {}
+
+        template < typename T = GridTopology,
+            typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
+                                             !is_unstructured_mesh< GridTopology >::value,
+                int >::type = 0 >
+        GT_FUNCTION explicit grid(GridTopology &grid_topology,
             halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
             const decltype(grid_base< Axis >::value_list) &value_list)
-            : grid_base< Axis >(direction_i, direction_j, value_list), m_grid_topology(grid_topology) {}
+            : grid_base< Axis >(direction_i, direction_j, value_list) {}
 
         GT_FUNCTION grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
-        GridTopology const &grid_topology() const { return m_grid_topology; }
+        unstructured_mesh_t const &grid_topology() const {
+            assert(m_umesh);
+            return *m_umesh;
+        }
     };
 
     template < typename Grid >

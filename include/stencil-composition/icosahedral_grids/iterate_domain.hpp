@@ -34,20 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <type_traits>
-#include <boost/type_traits/remove_reference.hpp>
+#include "../../common/array.hpp"
+#include "../../common/explode_array.hpp"
 #include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
-#include "../../common/array.hpp"
-#include "../../common/explode_array.hpp"
-#include "../iterate_domain_fwd.hpp"
-#include "../location_type.hpp"
-#include "../iterate_domain_impl_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
+#include "../iterate_domain_fwd.hpp"
+#include "../iterate_domain_impl_metafunctions.hpp"
+#include "../location_type.hpp"
 #include "../position_offset_type.hpp"
 #include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
+#include <boost/type_traits/remove_reference.hpp>
+#include <type_traits>
 
 namespace gridtools {
 
@@ -68,6 +68,7 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
         typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
+        typedef typename iterate_domain_arguments_t::grid_t::unstructured_mesh_t unstructured_mesh_t;
         typedef typename grid_topology_t::default_4d_layout_map_t default_4d_layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
@@ -167,8 +168,9 @@ namespace gridtools {
 
       private:
         local_domain_t const &m_local_domain;
-        grid_topology_t const &m_grid_topology;
-        // TODOMEETING do we need m_index?
+
+        unstructured_mesh_t const &m_umesh;
+        typedef array< int_t, N_META_STORAGES > array_index_t;
         array_index_t m_index;
         grid_position_t m_grid_position;
 
@@ -182,8 +184,8 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
-            : m_local_domain(local_domain_), m_grid_topology(grid_topology) {}
+        iterate_domain(local_domain_t const &local_domain_, unstructured_mesh_t const &umesh)
+            : m_local_domain(local_domain_), m_umesh(umesh) {}
 
         /**
            @brief returns the array of pointers to the raw data

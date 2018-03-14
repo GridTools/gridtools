@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "backend_select.hpp"
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
-#include "backend_select.hpp"
 
 namespace test_copy_stencil_icosahedral {
 
@@ -83,7 +83,10 @@ namespace test_copy_stencil_icosahedral {
             }
         }
 
-        auto grid_ = make_grid(icosahedral_grid, d1, d2, d3);
+        halo_descriptor di = {0, 0, 0, d1 - 1, d1};
+        halo_descriptor dj = {0, 0, 0, d2 - 1, d2};
+
+        auto grid_ = make_grid(di, dj, d3);
 
         using p_out = arg< 0, decltype(storage1), enumtype::cells >;
         using p_in = arg< 1, decltype(storage10), enumtype::cells >;

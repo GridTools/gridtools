@@ -60,11 +60,12 @@ namespace gridtools {
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::local_domain_t local_domain_t;
         typedef typename super::grid_topology_t grid_topology_t;
+        typedef typename super::unstructured_mesh_t unstructured_mesh_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_host(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
-            : super(local_domain_, grid_topology), m_data_pointer(0), m_strides(0) {}
+        explicit iterate_domain_host(local_domain_t const &local_domain_, unstructured_mesh_t const &umesh)
+            : super(local_domain_, umesh), m_data_pointer(0), m_strides(0) {}
 
         void set_data_pointer_impl(data_ptr_cached_t *RESTRICT data_pointer) {
             assert(data_pointer);

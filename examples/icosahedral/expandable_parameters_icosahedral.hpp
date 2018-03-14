@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "backend_select.hpp"
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
-#include "backend_select.hpp"
 
 namespace test_expandable_parameters_icosahedral {
 
@@ -98,7 +98,7 @@ namespace test_expandable_parameters_icosahedral {
 
         std::vector< decltype(storage10) > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
-        auto grid_ = make_grid(icosahedral_grid, d1, d2, d3);
+        auto grid_ = make_grid(d1, d2, d3);
 
         using p_list_out = arg< 0, std::vector< decltype(storage1) >, enumtype::cells >;
         using p_list_in = arg< 1, std::vector< decltype(storage10) >, enumtype::cells >;

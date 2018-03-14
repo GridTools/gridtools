@@ -92,6 +92,43 @@
  * */
 namespace gridtools {
 
+    template < typename T >
+    struct if_condition_extract_index_t;
+
+    template < enumtype::platform >
+    struct setup_computation;
+
+    template <>
+    struct setup_computation< enumtype::Cuda > {
+
+        template < typename AggregatorType, typename Grid >
+        static uint_t apply(AggregatorType &aggregator, Grid &grid) {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
+            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
+                                        is_arg_storage_pair >::type::value),
+                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+            grid.clone_to_device();
+            return GT_NO_ERRORS;
+        }
+    };
+
+    template <>
+    struct setup_computation< enumtype::Host > {
+        template < typename AggregatorType, typename Grid >
+        static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
+            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
+                                        is_arg_storage_pair >::type::value),
+                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+
+            return GT_NO_ERRORS;
+        }
+    };
+
     /**
      * @brief metafunction that create the mss local domain type
      */

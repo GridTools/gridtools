@@ -177,9 +177,6 @@ namespace gridtools {
         };
     };
 
-    template < typename T >
-    struct is_grid_topology;
-
     /**
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
      * While ordering is arbitrary up to some extent, if must respect some rules that user expect, and that conform
@@ -732,7 +729,7 @@ namespace gridtools {
     /**
     */
     template < typename Backend >
-    class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
+    class icosahedral_topology {
       public:
         using cells = enumtype::cells;
         using edges = enumtype::edges;
@@ -766,13 +763,9 @@ namespace gridtools {
       public:
         icosahedral_topology() = delete;
 
-      public:
         template < typename... UInt >
-
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
             : m_dims{idim, jdim, kdim} {}
-
-        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
         template < typename LocationType,
             typename ValueType,
@@ -813,11 +806,4 @@ namespace gridtools {
                 i[2]};
         }
     };
-
-    template < typename T >
-    struct is_grid_topology : boost::mpl::false_ {};
-
-    template < typename Backend >
-    struct is_grid_topology< icosahedral_topology< Backend > > : boost::mpl::true_ {};
-
 } // namespace gridtools

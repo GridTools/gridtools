@@ -30,8 +30,11 @@ set( exe_LIBS ${exe_LIBS} gtest)
 
 # This function will fetch all host test cases in the given directory.
 # Only used for gcc or clang compilations
+# The extra optional args passed, ${ARGN} are interpreted as libraries to link against
+# in the target
 function(fetch_host_tests subfolder)
     if (ENABLE_HOST)
+        set(extra_libs ${ARGN})
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
@@ -46,7 +49,7 @@ function(fetch_host_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
+            target_link_libraries(${unit_test} ${exe_LIBS} gtest_main ${extra_libs})
             target_compile_definitions(${unit_test} PUBLIC ${HOST_BACKEND_DEFINE})
             add_test (NAME ${unit_test} COMMAND ${exe} )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
@@ -57,7 +60,10 @@ endfunction(fetch_host_tests)
 
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
+# The extra optional args passed, ${ARGN} are interpreted as libraries to link against
+# in the target
 function(fetch_gpu_tests subfolder)
+    set(extra_libs ${ARGN})
     if(ENABLE_CUDA)
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
@@ -74,7 +80,7 @@ function(fetch_gpu_tests subfolder)
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
             cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
-            target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
+            target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} ${extra_libs})
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )
         endforeach(test_source)

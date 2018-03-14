@@ -41,13 +41,13 @@
  * sum_reduce(edges) {sign_edge * lengh_edge}
  * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
  */
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
-#include "benchmarker.hpp"
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -122,7 +122,7 @@ namespace soem {
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
+        auto grid_ = make_grid(di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,
