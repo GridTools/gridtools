@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <utility>
 
 #include "../../common/gt_assert.hpp"
@@ -75,11 +76,16 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          */
         mic_storage(uint_t size) {
-            // get data_offset and update it for next allocation
-            static uint_t s_data_offset = 64;
-            m_data_offset = s_data_offset / sizeof(data_t);
-            if ((s_data_offset *= 2) >= 16384)
-                s_data_offset = 64;
+            // get data_offset and update it atomically for next allocation
+            static std::atomic< uint_t > s_data_offset(64);
+            uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
+            uint_t next_data_offset;
+            do {
+                m_data_offset = data_offset / sizeof(data_t);
+                next_data_offset = 2 * data_offset;
+                if (next_data_offset > 8192)
+                    next_data_offset = 64;
+            } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
 
             // allocate memory aligned to 2MB
             if (posix_memalign(
