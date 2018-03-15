@@ -39,6 +39,8 @@
 #include <xmmintrin.h>
 #endif
 
+#include <boost/fusion/functional/invocation/invoke.hpp>
+
 #include "common/gt_assert.hpp"
 #include "common/generic_metafunctions/for_each.hpp"
 #include "common/generic_metafunctions/meta.hpp"
@@ -285,29 +287,6 @@ namespace gridtools {
         }
 
         /**
-         * @brief Helper function that given an input in_ and a tuple t_ calls in_.operator() with the elements of the
-         * tuple as arguments.
-         *
-         * For example, if the tuple is an accessor containing the offsets 1,2,3, and the input is a storage st_, this
-         * function returns st_(1,2,3).
-         *
-         * @param container The input class.
-         * @param tuple The tuple.
-         */
-        template < typename Container, typename Tuple, uint_t... Ids >
-        GT_FUNCTION auto static tuple_to_container(
-            Container &&container_, Tuple const &tuple_, gt_integer_sequence< uint_t, Ids... >)
-            -> decltype(container_(boost::fusion::at_c< Ids >(tuple_)...)) {
-            return container_(boost::fusion::at_c< Ids >(tuple_)...);
-        }
-
-        template < typename Acc, typename... Args >
-        using ret_t = typename boost::remove_reference< decltype(tuple_to_container(
-            std::declval< typename get_storage_accessor< local_domain_t, Acc >::type::storage_t::data_t >(),
-            std::declval< global_accessor_with_arguments< Acc, Args... > >().get_arguments(),
-            make_gt_integer_sequence< uint_t, sizeof...(Args) >())) >::type;
-
-        /**
          * @brief Returns the dimension of the storage corresponding to the given accessor.
          * Useful to determine the loop bounds, when looping over a dimension from whithin a kernel.
          */
@@ -340,12 +319,13 @@ namespace gridtools {
         */
         template < typename Acc, typename... Args >
         GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
-            -> ret_t< Acc, Args... > {
+            -> decltype(boost::fusion::invoke(
+                **boost::fusion::at< typename Acc::index_t >(local_domain.m_local_data_ptrs).second.data(),
+                accessor.get_arguments())) {
             using index_t = typename Acc::index_t;
-            auto storage_ = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
+            auto storage = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
 
-            return tuple_to_container(
-                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
+            return boost::fusion::invoke(**storage.data(), accessor.get_arguments());
         }
 
         /**
