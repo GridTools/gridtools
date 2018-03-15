@@ -40,6 +40,7 @@ include/workarounds/
 !index.html
 !LICENSE
 !mainpage.dox
+!modules
 !README.md
 !Vagrant_bootstrap.sh
 !Vagrantfile
