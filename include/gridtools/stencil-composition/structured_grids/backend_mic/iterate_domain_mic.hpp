@@ -150,9 +150,7 @@ namespace gridtools {
             template < class StorageInfoIndex >
             void operator()(StorageInfoIndex const &) const {
                 using storage_info_t =
-                    typename std::remove_const< typename std::remove_pointer< typename std::remove_reference<
-                        typename boost::fusion::result_of::at_c< typename local_domain_t::storage_info_ptr_fusion_list,
-                            StorageInfoIndex::value >::type >::type >::type >::type;
+                    typename local_domain_t::template get_data_store< StorageInfoIndex >::type::storage_info_t;
 
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset< storage_info_t >(accessor_base< storage_info_t::ndims >());
