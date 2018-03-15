@@ -78,6 +78,23 @@ namespace gridtools {
         }
 
         /**
+         * This meta function computes the correct accessor index for the given accessor type.
+         *
+         * @tparam Accessor Accessor for which the index should be computed.
+         * @tparam Coordinate Axis/coordinate for which the index is needed.
+         *
+         * @return An integer constant, that can be used with the accessor::get method.
+         */
+        template < typename Accessor, int_t Coordinate, typename Enable = void >
+        struct accessor_index : std::integral_constant< int_t, Accessor::n_dimensions - 1 - Coordinate > {};
+
+        template < typename Accessor, int_t Coordinate >
+        struct accessor_index< Accessor,
+            Coordinate,
+            typename std::enable_if< is_position_offset_type< Accessor >::value >::type >
+            : std::integral_constant< int_t, Coordinate > {};
+
+        /**
          * This function computes the accessor-induces pointer offset along the the given axis/coordinate.
          *
          * @tparam StorageInfo The storage info to be used.
@@ -94,10 +111,9 @@ namespace gridtools {
         GT_FUNCTION constexpr int_t coordinate_offset(
             StridesCached const &RESTRICT strides, Accessor const &RESTRICT accessor) {
             /* compute access value, depending on accessor type */
-            using access_t = std::integral_constant< int_t,
-                is_position_offset_type< Accessor >::value ? Coordinate : Accessor::n_dimensions - 1 - Coordinate >;
+            using accessor_index_t = accessor_index< Accessor, Coordinate >;
             /* multiply stride with accessor offset value */
-            return stride< StorageInfo, Coordinate >(strides) * accessor.template get< access_t::value >();
+            return stride< StorageInfo, Coordinate >(strides) * accessor.template get< accessor_index_t::value >();
         }
 
         /**
