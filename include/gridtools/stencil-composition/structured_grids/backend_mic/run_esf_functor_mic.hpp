@@ -47,8 +47,7 @@ namespace gridtools {
      * @tparam Interval interval where the functor gets executed
      */
     template < typename RunFunctorArguments, typename Interval >
-    struct run_esf_functor_mic
-        : public run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > // CRTP
+    struct run_esf_functor_mic : public run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > // CRTP
     {
         GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
         typedef run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > super;

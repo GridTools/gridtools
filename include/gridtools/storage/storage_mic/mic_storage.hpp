@@ -99,8 +99,7 @@ namespace gridtools {
         explicit constexpr mic_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
             : m_cpu_ptr(external_ptr),
               m_ownership(error_or_return(
-                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using mic_storage")) {
-        }
+                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using mic_storage")) {}
 
         /*
          * @brief mic_storage constructor. Allocate memory on Mic and initialize the memory according to the given
