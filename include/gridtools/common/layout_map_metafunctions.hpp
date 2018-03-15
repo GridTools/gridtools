@@ -55,7 +55,7 @@ namespace gridtools {
     template < short_t... Is >
     struct reverse_map< layout_map< Is... > > {
         static constexpr int max = layout_map< Is... >::max();
-        using type = layout_map< (max - Is > max ? Is : max - Is)... >;
+        using type = layout_map< (Is < 0 ? Is : max - Is)... >;
     };
 
     template < typename DATALO, typename PROCLO >
