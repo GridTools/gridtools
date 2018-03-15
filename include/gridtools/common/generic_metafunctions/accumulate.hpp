@@ -52,16 +52,16 @@ namespace gridtools {
  */
 #if __cplusplus >= 201402L
     template < typename... Ts >
-    constexpr typename std::common_type< Ts... >::type constexpr_max(Ts... vals) {
+    GT_FUNCTION constexpr typename std::common_type< Ts... >::type constexpr_max(Ts... vals) {
         return std::max({vals...});
     }
     template < typename... Ts >
-    constexpr typename std::common_type< Ts... >::type constexpr_min(Ts... vals) {
+    GT_FUNCTION constexpr typename std::common_type< Ts... >::type constexpr_min(Ts... vals) {
         return std::min({vals...});
     }
 #else
     template < typename T >
-    constexpr T constexpr_max(T v) {
+    GT_FUNCTION constexpr T constexpr_max(T v) {
         return v;
     }
 
@@ -69,12 +69,12 @@ namespace gridtools {
      * @brief constexpr max of a sequence of values
      */
     template < typename T0, typename T1, typename... Ts >
-    constexpr typename std::common_type< T0, T1, Ts... >::type constexpr_max(T0 v0, T1 v1, Ts... vals) {
+    GT_FUNCTION constexpr typename std::common_type< T0, T1, Ts... >::type constexpr_max(T0 v0, T1 v1, Ts... vals) {
         return (v0 > v1) ? constexpr_max(v0, vals...) : constexpr_max(v1, vals...);
     }
 
     template < typename T >
-    constexpr T constexpr_min(T v) {
+    GT_FUNCTION constexpr T constexpr_min(T v) {
         return v;
     }
 
@@ -82,7 +82,7 @@ namespace gridtools {
      * @brief constexpr min of a sequence of values
      */
     template < typename T0, typename T1, typename... Ts >
-    constexpr typename std::common_type< T0, T1, Ts... >::type constexpr_min(T0 v0, T1 v1, Ts... vals) {
+    GT_FUNCTION constexpr typename std::common_type< T0, T1, Ts... >::type constexpr_min(T0 v0, T1 v1, Ts... vals) {
         return (v0 < v1) ? constexpr_min(v0, vals...) : constexpr_min(v1, vals...);
     }
 #endif
