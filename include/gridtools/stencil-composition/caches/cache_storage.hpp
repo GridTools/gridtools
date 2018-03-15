@@ -213,7 +213,8 @@ namespace gridtools {
         value_type m_values[padded_total_length() * StorageWrapper::num_of_storages];
 
         template < typename Accessor, std::size_t... Coordinates >
-        GT_FUNCTION void check_kcache_access_in_bounds(Accessor const &accessor, gt_index_sequence< Coordinates... >) {
+        GT_FUNCTION static void check_kcache_access_in_bounds(
+            Accessor const &accessor, gt_index_sequence< Coordinates... >) {
             assert(accumulate(logical_and(),
                        (accessor.template get< Accessor::n_dimensions - 1 - Coordinates >() <=
                                   meta_t::template dim< Coordinates >())...) &&
@@ -221,8 +222,8 @@ namespace gridtools {
         }
 
         template < typename Accessor >
-        GT_FUNCTION void check_kcache_access(Accessor const &accessor,
-            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
+        GT_FUNCTION static void check_kcache_access(
+            Accessor const &accessor, typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
