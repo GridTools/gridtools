@@ -175,17 +175,6 @@ namespace gridtools {
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Mic > backend_traits_t;
-                //#ifdef __VERBOSE__
-                //        #pragma omp critical
-                //        {
-                //        std::cout<<"iminus::value: "<<extent_t::iminus::value<<std::endl;
-                //        std::cout<<"iplus::value: "<<extent_t::iplus::value<<std::endl;
-                //        std::cout<<"jminus::value: "<<extent_t::jminus::value<<std::endl;
-                //        std::cout<<"jplus::value: "<<extent_t::jplus::value<<std::endl;
-                //        std::cout<<"block_id_i: "<<m_block_id[0]<<std::endl;
-                //        std::cout<<"block_id_j: "<<m_block_id[1]<<std::endl;
-                //        }
-                //#endif
 
                 typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
