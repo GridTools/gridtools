@@ -63,6 +63,7 @@ namespace gridtools {
         static const uint_t BI = block_size_t::i_size_t::value;
         static const uint_t BJ = block_size_t::j_size_t::value;
         static const uint_t BK = 0;
+        using empty_execution_info = boost::mpl::void_;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -86,7 +87,7 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execution_info_mic >(local_domain_lists, grid, reduction_data, {0, 0}));
+                    empty_execution_info >(local_domain_lists, grid, reduction_data, {}));
             }
         };
 
@@ -103,7 +104,7 @@ namespace gridtools {
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const execution_info_mic &execution_info) {
+                const empty_execution_info &) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
