@@ -41,6 +41,8 @@
 #include "../../tile.hpp"
 #include "execute_kernel_functor_mic.hpp"
 #include "execinfo_mic.hpp"
+#include "common/generic_metafunctions/for_each.hpp"
+#include "common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
@@ -96,7 +98,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                using iter_range = boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value >;
+                using iter_range = meta::make_indices< boost::mpl::size< MssComponents >::value >;
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
@@ -110,7 +112,7 @@ namespace gridtools {
 #pragma omp parallel for collapse(2)
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t bi = 0; bi < i_blocks; ++bi) {
-                        boost::mpl::for_each< iter_range >(
+                        gridtools::for_each< iter_range >(
                             mss_functor_t(local_domain_lists, grid, reduction_data, exinfo.block(bi, bj)));
                     }
                 }
@@ -137,7 +139,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                using iter_range = boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value >;
+                using iter_range = meta::make_indices< boost::mpl::size< MssComponents >::value >;
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
@@ -154,7 +156,7 @@ namespace gridtools {
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t k = k_first; k <= k_last; ++k) {
                         for (int_t bi = 0; bi < i_blocks; ++bi) {
-                            boost::mpl::for_each< iter_range >(
+                            gridtools::for_each< iter_range >(
                                 mss_functor_t(local_domain_lists, grid, reduction_data, exinfo.block(bi, bj, k)));
                         }
                     }
