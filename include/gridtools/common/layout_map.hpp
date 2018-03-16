@@ -50,7 +50,7 @@ namespace gridtools {
 
     template < int... Args >
     struct layout_map {
-      protected:
+      private:
         /* list of all arguments */
         using args = meta::list< std::integral_constant< int, Args >... >;
 
@@ -69,16 +69,16 @@ namespace gridtools {
 
       public:
         /** @brief Total length of layout map, including masked dimensions. */
-        static constexpr int masked_length = sizeof...(Args);
+        static constexpr std::size_t masked_length = sizeof...(Args);
         /** @brief Length of layout map excluding masked dimensions. */
-        static constexpr int unmasked_length = meta::length< unmasked_args >::value;
+        static constexpr std::size_t unmasked_length = meta::length< unmasked_args >::value;
 
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
         GRIDTOOLS_STATIC_ASSERT((unmasked_arg_sum == (unmasked_length * (unmasked_length - 1)) / 2),
             GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
 
         /** @brief Get the position of the element with value `I` in the layout map. */
-        template < int I >
+        template < std::size_t I >
         GT_FUNCTION static constexpr int find() {
             GRIDTOOLS_STATIC_ASSERT(
                 (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
@@ -87,10 +87,10 @@ namespace gridtools {
         }
 
         /** @brief Get the position of the element with value `i` in the layout map. */
-        GT_FUNCTION static constexpr int find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
+        GT_FUNCTION static constexpr int find(std::size_t i) { return get_index_of_element_in_pack(0, i, Args...); }
 
         /** @brief Get the value of the element at position `I` in the layout map. */
-        template < int I >
+        template < std::size_t I >
         GT_FUNCTION static constexpr int at() {
             GRIDTOOLS_STATIC_ASSERT((I >= 0) && (I <= masked_length), GT_INTERNAL_ERROR_MSG("Out of bounds access"));
             // force compile-time evaluation
@@ -98,18 +98,18 @@ namespace gridtools {
         }
 
         /** @brief Get the value of the element at position `I` in the layout map. */
-        GT_FUNCTION static constexpr int at(int i) { return get_value_from_pack(i, Args...); }
+        GT_FUNCTION static constexpr int at(std::size_t i) { return get_value_from_pack(i, Args...); }
 
         /**
          * @brief Version of `at` that does not check the index bound and return -1 for out of bounds indices.
          * Use the versions with bounds check if applicable.
          */
-        template < int I >
+        template < std::size_t I >
         GT_FUNCTION static constexpr int at_unsafe() {
             return (I < masked_length && I >= 0) ? at< I >() : -1;
         }
 
-        template < int I >
+        template < std::size_t I >
         GT_FUNCTION static constexpr int select(int const *dims) {
             return dims[at< I >()];
         }
