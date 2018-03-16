@@ -49,6 +49,7 @@
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 #include "stencil-composition/reductions/iterate_domain_reduction.hpp"
+#include "stencil-composition/offset_computation.hpp"
 
 namespace gridtools {
 
@@ -77,6 +78,13 @@ namespace gridtools {
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
+
+        template < typename StorageInfo >
+        using local_domain_storage_index_t =
+            typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list, const StorageInfo * >::type::pos;
+
+        template < typename StorageInfo >
+        using storage_is_tmp = boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type;
 
         /* ij-cache types and meta functions */
         using ij_caches_t = typename boost::mpl::copy_if< cache_sequence_t, cache_is_type< IJ > >::type;
@@ -293,11 +301,10 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
-            typedef typename Accessor::index_type index_t;
-            typedef typename local_domain_t::template get_data_store< index_t >::type::storage_info_t storage_info_t;
-            typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
-                const storage_info_t * >::type::pos storage_info_index_t;
-            return boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs)
+            using index_t = typename Accessor::index_type index_t;
+            using storage_info_t = typename local_domain_t::template get_data_store< index_t >::type::storage_info_t;
+            using storage_index_t = local_domain_storage_index< storage_info_t >;
+            return boost::fusion::at< storage_index_t >(local_domain.m_local_storage_info_ptrs)
                 ->template dim< Coordinate >();
         }
 
@@ -373,55 +380,73 @@ namespace gridtools {
         int_t k() const { return m_k_block_index; }
 
       private:
-        /** @brief Computes stride for a storage_info along given coordinate. */
-        template < typename StorageInfo, int_t Coordinate >
-        GT_FUNCTION int_t stride() const {
-            using layout_t = typename StorageInfo::layout_t;
-            using layout_vector_t = typename layout_t::static_layout_vector;
-            constexpr int_t layout_max =
-                boost::mpl::deref< typename boost::mpl::max_element< layout_vector_t >::type >::type::value;
-            constexpr int_t layout_val =
-                Coordinate < layout_t::masked_length
-                    ? layout_t::template at< (Coordinate < layout_t::masked_length ? Coordinate : 0) >()
-                    : -1;
-            constexpr bool is_max = layout_val == layout_max;
-            constexpr bool is_masked = layout_val == -1;
-
-            constexpr int_t storage_info_index = boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
-                const StorageInfo * >::type::pos::value;
-            return is_masked ? 0 : is_max ? 1 : m_strides.template get< storage_info_index >()[layout_val];
-        }
+        /**
+         * @brief Computes pointer offset for a storage_info along given coordinate.
+         * Does not include any accessor-induced offset.
+         *
+         * Version for i-axis.
+         */
+        template < typename StorageInfo, int_t Coordinate, typename Accessor >
+        GT_FUNCTION typename std::enable_if< Coordinate == 0, int_t > base_offset() const {
+            constexpr bool is_tmp = storage_is_tmp< StorageInfo >::value;
+            constexpr int_t halo = StorageInfo::halo_t::template at< Coordinate >();
+            return (is_tmp ? halo : m_i_block_base) + m_i_block_index;
+        };
 
         /**
          * @brief Computes pointer offset for a storage_info along given coordinate.
-         * This function computes only the offset according to the current index.
+         * Does not include any accessor-induced offset.
+         *
+         * Version for j-axis.
+         */
+        template < typename StorageInfo, int_t Coordinate, typename Accessor >
+        GT_FUNCTION typename std::enable_if< Coordinate == 1, int_t > base_offset() const {
+            constexpr bool is_tmp = storage_is_tmp< StorageInfo >::value;
+            constexpr int_t halo = StorageInfo::halo_t::template at< Coordinate >();
+            return (is_tmp ? halo : m_j_block_base) + m_j_block_index;
+        };
+
+        /**
+         * @brief Computes pointer offset for a storage_info along given coordinate.
+         * Does not include any accessor-induced offset.
+         *
+         * Version for k-axis.
+         */
+        template < typename StorageInfo, int_t Coordinate, typename Accessor >
+        GT_FUNCTION typename std::enable_if< Coordinate == 2, int_t > base_offset() const {
+            return accessor_is_ij_cached< Accessor >::value ? 0 : m_k_block_index;
+        };
+
+        /**
+         * @brief Computes pointer offset for a storage_info along given coordinate.
+         * Does not include any accessor-induced offset.
+         *
+         * Version for higher dimension axes.
          */
         template < typename StorageInfo, int_t Coordinate >
-        GT_FUNCTION int_t base_offset() const {
-            // block offset in i- and j-dimension
-            constexpr bool is_tmp =
-                boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type::value;
-            constexpr int_t halo_i = StorageInfo::halo_t::template at< 0 >();
-            constexpr int_t halo_j = StorageInfo::halo_t::template at< 1 >();
-            const int_t block_offset = Coordinate == 0 ? (is_tmp ? halo_i : m_i_block_base)
-                                                       : Coordinate == 1 ? (is_tmp ? halo_j : m_j_block_base) : 0;
+        GT_FUNCTION constexpr typename std::enable_if< Coordinate > 2, int_t > base_offset() const {
+            return 0;
+        };
 
-            // index offset in i-, j- and k-dimension
-            const int_t index_offset = Coordinate == 0 ? m_i_block_index : Coordinate == 1
-                                                                               ? m_j_block_index
-                                                                               : Coordinate == 2 ? m_k_block_index : 0;
-            return block_offset + index_offset;
+        template < typename StorageInfo, int_t Coordinate, typename Accessor >
+        GT_FUNCTION int_t full_offset(Accessor const &accessor) const {
+            // base index offset
+            const int_t index_offset = base_offset< StorageInfo, Coordinate >();
+            // accessor-induces offset
+            const int_t accessor_offset = coordinate_offset(
+        }
+
+        template < typename StorageInfo, std::size_t... Coordinates >
+        GT_FUNCTION int_t base_offset_impl(gt_index_sequence< Coordinates... >) const {
+            return accumulate(plus_functor(),
         }
 
         /**
          * @brief Computes pointer offset for a storage_info along given coordinate.
          * This function computes the full offset according to the current index and an accessor.
          */
-        template < typename StorageInfo,
-            typename Accessor,
-            int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
-        GT_FUNCTION typename std::enable_if< (Coordinate >= 0), int_t >::type compute_offset(
-            Accessor const &accessor) const {
+        template < typename StorageInfo, int_t Coordinate, typename Accessor >
+        GT_FUNCTION int_t coordinate_offset(Accessor const &accessor) const {
             // for ij-caches we just ignore the k index
             constexpr bool ignore_index_offset = Coordinate == 2 && accessor_is_ij_cached< Accessor >::value;
             // base index offset
@@ -432,8 +457,39 @@ namespace gridtools {
             constexpr int_t accessor_index = Accessor::n_dimensions - 1 - Coordinate;
             const int_t accessor_offset = accessor.template get< accessor_index >();
 
+            // strides of given storage
+            using storage_index_t = local_domain_storage_index< StorageInfo >;
+            const auto &strides = m_strides.template get< storage_index_t::value >();
+
             // total offset
-            const int_t offset = (index_offset + accessor_offset) * stride< StorageInfo, Coordinate >();
+            const int_t offset = (index_offset + accessor_offset) * stride< StorageInfo, Coordinate >(strides);
+
+            // recursively add offsets of lower dimensions
+            return offset + compute_offset< StorageInfo, Accessor, Coordinate - 1 >(accessor);
+        }
+
+        template < typename StorageInfo,
+            typename Accessor,
+            int_t Coordinate = StorageInfo::layout_t::masked_length - 1 >
+        GT_FUNCTION typename std::enable_if< (Coordinate >= 0), int_t >::type compute_offset(
+            Accessor const &accessor) const {
+
+            // for ij-caches we just ignore the k index
+            constexpr bool ignore_index_offset = Coordinate == 2 && accessor_is_ij_cached< Accessor >::value;
+            // base index offset
+            const int_t index_offset =
+                (ignore_index_offset && m_enable_ij_caches) ? 0 : base_offset< StorageInfo, Coordinate >();
+
+            // accessor offset in all dimensions
+            constexpr int_t accessor_index = Accessor::n_dimensions - 1 - Coordinate;
+            const int_t accessor_offset = accessor.template get< accessor_index >();
+
+            // strides of given storage
+            using storage_index_t = local_domain_storage_index< StorageInfo >;
+            const auto &strides = m_strides.template get< storage_index_t::value >();
+
+            // total offset
+            const int_t offset = (index_offset + accessor_offset) * stride< StorageInfo, Coordinate >(strides);
 
             // recursively add offsets of lower dimensions
             return offset + compute_offset< StorageInfo, Accessor, Coordinate - 1 >(accessor);
@@ -471,11 +527,10 @@ namespace gridtools {
 
         // this index here describes the position of the storage info in the m_index array (can be different to the
         // storage info id)
-        using storage_info_index_t = typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
-            const storage_info_t * >::type::pos;
+        using storage_index_t = local_domain_storage_index< storage_info_t >;
 
         const storage_info_t *storage_info =
-            boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs);
+            boost::fusion::at< storage_index_t >(local_domain.m_local_storage_info_ptrs);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
