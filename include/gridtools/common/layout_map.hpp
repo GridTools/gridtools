@@ -78,8 +78,8 @@ namespace gridtools {
             GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
 
         /** @brief Get the position of the element with value `I` in the layout map. */
-        template < std::size_t I >
-        GT_FUNCTION static constexpr int find() {
+        template < int I >
+        GT_FUNCTION static constexpr std::size_t find() {
             GRIDTOOLS_STATIC_ASSERT(
                 (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
             // force compile-time evaluation
@@ -87,7 +87,7 @@ namespace gridtools {
         }
 
         /** @brief Get the position of the element with value `i` in the layout map. */
-        GT_FUNCTION static constexpr int find(std::size_t i) { return get_index_of_element_in_pack(0, i, Args...); }
+        GT_FUNCTION static constexpr std::size_t find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
 
         /** @brief Get the value of the element at position `I` in the layout map. */
         template < std::size_t I >
