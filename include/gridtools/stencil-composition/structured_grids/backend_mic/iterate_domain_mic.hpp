@@ -68,23 +68,31 @@ namespace gridtools {
     class iterate_domain_mic : public iterate_domain_reduction< IterateDomainArguments > {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
-        using iterate_domain_arguments_t = IterateDomainArguments;
-        using local_domain_t = typename iterate_domain_arguments_t::local_domain_t;
-        using iterate_domain_reduction_t = iterate_domain_reduction< iterate_domain_arguments_t >;
-        using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
-        using grid_traits_t = typename iterate_domain_arguments_t::grid_traits_t;
-        using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
+        using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
+
+        using iterate_domain_reduction_t = iterate_domain_reduction< IterateDomainArguments >;
+        using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
+        using grid_traits_t = typename IterateDomainArguments::grid_traits_t;
+        using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 
+        /* meta function to get storage info index in local domain */
         template < typename StorageInfo >
         using local_domain_storage_index =
             typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list, const StorageInfo * >::type::pos;
 
+        /* meta function to check if a storage info belongs to a temporary field */
         template < typename StorageInfo >
-        using storage_is_tmp = typename boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type;
+        using storage_is_tmp =
+            typename boost::mpl::at< typename local_domain_t::storage_info_tmp_info_t, StorageInfo >::type;
+
+        /* meta function to get the storage info type corresponding to an accessor */
+        template < typename Accessor >
+        using storage_info_from_accessor =
+            typename local_domain_t::template get_data_store< typename Accessor::index_t >::type::storage_info_t;
 
         /* ij-cache types and meta functions */
         using ij_caches_t = typename boost::mpl::copy_if< cache_sequence_t, cache_is_type< IJ > >::type;
@@ -96,11 +104,10 @@ namespace gridtools {
         template < typename Accessor >
         using accessor_is_ij_cached = typename accessor_is_cached< Accessor, ij_cache_indexset_t >::type;
 
-        //***************** end of internal type definitions
       public:
         //***************** types exposed in API
         using readonly_args_indices_t =
-            typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type;
+            typename compute_readonly_args_indices< typename IterateDomainArguments::esf_sequence_t >::type;
         using esf_args_t = typename local_domain_t::esf_args;
         //*****************
 
@@ -110,7 +117,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
-            using type = typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type;
+            using type = typename aux::accessor_holds_data_field< Accessor, IterateDomainArguments >::type;
         };
 
         /**
@@ -119,7 +126,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_return_type {
-            using type = typename ::gridtools::accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type;
+            using type = typename ::gridtools::accessor_return_type_impl< Accessor, IterateDomainArguments >::type;
         };
 
         using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
@@ -159,9 +166,11 @@ namespace gridtools {
 
             template < class StorageInfoIndex >
             void operator()(StorageInfoIndex const &) const {
-                using storage_info_t =
-                    typename local_domain_t::template get_data_store< StorageInfoIndex >::type::storage_info_t;
-
+                using storage_info_ptrref_t =
+                    typename boost::fusion::result_of::at< typename local_domain_t::storage_info_ptr_fusion_list,
+                        StorageInfoIndex >::type;
+                using storage_info_t = typename std::remove_const< typename std::remove_pointer<
+                    typename std::remove_reference< storage_info_ptrref_t >::type >::type >::type;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset< storage_info_t >(accessor_base< storage_info_t::ndims >());
             }
@@ -227,6 +236,7 @@ namespace gridtools {
         /**
          * @brief Returns the value of the memory at the given address, plus the offset specified by the arg
          * placeholder.
+         *
          * @param accessor Accessor passed to the evaluator.
          * @param storage_pointer Pointer to the first element of the specific data field used.
         */
@@ -247,7 +257,7 @@ namespace gridtools {
             typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
             get_data_pointer(Accessor const &accessor) const {
             using index_t = typename Accessor::index_t;
-            using storage_info_t = typename local_domain_t::template get_data_store< index_t >::type::storage_info_t;
+            using storage_info_t = storage_info_from_accessor< Accessor >;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
@@ -301,8 +311,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
-            using index_t = typename Accessor::index_type;
-            using storage_info_t = typename local_domain_t::template get_data_store< index_t >::type::storage_info_t;
+            using storage_info_t = storage_info_from_accessor< Accessor >;
             using storage_index_t = local_domain_storage_index< storage_info_t >;
             return boost::fusion::at< storage_index_t >(local_domain.m_local_storage_info_ptrs)
                 ->template dim< Coordinate >();
@@ -504,7 +513,7 @@ namespace gridtools {
          * @return A linear data pointer offset to access the data of a compatible storage.
          */
         template < typename StorageInfo, typename Accessor >
-        GT_FUNCTION int_t compute_offset(Accessor const& accessor) const {
+        GT_FUNCTION int_t compute_offset(Accessor const &accessor) const {
             using sequence_t = make_gt_index_sequence< StorageInfo::layout_t::masked_length >;
             return compute_offset_impl< StorageInfo >(accessor, sequence_t());
         }
