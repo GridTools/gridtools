@@ -80,6 +80,13 @@ namespace gridtools {
         }
     }
 
+    /**
+     * Type erasure for computations (the objects that are produced by make_computation)
+     * Note that it is move only (no copy costructor)
+     *
+     * @tparam ReturnType what is returned by run method
+     * @tparam Args placeholders that should be passed to run as corespondent arg_storage_pairs
+     */
     template < class ReturnType, class... Args >
     class computation {
         GRIDTOOLS_STATIC_ASSERT(meta::conjunction< is_arg< Args >... >::value, "template parameters should be args");

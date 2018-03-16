@@ -34,6 +34,33 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+/**
+ *  Here is a set of algorithms that are defined on "tuple like" structures
+ *  To be a "tuple like", a structure should:
+ *    - be a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ]
+ *    - have accessors like do_get(std::integral_constant< size_t, I >, foo<Ts...>) defined in
+ *      gridtools::tuple_util::traits namespace, or being available via ADL
+ *    - have an element wise ctor
+ *    - have a ctor from another tuple of the same kind. [ i.e. foo<double, double> should be
+ *      constructible from foo<int, int> or foo<double&&, double&&>]
+ *
+ *  If the opposite is not mentioned explicitly, the algorithms produce tuples of references. L-value or R-value
+ *  depending on algorithm input.
+ *
+ *  Almost all algorithms are defined in two forms:
+ *    1) conventional template functions;
+ *    2) functions that return generic functors
+ *
+ *  For example you can do:
+ *    auto ints = transform([](int x) {return x;}, input);
+ *  our you can:
+ *    auto convert_to_ints = transform([](int x) {return x;});
+ *    auto ints = convert_to_ints(input);
+ *
+ *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a tuple
+ *  of tuple of tuple of integers you can do it in one expression:
+ *  auto out = transform(transform([](int x) {return x;}), input);
+ */
 #pragma once
 
 #include <array>
@@ -51,7 +78,7 @@ namespace gridtools {
 
         namespace traits {
 
-            // std::tuple
+            /// std::tuple adaptation
             template < size_t I, class... Ts >
             constexpr typename std::tuple_element< I, std::tuple< Ts... > >::type &do_get(
                 std::integral_constant< size_t, I >, std::tuple< Ts... > &obj) noexcept {
@@ -68,7 +95,7 @@ namespace gridtools {
                 return std::get< I >(std::move(obj));
             }
 
-            // std::array
+            /// std::array adaptation
             template < size_t I, class T, size_t N >
             constexpr T &do_get(std::integral_constant< size_t, I >, std::array< T, N > &obj) noexcept {
                 return std::get< I >(obj);
@@ -82,7 +109,7 @@ namespace gridtools {
                 return std::get< I >(std::move(obj));
             }
 
-            // std::pair
+            /// std::pair adaptation
             template < size_t I, class T1, class T2 >
             constexpr typename std::tuple_element< I, std::pair< T1, T2 > >::type &do_get(
                 std::integral_constant< size_t, I >, std::pair< T1, T2 > &obj) noexcept {
@@ -103,6 +130,8 @@ namespace gridtools {
             constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(
                 do_get(std::integral_constant< size_t, I >{}, std::forward< T >(obj)));
         }
+
+        /// This is tuple element accessor. Like std::get, but extendable via defining do_get
         using traits::get;
 
         namespace _impl {
@@ -315,23 +344,26 @@ namespace gridtools {
             };
         }
 
+        /// like boost::fusion::transform, but not lazy and can take any number of tuples as input.
+        //  in case of multiple inputs all inputs have the same size obviously.
+        template < class Fun, class Tup, class... Tups >
+        auto transform(Fun &&fun, Tup &&tup, Tups &&... tups) GT_AUTO_RETURN(_impl::transform_f< Fun >{
+            std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...));
+
         template < class Fun >
         constexpr _impl::transform_f< Fun > transform(Fun fun) {
             return {std::move(fun)};
         }
 
-        template < class Fun, class Tup >
-        auto transform(Fun &&fun, Tup &&tup)
-            GT_AUTO_RETURN(_impl::transform_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup)));
+        /// like boost::fusion::transform, but can take any number of tuples as input
+        template < class Fun, class Tup, class... Tups >
+        void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
+            _impl::for_each_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...);
+        }
 
         template < class Fun >
         constexpr _impl::for_each_f< Fun > for_each(Fun fun) {
             return {std::move(fun)};
-        }
-
-        template < class Fun, class Tup >
-        void for_each(Fun &&fun, Tup &&tup) {
-            _impl::for_each_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup));
         }
 
         inline constexpr _impl::flatten_f flatten() { return {}; }
@@ -339,6 +371,9 @@ namespace gridtools {
         template < class Tup >
         auto flatten(Tup &&tup) GT_AUTO_RETURN(flatten()(std::forward< Tup >(tup)));
 
+        /// Generators is a typelist of functors. Elements in Generators typelist are default constructed.
+        /// Then they are invoked with provided arguments each. The results are passed to the constructor of Res.
+        /// The created object is returned.
         template < class Generators, class Res, class... Args >
         Res generate(Args &&... args) {
             return _impl::generate_f< Generators, Res >{}(std::forward< Args >(args)...);
@@ -358,17 +393,23 @@ namespace gridtools {
         auto push_back(Tup &&tup, Args &&... args)
             GT_AUTO_RETURN(push_back()(std::forward< Tup >(tup), std::forward< Args >(args)...));
 
+        /// Left fold.
+        /// If there are tree parameters, the first is a binary function to fold with,
+        /// second is an initial state, and the third is a tuple to fold.
+        /// In the case if there is only two parameters, the second parameter is a (non-empty) tuple to fold and
+        /// it it's first element acts as an initial state.
+        template < class Fun, class Arg, class... Args >
+        auto fold(Fun &&fun, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+            _impl::fold_f< Fun >{std::forward< Fun >(fun)}(std::forward< Arg >(arg), std::forward< Args >(args)...));
+
         template < class Fun >
         constexpr _impl::fold_f< Fun > fold(Fun fun) {
             return {std::move(fun)};
         }
 
-        template < class Fun, class Arg, class... Args >
-        auto fold(Fun &&fun, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
-            _impl::fold_f< Fun >{std::forward< Fun >(fun)}(std::forward< Arg >(arg), std::forward< Args >(args)...));
-
         inline constexpr _impl::transform_f< clone > deep_copy() { return {}; }
 
+        /// All the references within input are copied as values into output. Output type doesn't contain references.
         template < class Tup >
         auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward< Tup >(tup)));
     }

@@ -37,6 +37,7 @@
 
 #include <utility>
 #include <tuple>
+#include <type_traits>
 
 #include "defs.hpp"
 #include "generic_metafunctions/meta.hpp"
@@ -49,6 +50,12 @@ namespace gridtools {
             struct apply_to_first {
                 template < class L >
                 using apply = Pred< meta::first< L > >;
+            };
+
+            template < template < class... > class Pred >
+            struct apply_to_decayed {
+                template < class T >
+                using apply = Pred< typename std::decay< T >::type >;
             };
 
             template < template < class... > class Pred, class Args >
@@ -65,14 +72,31 @@ namespace gridtools {
                 get_part_helper(std::forward< Args >(args), (make_filtered_indicies< Pred, Args > *)(nullptr)));
 
             template < template < class... > class Pred, class Args >
-            auto split_args_tuple(Args &&args)
+            auto raw_split_args_tuple(Args &&args)
                 GT_AUTO_RETURN(std::make_pair(get_part< Pred >(std::forward< Args >(args)),
                     get_part< meta::not_< Pred >::template apply >(std::forward< Args >(args))));
+
+            template < template < class... > class Pred, class Args >
+            auto split_args_tuple(Args &&args) GT_AUTO_RETURN(
+                raw_split_args_tuple< apply_to_decayed< Pred >::template apply >(std::forward< Args >(args)));
         }
     }
 
+    /// Variations that take a tuple instead of parameter pack
+    using _impl::_split_args::raw_split_args_tuple;
     using _impl::_split_args::split_args_tuple;
 
+    /**
+     *  Split the args into two groups according to the given compile time predicate on the argument type
+     *  Argument types are taken raw into predicate . With references and const modifiers.
+     *
+     * @return std::pair of two std::tuples. First tuple is from the types that satisfies predicate Pred
+     */
+    template < template < class... > class Pred, class... Args >
+    auto raw_split_args(Args &&... args)
+        GT_AUTO_RETURN(raw_split_args_tuple< Pred >(std::forward_as_tuple(std::forward< Args >(args)...)));
+
+    /// A handy variation of raw_split_args that applies predicate on decayed argument types.
     template < template < class... > class Pred, class... Args >
     auto split_args(Args &&... args)
         GT_AUTO_RETURN(split_args_tuple< Pred >(std::forward_as_tuple(std::forward< Args >(args)...)));

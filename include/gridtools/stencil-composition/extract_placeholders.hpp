@@ -72,6 +72,8 @@ namespace gridtools {
         using get_args = copy_into_variadic< typename Esf::args_t, std::tuple<> >;
     }
 
+    /// Takes a typelist of conditional trees of MSS descriptions and returns deduplicated typelist of all
+    /// placeholders that are used in the given msses.
     template < class Msses >
     using extract_placeholders =
         meta::dedup< _impl::flatten_trees< _impl::flatten_trees< Msses, _impl::get_esfs >, _impl::get_args > >;

@@ -88,9 +88,6 @@ namespace gridtools {
             template < typename Arg, typename DataStoreType >
             struct is_expandable< arg_storage_pair< Arg, DataStoreType > > : is_vector< DataStoreType > {};
 
-            template < class T >
-            using is_expandable_decayed = is_expandable< typename std::decay< T >::type >;
-
             template < uint_t N, typename T >
             struct convert_data_store_type {
                 using type = T;
@@ -265,13 +262,12 @@ namespace gridtools {
         template < class BoundArgStoragePairsRefs >
         intermediate_expand(
             Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs, MssDescriptorTrees const &msses)
-            : intermediate_expand(grid,
-                  split_args_tuple< _impl::expand_detail::is_expandable_decayed >(std::move(arg_storage_pairs)),
-                  msses) {}
+            : intermediate_expand(
+                  grid, split_args_tuple< _impl::expand_detail::is_expandable >(std::move(arg_storage_pairs)), msses) {}
 
         template < class... Args, class... DataStores >
         notype run(arg_storage_pair< Args, DataStores > const &... args) {
-            auto arg_groups = split_args< _impl::expand_detail::is_expandable_decayed >(args...);
+            auto arg_groups = split_args< _impl::expand_detail::is_expandable >(args...);
             auto expandable_args = std::tuple_cat(m_expandable_bound_arg_storage_pairs, arg_groups.first);
             const auto &plain_args = arg_groups.second;
             size_t size = _impl::expand_detail::get_expandable_size(expandable_args);

@@ -48,9 +48,6 @@
 namespace gridtools {
     namespace _impl {
 
-        template < class T >
-        using is_arg_storage_pair_decayed = is_arg_storage_pair< typename std::decay< T >::type >;
-
         template < class List >
         using decay_elements = meta::apply< meta::transform< meta::meta_t_< std::decay >::apply >, List >;
 
@@ -61,12 +58,12 @@ namespace gridtools {
             class Grid,
             class... Args,
             class ArgsPair = decltype(
-                split_args< is_arg_storage_pair_decayed >(std::forward< Args >(std::declval< Args >())...)),
+                split_args< is_arg_storage_pair >(std::forward< Args >(std::declval< Args >())...)),
             class ArgStoragePairs = decay_elements< meta::first< ArgsPair > >,
             class Msses = decay_elements< meta::second< ArgsPair > > >
         Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > make_intermediate(
             Grid const &grid, Args &&... args) {
-            auto &&args_pair = split_args< is_arg_storage_pair_decayed >(std::forward< Args >(args)...);
+            auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
             return {grid, std::move(args_pair.first), std::move(args_pair.second)};
         }
 
