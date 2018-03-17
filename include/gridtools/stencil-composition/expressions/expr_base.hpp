@@ -35,137 +35,66 @@
 */
 #pragma once
 
-#include "../global_accessor_fwd.hpp"
+#include <type_traits>
+
+#include "../../common/generic_metafunctions/meta.hpp"
 #include "../accessor_fwd.hpp"
+#include "../global_accessor_fwd.hpp"
 
 namespace gridtools {
 
-    struct tokens {
-        static char constexpr par_o[] = "(";
-        static char constexpr par_c[] = ")";
-        using open_par = string_c< print, par_o >;
-        using closed_par = string_c< print, par_c >;
-    };
     /** \section expressions Expressions Definition
         @{
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
     */
-    template < typename First, typename Second >
-    struct binary_expr {
+    template < class Op, class... Args >
+    struct expr;
 
-        /**@brief generic expression constructor*/
-        GT_FUNCTION
-        constexpr binary_expr(First const &first_, Second const &second_)
-            : first_operand(first_), second_operand(second_) {}
-
-        template < typename Arg1, typename Arg2 >
-        GT_FUNCTION constexpr binary_expr(binary_expr< Arg1, Arg2 > const &other)
-            : first_operand(other.first_operand), second_operand(other.second_operand) {}
-
-        First const first_operand;
-        Second const second_operand;
-
-#ifndef __CUDACC__
-      private:
-#endif
-        /**@brief default empty constructor*/
-        GT_FUNCTION
-        constexpr binary_expr() {}
+    template < class Op, class Arg >
+    struct expr< Op, Arg > {
+        Arg m_arg;
     };
 
-    template < typename Arg >
-    struct is_binary_expr : boost::mpl::false_ {};
-
-    template < typename Arg1, typename Arg2 >
-    struct is_binary_expr< binary_expr< Arg1, Arg2 > > : boost::mpl::true_ {};
-
-    template < typename ArgType1 >
-    struct unary_expr {
-
-        /**@brief generic expression constructor*/
-        GT_FUNCTION
-        constexpr unary_expr(ArgType1 const &first_operand) : first_operand(first_operand) {}
-
-        template < typename Arg1 >
-        GT_FUNCTION constexpr unary_expr(unary_expr< Arg1 > const &other)
-            : first_operand(other.first_operand) {}
-
-        ArgType1 const first_operand;
-
-#ifndef __CUDACC__
-      private:
-#endif
-        /**@brief default empty constructor*/
-        GT_FUNCTION
-        constexpr unary_expr() {}
+    template < class Op, class Lhs, class Rhs >
+    struct expr< Op, Lhs, Rhs > {
+        Lhs m_lhs;
+        Rhs m_rhs;
     };
 
-    template < typename ArgType1, typename ArgType2, typename ArgType3 >
-    struct ternary_expr {
-
-        /**@brief generic expression constructor*/
-        GT_FUNCTION
-        constexpr ternary_expr(
-            ArgType1 const &first_operand, ArgType2 const &second_operand, ArgType3 const &third_operand)
-            : first_operand{first_operand}, second_operand{second_operand}, third_operand{third_operand} {}
-
-        template < typename Arg1, typename Arg2, typename Arg3 >
-        GT_FUNCTION constexpr ternary_expr(ternary_expr< Arg1, Arg2, Arg3 > const &other)
-            : first_operand(other.first_operand), second_operand(other.second_operand),
-              third_operand(other.third_operand) {}
-
-        ArgType1 const first_operand;
-        ArgType2 const second_operand;
-        ArgType3 const third_operand;
-#ifndef __CUDACC__
-      private:
-#endif
-        /**@brief default empty constructor*/
-        GT_FUNCTION
-        constexpr ternary_expr() {}
-    };
-
-    template < typename Arg >
-    struct is_unary_expr : boost::mpl::bool_< Arg::size == 1 > {};
-
-    template < typename Arg >
-    struct is_expr : boost::mpl::false_ {};
-
-    template < typename... Args >
-    struct is_expr< binary_expr< Args... > > : boost::mpl::true_ {};
-
-    template < typename Arg >
-    struct is_expr< unary_expr< Arg > > : boost::mpl::true_ {};
-
-    /**
-       @namespace expressions
-       @brief Overloaded operators
-       The algebraic operators are overloaded in order to deal with expressions. To enable these operators the user has
-       to use the namespace expressions.*/
     namespace expressions {
 
-        template < typename... Args >
-        using no_expr_types = boost::mpl::bool_< accumulate(logical_and(), !is_expr< Args >::value...) >;
+        template < class Arg >
+        using expr_or_accessor = std::integral_constant< bool,
+            meta::is_instantiation_of< expr >::apply< Arg >::value || is_accessor< Arg >::value ||
+                is_global_accessor< Arg >::value || is_global_accessor_with_arguments< Arg >::value >;
 
-        template < typename... Args >
-        using no_accessor_types =
-            typename boost::mpl::bool_< accumulate(logical_and(), !is_accessor< Args >::value...) >::type;
+        template < class Op, class... Args >
+        GT_FUNCTION constexpr typename std::enable_if< meta::disjunction< expr_or_accessor< Args >... >::value,
+            expr< Op, Args... > >::type make_expr(Op, Args... args) {
+            return {args...};
+        }
 
-        template < typename... Args >
-        using no_global_accessor_types = typename boost::mpl::bool_< accumulate(logical_and(),
-            (!is_global_accessor< Args >::value && !is_global_accessor_with_arguments< Args >::value)...) >::type;
+        namespace evaluation {
+            template < class Eval,
+                class Arg,
+                typename std::enable_if< std::is_arithmetic< Arg >::value, int >::type = 0 >
+            GT_FUNCTION constexpr Arg apply_eval(Eval &, Arg arg) {
+                return arg;
+            }
 
-        template < typename... Args >
-        using no_expr_nor_accessor_types = boost::mpl::bool_< accumulate(logical_and(),
-            no_global_accessor_types< Args... >::value,
-            no_accessor_types< Args... >::value,
-            no_expr_types< Args... >::value) >;
+            template < class Eval,
+                class Arg,
+                typename std::enable_if< !std::is_arithmetic< Arg >::value, int >::type = 0 >
+            GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
 
-    } // namespace expressions
+            template < class Eval, class Op, class Arg >
+            GT_FUNCTION constexpr auto value(Eval &eval, expr< Op, Arg > const &arg)
+                GT_AUTO_RETURN(Op{}(eval(arg.m_arg)));
 
-    /**fwd declaration*/
-    template < typename Arg >
-    struct expr_derivative;
-
-} // namespace gridtools
+            template < class Eval, class Op, class Lhs, class Rhs >
+            GT_FUNCTION constexpr auto value(Eval &eval, expr< Op, Lhs, Rhs > const &arg)
+                GT_AUTO_RETURN(Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs)));
+        }
+    }
+}
