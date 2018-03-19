@@ -68,18 +68,17 @@ namespace gridtools {
         halo_descriptor di = {0, 0, 0, gx - 1, gx};
         halo_descriptor dj = {0, 0, 0, gy - 1, gy};
 
-        auto testee = storage_info_fits_grid< grid_traits_from_id< enumtype::structured > >(make_grid(di, dj, gz));
+        auto grid = make_grid(di, dj, gz);
+        auto testee = storage_info_fits_grid< grid_traits_from_id< enumtype::structured > >(grid);
 
         return testee(storage_info_t{x + 3, y, z}) && testee(storage_info_t{x, y + 2, z}) &&
                testee(storage_info_t{x, y, z + 1});
     }
 
-    // Tests that are assumed to pass, so that the last argument is `true`, which is them returned as is
+    // Tests that are assumed to pass
     TEST(stencil_composition, check_grid_bounds1) { EXPECT_TRUE(do_test(4, 5, 6, 4, 5, 6)); }
-    TEST(stencil_composition, check_grid_bounds2) { EXPECT_TRUE(do_test(4, 5, 6, 4, 5, 6)); }
 
-    // Tests that are assumed to fail, so that the last argument is `false`, which is them returned flipped when
-    // exception is catched
+    // Tests that are assumed to fail
     TEST(stencil_composition, check_grid_bounds3) { EXPECT_FALSE(do_test(4, 5, 6, 8, 5, 7)); }
     TEST(stencil_composition, check_grid_bounds4) { EXPECT_FALSE(do_test(4, 5, 6, 4, 5, 7)); }
     TEST(stencil_composition, check_grid_bounds5) { EXPECT_FALSE(do_test(4, 5, 6, 4, 12, 6)); }
