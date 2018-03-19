@@ -39,6 +39,8 @@
 #include "defs.hpp"
 #include "host_device.hpp"
 #include "array.hpp"
+#include "generic_metafunctions/meta.hpp"
+#include "generic_metafunctions/is_all_integrals.hpp"
 
 namespace gridtools {
     class range : public array< size_t, 2 > {
@@ -48,6 +50,11 @@ namespace gridtools {
         GT_FUNCTION size_t begin() const { return this->operator[](0); }
         GT_FUNCTION size_t end() const { return this->operator[](1); }
     };
+
+    template < typename T >
+    class tuple_size;
+    template <>
+    class tuple_size< range > : public gridtools::static_size_t< 2 > {};
 
     template < size_t D >
     using hypercube = array< range, D >;
@@ -76,6 +83,11 @@ namespace gridtools {
       public:
         GT_FUNCTION hypercube_view(const hypercube< D > &cube)
             : begin_(impl_::begin_of_hypercube(cube)), end_(impl_::end_of_hypercube(cube)) {}
+
+        /**
+         * Construct hypercube starting from 0.
+         */
+        GT_FUNCTION hypercube_view(const array< size_t, D > &sizes) : begin_{}, end_(sizes) {}
 
         struct grid_iterator {
             array< size_t, D > pos_;
@@ -129,10 +141,27 @@ namespace gridtools {
         array< size_t, D > end_;
     };
 
-    template < typename... Range > // TODO assert all types supporting range concept
+    namespace impl_ {
+        template < typename... RangeTypes >
+        using is_all_range =
+            meta::conjunction< std::integral_constant< bool, tuple_size< RangeTypes >::value == 2 >... >;
+    }
+
+    template < typename... Range, typename std::enable_if< impl_::is_all_range< Range... >::value, int >::type = 0 >
     GT_FUNCTION auto make_hypercube_view(Range... r)
         GT_AUTO_RETURN(hypercube_view< sizeof...(Range) >(hypercube< sizeof...(Range) >{r...}));
 
+    /**
+     * Overload where range... = {0, size}...
+     */
+    //    template < typename... IntegerTypes,
+    //        typename std::enable_if< is_all_integral< IntegerTypes... >::value, int >::type = 0 >
+    //    GT_FUNCTION auto make_hypercube_view(IntegerTypes... size) GT_AUTO_RETURN(
+    //        hypercube_view< sizeof...(IntegerTypes) >(hypercube< sizeof...(IntegerTypes) >{range(0, size)...}));
+
     template < size_t D >
     GT_FUNCTION auto make_hypercube_view(const hypercube< D > &cube) GT_AUTO_RETURN(hypercube_view< D >(cube));
+
+    template < size_t D >
+    GT_FUNCTION auto make_hypercube_view(const array< size_t, D > &sizes) GT_AUTO_RETURN(hypercube_view< D >(sizes));
 }
