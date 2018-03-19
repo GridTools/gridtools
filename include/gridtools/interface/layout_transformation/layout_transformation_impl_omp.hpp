@@ -66,29 +66,6 @@ namespace gridtools {
                     }
         }
 
-        // c++11 helper (c++14 would use a lambda with "auto...")
-        template < typename DataType, typename StorageInfo >
-        struct transform_openmp_loop_impl_functor {
-            transform_openmp_loop_impl_functor(DataType *dst,
-                DataType *src,
-                const StorageInfo &si_dst,
-                const StorageInfo &si_src,
-                const gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > &a_dims)
-                : dst(dst), src(src), si_dst(si_dst), si_src(si_src), a_dims(a_dims) {}
-
-            template < typename... OuterIndices >
-            void operator()(OuterIndices... outer_indices) {
-                transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, outer_indices...);
-            }
-
-          private:
-            DataType *dst;
-            DataType *src;
-            const StorageInfo &si_dst;
-            const StorageInfo &si_src;
-            const gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > &a_dims;
-        };
-
         template < typename DataType >
         void transform_openmp_loop(DataType *dst,
             DataType *src,
@@ -111,18 +88,13 @@ namespace gridtools {
             storage_info si_dst(a_dims, a_dst_strides);
             storage_info si_src(a_dims, a_src_strides);
 
-            gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
-            std::copy(a_dims.begin() + 3, a_dims.end(), outer_dims.begin());
+            hypercube< GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
+            for (size_t i = 0; i < GT_TRANSFORM_MAX_DIM - 3; ++i)
+                outer_dims[i] = range(0, a_dims[3 + i]);
 
-            // c++14 version
-            //            iterate(outer_dims,
-            //                [&](auto... outer_indices) {
-            //                    transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, outer_indices...);
-            //                });
-
-            make_multi_iterator(outer_dims)
-                .iterate(
-                    transform_openmp_loop_impl_functor< DataType, storage_info >(dst, src, si_dst, si_src, a_dims));
+            for (auto i : make_hypercube_view(outer_dims)) {
+                transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, i[0], i[1]); // TODO make generic
+            }
         }
     }
 }

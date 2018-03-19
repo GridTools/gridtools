@@ -49,7 +49,8 @@ namespace {
                 throw std::runtime_error("dims and strides vector have different size");
         }
 
-        uint_t operator()(const std::vector< uint_t > &index_set) const {
+        template < typename Sequence >
+        uint_t operator()(const Sequence &index_set) const {
             uint_t index = 0;
             for (uint_t i = 0; i < dims_.size(); ++i) {
                 if (i >= dims_[i])
@@ -76,55 +77,28 @@ namespace {
         std::vector< uint_t > strides_;
     };
 
-    template < typename T >
-    struct verify_functor {
-        T *expected_ptr;
-        const Index &expected_index;
-        T *actual_ptr;
-        const Index &actual_index;
-
-        template < typename... Indices >
-        void operator()(Indices... indices) {
-            ASSERT_EQ(expected_ptr[expected_index({indices...})], actual_ptr[actual_index({indices...})]);
-        }
-    };
-
     template < uint_t dim, typename T >
     void verify(T *expected_ptr, const Index &expected_index, T *actual_ptr, const Index &actual_index) {
         ASSERT_EQ(dim, expected_index.dims().size());
 
-        array< uint_t, dim > dims;
+        array< size_t, dim > dims;
         std::copy(expected_index.dims().begin(), expected_index.dims().end(), dims.begin());
 
-        make_multi_iterator(dims).iterate(verify_functor< T >{expected_ptr, expected_index, actual_ptr, actual_index});
-
-        // c++14
-        //        iterate(dims,
-        //            [&](auto... indices) {
-        //                ASSERT_EQ(expected_ptr[expected_index({indices...})], actual_ptr[actual_index({indices...})]);
-        //            });
-    }
-
-    template < typename T, typename F >
-    struct init_functor {
-        T *ptr;
-        const Index &index;
-        F f;
-
-        template < typename... Indices >
-        void operator()(Indices... indices) {
-            ptr[index({indices...})] = f(indices...);
+        for (auto index : make_hypercube_view(dims)) {
+            ASSERT_EQ(expected_ptr[expected_index(index)], actual_ptr[actual_index(index)]);
         }
-    };
+    }
 
     template < uint_t dim, typename T, typename F >
     void init(T *ptr, const Index &index, F f) {
         ASSERT_EQ(dim, index.dims().size());
 
-        array< uint_t, dim > dims;
+        array< size_t, dim > dims;
         std::copy(index.dims().begin(), index.dims().end(), dims.begin());
-        make_multi_iterator(dims).iterate(init_functor< T, F >{ptr, index, f});
-        //        iterate(dims, [&](auto... indices) { ptr[index({indices...})] = f(indices...); });
+
+        for (auto i : make_hypercube_view(dims)) {
+            ptr[index(i)] = f(i);
+        }
     }
 }
 
@@ -139,12 +113,11 @@ TEST(layout_transformation, 3D_reverse_layout) {
 
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
-    init< 3 >(src, src_index, [](int i, int j, int k) { return i + 100 + j * 10 + k; });
+    init< 3 >(src, src_index, [](const array< size_t, 3 > &a) { return a[0] * 100 + a[1] * 10 + a[2]; });
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
-    //    init< 3 >(dst, dst_index, [](auto...) { return -1; }); // c++14
-    init< 3 >(dst, dst_index, [](int i, int j, int k) { return -1; });
+    init< 3 >(dst, dst_index, [](const array< size_t, 3 > &a) { return -1; });
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 
@@ -166,11 +139,11 @@ TEST(layout_transformation, 4D_reverse_layout) {
 
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
-    init< 4 >(src, src_index, [](int i, int j, int k, int l) { return i + 1000 + j * 100 + k * 10 + l; });
+    init< 4 >(src, src_index, [](const array< size_t, 4 > &a) { return a[0] * 1000 + a[1] * 100 + a[2] * 10 + a[3]; });
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
-    init< 4 >(dst, dst_index, [](int i, int j, int k, int l) { return -1; });
+    init< 4 >(dst, dst_index, [](const array< size_t, 4 > &a) { return -1; });
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 
@@ -190,11 +163,11 @@ TEST(layout_transformation, 2D_reverse_layout) {
 
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
-    init< 2 >(src, src_index, [](int i, int j) { return i + 10 + j; });
+    init< 2 >(src, src_index, [](const array< size_t, 2 > &a) { return a[0] * 10 + a[1]; });
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
-    init< 2 >(dst, dst_index, [](int i, int j) { return -1; });
+    init< 2 >(dst, dst_index, [](const array< size_t, 2 > &a) { return -1; });
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 
@@ -216,7 +189,7 @@ TEST(layout_transformation, 1D_layout_with_stride2) {
 
     Index src_index(dims, src_strides);
     double *src = new double[src_index.size()];
-    init< 1 >(src, src_index, [](int i) { return i; });
+    init< 1 >(src, src_index, [](const array< size_t, 1 > &a) { return a[0]; });
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
@@ -226,9 +199,10 @@ TEST(layout_transformation, 1D_layout_with_stride2) {
 
     gridtools::interface::transform(dst, src, dims, dst_strides, src_strides);
 
-    for (uint_t i = 0; i < dst_index.size(0); ++i) {         // here we iterate only over the indexable elements!
-        ASSERT_EQ(src[src_index({i})], dst[dst_index({i})]); // the indexable elements match
-        ASSERT_EQ(-1, dst[2 * i + 1]);                       // the non-indexable are not touched
+    for (uint_t i = 0; i < dst_index.size(0); ++i) { // here we iterate only over the indexable elements!
+        ASSERT_EQ(src[src_index(array< size_t, 1 >{i})],
+            dst[dst_index(array< size_t, 1 >{i})]); // the indexable elements match
+        ASSERT_EQ(-1, dst[2 * i + 1]);              // the non-indexable are not touched
     }
     verify< 1 >(src, src_index, dst, dst_index);
 
