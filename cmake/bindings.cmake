@@ -13,7 +13,7 @@ macro(add_bindings_library)
             COMMAND ${ARGV0}_decl_generator ${ARGV0}.h ${ARGV0}.f90
             DEPENDS $<TARGET_FILE:${ARGV0}_decl_generator>)
     add_custom_target(${ARGV0}_declarations
-            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.h ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.f90)
+            DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.h ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.f90 ${ARGV0})
 
     add_library(${ARGV0}_c ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}_empty.cpp)
     target_link_libraries(${ARGV0}_c ${ARGV0})

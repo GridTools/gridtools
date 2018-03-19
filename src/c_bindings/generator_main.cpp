@@ -36,29 +36,13 @@
 
 #include <fstream>
 #include <iostream>
-#include <string>
 
 #include "c_bindings/generator.hpp"
 
-namespace {
-    std::string stem(const std::string &src) {
-        auto last_before_trailing_slashes = src.find_last_not_of('/');
-        if (last_before_trailing_slashes == std::string::npos)
-            return "";
-        auto end = last_before_trailing_slashes + 1;
-        if (end == src.size())
-            end = std::string::npos;
-        auto last_slash = src.rfind('/', end);
-        auto begin = last_slash == std::string::npos ? 0 : last_slash + 1;
-        return src.substr(begin, src.find_first_of("./", begin));
-    }
-}
-
 int main(int argc, const char *argv[]) {
-    if (argc > 2) {
+    if (argc > 3) {
         std::ofstream dst(argv[2]);
-        auto module = argc > 3 ? argv[3] : stem(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst, module);
+        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
     }
     if (argc > 1) {
         std::ofstream dst(argv[1]);
