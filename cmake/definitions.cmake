@@ -68,19 +68,15 @@ if( ENABLE_CUDA )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${CUDA_VERSION} -DGT_CUDA_VERSION=${CUDA_VERSION}")
+  if( ${CUDA_VERSION} VERSION_LESS "80" )
+    message(ERROR " CUDA 7.X or lower is not supported")
+  endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  if( ${CUDA_VERSION} VERSION_LESS "70" )
-      error(STATUS "CUDA 6.0 or lower does not supported")
-  endif()
-  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")    
-  if( ${CUDA_VERSION} VERSION_LESS "80" )
-      add_definitions(-DBOOST_RESULT_OF_USE_TR1)
-  endif()
+  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
@@ -118,13 +114,9 @@ endif()
 
 Find_Package( OpenMP )
 
-
 ## openmp ##
 if(OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-    set( PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project" )
-else()
-    set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil" )
 endif()
 
 ## performance meters ##
@@ -132,35 +124,10 @@ if(ENABLE_PERFORMANCE_METERS)
     add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
-# always use fopenmp and lpthread as cc/ld flags
+# always use lpthread as cc/ld flags
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
 set ( exe_LIBS -lpthread ${exe_LIBS} )
-
-## papi wrapper ##
-if ( PAPI_WRAP_LIBRARY )
-  find_package(PapiWrap)
-  if ( PAPI_WRAP_FOUND )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
-    set( PAPI_WRAP_MODULE "ON" )
-    include_directories( "${PAPI_WRAP_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_WRAP_LIBRARIES}" )
-  else()
-    message ("papi-wrap not found. Please set PAPI_WRAP_PREFIX to the root path of the papi-wrap library. papi-wrap not used!")
-  endif()
-endif()
-
-## papi ##
-if(USE_PAPI)
-  find_package(PAPI REQUIRED)
-  if(PAPI_FOUND)
-    include_directories( "${PAPI_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_LIBRARIES}" )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI" )
-  else()
-    message("PAPI library not found. set the PAPI_PREFIX")
-  endif()
-endif()
 
 ## precision ##
 if(SINGLE_PRECISION)

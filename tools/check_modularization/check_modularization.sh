@@ -4,10 +4,10 @@
 # checks that <of_module> does not depend on <on_module>
 # i.e. <of_module> does not include any file from <on_module>
 function no_dependency() {
-    last_result=`grep -r "#include .*$2/.*hpp" include/$1 | wc -l`
+    last_result=`grep -r "#include .*$2/.*hpp" include/gridtools/$1 | wc -l`
     if [ "$last_result" -gt 0 ]; then
         echo "ERROR Modularization violated: found dependency of $1 on $2"
-        echo "`grep -r "#include .*$2/.*hpp" include/$1`"
+        echo "`grep -r "#include .*$2/.*hpp" include/gridtools/$1`"
     fi
     modularization_result=$(( modularization_result || last_result ))
 }
