@@ -299,7 +299,7 @@ namespace gridtools {
             struct push_back_impl_f< L< Int, Is... >, Res > {
                 template < class Tup, class... Args >
                 Res operator()(Tup &&tup, Args &&... args) const {
-                    return {get< Is >(std::forward< Tup >(tup))..., std::forward< Args >(args)...};
+                    return Res{get< Is >(std::forward< Tup >(tup))..., std::forward< Args >(args)...};
                 }
             };
 
