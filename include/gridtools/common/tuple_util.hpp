@@ -237,8 +237,7 @@ namespace gridtools {
                                                          meta::length< typename std::decay< Rhs >::type >::value >;
 
                 template < class Tup, class... Tups >
-                typename std::enable_if< meta::conjunction< same_length< Tup, Tups >... >::value >::type operator()(
-                    Tup &&tup, Tups &&... tups) const {
+                void operator()(Tup &&tup, Tups &&... tups) const {
                     for_each_impl_f<
                         make_gt_index_sequence< meta::length< typename std::decay< Tup >::type >::value > >{}(
                         m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
