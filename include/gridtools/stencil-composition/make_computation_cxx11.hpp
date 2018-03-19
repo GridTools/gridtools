@@ -51,7 +51,7 @@ namespace gridtools {
         template < class List >
         using decay_elements = meta::apply< meta::transform< meta::meta_t_< std::decay >::apply >, List >;
 
-        template < template < uint_t, bool, class... > class Intermediate,
+        template < template < uint_t, bool, class, class, class, class > class Intermediate,
             uint_t Factor,
             bool IsStateful,
             class Backend,
