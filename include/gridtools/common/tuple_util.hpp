@@ -142,7 +142,7 @@ namespace gridtools {
             struct generate_f< L< Generators... >, Res > {
                 template < class... Args >
                 Res operator()(Args &&... args) const {
-                    return {Generators{}(std::forward< Args >(args)...)...};
+                    return Res{Generators{}(std::forward< Args >(args)...)...};
                 }
             };
 
