@@ -42,26 +42,25 @@
 
 namespace gridtools {
 
+    template < class Testee, class FirstSink, class SecondSink >
+    void helper(Testee &&testee, FirstSink first_sink, SecondSink second_sink) {
+        first_sink(std::forward< Testee >(testee).first);
+        second_sink(std::forward< Testee >(testee).second);
+    }
+
     TEST(raw_split_args, functional) {
         int val = 1;
         const int c_val = 2;
-        auto testee = raw_split_args< std::is_lvalue_reference >(42, c_val, 0., val, c_val);
-        static_assert(
-            std::is_same< decltype(testee),
-                std::pair< std::tuple< int const &, int &, int const & >, std::tuple< int &&, double && > > >{},
-            "");
-        EXPECT_EQ(std::make_tuple(2, 1, 2), testee.first);
-        EXPECT_EQ(std::make_tuple(42, 0.), testee.second);
+        helper(raw_split_args< std::is_lvalue_reference >(42, c_val, 0., val, c_val),
+            [](std::tuple< int const &, int &, int const & > const &x) { EXPECT_EQ(std::make_tuple(2, 1, 2), x); },
+            [](std::tuple< int &&, double && > const &x) { EXPECT_EQ(std::make_tuple(42, 0.), x); });
     }
 
     TEST(split_args, functional) {
         int ival = 1;
         const double dval = 2;
-        auto testee = split_args< std::is_integral >(42, dval, 0., ival);
-        static_assert(std::is_same< decltype(testee),
-                          std::pair< std::tuple< int &&, int & >, std::tuple< const double &, double && > > >{},
-            "");
-        EXPECT_EQ(std::make_tuple(42, 1), testee.first);
-        EXPECT_EQ(std::make_tuple(2., 0.), testee.second);
+        helper(split_args< std::is_integral >(42, dval, 0., ival),
+            [](std::tuple< int &&, int & > const &x) { EXPECT_EQ(std::make_tuple(42, 1), x); },
+            [](std::tuple< const double &, double && > const &x) { EXPECT_EQ(std::make_tuple(2., 0.), x); });
     }
 }
