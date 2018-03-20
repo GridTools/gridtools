@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
-import subprocess
 import textwrap
 
-from perftest import runtime, time
+from perftest import runtime
 
 
 class GridtoolsRuntime(runtime.GridtoolsRuntimeBase):
