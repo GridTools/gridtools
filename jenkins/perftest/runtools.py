@@ -7,6 +7,7 @@ import re
 import subprocess
 import tempfile
 import textwrap
+import time
 
 from perftest import JobError, logger
 
@@ -48,6 +49,9 @@ def _submit(command, config):
         # Write sbatch to file
         sbatch.write(sbatchstr)
         sbatch.flush()
+
+        # Wait a bit to make sure that we don’t overload SLURM
+        time.sleep(0.1)
 
         # Create a file to store the job output
         # It is created in the working dir (normal /tmp does not seem to work)
