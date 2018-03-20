@@ -36,6 +36,7 @@
 
 #include <iostream>
 #include <functional>
+#include <typeinfo>
 
 #include <boost/mpl/vector.hpp>
 
@@ -63,12 +64,18 @@ namespace {
     };
 
     using storage_info_t = storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
-    using data_store_t = storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >;
 
-    data_store_t make_data_store(uint_t x, uint_t y, uint_t z, float_type *ptr) {
-        return data_store_t(storage_info_t(x, y, z), ptr);
+    template < class T >
+    using generic_data_store_t = storage_traits< backend_t::s_backend_id >::data_store_t< T, storage_info_t >;
+
+    using data_store_t = generic_data_store_t< float_type >;
+
+    template < class T >
+    generic_data_store_t< T > make_data_store(uint_t x, uint_t y, uint_t z, T *ptr) {
+        return generic_data_store_t< T >(storage_info_t(x, y, z), ptr);
     }
-    GT_EXPORT_BINDING_4(create_data_store, make_data_store);
+    GT_EXPORT_GENERIC_BINDING(4, generic_create_data_store, make_data_store, (double)(float));
+    GT_EXPORT_BINDING_4(create_data_store, make_data_store< float_type >);
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
 
