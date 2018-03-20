@@ -235,7 +235,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
-      ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}  >& ${log_file};
+      ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} ${MAKE_TARGETS} >& ${log_file};
 
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
