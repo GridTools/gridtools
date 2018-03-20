@@ -100,11 +100,19 @@ def history(results, key='runtime'):
     fig, ax = plt.subplots()
 
     locator = matplotlib.dates.AutoDateLocator()
-    ax.xaxis.set_major_formatter(matplotlib.dates.AutoDateFormatter(locator))
+    formatter = matplotlib.dates.AutoDateFormatter(locator)
+    formatter.scaled[1 / 24] = '%y-%m-%d %H'
+    formatter.scaled[1 / (24 * 60)] = '%y-%m-%d %H:%M'
+    formatter.scaled[1 / (24 * 60 * 60)] = '%y-%m-%d %H:%M:%S'
+
     ax.xaxis.set_major_locator(locator)
+    ax.xaxis.set_major_formatter(formatter)
 
     for stencil, means, stdevs in zip(stencils, meantimes, stdevtimes):
-        ax.errorbar(dates, means, yerr=stdevs, fmt='o-', label='stencil')
+        fill_min = [m - s for m, s in zip(means, stdevs)]
+        fill_max = [m + s for m, s in zip(means, stdevs)]
+        ax.fill_between(dates, fill_min, fill_max, alpha=0.4)
+        ax.plot(dates, means, 'o-', label=stencil.title())
 
     ax.legend()
     fig.autofmt_xdate()
