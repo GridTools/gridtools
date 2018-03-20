@@ -36,22 +36,11 @@
 
 #pragma once
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 
 namespace ico_operators {
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
-    using backend_t = BACKEND;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
+    using x_interval = axis< 1 >::full_interval;
     using icosahedral_topology_t = icosahedral_topology< backend_t >;
 }

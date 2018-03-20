@@ -36,11 +36,10 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
-
-typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
 struct TensionShearFunction {
     using T_sqr_s = inout_accessor< 0 >;
@@ -52,7 +51,7 @@ struct TensionShearFunction {
     using arg_list = boost::mpl::vector< T_sqr_s, S_sqr_uv, u_in, v_in >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 struct SmagCoeffFunction {
@@ -65,7 +64,7 @@ struct SmagCoeffFunction {
     using arg_list = boost::mpl::vector< smag_u, smag_v, T_sqr_s, S_sqr_uv >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 struct SmagUpdateFunction {
@@ -80,23 +79,13 @@ struct SmagUpdateFunction {
     using arg_list = boost::mpl::vector< u_out, v_out, u_in, v_in, smag_u, smag_v >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
-
-#ifdef __CUDACC__
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
 
 TEST(multiple_outputs, compute_extents) {
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
     meta_data_t meta_data_(10, 10, 10);
     storage_t dummy(meta_data_, 0.);
@@ -133,12 +122,9 @@ TEST(multiple_outputs, compute_extents) {
 
     halo_descriptor di{2, 2, 2, 7, 10};
     halo_descriptor dj{2, 2, 2, 7, 10};
-    grid< axis > grid_(di, dj);
+    auto grid_ = make_grid(di, dj, 10);
 
-    grid_.value_list[0] = 0;
-    grid_.value_list[1] = 9;
-
-    auto computation = make_computation< BACKEND >(
+    auto computation = make_computation< backend_t >(
         domain,
         grid_,
         make_multistage(execute< forward >(),

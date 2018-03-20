@@ -5,7 +5,7 @@ source ${JENKINSPATH}/machine_env.sh
 
 source ${JENKINSPATH}/env_perftest_${myhost}.sh
 
-TEMP=`getopt -o h --long target:,std:,prec:,jplan:,json:,gtype: \
+TEMP=`getopt -o h --long target:,prec:,jplan:,json:,gtype: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
@@ -13,7 +13,6 @@ eval set -- "$TEMP"
 while true; do 
     case "$1" in
         --target) TARGET=$2; shift 2;;
-        --std) STD=$2; shift 2;;
         --prec) PREC=$2; shift 2;;
         --jplan) JPLAN=$2; shift 2;;
         --json) JSON_FILE=$2; shift 2;;
@@ -22,6 +21,8 @@ while true; do
         * ) break ;;
     esac
 done
+
+STD="cxx11"
 
 if [[ -z ${TARGET} || -z ${STD} || -z ${PREC} ]]; then
     echo "Error: some arguments are not set"
@@ -49,10 +50,10 @@ else
   GPATH="${GRIDTOOLS_BUILD_PATH}/${JPLAN}/build_type/release/compiler/gcc/label/${myhost}/mpi/MPI/"
 fi
 
-export GPATH=${GPATH}/real_type/$PREC/std/$STD/target/$TARGET/build
+export GPATH=${GPATH}/real_type/$PREC/target/$TARGET/build
 export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk_timers/release_$PREC/bin/
 cd ${JENKINSPATH}/
-cmd="python process_ref.py -p $GPATH --target $TARGET --std $STD --prec $PREC -c -u ${JSON_FILE} --stella_path $STELLA_PATH --gtype ${GTYPE} -v --plot"
+cmd="python process_ref.py -p $GPATH --target $TARGET --prec $PREC -c -u ${JSON_FILE} --stella_path $STELLA_PATH --gtype ${GTYPE} -v --plot"
 echo "$cmd"
 $cmd
 

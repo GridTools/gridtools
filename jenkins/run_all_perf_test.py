@@ -12,7 +12,7 @@ import distutils.dir_util as dutil
 def build_path(host, jplan, target, prec, std):
     path="/scratch/jenkins/workspace/"+jplan+"/build_type/release/compiler/gcc/label/"+host+"/mpi/MPI/"
     
-    path=path+"/real_type/"+prec+"/std/"+std+"/target/"+target+"/build/"   
+    path=path+"/real_type/"+prec+"/target/"+target+"/build/"
 
     return path
 
@@ -24,7 +24,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--jplan',nargs=1, type=str, help='JENKINS plan')
     parser.add_argument('--gtype', nargs=1, type=str, help='Grid Type') 
-    parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
     parser.add_argument('--prec',nargs=1, type=str, help='precision')
 
     std = 'cxx11'
@@ -52,9 +51,6 @@ if __name__ == "__main__":
     else:
         json_file = 'stencils_strgrid.json'
 
-    if args.std:
-        print('--std will be ignored (cxx11 is the only supported option)')
-
     if args.prec:
         precs=args.prec[0].split(',')
     else:
@@ -68,7 +64,7 @@ if __name__ == "__main__":
     commit_hash=None
     for target, prec in product(targets, precs):
         path=build_path("kesch",jplan, target, prec, std)
-        gitrev_cmd='git rev-parse  HEAD '+path 
+        gitrev_cmd='git rev-parse HEAD -- ' + path
         gitrev_out=subprocess.Popen(gitrev_cmd, shell=True, stdout=subprocess.PIPE)
     
         for line in gitrev_out.stdout:
@@ -86,15 +82,18 @@ if __name__ == "__main__":
         print(target, prec, std)
     
     
-        cmd='./jenkins_perftest.sh --target '+target+' --std '+std+' --prec '+prec+' --jplan '+jplan+' --outfile out_' +target+'_'+std+'_'+prec+'.log --json '+json_file +' --gtype '+gtype
+        cmd='./jenkins_perftest.sh --target '+target+' --prec '+prec+' --jplan '+jplan+' --outfile out_' +target+'_'+std+'_'+prec+'.log --json '+json_file +' --gtype '+gtype
     
         print("Executing conf : " + target+","+prec+","+std)
         print(cmd)
-        processes.append( subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE) )
+        processes.append( subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) )
 
     for process in processes:
-        stdout = process.communicate()
-   
+        stdout,stderr = process.communicate()
+        if process.returncode != 0:
+            print("Error executing process: ",cmd) 
+            print(stdout, stderr)
+
 
     out_jsonfiles=[] 
     for target, prec in product(targets, precs):
@@ -121,11 +120,12 @@ if __name__ == "__main__":
     decode = json.load(f)
     
     #Update the hash
-    decode['hash'] = commit_hash
+    decode['hash'] = "" + commit_hash.decode()
     
     f.close()
     fw = open(json_file,'w')
-    fw.write(json.dumps(decode,  indent=4, separators=(',', ': ')) )
+    jdump = json.dumps(decode,  indent=4, separators=(',', ': '))
+    fw.write(jdump)
     fw.close()
     
     for target, prec in product(targets, precs):

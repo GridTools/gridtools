@@ -42,12 +42,10 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 #include "Options.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
-
-typedef interval< level< 0, -1 >, level< 1, -1 > > x_lap;
-typedef interval< level< 0, -1 >, level< 1, 1 > > axis;
 
 /**
    @brief structure containing the Laplacian-specific information.
@@ -63,7 +61,7 @@ struct lap_function {
     typedef boost::mpl::vector< out_acc, in_acc > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
 
         eval(out_acc()) = 4 * eval(in_acc()) - (eval(in_acc(1, 0, 0)) + eval(in_acc(0, 1, 0)) + eval(in_acc(-1, 0, 0)) +
                                                    eval(in_acc(0, -1, 0)));
@@ -84,22 +82,12 @@ TEST(Laplace, test) {
 
     uint_t halo_size = 2;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     /**
-       - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy
+       - definition of the storage type, depending on the backend_t which is set as a macro. \todo find another strategy
        for the backend (policy pattern)?
     */
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     /**
         - Instantiation of the actual data fields that are used for input/output
@@ -133,14 +121,12 @@ TEST(Laplace, test) {
        The grid constructor takes the horizontal plane dimensions,
        while the vertical ones are set according the the axis property soon after
     */
-    uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-    uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+    halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+    halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-    grid< axis > grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 1;
+    auto grid = make_grid(di, dj, d3);
 
-    auto laplace = make_computation< BACKEND >(
+    auto laplace = make_computation< backend_t >(
         domain, grid, make_multistage(execute< forward >(), make_stage< lap_function >(p_out(), p_in())));
 
     laplace->ready();

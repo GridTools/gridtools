@@ -39,20 +39,11 @@
 #include <common/gt_assert.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
-using icosahedral_topology_t = icosahedral_topology< BACKEND >;
+using icosahedral_topology_t = icosahedral_topology< backend_t >;
 TEST(icosahedral_topology, layout) {
     using alayout_t = icosahedral_topology_t::layout_t< selector< 1, 1, 1, 1 > >;
 #ifdef __CUDACC__

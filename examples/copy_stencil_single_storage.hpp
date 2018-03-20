@@ -36,6 +36,7 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 
 /**
   @file
@@ -50,24 +51,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
 namespace copy_stencil {
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
@@ -75,7 +59,7 @@ namespace copy_stencil {
         typedef boost::mpl::vector< in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(in()) = eval(in(dimension< 5 >(1)));
         }
     };
@@ -93,8 +77,9 @@ namespace copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_ARCH >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_t, 2 >
+            data_store_field_t;
         storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
@@ -125,14 +110,12 @@ namespace copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        halo_descriptor di{0, 0, 0, d1 - 1, d1};
+        halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(d1, d2, d3);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto copy = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
 
