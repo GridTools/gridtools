@@ -39,6 +39,7 @@
 #include "common/array_addons.hpp"
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"
+#include <iostream>
 
 namespace gridtools {
 
