@@ -202,6 +202,20 @@ namespace gridtools {
             template < class... Ts >
             using e = typename d< a< Ts >... >::c;
         }
+
+        static_assert(is_set< f<> >{}, "");
+        static_assert(is_set< f< int > >{}, "");
+        static_assert(is_set< f< void > >{}, "");
+        static_assert(is_set< f< int, void > >{}, "");
+        static_assert(!is_set< int >{}, "");
+        static_assert(!is_set< f< int, void, int > >{}, "");
+
+        static_assert(is_set_fast< f<> >{}, "");
+        static_assert(is_set_fast< f< int > >{}, "");
+        static_assert(is_set_fast< f< void > >{}, "");
+        static_assert(is_set_fast< f< int, void > >{}, "");
+        static_assert(!is_set_fast< int >{}, "");
+        //        static_assert(!is_set_fast< f< int, void, int > >{}, "");
     }
 }
 

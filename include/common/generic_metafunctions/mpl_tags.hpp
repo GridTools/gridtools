@@ -33,19 +33,54 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-namespace gridtools {
+#include <boost/mpl/integral_c_tag.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/arithmetic.hpp>
+#include <type_traits>
 
-    template < typename T >
-    struct is_array;
+namespace boost {
+    namespace mpl {
+        template < class T, T V >
+        struct equal_to_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-    template < typename T >
-    struct is_offset_tuple;
+        template < class T, T V >
+        struct not_equal_to_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-    // metafunction determines whether an argument is an offset_tuple or an array
-    template < typename T >
-    struct is_tuple_or_array
-        : boost::mpl::or_< typename is_offset_tuple< T >::type, typename is_array< T >::type >::type {};
+        template < class T, T V >
+        struct less_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
 
-} // namespace gridtools
+        template < class T, T V >
+        struct less_equal_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct greater_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct greater_equal_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct plus_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+
+        template < class T, T V >
+        struct minus_tag< std::integral_constant< T, V > > {
+            using type = integral_c_tag;
+        };
+    }
+}

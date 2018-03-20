@@ -50,6 +50,9 @@
 #include "cuda_storage_info.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /**
      * @brief function used to create host views to data stores (read-write/read-only).
@@ -113,8 +116,8 @@ namespace gridtools {
 
     /**
      * @brief function that can be used to check if a view is in a consistent state
-     * @param ds data store
-     * @param dv data view
+     * @param d data store
+     * @param v data view
      * @return true if the given view is in a valid state and can be used safely.
      */
     template < typename DataStore,
@@ -146,4 +149,8 @@ namespace gridtools {
                            : (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
                                  (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu));
     }
+
+    /**
+     * @}
+     */
 }

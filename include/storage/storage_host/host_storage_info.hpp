@@ -43,6 +43,9 @@
 #include "../common/storage_info_interface.hpp"
 
 namespace gridtools {
+    /** \ingroup storage
+     * @{
+     */
 
     /*
      * @brief The host storage info implementation.
@@ -86,4 +89,8 @@ namespace gridtools {
 
     template < uint_t Id, typename Layout, typename Halo, typename Alignment >
     struct is_host_storage_info< host_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
+
+    /**
+     * @}
+     */
 }

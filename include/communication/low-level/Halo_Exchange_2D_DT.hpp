@@ -286,6 +286,7 @@ namespace gridtools {
            sent to that process. The amount of data is specified as number of bytes. It is possible to override the
            previous pointer by re-registering a new pointer with a given destination.
            \param[in] p Pointer to the first element of type T to send
+           \param[in] DT MPI Datatype
            \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
            sent.
            \param[in] I Relative coordinates of the receiving process along the first dimension
@@ -312,6 +313,7 @@ namespace gridtools {
            \tparam I Relative coordinates of the receiving process along the first dimension
            \tparam J Relative coordinates of the receiving process along the second dimension
            \param[in] p Pointer to the first element of type T to send
+           \param[in] DT MPI Datatype
            \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
            sent.
         */
@@ -330,6 +332,7 @@ namespace gridtools {
            received from that process. The amount of data is specified as number of bytes. It is possible to override
            the previous pointer by re-registering a new pointer with a given source.
            \param[in] p Pointer to the first element of type T  where to put received data
+           \param[in] DT MPI Datatype
            \param[in] s Number of bytes (not number of elements) expected to be received. This is the data that is
            assumed to arrive. If less data arrives, the behaviour is undefined.
            \param[in] I Relative coordinates of the receiving process along the first dimension
@@ -356,6 +359,7 @@ namespace gridtools {
            \tparam I Relative coordinates of the receiving process along the first dimension
            \tparam J Relative coordinates of the receiving process along the second dimension
            \param[in] p Pointer to the first element of type T where to put received data
+           \param[in] DT MPI Datatype
            \param[in] s Number of bytes (not number of elements) expected to be received. This is the data that is
            assumed to arrive. If less data arrives, the behaviour is undefined.
         */

@@ -42,6 +42,10 @@
 
 namespace gridtools {
 
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     /**
        @brief On all boundary the values ares set to DataField::value_type(), which is zero for basic data types.
     */
@@ -72,5 +76,7 @@ namespace gridtools {
             data_field2(i, j, k) = typename DataField2::data_t();
         }
     };
+
+    /** @} */
 
 } // namespace gridtools

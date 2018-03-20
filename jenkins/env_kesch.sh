@@ -9,6 +9,7 @@ module load mvapich2gdr_gnu/2.2_cuda_8.0
 module load gcc/5.4.0-2.26
 module load cmake/3.9.1
 
+export HOST_COMPILER=`which g++`
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build

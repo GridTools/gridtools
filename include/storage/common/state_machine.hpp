@@ -37,6 +37,10 @@
 
 namespace gridtools {
 
+    /** \ingroup storage
+     * @{
+     */
+
     /**
      *  @brief A class that represents the state machine that is used to determine
      *  if a storage is currently on the host or on the device and if the
@@ -47,4 +51,8 @@ namespace gridtools {
         bool m_dnu; // dnu = device needs update, set to true if a non-read-only host view is instantiated.
         state_machine() : m_hnu(false), m_dnu(false) {}
     };
+
+    /**
+     * @}
+     */
 }

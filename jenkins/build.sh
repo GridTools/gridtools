@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 function exit_if_error {
     if [ "x$1" != "x0" ]
@@ -25,7 +25,8 @@ function help {
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
    echo "-c      disable CPU communication tests          "
-   echo "-o      build only the given Makefile targets    "
+   echo "-k      build only the given Makefile targets    "
+   echo "-o      compile only (not tests are run)         "
    exit 1
 }
 
@@ -36,7 +37,7 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "hb:t:f:l:zmsidvq:x:inc" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:inco" opt; do
     case "$opt" in
     h|\?)
         help
@@ -70,7 +71,9 @@ while getopts "hb:t:f:l:zmsidvq:x:inc" opt; do
         ;;
     c) DISABLE_CPU_MPI_TESTS="ON"
         ;;
-    o) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
+    k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
+        ;;
+    o) COMPILE_ONLY="ON"
         ;;
     esac
 done
@@ -95,7 +98,7 @@ echo $@
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
 
-echo "BOOST_ROOT=$BOOST_ROOT" 
+echo "BOOST_ROOT=$BOOST_ROOT"
 
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
@@ -158,7 +161,7 @@ export START_TIME=$SECONDS
 
 if [[ "$BUILD_ON_CN" == "ON" ]]; then
     if [[ -z ${SRUN_BUILD_COMMAND} ]]; then
-        echo "No command for building on a compute node available, falling back to normal mode." 
+        echo "No command for building on a compute node available, falling back to normal mode."
         SRUN_BUILD_COMMAND=""
     else
         echo "Building on a compute node (launching from `hostname`)"
@@ -233,7 +236,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     do
       echo "COMPILATION # ${i}"
       ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}  >& ${log_file};
-      
+
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
           break # Skip the make repetitions
@@ -243,7 +246,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     nwarnings=`grep -i "warning" ${log_file} | wc -l`
     if [ ${nwarnings} -ne 0 ]; then
         echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
-        error_code=$((error_code || `echo "1"` ))    
+        error_code=$((error_code || `echo "1"` ))
     fi
 
     if [ ${error_code} -ne 0 ]; then
@@ -262,6 +265,10 @@ if [[ -z ${DONOTCLEAN} ]]; then
 fi
 
 exit_if_error ${error_code}
+
+if  [[ "$COMPILE_ONLY" == "ON" ]]; then
+    exit 0;
+fi
 
 queue_str=""
 if [[ ${QUEUE} ]] ; then

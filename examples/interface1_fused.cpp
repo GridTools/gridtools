@@ -33,56 +33,44 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-/**@file*/
-namespace gridtools {
+#include "gtest/gtest.h"
+#include "Options.hpp"
+#include "interface1_fused.hpp"
 
-    /**@brief construct for storing a case in a @ref gridtools::switch_ statement
+int main(int argc, char **argv) {
 
-       It stores a runtime value associated to the branch, which has to be compared with the value in a
-       switch_variable, and the corresponding multi-stage stencil
-       to be executed in case the condition holds.
-     */
-    template < typename T, typename Mss >
-    struct case_type {
-      private:
-        T m_value;
-        Mss m_mss;
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
 
-      public:
-        case_type(T val_, Mss mss_) : m_value(val_), m_mss(mss_) {}
+    if (argc < 4) {
+        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
+               "and tstep is the number of timesteps to run in a benchmark run\n");
+        return 1;
+    }
 
-        Mss mss() const { return m_mss; }
-        T value() const { return m_value; }
-    };
+    for (int i = 0; i != 3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    }
 
-    template < typename Mss >
-    struct default_type {
-      private:
-        Mss m_mss;
+    if (argc > 4) {
+        Options::getInstance().m_size[3] = atoi(argv[4]);
+    }
+    if (argc == 6) {
+        if ((std::string(argv[5]) == "-d"))
+            Options::getInstance().m_verify = false;
+    }
+    return RUN_ALL_TESTS();
+}
 
-        /**@brief construct for storing the default case in a @ref gridtools::switch_ statement
+TEST(HorizontalDiffusion, Test) {
+    uint_t x = Options::getInstance().m_size[0];
+    uint_t y = Options::getInstance().m_size[1];
+    uint_t z = Options::getInstance().m_size[2];
+    uint_t t = Options::getInstance().m_size[3];
+    bool verify = Options::getInstance().m_verify;
 
-           It stores a multi-stage stencil
-           to be executed in case none of the other conditions holds.
-         */
-      public:
-        typedef Mss mss_t;
+    if (t == 0)
+        t = 1;
 
-        default_type(Mss mss_) : m_mss(mss_) {}
-
-        Mss mss() const { return m_mss; }
-    };
-
-    template < typename T >
-    struct is_case_type : boost::mpl::false_ {};
-
-    template < typename T, typename Mss >
-    struct is_case_type< case_type< T, Mss > > : boost::mpl::true_ {};
-
-    template < typename T >
-    struct is_default_type : boost::mpl::false_ {};
-
-    template < typename Mss >
-    struct is_default_type< default_type< Mss > > : boost::mpl::true_ {};
-} // namespace gridtools
+    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
+}

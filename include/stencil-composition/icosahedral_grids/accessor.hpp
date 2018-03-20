@@ -34,6 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 #include "../extent.hpp"
 #include "../location_type.hpp"
 #include "../accessor_base.hpp"
@@ -41,32 +46,28 @@
 namespace gridtools {
     /**
     * This is the type of the accessors accessed by a stencil functor.
-    * It's a pretty minima implementation.
+    * It's a pretty minimal implementation.
     */
     template < uint_t ID,
         enumtype::intent Intent,
         typename LocationType,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t FieldDimensions = 4 >
-    struct accessor : public accessor_base< ID, Intent, Extent, FieldDimensions > {
+    struct accessor : public accessor_base< FieldDimensions > {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
-        using type = accessor< ID, Intent, LocationType, Extent, FieldDimensions >;
+        using index_t = static_uint< ID >;
+        static constexpr enumtype::intent intent = Intent;
+        using extent_t = Extent;
         using location_type = LocationType;
         static const uint_t value = ID;
-        using index_t = static_uint< ID >;
-        using extent_t = Extent;
         location_type location() const { return location_type(); }
 
-        typedef accessor_base< ID, Intent, Extent, FieldDimensions > super;
+        /**inheriting all constructors from accessor_base*/
+        using accessor_base< FieldDimensions >::accessor_base;
 
-        GT_FUNCTION
-        constexpr accessor() : super() {}
-
-        /**inheriting all constructors from offset_tuple*/
-        using accessor_base< ID, Intent, Extent, FieldDimensions >::accessor_base;
-
-        GT_FUNCTION
-        constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
+        template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
+        GT_FUNCTION accessor(accessor< OtherID, Intent, LocationType, Extent, FieldDimensions > const &src)
+            : accessor_base< FieldDimensions >(src) {}
     };
 
     template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >
