@@ -38,6 +38,8 @@ def run(args):
     result = rt.run(args.domain, args.runs)
 
     # save result
+    if not args.output.lower().endswith('.json'):
+        args.output += '.json'
     perftest.result.save(args.output, result)
 
 
@@ -69,7 +71,8 @@ if __name__ == '__main__':
     run_parser.add_argument('--runs', default=10, type=int,
                             help='number of runs to do for each stencil')
     run_parser.add_argument('--output', '-o', required=True,
-                            help='output file, should be .json')
+                            help='output file path, extension .json is added '
+                                 'if not given')
     run_parser.add_argument('--config', '-c',
                             help='config name, default is machine config')
 
