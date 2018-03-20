@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 
-#include "c_bindings/handle.hpp"
+#include "c_bindings/handle.h"
 
 namespace {
 
@@ -57,7 +57,7 @@ namespace {
     void push_impl(std::stack< T > &obj, T val) {
         obj.push(val);
     }
-    GT_EXPORT_BINDING_2(my_push, push_impl< double >);
+    GT_EXPORT_GENERIC_BINDING(2, my_push, push_impl, (float)(int)(double));
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_pop, void(stack_t &), [](stack_t &obj) { obj.pop(); });
 
@@ -74,7 +74,7 @@ namespace {
     TEST(export, smoke) {
         gt_handle *obj = my_create();
         EXPECT_TRUE(my_empty(obj));
-        my_push(obj, 42);
+        my_push2(obj, 42);
         EXPECT_FALSE(my_empty(obj));
         EXPECT_EQ(42, my_top(obj));
         my_pop(obj);
@@ -83,19 +83,20 @@ namespace {
     }
 
     const char expected_c_interface[] = R"?(
-struct gt_handle;
+#pragma once
+
+#include <c_bindings/handle.h>
 
 #ifdef __cplusplus
 extern "C" {
-#else
-typedef struct gt_handle gt_handle;
 #endif
 
-void gt_release(gt_handle*);
 gt_handle* my_create();
 bool my_empty(gt_handle*);
 void my_pop(gt_handle*);
-void my_push(gt_handle*, double);
+void my_push0(gt_handle*, float);
+void my_push1(gt_handle*, int);
+void my_push2(gt_handle*, double);
 double my_top(gt_handle*);
 
 #ifdef __cplusplus
@@ -105,6 +106,56 @@ double my_top(gt_handle*);
 
     TEST(export, c_interface) {
         std::ostringstream strm;
-        EXPECT_EQ(gridtools::c_bindings::generate_c_interface(strm).str(), expected_c_interface);
+        gridtools::c_bindings::generate_c_interface(strm);
+        EXPECT_EQ(strm.str(), expected_c_interface);
+    }
+
+    const char expected_fortran_interface[] = R"?(
+module my_module
+implicit none
+  interface
+
+    type(c_ptr) function my_create() bind(c)
+      use iso_c_binding
+    end
+    logical(c_bool) function my_empty(arg0) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: arg0
+    end
+    subroutine my_pop(arg0) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: arg0
+    end
+    subroutine my_push0(arg0, arg1) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: arg0
+      real(c_float), value :: arg1
+    end
+    subroutine my_push1(arg0, arg1) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: arg0
+      integer(c_int), value :: arg1
+    end
+    subroutine my_push2(arg0, arg1) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: arg0
+      real(c_double), value :: arg1
+    end
+    real(c_double) function my_top(arg0) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: arg0
+    end
+
+  end interface
+  interface my_push
+    procedure my_push0, my_push1, my_push2
+  end interface
+end
+)?";
+
+    TEST(export, fortran_interface) {
+        std::ostringstream strm;
+        gridtools::c_bindings::generate_fortran_interface(strm, "my_module");
+        EXPECT_EQ(strm.str(), expected_fortran_interface);
     }
 }
