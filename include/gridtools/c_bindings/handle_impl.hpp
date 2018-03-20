@@ -40,5 +40,3 @@
 struct gt_handle {
     boost::any m_value;
 };
-
-extern "C" void gt_release(gt_handle const *obj);

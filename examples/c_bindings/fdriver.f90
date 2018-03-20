@@ -34,7 +34,8 @@
 
 program main
     use iso_c_binding
-    use gt_import
+    use gt_handle
+    use implementation
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
     real(FLOAT_PRECISION), dimension(i, j, k) :: in, out
@@ -42,8 +43,8 @@ program main
 
     in = initial()
 
-    in_handle = create_data_store(i, j, k, in)
-    out_handle = create_data_store(i, j, k, out)
+    in_handle = generic_create_data_store(i, j, k, in(:,1,1))
+    out_handle = generic_create_data_store(i, j, k, out(:,1,1))
     stencil = create_copy_stencil(in_handle, out_handle)
 
     call steady_stencil(stencil)
