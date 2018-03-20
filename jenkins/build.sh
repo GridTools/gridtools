@@ -37,7 +37,7 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "hb:t:f:l:zmsidvq:x:inco" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:incok:" opt; do
     case "$opt" in
     h|\?)
         help
