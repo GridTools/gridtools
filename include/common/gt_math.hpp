@@ -168,18 +168,9 @@ namespace gridtools {
         /**
         * Function computing the power function
         */
-        template < typename Value >
-        GT_FUNCTION Value pow(const Value x, const Value y);
+        GT_FUNCTION float pow(const float x, const float y) { return ::powf(x, y); }
 
-        template <>
-        GT_FUNCTION float pow(const float x, const float y) {
-            return ::powf(x, y);
-        }
-
-        template <>
-        GT_FUNCTION double pow(const double x, const double y) {
-            return ::pow(x, y);
-        }
+        GT_FUNCTION double pow(const double x, const double y) { return ::pow(x, y); }
 #else
         using std::pow;
 #endif
