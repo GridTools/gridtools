@@ -36,71 +36,86 @@
 
 #pragma once
 
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/comparison.hpp>
-#include <boost/mpl/count_if.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/greater_equal.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/vector_c.hpp>
+#include <type_traits>
+
+#include <boost/mpl/bool.hpp>
 
 #include "variadic_pack_metafunctions.hpp"
 #include "defs.hpp"
 #include "gt_assert.hpp"
-#include "generic_metafunctions/variadic_to_vector.hpp"
+#include "generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
     template < int... Args >
     struct layout_map {
+      private:
+        /* list of all arguments */
+        using args = meta::list< std::integral_constant< int, Args >... >;
+
+        /* helper meta functions */
+        template < typename Int >
+        using not_negative = meta::bool_constant< (Int::value >= 0) >;
+        template < typename A, typename B >
+        using integral_plus = std::integral_constant< int, A::value + B::value >;
+
+        /* list of all unmasked (i.e. non-negative) arguments */
+        using unmasked_args = meta::apply< meta::filter< not_negative >, args >;
+
+        /* sum of all unmasked arguments (only used for assertion below) */
+        static constexpr int unmasked_arg_sum = meta::apply< meta::combine< integral_plus >,
+            meta::push_back< unmasked_args, std::integral_constant< int, 0 > > >::value;
+
+      public:
+        /** @brief Total length of layout map, including masked dimensions. */
+        static constexpr std::size_t masked_length = sizeof...(Args);
+        /** @brief Length of layout map excluding masked dimensions. */
+        static constexpr std::size_t unmasked_length = meta::length< unmasked_args >::value;
+
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
-
-        static constexpr int masked_length = sizeof...(Args);
-        typedef typename variadic_to_vector< boost::mpl::int_< Args >... >::type static_layout_vector;
-        static constexpr uint_t unmasked_length = boost::mpl::count_if< static_layout_vector,
-            boost::mpl::greater< boost::mpl::_, boost::mpl::int_< -1 > > >::value;
-
-        typedef typename boost::mpl::fold< static_layout_vector,
-            boost::mpl::int_< 0 >,
-            boost::mpl::if_< boost::mpl::greater< boost::mpl::_2, boost::mpl::int_< -1 > >,
-                                               boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 >,
-                                               boost::mpl::_1 > >::type accumulated_arg_sum_t;
-        GRIDTOOLS_STATIC_ASSERT((accumulated_arg_sum_t::value ==
-                                    ((unmasked_length - 1) * (unmasked_length - 1) + (unmasked_length - 1)) / 2),
+        GRIDTOOLS_STATIC_ASSERT((unmasked_arg_sum == (unmasked_length * (unmasked_length - 1)) / 2),
             GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
 
+        /** @brief Get the position of the element with value `I` in the layout map. */
         template < int I >
-        GT_FUNCTION static constexpr int find() {
+        GT_FUNCTION static constexpr std::size_t find() {
             GRIDTOOLS_STATIC_ASSERT(
                 (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
-            return boost::mpl::find< static_layout_vector, boost::mpl::int_< I > >::type::pos::value;
+            // force compile-time evaluation
+            return std::integral_constant< std::size_t, find(I) >::value;
         }
 
-        GT_FUNCTION static constexpr int find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
+        /** @brief Get the position of the element with value `i` in the layout map. */
+        GT_FUNCTION static constexpr std::size_t find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
 
-        template < int I >
+        /** @brief Get the value of the element at position `I` in the layout map. */
+        template < std::size_t I >
         GT_FUNCTION static constexpr int at() {
-            GRIDTOOLS_STATIC_ASSERT((I >= 0) && (I <= masked_length), GT_INTERNAL_ERROR_MSG("Out of bounds access"));
-            return boost::mpl::at< static_layout_vector, boost::mpl::int_< I > >::type::value;
+            GRIDTOOLS_STATIC_ASSERT(I < masked_length, GT_INTERNAL_ERROR_MSG("Out of bounds access"));
+            // force compile-time evaluation
+            return std::integral_constant< int, at(I) >::value;
         }
+
+        /** @brief Get the value of the element at position `I` in the layout map. */
+        GT_FUNCTION static constexpr int at(std::size_t i) { return get_value_from_pack(i, Args...); }
 
         /**
-           @brief Version of at that does not check the index bound.
-           This is useful to check killed-dimensions. The return value
-           is -1 if the access is out of bound. The interface is left
-           unappealing since it is discouraged.
-        */
-        template < int I >
-        struct at_ {
-            static const int value = (I < masked_length && I >= 0) ? at< I >() : -1;
-        };
+         * @brief Version of `at` that does not check the index bound and return -1 for out of bounds indices.
+         * Use the versions with bounds check if applicable.
+         */
+        template < std::size_t I >
+        GT_FUNCTION static constexpr int at_unsafe() {
+            return I < masked_length ? at< I >() : -1;
+        }
 
-        GT_FUNCTION static constexpr int at(int i) { return get_value_from_pack(i, Args...); }
-
-        template < int I >
+        template < std::size_t I >
         GT_FUNCTION static constexpr int select(int const *dims) {
             return dims[at< I >()];
         }
+
+        /** @brief Get the maximum element value in the layout map. */
+        GT_FUNCTION static constexpr int max() { return constexpr_max(Args...); }
     };
 
     template < typename T >
