@@ -41,29 +41,23 @@
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
 #include "../empty_iterate_domain_cache.hpp"
-#include "iterate_domain_host.hpp"
-#include "run_esf_functor_host.hpp"
-#include "strategy_host.hpp"
+#include "iterate_domain_mic.hpp"
+#include "run_esf_functor_mic.hpp"
+#include "strategy_mic.hpp"
 
 #ifdef ENABLE_METERS
-#include "timer_host.hpp"
+#include "timer_mic.hpp"
 #else
 #include "../timer_dummy.hpp"
 #endif
 
 /**@file
-@brief type definitions and structures specific for the Host backend
+@brief type definitions and structures specific for the Mic backend
 */
 namespace gridtools {
-    namespace _impl_host {
-        /**forward declaration*/
-        template < typename Arguments >
-        struct run_functor_host;
-    }
-
-    /**Traits struct, containing the types which are specific for the host backend*/
+    /**Traits struct, containing the types which are specific for the mic backend*/
     template <>
-    struct backend_traits_from_id< enumtype::Host > {
+    struct backend_traits_from_id< enumtype::Mic > {
 
         /** This is the function used to extract a pointer out of a given storage info.
             In the case of Host backend we have to return the CPU pointer.
@@ -80,22 +74,17 @@ namespace gridtools {
             auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
-        template < typename Arguments >
-        struct execute_traits {
-            typedef _impl_host::run_functor_host< Arguments > run_functor_t;
-        };
-
         /** This is the function used by the specific backend to inform the
             generic backend and the temporary storage allocator how to
             compute the number of threads in the i-direction, in a 2D
             grid of threads.
         */
         static uint_t n_i_pes(uint_t = 0) {
-#ifdef _OPENMP
-            return omp_get_max_threads();
-#else
-            return 1;
+#ifdef STRUCTURED_GRIDS
+            /* This function is not used in the MIC backend for structured grids. */
+            assert(false);
 #endif
+            return omp_get_max_threads();
         }
 
         /** This is the function used by the specific backend to inform the
@@ -103,25 +92,37 @@ namespace gridtools {
             compute the number of threads in the j-direction, in a 2D
             grid of threads.
         */
-        static uint_t n_j_pes(uint_t = 0) { return 1; }
+        static uint_t n_j_pes(uint_t = 0) {
+#ifdef STRUCTURED_GRIDS
+            /* This function is not used in the MIC backend for structured grids. */
+            assert(false);
+#endif
+            return 1;
+        }
 
         /** This is the function used by the specific backend
          *  that determines the i coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
         static uint_t processing_element_i() {
-#ifdef _OPENMP
-            return omp_get_thread_num();
-#else
-            return 0;
+#ifdef STRUCTURED_GRIDS
+            /* This function is not used in the MIC backend for structured grids. */
+            assert(false);
 #endif
+            return omp_get_thread_num();
         }
 
         /** This is the function used by the specific backend
          *  that determines the j coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
          */
-        static uint_t processing_element_j() { return 0; }
+        static uint_t processing_element_j() {
+#ifdef STRUCTURED_GRIDS
+            /* This function is not used in the MIC backend for structured grids. */
+            assert(false);
+#endif
+            return 0;
+        }
 
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
@@ -144,7 +145,14 @@ namespace gridtools {
         */
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            typedef GridTraits grid_traits_t;
+#ifdef STRUCTURED_GRIDS
+            const int thread = omp_get_thread_num();
+            const int total_threads = omp_get_max_threads();
+            const int thread_offset =
+                (sinfo->padded_total_length() - StorageInfo::get_initial_offset()) * thread / total_threads;
+            return StorageInfo::get_initial_offset() + thread_offset;
+#else
+            using grid_traits_t = GridTraits;
             // get the thread ID
             const uint_t i = processing_element_i();
             // halo in I direction
@@ -154,6 +162,7 @@ namespace gridtools {
             // return the field offset
             const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
             return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
+#endif
         }
 
         /**
@@ -178,39 +187,53 @@ namespace gridtools {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const execution_info_host &execution_info) {
+                const ExecutionInfo &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
+#ifdef STRUCTURED_GRIDS
+                using grid_traits_t = grid_traits_from_id< backend_ids_t::s_grid_type_id >;
+                using arch_grid_traits_t =
+                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type;
+                using kernel_functor_executor_t =
+                    typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type;
+
+                kernel_functor_executor_t(local_domain, grid, reduction_data)(execution_info);
+#else
                 // each strategy executes a different high level loop for a mss
-                strategy_from_id_host< backend_ids_t::s_strategy_id >::template mss_loop<
-                    RunFunctorArgs >::template run(local_domain, grid, reduction_data, execution_info);
+                strategy_from_id_mic< backend_ids_t::s_strategy_id >::template mss_loop< RunFunctorArgs >::template run(
+                    local_domain, grid, reduction_data, execution_info);
+#endif
             }
         };
 
-        /**
-         * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
-         */
-        typedef std::false_type mss_fuse_esfs_strategy;
+/**
+ * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+ */
+#ifdef STRUCTURED_GRIDS
+        using mss_fuse_esfs_strategy = std::true_type;
+#else
+        using mss_fuse_esfs_strategy = std::false_type;
+#endif
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2< run_esf_functor_host > run_esf_functor_h_t;
+        typedef boost::mpl::quote2< run_esf_functor_mic > run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template < typename BackendIds >
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_host< BackendIds::s_strategy_id > type;
+            typedef strategy_from_id_mic< BackendIds::s_strategy_id > type;
         };
 
         template < enumtype::strategy StrategyId >
         struct get_block_size {
-            typedef typename strategy_from_id_host< StrategyId >::block_size_t type;
+            typedef typename strategy_from_id_mic< StrategyId >::block_size_t type;
         };
 
         /**
@@ -226,14 +249,19 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
             template < typename _IterateDomainArguments >
             struct select_positional_iterate_domain {
-                typedef iterate_domain_host< positional_iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_mic< _IterateDomainArguments > type;
             };
-#endif
 
             template < typename _IterateDomainArguments >
             struct select_basic_iterate_domain {
-                typedef iterate_domain_host< iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_mic< _IterateDomainArguments > type;
             };
+#else
+            template < typename _IterateDomainArguments >
+            struct select_basic_iterate_domain {
+                typedef iterate_domain_mic< iterate_domain, _IterateDomainArguments > type;
+            };
+#endif
 
             typedef typename boost::mpl::eval_if<
                 local_domain_is_stateful< typename IterateDomainArguments::local_domain_t >,
@@ -245,13 +273,15 @@ namespace gridtools {
                 select_basic_iterate_domain< IterateDomainArguments > >::type type;
         };
 
+#ifndef STRUCTURED_GRIDS
         template < typename IterateDomainArguments >
         struct select_iterate_domain_cache {
             typedef empty_iterate_domain_cache type;
         };
+#endif
 
 #ifdef ENABLE_METERS
-        typedef timer_host performance_meter_t;
+        typedef timer_mic performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;
 #endif

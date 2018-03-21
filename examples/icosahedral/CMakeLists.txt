@@ -28,6 +28,18 @@ if(ENABLE_HOST)
     endforeach(srcfile)
 endif(ENABLE_HOST)
 
+if(ENABLE_MIC)
+    foreach(srcfile IN LISTS SRCFILES )
+        add_executable(${srcfile}_mic   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
+        set_target_properties(${srcfile}_mic PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+        target_link_libraries(${srcfile}_mic ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+        target_compile_definitions(${srcfile}_mic PUBLIC ${MIC_BACKEND_DEFINE})
+
+        gridtools_add_test( tests.${srcfile}_mic ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_mic" "12 33 61")
+        gridtools_add_test( tests.${srcfile}_mic ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_mic" "23 11 43")
+    endforeach(srcfile)
+endif(ENABLE_MIC)
+
 if(ENABLE_CUDA)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
          set(CUDA_SEPARABLE_COMPILATION OFF)
@@ -67,6 +79,19 @@ if(ENABLE_HOST)
 
     endforeach(srcfile)
 endif(ENABLE_HOST)
+
+if(ENABLE_MIC)
+    ### Validation is not passing for the following but we compile it for maintaining the API and code
+    list( APPEND SRCCOMPONLYFILES  # TODO RECOVER stencil_nested_on
+    )
+
+    foreach(srcfile IN LISTS SRCCOMPONLYFILES )
+        add_executable(${srcfile}_mic   ${srcfile}.cpp ${GTEST_FILES})
+        set_target_properties(${srcfile}_mic PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
+        target_link_libraries(${srcfile}_mic ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
+        target_compile_definitions(${srcfile}_mic PUBLIC ${MIC_BACKEND_DEFINE})
+    endforeach(srcfile)
+endif(ENABLE_MIC)
 
 #if(CUDA_FOUND)
 #    foreach(srcfile IN LISTS SRCCOMPONLYFILES MPISRCFILES )

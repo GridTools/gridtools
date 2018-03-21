@@ -141,7 +141,7 @@ namespace copy_stencil {
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
+                (execute< parallel >(),
                     gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
             copy->ready();
@@ -164,7 +164,7 @@ namespace copy_stencil {
             auto copy = gridtools::make_computation< backend_t >(domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+                (execute< parallel >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
             copy->ready();
 

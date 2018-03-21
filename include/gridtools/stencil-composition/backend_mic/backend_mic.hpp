@@ -35,8 +35,14 @@
 */
 #pragma once
 
-#ifdef __CUDACC__
-#include "backend_cuda/grid_traits_cuda.hpp"
+// This file contains all header files required by the mic backend
+#ifdef _OPENMP
+#include <omp.h>
 #endif
-#include "backend_mic/grid_traits_mic.hpp"
-#include "backend_host/grid_traits_host.hpp"
+
+#include "../../storage/storage-facility.hpp"
+#include "../backend_fwd.hpp"
+#include "../execution_policy.hpp"
+#include "../iteration_policy.hpp"
+#include "backend_traits_mic.hpp"
+#include "strategy_mic.hpp"
