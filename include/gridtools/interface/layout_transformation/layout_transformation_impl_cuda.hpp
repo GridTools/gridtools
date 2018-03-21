@@ -77,7 +77,7 @@ namespace gridtools {
             gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > dims,
             gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > dst_strides,
             gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > src_strides,
-            gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims) {
+            gridtools::array< size_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims) {
 
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             if (i >= dims[0])
@@ -98,9 +98,15 @@ namespace gridtools {
             // this can be optimized but it is not as bad as it looks as one of the memories is coalescing (assuming one
             // of the layouts is a suitable gpu layout...)
 
-            make_multi_iterator(outer_dims)
-                .iterate(
-                    transform_cuda_loop_kernel_functor< DataType, storage_info >(dst, src, si_dst, si_src, i, j, k));
+            for (auto outer : make_hypercube_view(outer_dims)) {
+                transform_cuda_loop_kernel_functor< DataType, storage_info > f(dst, src, si_dst, si_src, i, j, k);
+                f(outer[0], outer[1]); // TODO make generic
+            }
+
+            //            make_multi_iterator(outer_dims)
+            //                .iterate(
+            //                    transform_cuda_loop_kernel_functor< DataType, storage_info >(dst, src, si_dst, si_src,
+            //                    i, j, k));
         }
 #endif
 
@@ -114,7 +120,7 @@ namespace gridtools {
             int block_size_1d = 8;
 
             auto a_dims = impl::vector_to_dims_array< GT_TRANSFORM_MAX_DIM >(dims);
-            gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
+            gridtools::array< size_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
             std::copy(a_dims.begin() + 3, a_dims.end(), outer_dims.begin());
 
             dim3 grid_size((a_dims[0] + block_size_1d - 1) / block_size_1d,

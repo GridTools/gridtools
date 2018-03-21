@@ -83,6 +83,7 @@ TEST_F(test_hypercube_view, make_hypercube_view_from_ranges) {
 
     ASSERT_EQ(expect, view);
 }
+#endif
 
 TEST(test_hypercube_view_iterate_from_zero, from_sizes) {
     size_t size_i = 3;
@@ -94,7 +95,6 @@ TEST(test_hypercube_view_iterate_from_zero, from_sizes) {
 
     ASSERT_EQ(expect, view);
 }
-#endif
 
 TEST_F(test_hypercube_view, make_hypercube_view_from_hypercube) {
     hypercube_view< 3 > expect(hypercube< 3 >{i_range, j_range, k_range});

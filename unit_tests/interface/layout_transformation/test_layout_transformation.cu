@@ -53,14 +53,14 @@ TEST(layout_transformation, 3D_reverse_layout_cuda) {
     double *src = new double[src_index.size()];
     double *d_src;
     cudaMalloc(&d_src, sizeof(double) * src_index.size());
-    init< 3 >(src, src_index, [](int i, int j, int k) { return i * 100 + j * 10 + k; });
+    init< 3 >(src, src_index, [](const array< size_t, 3 > &a) { return a[0] * 100 + a[1] * 10 + a[2]; });
     cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice);
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
     double *d_dst;
     cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
-    init< 3 >(dst, dst_index, [](int i, int j, int k) { return -1; });
+    init< 3 >(dst, dst_index, [](const array< size_t, 3 > &a) { return -1; });
     cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
@@ -86,14 +86,14 @@ TEST(layout_transformation, 2D_reverse_layout_cuda) {
     double *src = new double[src_index.size()];
     double *d_src;
     cudaMalloc(&d_src, sizeof(double) * src_index.size());
-    init< 2 >(src, src_index, [](int i, int j) { return i * 10 + j; });
+    init< 2 >(src, src_index, [](const array< size_t, 2 > &a) { return a[0] * 10 + a[1]; });
     cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice);
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
     double *d_dst;
     cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
-    init< 2 >(dst, dst_index, [](int i, int j) { return -1; });
+    init< 2 >(dst, dst_index, [](const array< size_t, 2 > &a) { return -1; });
     cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
@@ -121,14 +121,14 @@ TEST(layout_transformation, 4D_reverse_layout_cuda) {
     double *src = new double[src_index.size()];
     double *d_src;
     cudaMalloc(&d_src, sizeof(double) * src_index.size());
-    init< 4 >(src, src_index, [](int i, int j, int k, int l) { return i * 1000 + j * 100 + k * 10 + l; });
+    init< 4 >(src, src_index, [](const array< size_t, 4 > &a) { return a[0] * 1000 + a[1] * 100 + a[2] * 10 + a[3]; });
     cudaMemcpy(d_src, src, sizeof(double) * src_index.size(), cudaMemcpyHostToDevice);
 
     Index dst_index(dims, dst_strides);
     double *dst = new double[dst_index.size()];
     double *d_dst;
     cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
-    init< 4 >(dst, dst_index, [](int i, int j, int k, int l) { return -1; });
+    init< 4 >(src, src_index, [](const array< size_t, 4 > &a) { return -1.; });
     cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
