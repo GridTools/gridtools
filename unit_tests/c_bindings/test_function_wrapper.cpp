@@ -42,6 +42,8 @@
 
 #include <gtest/gtest.h>
 
+#include <c_bindings/handle.h>
+
 namespace gridtools {
     namespace c_bindings {
         namespace {

@@ -6,6 +6,9 @@ enable_testing()
 ####################################################################################
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
+
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googlemock/include)
+
 # ===============
 add_library(gtest ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
 add_library(gtest_main ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
@@ -14,7 +17,7 @@ if( NOT GCL_ONLY )
         if ( ENABLE_CUDA )
             include_directories ( "${CUDA_INCLUDE_DIRS}" )
         endif()
-        add_library( mpi_gtest_main include/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
+        add_library( mpi_gtest_main include/gridtools/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
         set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${GPU_SPECIFIC_FLAGS}" )
         #target_link_libraries(mpi_gtest_main ${exe_LIBS} )
     endif()
