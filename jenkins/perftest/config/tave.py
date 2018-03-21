@@ -13,6 +13,11 @@ def sbatch(command):
         #SBATCH --time=00:10:00
         #SBATCH --constraint=flat,quad
 
+        module switch PrgEnv-cray PrgEnv-intel
+        module load craype-mic-knl
+
+        export KMP_AFFINITY=balanced
+
         srun numactl -m 1 {command}
 
         sync
