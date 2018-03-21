@@ -64,7 +64,7 @@ def from_data(runtime, domain, meantimes, stdevtimes):
 
     config_data = Data(configname=runtime.config.name,
                        hostname=runtime.config.hostname,
-                       systemname=runtime.config.systemname)
+                       clustername=runtime.config.clustername)
 
     return Result(runtime=runtime_data,
                   times=times_data,
@@ -125,7 +125,7 @@ def load(filename):
     d = data['config']
     config_data = Data(configname=d['configname'],
                        hostname=d['hostname'],
-                       systemname=d['systemname'])
+                       clustername=d['clustername'])
 
     result = Result(runtime=runtime_data,
                     times=times_data,

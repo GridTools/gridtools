@@ -3,6 +3,7 @@
 import importlib
 import platform
 import re
+import subprocess
 
 from perftest import ConfigError, logger
 from perftest.runtime import GridtoolsRuntime, Runtime
@@ -20,19 +21,19 @@ def hostname():
     return hostname
 
 
-def systemname():
-    """System name of the current machine.
-
-    Tries to remove any additional information like login node number from the
-    hostname to get a name that is the same for all nodes on a cluster.
+def clustername():
+    """SLURM cluster name of the current machine.
 
     Examples:
-        >>> systemname()
+        >>> clustername()
         'kesch'
     """
-    systemname = re.sub(r'^([a-z]+)(ln-)?\d*$', '\g<1>', hostname())
-    logger.debug(f'System name is {systemname}')
-    return systemname
+    output = subprocess.check_output(['scontrol', 'show', 'config']).decode()
+    p = re.compile(r'.*ClusterName\s*=\s*(\S*).*', re.MULTILINE | re.DOTALL)
+    m = p.match(output)
+    if not m:
+        raise ConfigError('Could not get SLURM cluster name')
+    return m.group(1)
 
 
 def load(config):
@@ -45,7 +46,7 @@ def load(config):
         A configuration represented by a `Config` object.
     """
     if config is None:
-        config = systemname()
+        config = clustername()
     return Config(config)
 
 
@@ -59,7 +60,7 @@ class Config:
     def __init__(self, name):
         self.name = name
         self.hostname = hostname()
-        self.systemname = systemname()
+        self.clustername = clustername()
 
         logger.debug(f'Trying to load config "{self.name}"')
         self._config = importlib.import_module('perftest.config.' + self.name)
