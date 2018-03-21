@@ -46,16 +46,13 @@ namespace test_iterate_domain {
     using namespace enumtype;
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis_t;
-
     struct stage1 {
         typedef accessor< 0, enumtype::in, extent< 42, 42, 42, 42 >, 6 > in;
         typedef accessor< 1, enumtype::inout, extent<>, 4 > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 
     struct stage2 {
@@ -64,7 +61,7 @@ namespace test_iterate_domain {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 } // namespace test_iterate_domain
 
