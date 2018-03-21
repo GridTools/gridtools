@@ -35,6 +35,10 @@
 */
 namespace gridtools {
 
+    /** \ingroup expressions
+        @{
+    */
+
     /**@brief Expression summing two arguments*/
     template < typename ArgType1, typename ArgType2 >
     struct expr_plus : public binary_expr< ArgType1, ArgType2 > {
@@ -192,5 +196,7 @@ namespace gridtools {
 
         } // namespace evaluation
     }     // namespace expressions
+
+    /** @} */
 
 } // namespace gridtools

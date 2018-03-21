@@ -44,7 +44,8 @@
    @brief Expression templates definition.
    The expression templates are a method to parse at compile time the mathematical expression given
    by the user, recognizing the structure and building a syntax tree by recursively nesting
-   templates.*/
+   templates.
+*/
 
 #include "expr_base.hpp"
 #include "expr_pow.hpp"
@@ -57,10 +58,15 @@
 namespace gridtools {
 
     /** \ingroup stencil-composition
-        \section expressions
         @{
     */
 
+    /** \defgroup expressions Expressions
+        @{
+    */
+
+    /** Namespace containing all the compomnents to enable using expressions in stencil operators
+     */
     namespace expressions {
 
         /** Expressions defining the interface for specifiyng a given offset for a specified dimension in plus-direction
@@ -110,6 +116,7 @@ namespace gridtools {
     template < typename Arg1, int Exponent >
     struct is_expr< expr_pow< Arg1, Exponent > > : boost::mpl::true_ {};
 
+    /** @} */
     /** @} */
 
 } // namespace gridtools

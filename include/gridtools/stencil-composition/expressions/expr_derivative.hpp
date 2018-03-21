@@ -35,6 +35,10 @@
 */
 namespace gridtools {
 
+    /** \ingroup expressions
+        @{
+    */
+
     /**@brief Expression retrieving the maximum over a specific dimension*/
     template < typename ArgType1 >
     struct expr_derivative : public unary_expr< ArgType1 > {
@@ -87,4 +91,7 @@ namespace gridtools {
 
         } // namespace evaluation
     }     // namespace expressions
+
+    /** @} */
+
 } // namespace gridtools

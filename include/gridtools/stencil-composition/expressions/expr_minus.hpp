@@ -35,6 +35,10 @@
 */
 namespace gridtools {
 
+    /** \ingroup expressions
+        @{
+    */
+
     /**@brief Expression subtracting two arguments*/
     template < typename ArgType1, typename ArgType2 >
     struct expr_minus : public binary_expr< ArgType1, ArgType2 > {
@@ -188,5 +192,7 @@ namespace gridtools {
 
         } // namespace evaluation
     }     // namespace expressions
+
+    /** @} */
 
 } // namespace gridtools

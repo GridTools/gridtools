@@ -35,6 +35,10 @@
 */
 namespace gridtools {
 
+    /** \ingroup expressions
+        @{
+    */
+
     /**@brief Expression computing the integral exponent of the first arguments
        for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
     */
@@ -108,5 +112,7 @@ namespace gridtools {
 
         } // namespace evaluation
     }     // namespace expressions
+
+    /** @} */
 
 } // namespace gridtools

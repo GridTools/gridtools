@@ -35,6 +35,10 @@
 */
 namespace gridtools {
 
+    /** \ingroup expressions
+        @{
+    */
+
     /**@brief Expression dividing two arguments*/
     template < typename ArgType1, typename ArgType2 >
     struct expr_divide : public binary_expr< ArgType1, ArgType2 > {
@@ -155,5 +159,7 @@ namespace gridtools {
 
         } // namespace evaluation
     }     // namespace expressions
+
+    /** @} */
 
 } // namespace gridtools

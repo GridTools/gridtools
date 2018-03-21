@@ -40,6 +40,10 @@
 
 namespace gridtools {
 
+    /** \ingroup expressions
+        @{
+    */
+
     struct tokens {
         static char constexpr par_o[] = "(";
         static char constexpr par_c[] = ")";
@@ -167,5 +171,7 @@ namespace gridtools {
     /**fwd declaration*/
     template < typename Arg >
     struct expr_derivative;
+
+    /** @} */
 
 } // namespace gridtools
