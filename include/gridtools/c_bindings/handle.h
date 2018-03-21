@@ -33,21 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "expr_base.hpp"
+struct gt_handle;
 
-namespace gridtools {
-    namespace expressions {
+#ifdef __cplusplus
 
-        struct divide_f {
-            template < class Lhs, class Rhs >
-            GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs / rhs);
-        };
+extern "C" void gt_release(gt_handle const *);
 
-        template < class Lhs, class Rhs >
-        GT_FUNCTION constexpr auto operator/(Lhs lhs, Rhs rhs) GT_AUTO_RETURN(make_expr(divide_f{}, lhs, rhs));
-    }
-}
+#else
+
+typedef struct gt_handle gt_handle;
+void gt_release(gt_handle *);
+
+#endif

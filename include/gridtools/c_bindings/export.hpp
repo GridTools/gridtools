@@ -83,6 +83,23 @@
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
 #define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)
 
+#define GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(n, generic_name, concrete_name, impl) \
+    GT_EXPORT_BINDING(n, concrete_name, impl);                                    \
+    GT_ADD_GENERIC_DECLARATION(generic_name, concrete_name)
+
+#define GT_EXPORT_GENERIC_BINDING_IMPL(n, name, suffix, impl) \
+    GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(n, name, BOOST_PP_CAT(name, suffix), impl)
+
+#define GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR(r, data, i, elem)    \
+    GT_EXPORT_GENERIC_BINDING_IMPL(BOOST_PP_TUPLE_ELEM(3, 0, data), \
+        BOOST_PP_TUPLE_ELEM(3, 1, data),                            \
+        i,                                                          \
+        BOOST_PP_TUPLE_ELEM(3, 2, data) < elem > );
+
+#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                     \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (n, name, impl_template), template_params) \
+    static_assert(1, "")
+
 /// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_0(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(0, name, s, i)
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_1(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(1, name, s, i)

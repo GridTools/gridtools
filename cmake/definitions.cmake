@@ -8,6 +8,10 @@ if(VERBOSE)
     add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
+## enable boost variadic PP
+## (for nvcc this is not done automatically by boost as it is no tested compiler)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_PP_VARIADICS=1")
+
 ## set boost fusion sizes ##
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
@@ -35,6 +39,9 @@ endif()
 if(NOT ENABLE_CUDA AND NOT ENABLE_MIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
 endif()
+
+## clang tools ##
+find_package(ClangTools)
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)

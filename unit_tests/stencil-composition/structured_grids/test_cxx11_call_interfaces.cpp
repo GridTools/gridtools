@@ -570,68 +570,9 @@ TEST_F(call_interface, call_with_offsets_to_call_with_offsets_to_copy_functor) {
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
 }
 
-class call_proc_interface : public testing::Test {
-  protected:
-    const uint_t d1 = 13;
-    const uint_t d2 = 9;
-    const uint_t d3 = 7;
-    const uint_t halo_size = 1;
-
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
-        data_store_t;
-
-    storage_info_t meta_;
-
-    halo_descriptor di;
-    halo_descriptor dj;
-    gridtools::grid< call_interface_functors::axis_t::axis_interval_t > grid;
-
-    verifier verifier_;
-    array< array< uint_t, 2 >, 3 > verifier_halos;
-
-    data_store_t in;
-    data_store_t out1;
-    data_store_t out2;
-    data_store_t reference_unchanged;
-    data_store_t reference_shifted;
-
-    typedef arg< 0, data_store_t > p_in;
-    typedef arg< 1, data_store_t > p_out1;
-    typedef arg< 2, data_store_t > p_out2;
-    typedef boost::mpl::vector< p_in, p_out1, p_out2 > accessor_list;
-
-    aggregator_type< accessor_list > domain;
-
-    call_proc_interface()
-        : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
-          grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
-#if FLOAT_PRECISION == 4
-          verifier_(1e-6),
-#else
-          verifier_(1e-12),
-#endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
-          in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out1(meta_, -5), out2(meta_, -5),
-          reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
-          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
-          domain(in, out1, out2) {
-    }
-
-    template < typename Computation >
-    void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
-        out1.sync();
-        out2.sync();
-    }
-};
-
 namespace call_proc_interface_functors {
-    using axis = interval< level< 0, -1 >, level< 1, 1 > >;
-    using x_interval = interval< level< 0, -1 >, level< 1, -1 > >;
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval;
 
     struct copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
@@ -790,6 +731,65 @@ namespace call_proc_interface_functors {
         }
     };
 }
+
+class call_proc_interface : public testing::Test {
+  protected:
+    const uint_t d1 = 13;
+    const uint_t d2 = 9;
+    const uint_t d3 = 7;
+    const uint_t halo_size = 1;
+
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
+        data_store_t;
+
+    storage_info_t meta_;
+
+    halo_descriptor di;
+    halo_descriptor dj;
+    gridtools::grid< call_proc_interface_functors::axis_t::axis_interval_t > grid;
+
+    verifier verifier_;
+    array< array< uint_t, 2 >, 3 > verifier_halos;
+
+    data_store_t in;
+    data_store_t out1;
+    data_store_t out2;
+    data_store_t reference_unchanged;
+    data_store_t reference_shifted;
+
+    typedef arg< 0, data_store_t > p_in;
+    typedef arg< 1, data_store_t > p_out1;
+    typedef arg< 2, data_store_t > p_out2;
+    typedef boost::mpl::vector< p_in, p_out1, p_out2 > accessor_list;
+
+    aggregator_type< accessor_list > domain;
+
+    call_proc_interface()
+        : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
+          grid(make_grid(di, dj, call_proc_interface_functors::axis_t(d3))),
+#if FLOAT_PRECISION == 4
+          verifier_(1e-6),
+#else
+          verifier_(1e-12),
+#endif
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
+          in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out1(meta_, -5), out2(meta_, -5),
+          reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
+          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
+          domain(in, out1, out2) {
+    }
+
+    template < typename Computation >
+    void execute_computation(Computation &comp) {
+        comp->ready();
+        comp->steady();
+        comp->run();
+        out1.sync();
+        out2.sync();
+    }
+};
 
 TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
     auto comp = gridtools::make_computation< backend_t >(

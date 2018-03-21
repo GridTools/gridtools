@@ -40,50 +40,54 @@
 
 namespace gridtools {
     namespace c_bindings {
+        namespace {
+            class fortran_generics {
+                std::map< char const *, std::vector< const char * >, _impl::c_string_less > m_procedures;
+
+              public:
+                void add(char const *generic_name, char const *concrete_name) {
+                    m_procedures[generic_name].push_back(concrete_name);
+                }
+                friend std::ostream &operator<<(std::ostream &strm, fortran_generics const &obj) {
+                    for (auto &&item : obj.m_procedures) {
+                        strm << "  interface " << item.first << "\n";
+                        strm << "    procedure ";
+                        bool need_comma = false;
+                        for (auto &&procedure : item.second) {
+                            if (need_comma)
+                                strm << ", ";
+                            strm << procedure;
+                            need_comma = true;
+                        }
+                        strm << "\n";
+                        strm << "  end interface\n";
+                    }
+                    return strm;
+                }
+            };
+
+            fortran_generics &get_fortran_generics() {
+                static fortran_generics obj;
+                return obj;
+            }
+        }
+
         namespace _impl {
             void declarations::add(char const *name, generator_t generator) {
                 bool ok = m_generators.emplace(name, std::move(generator)).second;
                 assert(ok);
             }
 
-            std::ostream &operator<<(std::ostream &strm, declarations const &declarations) {
-                for (auto &&item : declarations.m_generators)
+            std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
+                for (auto &&item : obj.m_generators)
                     item.second(strm, item.first);
                 return strm;
             }
 
-            char const c_traits::m_prologue[] = R"?(
-struct gt_handle;
+            fortran_generic_registrar::fortran_generic_registrar(char const *generic_name, char const *concrete_name) {
+                get_fortran_generics().add(generic_name, concrete_name);
+            }
 
-#ifdef __cplusplus
-extern "C" {
-#else
-typedef struct gt_handle gt_handle;
-#endif
-
-void gt_release(gt_handle*);
-)?";
-            char const c_traits::m_epilogue[] = R"?(
-#ifdef __cplusplus
-}
-#endif
-)?";
-
-            // TODO(anstaf): To figure out if it makes sense to export functions under the different module name.
-            char const fortran_traits::m_prologue[] = R"?(
-module gt_import
-implicit none
-  interface
-
-    subroutine gt_release(h) bind(c)
-      use iso_c_binding
-      type(c_ptr), value :: h
-    end
-)?";
-            char const fortran_traits::m_epilogue[] = R"?(
-  end interface
-end
-)?";
             template <>
             char const fortran_kind_name< bool >::value[] = "c_bool";
             template <>
@@ -102,6 +106,28 @@ end
             char const fortran_kind_name< long double >::value[] = "c_long_double";
             template <>
             char const fortran_kind_name< signed char >::value[] = "c_signed_char";
+        }
+
+        void generate_c_interface(std::ostream &strm) {
+            strm << "\n#pragma once\n\n";
+            strm << "#include <c_bindings/handle.h>\n\n";
+            strm << "#ifdef __cplusplus\n";
+            strm << "extern \"C\" {\n";
+            strm << "#endif\n\n";
+            strm << _impl::get_declarations< _impl::c_traits >();
+            strm << "\n#ifdef __cplusplus\n";
+            strm << "}\n";
+            strm << "#endif\n";
+        }
+
+        void generate_fortran_interface(std::ostream &strm, std::string const &module_name) {
+            strm << "\nmodule " << module_name << "\n";
+            strm << "implicit none\n";
+            strm << "  interface\n\n";
+            strm << _impl::get_declarations< _impl::fortran_traits >();
+            strm << "\n  end interface\n";
+            strm << get_fortran_generics();
+            strm << "end\n";
         }
     }
 }
