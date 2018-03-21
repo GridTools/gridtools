@@ -59,9 +59,9 @@
 
 namespace positional_when_debug_test {
 
-    using grid_t = gridtools::grid< gridtools::axis< 1 >::axis_interval_t >;
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis_t;
+    using axis_t = gridtools::axis< 1 >;
+    using grid_t = gridtools::grid< axis_t::axis_interval_t >;
+    using x_interval = axis_t::get_interval< 0 >;
 
     struct test_functor {
         typedef gridtools::accessor< 0, gridtools::enumtype::inout > in;

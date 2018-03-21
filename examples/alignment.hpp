@@ -126,7 +126,7 @@ namespace aligned_copy_stencil {
         halo_descriptor di{halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
         halo_descriptor dj{halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
 
-        grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >() - 1});
+        grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >()});
 
         auto copy = gridtools::make_computation< backend_t >(grid,
             p_in() = in,

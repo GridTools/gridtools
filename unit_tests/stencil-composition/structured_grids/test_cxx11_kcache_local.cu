@@ -171,17 +171,14 @@ TEST_F(kcachef, local_forward) {
     // while the vertical ones are set according the the axis property soon after
     // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
-    auto kcache_stencil =
-        gridtools::make_computation< backend_t >(m_grid,
-            p_in() = m_in,
-            p_out() = m_out,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                     define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-                                                     gridtools::make_stage< shif_acc_forward >(p_in() // esf_descriptor
-                                                         ,
-                                                         p_out(),
-                                                         p_buff())));
+    auto kcache_stencil = gridtools::make_computation< backend_t >(
+        m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
+        gridtools::make_multistage // mss_descriptor
+        (execute< forward >(),
+            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
+            gridtools::make_stage< shif_acc_forward >(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -213,17 +210,14 @@ TEST_F(kcachef, local_backward) {
     typedef arg< 1, storage_t > p_out;
     typedef tmp_arg< 2, storage_t > p_buff;
 
-    auto kcache_stencil =
-        gridtools::make_computation< backend_t >(m_grid,
-            p_in() = m_in,
-            p_out() = m_out,
-            gridtools::make_multistage // mss_descriptor
-            (execute< backward >(),
-                                                     define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-                                                     gridtools::make_stage< shif_acc_backward >(p_in() // esf_descriptor
-                                                         ,
-                                                         p_out(),
-                                                         p_buff())));
+    auto kcache_stencil = gridtools::make_computation< backend_t >(
+        m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
+        gridtools::make_multistage // mss_descriptor
+        (execute< backward >(),
+            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
+            gridtools::make_stage< shif_acc_backward >(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -332,10 +326,7 @@ TEST_F(kcachef, biside_backward) {
         gridtools::make_multistage // mss_descriptor
         (execute< backward >(),
             define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-            gridtools::make_stage< biside_large_kcache_backward >(p_in() // esf_descriptor
-                ,
-                p_out(),
-                p_buff())));
+            gridtools::make_stage< biside_large_kcache_backward >(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
