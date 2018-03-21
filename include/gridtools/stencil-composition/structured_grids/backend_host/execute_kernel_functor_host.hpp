@@ -179,7 +179,7 @@ namespace gridtools {
                 typedef typename boost::mpl::front< loop_intervals_t >::type interval;
                 typedef typename index_to_level< typename interval::first >::type from;
                 typedef typename index_to_level< typename interval::second >::type to;
-                typedef _impl::iteration_policy< from,
+                typedef ::gridtools::_impl::iteration_policy< from,
                     to,
                     typename ::gridtools::grid_traits_from_id< enumtype::structured >::dim_k_t,
                     execution_type_t::type::iteration > iteration_policy_t;
@@ -196,7 +196,7 @@ namespace gridtools {
 
                 // define the kernel functor
                 typedef innermost_functor< loop_intervals_t,
-                    _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >,
+                    ::gridtools::_impl::run_f_on_interval< execution_type_t, RunFunctorArguments >,
                     iterate_domain_t,
                     grid_t,
                     iteration_policy_t > innermost_functor_t;
@@ -210,13 +210,13 @@ namespace gridtools {
 #if defined(VERBOSE) && !defined(NDEBUG)
                     std::cout << "iteration " << i << ", index i" << std::endl;
 #endif
-                    _impl::reset_index_if_positional< 0 >(it_domain, i);
+                    ::gridtools::_impl::reset_index_if_positional< 0 >(it_domain, i);
                     irestore_index = it_domain.index();
                     for (int_t j = jfirst; j <= jlast; ++j) {
 #if defined(VERBOSE) && !defined(NDEBUG)
                         std::cout << "iteration " << j << ", index j" << std::endl;
 #endif
-                        _impl::reset_index_if_positional< 1 >(it_domain, j);
+                        ::gridtools::_impl::reset_index_if_positional< 1 >(it_domain, j);
                         jrestore_index = it_domain.index();
                         f();
                         it_domain.set_index(jrestore_index);

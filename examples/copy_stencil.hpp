@@ -126,7 +126,7 @@ namespace copy_stencil {
                 p_in() = in,
                 p_out() = out,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
+                (execute< parallel >(),
                     gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
             copy.run();
@@ -142,7 +142,7 @@ namespace copy_stencil {
                 p_in() = in,
                 p_out() = out,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+                (execute< parallel >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
             copy.run();
 

@@ -51,6 +51,44 @@ namespace gridtools {
 
     namespace _impl {
 
+#ifdef __INTEL_COMPILER
+        /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
+         * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
+         * in the most common case. */
+        template < typename T, std::size_t Dim >
+        struct pseudo_array_type {
+            using type = array< T, Dim >;
+        };
+
+        template < typename T >
+        struct pseudo_array_type< T, 3 > {
+            struct type {
+                T data0, data1, data2;
+
+                constexpr type(array< T, 3 > const &a)
+                    : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()) {}
+
+                constexpr type(T const &data0, T const &data1, T const &data2)
+                    : data0(data0), data1(data1), data2(data2) {}
+
+                template < std::size_t Idx >
+                GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                    return data0;
+                }
+                template < std::size_t Idx >
+                GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                    return data1;
+                }
+                template < std::size_t Idx >
+                GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                    return data2;
+                }
+
+                GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+            };
+        };
+#endif
+
         template < ushort_t I >
         struct get_dimension_value_f {
             template < ushort_t J >
@@ -109,8 +147,16 @@ namespace gridtools {
     class accessor_base {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
+#ifdef __INTEL_COMPILER
+        /* The Intel compiler does not want to vectorize when we use a real array here. */
+        using offsets_t = typename _impl::pseudo_array_type< int_t, Dim >::type;
+        offsets_t m_offsets;
+        /* The Intel compiler likes to generate calls to memset if we don't have this additional member.*/
+        int_t m_workaround;
+#else
         using offsets_t = array< int_t, Dim >;
         offsets_t m_offsets;
+#endif
 
       public:
         static const ushort_t n_dimensions = Dim;
@@ -120,13 +166,31 @@ namespace gridtools {
                                          conjunction< std::is_convertible< Ints, int_t >... >::value,
                 int >::type = 0 >
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
-            : m_offsets({offsets...}) {}
+            : m_offsets({offsets...})
+#ifdef __INTEL_COMPILER
+              ,
+              m_workaround(Dim)
+#endif
+        {
+        }
 
-        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src) : m_offsets(src) {}
+        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
+            : m_offsets(src)
+#ifdef __INTEL_COMPILER
+              ,
+              m_workaround(Dim)
+#endif
+        {
+        }
 
         template < ushort_t I, ushort_t... Is >
         GT_FUNCTION constexpr explicit accessor_base(dimension< I > d, dimension< Is >... ds)
-            : m_offsets(_impl::make_offsets< Dim >(d, ds...)) {
+            : m_offsets(_impl::make_offsets< Dim >(d, ds...))
+#ifdef __INTEL_COMPILER
+              ,
+              m_workaround(Dim)
+#endif
+        {
 #if !GT_BROKEN_TEMPLATE_ALIASES
             GRIDTOOLS_STATIC_ASSERT((meta::is_set< meta::list< dimension< I >, dimension< Is >... > >::value),
                 "all dimensions should be of different indicies");
@@ -137,7 +201,7 @@ namespace gridtools {
         GT_FUNCTION int_t constexpr get() const {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-            return m_offsets[Dim - 1 - Idx];
+            return m_offsets.template get< Dim - 1 - Idx >();
         }
 
         template < short_t Idx >
