@@ -53,10 +53,10 @@ if(NOT DISABLE_TESTING)
 endif()
 
 # ===============
-# jenkins scripts
+# Python scripts
 # ===============
-if(ENABLE_PERFORMANCE_TESTING)
-    add_subdirectory(jenkins)
+if(ENABLE_PYUTILS)
+    add_subdirectory(pyutils)
 endif()
 
 # Add all targets to the build-tree export set
