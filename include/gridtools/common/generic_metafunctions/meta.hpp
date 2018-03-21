@@ -104,6 +104,7 @@
 #include <functional>
 #include <type_traits>
 
+#include "../defs.hpp"
 #include "gt_integer_sequence.hpp"
 
 namespace gridtools {

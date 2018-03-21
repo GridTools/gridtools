@@ -35,19 +35,18 @@
 */
 #pragma once
 
-#include <type_traits>
-#include "meta.hpp"
+#include "type_traits.hpp"
 
 namespace gridtools {
 
     /* check if all given types are integral types */
     template < typename... IntTypes >
-    using is_all_integral = meta::conjunction< std::is_integral< IntTypes >... >;
+    using is_all_integral = conjunction< std::is_integral< IntTypes >... >;
 
     /* check if all given types are integral types */
     template < typename T >
-    using is_integral_or_enum = meta::bool_constant< std::is_integral< T >::value || std::is_enum< T >::value >;
+    using is_integral_or_enum = bool_constant< std::is_integral< T >::value || std::is_enum< T >::value >;
 
     template < typename... IntTypes >
-    using is_all_integral_or_enum = meta::conjunction< is_integral_or_enum< IntTypes >... >;
+    using is_all_integral_or_enum = conjunction< is_integral_or_enum< IntTypes >... >;
 }
