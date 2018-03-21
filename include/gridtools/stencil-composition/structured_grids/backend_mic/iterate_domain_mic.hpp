@@ -410,7 +410,7 @@ namespace gridtools {
             // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_i_block_base;
             return block_base + m_i_block_index + accessor_offset< Coordinate >(accessor);
-        };
+        }
 
         /**
          * @brief Computes the global offset of a data access along the given axis.
@@ -435,7 +435,7 @@ namespace gridtools {
             // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_j_block_base;
             return block_base + m_j_block_index + accessor_offset< Coordinate >(accessor);
-        };
+        }
 
         /**
          * @brief Computes the global offset of a data access along the given axis.
@@ -458,7 +458,7 @@ namespace gridtools {
             const int_t block_index =
                 (accessor_is_ij_cached< Accessor >::value && m_enable_ij_caches) ? 0 : m_k_block_index;
             return block_index + accessor_offset< Coordinate >(accessor);
-        };
+        }
 
         /**
          * @brief Computes the global offset of a data access along the given axis.
@@ -478,7 +478,7 @@ namespace gridtools {
         GT_FUNCTION constexpr typename std::enable_if< (Coordinate > 2), int_t >::type coordinate_offset(
             Accessor const &accessor) const {
             return accessor_offset< Coordinate >(accessor);
-        };
+        }
 
         template < typename StorageInfo, typename Accessor, std::size_t... Coordinates >
         GT_FUNCTION int_t compute_offset_impl(Accessor const &accessor, gt_index_sequence< Coordinates... >) const {
