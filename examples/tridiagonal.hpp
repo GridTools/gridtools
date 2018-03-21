@@ -43,11 +43,6 @@
 #include <stencil-composition/make_computation.hpp>
 #include <tools/verifier.hpp>
 
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
-
 #include "backend_select.hpp"
 
 /*
@@ -155,11 +150,6 @@ namespace tridiagonal {
                          "to guarantee that result can be validated to 1"
                       << std::endl;
         d3 = 6;
-
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
 
         typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_t;
         typedef backend_t::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
