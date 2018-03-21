@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import os
 import platform
 import re
 import subprocess
+import textwrap
 
 from perftest import ConfigError, logger
 from perftest.runtime import GridtoolsRuntime, Runtime
@@ -65,6 +67,22 @@ class Config:
         logger.debug(f'Trying to load config "{self.name}"')
         self._config = importlib.import_module('perftest.config.' + self.name)
         logger.info(f'Successfully loaded config "{self.name}"')
+
+        self.env = os.environ.copy()
+        if hasattr(self._config, 'modules'):
+            from perftest import modules
+            logger.debug(f'Trying to load config modules')
+            for module in self._config.modules:
+                self.env = modules.load(self.env, module)
+            logger.debug(f'Successfully loaded config modules')
+        if hasattr(self._config, 'env'):
+            self.env.update(self._config.env)
+
+        envstr = '\n'.join(f'{k}={v}' for k, v in self.env.items())
+        logger.debug(f'Environment for config "{self.name}":' +
+                     textwrap.indent(envstr, '    '))
+
+
 
     def runtime(self, runtime, *args, **kwargs):
         """Searches for and instantiates the given runtime with the arguments.

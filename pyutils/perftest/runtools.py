@@ -60,7 +60,7 @@ def _submit(command, config):
 
         # Run sbatch to start the job and specify job output file
         sbatch_command = ['sbatch', '-o', out.name, sbatch.name]
-        sbatch_out = subprocess.check_output(sbatch_command)
+        sbatch_out = subprocess.check_output(sbatch_command, env=config.env)
 
         # Parse the task ID from the sbatch stdout
         task_id = re.match(r'Submitted batch job (\d+)',
