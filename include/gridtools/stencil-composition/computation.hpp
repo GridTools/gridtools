@@ -46,7 +46,7 @@
 #include "arg.hpp"
 #include "../common/defs.hpp"
 #include "../common/permute_to.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 
 namespace gridtools {
 
@@ -89,7 +89,7 @@ namespace gridtools {
      */
     template < class ReturnType, class... Args >
     class computation {
-        GRIDTOOLS_STATIC_ASSERT(meta::conjunction< is_arg< Args >... >::value, "template parameters should be args");
+        GRIDTOOLS_STATIC_ASSERT(conjunction< is_arg< Args >... >::value, "template parameters should be args");
 
         using arg_storage_pair_crefs_t =
             boost::fusion::vector< arg_storage_pair< Args, typename Args::data_store_t > const &... >;

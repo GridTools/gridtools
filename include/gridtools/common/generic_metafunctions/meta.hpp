@@ -105,6 +105,7 @@
 #include <type_traits>
 
 #include "../defs.hpp"
+#include "type_traits.hpp"
 #include "gt_integer_sequence.hpp"
 
 namespace gridtools {
@@ -170,16 +171,6 @@ namespace gridtools {
             template < class... Args >
             using apply = F< Args... >;
         };
-
-        /**
-         *  drop-off for C++17 void_t
-         */
-        template < class... >
-        struct lazy_void_t {
-            using type = void;
-        };
-        template < class... Ts >
-        using void_t = t_< lazy_void_t< Ts... > >;
 
         /**
          *  Meta version of void_t
@@ -676,30 +667,21 @@ namespace gridtools {
         /**
          *  C++17 drop-offs
          *
-         *  Note on `conjunction` and `disjunction`:
+         *  Note on `fast_conjunction` and `fast_disjunction` are like std counter parts but:
          *    - short-circuiting is not implemented as required by C++17 standard
-         *    - from the other side, amortized complexity is O(1) because of it
-         *      [in terms of the number of template instantiations].
+         *    - amortized complexity is O(1) because of it [in terms of the number of template instantiations].
          */
-        template < bool Val >
-        using bool_constant = std::integral_constant< bool, Val >;
-
-        template < class T >
-        using negation = bool_constant< !T::value >;
-
         template < class... Ts >
-        using conjunction =
+        using fast_conjunction =
             t_< std::is_same< list< bool_constant< Ts::value >... >, repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type > > >;
-
         template < class... Ts >
-        using disjunction = negation< conjunction< negation< Ts >... > >;
-        // end of C++17 drop-offs
+        using fast_disjunction = negation< fast_conjunction< negation< Ts >... > >;
 
         template < class List >
-        using all = apply< rename< conjunction >, List >;
+        using all = apply< rename< fast_conjunction >, List >;
 
         template < class List >
-        using any = apply< rename< disjunction >, List >;
+        using any = apply< rename< fast_disjunction >, List >;
 
         template < template < class... > class Pred >
         using all_of = compose< all, transform< Pred >::template apply >;

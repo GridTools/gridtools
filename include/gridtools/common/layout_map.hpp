@@ -36,21 +36,48 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include <boost/mpl/bool.hpp>
 
 #include "variadic_pack_metafunctions.hpp"
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/type_traits.hpp"
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+#include <boost/mpl/greater_equal.hpp>
+#include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/plus.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
+#else
 #include "generic_metafunctions/meta.hpp"
+#endif
 
 namespace gridtools {
 
     template < int... Args >
     struct layout_map {
       private:
+#if GT_BROKEN_TEMPLATE_ALIASES
+        /* list of all arguments */
+        using args = boost::mpl::vector< boost::mpl::int_< Args >... >;
+
+        /* list of all unmasked (i.e. non-negative) arguments */
+        using unmasked_args =
+            boost::mpl::filter_view< args, boost::mpl::greater_equal< boost::mpl::_, boost::mpl::int_< 0 > > >;
+
+        /* sum of all unmasked arguments (only used for assertion below) */
+        static constexpr int unmasked_arg_sum = boost::mpl::fold< unmasked_args,
+            boost::mpl::int_< 0 >,
+            boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 > >::type::value;
+
+      public:
+        /** @brief Length of layout map excluding masked dimensions. */
+        static constexpr std::size_t unmasked_length = boost::mpl::size< unmasked_args >::type::value;
+#else
         /* list of all arguments */
         using args = meta::list< std::integral_constant< int, Args >... >;
 
@@ -68,10 +95,11 @@ namespace gridtools {
             meta::push_back< unmasked_args, std::integral_constant< int, 0 > > >::value;
 
       public:
-        /** @brief Total length of layout map, including masked dimensions. */
-        static constexpr std::size_t masked_length = sizeof...(Args);
         /** @brief Length of layout map excluding masked dimensions. */
         static constexpr std::size_t unmasked_length = meta::length< unmasked_args >::value;
+#endif
+        /** @brief Total length of layout map, including masked dimensions. */
+        static constexpr std::size_t masked_length = sizeof...(Args);
 
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
         GRIDTOOLS_STATIC_ASSERT((unmasked_arg_sum == (unmasked_length * (unmasked_length - 1)) / 2),

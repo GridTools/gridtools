@@ -239,7 +239,7 @@ namespace gridtools {
 
     template < typename Lhs, typename Rhs, typename Condition, template < typename > class Pred >
     struct is_condition_tree_of< condition< Lhs, Rhs, Condition >, Pred >
-        : meta::conjunction< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
+        : conjunction< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
 
     /// Transforms the condition tree by applying to all leaves the given functor
     template < typename Tree, typename Fun >

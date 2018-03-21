@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#define GT_BROKEN_TEMPLATE_ALIASES 0
+
 #include <common/generic_metafunctions/meta.hpp>
 
 #include <tuple>
@@ -115,18 +117,18 @@ namespace gridtools {
         static_assert(std::is_same< at_c< f< int, double >, 1 >, double >{}, "");
 
         // conjunction
-        static_assert(conjunction<>{}, "");
-        static_assert(conjunction< std::true_type, std::true_type >{}, "");
-        static_assert(!conjunction< std::true_type, std::false_type >{}, "");
-        static_assert(!conjunction< std::false_type, std::true_type >{}, "");
-        static_assert(!conjunction< std::false_type, std::false_type >{}, "");
+        static_assert(fast_conjunction<>{}, "");
+        static_assert(fast_conjunction< std::true_type, std::true_type >{}, "");
+        static_assert(!fast_conjunction< std::true_type, std::false_type >{}, "");
+        static_assert(!fast_conjunction< std::false_type, std::true_type >{}, "");
+        static_assert(!fast_conjunction< std::false_type, std::false_type >{}, "");
 
         // disjunction
-        static_assert(!disjunction<>{}, "");
-        static_assert(disjunction< std::true_type, std::true_type >{}, "");
-        static_assert(disjunction< std::true_type, std::false_type >{}, "");
-        static_assert(disjunction< std::false_type, std::true_type >{}, "");
-        static_assert(!disjunction< std::false_type, std::false_type >{}, "");
+        static_assert(!fast_disjunction<>{}, "");
+        static_assert(fast_disjunction< std::true_type, std::true_type >{}, "");
+        static_assert(fast_disjunction< std::true_type, std::false_type >{}, "");
+        static_assert(fast_disjunction< std::false_type, std::true_type >{}, "");
+        static_assert(!fast_disjunction< std::false_type, std::false_type >{}, "");
 
         // st_position
         static_assert(st_position< f< int, double >, int >{} == 0, "");

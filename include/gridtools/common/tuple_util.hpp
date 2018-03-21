@@ -68,9 +68,11 @@
 #include <type_traits>
 #include <utility>
 
-#include "generic_metafunctions/meta.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
+
+#include "generic_metafunctions/type_traits.hpp"
+#include "generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
@@ -170,8 +172,7 @@ namespace gridtools {
             struct add_ref< ref_kind::lvalue, T > : std::add_lvalue_reference< T > {};
 
             template < class T >
-            struct add_ref< ref_kind::const_lvalue, T >
-                : std::add_lvalue_reference< typename std::add_const< T >::type > {};
+            struct add_ref< ref_kind::const_lvalue, T > : std::add_lvalue_reference< add_const_t< T > > {};
 
             template < ref_kind Kind >
             struct get_accessor {
@@ -182,7 +183,7 @@ namespace gridtools {
             template < class Tup >
             using get_accessors =
                 meta::apply< meta::transform< get_accessor< get_ref_kind< Tup >::value >::template apply >,
-                    typename std::decay< Tup >::type >;
+                    decay_t< Tup > >;
 
             template < class Fun >
             struct get_fun_result {
@@ -210,7 +211,7 @@ namespace gridtools {
                     class... Tups,
                     class Res = meta::apply< get_results_t, get_accessors< Tup && >, get_accessors< Tups && >... > >
                 Res operator()(Tup &&tup, Tups &&... tups) const {
-                    constexpr auto length = meta::length< typename std::decay< Tup >::type >::value;
+                    constexpr auto length = meta::length< decay_t< Tup > >::value;
                     using generators = meta::apply< meta::transform< get_generator >, meta::make_indices< length > >;
                     return generate_f< generators, Res >{}(
                         m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
@@ -233,13 +234,12 @@ namespace gridtools {
                 Fun m_fun;
 
                 template < class Lhs, class Rhs >
-                using same_length = meta::bool_constant< meta::length< typename std::decay< Lhs >::type >::value ==
-                                                         meta::length< typename std::decay< Rhs >::type >::value >;
+                using same_length =
+                    bool_constant< meta::length< decay_t< Lhs > >::value == meta::length< decay_t< Rhs > >::value >;
 
                 template < class Tup, class... Tups >
                 void operator()(Tup &&tup, Tups &&... tups) const {
-                    for_each_impl_f<
-                        make_gt_index_sequence< meta::length< typename std::decay< Tup >::type >::value > >{}(
+                    for_each_impl_f< make_gt_index_sequence< meta::length< decay_t< Tup > >::value > >{}(
                         m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
                 }
             };

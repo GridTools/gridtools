@@ -31,15 +31,23 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/inserter.hpp>
 
-#include "meta.hpp"
+#include "../defs.hpp"
 
 namespace gridtools {
 
-    // Helpers to copy MPL sequence to a variadic typelist
-    template < class Src, class Dst >
-    using lazy_copy_into_variadic =
-        boost::mpl::copy< Src, boost::mpl::inserter< Dst, meta::quote< meta::lazy_push_back > > >;
+    namespace _impl {
+        struct variadic_push_back {
+            template < class, class >
+            struct apply;
+            template < template < class... > class L, class... Ts, class T >
+            struct apply< L< Ts... >, T > {
+                using type = L< Ts..., T >;
+            };
+        };
+    }
 
+    /// Helper to copy MPL sequence to a variadic typelist
     template < class Src, class Dst >
-    using copy_into_variadic = meta::t_< lazy_copy_into_variadic< Src, Dst > >;
+    using copy_into_variadic =
+        typename boost::mpl::copy< Src, boost::mpl::inserter< Dst, _impl::variadic_push_back > >::type;
 }

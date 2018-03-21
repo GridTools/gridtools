@@ -42,7 +42,10 @@
 #include "../common/dimension.hpp"
 #include "../common/host_device.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+#if !GT_BROKEN_TEMPLATE_ALIASES
 #include "../common/generic_metafunctions/meta.hpp"
+#endif
 
 namespace gridtools {
 
@@ -114,7 +117,7 @@ namespace gridtools {
 
         template < class... Ints,
             typename std::enable_if< sizeof...(Ints) <= Dim &&
-                                         meta::conjunction< std::is_convertible< Ints, int_t >... >::value,
+                                         conjunction< std::is_convertible< Ints, int_t >... >::value,
                 int >::type = 0 >
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
             : m_offsets({offsets...}) {}
@@ -124,8 +127,10 @@ namespace gridtools {
         template < ushort_t I, ushort_t... Is >
         GT_FUNCTION constexpr explicit accessor_base(dimension< I > d, dimension< Is >... ds)
             : m_offsets(_impl::make_offsets< Dim >(d, ds...)) {
+#if !GT_BROKEN_TEMPLATE_ALIASES
             GRIDTOOLS_STATIC_ASSERT((meta::is_set< meta::list< dimension< I >, dimension< Is >... > >::value),
                 "all dimensions should be of different indicies");
+#endif
         }
 
         template < short_t Idx >

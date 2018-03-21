@@ -200,15 +200,15 @@ namespace gridtools {
         // the at, since at_ does not assert out-of-bound
         // queries, but actually returns -1.
         template < int I, class Layout >
-        using exists_in_layout = meta::bool_constant< Layout::template at_< I >::value != -1 >;
+        using exists_in_layout = bool_constant< Layout::template at_< I >::value != -1 >;
 
         template < int I, uint_t Id, class Layout, class Halo, class Alignment >
-        typename std::enable_if< exists_in_layout< I, Layout >::value, bool >::type storage_info_dim_fits(
+        enable_if_t< exists_in_layout< I, Layout >::value, bool > storage_info_dim_fits(
             storage_info_interface< Id, Layout, Halo, Alignment > const &storage_info, int val) {
             return val + 1 <= storage_info.template dim< I >();
         }
         template < int I, uint_t Id, class Layout, class Halo, class Alignment >
-        typename std::enable_if< !exists_in_layout< I, Layout >::value, bool >::type storage_info_dim_fits(
+        enable_if_t< !exists_in_layout< I, Layout >::value, bool > storage_info_dim_fits(
             storage_info_interface< Id, Layout, Halo, Alignment > const &, int) {
             return true;
         }
@@ -298,8 +298,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (meta::conjunction< is_condition_tree_of< MssDescriptors, is_computation_token >... >::value),
+        GRIDTOOLS_STATIC_ASSERT((conjunction< is_condition_tree_of< MssDescriptors, is_computation_token >... >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         using branch_selector_t = branch_selector< MssDescriptors... >;
@@ -320,14 +319,14 @@ namespace gridtools {
             meta::apply< meta::transform< to_arg_storage_pair >, tmp_placeholders_t > >;
 
         GRIDTOOLS_STATIC_ASSERT(
-            (meta::conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
+            (conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
             "some bound placeholders are not used in mss descriptors");
 
         GRIDTOOLS_STATIC_ASSERT(meta::is_set_fast< meta::list< BoundPlaceholders... > >::value,
             "bound placeholders should be all different");
 
         template < class Arg >
-        using is_free = meta::negation< meta::st_contains< meta::list< BoundPlaceholders... >, Arg > >;
+        using is_free = negation< meta::st_contains< meta::list< BoundPlaceholders... >, Arg > >;
 
         using free_placeholders_t = meta::apply< meta::filter< is_free >, non_tmp_placeholders_t >;
 
@@ -418,7 +417,7 @@ namespace gridtools {
         template < class... Args, class... DataStores >
         typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
             arg_storage_pair< Args, DataStores > const &... srcs) {
-            GRIDTOOLS_STATIC_ASSERT((meta::conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
+            GRIDTOOLS_STATIC_ASSERT((conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
                 "some placeholders are not used in mss descriptors");
             GRIDTOOLS_STATIC_ASSERT(
                 meta::is_set_fast< meta::list< Args... > >::value, "free placeholders should be all different");

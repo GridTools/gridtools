@@ -40,12 +40,56 @@
 #include <type_traits>
 
 #include "defs.hpp"
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/zip_view.hpp>
+#include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/transform_view.hpp>
+
+#include "generic_metafunctions/copy_into_variadic.hpp"
+#include "generic_metafunctions/type_traits.hpp"
+#else
 #include "generic_metafunctions/meta.hpp"
+#endif
 
 namespace gridtools {
     namespace _impl {
         namespace _split_args {
+#if GT_BROKEN_TEMPLATE_ALIASES
 
+            template < template < class... > class Pred >
+            struct apply_to_first {
+                template < class L >
+                struct apply : Pred< typename boost::mpl::at_c< L, 0 >::type > {};
+            };
+
+            template < template < class... > class Pred >
+            struct apply_to_decayed {
+                template < class T >
+                struct apply : Pred< typename std::decay< T >::type > {};
+            };
+
+            template < template < class... > class Pred, class Args >
+            using make_filtered_indicies = copy_into_variadic<
+                boost::mpl::transform_view<
+                    boost::mpl::filter_view< boost::mpl::zip_view< boost::mpl::vector< Args,
+                                                 boost::mpl::range_c< size_t, 0, boost::mpl::size< Args >::value > > >,
+                        apply_to_first< Pred > >,
+                    boost::mpl::at< boost::mpl::_, boost::mpl::size_t< 1 > > >,
+                std::tuple<> >;
+
+            template < template < class... > class Pred >
+            struct not_ {
+                template < class T >
+                struct apply : negation< Pred< T > > {};
+            };
+
+#else
             template < template < class... > class Pred >
             struct apply_to_first {
                 template < class L >
@@ -62,7 +106,8 @@ namespace gridtools {
             using make_filtered_indicies = meta::apply< meta::transform< meta::second >,
                 meta::apply< meta::filter< apply_to_first< Pred >::template apply >,
                                                             meta::zip< Args, meta::make_indices_for< Args > > > >;
-
+            using meta::not_;
+#endif
             template < class Args, template < class... > class L, class... Is >
             auto get_part_helper(Args &&args, L< Is... > *)
                 GT_AUTO_RETURN(std::forward_as_tuple(std::get< Is::value >(std::forward< Args >(args))...));
@@ -74,7 +119,7 @@ namespace gridtools {
             template < template < class... > class Pred, class Args >
             auto raw_split_args_tuple(Args &&args)
                 GT_AUTO_RETURN(std::make_pair(get_part< Pred >(std::forward< Args >(args)),
-                    get_part< meta::not_< Pred >::template apply >(std::forward< Args >(args))));
+                    get_part< not_< Pred >::template apply >(std::forward< Args >(args))));
 
             template < template < class... > class Pred, class Args >
             auto split_args_tuple(Args &&args) GT_AUTO_RETURN(
