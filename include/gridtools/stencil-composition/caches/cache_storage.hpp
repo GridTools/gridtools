@@ -145,26 +145,9 @@ namespace gridtools {
                 (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 + (extra_dims) >() +
                 (extra_dims)*Color * meta_t::template stride< 1 >() +
                 padded_total_length() * get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
-                _impl::get_cache_offset< meta_t >(accessor_);
-            _impl::check_bounds_cache_offset< meta_t >(accessor_);
+                compute_offset_cache< meta_t >(accessor_);
             assert((extra_) < (padded_total_length() * StorageWrapper::num_of_storages));
             return m_values[extra_];
-        }
-
-        /**
-         * @brief check that the offsets and bounds to a kcache access are correct
-         */
-        template < typename Accessor >
-        GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
-            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
-
-            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
-
-            typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
-            typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
-
-            _impl::check_bounds_cache_offset< meta_t >(accessor_);
         }
 
         /**
@@ -179,7 +162,7 @@ namespace gridtools {
             const int_t index_ =
                 (int_t)padded_total_length() *
                     (int_t)get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
-                _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
+                compute_offset_cache< meta_t >(accessor_) - kminus_t::value;
             assert(index_ >= 0);
             assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
 
@@ -198,7 +181,7 @@ namespace gridtools {
             const int_t index_ =
                 (int_t)padded_total_length() *
                     (int_t)get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
-                _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
+                compute_offset_cache< meta_t >(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
             assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
@@ -228,6 +211,28 @@ namespace gridtools {
 
       private:
         value_type m_values[padded_total_length() * StorageWrapper::num_of_storages];
+
+        template < typename Accessor, std::size_t... Coordinates >
+        GT_FUNCTION static void check_kcache_access_in_bounds(
+            Accessor const &accessor, gt_index_sequence< Coordinates... >) {
+            assert(accumulate(logical_and(),
+                       (accessor.template get< Accessor::n_dimensions - 1 - Coordinates >() <=
+                                  meta_t::template dim< Coordinates >())...) &&
+                   "Out of bounds access in cache");
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION static void check_kcache_access(
+            Accessor const &accessor, typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
+
+            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+
+            typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
+            typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
+
+            check_kcache_access_in_bounds(accessor, make_gt_index_sequence< meta_t::layout_t::masked_length >());
+        }
     };
 
 } // namespace gridtools

@@ -255,17 +255,16 @@ namespace gridtools {
                 (index_t::value < ArrayIndex::size()), "Accessing an index out of bound in fusion tuple");
 
             // get the max coordinate of given StorageInfo
-            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-                typename StorageInfo::layout_t::static_layout_vector >::type >::type max_t;
+            constexpr int layout_max = StorageInfo::layout_t::max();
 
             // get the position
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (pos >= 0) {
                 auto stride =
-                    (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
-                                                                    // uint_t cast to avoid a warning (maybe this is
-                                                     // compile time evaluated even if pos < 0)
-                                                     m_strides_cached.template get< index_t::value >()[(uint_t)pos]);
+                    (layout_max < 0) ? 0 : ((pos == layout_max) ? 1 :
+                                                                // uint_t cast to avoid a warning (maybe this is
+                                                   // compile time evaluated even if pos < 0)
+                                                   m_strides_cached.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * m_increment);
             }
         }
@@ -322,8 +321,7 @@ namespace gridtools {
             typedef
                 typename boost::mpl::at< typename LocalDomain::storage_info_tmp_info_t, StorageInfo >::type tmp_info_t;
             // get the max coordinate of given StorageInfo
-            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-                typename StorageInfo::layout_t::static_layout_vector >::type >::type max_t;
+            constexpr int layout_max = StorageInfo::layout_t::max();
 
             constexpr int_t i_pos = GridTraits::dim_i_t::value;
             constexpr int_t j_pos = GridTraits::dim_j_t::value;
@@ -340,10 +338,10 @@ namespace gridtools {
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (Coordinate < StorageInfo::layout_t::masked_length && pos >= 0) {
                 int_t stride =
-                    (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
-                                                                    // uint_t cast to avoid a warning (maybe this is
-                                                     // compile time evaluated even if pos < 0)
-                                                     m_strides.template get< index_t::value >()[(uint_t)pos]);
+                    (layout_max < 0) ? 0 : ((pos == layout_max) ? 1 :
+                                                                // uint_t cast to avoid a warning (maybe this is
+                                                   // compile time evaluated even if pos < 0)
+                                                   m_strides.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * (initial_pos - additional_offset));
             }
         }

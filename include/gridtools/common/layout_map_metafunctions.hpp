@@ -36,8 +36,10 @@
 
 #pragma once
 
-#include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/vector_c.hpp>
 
 #include "layout_map.hpp"
 #include "selector.hpp"
@@ -52,21 +54,8 @@ namespace gridtools {
 
     template < short_t... Is >
     struct reverse_map< layout_map< Is... > > {
-        template < short_t I, short_t Max >
-        struct new_value {
-            static const short_t value = (Max - I) > Max ? I : Max - I;
-        };
-
-        template < typename Current, typename Next >
-        struct get_max {
-            using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
-        };
-
-        using max = typename boost::mpl::fold< typename layout_map< Is... >::static_layout_vector,
-            boost::mpl::int_< -1 >,
-            get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
-
-        typedef layout_map< new_value< Is, max::value >::value... > type;
+        static constexpr int max = layout_map< Is... >::max();
+        using type = layout_map< (Is < 0 ? Is : max - Is)... >;
     };
 
     template < typename DATALO, typename PROCLO >
@@ -77,8 +66,8 @@ namespace gridtools {
         typedef layout_map< I1, I2 > L1;
         typedef layout_map< P1, P2 > L2;
 
-        static const short_t N1 = boost::mpl::at_c< typename L1::static_layout_vector, P1 >::type::value;
-        static const short_t N2 = boost::mpl::at_c< typename L1::static_layout_vector, P2 >::type::value;
+        static constexpr short_t N1 = L1::template at< P1 >();
+        static constexpr short_t N2 = L1::template at< P2 >();
 
         typedef layout_map< N1, N2 > type;
     };
@@ -88,9 +77,9 @@ namespace gridtools {
         typedef layout_map< I1, I2, I3 > L1;
         typedef layout_map< P1, P2, P3 > L2;
 
-        static const short_t N1 = boost::mpl::at_c< typename L1::static_layout_vector, P1 >::type::value;
-        static const short_t N2 = boost::mpl::at_c< typename L1::static_layout_vector, P2 >::type::value;
-        static const short_t N3 = boost::mpl::at_c< typename L1::static_layout_vector, P3 >::type::value;
+        static constexpr short_t N1 = L1::template at< P1 >();
+        static constexpr short_t N2 = L1::template at< P2 >();
+        static constexpr short_t N3 = L1::template at< P3 >();
 
         typedef layout_map< N1, N2, N3 > type;
     };

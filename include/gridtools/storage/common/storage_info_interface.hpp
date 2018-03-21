@@ -41,7 +41,6 @@
 
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/and.hpp>
-#include <boost/mpl/max_element.hpp>
 #include <boost/type_traits.hpp>
 
 #include "alignment.hpp"
@@ -342,10 +341,7 @@ namespace gridtools {
          * This could also be a halo point.
          * @return position of last accessible point
          */
-        GT_FUNCTION constexpr uint_t end() const {
-            typedef typename boost::mpl::max_element< typename layout_t::static_layout_vector >::type iter;
-            return end_part< true >();
-        }
+        GT_FUNCTION constexpr uint_t end() const { return end_part< true >(); }
 
         /**
          * @brief Returns the length of a dimension including the halo points (the outer region)
