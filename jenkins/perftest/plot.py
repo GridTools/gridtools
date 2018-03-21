@@ -2,6 +2,7 @@
 
 import itertools
 import math
+import os
 
 import matplotlib
 matplotlib.use('Agg')
@@ -29,16 +30,22 @@ def get_titles(results):
     """Generates plot titles."""
     common, diff = result.compare([r.runtime for r in results])
 
-    def titlestr(v):
-        if isinstance(v, time.datetime):
-            return time.short_timestr(v)
+    def titlestr(k, v):
+        if k == 'name':
+            return 'Runtime: ' + v
+        if k == 'datetime':
+            return 'Date/Time: ' + time.short_timestr(v)
+        elif k == 'compiler':
+            return 'Compiler: ' + os.path.basename(v).upper()
         else:
             s = str(v).title()
-            return s if len(s) < 30 else s[:27] + '...'
+            if len(s) > 20:
+                s = s[:20] + '…'
+            return k.title() + ': ' + s
 
-    suptitle = ', '.join(titlestr(v) for v in common.values())
+    suptitle = ', '.join(titlestr(k, v) for k, v in common.items())
 
-    titles = ['\n'.join(titlestr(v) for v in d.values()) for d in diff]
+    titles = ['\n'.join(titlestr(k, v) for k, v in d.items()) for d in diff]
     return suptitle, titles
 
 
@@ -57,7 +64,7 @@ def compare(results):
     colors = discrete_colors(len(results))
 
     suptitle, titles = get_titles(results)
-    fig.suptitle(suptitle)
+    fig.suptitle(suptitle, wrap=True)
 
     xticks = list(range(len(results)))
     for ax, stencil, means, stdevs in itertools.zip_longest(axes, stencils,
@@ -69,7 +76,7 @@ def compare(results):
             ax.bar(xticks, means, yerr=stdevs, width=0.8, color=colors)
 
             ax.set_xticks(xticks)
-            ax.set_xticklabels(titles)
+            ax.set_xticklabels(titles, wrap=True)
         else:
             ax.set_visible(False)
 
