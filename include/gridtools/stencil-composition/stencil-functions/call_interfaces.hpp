@@ -174,11 +174,9 @@ namespace gridtools {
                 return *m_result;
             }
 
-            template < typename... Arguments, template < typename... Args > class Expression >
-            GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
-                -> decltype(expressions::evaluation::value(*this, arg)) {
-                return expressions::evaluation::value((*this), arg);
-            }
+            template < class Op, class... Args >
+            GT_FUNCTION constexpr auto operator()(expr< Op, Args... > const &arg) const
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
         };
 
         template < typename Functor, typename Region >
@@ -373,11 +371,9 @@ namespace gridtools {
                 return get_passed_argument< Accessor >().value();
             }
 
-            template < typename... Arguments, template < typename... Args > class Expression >
-            GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
-                -> decltype(expressions::evaluation::value(*this, arg)) {
-                return expressions::evaluation::value((*this), arg);
-            }
+            template < class Op, class... Args >
+            GT_FUNCTION constexpr auto operator()(expr< Op, Args... > const &arg) const
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
         };
     } // namespace _impl
 

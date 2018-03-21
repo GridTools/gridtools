@@ -36,8 +36,6 @@
 #pragma once
 
 #include "common/defs.hpp"
-#include "common/string_c.hpp"
-#include "common/gt_math.hpp"
 #include "common/dimension.hpp"
 
 /**@file
@@ -46,13 +44,11 @@
    by the user, recognizing the structure and building a syntax tree by recursively nesting
    templates.*/
 
-#include "expr_base.hpp"
 #include "expr_pow.hpp"
 #include "expr_plus.hpp"
 #include "expr_minus.hpp"
 #include "expr_times.hpp"
 #include "expr_divide.hpp"
-#include "expr_derivative.hpp"
 
 namespace gridtools {
 
@@ -83,32 +79,7 @@ namespace gridtools {
         GT_FUNCTION constexpr dimension< Coordinate > operator-(dimension< Coordinate > d1, int const &offset) {
             return dimension< Coordinate >(-offset);
         }
-
-    } // namespace expressions
-
-    template < typename Arg1, typename Arg2 >
-    struct is_expr< expr_plus< Arg1, Arg2 > > : boost::mpl::true_ {};
-
-    template < typename Arg1 >
-    struct is_expr< expr_plus_unary< Arg1 > > : boost::mpl::true_ {};
-
-    template < typename Arg1, typename Arg2 >
-    struct is_expr< expr_minus< Arg1, Arg2 > > : boost::mpl::true_ {};
-
-    template < typename Arg1 >
-    struct is_expr< expr_minus_unary< Arg1 > > : boost::mpl::true_ {};
-
-    template < typename Arg1, typename Arg2 >
-    struct is_expr< expr_times< Arg1, Arg2 > > : boost::mpl::true_ {};
-
-    template < typename Arg1, typename Arg2 >
-    struct is_expr< expr_divide< Arg1, Arg2 > > : boost::mpl::true_ {};
-
-    template < typename Arg1 >
-    struct is_expr< expr_derivative< Arg1 > > : boost::mpl::true_ {};
-
-    template < typename Arg1, int Exponent >
-    struct is_expr< expr_pow< Arg1, Exponent > > : boost::mpl::true_ {};
+    }
 
     /** @} */
 
