@@ -19,7 +19,7 @@ else()
 endif()
 
 if(ENABLE_HOST AND ENABLE_CUDA)
-    message(ERROR "Performance tests can only be enabled for a single backend")
+    message(FATAL_ERROR "Performance tests can only be enabled for a single backend")
 endif()
 
 if(ENABLE_HOST)
