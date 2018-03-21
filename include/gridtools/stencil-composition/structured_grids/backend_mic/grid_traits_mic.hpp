@@ -35,8 +35,20 @@
 */
 #pragma once
 
-#ifdef __CUDACC__
-#include "backend_cuda/grid_traits_cuda.hpp"
-#endif
-#include "backend_mic/grid_traits_mic.hpp"
-#include "backend_host/grid_traits_host.hpp"
+#include "execute_kernel_functor_mic_fwd.hpp"
+#include "../../run_functor_arguments_fwd.hpp"
+#include "execinfo_mic.hpp"
+
+namespace gridtools {
+
+    namespace strgrid {
+        template <>
+        struct grid_traits_arch< enumtype::Mic > {
+            template < typename RunFunctorArguments >
+            struct kernel_functor_executor {
+                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+                typedef execute_kernel_functor_mic< RunFunctorArguments > type;
+            };
+        };
+    }
+}

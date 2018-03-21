@@ -45,9 +45,9 @@
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"
-#else
-#include "./backend_host/backend_host.hpp"
 #endif
+#include "./backend_mic/backend_mic.hpp"
+#include "./backend_host/backend_host.hpp"
 
 #include "../common/pair.hpp"
 #include "./accessor.hpp"

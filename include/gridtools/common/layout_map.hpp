@@ -105,8 +105,13 @@ namespace gridtools {
          * Use the versions with bounds check if applicable.
          */
         template < std::size_t I >
-        GT_FUNCTION static constexpr int at_unsafe() {
-            return I < masked_length ? at< I >() : -1;
+        GT_FUNCTION static constexpr typename std::enable_if< (I < masked_length), int >::type at_unsafe() {
+            return at< I >();
+        }
+
+        template < std::size_t I >
+        GT_FUNCTION static constexpr typename std::enable_if< (I >= masked_length), int >::type at_unsafe() {
+            return -1;
         }
 
         template < std::size_t I >
