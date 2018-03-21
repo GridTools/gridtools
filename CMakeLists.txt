@@ -52,6 +52,13 @@ if(NOT DISABLE_TESTING)
   add_subdirectory(unit_tests)
 endif()
 
+# ===============
+# jenkins scripts
+# ===============
+if(ENABLE_PERFORMANCE_TESTING)
+    add_subdirectory(jenkins)
+endif()
+
 # Add all targets to the build-tree export set
 export(TARGETS gcl
   FILE "${PROJECT_BINARY_DIR}/cmake/GridToolsTargets.cmake")

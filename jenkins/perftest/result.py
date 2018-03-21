@@ -5,7 +5,7 @@ import json
 from perftest import ArgumentError, logger, ParseError, time
 
 
-version = 0.1
+version = 0.2
 
 
 class Data(dict):
@@ -59,7 +59,8 @@ def from_data(runtime, domain, meantimes, stdevtimes):
                         datetime=runtime.datetime,
                         grid=runtime.grid,
                         precision=runtime.precision,
-                        backend=runtime.backend)
+                        backend=runtime.backend,
+                        compiler=runtime.compiler)
 
     config_data = Data(configname=runtime.config.name,
                        hostname=runtime.config.hostname,
@@ -102,7 +103,7 @@ def load(filename):
     with open(filename, 'r') as fp:
         data = json.load(fp)
 
-    if data['version'] != 0.1:
+    if data['version'] != version:
         raise ParseError('Unknown result file version')
 
     times_data = [Data(**d) for d in data['times']]
@@ -118,7 +119,8 @@ def load(filename):
                         datetime=time.from_timestr(d['datetime']),
                         grid=d['grid'],
                         precision=d['precision'],
-                        backend=d['backend'])
+                        backend=d['backend'],
+                        compiler=d['compiler'])
 
     d = data['config']
     config_data = Data(configname=d['configname'],

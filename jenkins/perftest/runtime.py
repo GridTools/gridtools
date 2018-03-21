@@ -6,8 +6,15 @@ import re
 import statistics
 import subprocess
 
-from perftest import NotFoundError, ParseError, ArgumentError
+from perftest import NotFoundError, ParseError, ArgumentError, ConfigError
 from perftest import logger, result, runtools, stencils, time
+
+
+try:
+    from perftest import buildinfo
+except ImportError:
+    raise ConfigError('Could not load buildinfo module. Did you run the script'
+                      ' from a configured CMake build directory?') from None
 
 
 class Runtime(metaclass=abc.ABCMeta):
@@ -16,24 +23,15 @@ class Runtime(metaclass=abc.ABCMeta):
     A runtime class represents a software for running stencils, currently
     STELLA or Gridtools.
     """
-    def __init__(self, config, grid, precision, backend):
-        if grid not in self.grids:
-            sup = ', '.join(f'"{g}"' for g in self.grids)
-            raise ArgumentError(
-                    f'Invalid grid "{grid}", supported are {sup}')
-        if precision not in self.precisions:
-            sup = ', '.join(f'"{p}"' for p in self.precisions)
-            raise ArgumentError(
-                    f'Invalid precision "{precision}", supported are {sup}')
-        if backend not in self.backends:
-            sup = ', '.join(f'"{b}"' for b in self.backends)
-            raise ArgumentError(
-                    f'Invalid backend "{backend}", supported are {sup}')
+    def __init__(self, config):
         self.config = config
-        self.grid = grid
-        self.precision = precision
-        self.backend = backend
-        self.stencils = stencils.load(grid)
+
+        # Import build information
+        self.grid = buildinfo.grid
+        self.precision = buildinfo.precision
+        self.backend = buildinfo.backend
+
+        self.stencils = stencils.load(self.grid)
 
     def run(self, domain, runs):
         """Method to run all stencils on the given `domain` size.
@@ -92,7 +90,7 @@ class Runtime(metaclass=abc.ABCMeta):
 
     def __str__(self):
         return (f'Runtime(name={self.name}, version={self.version}, '
-                f'datetime={self.datetime}, path={self.path})')
+                f'datetime={self.datetime})')
 
     @property
     def name(self):
@@ -109,9 +107,8 @@ class Runtime(metaclass=abc.ABCMeta):
         """(Build or commit) date of the software as a string."""
         pass
 
-    @abc.abstractmethod
-    def path(self):
-        """Base path of all binaries."""
+    @abc.abstractproperty
+    def compiler(self):
         pass
 
     @abc.abstractmethod
@@ -127,9 +124,6 @@ class Runtime(metaclass=abc.ABCMeta):
 
 class StellaRuntimeBase(Runtime):
     """Base class for all STELLA runtimes."""
-    grids = ['strgrid']
-    precisions = ['float', 'double']
-    backends = ['cuda', 'host']
 
     def binary(self, stencil):
         """STELLA binary path."""
@@ -146,32 +140,50 @@ class StellaRuntimeBase(Runtime):
         filt = stencil.stella_filter
         return f'{binary} --ie {ni} --je {nj} --ke {nk} --gtest_filter={filt}'
 
+    @abc.abstractproperty
+    def path(self):
+        pass
 
-class GridtoolsRuntimeBase(Runtime):
-    """Base class for all Gridtools runtimes."""
-    grids = ['strgrid', 'icgrid']
-    precisions = ['float', 'double']
-    backends = ['cuda', 'host']
+
+class GridtoolsRuntime(Runtime):
+    """Gridtools runtime class."""
+
+    def __init__(self, config):
+        super().__init__(config)
+
+        # Import more gridtools-related build information
+        self.source_dir = buildinfo.source_dir
+        self.binary_dir = buildinfo.binary_dir
+        self._compiler = buildinfo.compiler
+
+        if buildinfo.build_type != 'release':
+            logger.warning('You are running perftests with non-release build')
+
+    @property
+    def compiler(self):
+        return self._compiler
 
     @property
     def version(self):
         """Gridtools git commit hash."""
+        srcdir = self.source_dir
         return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
-                                       cwd=self.path).decode().strip()
+                                       cwd=srcdir).decode().strip()
 
     @property
     def datetime(self):
         """Gridtools git commit date and time."""
         commit = self.version
+        srcdir = self.source_dir
         posixtime = subprocess.check_output(['git', 'show', '-s',
                                              '--format=%ct', commit],
-                                            cwd=self.path).decode().strip()
+                                            cwd=srcdir).decode().strip()
         return time.from_posix(posixtime)
 
     def binary(self, stencil):
         """Stencil-dependent Gridtools binary path."""
         binary = getattr(stencil, 'gridtools_' + self.backend.lower())
-        binary = os.path.join(self.path, binary)
+        binary = os.path.join(self.binary_dir, binary)
         if not os.path.isfile(binary):
             raise NotFoundError(f'Could not find GridTools binary at {binary}')
         return binary

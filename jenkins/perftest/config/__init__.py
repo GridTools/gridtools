@@ -5,7 +5,7 @@ import platform
 import re
 
 from perftest import ConfigError, logger
-from perftest.runtime import Runtime
+from perftest.runtime import GridtoolsRuntime, Runtime
 
 
 def hostname():
@@ -83,6 +83,9 @@ class Config:
             The instantiated runtime object.
         """
         logger.debug(f'Trying to get runtime "{runtime}"')
+        if runtime == 'gridtools':
+            return GridtoolsRuntime(self)
+
         for k, v in self._config.__dict__.items():
             if isinstance(v, type) and (issubclass(v, Runtime) and
                                         v is not Runtime):

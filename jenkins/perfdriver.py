@@ -32,7 +32,7 @@ def run(args):
     config = perftest.config.load(args.config)
 
     # get runtime
-    rt = config.runtime(args.runtime, args.grid, args.precision, args.backend)
+    rt = config.runtime(args.runtime)
 
     # run jobs
     result = rt.run(args.domain, args.runs)
@@ -54,18 +54,9 @@ if __name__ == '__main__':
     # command line aguments for `run` action
     run_parser = subparsers.add_parser('run', help='run performance tests')
     run_parser.set_defaults(func=run)
-    run_parser.add_argument('--runtime', '-r', required=True,
+    run_parser.add_argument('--runtime', '-r', default='gridtools',
                             choices=['stella', 'gridtools'],
                             help='runtime system to use')
-    run_parser.add_argument('--backend', '-b', required=True,
-                            choices=['cuda', 'host'],
-                            help='backend to use')
-    run_parser.add_argument('--grid', '-g', required=True,
-                            choices=['strgrid', 'icgrid'],
-                            help='grid type, structured or icosahedral')
-    run_parser.add_argument('--precision', '-p', required=True,
-                            choices=['float', 'double'],
-                            help='floating point type to use')
     run_parser.add_argument('--domain', '-d', required=True, type=int,
                             nargs=3, metavar=('ISIZE', 'JSIZE', 'KSIZE'),
                             help='domain size (excluding halo)')

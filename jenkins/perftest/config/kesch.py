@@ -19,23 +19,16 @@ class StellaRuntime(runtime.StellaRuntimeBase):
         return time.from_posix(posixtime)
 
     @property
+    def compiler(self):
+        if self.backend == 'cuda':
+            return 'nvcc'
+        else:
+            return 'g++'
+
+    @property
     def path(self):
         return os.path.join('/project', 'c14', 'install', 'kesch', 'stella',
                             'trunk_timers', f'release_{self.precision}', 'bin')
-
-
-class GridtoolsRuntime(runtime.GridtoolsRuntimeBase):
-    @property
-    def path(self):
-        return os.path.join('/scratch', 'jenkins',
-                            'workspace', f'GridTools_{self.grid}_PR',
-                            'build_type', 'release',
-                            'compiler', 'gcc',
-                            'label', 'kesch',
-                            'mpi', 'MPI',
-                            'real_type', self.precision,
-                            'target', 'gpu',
-                            'build')
 
 
 def sbatch(command):
