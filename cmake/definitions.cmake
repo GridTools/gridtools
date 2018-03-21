@@ -8,6 +8,10 @@ if(VERBOSE)
     add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
+## enable boost variadic PP
+## (for nvcc this is not done automatically by boost as it is no tested compiler)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_PP_VARIADICS=1")
+
 ## set boost fusion sizes ##
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
@@ -36,6 +40,9 @@ if(NOT ENABLE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
 endif(NOT ENABLE_CUDA)
 
+## clang tools ##
+find_package(ClangTools)
+
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
@@ -62,7 +69,7 @@ if( ENABLE_CUDA )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   if( ${CUDA_VERSION} VERSION_LESS "80" )
-    error(STATUS "CUDA 7 or lower does not supported")
+    message(ERROR " CUDA 7.X or lower is not supported")
   endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call

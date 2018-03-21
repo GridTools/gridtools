@@ -33,21 +33,28 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include <fstream>
-#include <iostream>
+#include "../host_device.hpp"
 
-#include "c_bindings/generator.hpp"
+namespace gridtools {
+    namespace _impl {
+        template < class List >
+        struct for_each_f;
 
-int main(int argc, const char *argv[]) {
-    if (argc > 3) {
-        std::ofstream dst(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
+        template < template < class... > class L, class... Ts >
+        struct for_each_f< L< Ts... > > {
+            template < class Fun >
+            GT_FUNCTION void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
     }
-    if (argc > 1) {
-        std::ofstream dst(argv[1]);
-        gridtools::c_bindings::generate_c_interface(dst);
-    } else {
-        gridtools::c_bindings::generate_c_interface(std::cout);
-    }
+
+    /// Calls fun(T{}) for each element of the type list List.
+    template < class List, class Fun >
+    GT_FUNCTION Fun for_each(Fun const &fun) {
+        _impl::for_each_f< List >{}(fun);
+        return fun;
+    };
 }

@@ -34,20 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <fstream>
-#include <iostream>
+#include <gtest/gtest.h>
+#include <boost/variant/apply_visitor.hpp>
 
-#include "c_bindings/generator.hpp"
+#include "storage/storage-facility.hpp"
+#include "interface/repository/repository.hpp"
 
-int main(int argc, const char *argv[]) {
-    if (argc > 3) {
-        std::ofstream dst(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
-    }
-    if (argc > 1) {
-        std::ofstream dst(argv[1]);
-        gridtools::c_bindings::generate_c_interface(dst);
-    } else {
-        gridtools::c_bindings::generate_c_interface(std::cout);
-    }
+using namespace gridtools;
+
+using IJKStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 0, 3 >;
+using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJKStorageInfo >;
+using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
+using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
+
+// We include a repository file which is generated from preprocessor output
+#include "@GENERATED_REPOSITORY@"
+
+TEST(generated_repository, simple_tests) {
+    my_repository repo(3, 4, 5);
+    ASSERT_EQ(3, repo.u().dim< 0 >());
 }

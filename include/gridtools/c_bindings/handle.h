@@ -33,21 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include <fstream>
-#include <iostream>
+struct gt_handle;
 
-#include "c_bindings/generator.hpp"
+#ifdef __cplusplus
 
-int main(int argc, const char *argv[]) {
-    if (argc > 3) {
-        std::ofstream dst(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
-    }
-    if (argc > 1) {
-        std::ofstream dst(argv[1]);
-        gridtools::c_bindings::generate_c_interface(dst);
-    } else {
-        gridtools::c_bindings::generate_c_interface(std::cout);
-    }
-}
+extern "C" void gt_release(gt_handle const *);
+
+#else
+
+typedef struct gt_handle gt_handle;
+void gt_release(gt_handle *);
+
+#endif

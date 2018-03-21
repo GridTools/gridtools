@@ -33,13 +33,49 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 /**
- * This is just an example file, that could be some
- * application source code that is using the GridTools
- * library. For further and more detailed examples see
- * examples directory.
- */
+@file
+@brief definition of macros for host/GPU
+*/
+#ifdef _USE_GPU_
+#include <cuda_runtime.h>
+#endif
 
-#include "stencil-composition/stencil-composition.hpp"
+#ifdef __GNUC__
+#define GT_FORCE_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#define GT_FORCE_INLINE inline __forceinline
+#else
+#define GT_FORCE_INLINE inline
+#endif
 
-int main() { return 0; }
+/* @def GT_FUNCTION Function attribute macro to be used for host-device functions. */
+/* @def GT_FUNCTION_HOST Function attribute macro to be used for host-only functions. */
+/* @def GT_FUNCTION_DEVICE Function attribute macro to be used for device-only functions. */
+/* @def GT_FUNCTION_WARNING Function attribute macro to be used for host-only functions that might call a host-device
+ * function. This macro is only needed to supress NVCC warnings. */
+
+#ifndef GT_FUNCTION
+#ifdef __CUDACC__
+/* Function attribute macros for NVCC, see Doxygen comments above for an explanation of the macros. */
+#define GT_FUNCTION __host__ __device__ __forceinline__
+#define GT_FUNCTION_HOST __host__ __forceinline__
+#define GT_FUNCTION_DEVICE __device__ __forceinline__
+#define GT_FUNCTION_WARNING __host__ __device__ __forceinline__
+#else
+/* Function attribute macros for other compilers, see Doxygen comments above for an explanation of the macros. */
+#define GT_FUNCTION GT_FORCE_INLINE
+#define GT_FUNCTION_HOST GT_FORCE_INLINE
+#define GT_FUNCTION_DEVICE GT_FORCE_INLINE
+#define GT_FUNCTION_WARNING GT_FORCE_INLINE
+#endif
+#endif
+
+#ifndef GT_KERNEL
+#ifdef __CUDACC__
+#define GT_KERNEL __global__
+#else
+#define GT_KERNEL
+#endif
+#endif

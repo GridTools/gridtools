@@ -33,21 +33,44 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "gtest/gtest.h"
+#include "Options.hpp"
+#include "interface1_fused.hpp"
 
-#include <fstream>
-#include <iostream>
+int main(int argc, char **argv) {
 
-#include "c_bindings/generator.hpp"
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
 
-int main(int argc, const char *argv[]) {
-    if (argc > 3) {
-        std::ofstream dst(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
+    if (argc < 4) {
+        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
+               "and tstep is the number of timesteps to run in a benchmark run\n");
+        return 1;
     }
-    if (argc > 1) {
-        std::ofstream dst(argv[1]);
-        gridtools::c_bindings::generate_c_interface(dst);
-    } else {
-        gridtools::c_bindings::generate_c_interface(std::cout);
+
+    for (int i = 0; i != 3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
     }
+
+    if (argc > 4) {
+        Options::getInstance().m_size[3] = atoi(argv[4]);
+    }
+    if (argc == 6) {
+        if ((std::string(argv[5]) == "-d"))
+            Options::getInstance().m_verify = false;
+    }
+    return RUN_ALL_TESTS();
+}
+
+TEST(HorizontalDiffusion, Test) {
+    uint_t x = Options::getInstance().m_size[0];
+    uint_t y = Options::getInstance().m_size[1];
+    uint_t z = Options::getInstance().m_size[2];
+    uint_t t = Options::getInstance().m_size[3];
+    bool verify = Options::getInstance().m_verify;
+
+    if (t == 0)
+        t = 1;
+
+    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
 }

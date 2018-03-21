@@ -233,8 +233,9 @@ namespace gridtools {
             T external_ptr,
             ownership own = ownership::ExternalCPU,
             std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length(), external_ptr, own)),
-              m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
+            : m_shared_storage(
+                  (info.length() == 0) ? nullptr : (new storage_t(info.padded_total_length(), external_ptr, own))),
+              m_shared_storage_info((info.length() == 0) ? nullptr : (new storage_info_t(info))), m_name(name) {}
 
         // Explicit defaulting prevents nvcc to implicitly generate them with __device__
         data_store(data_store &&other) = default;
