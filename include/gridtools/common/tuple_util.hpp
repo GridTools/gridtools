@@ -344,7 +344,7 @@ namespace gridtools {
         }
 
         /// like boost::fusion::transform, but not lazy and can take any number of tuples as input.
-        //  in case of multiple inputs all inputs have the same size obviously.
+        ///  in case of multiple inputs all inputs have the same size obviously.
         template < class Fun, class Tup, class... Tups >
         auto transform(Fun &&fun, Tup &&tup, Tups &&... tups) GT_AUTO_RETURN(_impl::transform_f< Fun >{
             std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...));
