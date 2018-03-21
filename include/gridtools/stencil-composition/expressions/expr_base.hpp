@@ -69,9 +69,10 @@ namespace gridtools {
             meta::is_instantiation_of< expr >::apply< Arg >::value || is_accessor< Arg >::value ||
                 is_global_accessor< Arg >::value || is_global_accessor_with_arguments< Arg >::value >;
 
-        template < class Op, class... Args >
-        GT_FUNCTION constexpr typename std::enable_if< meta::disjunction< expr_or_accessor< Args >... >::value,
-            expr< Op, Args... > >::type make_expr(Op, Args... args) {
+        template < class Op,
+            class... Args,
+            typename std::enable_if< meta::disjunction< expr_or_accessor< Args >... >::value, int >::type = 0 >
+        GT_FUNCTION constexpr expr< Op, Args... > make_expr(Op, Args... args) {
             return {args...};
         }
 
