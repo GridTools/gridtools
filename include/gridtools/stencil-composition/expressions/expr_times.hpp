@@ -42,6 +42,12 @@
 namespace gridtools {
     namespace expressions {
 
+        /** \ingroup stencil-composition
+            @{
+            \ingroup expressions
+            @{
+        */
+
         struct times_f {
             template < class Lhs, class Rhs >
             GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs *rhs);
@@ -49,5 +55,7 @@ namespace gridtools {
 
         template < class Lhs, class Rhs >
         GT_FUNCTION constexpr auto operator*(Lhs lhs, Rhs rhs)GT_AUTO_RETURN(make_expr(times_f{}, lhs, rhs));
+        /** @} */
+        /** @} */
     }
 }

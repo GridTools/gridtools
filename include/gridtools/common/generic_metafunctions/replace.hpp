@@ -40,6 +40,13 @@
 #include <boost/mpl/erase.hpp>
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup mplutil
+        @{
+    */
 
     /*
      * Replace in a sequence the element in the given position by another element
@@ -55,5 +62,8 @@ namespace gridtools {
 
         typedef typename boost::mpl::erase< inserted_seq, iter2_t >::type type;
     };
+    /** @} */
+    /** @} */
+    /** @} */
 
 } // gridtools

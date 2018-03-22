@@ -36,11 +36,30 @@
 #pragma once
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup allmeta Generic Metafunctions
+
+        Set of generic funcionalities to deal with types.
+        @{
+        \defgroup staticif Static If
+        @{
+    */
+
     /** method replacing the operator ? which selects a branch at compile time and
-     allows to return different types whether the condition is true or false */
+        allows to return different types whether the condition is true or false.
+        The use is
+
+        \code
+        auto x = static_if<BOOL>::apply(true_val_of_typeA, false_val_of_value_B);
+        \endcode
+
+        \tparam Condition The evaluated boolean condition
+    */
     template < bool Condition >
     struct static_if;
 
+    /// \private
     template <>
     struct static_if< true > {
         template < typename TrueVal, typename FalseVal >
@@ -59,6 +78,7 @@ namespace gridtools {
         }
     };
 
+    /// \private
     template <>
     struct static_if< false > {
         template < typename TrueVal, typename FalseVal >
@@ -71,4 +91,7 @@ namespace gridtools {
             false_val();
         }
     };
+    /** @} */
+    /** @} */
+    /** @} */
 }

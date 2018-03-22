@@ -38,6 +38,14 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup fusionutil Fusion Library Utilities
+        @{
+    */
+
     /**
        Metafunction that checks that an index is not out of bounds for a fusion vector
 
@@ -49,4 +57,8 @@ namespace gridtools {
         static const bool value =
             IndexType::value >= 0 && IndexType::value < boost::fusion::result_of::size< FusionVector >::type::value;
     };
+    /** @} */
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

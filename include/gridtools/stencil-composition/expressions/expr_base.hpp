@@ -43,8 +43,13 @@
 
 namespace gridtools {
 
-    /** \section expressions Expressions Definition
+    /** \ingroup stencil-composition
         @{
+        \ingroup expressions
+        @{
+    */
+
+    /** Expressions Definition
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
     */
@@ -98,4 +103,6 @@ namespace gridtools {
                 GT_AUTO_RETURN(Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs)));
         }
     }
+    /** @} */
+    /** @} */
 }

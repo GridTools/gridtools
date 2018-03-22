@@ -33,7 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
 #include "../../common/defs.hpp"
@@ -43,6 +42,11 @@
 namespace gridtools {
     namespace expressions {
 
+        /** \ingroup stencil-composition
+            @{
+            \ingroup expressions
+            @{
+        */
         template < int I >
         struct pow_f {
             template < class Arg >
@@ -52,5 +56,7 @@ namespace gridtools {
 
         template < int I, class Arg >
         GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f< I >{}, arg));
+        /** @} */
+        /** @} */
     }
 }

@@ -48,6 +48,11 @@
 #include "generic_metafunctions/sequence_unpacker.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup layout
+        @{
+    */
 
     template < typename LayoutMap >
     struct reverse_map;
@@ -206,4 +211,6 @@ namespace gridtools {
 
         typedef typename build_ext_layout< seq, impl::inc_< Args, NExtraDim >::value... >::type type;
     };
+    /** @} */
+    /** @} */
 }

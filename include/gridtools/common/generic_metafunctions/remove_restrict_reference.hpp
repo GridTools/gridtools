@@ -36,6 +36,14 @@
 #pragma once
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup removerestrict Remove Restrict Qualifier
+        @{
+    */
+
     /**
      * type trait that removes __restrict__ qualifier from a type
      */
@@ -48,4 +56,7 @@ namespace gridtools {
     struct remove_restrict_reference< T & RESTRICT > {
         typedef T type;
     };
+    /** @} */
+    /** @} */
+    /** @} */
 }

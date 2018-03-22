@@ -34,6 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+/** \ingroup common
+    @{
+*/
+
+/** \ingroup fixes
+    @{
+*/
+
 #if (!defined(BOOST_PP_VARIADICS) || (BOOST_PP_VARIADICS < 1))
 // defining BOOST_PP_VARIADICS 1 here might be too late, therefore we leave it to the user
 #error \
@@ -91,3 +99,6 @@
  * @brief takes any number of parameters and expands to nothing
  */
 #define GRIDTOOLS_PP_EMPTY(...)
+
+/** @} */
+/** @} */

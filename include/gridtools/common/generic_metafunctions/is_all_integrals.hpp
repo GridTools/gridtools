@@ -40,6 +40,14 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup variadic Variadic Pack Utilities
+        @{
+    */
+
     /* check if all given types are integral types */
     template < typename... IntTypes >
     using is_all_integral = meta::conjunction< std::is_integral< IntTypes >... >;
@@ -50,4 +58,7 @@ namespace gridtools {
 
     template < typename... IntTypes >
     using is_all_integral_or_enum = meta::conjunction< is_integral_or_enum< IntTypes >... >;
+    /** @} */
+    /** @} */
+    /** @} */
 }

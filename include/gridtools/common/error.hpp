@@ -42,6 +42,11 @@
 #include "defs.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup error Error Handling
+        @{
+    */
 
     /**
      * @brief This struct is used to trigger runtime errors. The reason
@@ -80,4 +85,7 @@ namespace gridtools {
     GT_FUNCTION constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
         return cond ? res : error::trigger< T >(msg);
     }
+
+    /** @} */
+    /** @} */
 }

@@ -41,6 +41,12 @@
 */
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup topology Topology Utilities
+        @{
+    */
+
     namespace topology {
 
         /**@brief cartesian topology
@@ -59,5 +65,8 @@ namespace gridtools {
       public:
         static const ushort_t space_dimensions = Layout::masked_length;
     };
+
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

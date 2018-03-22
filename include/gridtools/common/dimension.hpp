@@ -38,6 +38,12 @@
 #include "host_device.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup dimension Dimension
+        @{
+    */
+
     /**
        @section enumtype
        @{
@@ -98,4 +104,6 @@ namespace gridtools {
     template <>
     struct all_dimensions<> : boost::mpl::true_ {};
 
+    /** @} */
+    /** @} */
 } // namespace gridtools

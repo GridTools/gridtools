@@ -41,6 +41,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup vectrait Vector Traits
+        @{
+    */
+
     template < class N >
     struct is_vector : boost::mpl::false_ {};
 

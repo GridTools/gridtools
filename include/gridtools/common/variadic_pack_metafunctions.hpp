@@ -47,6 +47,11 @@
 #include "defs.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup Variadic Pack Metafunctions
+        @{
+    */
 
     /**
      *  @brief helper metafunction class that is used to retrieve a value
@@ -61,10 +66,7 @@ namespace gridtools {
         }
     };
 
-    /**
-     *  @brief helper metafunction class that is used to retrieve a value
-     *  at a given index of a variadic pack. (base case)
-     */
+    /// \private
     template <>
     struct get_value_from_pack_functor< 0 > {
         template < typename First, typename... Dims >
@@ -103,10 +105,7 @@ namespace gridtools {
         }
     };
 
-    /**
-     *  @brief helper metafunction class that is used to retrieve the index
-     *  of a variadic pack element. (base case)
-     */
+    /// \private
     template <>
     struct get_index_of_element_in_pack_functor< 0 > {
         template < typename First, typename... Dims >
@@ -130,15 +129,24 @@ namespace gridtools {
         return get_index_of_element_in_pack_functor< sizeof...(Rest) >::apply(start_index, needle, r...);
     }
 
-    /*
-     * @brief returns true if values are a continuous sequence of integers
-     */
+    /// \private
     template < typename First >
     GT_FUNCTION constexpr bool is_continuous(First first) {
         return true;
     }
+
+    /*
+     * @brief returns true if values are a contiguous sequence of integers
+     * @param first Variadic list of integral values. Requires at least two values
+     *
+     * \param first First mandatory argument
+     * \param second Second mandatory argument
+     * \param rest Rest of values
+     */
     template < typename First, typename Second, typename... Rest >
     GT_FUNCTION constexpr bool is_continuous(First first, Second second, Rest... rest) {
         return (first + 1 == second) ? (true && is_continuous(second, rest...)) : false;
     }
+    /** @} */
+    /** @} */
 }

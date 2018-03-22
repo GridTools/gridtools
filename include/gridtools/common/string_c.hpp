@@ -39,6 +39,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup stringc Compile Time String
+        @{
+    */
+
     /**@file
     @brief implementation of a compile time string.
 
@@ -132,4 +138,6 @@ namespace gridtools {
         strcpy(dst, src);
         return dst;
     }
+    /** @} */
+    /** @} */
 } // namespace gridtools

@@ -48,6 +48,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup layout Layout Map
+        @{
+    */
+
     template < int... Args >
     struct layout_map {
       private:
@@ -128,4 +134,7 @@ namespace gridtools {
 
     template < int... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
+
+    /** @} */
+    /** @} */
 }

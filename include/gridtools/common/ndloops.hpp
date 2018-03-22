@@ -46,6 +46,12 @@ Recursive templates used to perform compile-time loop unrolling
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup ndloops n-Dimensional Loops
+        @{
+    */
+
     /** @brief Product of all the elements of a generic array accessed with the [] operator, whose dimension is a
      * compile-time constant*/
     template < int_t D >
@@ -173,6 +179,8 @@ namespace gridtools {
         }
     };
 
-} // namespace GCL
+    /** @} */
+    /** @} */
+} // namespace gridtools
 
 #endif

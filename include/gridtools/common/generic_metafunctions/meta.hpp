@@ -35,79 +35,89 @@
 */
 #pragma once
 
-/**
- *  @file
- *  Minimalistic C++11 metaprogramming library.
- *
- *  Basic Concepts
- *  ==============
- *
- *  List
- *  ----
- *  An instantiation of the template class with class template parameters.
- *
- *  Examples of lists:
- *    meta::list<void, int> : elements are void and int
- *    std::tuple<double, double> : elements are double and double
- *    std::vector<std::tuple<>, some_allocator>: elements are std::tuple<> and some_allocator
- *
- *  Examples of non lists:
- *    std::array<N, double> : first template argument is not a class
- *    int : is not the instantiation of template
- *    struct foo; is not an instantiation of template;
- *
- *  Function
- *  --------
- *  A template class or alias with class template parameters.
- *  Note the difference with MPL approach: function is not required to have `type` inner alias.
- *  Functions that have `type` inside are called lazy functions in the context of this library.
- *  The function arguments are the actual parameters of the instantiation: Arg1, Arg2 etc. in F<Arg1, Arg2 etc.>
- *  The function invocation result is just F<Arg1, Arg2 etc.> not F<Arg1, Arg2 etc.>::type.
- *  This simplification of the function concepts (comparing with MPL) is possible because of C++ aliases.
- *  And it is significant for compile time performance.
- *
- *  Examples of functions:
- *    - std::is_same
- *    - std::pair
- *    - std::tuple
- *    - meta::t_
- *    - meta::list
- *    - meta::is_list
- *
- *  Examples of non functions:
- *    - std::array : first parameter is not a class
- *    - meta::list<int> : is not a template
- *
- *  Meta Class
- *  ----------
- *  A class that have `apply` inner class or alias, which is function.
- *  Meta classes are used to return functions from functions.
- *
- *  Examples:
- *    - meta::always<void>
- *    - meta::rename<std::tuple>
- *
- *  Meta Function
- *  -------------
- *  A template class or alias with template of class class template parameters.
- *  Examples of metafuction signatures:
- *  template <template <class...> class> struct foo;
- *  template <template <class...> class, template <class...> class> struct bar;
- *  template <template <class...> class...> struct baz;
- *
- *  Examples:
- *    - meta::rename
- *    - meta::lfold
- *    - meta::is_instantiation_of
- */
-
 #include <functional>
 #include <type_traits>
 
 #include "gt_integer_sequence.hpp"
 
 namespace gridtools {
+
     namespace meta {
+        /** \ingroup common
+            @{
+            \ingroup allmeta
+            @{
+        */
+
+        /** \defgroup meta Meta Library
+         *
+         *  Minimalistic C++11 metaprogramming library.
+         *
+         *  Basic Concepts
+         *  ==============
+         *
+         *  List
+         *  ----
+         *  An instantiation of the template class with class template parameters.
+         *
+         *  Examples of lists:
+         *    meta::list<void, int> : elements are void and int
+         *    std::tuple<double, double> : elements are double and double
+         *    std::vector<std::tuple<>, some_allocator>: elements are std::tuple<> and some_allocator
+         *
+         *  Examples of non lists:
+         *    std::array<N, double> : first template argument is not a class
+         *    int : is not the instantiation of template
+         *    struct foo; is not an instantiation of template;
+         *
+         *  Function
+         *  --------
+         *  A template class or alias with class template parameters.
+         *  Note the difference with MPL approach: function is not required to have `type` inner alias.
+         *  Functions that have `type` inside are called lazy functions in the context of this library.
+         *  The function arguments are the actual parameters of the instantiation: Arg1, Arg2 etc. in F<Arg1, Arg2 etc.>
+         *  The function invocation result is just F<Arg1, Arg2 etc.> not F<Arg1, Arg2 etc.>::type.
+         *  This simplification of the function concepts (comparing with MPL) is possible because of C++ aliases.
+         *  And it is significant for compile time performance.
+         *
+         *  Examples of functions:
+         *    - std::is_same
+         *    - std::pair
+         *    - std::tuple
+         *    - meta::t_
+         *    - meta::list
+         *    - meta::is_list
+         *
+         *  Examples of non functions:
+         *    - std::array : first parameter is not a class
+         *    - meta::list<int> : is not a template
+         *
+         *  Meta Class
+         *  ----------
+         *  A class that have `apply` inner class or alias, which is function.
+         *  Meta classes are used to return functions from functions.
+         *
+         *  Examples:
+         *    - meta::always<void>
+         *    - meta::rename<std::tuple>
+         *
+         *  Meta Function
+         *  -------------
+         *  A template class or alias with template of class class template parameters.
+         *  Examples of metafuction signatures:
+         *  template <template <class...> class> struct foo;
+         *  template <template <class...> class, template <class...> class> struct bar;
+         *  template <template <class...> class...> struct baz;
+         *
+         *  Examples:
+         *    - meta::rename
+         *    - meta::lfold
+         *    - meta::is_instantiation_of
+         */
+
+        /** \ingroup meta
+         * @{
+         */
 
         /**
          *  Call the function that is wrapped with the given MetaClass with the given Args
@@ -804,5 +814,8 @@ namespace gridtools {
 
         template < template < class... > class L, class... Ts >
         struct is_set_fast< L< Ts... >, void_t< decltype(inherit_impl< lazy< Ts >... >{}) > > : std::true_type {};
+        /** @} */
+        /** @} */
+        /** @} */
     }
 }

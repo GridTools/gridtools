@@ -38,6 +38,10 @@
 #include "array.hpp"
 
 namespace gridtools {
+    /** \defgroup common Common Shared Utilities
+        @{
+     */
+
     namespace impl_ {
         template < typename ForceType, typename... Types >
         struct forced_or_common_type {
@@ -50,6 +54,23 @@ namespace gridtools {
         };
     }
 
+    /** \ingroup array
+        @{
+    */
+
+    /** \brief Facility to make an array given a variadic list of
+        values.
+
+        Facility to make an array given a variadic list of
+        values.An explicit template argument can be used to force the
+        value type of the array. The list of values passed to the
+        function must have a common type or be covertible to the
+        explici value type if that is specified. The size of the array
+        is the length of the list of values.
+
+        \tparam ForceType Value type of the resulting array (optional)
+        \param values List of values to put in the array. The length of the list set the size of the array.
+     */
     template < typename ForceType = void, typename... Types >
     constexpr GT_FUNCTION
         gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
@@ -57,4 +78,7 @@ namespace gridtools {
         return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
             static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
     }
+
+    /** @} */
+    /** @} */
 }
