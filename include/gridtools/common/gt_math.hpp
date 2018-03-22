@@ -39,6 +39,12 @@
 #include <math.h>
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup math Mathematical Functions
+        @{
+    */
+
     /**@brief Class in substitution of std::pow, not available in CUDA*/
     template < uint_t Number >
     struct gt_pow {
@@ -152,4 +158,6 @@ namespace gridtools {
 
     } // namespace math
 
+    /** @} */
+    /** @} */
 } // namespace gridtools

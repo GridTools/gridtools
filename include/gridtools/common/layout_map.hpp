@@ -51,6 +51,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup layout Layout Map
+        @{
+    */
+
     template < int... Args >
     struct layout_map {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
@@ -108,4 +114,7 @@ namespace gridtools {
 
     template < int... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
+
+    /** @} */
+    /** @} */
 }

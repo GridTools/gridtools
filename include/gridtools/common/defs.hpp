@@ -35,6 +35,12 @@
 */
 #pragma once
 
+/** \ingroup common
+    @{
+    \defgroup defs Common Definitions
+    @{
+*/
+
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
@@ -142,6 +148,10 @@ namespace gridtools {
  * functionalities
  */
 namespace gridtools {
+    /** \ingroup defs
+        @{
+    */
+
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
@@ -329,4 +339,9 @@ namespace gridtools {
     template < bool B >
     using static_bool = std::integral_constant< bool, B >;
 
+    /** @} */
+
 } // namespace gridtools
+
+/** @} */
+/** @} */

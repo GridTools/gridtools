@@ -44,6 +44,12 @@
 */
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup boollist List of Booleans
+        @{
+    */
+
     /**
        The following class describes a boolean list of length N.
        This is used in proc_grids.
@@ -111,4 +117,6 @@ namespace gridtools {
                 m_value[LayoutMap::template find< 2 >()]);
         }
     };
+    /** @} */
+    /** @} */
 }

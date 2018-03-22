@@ -41,10 +41,20 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup variadic
+        @{
+    */
     /**@brief specialization to stop the recursion*/
     template < typename... Args >
     GT_FUNCTION static constexpr bool is_variadic_pack_of(Args... args) {
         return accumulate(logical_and(), args...);
     }
+    /** @} */
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

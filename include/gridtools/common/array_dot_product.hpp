@@ -37,6 +37,14 @@
 #include "array.hpp"
 
 namespace gridtools {
+    /** \defgroup common Common Shared Utilities
+        @{
+     */
+
+    /** \ingroup array
+        @{
+    */
+
     /**
      * @brief dot product for gridtools::array (enabled for all arithmetic types)
      */
@@ -48,4 +56,8 @@ namespace gridtools {
         }
         return result;
     }
+
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

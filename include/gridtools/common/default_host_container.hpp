@@ -43,6 +43,11 @@
 #include <boost/mpl/copy.hpp>
 
 #include "defs.hpp"
+/** \ingroup common
+    @{
+    \defgroup dummy_default Default and dummy values
+    @{
+*/
 
 /**
  *   Make "default constructed" fusion sequence without NVCC warnings even if the types of in that sequence are
@@ -54,3 +59,5 @@ T default_host_container() {
     using tuple_t = typename boost::mpl::copy< T, boost::mpl::back_inserter< std::tuple<> > >::type;
     return tuple_t{};
 }
+/** @} */
+/** @} */

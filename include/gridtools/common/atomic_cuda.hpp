@@ -37,6 +37,12 @@
 #include "cuda_runtime.h"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup atomic
+        @{
+    */
+
     /**
     * @class atomic_cuda
     * generic implementation for CUDA that provides atomic functions
@@ -259,4 +265,6 @@ namespace gridtools {
     struct get_atomic_helper {
         typedef atomic_cuda< T > type;
     };
+    /** @} */
+    /** @} */
 } // namespace gridtools

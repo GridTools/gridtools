@@ -38,6 +38,14 @@
 #include <vector>
 
 namespace gridtools {
+    /** \ingroup common Common Shared Utilities
+        @{
+     */
+
+    /** \ingroup array
+        @{
+    */
+
     template < typename T, size_t D >
     std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
         s << " {  ";
@@ -72,7 +80,19 @@ namespace gridtools {
             };
         };
     }
+
+    /** @} */
+    /** @} */
+
 } // namespace gridtools
+
+/** \ingroup common Common Shared Utilities
+    @{
+*/
+
+/** \ingroup array
+    @{
+*/
 
 template < typename T, typename U, size_t D >
 bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
@@ -87,3 +107,6 @@ bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > c
     std::sort(b0.begin(), b0.end());
     return std::equal(a0.begin(), a0.end(), b0.begin());
 }
+
+/** @} */
+/** @} */

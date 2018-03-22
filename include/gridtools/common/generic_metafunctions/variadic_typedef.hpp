@@ -38,6 +38,19 @@
 #include "../host_device.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup variadic
+        @{
+    */
+
+    /**
+     * metafunction is to simply "store" a variadic pack. A typical use case is when we need to typedef a variadic pack
+     * template<typename ... Args>
+     * struct a { typedef variadic_typedef<Args...> type; }
+     */
     template < typename... Args >
     struct variadic_typedef;
 
@@ -55,11 +68,7 @@ namespace gridtools {
         };
     }
 
-    /**
-     * metafunction is to simply "store" a variadic pack. A typical use case is when we need to typedef a variadic pack
-     * template<typename ... Args>
-     * struct a { typedef variadic_typedef<Args...> type; }
-     */
+    /// \private
     template < typename First, typename... Args >
     struct variadic_typedef< First, Args... > {
 
@@ -79,6 +88,7 @@ namespace gridtools {
         static constexpr ushort_t length = sizeof...(Args) + 1;
     };
 
+    /// \private
     template <>
     struct variadic_typedef<> {
 
@@ -109,6 +119,7 @@ namespace gridtools {
         }
     };
 
+    /// \private
     template <>
     struct get_from_variadic_pack< 0 > {
         template < typename First, typename... Accessors >
@@ -116,4 +127,8 @@ namespace gridtools {
             return first;
         }
     };
+    /** @} */
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

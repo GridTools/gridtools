@@ -47,6 +47,14 @@
 * Namespace providing a set of atomic functions working for all backends
 */
 namespace gridtools {
+    /** \ingroup common Common Shared Utilities
+        @{
+     */
+
+    /** \defgroup atomic Atomic Functions
+        @{
+    */
+
     /**
     * Function computing an atomic addition
     * @param var reference to variable where the addition is performed
@@ -101,4 +109,7 @@ namespace gridtools {
     GT_FUNCTION T atomic_max(T &var, const T val) {
         return get_atomic_helper< T >::type::atomic_max(var, val);
     }
+
+    /** @} */
+    /** @} */
 }

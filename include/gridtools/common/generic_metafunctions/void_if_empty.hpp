@@ -39,10 +39,21 @@
 #include <boost/mpl/if.hpp>
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup mplutil
+        @{
+    */
+
     /**
      * Replaces an mpl sequence by void_ if the sequence is empty. Otherwise, CUDA will complain about a non-empty
      * ctor if used in shared memory.
      */
     template < typename T >
     using void_if_empty_t = typename boost::mpl::if_< boost::mpl::size< T >, T, boost::mpl::void_ >::type;
+    /** @} */
+    /** @} */
+    /** @} */
 }

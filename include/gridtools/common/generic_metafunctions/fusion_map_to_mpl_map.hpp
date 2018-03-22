@@ -41,10 +41,16 @@
 #include <boost/fusion/include/mpl.hpp>
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup fusionutil
+        @{
+    */
 
     /**
-     * @struct fusion_map_to_mpl_map
-     * extract an mpl map from a fusion map
+     * \brief extract an mpl map from a fusion map
      */
     template < typename FusionMap >
     struct fusion_map_to_mpl_map {
@@ -58,5 +64,8 @@ namespace gridtools {
             boost::mpl::map0<>,
             insert_pair_to_map< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
+    /** @} */
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

@@ -64,6 +64,14 @@ namespace gridtools {
         }
     }
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup variadic
+        @{
+    */
+
     /*
      * @struct accumulate_tparams_until
      * will accumulate (using the LogicalOp) the result of BinaryOp over the template parameters of First and Second,
@@ -92,4 +100,7 @@ namespace gridtools {
         static constexpr bool value = impl::accumulate_tparams_until_(
             BinaryOp(), LogicalOp(), Limit, 0, pair< int_t, int_t >(FirstVals, SecondVals)...);
     };
+    /** @} */
+    /** @} */
+    /** @} */
 }

@@ -44,6 +44,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup fixes External Library Fixes
+        @{
+    */
+
     /**
      *  Here go generators for the fusion views that do the right C++11 perfect forwarding.
      */
@@ -64,4 +70,6 @@ namespace gridtools {
     static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
         return {std::forward< Secs >(secs)};
     };
+    /** @} */
+    /** @} */
 }

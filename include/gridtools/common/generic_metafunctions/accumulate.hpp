@@ -47,6 +47,13 @@
 */
 namespace gridtools {
 
+/** \ingroup common
+    @{
+    \ingroup allmeta
+    @{
+    \defgroup accumulate Accumulate
+    @{
+*/
 /*
  * find/replace constexpr_max(...) -> max({...}) once we are c++14
  */
@@ -134,5 +141,8 @@ namespace gridtools {
         return first;
     }
 #endif
+    /** @} */
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

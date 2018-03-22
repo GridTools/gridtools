@@ -38,6 +38,14 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup ispredicate Is_Predicate Predicate
+        @{
+    */
+
     /*
      * @struct is_meta_predicate
      * Check if it yields true_type or false_type
@@ -47,4 +55,7 @@ namespace gridtools {
 
     template < typename Pred >
     struct is_meta_predicate< Pred, typename std::enable_if< Pred::value || true >::type > : std::true_type {};
+    /** @} */
+    /** @} */
+    /** @} */
 }

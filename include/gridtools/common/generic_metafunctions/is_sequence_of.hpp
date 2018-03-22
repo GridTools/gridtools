@@ -43,6 +43,14 @@
 #include <boost/type_traits/is_same.hpp>
 #include <boost/mpl/is_sequence.hpp>
 
+/** \ingroup common
+    @{
+    \ingroup allmeta
+    @{
+    \defgroup mplutil MPL Utilities
+    @{
+*/
+
 /*
  * @struct is_sequence_of
  * metafunction that determines if a mpl sequence is a sequence of types determined by the filter
@@ -65,3 +73,6 @@ struct is_sequence_of {
 
     BOOST_STATIC_CONSTANT(bool, value = (type::value));
 };
+/** @} */
+/** @} */
+/** @} */
