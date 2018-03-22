@@ -46,17 +46,17 @@ namespace gridtools {
     namespace _impl {
         template < class T >
         class default_precision {
-            static double value;
+            static const double value;
 
           public:
-            operator double() const { return value; }
+            GT_FUNCTION operator double() const { return value; }
         };
 
         template <>
-        double default_precision< float >::value = 1e-6;
+        const double default_precision< float >::value = 1e-6;
 
         template <>
-        double default_precision< double >::value = 1e-14;
+        const double default_precision< double >::value = 1e-14;
     }
 
     template < typename value_type >
