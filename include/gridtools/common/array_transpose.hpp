@@ -35,60 +35,38 @@
 */
 #pragma once
 #include "array.hpp"
-#include <vector>
-#include <array>
+#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
-    template < typename T, size_t D >
-    std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
-        s << " {  ";
-        for (int i = 0; i < D - 1; ++i) {
-            s << a[i] << ", ";
+    //    template < typename T, size_t D, typename std::enable_if< std::is_arithmetic< T >::value, T >::type = 0 >
+
+    namespace impl_ {
+
+        template < typename T >
+        using get_inner_type = typename std::decay< decltype(get< 0 >(get< 0 >(T{}))) >::type;
+
+        template < typename T >
+        constexpr size_t inner_dim(const T &a) {
+            return tuple_size< typename std::decay< decltype(get< 0 >(a)) >::type >::value;
         }
-        s << a[D - 1] << "  } ";
 
-        return s;
-    }
-
-    template < typename T, size_t D >
-    std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v(D);
-        for (int i = 0; i < D; ++i) {
-            v.at(i) = a[i];
+        template < size_t InnerIndex, typename Container, size_t... OuterIndices >
+        array< get_inner_type< Container >, sizeof...(OuterIndices) > make_inner_array(
+            const Container &a, gt_index_sequence< OuterIndices... >) {
+            return {{get< InnerIndex >(get< OuterIndices >(a))...}};
         }
-        return v;
+
+        template < typename Container, size_t... InnerIndices >
+        auto transpose_impl(const Container &a, gt_index_sequence< InnerIndices... >) GT_AUTO_RETURN(
+            (array< array< get_inner_type< Container >, tuple_size< Container >::value >, sizeof...(InnerIndices) >{
+                make_inner_array< InnerIndices >(a, make_gt_index_sequence< tuple_size< Container >::value >())...}));
     }
 
-    namespace impl {
-        template < typename Value >
-        struct array_initializer {
-            template < int Idx >
-            struct type {
-                constexpr GT_FUNCTION type() {}
+    /**
+     * @brief transposes array<array<T,InnerDim>,OuterDim> into array<array<T,OuterDim>,InnerDim>
+     */
+    template < typename Container >
+    auto transpose(const Container &a)
+        GT_AUTO_RETURN((impl_::transpose_impl(a, make_gt_index_sequence< impl_::inner_dim(Container{}) >())));
 
-                template < long unsigned int ndims >
-                constexpr GT_FUNCTION static Value apply(const std::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-                template < long unsigned int ndims >
-                constexpr GT_FUNCTION static Value apply(const gridtools::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-            };
-        };
-    }
 } // namespace gridtools
-
-template < typename T, typename U, size_t D >
-bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
-
-    // sort and check for equivalence
-    gridtools::array< T, D > a0 = a;
-    gridtools::array< U, D > b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
-}

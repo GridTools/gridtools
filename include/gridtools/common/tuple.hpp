@@ -40,6 +40,7 @@
  * In order to use with more complex types (non constexprable), a version returning by ref should be used instead
  */
 #pragma once
+#include "common/defs.hpp"
 #include "host_device.hpp"
 #include "generic_metafunctions/variadic_typedef.hpp"
 
@@ -126,6 +127,15 @@ namespace gridtools {
     template < typename... Args >
     tuple< Args... > make_tuple(Args... args) {
         return tuple< Args... >(args...);
+    }
+
+    // Need other overloads to be compliant with std::get
+    //    template < size_t I, typename... T >
+    //    GT_FUNCTION constexpr auto get(const tuple< T... > &t) noexcept GT_AUTO_RETURN(t.get< I >());
+
+    template < size_t I, typename... T >
+    GT_FUNCTION constexpr typename tuple< T... >::template get_elem< I >::type get(const tuple< T... > &t) noexcept {
+        return t.get< I >();
     }
 
     template < typename T >

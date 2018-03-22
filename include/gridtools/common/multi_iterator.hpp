@@ -41,14 +41,22 @@
 #include "array.hpp"
 #include "generic_metafunctions/meta.hpp"
 #include "generic_metafunctions/is_all_integrals.hpp"
+#include "array_transpose.hpp"
 
 namespace gridtools {
-    class range : public array< size_t, 2 > {
+    class range {
+      private:
+        array< size_t, 2 > m_range;
+
       public:
         range() = default;
-        GT_FUNCTION range(size_t b, size_t e) : array{{b, e}} {}
-        GT_FUNCTION size_t begin() const { return this->operator[](0); }
-        GT_FUNCTION size_t end() const { return this->operator[](1); }
+        GT_FUNCTION range(size_t b, size_t e) : m_range{b, e} {}
+
+        GT_FUNCTION
+        constexpr size_t const &operator[](size_t i) const { return m_range[i]; }
+
+        constexpr size_t const &begin() const { return m_range[0]; }
+        constexpr size_t const &end() const { return m_range[1]; }
     };
 
     template < typename T >
@@ -56,49 +64,27 @@ namespace gridtools {
     template <>
     class tuple_size< range > : public gridtools::static_size_t< 2 > {};
 
+    template < size_t I >
+    GT_FUNCTION constexpr const size_t &get(const range &arr) noexcept {
+        GRIDTOOLS_STATIC_ASSERT(I < 2, "index is out of bounds");
+        return arr[I];
+    }
+
     template < size_t D >
     using hypercube = array< range, D >;
-
-    namespace impl_ {
-        /**
-         * @brief returns the I-th entry of each element (array or tuple) of the array as an array
-         */
-        template < size_t I, size_t D, typename Pair >
-        GT_FUNCTION array< size_t, D > transpose(const array< Pair, D > &container_of_pairs) {
-            array< size_t, D > tmp;
-            for (size_t i = 0; i < D; ++i)
-                tmp[i] = get< I >(container_of_pairs[i]);
-            return tmp;
-        }
-
-        template < size_t D >
-        GT_FUNCTION auto begin_of_hypercube(const hypercube< D > &cube) GT_AUTO_RETURN(transpose< 0 >(cube));
-        template < size_t D >
-        GT_FUNCTION auto end_of_hypercube(const hypercube< D > &cube) GT_AUTO_RETURN(transpose< 1 >(cube));
-    }
 
     // TODO should end be included?
     template < size_t D >
     class hypercube_view {
-      public:
-        GT_FUNCTION hypercube_view(const hypercube< D > &cube)
-            : begin_(impl_::begin_of_hypercube(cube)), end_(impl_::end_of_hypercube(cube)) {}
-
-        /**
-         * Construct hypercube starting from 0.
-         */
-        GT_FUNCTION hypercube_view(const array< size_t, D > &sizes) : begin_{}, end_(sizes) {}
-
+      private:
         struct grid_iterator {
             array< size_t, D > pos_;
-            const array< size_t, D > begin_;
-            const array< size_t, D > end_;
+            array< size_t, D > begin_;
+            array< size_t, D > end_;
 
             GT_FUNCTION grid_iterator(
                 const array< size_t, D > &pos, const array< size_t, D > &begin, const array< size_t, D > &end)
                 : pos_(pos), begin_(begin), end_(end) {}
-
-            GT_FUNCTION operator array< size_t, D >() const { return pos_; }
 
             GT_FUNCTION grid_iterator &operator++() {
                 for (size_t i = 0; i < D; ++i) {
@@ -122,23 +108,35 @@ namespace gridtools {
                 return tmp;
             }
 
-            GT_FUNCTION array< size_t, D > &operator*() { return pos_; }
+            GT_FUNCTION array< size_t, D > const &operator*() const { return pos_; }
 
             GT_FUNCTION bool operator==(const grid_iterator &other) const { return pos_ == other.pos_; }
 
             GT_FUNCTION bool operator!=(const grid_iterator &other) const { return !operator==(other); }
         };
 
-        GT_FUNCTION grid_iterator begin() const { return grid_iterator{begin_, begin_, end_}; }
-        GT_FUNCTION grid_iterator end() const { return grid_iterator{end_, begin_, end_}; }
+      public:
+        template < typename PairType >
+        GT_FUNCTION hypercube_view(const array< PairType, D > &cube)
+            : iteration_space_{transpose(cube)} {}
 
-        GT_FUNCTION bool operator==(const hypercube_view &other) const {
-            return begin_ == other.begin_ && end_ == other.end_;
+        /**
+         * Construct hypercube starting from 0.
+         */
+        //        GT_FUNCTION hypercube_view(const array< size_t, D > &sizes) : iteration_space_{array< size_t, D >{},
+        //        sizes} {}
+
+        GT_FUNCTION grid_iterator begin() const {
+            return grid_iterator{iteration_space_[begin_], iteration_space_[begin_], iteration_space_[end_]};
+        }
+        GT_FUNCTION grid_iterator end() const {
+            return grid_iterator{iteration_space_[end_], iteration_space_[begin_], iteration_space_[end_]};
         }
 
       private:
-        array< size_t, D > begin_;
-        array< size_t, D > end_;
+        array< array< size_t, D >, 2 > iteration_space_;
+        const size_t begin_ = 0;
+        const size_t end_ = 1;
     };
 
     namespace impl_ {
@@ -148,8 +146,8 @@ namespace gridtools {
     }
 
     template < typename... Range, typename std::enable_if< impl_::is_all_range< Range... >::value, int >::type = 0 >
-    GT_FUNCTION auto make_hypercube_view(Range... r)
-        GT_AUTO_RETURN(hypercube_view< sizeof...(Range) >(hypercube< sizeof...(Range) >{r...}));
+    GT_FUNCTION auto make_hypercube_view(Range... r) GT_AUTO_RETURN(hypercube_view< sizeof...(Range) >(
+        array< typename std::common_type< Range... >::type, sizeof...(Range) >{r...}));
 
     /**
      * Overload where range... = {0, size}...
@@ -162,6 +160,7 @@ namespace gridtools {
     template < size_t D >
     GT_FUNCTION auto make_hypercube_view(const hypercube< D > &cube) GT_AUTO_RETURN(hypercube_view< D >(cube));
 
-    template < size_t D >
-    GT_FUNCTION auto make_hypercube_view(const array< size_t, D > &sizes) GT_AUTO_RETURN(hypercube_view< D >(sizes));
+    //    template < size_t D >
+    //    GT_FUNCTION auto make_hypercube_view(const array< size_t, D > &sizes) GT_AUTO_RETURN(hypercube_view< D
+    //    >(sizes));
 }

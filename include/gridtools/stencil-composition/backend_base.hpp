@@ -49,7 +49,6 @@
 #include "./backend_host/backend_host.hpp"
 #endif
 
-#include "../common/pair.hpp"
 #include "./accessor.hpp"
 #include "./aggregator_type.hpp"
 #include "./intermediate_impl.hpp"
