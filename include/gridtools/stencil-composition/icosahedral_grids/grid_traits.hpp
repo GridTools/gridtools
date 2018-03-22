@@ -84,10 +84,11 @@ namespace gridtools {
             return storage_info_t(i_size, StorageWrapper::arg_t::location_t::n_colors::value, j_size, k_size);
         }
 
-        // get a temporary storage for Host Block
+        // get a temporary storage for Host Block or Mic Block
         template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
-                                                Backend::s_backend_id == enumtype::Host),
+                                                (Backend::s_backend_id == enumtype::Host ||
+                                                    Backend::s_backend_id == enumtype::Mic)),
             typename StorageWrapper::storage_info_t >::type
         instantiate_storage_info(Grid const &grid) {
             typedef typename StorageWrapper::storage_info_t storage_info_t;

@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "array.hpp"
+#include <array>
 #include <vector>
 
 namespace gridtools {
