@@ -101,8 +101,6 @@ namespace gridtools {
     using remove_extent_t = typename std::remove_extent< T >::type;
     template < class T >
     using remove_all_extents_t = typename std::remove_all_extents< T >::type;
-    template < std::size_t Len, class... Types >
-    using aligned_union_t = typename std::aligned_union< Len, Types... >::type;
     template < class T >
     using decay_t = typename std::decay< T >::type;
     template < bool V, class T = void >
