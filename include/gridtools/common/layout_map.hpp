@@ -83,7 +83,7 @@ namespace gridtools {
 
         /* helper meta functions */
         template < typename Int >
-        using not_negative = meta::bool_constant< (Int::value >= 0) >;
+        using not_negative = bool_constant< (Int::value >= 0) >;
         template < typename A, typename B >
         using integral_plus = std::integral_constant< int, A::value + B::value >;
 

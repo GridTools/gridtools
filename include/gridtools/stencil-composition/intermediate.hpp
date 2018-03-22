@@ -196,11 +196,8 @@ namespace gridtools {
 
     namespace _impl {
 
-        // Here we need to use the at_ interface instead of
-        // the at, since at_ does not assert out-of-bound
-        // queries, but actually returns -1.
         template < int I, class Layout >
-        using exists_in_layout = bool_constant< Layout::template at_< I >::value != -1 >;
+        using exists_in_layout = bool_constant < I< Layout::masked_length >;
 
         template < int I, uint_t Id, class Layout, class Halo, class Alignment >
         enable_if_t< exists_in_layout< I, Layout >::value, bool > storage_info_dim_fits(
