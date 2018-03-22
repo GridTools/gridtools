@@ -38,7 +38,73 @@
 
 #include <tuple>
 
+#include "../common/defs.hpp"
+
 #include "../common/generic_metafunctions/copy_into_variadic.hpp"
+
+#include "independent_esf.hpp"
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/empty_sequence.hpp>
+#include <boost/mpl/quote.hpp>
+#include <boost/mpl/joint_view.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/single_view.hpp>
+
+namespace gridtools {
+    namespace _impl {
+
+        // Flatten an MPL sequence of MPL sequences.
+        template < class Seqs >
+        struct flatten
+            : boost::mpl::fold< Seqs, boost::mpl::empty_sequence, boost::mpl::quote2< boost::mpl::joint_view > > {};
+
+        // Deduplicate an MPL sequence.
+        template < class Seq >
+        struct dedup
+            : boost::mpl::fold< Seq, boost::mpl::set0<>, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > {};
+
+        template < class SeqOfTrees, template < class > class FlattenTree >
+        struct flatten_trees : flatten< boost::mpl::transform_view< SeqOfTrees, boost::mpl::quote1< FlattenTree > > > {
+        };
+
+        //  Flatten an ESF tree formed by regular ESF's and independent_esf into an MPL sequence.
+        //  The result contains only regular ESF's.
+        template < class T >
+        struct flatten_esf {
+            using type = boost::mpl::single_view< T >;
+        };
+        template < class T >
+        struct flatten_esfs : flatten_trees< T, flatten_esf > {};
+        template < class EsfSeq >
+        struct flatten_esf< independent_esf< EsfSeq > > {
+            using type = typename flatten_esfs< EsfSeq >::type;
+        };
+
+        // Extract ESFs from an MSS.
+        template < class Mss >
+        struct get_esfs : flatten_esfs< typename Mss::esf_sequence_t > {};
+
+        // Extract args from ESF.
+        template < class Esf >
+        struct get_args {
+            using type = typename Esf::args_t;
+        };
+    }
+
+    /// Takes an MPL sequence of MSS descriptions and returns deduplicated typelist of all placeholders
+    /// that are used in the given msses.
+    template < class Msses >
+    using extract_placeholders = copy_into_variadic< typename _impl::dedup< typename _impl::flatten_trees<
+                                                         typename _impl::flatten_trees< Msses, _impl::get_esfs >::type,
+                                                         _impl::get_args >::type >::type,
+        std::tuple<> >;
+}
+
+#else
+
 #include "../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
@@ -72,9 +138,11 @@ namespace gridtools {
         using get_args = copy_into_variadic< typename Esf::args_t, std::tuple<> >;
     }
 
-    /// Takes a typelist of conditional trees of MSS descriptions and returns deduplicated typelist of all
-    /// placeholders that are used in the given msses.
+    /// Takes a typelist of MSS descriptions and returns deduplicated typelist of all placeholders
+    /// that are used in the given msses.
     template < class Msses >
     using extract_placeholders =
         meta::dedup< _impl::flatten_trees< _impl::flatten_trees< Msses, _impl::get_esfs >, _impl::get_args > >;
 }
+
+#endif

@@ -40,6 +40,7 @@
 #include "../common/defs.hpp"
 #include "../common/split_args.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "grid.hpp"
 #include "expandable_parameters/expand_factor.hpp"
 #include "expandable_parameters/intermediate_expand.hpp"
@@ -49,7 +50,7 @@ namespace gridtools {
     namespace _impl {
 
         template < class List >
-        using decay_elements = meta::apply< meta::transform< meta::meta_t_< std::decay >::apply >, List >;
+        using decay_elements = meta::apply< meta::transform< decay_t >, List >;
 
         template < template < uint_t, bool, class, class, class, class > class Intermediate,
             uint_t Factor,
@@ -59,8 +60,8 @@ namespace gridtools {
             class... Args,
             class ArgsPair = decltype(
                 split_args< is_arg_storage_pair >(std::forward< Args >(std::declval< Args >())...)),
-            class ArgStoragePairs = decay_elements< meta::first< ArgsPair > >,
-            class Msses = decay_elements< meta::second< ArgsPair > > >
+            class ArgStoragePairs = decay_elements< typename ArgsPair::first_type >,
+            class Msses = decay_elements< typename ArgsPair::second_type > >
         Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > make_intermediate(
             Grid const &grid, Args &&... args) {
             auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
@@ -71,7 +72,7 @@ namespace gridtools {
             class Backend,
             class Grid,
             class... Args,
-            typename std::enable_if< is_grid< Grid >::value, int >::type = 0 >
+            enable_if_t< is_grid< Grid >::value, int > = 0 >
         auto make_computation_dispatch(Grid const &grid, Args &&... args) GT_AUTO_RETURN(
             (make_intermediate< intermediate, 1, Positional, Backend >(grid, std::forward< Args >(args)...)));
 
@@ -80,7 +81,7 @@ namespace gridtools {
             class ExpandFactor,
             class Grid,
             class... Args,
-            typename std::enable_if< is_expand_factor< ExpandFactor >::value, int >::type = 0 >
+            enable_if_t< is_expand_factor< ExpandFactor >::value, int > = 0 >
         auto make_computation_dispatch(ExpandFactor, Grid const &grid, Args &&... args)
             GT_AUTO_RETURN((make_intermediate< intermediate_expand, ExpandFactor::value, Positional, Backend >(
                 grid, std::forward< Args >(args)...)));

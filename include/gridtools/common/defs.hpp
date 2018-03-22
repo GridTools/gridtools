@@ -137,10 +137,6 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
-#ifndef GT_BROKEN_TEMPLATE_ALIASES
-#define GT_BROKEN_TEMPLATE_ALIASES 1
-#endif
-
 #if !defined(GT_BROKEN_TEMPLATE_ALIASES)
 #if defined(__CUDACC_VER_MAJOR__)
 #define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
