@@ -33,11 +33,26 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "common/defs.hpp"
 #include "common/gt_math.hpp"
 #include "tools/verifier.hpp"
+#include "gtest/gtest.h"
 using namespace gridtools;
+
+template < typename Value >
+struct test_pow {
+    static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::pow(val, val), result); }
+};
+
+template < typename Value >
+struct test_log {
+    static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::log(val), result); }
+};
+
+template < typename Value >
+struct test_exp {
+    static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::exp(val), result); }
+};
 
 struct test_fabs {
     static bool GT_FUNCTION Do() {
@@ -96,8 +111,8 @@ struct test_abs {
 };
 
 TEST(math, test_min) {
-    ASSERT_TRUE(math::min(5, 2, 7) == 2);
-    ASSERT_TRUE(math::min(5, -1) == -1);
+    EXPECT_TRUE(math::min(5, 2, 7) == 2);
+    EXPECT_TRUE(math::min(5, -1) == -1);
 
     ASSERT_REAL_EQ(math::min(5.3, 22.0, 7.7), 5.3);
 
@@ -111,8 +126,8 @@ TEST(math, test_min) {
 }
 
 TEST(math, test_max) {
-    ASSERT_TRUE(math::max(5, 2, 7) == 7);
-    ASSERT_TRUE(math::max(5, -1) == 5);
+    EXPECT_TRUE(math::max(5, 2, 7) == 7);
+    EXPECT_TRUE(math::max(5, -1) == 5);
 
     ASSERT_REAL_EQ(math::max(5.3, 22.0, 7.7), 22.0);
     // checking returned by const &
@@ -125,6 +140,21 @@ TEST(math, test_max) {
     ASSERT_REAL_EQ(max, 8);
 }
 
-TEST(math, test_fabs) { ASSERT_TRUE(test_fabs::Do()); }
+TEST(math, test_fabs) { EXPECT_TRUE(test_fabs::Do()); }
 
-TEST(math, test_abs) { ASSERT_TRUE(test_abs::Do()); }
+TEST(math, test_abs) { EXPECT_TRUE(test_abs::Do()); }
+
+TEST(math, test_log) {
+    EXPECT_TRUE(test_log< double >::Do(2.3, std::log(2.3)));
+    EXPECT_TRUE(test_log< float >::Do(2.3f, std::log(2.3f)));
+}
+
+TEST(math, test_exp) {
+    EXPECT_TRUE(test_exp< double >::Do(2.3, std::exp(2.3)));
+    EXPECT_TRUE(test_exp< float >::Do(2.3f, std::exp(2.3f)));
+}
+
+TEST(math, test_pow) {
+    EXPECT_TRUE(test_pow< double >::Do(2.3, std::pow(2.3, 2.3)));
+    EXPECT_TRUE(test_pow< float >::Do(2.3f, std::pow(2.3f, 2.3f)));
+}
