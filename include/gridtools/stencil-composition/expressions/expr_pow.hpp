@@ -33,53 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-<<<<<<< HEAD
-namespace gridtools {
-
-    /** \ingroup expressions
-        @{
-    */
-
-    /**@brief Expression computing the integral exponent of the first arguments
-       for this expression the second argument is an integer (this might, and probably will, be relaxed if needed)
-    */
-    template < typename ArgType1, int Exponent >
-    struct expr_pow : public unary_expr< ArgType1 > {
-        typedef unary_expr< ArgType1 > super;
-        GT_FUNCTION
-        constexpr expr_pow(ArgType1 const &first_operand) : super(first_operand) {}
-        static const int exponent = Exponent;
-
-        template < typename Arg1 >
-        GT_FUNCTION constexpr expr_pow(expr_pow< Arg1, Exponent > const &other)
-            : super(other) {}
-=======
->>>>>>> ethz/master
-
-        #pragma once
+#pragma once
 
 #include "../../common/defs.hpp"
 #include "../../common/gt_math.hpp"
 #include "expr_base.hpp"
 
-            namespace gridtools {
-            namespace expressions {
+namespace gridtools {
+    namespace expressions {
 
-                /** \ingroup stencil-composition
-                    @{
-                    \ingroup expressions
-                    @{
-                */
-                template < int I >
-                struct pow_f {
-                    template < class Arg >
-                    GT_FUNCTION constexpr auto operator()(Arg const &arg) const
-                        GT_AUTO_RETURN(gt_pow< I >::template apply(arg));
-                };
+        /** \ingroup stencil-composition
+            @{
+            \ingroup expressions
+            @{
+        */
+        template < int I >
+        struct pow_f {
+            template < class Arg >
+            GT_FUNCTION constexpr auto operator()(Arg const &arg) const
+                GT_AUTO_RETURN(gt_pow< I >::template apply(arg));
+        };
 
-                template < int I, class Arg >
-                GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f< I >{}, arg));
-                /** @} */
-                /** @} */
-            }
-        }
+        template < int I, class Arg >
+        GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f< I >{}, arg));
+        /** @} */
+        /** @} */
+    }
+}
