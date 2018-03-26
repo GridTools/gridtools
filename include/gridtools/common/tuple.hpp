@@ -129,15 +129,6 @@ namespace gridtools {
         return tuple< Args... >(args...);
     }
 
-    // Need other overloads to be compliant with std::get
-    //    template < size_t I, typename... T >
-    //    GT_FUNCTION constexpr auto get(const tuple< T... > &t) noexcept GT_AUTO_RETURN(t.get< I >());
-
-    template < size_t I, typename... T >
-    GT_FUNCTION constexpr typename tuple< T... >::template get_elem< I >::type get(const tuple< T... > &t) noexcept {
-        return t.get< I >();
-    }
-
     template < typename T >
     class tuple_size;
 
