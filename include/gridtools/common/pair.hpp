@@ -82,7 +82,7 @@ namespace gridtools {
     }
 
     template < typename T1, typename T2 >
-    constexpr pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
+    constexpr GT_FUNCTION pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
         return pair< T1, T2 >(t1_, t2_);
     }
 
@@ -99,20 +99,20 @@ namespace gridtools {
         template <>
         struct pair_get< 0 > {
             template < typename T1, typename T2 >
-            static constexpr const T1 &const_get(const pair< T1, T2 > &p) noexcept {
+            static constexpr GT_FUNCTION const T1 &const_get(const pair< T1, T2 > &p) noexcept {
                 return p.first;
             }
         };
         template <>
         struct pair_get< 1 > {
             template < typename T1, typename T2 >
-            static constexpr const T2 &const_get(const pair< T1, T2 > &p) noexcept {
+            static constexpr GT_FUNCTION const T2 &const_get(const pair< T1, T2 > &p) noexcept {
                 return p.second;
             }
         };
     }
 
     template < size_t I, class T1, class T2 >
-    constexpr auto get(const pair< T1, T2 > &p) noexcept GT_AUTO_RETURN(impl_::pair_get< I >::const_get(p));
+    constexpr GT_FUNCTION auto get(const pair< T1, T2 > &p) noexcept GT_AUTO_RETURN(impl_::pair_get< I >::const_get(p));
 
 } // namespace gridtools

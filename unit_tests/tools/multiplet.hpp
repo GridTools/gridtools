@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <common/defs.hpp>
+#include "common/defs.hpp"
 #include "common/array.hpp"
 #include "common/array_addons.hpp" // included to pretty print the array in gtest
 #include "common/generic_metafunctions/is_all_integrals.hpp"
@@ -44,4 +44,9 @@
 template < size_t N >
 using multiplet = gridtools::array< size_t, N >;
 template < typename... Ts, typename std::enable_if< gridtools::is_all_integral< Ts... >::value, int >::type = 0 >
-auto make_multiplet(Ts... ts) GT_AUTO_RETURN((gridtools::array< size_t, sizeof...(Ts) >{(size_t)ts...}));
+auto GT_FUNCTION make_multiplet(Ts... ts) GT_AUTO_RETURN((gridtools::array< size_t, sizeof...(Ts) >{(size_t)ts...}));
+
+// nvcc doesn't like the variadic form
+gridtools::array< size_t, 1 > GT_FUNCTION make_multiplet(size_t t0) { return {t0}; }
+gridtools::array< size_t, 2 > GT_FUNCTION make_multiplet(size_t t0, size_t t1) { return {t0, t1}; }
+gridtools::array< size_t, 3 > GT_FUNCTION make_multiplet(size_t t0, size_t t1, size_t t2) { return {t0, t1, t2}; }

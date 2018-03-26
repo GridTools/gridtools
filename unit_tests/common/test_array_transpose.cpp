@@ -42,7 +42,7 @@
 #include "gtest/gtest.h"
 #include <cstddef>
 
-TEST(array, transpose_3x2) {
+TEST(transpose, array_3x2) {
     gridtools::array< gridtools::array< size_t, 2 >, 3 > in{{{11, 12}, {21, 22}, {31, 32}}};
     gridtools::array< gridtools::array< size_t, 3 >, 2 > ref{{{11, 21, 31}, {12, 22, 32}}};
 
@@ -51,7 +51,7 @@ TEST(array, transpose_3x2) {
     ASSERT_EQ(ref, result);
 }
 
-TEST(array, transpose_3x1) {
+TEST(transpose, array_3x1) {
     gridtools::array< gridtools::array< size_t, 2 >, 3 > in{{{1}, {2}, {3}}};
     gridtools::array< gridtools::array< size_t, 3 >, 2 > ref{{{1, 2, 3}}};
 
@@ -60,7 +60,7 @@ TEST(array, transpose_3x1) {
     ASSERT_EQ(ref, result);
 }
 
-TEST(pair, transpose) {
+TEST(transpose, array_of_pairs) {
     gridtools::array< gridtools::pair< size_t, size_t >, 3 > in{{gridtools::pair< size_t, size_t >{11, 12},
         gridtools::pair< size_t, size_t >{21, 22},
         gridtools::pair< size_t, size_t >{31, 32}}};
@@ -71,6 +71,17 @@ TEST(pair, transpose) {
     ASSERT_EQ(ref, result);
 }
 
+TEST(transpose, pair_of_pairs) {
+    using pair_of_pairs = gridtools::pair< gridtools::pair< size_t, size_t >, gridtools::pair< size_t, size_t > >;
+    pair_of_pairs in{gridtools::pair< size_t, size_t >{11, 12}, gridtools::pair< size_t, size_t >{21, 22}};
+    gridtools::array< gridtools::array< size_t, 2 >, 2 > ref{{{11, 21}, {12, 22}}};
+
+    auto result = transpose(in);
+
+    ASSERT_EQ(ref, result);
+}
+
+// enable once gridtools::tuple is more std-compliant
 // TEST(tuple, transpose) {
 //    gridtools::array< gridtools::tuple< size_t, size_t >, 3 > in{{{11, 12}, {21, 22}, {31, 32}}};
 //    gridtools::array< gridtools::array< size_t, 3 >, 2 > ref{{{11, 21, 31}, {12, 22, 32}}};

@@ -38,26 +38,24 @@
 #include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
-    //    template < typename T, size_t D, typename std::enable_if< std::is_arithmetic< T >::value, T >::type = 0 >
-
     namespace impl_ {
 
         template < typename T >
         using get_inner_type = typename std::decay< decltype(get< 0 >(get< 0 >(T{}))) >::type;
 
         template < typename T >
-        constexpr size_t inner_dim(const T &a) {
+        GT_FUNCTION constexpr size_t inner_dim(const T &a) {
             return tuple_size< typename std::decay< decltype(get< 0 >(a)) >::type >::value;
         }
 
         template < size_t InnerIndex, typename Container, size_t... OuterIndices >
-        array< get_inner_type< Container >, sizeof...(OuterIndices) > make_inner_array(
+        GT_FUNCTION array< get_inner_type< Container >, sizeof...(OuterIndices) > make_inner_array(
             const Container &a, gt_index_sequence< OuterIndices... >) {
             return {{get< InnerIndex >(get< OuterIndices >(a))...}};
         }
 
         template < typename Container, size_t... InnerIndices >
-        auto transpose_impl(const Container &a, gt_index_sequence< InnerIndices... >) GT_AUTO_RETURN(
+        GT_FUNCTION auto transpose_impl(const Container &a, gt_index_sequence< InnerIndices... >) GT_AUTO_RETURN(
             (array< array< get_inner_type< Container >, tuple_size< Container >::value >, sizeof...(InnerIndices) >{
                 make_inner_array< InnerIndices >(a, make_gt_index_sequence< tuple_size< Container >::value >())...}));
     }
@@ -66,7 +64,7 @@ namespace gridtools {
      * @brief transposes array<array<T,InnerDim>,OuterDim> into array<array<T,OuterDim>,InnerDim>
      */
     template < typename Container >
-    auto transpose(const Container &a)
+    GT_FUNCTION auto transpose(const Container &a)
         GT_AUTO_RETURN((impl_::transpose_impl(a, make_gt_index_sequence< impl_::inner_dim(Container{}) >())));
 
 } // namespace gridtools

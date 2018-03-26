@@ -43,47 +43,45 @@
 
 using namespace gridtools;
 
-template < typename T >
-void print(array< T, 3 > a) {
-    std::cout << a << std::endl;
-}
+class test_hypercube_view_fixture : public ::testing::Test {
+  public:
+    test_hypercube_view_fixture(
+        pair< size_t, size_t > i_range, pair< size_t, size_t > j_range, pair< size_t, size_t > k_range)
+        : i_range(i_range), j_range(j_range), k_range(k_range),
+          size((i_range.second - i_range.first) * (j_range.second - j_range.first) * (k_range.second - k_range.first)) {
+    }
 
-const range i_range = {1, 3};
-const range j_range = {4, 8};
-const range k_range = {2, 10};
-const size_t size =
-    (i_range.end() - i_range.begin()) * (j_range.end() - j_range.begin()) * (k_range.end() - k_range.begin());
+    //      private:
+    const pair< size_t, size_t > i_range;
+    const pair< size_t, size_t > j_range;
+    const pair< size_t, size_t > k_range;
+    const size_t size;
 
-namespace {
     void verify(const std::vector< multiplet< 3 > > &out) {
         ASSERT_EQ(size, out.size()) << " Number of iterated elements is incorrect.";
         size_t count = 0;
-        for (size_t i = i_range.begin(); i < i_range.end(); ++i)
-            for (size_t j = j_range.begin(); j < j_range.end(); ++j)
-                for (size_t k = k_range.begin(); k < k_range.end(); ++k) {
+        for (size_t i = i_range.first; i < i_range.second; ++i)
+            for (size_t j = j_range.first; j < j_range.second; ++j)
+                for (size_t k = k_range.first; k < k_range.second; ++k) {
                     EXPECT_EQ((multiplet< 3 >{i, j, k}), out[count]);
                     count++;
                 }
     }
-}
+};
 
-TEST(test_hypercube_view, explicit_hypercube_instantiation) {
-    std::vector< multiplet< 3 > > out;
-
-    hypercube_view< 3 > view(hypercube< 3 >{i_range, j_range, k_range});
-    for (auto it : view) {
-        out.emplace_back(make_multiplet(it[0], it[1], it[2]));
-    }
-
-    verify(out);
-}
+class test_hypercube_view : public test_hypercube_view_fixture {
+  public:
+    test_hypercube_view() : test_hypercube_view_fixture({1, 3}, {4, 8}, {2, 10}) {}
+};
 
 // make_hypercube_view with ranges does not work with CUDA9.1 and earlier
 #ifndef __CUDACC__
-TEST(test_hypercube_view, make_hypercube_view_from_ranges) {
+TEST_F(test_hypercube_view, make_hypercube_view_from_pairs) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(i_range, j_range, k_range);
+    auto view = make_hypercube_view(make_pair(i_range.first, i_range.second),
+        make_pair(j_range.first, j_range.second),
+        make_pair(k_range.first, k_range.second));
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
@@ -91,48 +89,39 @@ TEST(test_hypercube_view, make_hypercube_view_from_ranges) {
     verify(out);
 }
 
-// TEST(test_hypercube_view, make_hypercube_view_from_tuples) {
-//    std::vector< multiplet< 3 > > out;
-//
-//    auto view = make_hypercube_view(make_tuple(i_range.begin(), i_range.end()),
-//        make_tuple(j_range.begin(), j_range.end()),
-//        make_tuple(k_range.begin(), k_range.end()));
-//    for (auto it : view) {
-//        out.emplace_back(make_multiplet(it[0], it[1], it[2]));
-//    }
-//
-//    verify(out);
-//}
-
-TEST(test_hypercube_view, make_hypercube_view_from_pairs) {
+TEST_F(test_hypercube_view, make_hypercube_view_from_hypercube) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(make_pair(i_range.begin(), i_range.end()),
-        make_pair(j_range.begin(), j_range.end()),
-        make_pair(k_range.begin(), k_range.end()));
+    gridtools::array< gridtools::pair< size_t, size_t >, 3 > cube{i_range, j_range, k_range};
+    auto view = make_hypercube_view(cube);
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
 
     verify(out);
 }
-
-// TEST(test_hypercube_view_iterate_from_zero, from_sizes) {
-//    size_t size_i = 3;
-//    size_t size_j = 4;
-//    size_t size_k = 5;
-//    hypercube_view< 3 > expect(hypercube< 3 >{range(0, size_i), range(0, size_j), range(0, size_k)});
-//
-//    auto view = make_hypercube_view(array< size_t, 3 >{size_i, size_j, size_k});
-//
-//    ASSERT_EQ(expect, view);
-//}
 #endif
 
-TEST(test_hypercube_view, make_hypercube_view_from_hypercube) {
+class test_hypercube_view_from_zero : public test_hypercube_view_fixture {
+  public:
+    test_hypercube_view_from_zero() : test_hypercube_view_fixture({0, 3}, {0, 4}, {0, 5}) {}
+};
+
+TEST_F(test_hypercube_view_from_zero, from_list_of_integers) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(hypercube< 3 >{i_range, j_range, k_range});
+    auto view = make_hypercube_view(i_range.second, j_range.second, k_range.second);
+    for (auto it : view) {
+        out.emplace_back(make_multiplet(it[0], it[1], it[2]));
+    }
+
+    verify(out);
+}
+
+TEST_F(test_hypercube_view_from_zero, from_array_of_integers) {
+    std::vector< multiplet< 3 > > out;
+
+    auto view = make_hypercube_view(array< size_t, 3 >{i_range.second, j_range.second, k_range.second});
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
