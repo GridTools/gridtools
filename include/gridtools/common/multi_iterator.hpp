@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <common/make_array.hpp>
 #include "pair.hpp"
 #include "defs.hpp"
 #include "host_device.hpp"
@@ -91,7 +92,7 @@ namespace gridtools {
             };
 
           public:
-            template < typename PairType >
+            template < typename PairType > // TODO remove array
             GT_FUNCTION hypercube_view(const array< PairType, D > &cube)
                 : iteration_space_{transpose(cube)} {}
 
@@ -121,25 +122,26 @@ namespace gridtools {
      * @brief constructs a view on a hypercube from a variadic list of ranges (e.g. pairs) for each dimension,
      * the end of the range is exclusive.
      */
-    template < typename... Range, typename std::enable_if< impl_::is_all_range< Range... >::value, int >::type = 0 >
-    GT_FUNCTION auto make_hypercube_view(Range... r) GT_AUTO_RETURN(impl_::hypercube_view< sizeof...(Range) >(
-        array< typename std::common_type< Range... >::type, sizeof...(Range) >{r...}));
+    template < typename... Range >
+    GT_FUNCTION auto make_hypercube_view_from_variadic_ranges(Range... r)
+        GT_AUTO_RETURN(make_hypercube_view_from_container_of_ranges(make_array(r...)));
 
     /**
      * @brief constructs a view on a hypercube from an array of ranges (e.g. pairs),
      * the end of the range is exclusive.
      */
     template < typename PairType, size_t D >
-    GT_FUNCTION auto make_hypercube_view(const array< PairType, D > &cube)
+    GT_FUNCTION auto make_hypercube_view_from_container_of_ranges(const array< PairType, D > &cube)
         GT_AUTO_RETURN(impl_::hypercube_view< D >(cube));
 
     /**
      * @brief constructs a view on a hypercube  from a variadic list of integers, which represent the (excluded)
      * end-points for the iteration starting from 0.
      */
-    template < typename... IntegerTypes,
-        typename std::enable_if< is_all_integral< IntegerTypes... >::value, int >::type = 0 >
-    GT_FUNCTION auto make_hypercube_view(IntegerTypes... size)
+    //    template < typename... IntegerTypes,
+    //        typename std::enable_if< is_all_integral< IntegerTypes... >::value, int >::type = 0 >
+    template < typename... IntegerTypes >
+    GT_FUNCTION auto make_hypercube_view_from_variadic_integrals(IntegerTypes... size)
         GT_AUTO_RETURN(impl_::hypercube_view< sizeof...(IntegerTypes) >({size...}));
 
     /**
@@ -147,6 +149,6 @@ namespace gridtools {
      * the iteration starting from 0.
      */
     template < size_t D >
-    GT_FUNCTION auto make_hypercube_view(const array< size_t, D > &sizes)
+    GT_FUNCTION auto make_hypercube_view_from_container_of_integrals(const array< size_t, D > &sizes)
         GT_AUTO_RETURN(impl_::hypercube_view< D >(sizes));
 }

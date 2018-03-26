@@ -45,7 +45,7 @@ __global__ void test_kernel(int *out_ptr) {
         out_ptr[i] = -1;
 
     using hypercube_t = gridtools::array< gridtools::array< size_t, 2 >, 2 >;
-    for (auto pos : make_hypercube_view(hypercube_t{{{0ul, Size}, {0ul, Size}}})) {
+    for (auto pos : make_hypercube_view_from_container_of_ranges(hypercube_t{{{0ul, Size}, {0ul, Size}}})) {
         out_ptr[linear_index(pos)] = linear_index(pos);
     }
 };

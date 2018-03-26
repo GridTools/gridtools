@@ -75,11 +75,11 @@ class test_hypercube_view : public test_hypercube_view_fixture {
 };
 
 // make_hypercube_view with ranges does not work with CUDA9.1 and earlier
-#ifndef __CUDACC__
+//#ifndef __CUDACC__
 TEST_F(test_hypercube_view, make_hypercube_view_from_pairs) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(make_pair(i_range.first, i_range.second),
+    auto view = make_hypercube_view_from_variadic_ranges(make_pair(i_range.first, i_range.second),
         make_pair(j_range.first, j_range.second),
         make_pair(k_range.first, k_range.second));
     for (auto it : view) {
@@ -89,18 +89,18 @@ TEST_F(test_hypercube_view, make_hypercube_view_from_pairs) {
     verify(out);
 }
 
-TEST_F(test_hypercube_view, make_hypercube_view_from_hypercube) {
+TEST_F(test_hypercube_view, make_hypercube_view_from_container_of_ranges) {
     std::vector< multiplet< 3 > > out;
 
     gridtools::array< gridtools::pair< size_t, size_t >, 3 > cube{i_range, j_range, k_range};
-    auto view = make_hypercube_view(cube);
+    auto view = make_hypercube_view_from_container_of_ranges(cube);
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
 
     verify(out);
 }
-#endif
+//#endif
 
 class test_hypercube_view_from_zero : public test_hypercube_view_fixture {
   public:
@@ -110,7 +110,7 @@ class test_hypercube_view_from_zero : public test_hypercube_view_fixture {
 TEST_F(test_hypercube_view_from_zero, from_list_of_integers) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(i_range.second, j_range.second, k_range.second);
+    auto view = make_hypercube_view_from_variadic_integrals(i_range.second, j_range.second, k_range.second);
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
@@ -121,7 +121,8 @@ TEST_F(test_hypercube_view_from_zero, from_list_of_integers) {
 TEST_F(test_hypercube_view_from_zero, from_array_of_integers) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view(array< size_t, 3 >{i_range.second, j_range.second, k_range.second});
+    auto view = make_hypercube_view_from_container_of_integrals(
+        array< size_t, 3 >{i_range.second, j_range.second, k_range.second});
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
