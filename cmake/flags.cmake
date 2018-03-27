@@ -7,6 +7,7 @@ set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported 
 set( ENABLE_PYUTILS "OFF" CACHE BOOL "If on, Python utility scripts will be configured")
 set( ENABLE_CUDA "OFF" CACHE BOOL "Compile CUDA GPU backend examples and unit tests" )
 set( ENABLE_HOST "ON" CACHE BOOL "Compile CPU backend examples and unit tests" )
+set( ENABLE_MIC "OFF" CACHE BOOL "Compile MIC backend examples and unit tests" )
 set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
 set( SINGLE_PRECISION OFF CACHE BOOL "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" )
 set( STRUCTURED_GRIDS "ON" CACHE BOOL "compile for rectangular grids" )
