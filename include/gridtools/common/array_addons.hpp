@@ -77,7 +77,6 @@ namespace gridtools {
     }
 
     namespace impl_ {
-
         // TODO maybe needed for input type checking
         //        template < typename T, typename Enable = void >
         //        struct has_tuple_concept : public std::false_type {};
@@ -166,7 +165,10 @@ namespace gridtools {
         std::forward< Container >(a)));
 
     /**
-     * @brief convert array<T,D> to array<NewT,D>
+     * @brief convert tuple-like container to array<NewT,D>, where NewT is explicit or std::common_type.
+     * use-cases:
+     * a) convert the type of array elements, e.g. convert_to<int>(array<size_t,X>) -> array<int,X>
+     * b) convert a tuple or pair to an array e.g. convert_to<size_t>(tuple<size_t,size_t>) -> array<size_t,2>
      */
     template < typename NewT, typename Container >
     GT_FUNCTION auto convert_to(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
