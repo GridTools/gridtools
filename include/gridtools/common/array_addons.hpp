@@ -133,6 +133,17 @@ namespace gridtools {
                 return {get_new_inner< Is >(std::forward< T >(obj))...};
             }
         };
+
+        template < class, class >
+        struct convert_to_f;
+
+        template < class NewT, size_t... Is >
+        struct convert_to_f< NewT, gt_index_sequence< Is... > > {
+            template < template < class, size_t > class Array, typename T, size_t D, typename Res = Array< NewT, D > >
+            Res operator()(const Array< T, D > &a) {
+                return {static_cast< NewT >(get< Is >(a))...};
+            }
+        };
     }
 
     /**
@@ -142,6 +153,18 @@ namespace gridtools {
     GT_FUNCTION auto transpose(Container &&a) GT_AUTO_RETURN(impl_::transpose_f<
         make_gt_index_sequence< impl_::get_inner_dim< typename std::decay< Container >::type >::value > >()(
         std::forward< Container >(a)));
+
+    /**
+     * @brief convert array<T,D> to array<NewT,D>
+     */
+    template < typename NewT,
+        template < class, size_t > class Array,
+        typename T,
+        size_t D,
+        typename Res = Array< NewT, D > >
+    GT_FUNCTION Res convert_to(const Array< T, D > &a) {
+        return impl_::convert_to_f< NewT, make_gt_index_sequence< D > >{}(a);
+    }
 
 } // namespace gridtools
 

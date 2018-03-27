@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "test_helper.hpp"
 #include "common/array_addons.hpp"
 #include "common/defs.hpp"
 #include "common/array.hpp"
@@ -101,4 +102,40 @@ TEST(transpose, pair_of_pairs) {
 //    auto result = transpose(in);
 //
 //    ASSERT_EQ(ref, result);
+//}
+
+TEST(convert_to, size_t_to_int) {
+    const size_t val0 = 1;
+    const size_t val1 = 2;
+    gridtools::array< size_t, 2 > in{val0, val1};
+
+    auto result = convert_to< int >(in);
+
+    GRIDTOOLS_STATIC_ASSERT((std::is_same< int, decltype(result)::value_type >::value), "expected type is wrong");
+    ASSERT_EQ((int)val0, result[0]);
+    ASSERT_EQ((int)val1, result[1]);
+}
+
+TEST(convert_to, size_t_to_double) {
+    const size_t val0 = 1;
+    const size_t val1 = 2;
+    gridtools::array< size_t, 2 > in{val0, val1};
+
+    auto result = convert_to< double >(in);
+
+    GRIDTOOLS_STATIC_ASSERT((std::is_same< double, decltype(result)::value_type >::value), "expected type is wrong");
+    ASSERT_EQ((double)val0, result[0]);
+    ASSERT_EQ((double)val1, result[1]);
+}
+
+// TEST(convert_to, from_pair) {
+//    const int val0 = 1;
+//    const int val1 = 2;
+//    gridtools::pair< size_t, size_t > in{val0, val1};
+//
+//    auto result = convert_to< double >(in);
+//
+//    GRIDTOOLS_STATIC_ASSERT((std::is_same< double, decltype(result)::value_type >::value), "expected type is wrong");
+//    ASSERT_EQ((double)val0, result[0]);
+//    ASSERT_EQ((double)val1, result[1]);
 //}
