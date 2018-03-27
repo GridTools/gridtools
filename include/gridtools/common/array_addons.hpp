@@ -36,6 +36,7 @@
 #pragma once
 #include "array.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
+#include "generic_metafunctions/meta.hpp"
 #include <vector>
 #include <array>
 
@@ -76,6 +77,14 @@ namespace gridtools {
     }
 
     namespace impl_ {
+
+        template < typename T, typename Enable = void >
+        struct has_tuple_concept : public std::false_type {};
+
+        template < typename T >
+        struct has_tuple_concept< T,
+            meta::void_t< std::integral_constant< size_t, tuple_size< typename std::decay< T >::type >::value > > >
+            : public std::true_type {};
 
         template < typename T >
         struct get_inner_type {
@@ -139,9 +148,9 @@ namespace gridtools {
 
         template < class NewT, size_t... Is >
         struct convert_to_f< NewT, gt_index_sequence< Is... > > {
-            template < template < class, size_t > class Array, typename T, size_t D, typename Res = Array< NewT, D > >
-            Res operator()(const Array< T, D > &a) {
-                return {static_cast< NewT >(get< Is >(a))...};
+            template < typename Container, typename Res = array< NewT, sizeof...(Is) > >
+            Res operator()(Container &&a) {
+                return {static_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
             }
         };
     }
@@ -157,14 +166,10 @@ namespace gridtools {
     /**
      * @brief convert array<T,D> to array<NewT,D>
      */
-    template < typename NewT,
-        template < class, size_t > class Array,
-        typename T,
-        size_t D,
-        typename Res = Array< NewT, D > >
-    GT_FUNCTION Res convert_to(const Array< T, D > &a) {
-        return impl_::convert_to_f< NewT, make_gt_index_sequence< D > >{}(a);
-    }
+    template < typename NewT, typename Container >
+    GT_FUNCTION auto convert_to(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
+        make_gt_index_sequence< tuple_size< typename std::decay< Container >::type >::value > >{}(
+        std::forward< Container >(a))));
 
 } // namespace gridtools
 

@@ -111,7 +111,7 @@ TEST(convert_to, size_t_to_int) {
 
     auto result = convert_to< int >(in);
 
-    GRIDTOOLS_STATIC_ASSERT((std::is_same< int, decltype(result)::value_type >::value), "expected type is wrong");
+    ASSERT_TYPE_EQ< gridtools::array< int, 2 >, decltype(result) >();
     ASSERT_EQ((int)val0, result[0]);
     ASSERT_EQ((int)val1, result[1]);
 }
@@ -123,19 +123,19 @@ TEST(convert_to, size_t_to_double) {
 
     auto result = convert_to< double >(in);
 
-    GRIDTOOLS_STATIC_ASSERT((std::is_same< double, decltype(result)::value_type >::value), "expected type is wrong");
+    ASSERT_TYPE_EQ< gridtools::array< double, 2 >, decltype(result) >();
     ASSERT_EQ((double)val0, result[0]);
     ASSERT_EQ((double)val1, result[1]);
 }
 
-// TEST(convert_to, from_pair) {
-//    const int val0 = 1;
-//    const int val1 = 2;
-//    gridtools::pair< size_t, size_t > in{val0, val1};
-//
-//    auto result = convert_to< double >(in);
-//
-//    GRIDTOOLS_STATIC_ASSERT((std::is_same< double, decltype(result)::value_type >::value), "expected type is wrong");
-//    ASSERT_EQ((double)val0, result[0]);
-//    ASSERT_EQ((double)val1, result[1]);
-//}
+TEST(convert_to, from_pair) {
+    const int val0 = 1;
+    const int val1 = 2;
+    gridtools::pair< size_t, size_t > in{val0, val1};
+
+    auto result = convert_to< double >(in);
+
+    ASSERT_TYPE_EQ< gridtools::array< double, 2 >, decltype(result) >();
+    ASSERT_EQ((double)val0, result[0]);
+    ASSERT_EQ((double)val1, result[1]);
+}
