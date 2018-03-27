@@ -51,6 +51,41 @@ namespace gridtools {
     using hypercube = array< pair< size_t, size_t >, D >;
 
     namespace impl_ {
+
+        template < typename Tuple, typename = void >
+        struct is_tuple_of_size_two : public std::false_type {};
+
+        template < typename Tuple >
+        struct is_tuple_of_size_two< Tuple,
+            meta::void_t< typename std::integral_constant< bool,
+                tuple_size< typename std::decay< Tuple >::type >::value > > >
+            : public std::integral_constant< bool, tuple_size< typename std::decay< Tuple >::type >::value == 2 > {};
+
+        template < typename, typename >
+        struct all_elements_are_range;
+
+        template < typename Container, size_t... Is >
+        struct all_elements_are_range< Container, gt_index_sequence< Is... > > {
+            using type = meta::conjunction< is_tuple_of_size_two< typename std::decay< decltype(
+                get< Is >(std::declval< typename std::decay< Container >::type >())) >::type >... >;
+        };
+
+        template < typename Container >
+        using all_elements_are_range_t = typename all_elements_are_range< Container,
+            make_gt_index_sequence< tuple_size< typename std::decay< Container >::type >::value > >::type;
+
+        template < typename, typename >
+        struct all_elements_are_integral;
+
+        template < typename Container, size_t... Is >
+        struct all_elements_are_integral< Container, gt_index_sequence< Is... > >
+            : public is_all_integral< typename std::decay< decltype(
+                  get< Is >(std::declval< typename std::decay< Container >::type >())) >::type... > {};
+
+        template < typename Container >
+        using all_elements_are_integral_t = typename all_elements_are_integral< Container,
+            make_gt_index_sequence< tuple_size< typename std::decay< Container >::type >::value > >::type;
+
         template < size_t D >
         class hypercube_view {
           private:
@@ -93,13 +128,16 @@ namespace gridtools {
             };
 
           public:
-            template < typename Container >
+            template < typename Container,
+                typename std::enable_if< all_elements_are_range_t< Container >::value, int >::type = 0 >
             GT_FUNCTION hypercube_view(Container &&cube)
                 : iteration_space_{transpose(std::forward< Container >(cube))} {}
 
             // Construct hypercube starting from 0 in each dimension.
-            GT_FUNCTION hypercube_view(const array< size_t, D > &sizes)
-                : iteration_space_{array< size_t, D >{}, sizes} {}
+            template < typename Container,
+                typename std::enable_if< all_elements_are_integral_t< Container >::value, int >::type = 0 >
+            GT_FUNCTION hypercube_view(Container &&sizes)
+                : iteration_space_{array< size_t, D >{}, convert_to< size_t >(sizes)} {}
 
             GT_FUNCTION grid_iterator begin() const {
                 return grid_iterator{iteration_space_[begin_], iteration_space_[begin_], iteration_space_[end_]};
@@ -116,19 +154,13 @@ namespace gridtools {
     }
 
     /**
-     * @brief constructs a view on a hypercube from an array of ranges (e.g. pairs),
-     * the end of the range is exclusive.
+     * @brief constructs a view on a hypercube
+     * - from an array of ranges (e.g. pairs) OR
+     * - from an array of integers (ranges start from 0)
+     * in both cases the end of the range is exclusive
      */
     template < typename Container >
     GT_FUNCTION auto make_hypercube_view(Container &&cube)
         GT_AUTO_RETURN(impl_::hypercube_view< tuple_size< typename std::decay< Container >::type >::value >(
             std::forward< Container >(cube)));
-
-    /**
-     * @brief constructs a view on a hypercube from an array of integers, which represent the (excluded) end-points for
-     * the iteration starting from 0.
-     */
-    template < size_t D >
-    GT_FUNCTION auto make_hypercube_view_from_zero(const array< size_t, D > &sizes)
-        GT_AUTO_RETURN(impl_::hypercube_view< D >(sizes));
 }

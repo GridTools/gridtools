@@ -109,7 +109,7 @@ class test_hypercube_view_from_zero : public test_hypercube_view_fixture {
 TEST_F(test_hypercube_view_from_zero, from_array_of_integers) {
     std::vector< multiplet< 3 > > out;
 
-    auto view = make_hypercube_view_from_zero(array< size_t, 3 >{i_range.second, j_range.second, k_range.second});
+    auto view = make_hypercube_view(array< size_t, 3 >{i_range.second, j_range.second, k_range.second});
     for (auto it : view) {
         out.emplace_back(make_multiplet(it[0], it[1], it[2]));
     }
