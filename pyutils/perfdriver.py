@@ -29,7 +29,7 @@ def run(args):
     import perftest.runtime
 
     # load configuration for current machine
-    config = perftest.config.load(args.config)
+    config = perftest.config.get(args.config)
 
     # get runtime
     rt = config.runtime(args.runtime)
