@@ -35,10 +35,14 @@
 */
 #pragma once
 
-#include <boost/any.hpp>
+// This file contains all header files required by the mic backend
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-struct gt_handle {
-    boost::any m_value;
-};
-
-extern "C" void gt_release(gt_handle const *obj);
+#include "../../storage/storage-facility.hpp"
+#include "../backend_fwd.hpp"
+#include "../execution_policy.hpp"
+#include "../iteration_policy.hpp"
+#include "backend_traits_mic.hpp"
+#include "strategy_mic.hpp"

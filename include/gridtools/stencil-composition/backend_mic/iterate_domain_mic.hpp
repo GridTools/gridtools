@@ -33,13 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/**
- * This is just an example file, that could be some
- * application source code that is using the GridTools
- * library. For further and more detailed examples see
- * examples directory.
- */
+#pragma once
 
-#include "stencil-composition/stencil-composition.hpp"
+#ifdef STRUCTURED_GRIDS
+#include "stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp"
+#else
+#include "stencil-composition/icosahedral_grids/backend_mic/iterate_domain_mic.hpp"
+#endif
 
-int main() { return 0; }
+#include "../iterate_domain_fwd.hpp"

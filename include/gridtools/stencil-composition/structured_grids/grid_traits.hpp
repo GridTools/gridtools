@@ -50,9 +50,9 @@
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
-#else
-#include "backend_host/grid_traits_host.hpp"
 #endif
+#include "backend_mic/grid_traits_mic.hpp"
+#include "backend_host/grid_traits_host.hpp"
 
 namespace gridtools {
 
@@ -84,7 +84,8 @@ namespace gridtools {
 
         // get a temporary storage for Host Naive
         template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive),
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive &&
+                                                Backend::s_backend_id == enumtype::Host),
             typename StorageWrapper::storage_info_t >::type
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
@@ -117,6 +118,28 @@ namespace gridtools {
             return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i,
                 (StorageWrapper::tileJ_t::s_tile)*threads_j + 2 * halo_j,
                 k_size);
+        }
+
+        // get a temporary storage for Mic Block
+        template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
+                                                Backend::s_backend_id == enumtype::Mic),
+            typename StorageWrapper::storage_info_t >::type
+        instantiate_storage_info(Grid const &grid) {
+            typedef typename StorageWrapper::storage_info_t storage_info_t;
+
+            // get all the params (size in i,j,k and number of threads)
+            const uint_t k_size = grid.k_total_length();
+            constexpr int_t i_halo = storage_info_t::halo_t::template at< dim_i_t::value >();
+            constexpr int_t j_halo = storage_info_t::halo_t::template at< dim_j_t::value >();
+            const int_t threads = omp_get_max_threads();
+
+            execinfo_mic exinfo(grid);
+
+            constexpr int_t alignment = storage_info_t::alignment_t::value;
+            int_t i_padded_size = ((exinfo.i_block_size() + 2 * i_halo + alignment - 1) / alignment) * alignment;
+
+            return storage_info_t(i_padded_size, (exinfo.j_block_size() + 2 * j_halo) * threads, k_size);
         }
 
         // get a temporary storage for Cuda

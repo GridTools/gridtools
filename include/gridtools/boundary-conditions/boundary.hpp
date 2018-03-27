@@ -38,6 +38,7 @@
 #include "../storage/storage_cuda/data_view_helpers.hpp"
 #include "./apply_gpu.hpp"
 #endif
+#include "../storage/storage_mic/data_view_helpers.hpp"
 #include "../storage/storage_host/data_view_helpers.hpp"
 #include "./apply.hpp"
 
@@ -61,6 +62,11 @@ namespace gridtools {
             using type = boundary_apply< BoundaryFunction, Predicate >;
         };
 
+        template < typename BoundaryFunction, typename Predicate >
+        struct select_apply< enumtype::Mic, BoundaryFunction, Predicate > {
+            using type = boundary_apply< BoundaryFunction, Predicate >;
+        };
+
 #ifdef __CUDACC__
         template < typename BoundaryFunction, typename Predicate >
         struct select_apply< enumtype::Cuda, BoundaryFunction, Predicate >
@@ -75,6 +81,13 @@ namespace gridtools {
 
         template < access_mode AM, typename DataF >
         struct proper_view< enumtype::Host, AM, DataF > {
+            using proper_view_t = decltype(make_host_view< AM, DataF >(std::declval< DataF >()));
+
+            static proper_view_t make(DataF const &df) { return make_host_view< AM >(df); }
+        };
+
+        template < access_mode AM, typename DataF >
+        struct proper_view< enumtype::Mic, AM, DataF > {
             using proper_view_t = decltype(make_host_view< AM, DataF >(std::declval< DataF >()));
 
             static proper_view_t make(DataF const &df) { return make_host_view< AM >(df); }
