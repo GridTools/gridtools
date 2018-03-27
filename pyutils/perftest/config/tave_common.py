@@ -2,8 +2,11 @@
 
 import textwrap
 
-from perftest.config.default import modules, env, cmake_command, make_command
+from perftest.config import default
+from perftest.config.default import modules, env, make_command
 
+cmake_command = default.cmake_command + [
+    '-DBOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_66_0']
 
 def sbatch(command):
     return textwrap.dedent(f"""\

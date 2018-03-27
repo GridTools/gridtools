@@ -14,12 +14,13 @@ env = dict(default.env,
            CUDA_ARCH='sm_37',
            CUDA_AUTO_BOOST=0,
            GCLOCK=875,
-           G2G=1,
            MALLOC_MMAP_MAX_=0,
            MALLOC_TRIM_THRESHOLD_=536870912,
            OMP_PROC_BIND='true')
 
-cmake_command = default.cmake_command
+cmake_command = default.cmake_command + [
+    '-DBOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0']
+
 make_command = default.make_command
 
 
