@@ -112,9 +112,11 @@ cd build;
 if [ "x$TARGET" == "xgpu" ]; then
     ENABLE_HOST=ON
     ENABLE_CUDA=ON
+    ENABLE_MIC=OFF
 else
     ENABLE_HOST=ON
     ENABLE_CUDA=OFF
+    ENABLE_MIC=ON
 fi
 echo "ENABLE_CUDA=$ENABLE_CUDA"
 echo "ENABLE_HOST=$ENABLE_HOST"
