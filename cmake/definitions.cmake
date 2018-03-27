@@ -101,11 +101,6 @@ else()
 endif()
 
 if( ENABLE_MIC )
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xmic-avx512")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=knl -mtune=knl")
-    endif()
     set(MIC_BACKEND_DEFINE "BACKEND_MIC")
 endif( ENABLE_MIC )
 
