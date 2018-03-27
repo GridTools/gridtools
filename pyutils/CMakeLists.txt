@@ -30,5 +30,9 @@ if(ENABLE_CUDA)
     set(PERFTEST_BACKEND "cuda")
 endif()
 
+if(ENABLE_MIC)
+    set(PERFTEST_BACKEND "mic")
+endif()
+
 file(COPY . DESTINATION . FILES_MATCHING PATTERN *.py)
 configure_file(perftest/buildinfo.py.in perftest/buildinfo.py)
