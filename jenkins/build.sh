@@ -120,6 +120,7 @@ else
 fi
 echo "ENABLE_CUDA=$ENABLE_CUDA"
 echo "ENABLE_HOST=$ENABLE_HOST"
+echo "ENABLE_MIC=$ENABLE_MIC"
 
 if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
