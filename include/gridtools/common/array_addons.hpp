@@ -151,7 +151,7 @@ namespace gridtools {
         template < class NewT, size_t... Is >
         struct convert_to_f< NewT, gt_index_sequence< Is... > > {
             template < typename Container, typename Res = array< NewT, sizeof...(Is) > >
-            Res operator()(Container &&a) {
+            GT_FUNCTION Res operator()(Container &&a) {
                 return {static_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
             }
         };
