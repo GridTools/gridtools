@@ -5,6 +5,40 @@ import subprocess
 import textwrap
 
 from perftest import runtime, time
+from perftest.config import default
+
+
+modules = default.modules | {'cmake',
+                             'cudatoolkit/8.0.61',
+                             'gcc/5.4.0-2.26'}
+
+env = dict(default.env,
+           CXX='g++',
+           CC='gcc',
+           CUDA_ARCH='sm_37',
+           CUDA_AUTO_BOOST=0,
+           GCLOCK=875,
+           G2G=1,
+           MALLOC_MMAP_MAX_=0,
+           MALLOC_TRIM_THRESHOLD_=536870912,
+           OMP_NUM_THREADS=1)
+
+cmake_command = default.cmake_command
+make_command = default.make_command
+
+
+def sbatch(command):
+    return textwrap.dedent(f"""\
+        #!/bin/bash -l
+        #SBATCH --job-name=gridtools-test
+        #SBATCH --partition=debug
+        #SBATCH --gres=gpu:1
+        #SBATCH --time=00:10:00
+
+        srun {command}
+
+        sync
+        """)
 
 
 class StellaRuntime(runtime.StellaRuntimeBase):
@@ -29,29 +63,3 @@ class StellaRuntime(runtime.StellaRuntimeBase):
     def path(self):
         return os.path.join('/project', 'c14', 'install', 'kesch', 'stella',
                             'trunk_timers', f'release_{self.precision}', 'bin')
-
-
-def sbatch(command):
-    return textwrap.dedent(f"""\
-        #!/bin/bash -l
-        #SBATCH --job-name=gridtools_perftest
-        #SBATCH --partition=debug
-        #SBATCH --gres=gpu:1
-        #SBATCH --time=00:10:00
-
-        module load cudatoolkit/8.0.61
-
-        export CUDA_ARCH=sm_37
-        export CUDA_AUTO_BOOST=0
-        export GCLOCK=875
-        export G2G=1
-
-        export OMP_PROC_BIND=true
-
-        export MALLOC_MMAP_MAX_=0
-        export MALLOC_TRIM_THRESHOLD_=536870912
-
-        srun {command}
-
-        sync
-        """)

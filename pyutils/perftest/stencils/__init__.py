@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import importlib
+import os
 import re
 
 from perftest import logger
@@ -20,6 +21,12 @@ class Stencil():
 
         clsname = type(self).__name__
         return re.sub(r'(.)([A-Z]+)', r'\1 \2', clsname).lower()
+
+    def gridtools_binary(self, backend):
+        return getattr(self, 'gridtools_' + backend)
+
+    def gridtools_target(self, backend):
+        return os.path.basename(self.gridtools_binary(backend))
 
 
 def load(grid):

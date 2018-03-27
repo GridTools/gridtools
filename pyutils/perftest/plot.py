@@ -92,14 +92,15 @@ def history(results, key='runtime'):
 
     def get_date(result):
         if key == 'runtime':
-            datetime = result.runtime.datetime
+            return result.runtime.datetime
         elif key == 'job':
-            datetime = result.datetime
+            return result.datetime
         else:
             raise ArgumentError('"key" argument must be "runtime" or "job"')
-        return matplotlib.dates.date2num(datetime)
 
-    dates = [get_date(r) for r in results]
+    results = sorted(results, key=get_date)
+
+    dates = [matplotlib.dates.date2num(get_date(r)) for r in results]
 
     if len(dates) > len(set(dates)):
         logger.warning('Non-unique datetimes in history plot')

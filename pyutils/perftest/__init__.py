@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import contextlib
 import logging
 import sys
+import textwrap
 
 
 if sys.version_info < (3, 6):
@@ -62,3 +64,26 @@ def set_verbose(verbosity):
 
 
 set_verbose(0)
+
+
+@contextlib.contextmanager
+def exception_logging():
+    try:
+        yield
+    except Exception:
+        logger.exception('Fatal error: exception was raised')
+
+
+def _multiline_redirect(func):
+    def multiline_func(message, details=None, **kwargs):
+        if details is None:
+            func(message, **kwargs)
+        else:
+            func(message + '\n' + textwrap.indent(details, '    '), **kwargs)
+    return multiline_func
+
+
+logger.debug = _multiline_redirect(logger.debug)
+logger.info = _multiline_redirect(logger.info)
+logger.warning = _multiline_redirect(logger.warning)
+logger.error = _multiline_redirect(logger.error)

@@ -45,7 +45,8 @@ def run(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--verbose', '-v', action='count', default=0)
+    parser.add_argument('--verbose', '-v', action='count', default=0,
+                        help='increase verbosity (use -vvv for debug mesages)')
 
     subparsers = parser.add_subparsers(dest='action',
                                        description='action to perform')
@@ -105,7 +106,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     perftest.set_verbose(args.verbose)
 
-    try:
+    with perftest.exception_logging():
         args.func(args)
-    except Exception:
-        perftest.logger.exception('Fatal error: exception was raised')

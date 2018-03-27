@@ -6,21 +6,19 @@ import random
 import re
 import subprocess
 import tempfile
-import textwrap
 import time
 
-from perftest import JobError, logger
+from perftest import config, JobError, logger
 
 
-def run(commands, config=None):
-    """Runs the given command(s) using SLURM.
+def run(commands, conf=None):
+    """Runs the given command(s) using SLURM and the given configuration.
 
-    `config` must be a `perftest.config.Config` object or None, in which case
-    the default configuration for the current system is loaded.
+    `conf` must be a valid argument for `perftest.config.get`.
 
     Args:
         commands: A string or a list of strings, console command(s) to run.
-        config:  (Default value = None) The config to use or None for default.
+        conf:  (Default value = None) The config to use or None for default.
 
     Returns:
         A list of collected console outputs of all commands.
@@ -28,24 +26,21 @@ def run(commands, config=None):
     if isinstance(commands, str):
         commands = [commands]
 
-    if config is None:
-        import perftest.config
-        config = perftest.config.load(config)
+    conf = config.get(conf)
 
-    futures = [asyncio.ensure_future(_run(c, config)) for c in commands]
+    futures = [asyncio.ensure_future(_run(c, conf)) for c in commands]
     asyncio.get_event_loop().run_until_complete(asyncio.gather(*futures))
 
     return [future.result() for future in futures]
 
 
-def _submit(command, config):
+def _submit(command, conf):
     """Submits a command to SLURM using sbatch."""
 
     with tempfile.NamedTemporaryFile(suffix='.sh', mode='w') as sbatch:
         # Generate SLURM sbatch file contents to submit job
-        sbatchstr = config.sbatch(command)
-        logger.debug(f'Generated sbatch file:\n' +
-                     textwrap.indent(sbatchstr, '    '))
+        sbatchstr = conf.sbatch(command)
+        logger.debug(f'Generated sbatch file:', sbatchstr)
         # Write sbatch to file
         sbatch.write(sbatchstr)
         sbatch.flush()
@@ -60,7 +55,7 @@ def _submit(command, config):
 
         # Run sbatch to start the job and specify job output file
         sbatch_command = ['sbatch', '-o', out.name, sbatch.name]
-        sbatch_out = subprocess.check_output(sbatch_command, env=config.env)
+        sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
 
         # Parse the task ID from the sbatch stdout
         task_id = re.match(r'Submitted batch job (\d+)',
@@ -89,8 +84,7 @@ async def _wait(task_id, outpath):
         info = subprocess.check_output(sacct_command).decode().strip()
         if info:
             # Parse sacct output
-            logger.debug(f'Sacct output while waiting for {task_id}:\n' +
-                         textwrap.indent(info, '    '))
+            logger.debug(f'Sacct output while waiting for {task_id}:', info)
             infos = [line.split('|') for line in info.split('\n')]
             # Break out of loop if all jobs have finished
             if not any(state in wait_states for _, _, state, _ in infos):
@@ -119,11 +113,9 @@ async def _wait(task_id, outpath):
 
     # Raise error if job has failed, include the job output in the message
     if failed:
-        raise JobError(f'Job {task_id} failed with output:\n' +
-                       textwrap.indent(output, '    '))
+        raise JobError(f'Job {task_id} failed with output:', output)
 
-    logger.debug(f'Job {task_id} generated output:\n' +
-                 textwrap.indent(output, '    '))
+    logger.debug(f'Job {task_id} generated output:', output)
 
     return output
 

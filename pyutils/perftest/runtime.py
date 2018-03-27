@@ -6,15 +6,8 @@ import re
 import statistics
 import subprocess
 
-from perftest import NotFoundError, ParseError, ArgumentError, ConfigError
+from perftest import NotFoundError, ParseError
 from perftest import logger, result, runtools, stencils, time
-
-
-try:
-    from perftest import buildinfo
-except ImportError:
-    raise ConfigError('Could not load buildinfo module. Did you run the script'
-                      ' from a configured CMake build directory?') from None
 
 
 class Runtime(metaclass=abc.ABCMeta):
@@ -24,6 +17,8 @@ class Runtime(metaclass=abc.ABCMeta):
     STELLA or Gridtools.
     """
     def __init__(self, config):
+        from perftest import buildinfo
+
         self.config = config
 
         # Import build information
@@ -150,6 +145,7 @@ class GridtoolsRuntime(Runtime):
 
     def __init__(self, config):
         super().__init__(config)
+        from perftest import buildinfo
 
         # Import more gridtools-related build information
         self.source_dir = buildinfo.source_dir
@@ -182,7 +178,7 @@ class GridtoolsRuntime(Runtime):
 
     def binary(self, stencil):
         """Stencil-dependent Gridtools binary path."""
-        binary = getattr(stencil, 'gridtools_' + self.backend.lower())
+        binary = stencil.gridtools_binary(self.backend)
         binary = os.path.join(self.binary_dir, binary)
         if not os.path.isfile(binary):
             raise NotFoundError(f'Could not find GridTools binary at {binary}')

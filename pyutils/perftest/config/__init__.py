@@ -5,9 +5,9 @@ import os
 import platform
 import re
 import subprocess
-import textwrap
 
 from perftest import ConfigError, logger
+from perftest.config import default
 from perftest.runtime import GridtoolsRuntime, Runtime
 
 
@@ -38,15 +38,21 @@ def clustername():
     return m.group(1)
 
 
-def load(config):
+def get(config=None):
     """Loads a config with the given name or default system config.
 
+    If the argument is an instance of the class `Config`, it is returned
+    without modification.
+
     Args:
-      config: The name of the config to load.
+      config: The name of the config to load, a config object or `None`.
 
     Returns:
         A configuration represented by a `Config` object.
     """
+    if isinstance(config, Config):
+        return config
+
     if config is None:
         config = clustername()
     return Config(config)
@@ -58,7 +64,6 @@ class Config:
     Imports a config from a module and presents an interface to the config
     classes and functions.
     """
-
     def __init__(self, name):
         self.name = name
         self.hostname = hostname()
@@ -68,21 +73,39 @@ class Config:
         self._config = importlib.import_module('perftest.config.' + self.name)
         logger.info(f'Successfully loaded config "{self.name}"')
 
-        self.env = os.environ.copy()
-        if hasattr(self._config, 'modules'):
-            from perftest import modules
-            logger.debug(f'Trying to load config modules')
-            for module in self._config.modules:
-                self.env = modules.load(self.env, module)
-            logger.debug(f'Successfully loaded config modules')
-        if hasattr(self._config, 'env'):
-            self.env.update(self._config.env)
+        required_attrs = ['modules', 'env', 'cmake_command', 'make_command',
+                          'sbatch']
+        for attr in required_attrs:
+            if not hasattr(self._config, attr):
+                raise ConfigError(f'Incomplete config "{self.name}", missing '
+                                  f'attribute "{attr}"')
 
-        envstr = '\n'.join(f'{k}={v}' for k, v in self.env.items())
-        logger.debug(f'Environment for config "{self.name}":' +
-                     textwrap.indent(envstr, '    '))
+    @property
+    def env(self):
+        if not hasattr(self, '_env'):
+            self._env = os.environ.copy()
+            if self._config.modules:
+                from perftest import modules
+                logger.debug(f'Trying to load modules for config '
+                             f'"{self.name}"')
+                for module in self._config.modules:
+                    self._env = modules.load(self._env, module)
+                logger.info(f'Successfully loaded modules for config '
+                            f'"{self.name}"')
+            self._env.update({str(k): str(v) for k, v in
+                              self._config.env.items()})
 
+            envstr = '\n'.join(f'{k}={v}' for k, v in self.env.items())
+            logger.debug(f'Environment for config "{self.name}":', envstr)
+        return self._env
 
+    @property
+    def make_command(self):
+        return self._config.make_command
+
+    @property
+    def cmake_command(self):
+        return self._config.cmake_command
 
     def runtime(self, runtime, *args, **kwargs):
         """Searches for and instantiates the given runtime with the arguments.
