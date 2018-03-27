@@ -34,4 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "test_array_transpose.cpp"
+#include "test_array_addons.cpp"
