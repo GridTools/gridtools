@@ -6,11 +6,11 @@ from perftest.config import tave_common as common
 from perftest.config.tave_common import cmake_command, make_command, sbatch
 
 
-modules = common.modules | {'PrgEnv-intel',
-                            'craype-mic-knl'}
+modules = common.modules | {'PrgEnv-gnu'}
 
 env = dict(common.env,
-           CXX='icpc',
-           CC='icc',
+           CXX='g++',
+           CC='gcc',
            OMP_NUM_THREADS=128,
-           KMP_AFFINITY='balanced')
+           OMP_PROC_BIND='true',
+           OMP_PLACES='{0,64}:64')
