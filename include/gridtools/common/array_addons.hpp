@@ -78,13 +78,15 @@ namespace gridtools {
 
     namespace impl_ {
 
-        template < typename T, typename Enable = void >
-        struct has_tuple_concept : public std::false_type {};
-
-        template < typename T >
-        struct has_tuple_concept< T,
-            meta::void_t< std::integral_constant< size_t, tuple_size< typename std::decay< T >::type >::value > > >
-            : public std::true_type {};
+        // TODO maybe needed for input type checking
+        //        template < typename T, typename Enable = void >
+        //        struct has_tuple_concept : public std::false_type {};
+        //
+        //        template < typename T >
+        //        struct has_tuple_concept< T,
+        //            meta::void_t< std::integral_constant< size_t, tuple_size< typename std::decay< T >::type >::value
+        //            > > >
+        //            : public std::true_type {};
 
         template < typename T >
         struct get_inner_type {

@@ -88,8 +88,8 @@ namespace gridtools {
 
             size_t error_count = 0;
             for (auto pos : cube_view) {
-                auto expected = expected_view(pos);
-                auto actual = actual_view(pos);
+                auto expected = expected_view(convert_to< int >(pos));
+                auto actual = actual_view(convert_to< int >(pos));
                 if (!compare_below_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected

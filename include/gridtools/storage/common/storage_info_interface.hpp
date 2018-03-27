@@ -186,11 +186,9 @@ namespace gridtools {
          * @param indices pack of offsets
          * @return index
          */
-        template < typename IntT,
-            typename... Args,
-            typename std::enable_if< std::is_integral< IntT >::value, int >::type = 0 >
+        template < typename... Args >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) == ndims), int >::type index_part(
-            gridtools::array< IntT, ndims > const &idx, Args... indices) const {
+            gridtools::array< int, ndims > const &idx, Args... indices) const {
             return index(indices...);
         }
 
@@ -202,9 +200,9 @@ namespace gridtools {
          * @param indices pack of offsets
          * @return index
          */
-        template < typename IntT, typename... Args >
+        template < typename... Args >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type
-        index_part(gridtools::array< IntT, ndims > const &idx, Args... indices) const {
+        index_part(gridtools::array< int, ndims > const &idx, Args... indices) const {
             return index_part(idx, indices..., idx.template get< sizeof...(Args) >());
         }
 
@@ -504,8 +502,7 @@ namespace gridtools {
          * @param offsets given offset array
          * @return index
          */
-        template < typename IntT = int >
-        GT_FUNCTION constexpr int index(gridtools::array< IntT, ndims > const &offsets) const {
+        GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
             return index_part(offsets);
         }
 
