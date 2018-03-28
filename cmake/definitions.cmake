@@ -107,6 +107,8 @@ endif( ENABLE_MIC )
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
+    # disable failed vectorization warnings for OpenMP SIMD loops
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pass-failed")
 endif()
 
 ## Intel compiler ##
@@ -118,6 +120,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_RESULT_OF_USE_DECLTYPE")
     # slightly improve performance
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-subscript-in-range -qoverride-limits")
+    # disable failed vectorization warnings for OpenMP SIMD loops
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15552")
 endif()
 
 Find_Package( OpenMP )
