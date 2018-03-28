@@ -242,7 +242,7 @@ namespace gridtools {
                     boost::mpl::insert< boost::mpl::_1,
                         boost::mpl::pair< arg_from_storage_wrapper< boost::mpl::_2 >, boost::mpl::_2 > > > >::type;
             template < class ArgStoragePair >
-            struct apply {
+            struct generator {
                 template < class Grid >
                 ArgStoragePair operator()(Grid const &grid) const {
                     using arg_t = typename ArgStoragePair::arg_t;
@@ -252,13 +252,20 @@ namespace gridtools {
                         Backend::template instantiate_storage_info< MaxExtent, storage_wrapper_t >(grid)};
                 }
             };
+            template < class T >
+#if GT_BROKEN_TEMPLATE_ALIASES
+            struct apply {
+                using type = generator< T >;
+            };
+#else
+            using apply = generator< T >;
+#endif
         };
 
         template < class MaxExtent, class Backend, class StorageWrapperList, class Res, class Grid >
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = meta::transform<
-                get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply,
-                Res >;
+            using generators = GT_META_CALL(meta::transform,
+                (get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply, Res));
             return tuple_util::generate< generators, Res >(grid);
         }
 

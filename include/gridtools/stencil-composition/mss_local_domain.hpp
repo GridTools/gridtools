@@ -80,6 +80,10 @@ namespace gridtools {
 
     template < enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful >
     struct mss_local_domain {
+
+        // This is to make cuda8 happy.
+        mss_local_domain() = default;
+
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
 
         /**

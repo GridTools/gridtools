@@ -48,6 +48,9 @@ namespace gridtools {
 
     /// Helper to copy MPL sequence to a variadic typelist
     template < class Src, class Dst >
+    struct lazy_copy_into_variadic : boost::mpl::copy< Src, boost::mpl::inserter< Dst, _impl::variadic_push_back > > {};
+
+    template < class Src, class Dst >
     using copy_into_variadic =
         typename boost::mpl::copy< Src, boost::mpl::inserter< Dst, _impl::variadic_push_back > >::type;
 }

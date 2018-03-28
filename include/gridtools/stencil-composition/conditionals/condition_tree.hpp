@@ -69,8 +69,9 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/tuple_util.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 
 #include "condition.hpp"
 
@@ -215,20 +216,29 @@ namespace gridtools {
                 return {fun};
             }
 
-            template < typename T >
-            struct lazy_all_leaves_in_tree {
-                using type = std::tuple< typename std::decay< T >::type >;
-            };
-            template < class T >
-            using all_leaves_in_tree = typename lazy_all_leaves_in_tree< T >::type;
+#if GT_BROKEN_TEMPLATE_ALIASES
+            inline
+#endif
+                namespace lazy {
+                template < typename T >
+                struct all_leaves_in_tree {
+                    using type = std::tuple< decay_t< T > >;
+                };
 
-            template < typename Lhs, typename Rhs, typename Cond >
-            struct lazy_all_leaves_in_tree< condition< Lhs, Rhs, Cond > > {
-                using type = meta::concat< all_leaves_in_tree< Lhs >, all_leaves_in_tree< Rhs > >;
-            };
+                template < typename Lhs, typename Rhs, typename Cond >
+                struct all_leaves_in_tree< condition< Lhs, Rhs, Cond > >
+                    : meta::lazy::concat< typename all_leaves_in_tree< Lhs >::type,
+                          typename all_leaves_in_tree< Rhs >::type > {};
+            }
+#if !GT_BROKEN_TEMPLATE_ALIASES
+            template < class T >
+            using all_leaves_in_tree = typename lazy::all_leaves_in_tree< T >::type;
+#endif
 
             template < typename... Trees >
-            using all_leaves_in_forest = meta::flatten< meta::transform< all_leaves_in_tree, std::tuple< Trees... > > >;
+            GT_META_DEFINE_ALIAS(all_leaves_in_forest,
+                meta::flatten,
+                (GT_META_CALL(meta::transform, (all_leaves_in_tree, std::tuple< Trees... >))));
         }
     }
 
@@ -265,7 +275,7 @@ namespace gridtools {
 
       public:
         /// An std  tuple containing all leaves of all trees. I.e. the flat view for all trees.
-        using all_leaves_t = _impl::condition_tree::all_leaves_in_forest< Trees... >;
+        using all_leaves_t = GT_META_CALL(_impl::condition_tree::all_leaves_in_forest, Trees...);
 
         template < class Seq >
         branch_selector(Seq &&seq)
@@ -324,7 +334,7 @@ namespace gridtools {
 
     /// Generator for branch_selector
     template < typename... Trees >
-    branch_selector< typename std::decay< Trees >::type... > make_branch_selector(Trees &&... trees) {
+    branch_selector< decay_t< Trees >... > make_branch_selector(Trees &&... trees) {
         return std::make_tuple(std::forward< Trees >(trees)...);
     };
 }

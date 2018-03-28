@@ -42,62 +42,37 @@
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/meta.hpp"
 #include "generic_metafunctions/type_traits.hpp"
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-#include <boost/mpl/greater_equal.hpp>
-#include <boost/mpl/filter_view.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/vector.hpp>
-#else
-#include "generic_metafunctions/meta.hpp"
-#endif
-
 namespace gridtools {
+
+    namespace _impl {
+        namespace _layout_map {
+            /* helper meta functions */
+            template < typename Int >
+            GT_META_DEFINE_ALIAS(not_negative, bool_constant, Int::value >= 0);
+            template < typename A, typename B >
+            GT_META_DEFINE_ALIAS(integral_plus, std::integral_constant, (int, A::value + B::value));
+        }
+    }
 
     template < int... Args >
     struct layout_map {
       private:
-#if GT_BROKEN_TEMPLATE_ALIASES
-        /* list of all arguments */
-        using args = boost::mpl::vector< boost::mpl::int_< Args >... >;
-
-        /* list of all unmasked (i.e. non-negative) arguments */
-        using unmasked_args =
-            boost::mpl::filter_view< args, boost::mpl::greater_equal< boost::mpl::_, boost::mpl::int_< 0 > > >;
-
-        /* sum of all unmasked arguments (only used for assertion below) */
-        static constexpr int unmasked_arg_sum = boost::mpl::fold< unmasked_args,
-            boost::mpl::int_< 0 >,
-            boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 > >::type::value;
-
-      public:
-        /** @brief Length of layout map excluding masked dimensions. */
-        static constexpr std::size_t unmasked_length = boost::mpl::size< unmasked_args >::type::value;
-#else
         /* list of all arguments */
         using args = meta::list< std::integral_constant< int, Args >... >;
 
-        /* helper meta functions */
-        template < typename Int >
-        using not_negative = bool_constant< (Int::value >= 0) >;
-        template < typename A, typename B >
-        using integral_plus = std::integral_constant< int, A::value + B::value >;
-
         /* list of all unmasked (i.e. non-negative) arguments */
-        using unmasked_args = meta::filter< not_negative, args >;
+        using unmasked_args = GT_META_CALL(meta::filter, (_impl::_layout_map::not_negative, args));
 
         /* sum of all unmasked arguments (only used for assertion below) */
-        static constexpr int unmasked_arg_sum =
-            meta::combine< integral_plus, meta::push_back< unmasked_args, std::integral_constant< int, 0 > > >::value;
+        static constexpr int unmasked_arg_sum = meta::lazy::combine< _impl::_layout_map::integral_plus,
+            GT_META_CALL(meta::push_back, (unmasked_args, std::integral_constant< int, 0 >)) >::type::value;
 
       public:
         /** @brief Length of layout map excluding masked dimensions. */
         static constexpr std::size_t unmasked_length = meta::length< unmasked_args >::value;
-#endif
         /** @brief Total length of layout map, including masked dimensions. */
         static constexpr std::size_t masked_length = sizeof...(Args);
 

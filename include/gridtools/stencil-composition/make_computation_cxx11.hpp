@@ -49,8 +49,13 @@
 namespace gridtools {
     namespace _impl {
 
+#if GT_BROKEN_TEMPLATE_ALIASES
+        template < class List >
+        struct decay_elements : meta::transform< std::decay, List > {};
+#else
         template < class List >
         using decay_elements = meta::transform< decay_t, List >;
+#endif
 
         template < template < uint_t, bool, class, class, class, class > class Intermediate,
             uint_t Factor,
@@ -60,8 +65,8 @@ namespace gridtools {
             class... Args,
             class ArgsPair = decltype(
                 split_args< is_arg_storage_pair >(std::forward< Args >(std::declval< Args >())...)),
-            class ArgStoragePairs = decay_elements< typename ArgsPair::first_type >,
-            class Msses = decay_elements< typename ArgsPair::second_type > >
+            class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
+            class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type) >
         Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > make_intermediate(
             Grid const &grid, Args &&... args) {
             auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
