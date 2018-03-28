@@ -9,6 +9,18 @@ def now():
     return datetime.now(timezone.utc)
 
 
+def local_time(time):
+    """Returns the local time of the given (e.g. UTC) time.
+
+    Args:
+        time: A `datetime.datetime` object.
+
+    Returns:
+        A `datetime.datetime` object with local (system) time zone.
+    """
+    return time.astimezone()
+
+
 def from_posix(posixtime):
     return datetime.fromtimestamp(int(posixtime), timezone.utc)
 
