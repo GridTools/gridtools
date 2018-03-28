@@ -23,7 +23,7 @@ def configure(build_dir, source_dir, cmake_args, conf=None):
         return '-D' + k + '=' + v
 
     command = conf.cmake_command + [argstr(k, v) for k, v
-                                      in cmake_args.items()] + [source_dir]
+                                    in cmake_args.items()] + [source_dir]
 
     logger.debug('Invoking CMake: ' + ' '.join(command))
     try:

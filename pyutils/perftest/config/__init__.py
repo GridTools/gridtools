@@ -7,7 +7,6 @@ import re
 import subprocess
 
 from perftest import ConfigError, logger
-from perftest.config import default
 from perftest.runtime import GridtoolsRuntime, Runtime
 
 

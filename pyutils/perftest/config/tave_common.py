@@ -3,10 +3,10 @@
 import textwrap
 
 from perftest.config import default
-from perftest.config.default import modules, env, make_command
 
 cmake_command = default.cmake_command + [
     '-DBOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0']
+
 
 def sbatch(command):
     return textwrap.dedent(f"""\
@@ -19,3 +19,8 @@ def sbatch(command):
 
         sync
         """)
+
+
+modules = default.modules
+env = default.env
+make_command = default.make_command

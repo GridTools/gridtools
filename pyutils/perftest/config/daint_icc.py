@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from perftest.config import daint_common as common
-from perftest.config.daint_common import cmake_command, make_command, sbatch
+from perftest.config import daint_common as default
 
-modules = common.modules | {'PrgEnv-intel'}
+modules = default.modules | {'PrgEnv-intel'}
 
-env = dict(common.env,
+env = dict(default.env,
            CXX='icpc',
            CC='icc')
+
+cmake_command = default.cmake_command
+make_command = default.make_command
+sbatch = default.sbatch
