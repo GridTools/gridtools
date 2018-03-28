@@ -123,6 +123,21 @@ namespace gridtools {
             EXPECT_EQ(res, std::make_tuple(44, 7.3));
         }
 
+        struct accumulate_f {
+            double &m_acc;
+            template < class T >
+            void operator()(T val) const {
+                m_acc += val;
+            }
+        };
+
+        TEST(for_each, functional) {
+            auto src = std::make_tuple(42, 5.3);
+            double acc = 0;
+            for_each(accumulate_f{acc}, src);
+            EXPECT_EQ(47.3, acc);
+        }
+
         TEST(flatten, functional) {
             EXPECT_EQ(
                 flatten(std::make_tuple(std::make_tuple(1, 2), std::make_tuple(3, 4))), std::make_tuple(1, 2, 3, 4));

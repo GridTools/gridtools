@@ -306,14 +306,14 @@ namespace gridtools {
         typedef typename Backend::grid_traits_t grid_traits_t;
 
         using placeholders_t = extract_placeholders< all_mss_descriptors_t >;
-        using tmp_placeholders_t = meta::apply< meta::filter< is_tmp_arg >, placeholders_t >;
-        using non_tmp_placeholders_t = meta::apply< meta::filter< meta::not_< is_tmp_arg >::apply >, placeholders_t >;
+        using tmp_placeholders_t = meta::filter< is_tmp_arg, placeholders_t >;
+        using non_tmp_placeholders_t = meta::filter< meta::not_< is_tmp_arg >::apply, placeholders_t >;
 
         template < class Arg >
         using to_arg_storage_pair = arg_storage_pair< Arg, typename Arg::data_store_t >;
 
-        using tmp_arg_storage_pair_fusion_list_t = meta::apply< meta::rename< std::tuple >,
-            meta::apply< meta::transform< to_arg_storage_pair >, tmp_placeholders_t > >;
+        using tmp_arg_storage_pair_fusion_list_t =
+            meta::rename< std::tuple, meta::transform< to_arg_storage_pair, tmp_placeholders_t > >;
 
         GRIDTOOLS_STATIC_ASSERT(
             (conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
@@ -325,7 +325,7 @@ namespace gridtools {
         template < class Arg >
         using is_free = negation< meta::st_contains< meta::list< BoundPlaceholders... >, Arg > >;
 
-        using free_placeholders_t = meta::apply< meta::filter< is_free >, non_tmp_placeholders_t >;
+        using free_placeholders_t = meta::filter< is_free, non_tmp_placeholders_t >;
 
         using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
 

@@ -103,9 +103,9 @@ namespace gridtools {
             };
 
             template < template < class... > class Pred, class Args >
-            using make_filtered_indicies = meta::apply< meta::transform< meta::second >,
-                meta::apply< meta::filter< apply_to_first< Pred >::template apply >,
-                                                            meta::zip< Args, meta::make_indices_for< Args > > > >;
+            using make_filtered_indicies = meta::transform< meta::second,
+                meta::filter< apply_to_first< Pred >::template apply,
+                                                                meta::zip< Args, meta::make_indices_for< Args > > > >;
             using meta::not_;
 #endif
             template < class Args, template < class... > class L, class... Is >

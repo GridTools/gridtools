@@ -231,10 +231,9 @@ namespace gridtools {
         class MssDescriptorTrees >
     class intermediate_expand {
         using non_expandable_bound_arg_storage_pairs_t =
-            meta::apply< meta::filter< meta::not_< _impl::expand_detail::is_expandable >::template apply >,
-                BoundArgStoragePairs >;
+            meta::filter< meta::not_< _impl::expand_detail::is_expandable >::apply, BoundArgStoragePairs >;
         using expandable_bound_arg_storage_pairs_t =
-            meta::apply< meta::filter< _impl::expand_detail::is_expandable >, BoundArgStoragePairs >;
+            meta::filter< _impl::expand_detail::is_expandable, BoundArgStoragePairs >;
 
         template < uint_t N >
         using converted_intermediate = intermediate< N,

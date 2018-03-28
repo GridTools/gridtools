@@ -228,8 +228,7 @@ namespace gridtools {
             };
 
             template < typename... Trees >
-            using all_leaves_in_forest =
-                meta::flatten< meta::apply< meta::transform< all_leaves_in_tree >, std::tuple< Trees... > > >;
+            using all_leaves_in_forest = meta::flatten< meta::transform< all_leaves_in_tree, std::tuple< Trees... > > >;
         }
     }
 

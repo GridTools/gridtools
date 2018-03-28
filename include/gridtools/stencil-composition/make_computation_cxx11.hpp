@@ -50,7 +50,7 @@ namespace gridtools {
     namespace _impl {
 
         template < class List >
-        using decay_elements = meta::apply< meta::transform< decay_t >, List >;
+        using decay_elements = meta::transform< decay_t, List >;
 
         template < template < uint_t, bool, class, class, class, class > class Intermediate,
             uint_t Factor,

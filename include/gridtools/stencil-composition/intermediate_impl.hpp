@@ -256,9 +256,8 @@ namespace gridtools {
 
         template < class MaxExtent, class Backend, class StorageWrapperList, class Res, class Grid >
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = meta::apply<
-                meta::transform<
-                    get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply >,
+            using generators = meta::transform<
+                get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply,
                 Res >;
             return tuple_util::generate< generators, Res >(grid);
         }

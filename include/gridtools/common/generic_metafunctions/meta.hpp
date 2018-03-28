@@ -70,7 +70,6 @@
  *    - std::is_same
  *    - std::pair
  *    - std::tuple
- *    - meta::t_
  *    - meta::list
  *    - meta::is_list
  *
@@ -103,97 +102,137 @@
 
 #include <functional>
 #include <type_traits>
+#include <boost/preprocessor.hpp>
 
 #include "../defs.hpp"
 #include "type_traits.hpp"
 #include "gt_integer_sequence.hpp"
 
+#if GT_BROKEN_TEMPLATE_ALIASES
+
+#define GT_META_DEFINE_COMPOSITION(name, body) \
+    struct name : BOOST_PP_REMOVE_PARENS(body) {}
+#define GT_META_CALL(fun, args) typename BOOST_PP_REMOVE_PARENS(fun)< BOOST_PP_REMOVE_PARENS(args) >::type
+#define GT_META_DIRECT_PARAM(fun) ::gridtools::meta::defer< BOOST_PP_REMOVE_PARENS(fun) >::template apply
+#define GT_META_LAZY_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
+
+#define GT_META_LAZY_NAMESPACE inline namespace lazy
+
+#else
+
+#define GT_META_DEFINE_COMPOSITION(name, body) using name = BOOST_PP_REMOVE_PARENS(body)
+#define GT_META_CALL(fun, args) BOOST_PP_REMOVE_PARENS(fun)< BOOST_PP_REMOVE_PARENS(args) >
+#define GT_META_DIRECT_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
+#define GT_META_LAZY_PARAM(fun) ::gridtools::meta::force< BOOST_PP_REMOVE_PARENS(fun) >::template apply
+
+#define GT_META_LAZY_NAMESPACE namespace lazy
+
+#endif
+
 namespace gridtools {
     namespace meta {
 
-        /**
-         *  Call the function that is wrapped with the given MetaClass with the given Args
-         */
-        template < class MetaClass, class... Args >
-        using apply = typename MetaClass::template apply< Args... >;
+        GT_META_LAZY_NAMESPACE {
+
+            template < class Cond, class Lhs, class Rhs >
+            GT_META_DEFINE_COMPOSITION(if_, (std::conditional< Cond::value, Lhs, Rhs >));
+
+            template < class, class... >
+            struct concat;
+            template < class, class... >
+            struct push_back;
+
+            template < template < class... > class, class... >
+            struct rename;
+            template < template < class... > class, class... >
+            struct lfold;
+            template < template < class... > class, class... >
+            struct rfold;
+            template < template < class... > class, class... >
+            struct combine;
+            template < template < class... > class, class... >
+            struct transform;
+            template < template < class... > class, class... >
+            struct filter;
+        }
+
+#if !GT_BROKEN_TEMPLATE_ALIASES
+        inline namespace direct {
+
+            template < class T >
+            struct always {
+                template < class... >
+                using apply = T;
+            };
+
+            template < class Cond, class Lhs, class Rhs >
+            using if_ = typename lazy::if_< Cond, Lhs, Rhs >::type;
+            template < class List, class... Lists >
+            using concat = typename lazy::concat< List, Lists... >::type;
+            template < class List, class... Ts >
+            using push_back = typename lazy::push_back< List, Ts... >::type;
+
+            template < template < class... > class F, class... Args >
+            using rename = typename lazy::rename< F, Args... >::type;
+            template < template < class... > class F, class... Args >
+            using lfold = typename lazy::lfold< F, Args... >::type;
+            template < template < class... > class F, class... Args >
+            using rfold = typename lazy::rfold< F, Args... >::type;
+            template < template < class... > class F, class... Args >
+            using combine = typename lazy::combine< F, Args... >::type;
+            template < template < class... > class F, class... Args >
+            using transform = typename lazy::transform< F, Args... >::type;
+            template < template < class... > class F, class... Args >
+            using filter = typename lazy::filter< F, Args... >::type;
+        }
+#endif
 
         /**
-         *   Meta function that performs function composition.
+         *   The default list constructor.
+         *
+         *   Used within the library when it needed to produce something, that satisfy list concept.
          */
-        template < template < class... > class F, template < class... > class G, template < class... > class... Fs >
-        struct compose {
-            template < class... Args >
-            using apply = F< meta::apply< compose< G, Fs... >, Args... > >;
+        template < class... >
+        struct list {
+            using type = list;
         };
-        template < template < class... > class F, template < class... > class G >
-        struct compose< F, G > {
-            template < class... Args >
-            using apply = F< G< Args... > >;
-        };
-
-        /**
-         *  Identity function
-         */
-        template < class T >
-        using id = T;
-
-        /**
-         *  Lazy identity function
-         */
-        template < class T >
-        struct lazy {
-            using type = T;
-        };
-
-        /**
-         *  Invoke lazy function
-         */
-        template < class T >
-        using t_ = typename T::type;
 
         /**
          *  Remove laziness from a function
          */
         template < template < class... > class F >
-        using meta_t_ = compose< t_, F >;
+        struct force {
+            template < class... Args >
+            using apply = typename F< Args... >::type;
+        };
 
         /**
-         *  Remove laziness from a meta class
-         */
-        template < class T >
-        using meta_class_t_ = meta_t_< T::template apply >;
-
-        /**
-         *  Wrap a function into a meta class
+         *  Add laziness to a function
          */
         template < template < class... > class F >
-        struct quote {
+        struct defer {
             template < class... Args >
-            using apply = F< Args... >;
+            struct apply {
+                using type = F< Args... >;
+            };
         };
 
-        /**
-         *  Meta version of void_t
-         */
-        template < template < class... > class... >
-        struct lazy_meta_void_t {
-            using type = void;
+        template < template < class... > class F, class... BoundArgs >
+        struct curry {
+            template < class... Args >
+            GT_META_DEFINE_COMPOSITION(apply, (F< BoundArgs..., Args... >));
         };
-        template < template < class... > class... Fs >
-        using meta_void_t = t_< lazy_meta_void_t< Fs... > >;
 
-        /**
-         *   The default list constructor.
-         *
-         *   Used within the library when it needed to produce sometning, that satisfy list concept.
-         */
-        template < class... >
-        struct list;
+        template < template < template < class... > class, class... > class F, template < class... > class G >
+        struct curry_fun {
+            template < class... Args >
+            GT_META_DEFINE_COMPOSITION(apply, (F< G, Args... >));
+        };
 
         /**
          *   list concept check.
          *
-         *   Note: it is not the same as is_instance<list>::apply.
+         *   Note: it is not the same as is_instance_of<list, T>.
          */
         template < class >
         struct is_list : std::false_type {};
@@ -206,7 +245,7 @@ namespace gridtools {
         template < class, class = void >
         struct has_type : std::false_type {};
         template < class T >
-        struct has_type< T, void_t< t_< T > > > : std::true_type {};
+        struct has_type< T, void_t< typename T::type > > : std::true_type {};
 
         /**
          *   meta class concept check
@@ -214,480 +253,32 @@ namespace gridtools {
         template < class, class = void >
         struct is_meta_class : std::false_type {};
         template < class T >
-        struct is_meta_class< T, meta_void_t< T::template apply > > : std::true_type {};
+        struct is_meta_class< T, void_t< curry< T::template apply > > > : std::true_type {};
 
         template < class >
         struct length;
         template < template < class... > class L, class... Ts >
         struct length< L< Ts... > > : std::integral_constant< size_t, sizeof...(Ts) > {};
 
-/**
- *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
- */
-#ifdef __CUDACC__
-        template < class... Ts >
-        struct sizeof_3_dots : std::integral_constant< size_t, sizeof...(Ts) > {};
-
-#define GT_SIZEOF_3_DOTS(Ts) ::gridtools::meta::sizeof_3_dots< Ts... >::value
-#else
-#define GT_SIZEOF_3_DOTS(Ts) sizeof...(Ts)
-#endif
-
         /**
-         *  Extracts "producing template" from the list.
-         *
-         *  I.e ctor<some_instantiation_of_std_tuple>::apply is an alias of std::tuple.
+         *   Check if L is a ctor of List
          */
-        template < class >
-        struct ctor;
-        template < template < class... > class L, class... Ts >
-        struct ctor< L< Ts... > > : quote< L > {};
-
-        template < class List >
-        using clear = apply< ctor< List > >;
-
-        template < class T >
-        struct always {
-            template < class... >
-            using apply = T;
-        };
-
-        /**
-         *   Instantiate F with the parameters taken from List.
-         */
-        template < template < class... > class F >
-        struct lazy_rename {
-            template < class >
-            struct apply;
-            template < template < class... > class From, class... Ts >
-            struct apply< From< Ts... > > {
-                using type = F< Ts... >;
-            };
-        };
-        template < template < class... > class F >
-        using rename = meta_class_t_< lazy_rename< F > >;
-
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
-        template < class >
-        struct lazy_iseq_to_list;
-        template < template < class T, T... > class ISec, class Int, Int... Is >
-        struct lazy_iseq_to_list< ISec< Int, Is... > > {
-            using type = list< std::integral_constant< Int, Is >... >;
-        };
-        template < class ISec >
-        using iseq_to_list = t_< lazy_iseq_to_list< ISec > >;
-
-        /**
-         *  Convert a list of integral constants to an integer sequence.
-         */
-        template < class >
-        struct lazy_list_to_iseq;
-        template < template < class... > class L, template < class T, T > class Const, class Int, Int... Is >
-        struct lazy_list_to_iseq< L< Const< Int, Is >... > > {
-            using type = gt_integer_sequence< Int, Is... >;
-        };
+        template < template < class... > class L, class... Args >
+        struct is_instantiation_of;
         template < template < class... > class L >
-        struct lazy_list_to_iseq< L<> > {
-            using type = gt_index_sequence<>;
+        struct is_instantiation_of< L > {
+            using type = curry_fun< is_instantiation_of, L >;
         };
-        template < class List >
-        using list_to_iseq = t_< lazy_list_to_iseq< List > >;
-
-        /**
-         *  Make a list of integral constants of indices from 0 to N
-         */
-        template < size_t N >
-        using make_indices = iseq_to_list< make_gt_index_sequence< N > >;
-
-        /**
-         *  Make a list of integral constants of indices from 0 to length< List >
-         */
-        template < class List >
-        using make_indices_for = make_indices< length< List >::value >;
-
-        // internals
-        struct any_arg_impl {
-            any_arg_impl(...);
-        };
-        template < class SomeList, class List >
-        class drop_front_impl;
-        template < class... Us, template < class... > class L, class... Ts >
-        class drop_front_impl< list< Us... >, L< Ts... > > {
-            template < class >
-            using any_arg_t = any_arg_impl;
-            template < class... Vs >
-            static L< t_< Vs >... > select(any_arg_t< Us >..., Vs...);
-
-          public:
-            using type = decltype(select(lazy< Ts >()...));
-        };
-
-        /**
-         *  Drop N elements from the front of the list
-         *
-         *  Complexity is amortized O(1).
-         */
-        template < size_t N, class List >
-        using lazy_drop_front = drop_front_impl< make_indices< N >, List >;
-        template < size_t N, class List >
-        using drop_front = t_< lazy_drop_front< N, List > >;
-
-        /**
-         *   Applies binary function to the elements of the list.
-         *
-         *   For example:
-         *     combine<f>::apply<list<t1, t2, t3, t4, t5, t6, t7>> === f<f<f<t1, t2>, f<t3, f4>>, f<f<t5, t6>, t7>>
-         *
-         *   Complexity is amortized O(log(N))
-         *
-         *   If the function is associative, combine<f> has the same effect as rfold<f> and lfold<f> but faster.
-         */
-        template < template < class... > class F >
-        struct combine {
-            template < class List, size_t N >
-            struct apply_impl {
-                static_assert(N > 0, "N in combine_impl<F, List, N> must be positive");
-                static const size_t m = N / 2;
-                using type = F< t_< apply_impl< List, m > >, t_< apply_impl< drop_front< m, List >, N - m > > >;
-            };
-            template < template < class... > class L, class T, class... Ts >
-            struct apply_impl< L< T, Ts... >, 1 > {
-                using type = T;
-            };
-            template < template < class... > class L, class T1, class T2, class... Ts >
-            struct apply_impl< L< T1, T2, Ts... >, 2 > {
-                using type = F< T1, T2 >;
-            };
-            template < template < class... > class L, class T1, class T2, class T3, class... Ts >
-            struct apply_impl< L< T1, T2, T3, Ts... >, 3 > {
-                using type = F< T1, F< T2, T3 > >;
-            };
-            template < template < class... > class L, class T1, class T2, class T3, class T4, class... Ts >
-            struct apply_impl< L< T1, T2, T3, T4, Ts... >, 4 > {
-                using type = F< F< T1, T2 >, F< T3, T4 > >;
-            };
-            template < class List >
-            using apply = t_< apply_impl< List, length< List >::value > >;
-        };
-
-        // internals
-        template < class... Ts >
-        struct inherit_impl : Ts... {};
-
-        /**
-         *   true_type if Set contains T
-         *
-         *   "st_" prefix stands for set
-         *
-         *  @pre All elements of Set are unique.
-         *
-         *  Complexity is O(1)
-         */
-        template < class Set, class T >
-        struct st_contains : std::false_type {};
-        template < template < class... > class L, class... Ts, class T >
-        struct st_contains< L< Ts... >, T > : std::is_base_of< lazy< T >, inherit_impl< lazy< Ts >... > > {};
-
-        /**
-         *  Find the record in the map.
-         *  "mp_" prefix stands for map.
-         *
-         *  Map is a list of lists, where the first elements of each inner lists (aka keys) are unique.
-         *
-         *  @return the inner list with a given Key or `void` if not found
-         */
-        template < class Map, class Key >
-        class lazy_mp_find;
-        template < class Key, template < class... > class L, class... Ts >
-        class lazy_mp_find< L< Ts... >, Key > {
-            template < template < class... > class Elem, class... Vals >
-            static Elem< Key, Vals... > select(lazy< Elem< Key, Vals... > >);
-            static void select(...);
-
-          public:
-            using type = decltype(select(std::declval< inherit_impl< lazy< Ts >... > >()));
-        };
-        template < class Map, class Key >
-        using mp_find = t_< lazy_mp_find< Map, Key > >;
-
-        /**
-         *   Transform Lists by applying F element wise.
-         *
-         *   I.e the first element of resulting list would be F<first_from_l0, first_froml1, ...>;
-         *   the second would be F<second_from_l0, ...> and so on.
-         *
-         *   For N lists M elements each complexity is O(log(N))
-         */
-        template < template < class... > class F >
-        struct lazy_transform {
-            template < class... >
-            struct apply;
-            template < template < class... > class L, class... Ts >
-            struct apply< L< Ts... > > {
-                using type = L< F< Ts >... >;
-            };
-            template < template < class... > class L1, class... T1s, template < class... > class L2, class... T2s >
-            struct apply< L1< T1s... >, L2< T2s... > > {
-                using type = L1< F< T1s, T2s >... >;
-            };
-            // Note, that the generic form of lazy_transform is not yet defined here.
-        };
-        template < template < class... > class F >
-        using transform = meta_class_t_< lazy_transform< F > >;
-
-        // internals for generic transform
-
-        // Serves as a placeholder.
-        template < class... >
-        struct plc_impl;
-        // An associative binary lazy function that returns `plc` list.
-        template < class T, class U >
-        struct zip_helper_impl {
-            using type = plc_impl< T, U >;
-        };
-        template < class T, class... Ts >
-        struct zip_helper_impl< T, plc_impl< Ts... > > {
-            using type = plc_impl< T, Ts... >;
-        };
-        template < class T, class... Ts >
-        struct zip_helper_impl< plc_impl< Ts... >, T > {
-            using type = plc_impl< Ts..., T >;
-        };
-        template < class... Ts, class... Us >
-        struct zip_helper_impl< plc_impl< Ts... >, plc_impl< Us... > > {
-            using type = plc_impl< Ts..., Us... >;
-        };
-
-        // generic transform
-        template < template < class... > class F >
-        template < class... Lists >
-        class lazy_transform< F >::apply {
-            // A meta class, containing the function which takes two lists and returns the list of `plc`es from
-            // the first and the second list element wise.
-            // This function inherits associativity from the `zip_helper`
-            using zip2 = transform< meta_t_< zip_helper_impl >::apply >;
-            // Now we cook general version of `zip` by applying `combine' with `zip2`.
-            // It produces the list of `plc`es, collected from all argument lists element wise.
-            using zip = compose< combine< zip2::apply >::apply, list >;
-            // A function that renames all lists in the list to F.
-            using rename_all = transform< rename< F >::template apply >;
-
-          public:
-            using type = meta::apply< rename_all, zip::apply< Lists... > >;
-        };
-
-        /**
-         *   Classic folds.
-         *
-         *   Complexity is O(N).
-         *
-         *   WARNING: Please use as a last resort. Consider `transform` ( which complexity is O(1) ) or `combine` (which
-         *   complexity is O(log(N))) as alternatives.
-         */
-        template < template < class... > class F >
-        struct lazy_rfold {
-            template < class, class >
-            struct apply;
-            template < class S, template < class... > class L >
-            struct apply< S, L<> > {
-                using type = S;
-            };
-            template < class S, template < class... > class L, class T >
-            struct apply< S, L< T > > {
-                using type = F< T, S >;
-            };
-            template < class S, template < class... > class L, class T1, class T2 >
-            struct apply< S, L< T1, T2 > > {
-                using type = F< T1, F< T2, S > >;
-            };
-            template < class S, template < class... > class L, class T1, class T2, class T3 >
-            struct apply< S, L< T1, T2, T3 > > {
-                using type = F< T1, F< T2, F< T3, S > > >;
-            };
-            template < class S, template < class... > class L, class T1, class T2, class T3, class T4, class... Ts >
-            struct apply< S, L< T1, T2, T3, T4, Ts... > > {
-                using type = F< T1, F< T2, F< T3, F< T4, typename apply< S, L< Ts... > >::type > > > >;
-            };
-        };
-        template < template < class... > class F >
-        using rfold = meta_class_t_< lazy_rfold< F > >;
-
-        template < template < class... > class F >
-        struct lazy_lfold {
-            template < class, class >
-            struct apply;
-            template < class S, template < class... > class L >
-            struct apply< S, L<> > {
-                using type = S;
-            };
-            template < class S, template < class... > class L, class T >
-            struct apply< S, L< T > > {
-                using type = F< S, T >;
-            };
-            template < class S, template < class... > class L, class T1, class T2 >
-            struct apply< S, L< T1, T2 > > {
-                using type = F< F< S, T1 >, T2 >;
-            };
-            template < class S, template < class... > class L, class T1, class T2, class T3 >
-            struct apply< S, L< T1, T2, T3 > > {
-                using type = F< F< F< S, T1 >, T2 >, T3 >;
-            };
-            template < class S, template < class... > class L, class T1, class T2, class T3, class T4, class... Ts >
-            struct apply< S, L< T1, T2, T3, T4, Ts... > > {
-                using type = typename apply< F< F< F< F< S, T1 >, T2 >, T3 >, T4 >, L< Ts... > >::type;
-            };
-        };
-        template < template < class... > class F >
-        using lfold = meta_class_t_< lazy_lfold< F > >;
-
-        /**
-         *  Concatenate lists
-         */
-        template < class... >
-        struct lazy_concat;
+        template < template < class... > class L, class T >
+        struct is_instantiation_of< L, T > : std::false_type {};
         template < template < class... > class L, class... Ts >
-        struct lazy_concat< L< Ts... > > {
-            using type = L< Ts... >;
-        };
-        template < template < class... > class L1, class... T1s, template < class... > class L2, class... T2s >
-        struct lazy_concat< L1< T1s... >, L2< T2s... > > {
-            using type = L1< T1s..., T2s... >;
-        };
-        template < class... Lists >
-        using concat = t_< lazy_concat< Lists... > >;
+        struct is_instantiation_of< L, L< Ts... > > : std::true_type {};
 
-        /**
-         *  Flatten a list of lists.
-         */
-        template < class Lists >
-        using flatten = apply< combine< concat >, Lists >;
-
-        template < class... Lists >
-        struct lazy_concat {
-            using type = flatten< list< Lists... > >;
-        };
-
-        template < class, class... >
-        struct lazy_push_front;
-        template < template < class... > class L, class... Us, class... Ts >
-        struct lazy_push_front< L< Us... >, Ts... > {
-            using type = L< Ts..., Us... >;
-        };
-        template < class List, class... Ts >
-        using push_front = t_< lazy_push_front< List, Ts... > >;
-
-        template < class, class... >
-        struct lazy_push_back;
-        template < template < class... > class L, class... Us, class... Ts >
-        struct lazy_push_back< L< Us... >, Ts... > {
-            using type = L< Us..., Ts... >;
-        };
-        template < class List, class... Ts >
-        using push_back = t_< lazy_push_back< List, Ts... > >;
-
-        /**
-         *  Zip lists
-         */
-        template < class... Lists >
-        using zip = apply< transform< list >, Lists... >;
-
-        /**
-         *  Filter the list based of predicate
-         */
         template < template < class... > class Pred >
-        class filter {
+        struct not_ {
             template < class T >
-            using helper = t_< std::conditional< Pred< T >::value, list< T >, list<> > >;
-
-          public:
-            template < class List >
-            using apply = flatten< concat< list< clear< List > >, meta::apply< transform< helper >, List > > >;
+            GT_META_DEFINE_COMPOSITION(apply, negation< Pred< T > >);
         };
-
-        // internals
-        template < class S, class T >
-        using dedup_step_impl = t_< std::conditional< st_contains< S, T >::value, S, push_back< S, T > > >;
-
-        /**
-         *  Removes duplicates from the List
-         */
-        template < class List >
-        using dedup = apply< lfold< dedup_step_impl >, clear< List >, List >;
-
-        /**
-         *   Take Nth element of the List
-         */
-        template < class List, class N >
-        struct lazy_at;
-        template < template < class... > class L, class T, class... Ts, template < class I, I > class Const, class Int >
-        struct lazy_at< L< T, Ts... >, Const< Int, 0 > > {
-            using type = T;
-        };
-        template < template < class... > class L,
-            class T,
-            class U,
-            class... Ts,
-            template < class I, I > class Const,
-            class Int >
-        struct lazy_at< L< T, U, Ts... >, Const< Int, 1 > > {
-            using type = U;
-        };
-        template < class List, class N >
-        using at = t_< lazy_at< List, N > >;
-        template < class List, size_t N >
-        using at_c = at< List, std::integral_constant< size_t, N > >;
-        template < class List, size_t N >
-        using lazy_at_c = lazy_at< List, std::integral_constant< size_t, N > >;
-        template < class List, class N >
-        struct lazy_at {
-            using type = at_c< mp_find< zip< make_indices_for< List >, List >, N >, 1 >;
-        };
-        template < class List >
-        using first = at_c< List, 0 >;
-        template < class List >
-        using second = at_c< List, 1 >;
-
-        /**
-         *  return the position of T in the Set
-         *
-         *  @pre All elements in Set are different.
-         */
-        template < class Set, class T, class Pair = mp_find< zip< Set, make_indices_for< Set > >, T > >
-        using st_position =
-            t_< t_< std::conditional< std::is_void< Pair >::value, length< Set >, lazy_at_c< Pair, 1 > > > >;
-
-        /**
-         *  Produce a list of N identical elements
-         */
-        template < size_t N, class T >
-        using repeat = apply< transform< always< T >::template apply >, make_indices< N > >;
-
-        /**
-         *  C++17 drop-offs
-         *
-         *  Note on `fast_conjunction` and `fast_disjunction` are like std counter parts but:
-         *    - short-circuiting is not implemented as required by C++17 standard
-         *    - amortized complexity is O(1) because of it [in terms of the number of template instantiations].
-         */
-        template < class... Ts >
-        using fast_conjunction =
-            t_< std::is_same< list< bool_constant< Ts::value >... >, repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type > > >;
-        template < class... Ts >
-        using fast_disjunction = negation< fast_conjunction< negation< Ts >... > >;
-
-        template < class List >
-        using all = apply< rename< fast_conjunction >, List >;
-
-        template < class List >
-        using any = apply< rename< fast_disjunction >, List >;
-
-        template < template < class... > class Pred >
-        using all_of = compose< all, transform< Pred >::template apply >;
-
-        template < template < class... > class Pred >
-        using any_of = compose< any, transform< Pred >::template apply >;
 
         /// placeholder  definitions fo bind
         template < size_t >
@@ -704,138 +295,665 @@ namespace gridtools {
         using _9 = placeholder< 8 >;
         using _10 = placeholder< 9 >;
 
-        template < class Arg, class... Params >
-        struct replace_placeholders_impl {
-            using type = Arg;
-        };
+        GT_META_LAZY_NAMESPACE {
 
-        template < size_t I, class... Params >
-        struct replace_placeholders_impl< placeholder< I >, Params... > {
-            using type = at_c< list< Params... >, I >;
-        };
+            template < class T >
+            struct id {
+                using type = T;
+            };
+
+            template < class T >
+            struct always {
+                template < class... >
+                struct apply : id< T > {};
+            };
+
+            /**
+             *  Extracts "producing template" from the list.
+             *
+             *  I.e ctor<some_instantiation_of_std_tuple>::apply is an alias of std::tuple.
+             */
+            template < class >
+            struct ctor;
+            template < template < class... > class L, class... Ts >
+            struct ctor< L< Ts... > > : defer< L > {};
+
+            template < class >
+            struct clear;
+            template < template < class... > class L, class... Ts >
+            struct clear< L< Ts... > > {
+                using type = L<>;
+            };
+
+            /**
+             *   Instantiate F with the parameters taken from List.
+             */
+            template < template < class... > class To >
+            struct rename< To > {
+                using type = curry_fun< meta::rename, To >;
+            };
+            template < template < class... > class To, template < class... > class From, class... Ts >
+            struct rename< To, From< Ts... > > {
+                using type = GT_META_CALL(To, Ts...);
+            };
+
+            /**
+             *  Convert an integer sequence to a list of corresponding integral constants.
+             */
+            template < class >
+            struct iseq_to_list;
+            template < template < class T, T... > class ISec, class Int, Int... Is >
+            struct iseq_to_list< ISec< Int, Is... > > : list< std::integral_constant< Int, Is >... > {};
+
+            /**
+             *  Convert a list of integral constants to an integer sequence.
+             */
+            template < class >
+            struct list_to_iseq;
+            template < template < class... > class L, template < class T, T > class Const, class Int, Int... Is >
+            struct list_to_iseq< L< Const< Int, Is >... > > {
+                using type = gt_integer_sequence< Int, Is... >;
+            };
+            template < template < class... > class L >
+            struct list_to_iseq< L<> > {
+                using type = gt_index_sequence<>;
+            };
+
+            /**
+             *  Make a list of integral constants of indices from 0 to N
+             */
+            template < size_t N >
+            GT_META_DEFINE_COMPOSITION(make_indices, iseq_to_list< make_gt_index_sequence< N > >);
+
+            /**
+             *  Make a list of integral constants of indices from 0 to length< List >
+             */
+            template < class List >
+            GT_META_DEFINE_COMPOSITION(make_indices_for, make_indices< length< List >::value >);
+
+// internals
+#if GT_BROKEN_TEMPLATE_ALIASES
+            template < class >
+            struct any_arg_impl {
+                any_arg_impl(...);
+            };
+#else
+            struct any_arg_base_impl {
+                any_arg_base_impl(...);
+            };
+#endif
+            template < class SomeList, class List >
+            class drop_front_impl;
+            template < class... Us, template < class... > class L, class... Ts >
+            class drop_front_impl< list< Us... >, L< Ts... > > {
+#if !GT_BROKEN_TEMPLATE_ALIASES
+                template < class >
+                using any_arg_impl = any_arg_base_impl;
+#endif
+                template < class... Vs >
+                static L< typename Vs::type... > select(any_arg_impl< Us >..., Vs...);
+
+              public:
+                using type = decltype(select(id< Ts >()...));
+            };
+
+            /**
+             *  Drop N elements from the front of the list
+             *
+             *  Complexity is amortized O(1).
+             */
+            template < class N, class List >
+            GT_META_DEFINE_COMPOSITION(drop_front, (drop_front_impl< typename make_indices< N::value >::type, List >));
+
+            template < size_t N, class List >
+            GT_META_DEFINE_COMPOSITION(drop_front_c, (drop_front_impl< typename make_indices< N >::type, List >));
+
+            /**
+             *   Applies binary function to the elements of the list.
+             *
+             *   For example:
+             *     combine<f>::apply<list<t1, t2, t3, t4, t5, t6, t7>> === f<f<f<t1, t2>, f<t3, f4>>, f<f<t5, t6>, t7>>
+             *
+             *   Complexity is amortized O(N), the depth of template instantiation is O(log(N))
+             */
+            template < template < class... > class F, class List, size_t N >
+            struct combine_impl {
+                static_assert(N > 0, "N in combine_impl<F, List, N> must be positive");
+                static constexpr size_t m = N / 2;
+                using type = GT_META_CALL(
+                    F,
+                    (typename combine_impl< F, List, m >::type,
+                        typename combine_impl< F, typename drop_front_c< m, List >::type, N - m >::type));
+            };
+            template < template < class... > class F, template < class... > class L, class T, class... Ts >
+            struct combine_impl< F, L< T, Ts... >, 1 > {
+                using type = T;
+            };
+            template < template < class... > class F, template < class... > class L, class T1, class T2, class... Ts >
+            struct combine_impl< F, L< T1, T2, Ts... >, 2 > {
+                using type = GT_META_CALL(F, (T1, T2));
+            };
+            template < template < class... > class F,
+                template < class... > class L,
+                class T1,
+                class T2,
+                class T3,
+                class... Ts >
+            struct combine_impl< F, L< T1, T2, T3, Ts... >, 3 > {
+                using type = GT_META_CALL(F, (T1, GT_META_CALL(F, (T2, T3))));
+            };
+            template < template < class... > class F,
+                template < class... > class L,
+                class T1,
+                class T2,
+                class T3,
+                class T4,
+                class... Ts >
+            struct combine_impl< F, L< T1, T2, T3, T4, Ts... >, 4 > {
+                using type = GT_META_CALL(F, (GT_META_CALL(F, (T1, T2)), GT_META_CALL(F, (T3, T4))));
+            };
+            template < template < class... > class F >
+            struct combine< F > {
+                using type = curry_fun< meta::combine, F >;
+            };
+            template < template < class... > class F, class List >
+            struct combine< F, List > : combine_impl< F, List, length< List >::value > {};
+
+            // internals
+            template < class... Ts >
+            struct inherit_impl : Ts... {};
+
+            /**
+             *   true_type if Set contains T
+             *
+             *   "st_" prefix stands for set
+             *
+             *  @pre All elements of Set are unique.
+             *
+             *  Complexity is O(1)
+             */
+            template < class Set, class T >
+            struct st_contains : std::false_type {};
+            template < template < class... > class L, class... Ts, class T >
+            struct st_contains< L< Ts... >, T > : std::is_base_of< id< T >, inherit_impl< id< Ts >... > > {};
+
+            /**
+             *  Find the record in the map.
+             *  "mp_" prefix stands for map.
+             *
+             *  Map is a list of lists, where the first elements of each inner lists (aka keys) are unique.
+             *
+             *  @return the inner list with a given Key or `void` if not found
+             */
+            template < class Map, class Key >
+            struct mp_find;
+            template < class Key, template < class... > class L, class... Ts >
+            struct mp_find< L< Ts... >, Key > {
+              private:
+                template < template < class... > class Elem, class... Vals >
+                static Elem< Key, Vals... > select(id< Elem< Key, Vals... > >);
+                static void select(...);
+
+              public:
+                using type = decltype(select(std::declval< inherit_impl< id< Ts >... > >()));
+            };
+
+            template < class, class... >
+            struct push_front;
+            template < template < class... > class L, class... Us, class... Ts >
+            struct push_front< L< Us... >, Ts... > {
+                using type = L< Ts..., Us... >;
+            };
+
+            template < class, class... >
+            struct push_back;
+            template < template < class... > class L, class... Us, class... Ts >
+            struct push_back< L< Us... >, Ts... > {
+                using type = L< Us..., Ts... >;
+            };
+
+            /**
+             *   Classic folds.
+             *
+             *   Complexity is O(N).
+             *
+             *   WARNING: Please use as a last resort. Consider `transform` ( which complexity is O(1) ) or `combine`
+             * (which
+             *   has the same complexity but O(log(N)) template depth).
+             */
+            template < template < class... > class F >
+            struct lfold< F > {
+                using type = curry_fun< meta::lfold, F >;
+            };
+            template < template < class... > class F, class S, template < class... > class L >
+            struct lfold< F, S, L<> > {
+                using type = S;
+            };
+            template < template < class... > class F, class S, template < class... > class L, class T >
+            struct lfold< F, S, L< T > > {
+                using type = GT_META_CALL(F, (S, T));
+            };
+            template < template < class... > class F, class S, template < class... > class L, class T1, class T2 >
+            struct lfold< F, S, L< T1, T2 > > {
+                using type = GT_META_CALL(F, (GT_META_CALL(F, (S, T1)), T2));
+            };
+            template < template < class... > class F,
+                class S,
+                template < class... > class L,
+                class T1,
+                class T2,
+                class T3 >
+            struct lfold< F, S, L< T1, T2, T3 > > {
+                using type = GT_META_CALL(F, (GT_META_CALL(F, (GT_META_CALL(F, (S, T1)), T2)), T3));
+            };
+            template < template < class... > class F,
+                class S,
+                template < class... > class L,
+                class T1,
+                class T2,
+                class T3,
+                class T4,
+                class... Ts >
+            struct lfold< F, S, L< T1, T2, T3, T4, Ts... > > {
+                using type = typename lfold< F,
+                    GT_META_CALL(F, (GT_META_CALL(F, (GT_META_CALL(F, (GT_META_CALL(F, (S, T1)), T2)), T3)), T4)),
+                    L< Ts... > >::type;
+            };
+
+            template < template < class... > class F >
+            struct rfold< F > {
+                using type = curry_fun< meta::rfold, F >;
+            };
+            template < template < class... > class F, class S, template < class... > class L >
+            struct rfold< F, S, L<> > {
+                using type = S;
+            };
+            template < template < class... > class F, class S, template < class... > class L, class T >
+            struct rfold< F, S, L< T > > {
+                using type = GT_META_CALL(F, (T, S));
+            };
+            template < template < class... > class F, class S, template < class... > class L, class T1, class T2 >
+            struct rfold< F, S, L< T1, T2 > > {
+                using type = GT_META_CALL(F, (T1, GT_META_CALL(F, (T2, S))));
+            };
+            template < template < class... > class F,
+                class S,
+                template < class... > class L,
+                class T1,
+                class T2,
+                class T3 >
+            struct rfold< F, S, L< T1, T2, T3 > > {
+                using type = GT_META_CALL(F, (T1, GT_META_CALL(F, (T2, GT_META_CALL(F, (T3, S))))));
+            };
+            template < template < class... > class F,
+                class S,
+                template < class... > class L,
+                class T1,
+                class T2,
+                class T3,
+                class T4,
+                class... Ts >
+            struct rfold< F, S, L< T1, T2, T3, T4, Ts... > > {
+                using type = GT_META_CALL(
+                    F,
+                    (T1,
+                        GT_META_CALL(F,
+                            (T2,
+                                         GT_META_CALL(F,
+                                             (T3, GT_META_CALL(F, (T4, typename rfold< F, S, L< Ts... > >::type))))))));
+            };
+
+            /**
+             *   Transform Lists by applying F element wise.
+             *
+             *   I.e the first element of resulting list would be F<first_from_l0, first_froml1, ...>;
+             *   the second would be F<second_from_l0, ...> and so on.
+             *
+             *   For N lists M elements each complexity is O(log(N))
+             */
+            template < template < class... > class F >
+            struct transform< F > {
+                using type = curry_fun< meta::transform, F >;
+            };
+            template < template < class... > class F, template < class... > class L, class... Ts >
+            struct transform< F, L< Ts... > > {
+                using type = L< GT_META_CALL(F, Ts)... >;
+            };
+            template < template < class... > class F,
+                template < class... > class L1,
+                class... T1s,
+                template < class... > class L2,
+                class... T2s >
+            struct transform< F, L1< T1s... >, L2< T2s... > > {
+                using type = L1< GT_META_CALL(F, (T1s, T2s))... >;
+            };
+
+            /**
+             *  Zip lists
+             */
+            template < class List, class... Lists >
+            GT_META_DEFINE_COMPOSITION(zip,
+                (lfold< transform< meta::push_back >::type::apply,
+                                           typename transform< list, List >::type,
+                                           list< Lists... > >));
+
+            // internals for generic transform
+
+            template < template < class... > class F, class List, class... Lists >
+            struct transform< F, List, Lists... >
+                : transform< rename< F >::type::template apply, typename zip< List, Lists... >::type > {};
+
+            /**
+             *  Concatenate lists
+             */
+            template < template < class... > class L, class... Ts >
+            struct concat< L< Ts... > > {
+                using type = L< Ts... >;
+            };
+            template < template < class... > class L1, class... T1s, template < class... > class L2, class... T2s >
+            struct concat< L1< T1s... >, L2< T2s... > > {
+                using type = L1< T1s..., T2s... >;
+            };
+
+            /**
+             *  Flatten a list of lists.
+             */
+            template < class Lists >
+            GT_META_DEFINE_COMPOSITION(flatten, (combine< meta::concat, Lists >));
+
+            template < class L1, class L2, class L3, class... Lists >
+            struct concat< L1, L2, L3, Lists... > : flatten< list< L1, L2, L3, Lists... > > {};
+
+            // internals
+            template < template < class... > class Pred >
+            struct filter_helper_impl {
+                template < class T >
+                GT_META_DEFINE_COMPOSITION(apply, (meta::if_< Pred< T >, list< T >, list<> >));
+            };
+
+            /**
+             *  Filter the list based of predicate
+             */
+            template < template < class... > class Pred >
+            struct filter< Pred > {
+                using type = curry_fun< meta::filter, Pred >;
+            };
+            template < template < class... > class Pred, class List >
+            struct filter< Pred, List >
+                : flatten< typename concat< list< typename clear< List >::type >,
+                      typename transform< filter_helper_impl< Pred >::template apply, List >::type >::type > {};
+
+            // internals
+            template < class S, class T >
+            GT_META_DEFINE_COMPOSITION(
+                dedup_step_impl, (meta::if_< st_contains< S, T >, S, typename push_back< S, T >::type >));
+
+            /**
+             *  Removes duplicates from the List
+             */
+            template < class List >
+            GT_META_DEFINE_COMPOSITION(dedup, (lfold< dedup_step_impl, typename clear< List >::type, List >));
+
+            template < class List >
+            struct first;
+            template < template < class... > class L, class T, class... Ts >
+            struct first< L< T, Ts... > > {
+                using type = T;
+            };
+            template < class List >
+            struct second;
+            template < template < class... > class L, class T, class U, class... Ts >
+            struct second< L< T, U, Ts... > > {
+                using type = U;
+            };
+
+            /**
+             *   Take Nth element of the List
+             */
+            template < class List, class N >
+            struct at;
+            template < class List, template < class I, I > class Const, class Int >
+            struct at< List, Const< Int, 0 > > : first< List > {};
+            template < class List, template < class I, I > class Const, class Int >
+            struct at< List, Const< Int, 1 > > : second< List > {};
+            template < class List, class N >
+            struct at : second< typename mp_find< typename zip< typename make_indices_for< List >::type, List >::type,
+                            N >::type > {};
+            template < class List, size_t N >
+            GT_META_DEFINE_COMPOSITION(at_c, (at< List, std::integral_constant< size_t, N > >));
+
+            /**
+             * return the position of T in the Set. If there is no T, it returns the length of the Set.
+             *
+             *  @pre All elements in Set are different.
+             */
+            template < class Set,
+                class T,
+                class Pair =
+                    typename mp_find< typename zip< Set, typename make_indices_for< Set >::type >::type, T >::type >
+            struct st_position : if_< std::is_void< Pair >, length< Set >, second< Pair > >::type::type {};
+
+            /**
+             *  Produce a list of N identical elements
+             */
+            template < size_t N, class T >
+            GT_META_DEFINE_COMPOSITION(
+                repeat, (transform< meta::always< T >::template apply, typename make_indices< N >::type >));
+
+/**
+ *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
+ */
+#ifdef __CUDACC__
+            template < class... Ts >
+            struct sizeof_3_dots : std::integral_constant< size_t, sizeof...(Ts) > {};
+
+#define GT_SIZEOF_3_DOTS(Ts) ::gridtools::meta::lazy::sizeof_3_dots< Ts... >::value
+#else
+#define GT_SIZEOF_3_DOTS(Ts) sizeof...(Ts)
+#endif
+
+            /**
+             *  C++17 drop-offs
+             *
+             *  Note on conjunction_fast and disjunction_fast are like std counter parts but:
+             *    - short-circuiting is not implemented as required by C++17 standard
+             *    - amortized complexity is O(1) because of it [in terms of the number of template instantiations].
+             */
+            template < class... Ts >
+            GT_META_DEFINE_COMPOSITION(conjunction_fast,
+                (std::is_same< list< std::integral_constant< bool, Ts::value >... >,
+                                           typename repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type >::type >));
+
+            template < class... Ts >
+            GT_META_DEFINE_COMPOSITION(disjunction_fast, (negation< conjunction_fast< negation< Ts >... > >));
+
+            template < class List >
+            struct all : rename< conjunction_fast, List >::type {};
+
+            template < class List >
+            struct any : rename< disjunction_fast, List >::type {};
+
+            template < template < class... > class Pred, class List >
+            GT_META_DEFINE_COMPOSITION(all_of, (all< typename transform< Pred, List >::type >));
+
+            template < template < class... > class Pred, class List >
+            GT_META_DEFINE_COMPOSITION(any_of, (any< typename transform< Pred, List >::type >));
+
+            template < template < class... > class Pred, template < class... > class F >
+            struct selective_call_impl {
+                template < class Arg >
+                GT_META_DEFINE_COMPOSITION(apply, (meta::if_< Pred< Arg >, GT_META_CALL(F, Arg), Arg >));
+            };
+
+            template < template < class... > class Pred, template < class... > class F, class List >
+            GT_META_DEFINE_COMPOSITION(
+                selective_transform, (transform< selective_call_impl< Pred, F >::template apply, List >));
+
+            /**
+             *   True if the template parameter is type list which elements are all different
+             */
+            template < class >
+            struct is_set : std::false_type {};
+
+            template < template < class... > class L, class... Ts >
+            struct is_set< L< Ts... > > : std::is_same< L< Ts... >, typename dedup< L< Ts... > >::type > {};
+
+            /**
+             *   is_set_fast evaluates to std::true_type if the parameter is a set.
+             *   If parameter is not a type list, predicate evaluates to std::false_type.
+             *   Compilation fails if the parameter is a type list with duplicated elements.
+             *
+             *   Its OK to use this predicate in static asserts and not OK in sfinae enablers.
+             */
+            template < class, class = void >
+            struct is_set_fast : std::false_type {};
+
+            template < template < class... > class L, class... Ts >
+            struct is_set_fast< L< Ts... >, void_t< decltype(inherit_impl< id< Ts >... >{}) > > : std::true_type {};
+
+            /**
+             *   replace all Old elements to New within List
+             */
+            template < class List, class Old, class New >
+            GT_META_DEFINE_COMPOSITION(replace,
+                (selective_transform< curry< std::is_same, Old >::template apply,
+                                           meta::always< New >::template apply,
+                                           List >));
+
+            template < class Key >
+            struct is_same_key_impl {
+                template < class Elem >
+                GT_META_DEFINE_COMPOSITION(apply, (std::is_same< Key, typename first< Elem >::type >));
+            };
+
+            template < class... NewVals >
+            struct replace_values_impl {
+                template < class MapElem >
+                struct apply;
+                template < template < class... > class L, class Key, class... OldVals >
+                struct apply< L< Key, OldVals... > > {
+                    using type = L< Key, NewVals... >;
+                };
+            };
+
+            /**
+             *  replace element in the map by key
+             */
+            template < class Map, class Key, class... NewVals >
+            GT_META_DEFINE_COMPOSITION(mp_replace,
+                (selective_transform< is_same_key_impl< Key >::template apply,
+                                           GT_META_LAZY_PARAM(replace_values_impl< NewVals... >::template apply),
+                                           Map >));
+
+            template < class N, class New >
+            struct replace_at_impl {
+                template < class T, class M >
+                struct apply {
+                    using type = T;
+                };
+                template < class T >
+                struct apply< T, N > {
+                    using type = New;
+                };
+            };
+
+            template < class List, class N, class New >
+            GT_META_DEFINE_COMPOSITION(replace_at,
+                (transform< GT_META_LAZY_PARAM((replace_at_impl< N, New >::template apply)),
+                                           List,
+                                           typename make_indices_for< List >::type >));
+
+            template < class List, size_t N, class New >
+            GT_META_DEFINE_COMPOSITION(replace_at_c, (replace_at< List, std::integral_constant< size_t, N >, New >));
+
+            template < class Arg, class... Params >
+            struct replace_placeholders_impl : id< Arg > {};
+
+            template < size_t I, class... Params >
+            struct replace_placeholders_impl< placeholder< I >, Params... > : at_c< list< Params... >, I > {};
+        }
 
         /**
          *  bind for functions
-         *
-         *  TODO(anstaf): The signature is weird here: it is nor function nor meta function.
-         *                But from the other side it is handy to use.
-         *                Come up with more clean design solution
          */
         template < template < class... > class F, class... BoundArgs >
         struct bind {
             template < class... Params >
-            using apply = F< t_< replace_placeholders_impl< BoundArgs, Params... > >... >;
+            GT_META_DEFINE_COMPOSITION(
+                apply, (F< typename lazy::replace_placeholders_impl< BoundArgs, Params... >::type... >));
         };
+
+        using lazy::st_contains;
+        using lazy::st_position;
+        using lazy::conjunction_fast;
+        using lazy::disjunction_fast;
+        using lazy::all;
+        using lazy::any;
+        using lazy::all_of;
+        using lazy::any_of;
+        using lazy::is_set;
+        using lazy::is_set_fast;
+
+#if !GT_BROKEN_TEMPLATE_ALIASES
+
+        template < class T >
+        using id = T;
 
         /**
-         *   Check if L is a ctor of List
-         */
-        template < template < class... > class L >
-        struct is_instantiation_of {
-            template < class List >
-            struct apply : std::false_type {};
-            template < class... Ts >
-            struct apply< L< Ts... > > : std::true_type {};
-        };
-
-        template < template < class... > class Pred, template < class... > class F, template < class... > class G >
-        struct select {
-            template < class Arg >
-            using apply = typename std::conditional< Pred< Arg >::value, F< Arg >, G< Arg > >::type;
-        };
-
-        template < template < class... > class Pred, template < class... > class F >
-        struct selective_transform {
-            template < class List >
-            using apply = meta::apply< transform< select< Pred, F, id >::template apply >, List >;
-        };
-
-        /**
-         *   replace all Old elements to New within List
-         */
-        template < class List, class Old, class New >
-        using replace =
-            apply< selective_transform< bind< std::is_same, Old, _1 >::template apply, always< New >::template apply >,
-                List >;
-
-        template < template < class... > class Pred, class New >
-        struct replace_one_if_impl {
-            template < class T >
-            using apply = typename std::conditional< Pred< T >::value, New, T >::type;
-        };
-
-        template < class Key >
-        struct is_same_key_impl {
-            template < class Elem >
-            struct apply : std::false_type {};
-            template < template < class... > class L, class... Vals >
-            struct apply< L< Key, Vals... > > : std::true_type {};
-        };
-
-        template < class... NewVals >
-        struct replace_values_impl {
-            template < class MapElem >
-            struct apply;
-            template < template < class... > class L, class Key, class... OldVals >
-            struct apply< L< Key, OldVals... > > {
-                using type = L< Key, NewVals... >;
-            };
-        };
-
-        /**
-         *  replace element in the map by key
-         */
-        template < class Map, class Key, class... NewVals >
-        using mp_replace = apply< selective_transform< is_same_key_impl< Key >::template apply,
-                                      meta_class_t_< replace_values_impl< NewVals... > >::template apply >,
-            Map >;
-
-        template < class N, class New >
-        struct replace_at_impl {
-            template < class T, class M >
-            struct apply {
-                using type = T;
-            };
-            template < class T >
-            struct apply< T, N > {
-                using type = New;
-            };
-        };
-
-        template < class List, class N, class New >
-        using replace_at = apply< transform< meta_class_t_< replace_at_impl< N, New > >::template apply >,
-            List,
-            make_indices_for< List > >;
-
-        template < class List, size_t N, class New >
-        using replace_at_c = replace_at< List, std::integral_constant< size_t, N >, New >;
-
-        template < template < class... > class Pred >
-        struct not_ {
-            template < class T >
-            using apply = negation< Pred< T > >;
-        };
-
-        /**
-         *   True if the template parameter is type list which elements are all different
+         *  Extracts "producing template" from the list.
+         *
+         *  I.e ctor<some_instantiation_of_std_tuple>::apply is an alias of std::tuple.
          */
         template < class >
-        struct is_set : std::false_type {};
-
+        struct ctor;
         template < template < class... > class L, class... Ts >
-        struct is_set< L< Ts... > > : std::is_same< L< Ts... >, dedup< L< Ts... > > > {};
+        struct ctor< L< Ts... > > : curry< L > {};
 
-        /**
-         *   is_set_fast evaluates to std::true_type if the parameter is a set.
-         *   If parameter is not a type list, predicate evaluates to std::false_type.
-         *   Compilation fails if the parameter is a type list with duplicated elements.
-         *
-         *   Its OK to use this predicate in static asserts and not OK in sfinae enablers.
-         */
-        template < class, class = void >
-        struct is_set_fast : std::false_type {};
+        template < class List >
+        using clear = typename lazy::clear< List >::type;
+        template < class ISeq >
+        using iseq_to_list = typename lazy::iseq_to_list< ISeq >::type;
+        template < class List >
+        using list_to_iseq = typename lazy::list_to_iseq< List >::type;
+        template < class N, class List >
+        using drop_front = typename lazy::drop_front< N, List >::type;
+        template < class Map, class Key >
+        using mp_find = typename lazy::mp_find< Map, Key >::type;
+        template < class List, class... Ts >
+        using push_front = typename lazy::push_front< List, Ts... >::type;
+        template < class List >
+        using first = typename lazy::first< List >::type;
+        template < class List >
+        using second = typename lazy::second< List >::type;
+        template < class List, class N >
+        using at = typename lazy::at< List, N >::type;
 
-        template < template < class... > class L, class... Ts >
-        struct is_set_fast< L< Ts... >, void_t< decltype(inherit_impl< lazy< Ts >... >{}) > > : std::true_type {};
+        template < size_t N >
+        using make_indices = typename lazy::make_indices< N >::type;
+        template < class List >
+        using make_indices_for = typename lazy::make_indices_for< List >::type;
+        template < size_t N, class List >
+        using drop_front_c = typename lazy::drop_front_c< N, List >::type;
+        template < class Lists >
+        using flatten = typename lazy::flatten< Lists >::type;
+        template < class List, class... Lists >
+        using zip = typename lazy::zip< List, Lists... >::type;
+        template < class List >
+        using dedup = typename lazy::dedup< List >::type;
+        template < class List, size_t N >
+        using at_c = typename lazy::at_c< List, N >::type;
+        template < size_t N, class T >
+        using repeat = typename lazy::repeat< N, T >::type;
+        template < template < class... > class Pred, template < class... > class F, class List >
+        using selective_transform = typename lazy::selective_transform< Pred, F, List >::type;
+        template < class List, class Old, class New >
+        using replace = typename lazy::replace< List, Old, New >::type;
+        template < class Map, class Key, class... NewVals >
+        using mp_replace = typename lazy::mp_replace< Map, Key, NewVals... >::type;
+        template < class List, class N, class New >
+        using replace_at = typename lazy::replace_at< List, N, New >::type;
+        template < class List, size_t N, class New >
+        using replace_at_c = typename lazy::replace_at_c< List, N, New >::type;
+#endif
     }
 }

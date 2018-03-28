@@ -43,9 +43,7 @@
 #include "../common/host_device.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
-#if !GT_BROKEN_TEMPLATE_ALIASES
 #include "../common/generic_metafunctions/meta.hpp"
-#endif
 
 namespace gridtools {
 
@@ -191,10 +189,8 @@ namespace gridtools {
               m_workaround(Dim)
 #endif
         {
-#if !GT_BROKEN_TEMPLATE_ALIASES
             GRIDTOOLS_STATIC_ASSERT((meta::is_set< meta::list< dimension< I >, dimension< Is >... > >::value),
                 "all dimensions should be of different indicies");
-#endif
         }
 
         template < short_t Idx >

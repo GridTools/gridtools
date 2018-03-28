@@ -88,11 +88,11 @@ namespace gridtools {
         using integral_plus = std::integral_constant< int, A::value + B::value >;
 
         /* list of all unmasked (i.e. non-negative) arguments */
-        using unmasked_args = meta::apply< meta::filter< not_negative >, args >;
+        using unmasked_args = meta::filter< not_negative, args >;
 
         /* sum of all unmasked arguments (only used for assertion below) */
-        static constexpr int unmasked_arg_sum = meta::apply< meta::combine< integral_plus >,
-            meta::push_back< unmasked_args, std::integral_constant< int, 0 > > >::value;
+        static constexpr int unmasked_arg_sum =
+            meta::combine< integral_plus, meta::push_back< unmasked_args, std::integral_constant< int, 0 > > >::value;
 
       public:
         /** @brief Length of layout map excluding masked dimensions. */

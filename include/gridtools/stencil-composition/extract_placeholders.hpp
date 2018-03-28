@@ -110,7 +110,7 @@ namespace gridtools {
 namespace gridtools {
     namespace _impl {
         template < class Trees, template < class... > class FlattenTree >
-        using flatten_trees = meta::flatten< meta::apply< meta::transform< FlattenTree >, Trees > >;
+        using flatten_trees = meta::flatten< meta::transform< FlattenTree, Trees > >;
 
         //  Flatten an ESF tree formed by regular ESF's and independent_esf into an MPL sequence.
         //  The result contains only regular ESF's.
