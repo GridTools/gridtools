@@ -87,6 +87,29 @@ namespace gridtools {
         pair(const pair &) = default;
         pair(pair &&) = default;
 
+        pair &operator=(const pair &other) {
+            first = other.first;
+            second = other.second;
+            return *this;
+        }
+        template < typename U1, typename U2 >
+        pair &operator=(const pair< U1, U2 > &other) {
+            first = other.first;
+            second = other.second;
+            return *this;
+        }
+        pair &operator=(pair &&other) noexcept {
+            first = std::forward< T1 >(other.first);
+            second = std::forward< T2 >(other.second);
+            return *this;
+        }
+        template < typename U1, typename U2 >
+        pair &operator=(pair< U1, U2 > &&other) noexcept {
+            first = std::forward< T1 >(other.first);
+            second = std::forward< T2 >(other.second);
+            return *this;
+        }
+
         T1 first;
         T2 second;
     };
