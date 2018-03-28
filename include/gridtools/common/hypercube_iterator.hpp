@@ -109,6 +109,34 @@ namespace gridtools {
             const size_t begin_ = 0;
             const size_t end_ = 1;
         };
+
+        // 0-dimensional iteration might be constructed by generic codes
+        template <>
+        class hypercube_view< 0 > {
+          private:
+            struct grid_iterator {
+                array< size_t, 0 > m_dummy_pos;
+
+                GT_FUNCTION grid_iterator(
+                    const array< size_t, 0 > &, const array< size_t, 0 > &, const array< size_t, 0 > &) {}
+
+                GT_FUNCTION grid_iterator &operator++() { return *this; }
+
+                GT_FUNCTION grid_iterator operator++(int) { return *this; }
+
+                GT_FUNCTION array< size_t, 0 > const &operator*() const { return m_dummy_pos; }
+
+                GT_FUNCTION bool operator==(const grid_iterator &other) const { return true; }
+
+                GT_FUNCTION bool operator!=(const grid_iterator &other) const { return false; }
+            };
+
+          public:
+            GT_FUNCTION hypercube_view(const array< array< size_t, 0 >, 2 > &) {}
+
+            GT_FUNCTION grid_iterator begin() const { return grid_iterator{{}, {}, {}}; }
+            GT_FUNCTION grid_iterator end() const { return grid_iterator{{}, {}, {}}; }
+        };
     }
 
     /**
@@ -129,6 +157,6 @@ namespace gridtools {
             array< array< size_t, tuple_size< Container >::value >, 2 >{
                 static_cast< array< size_t, tuple_size< Container >::value > >(
                     array< size_t, tuple_size< Container >::value >{}), // icc 17 does not value-initialize the array
-                                                                        // without the static_cast
+                                                                        // without the static_cast to itself
                 convert_to< size_t >(std::forward< Container >(sizes))}));
 }
