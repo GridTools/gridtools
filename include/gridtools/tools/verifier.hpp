@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include "common/multi_iterator.hpp"
+#include "common/hypercube_iterator.hpp"
 #include "common/array.hpp"
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"

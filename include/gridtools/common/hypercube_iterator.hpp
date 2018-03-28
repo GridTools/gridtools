@@ -112,7 +112,7 @@ namespace gridtools {
     }
 
     /**
-     * @brief constructs a view on a hypercube from an array of ranges (e.g. pairs); the end of the range is exclusive
+     * @brief constructs a view on a hypercube from an array of ranges (e.g. pairs); the end of the range is exclusive.
      */
     template < typename Container >
     GT_FUNCTION auto make_hypercube_view(Container &&cube)
@@ -120,8 +120,8 @@ namespace gridtools {
             transpose(std::forward< Container >(cube))));
 
     /**
-     * @brief constructs a view on a hypercube from an array of integers (ranges start from 0); the end of the range is
-     * exclusive
+     * @brief constructs a view on a hypercube from an array of integers (size of the loop in each dimension, ranges
+     * start from 0); the end of the range is exclusive.
      */
     template < typename Container >
     GT_FUNCTION auto make_hypercube_view_from_zero(Container &&sizes)

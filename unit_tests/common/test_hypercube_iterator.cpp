@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "common/multi_iterator.hpp"
+#include <common/hypercube_iterator.hpp>
 #include <common/tuple.hpp>
 #include "common/pair.hpp"
 #include <vector>

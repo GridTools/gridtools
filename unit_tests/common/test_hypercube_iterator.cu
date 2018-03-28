@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "test_multi_iterator.cpp"
+#include <common/test_hypercube_iterator.cpp>
 
 static const size_t Size = 2;
 
