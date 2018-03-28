@@ -46,6 +46,12 @@ namespace gridtools {
     namespace meta {
         template < class... >
         struct f;
+#if GT_BROKEN_TEMPLATE_ALIASES
+        template < class... >
+        struct f {
+            using type = f;
+        };
+#endif
         template < class... >
         struct g;
 
@@ -58,7 +64,7 @@ namespace gridtools {
 
         // has_type
         static_assert(!has_type< int >{}, "");
-        static_assert(!has_type< f<> >{}, "");
+        static_assert(!has_type< g<> >{}, "");
         static_assert(has_type< lazy::id< void > >{}, "");
         static_assert(has_type< std::is_void< int > >{}, "");
 
@@ -80,17 +86,13 @@ namespace gridtools {
         static_assert(std::is_same< GT_META_CALL(ctor< f< double > >::apply, (int, void)), f< int, void > >{}, "");
 
         // rename
-        static_assert(
-            std::is_same< GT_META_CALL(rename, (GT_META_DIRECT_PARAM(f), g< int, double >)), f< int, double > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rename, (f, g< int, double >)), f< int, double > >{}, "");
 
         // transform
-        static_assert(std::is_same< GT_META_CALL(transform, (GT_META_DIRECT_PARAM(f), g<>)), g<> >{}, "");
-        static_assert(std::is_same< GT_META_CALL(transform, (GT_META_DIRECT_PARAM(f), g< int, void >)),
-                          g< f< int >, f< void > > >{},
-            "");
+        static_assert(std::is_same< GT_META_CALL(transform, (f, g<>)), g<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(transform, (f, g< int, void >)), g< f< int >, f< void > > >{}, "");
         static_assert(
-            std::is_same< GT_META_CALL(transform,
-                              (GT_META_DIRECT_PARAM(f), g< int, void >, g< int *, void * >, g< int **, void ** >)),
+            std::is_same< GT_META_CALL(transform, (f, g< int, void >, g< int *, void * >, g< int **, void ** >)),
                 g< f< int, int *, int ** >, f< void, void *, void ** > > >{},
             "");
 
@@ -136,8 +138,8 @@ namespace gridtools {
         static_assert(st_position< f< double, int >, void >{} == 2, "");
 
         // combine
-        static_assert(std::is_same< GT_META_CALL(combine, (GT_META_DIRECT_PARAM(f), g< int >)), int >{}, "");
-        static_assert(std::is_same< GT_META_CALL(combine, (GT_META_DIRECT_PARAM(f), GT_META_CALL(repeat, (8, int)))),
+        static_assert(std::is_same< GT_META_CALL(combine, (f, g< int >)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (8, int)))),
                           f< f< f< int, int >, f< int, int > >, f< f< int, int >, f< int, int > > > >{},
             "");
 
@@ -173,8 +175,8 @@ namespace gridtools {
             "");
 
         // bind
-        static_assert(std::is_same< GT_META_CALL((bind< GT_META_DIRECT_PARAM(f), _2, void, _1 >::apply), (int, double)),
-                          f< double, void, int > >{},
+        static_assert(
+            std::is_same< GT_META_CALL((bind< f, _2, void, _1 >::apply), (int, double)), f< double, void, int > >{},
             "");
 
         // is_instantiation_of

@@ -108,34 +108,37 @@
 #include "type_traits.hpp"
 #include "gt_integer_sequence.hpp"
 
+// internal
+#define GT_META_INTERNAL_APPLY(fun, args) BOOST_PP_REMOVE_PARENS(fun)< BOOST_PP_REMOVE_PARENS(args) >
+
 #if GT_BROKEN_TEMPLATE_ALIASES
 
-#define GT_META_DEFINE_COMPOSITION(name, body) \
-    struct name : BOOST_PP_REMOVE_PARENS(body) {}
-#define GT_META_CALL(fun, args) typename BOOST_PP_REMOVE_PARENS(fun)< BOOST_PP_REMOVE_PARENS(args) >::type
-#define GT_META_DIRECT_PARAM(fun) ::gridtools::meta::defer< BOOST_PP_REMOVE_PARENS(fun) >::template apply
-#define GT_META_LAZY_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
+#define GT_META_CALL(fun, args) typename GT_META_INTERNAL_APPLY(fun, args)::type
+#define GT_META_DEFINE_ALIAS(name, fun, args) \
+    struct name : GT_META_INTERNAL_APPLY(fun, args) {}
 
-#define GT_META_LAZY_NAMESPACE inline namespace lazy
+// internal
+#define GT_META_INTERNAL_LAZY_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
+#define GT_META_INTERNAL_LAZY_INLINE inline
 
 #else
 
-#define GT_META_DEFINE_COMPOSITION(name, body) using name = BOOST_PP_REMOVE_PARENS(body)
-#define GT_META_CALL(fun, args) BOOST_PP_REMOVE_PARENS(fun)< BOOST_PP_REMOVE_PARENS(args) >
-#define GT_META_DIRECT_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
-#define GT_META_LAZY_PARAM(fun) ::gridtools::meta::force< BOOST_PP_REMOVE_PARENS(fun) >::template apply
+#define GT_META_CALL(fun, args) GT_META_INTERNAL_APPLY(fun, args)
+#define GT_META_DEFINE_ALIAS(name, fun, args) using name = GT_META_INTERNAL_APPLY(fun, args)
 
-#define GT_META_LAZY_NAMESPACE namespace lazy
+// internal
+#define GT_META_INTERNAL_LAZY_PARAM(fun) ::gridtools::meta::force< BOOST_PP_REMOVE_PARENS(fun) >::template apply
+#define GT_META_INTERNAL_LAZY_INLINE
 
 #endif
 
 namespace gridtools {
     namespace meta {
 
-        GT_META_LAZY_NAMESPACE {
+        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
 
             template < class Cond, class Lhs, class Rhs >
-            GT_META_DEFINE_COMPOSITION(if_, (std::conditional< Cond::value, Lhs, Rhs >));
+            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
 
             template < class, class... >
             struct concat;
@@ -220,13 +223,13 @@ namespace gridtools {
         template < template < class... > class F, class... BoundArgs >
         struct curry {
             template < class... Args >
-            GT_META_DEFINE_COMPOSITION(apply, (F< BoundArgs..., Args... >));
+            GT_META_DEFINE_ALIAS(apply, F, (BoundArgs..., Args...));
         };
 
         template < template < template < class... > class, class... > class F, template < class... > class G >
         struct curry_fun {
             template < class... Args >
-            GT_META_DEFINE_COMPOSITION(apply, (F< G, Args... >));
+            GT_META_DEFINE_ALIAS(apply, F, (G, Args...));
         };
 
         /**
@@ -277,7 +280,7 @@ namespace gridtools {
         template < template < class... > class Pred >
         struct not_ {
             template < class T >
-            GT_META_DEFINE_COMPOSITION(apply, negation< Pred< T > >);
+            GT_META_DEFINE_ALIAS(apply, negation, Pred< T >);
         };
 
         /// placeholder  definitions fo bind
@@ -295,7 +298,7 @@ namespace gridtools {
         using _9 = placeholder< 8 >;
         using _10 = placeholder< 9 >;
 
-        GT_META_LAZY_NAMESPACE {
+        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
 
             template < class T >
             struct id {
@@ -363,13 +366,13 @@ namespace gridtools {
              *  Make a list of integral constants of indices from 0 to N
              */
             template < size_t N >
-            GT_META_DEFINE_COMPOSITION(make_indices, iseq_to_list< make_gt_index_sequence< N > >);
+            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, make_gt_index_sequence< N >);
 
             /**
              *  Make a list of integral constants of indices from 0 to length< List >
              */
             template < class List >
-            GT_META_DEFINE_COMPOSITION(make_indices_for, make_indices< length< List >::value >);
+            GT_META_DEFINE_ALIAS(make_indices_for, make_indices, length< List >::value);
 
 // internals
 #if GT_BROKEN_TEMPLATE_ALIASES
@@ -403,10 +406,10 @@ namespace gridtools {
              *  Complexity is amortized O(1).
              */
             template < class N, class List >
-            GT_META_DEFINE_COMPOSITION(drop_front, (drop_front_impl< typename make_indices< N::value >::type, List >));
+            GT_META_DEFINE_ALIAS(drop_front, drop_front_impl, (typename make_indices< N::value >::type, List));
 
             template < size_t N, class List >
-            GT_META_DEFINE_COMPOSITION(drop_front_c, (drop_front_impl< typename make_indices< N >::type, List >));
+            GT_META_DEFINE_ALIAS(drop_front_c, drop_front_impl, (typename make_indices< N >::type, List));
 
             /**
              *   Applies binary function to the elements of the list.
@@ -632,10 +635,9 @@ namespace gridtools {
              *  Zip lists
              */
             template < class List, class... Lists >
-            GT_META_DEFINE_COMPOSITION(zip,
-                (lfold< transform< meta::push_back >::type::apply,
-                                           typename transform< list, List >::type,
-                                           list< Lists... > >));
+            GT_META_DEFINE_ALIAS(zip,
+                lfold,
+                (transform< meta::push_back >::type::apply, typename transform< list, List >::type, list< Lists... >));
 
             // internals for generic transform
 
@@ -659,7 +661,7 @@ namespace gridtools {
              *  Flatten a list of lists.
              */
             template < class Lists >
-            GT_META_DEFINE_COMPOSITION(flatten, (combine< meta::concat, Lists >));
+            GT_META_DEFINE_ALIAS(flatten, combine, (meta::concat, Lists));
 
             template < class L1, class L2, class L3, class... Lists >
             struct concat< L1, L2, L3, Lists... > : flatten< list< L1, L2, L3, Lists... > > {};
@@ -668,7 +670,7 @@ namespace gridtools {
             template < template < class... > class Pred >
             struct filter_helper_impl {
                 template < class T >
-                GT_META_DEFINE_COMPOSITION(apply, (meta::if_< Pred< T >, list< T >, list<> >));
+                GT_META_DEFINE_ALIAS(apply, meta::if_, (Pred< T >, list< T >, list<>));
             };
 
             /**
@@ -685,14 +687,14 @@ namespace gridtools {
 
             // internals
             template < class S, class T >
-            GT_META_DEFINE_COMPOSITION(
-                dedup_step_impl, (meta::if_< st_contains< S, T >, S, typename push_back< S, T >::type >));
+            GT_META_DEFINE_ALIAS(
+                dedup_step_impl, meta::if_, (st_contains< S, T >, S, typename push_back< S, T >::type));
 
             /**
              *  Removes duplicates from the List
              */
             template < class List >
-            GT_META_DEFINE_COMPOSITION(dedup, (lfold< dedup_step_impl, typename clear< List >::type, List >));
+            GT_META_DEFINE_ALIAS(dedup, lfold, (dedup_step_impl, typename clear< List >::type, List));
 
             template < class List >
             struct first;
@@ -720,7 +722,7 @@ namespace gridtools {
             struct at : second< typename mp_find< typename zip< typename make_indices_for< List >::type, List >::type,
                             N >::type > {};
             template < class List, size_t N >
-            GT_META_DEFINE_COMPOSITION(at_c, (at< List, std::integral_constant< size_t, N > >));
+            GT_META_DEFINE_ALIAS(at_c, at, (List, std::integral_constant< size_t, N >));
 
             /**
              * return the position of T in the Set. If there is no T, it returns the length of the Set.
@@ -737,8 +739,8 @@ namespace gridtools {
              *  Produce a list of N identical elements
              */
             template < size_t N, class T >
-            GT_META_DEFINE_COMPOSITION(
-                repeat, (transform< meta::always< T >::template apply, typename make_indices< N >::type >));
+            GT_META_DEFINE_ALIAS(
+                repeat, transform, (meta::always< T >::template apply, typename make_indices< N >::type));
 
 /**
  *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
@@ -760,12 +762,13 @@ namespace gridtools {
              *    - amortized complexity is O(1) because of it [in terms of the number of template instantiations].
              */
             template < class... Ts >
-            GT_META_DEFINE_COMPOSITION(conjunction_fast,
-                (std::is_same< list< std::integral_constant< bool, Ts::value >... >,
-                                           typename repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type >::type >));
+            GT_META_DEFINE_ALIAS(conjunction_fast,
+                std::is_same,
+                (list< std::integral_constant< bool, Ts::value >... >,
+                                     typename repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type >::type));
 
             template < class... Ts >
-            GT_META_DEFINE_COMPOSITION(disjunction_fast, (negation< conjunction_fast< negation< Ts >... > >));
+            GT_META_DEFINE_ALIAS(disjunction_fast, negation, conjunction_fast< negation< Ts >... >);
 
             template < class List >
             struct all : rename< conjunction_fast, List >::type {};
@@ -774,20 +777,20 @@ namespace gridtools {
             struct any : rename< disjunction_fast, List >::type {};
 
             template < template < class... > class Pred, class List >
-            GT_META_DEFINE_COMPOSITION(all_of, (all< typename transform< Pred, List >::type >));
+            GT_META_DEFINE_ALIAS(all_of, all, (typename transform< Pred, List >::type));
 
             template < template < class... > class Pred, class List >
-            GT_META_DEFINE_COMPOSITION(any_of, (any< typename transform< Pred, List >::type >));
+            GT_META_DEFINE_ALIAS(any_of, any, (typename transform< Pred, List >::type));
 
             template < template < class... > class Pred, template < class... > class F >
             struct selective_call_impl {
                 template < class Arg >
-                GT_META_DEFINE_COMPOSITION(apply, (meta::if_< Pred< Arg >, GT_META_CALL(F, Arg), Arg >));
+                GT_META_DEFINE_ALIAS(apply, meta::if_, (Pred< Arg >, GT_META_CALL(F, Arg), Arg));
             };
 
             template < template < class... > class Pred, template < class... > class F, class List >
-            GT_META_DEFINE_COMPOSITION(
-                selective_transform, (transform< selective_call_impl< Pred, F >::template apply, List >));
+            GT_META_DEFINE_ALIAS(
+                selective_transform, transform, (selective_call_impl< Pred, F >::template apply, List));
 
             /**
              *   True if the template parameter is type list which elements are all different
@@ -815,15 +818,14 @@ namespace gridtools {
              *   replace all Old elements to New within List
              */
             template < class List, class Old, class New >
-            GT_META_DEFINE_COMPOSITION(replace,
-                (selective_transform< curry< std::is_same, Old >::template apply,
-                                           meta::always< New >::template apply,
-                                           List >));
+            GT_META_DEFINE_ALIAS(replace,
+                selective_transform,
+                (curry< std::is_same, Old >::template apply, meta::always< New >::template apply, List));
 
             template < class Key >
             struct is_same_key_impl {
                 template < class Elem >
-                GT_META_DEFINE_COMPOSITION(apply, (std::is_same< Key, typename first< Elem >::type >));
+                GT_META_DEFINE_ALIAS(apply, std::is_same, (Key, typename first< Elem >::type));
             };
 
             template < class... NewVals >
@@ -840,10 +842,11 @@ namespace gridtools {
              *  replace element in the map by key
              */
             template < class Map, class Key, class... NewVals >
-            GT_META_DEFINE_COMPOSITION(mp_replace,
-                (selective_transform< is_same_key_impl< Key >::template apply,
-                                           GT_META_LAZY_PARAM(replace_values_impl< NewVals... >::template apply),
-                                           Map >));
+            GT_META_DEFINE_ALIAS(mp_replace,
+                selective_transform,
+                (is_same_key_impl< Key >::template apply,
+                                     GT_META_INTERNAL_LAZY_PARAM(replace_values_impl< NewVals... >::template apply),
+                                     Map));
 
             template < class N, class New >
             struct replace_at_impl {
@@ -858,13 +861,14 @@ namespace gridtools {
             };
 
             template < class List, class N, class New >
-            GT_META_DEFINE_COMPOSITION(replace_at,
-                (transform< GT_META_LAZY_PARAM((replace_at_impl< N, New >::template apply)),
-                                           List,
-                                           typename make_indices_for< List >::type >));
+            GT_META_DEFINE_ALIAS(replace_at,
+                transform,
+                (GT_META_INTERNAL_LAZY_PARAM((replace_at_impl< N, New >::template apply)),
+                                     List,
+                                     typename make_indices_for< List >::type));
 
             template < class List, size_t N, class New >
-            GT_META_DEFINE_COMPOSITION(replace_at_c, (replace_at< List, std::integral_constant< size_t, N >, New >));
+            GT_META_DEFINE_ALIAS(replace_at_c, replace_at, (List, std::integral_constant< size_t, N >, New));
 
             template < class Arg, class... Params >
             struct replace_placeholders_impl : id< Arg > {};
@@ -879,8 +883,7 @@ namespace gridtools {
         template < template < class... > class F, class... BoundArgs >
         struct bind {
             template < class... Params >
-            GT_META_DEFINE_COMPOSITION(
-                apply, (F< typename lazy::replace_placeholders_impl< BoundArgs, Params... >::type... >));
+            GT_META_DEFINE_ALIAS(apply, F, (typename lazy::replace_placeholders_impl< BoundArgs, Params... >::type...));
         };
 
         using lazy::st_contains;
@@ -957,3 +960,6 @@ namespace gridtools {
 #endif
     }
 }
+
+#undef GT_META_INTERNAL_LAZY_INLINE
+#undef GT_META_INTERNAL_LAZY_PARAM

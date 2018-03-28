@@ -224,14 +224,14 @@ namespace gridtools {
 #endif
 
             template < class Tup >
-            GT_META_DEFINE_COMPOSITION(get_accessors,
-                (meta::transform< get_accessor< get_ref_kind< Tup >::value >::template apply, decay_t< Tup > >));
+            GT_META_DEFINE_ALIAS(get_accessors,
+                meta::transform,
+                (get_accessor< get_ref_kind< Tup >::value >::template apply, decay_t< Tup >));
 
             template < class Fun >
             struct transform_f {
                 template < class... Args >
-                GT_META_DEFINE_COMPOSITION(
-                    get_results_t, (meta::transform< get_fun_result< Fun >::template apply, Args... >));
+                GT_META_DEFINE_ALIAS(get_results_t, meta::transform, (get_fun_result< Fun >::template apply, Args...));
 
                 Fun m_fun;
 
@@ -288,9 +288,10 @@ namespace gridtools {
 #endif
 
                 template < class OuterI, class InnerTup >
-                GT_META_DEFINE_COMPOSITION(get_inner_generators,
-                    (meta::transform< meta::bind< get_generator, OuterI, meta::_1 >::template apply,
-                                               GT_META_CALL(meta::make_indices_for, InnerTup) >));
+                GT_META_DEFINE_ALIAS(get_inner_generators,
+                    meta::transform,
+                    (meta::bind< get_generator, OuterI, meta::_1 >::template apply,
+                                         GT_META_CALL(meta::make_indices_for, InnerTup)));
 
                 template < class Tup,
                     class Accessors = GT_META_CALL(
