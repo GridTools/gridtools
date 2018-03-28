@@ -11,6 +11,7 @@ modules = common.modules | {'PrgEnv-gnu'}
 env = dict(common.env,
            CXX='g++',
            CC='gcc',
+           CXXFLAGS='-march=knl -fvect-cost-model=unlimited -Ofast',
            OMP_NUM_THREADS=128,
            OMP_PROC_BIND='true',
            OMP_PLACES='{0,64}:64')
