@@ -29,9 +29,6 @@ def build_and_test(args):
     # grid type
     cmake_args['STRUCTURED_GRIDS'] = args.grid == 'structured'
 
-    # MPI
-    cmake_args['USE_MPI'] = args.mpi
-
     # enable pyutils
     cmake_args['ENABLE_PYUTILS'] = True
 
@@ -61,12 +58,10 @@ def build_and_test(args):
         return 'sh ' + path
 
     perftest.runtools.run(command('run_tests.sh'))
-
-    if args.mpi:
-        if args.backend == 'cuda':
-            perftest.runtools.run(command('run_cuda_mpi_tests.sh'))
-        else:
-            perftest.runtools.run(command('run_mpi_tests.sh'))
+    if args.backend == 'cuda':
+        perftest.runtools.run(command('run_cuda_mpi_tests.sh'))
+    else:
+        perftest.runtools.run(command('run_mpi_tests.sh'))
 
 
 if __name__ == '__main__':
@@ -85,7 +80,6 @@ if __name__ == '__main__':
                        required=True)
     group.add_argument('--cmake', action='append', default=[],
                        metavar='CMAKE_VAR=VALUE')
-    group.add_argument('--mpi', action='store_true')
     group.add_argument('--config', '-c')
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
