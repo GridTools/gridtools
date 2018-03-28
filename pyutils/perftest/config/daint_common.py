@@ -31,6 +31,7 @@ def sbatch(command):
         #SBATCH --cpus-per-task=24
         #SBATCH --constraint=gpu
         #SBATCH --time=00:10:00
+        #SBATCH --account=c14
 
         srun {command}
 
