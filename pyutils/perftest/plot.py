@@ -34,7 +34,7 @@ def get_titles(results):
         if k == 'name':
             return 'Runtime: ' + v
         if k == 'datetime':
-            return 'Date/Time: ' + time.short_timestr(v)
+            return 'Date/Time: ' + time.short_timestr(time.local_time(v))
         elif k == 'compiler':
             return 'Compiler: ' + os.path.basename(v).upper()
         else:
@@ -90,17 +90,18 @@ def history(results, key='runtime'):
 
     stencils, meantimes, stdevtimes = result.times_by_stencil(results)
 
-    def get_date(result):
+    def get_datetime(result):
         if key == 'runtime':
-            return result.runtime.datetime
+            datetime = result.runtime.datetime
         elif key == 'job':
-            return result.datetime
+            datetime = result.datetime
         else:
             raise ArgumentError('"key" argument must be "runtime" or "job"')
+        return time.local_time(datetime)
 
-    results = sorted(results, key=get_date)
+    results = sorted(results, key=get_datetime)
 
-    dates = [matplotlib.dates.date2num(get_date(r)) for r in results]
+    dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
 
     if len(dates) > len(set(dates)):
         logger.warning('Non-unique datetimes in history plot')
