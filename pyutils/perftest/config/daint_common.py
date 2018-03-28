@@ -25,7 +25,11 @@ def sbatch(command):
         #!/bin/bash -l
         #SBATCH --job-name=gridtools-test
         #SBATCH --partition=normal
-        #SBATCH --gres=gpu:1
+        #SBATCH --nodes=1
+        #SBATCH --ntasks-per-core=2
+        #SBATCH --ntasks-per-node=1
+        #SBATCH --cpus-per-task=24
+        #SBATCH --constraint=gpu
         #SBATCH --time=00:10:00
 
         srun {command}
