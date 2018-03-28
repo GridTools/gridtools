@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include "common/pair.hpp"
 #include "gtest/gtest.h"
 #include <type_traits>
@@ -43,16 +44,51 @@ TEST(pair, non_uniform_ctor) {
 
     gridtools::pair< size_t, size_t > my_pair(int_val, size_t_val);
 
-    ASSERT_EQ((size_t)int_val, my_pair.first);
-    ASSERT_EQ(size_t_val, my_pair.second);
+    EXPECT_EQ((size_t)int_val, my_pair.first);
+    EXPECT_EQ(size_t_val, my_pair.second);
 }
 
 TEST(pair, get_rval_ref) {
     size_t val0 = 1;
     size_t val1 = 2;
 
-    ASSERT_TRUE(std::is_rvalue_reference< decltype(
+    EXPECT_TRUE(std::is_rvalue_reference< decltype(
             gridtools::get< 0 >(gridtools::pair< size_t, size_t >{val0, val1})) >::value);
-    ASSERT_EQ(val0, gridtools::get< 0 >(gridtools::pair< size_t, size_t >{val0, val1}));
-    ASSERT_EQ(val1, gridtools::get< 1 >(gridtools::pair< size_t, size_t >{val0, val1}));
+    EXPECT_EQ(val0, gridtools::get< 0 >(gridtools::pair< size_t, size_t >{val0, val1}));
+    EXPECT_EQ(val1, gridtools::get< 1 >(gridtools::pair< size_t, size_t >{val0, val1}));
+}
+
+TEST(pair, eq) {
+    gridtools::pair< size_t, size_t > pair1{1, 2};
+    gridtools::pair< size_t, size_t > pair2{pair1};
+
+    EXPECT_TRUE(pair1 == pair2);
+    EXPECT_FALSE(pair1 != pair2);
+    EXPECT_FALSE(pair1 < pair2);
+    EXPECT_TRUE(pair1 <= pair2);
+    EXPECT_FALSE(pair1 > pair2);
+    EXPECT_TRUE(pair1 >= pair2);
+}
+TEST(pair, compare_first_differ) {
+    gridtools::pair< size_t, size_t > smaller{1, 2};
+    gridtools::pair< size_t, size_t > bigger{2, 2};
+
+    EXPECT_FALSE(smaller == bigger);
+    EXPECT_TRUE(smaller != bigger);
+    EXPECT_TRUE(smaller < bigger);
+    EXPECT_TRUE(smaller <= bigger);
+    EXPECT_FALSE(smaller > bigger);
+    EXPECT_FALSE(smaller >= bigger);
+}
+
+TEST(pair, lt_gt_second_differ) {
+    gridtools::pair< size_t, size_t > smaller{1, 1};
+    gridtools::pair< size_t, size_t > bigger{1, 2};
+
+    EXPECT_FALSE(smaller == bigger);
+    EXPECT_TRUE(smaller != bigger);
+    EXPECT_TRUE(smaller < bigger);
+    EXPECT_TRUE(smaller <= bigger);
+    EXPECT_FALSE(smaller > bigger);
+    EXPECT_FALSE(smaller >= bigger);
 }

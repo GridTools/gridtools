@@ -125,6 +125,26 @@ namespace gridtools {
     }
 
     template < typename T1, typename T2 >
+    constexpr GT_FUNCTION bool operator<(const pair< T1, T2 > &lhs, const pair< T1, T2 > &rhs) {
+        return lhs.first < rhs.first || (!(rhs.first < lhs.first) && lhs.second < rhs.second);
+    }
+
+    template < typename T1, typename T2 >
+    constexpr GT_FUNCTION bool operator>(const pair< T1, T2 > &lhs, const pair< T1, T2 > &rhs) {
+        return rhs < lhs;
+    }
+
+    template < typename T1, typename T2 >
+    constexpr GT_FUNCTION bool operator<=(const pair< T1, T2 > &lhs, const pair< T1, T2 > &rhs) {
+        return !(rhs < lhs);
+    }
+
+    template < typename T1, typename T2 >
+    constexpr GT_FUNCTION bool operator>=(const pair< T1, T2 > &lhs, const pair< T1, T2 > &rhs) {
+        return !(lhs < rhs);
+    }
+
+    template < typename T1, typename T2 >
     constexpr GT_FUNCTION pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
         return pair< T1, T2 >(t1_, t2_);
     }
