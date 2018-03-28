@@ -25,6 +25,14 @@ class HorizontalDiffusion(Stencil):
     halo = 2
 
 
+class HorizontalDiffusionFused(Stencil):
+    stella_filter = 'HoriDiffBenchmark.4Stages'
+    gridtools_cuda = path('interface1_fused_cuda')
+    gridtools_host = path('interface1_fused_host_block')
+    gridtools_mic = path('interface1_fused_mic')
+    halo = 2
+
+
 class SimpleHorizontalDiffusion(Stencil):
     stella_filter = 'HoriDiffBenchmark.SingleVar'
     gridtools_cuda = path('simple_hori_diff_cuda')
