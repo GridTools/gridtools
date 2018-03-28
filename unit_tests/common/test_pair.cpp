@@ -38,13 +38,21 @@
 #include <type_traits>
 
 TEST(pair, non_uniform_ctor) {
-    int a;
-    size_t b;
-    gridtools::pair< size_t, size_t >(a, b);
+    int int_val = 1;
+    size_t size_t_val = 2;
+
+    gridtools::pair< size_t, size_t > my_pair(int_val, size_t_val);
+
+    ASSERT_EQ((size_t)int_val, my_pair.first);
+    ASSERT_EQ(size_t_val, my_pair.second);
 }
 
 TEST(pair, get_rval_ref) {
-    auto res =
-        std::is_rvalue_reference< decltype(gridtools::get< 0 >(gridtools::pair< size_t, size_t >{1, 2})) >::value;
-    ASSERT_TRUE(res);
+    size_t val0 = 1;
+    size_t val1 = 2;
+
+    ASSERT_TRUE(std::is_rvalue_reference< decltype(
+            gridtools::get< 0 >(gridtools::pair< size_t, size_t >{val0, val1})) >::value);
+    ASSERT_EQ(val0, gridtools::get< 0 >(gridtools::pair< size_t, size_t >{val0, val1}));
+    ASSERT_EQ(val1, gridtools::get< 1 >(gridtools::pair< size_t, size_t >{val0, val1}));
 }
