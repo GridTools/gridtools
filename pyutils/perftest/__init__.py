@@ -72,6 +72,7 @@ def exception_logging():
         yield
     except Exception:
         logger.exception('Fatal error: exception was raised')
+        sys.exit(1)
 
 
 def _multiline_redirect(func):
