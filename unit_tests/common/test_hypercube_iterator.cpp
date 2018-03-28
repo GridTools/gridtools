@@ -51,7 +51,6 @@ class test_hypercube_view_fixture : public ::testing::Test {
           size((i_range.second - i_range.first) * (j_range.second - j_range.first) * (k_range.second - k_range.first)) {
     }
 
-    //      private:
     const pair< size_t, size_t > i_range;
     const pair< size_t, size_t > j_range;
     const pair< size_t, size_t > k_range;
@@ -115,4 +114,40 @@ TEST_F(test_hypercube_view_from_zero, from_array_of_integers) {
     }
 
     verify(out);
+}
+
+TEST(test_hypercube_view_empty_iteration_space, from_zero_to_zero) {
+    std::vector< multiplet< 3 > > out;
+
+    auto view = make_hypercube_view_from_zero(array< size_t, 3 >{0, 0, 0});
+    for (auto it : view) {
+        out.emplace_back(make_multiplet(it[0], it[1], it[2]));
+    }
+
+    ASSERT_EQ(0, out.size());
+}
+
+TEST(test_hypercube_view_empty_iteration_space, from_one_to_one) {
+    std::vector< multiplet< 3 > > out;
+
+    auto view = make_hypercube_view(
+        gridtools::array< gridtools::pair< size_t, size_t >, 3 >{gridtools::pair< size_t, size_t >{1, 1},
+            gridtools::pair< size_t, size_t >{1, 1},
+            gridtools::pair< size_t, size_t >{1, 1}});
+    for (auto it : view) {
+        out.emplace_back(make_multiplet(it[0], it[1], it[2]));
+    }
+
+    ASSERT_EQ(0, out.size());
+}
+
+TEST(test_hypercube_view_empty_iteration_space, zero_dimensional) {
+    std::vector< multiplet< 3 > > out;
+
+    auto view = make_hypercube_view(gridtools::array< gridtools::pair< size_t, size_t >, 0 >{});
+    for (auto it : view) {
+        out.emplace_back(make_multiplet(it[0], it[1], it[2]));
+    }
+
+    ASSERT_EQ(0, out.size());
 }
