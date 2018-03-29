@@ -736,7 +736,7 @@ namespace call_proc_interface_functors {
         typedef boost::mpl::vector< in > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            //            eval(in()) = (double)0.;
+            eval(in()) = (double)0.;
         }
     };
 
