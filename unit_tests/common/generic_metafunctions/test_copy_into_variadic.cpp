@@ -49,3 +49,5 @@ namespace gridtools {
             "non empty into non empty");
     }
 }
+
+TEST(dummy, dummy) {}
