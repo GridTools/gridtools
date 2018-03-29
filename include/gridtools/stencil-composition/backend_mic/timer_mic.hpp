@@ -35,10 +35,47 @@
 */
 #pragma once
 
-#include <boost/any.hpp>
+#include "stencil-composition/timer.hpp"
+#include "common/defs.hpp"
 
-struct gt_handle {
-    boost::any m_value;
-};
+namespace gridtools {
 
-extern "C" void gt_release(gt_handle const *obj);
+    /**
+    * @class timer_mic
+    * mic implementation of the Timer interface
+    */
+    class timer_mic : public timer< timer_mic > // CRTP
+    {
+      public:
+        timer_mic(std::string name) : timer< timer_mic >(name) { startTime_ = 0.0; }
+        ~timer_mic() {}
+
+        /**
+        * Reset counters
+        */
+        void set_impl(double const &time_) { startTime_ = time_; }
+
+        /**
+        * Start the stop watch
+        */
+        void start_impl() {
+#if defined(_OPENMP)
+            startTime_ = omp_get_wtime();
+#endif
+        }
+
+        /**
+        * Pause the stop watch
+        */
+        double pause_impl() {
+#if defined(_OPENMP)
+            return omp_get_wtime() - startTime_;
+#else
+            return -100;
+#endif
+        }
+
+      private:
+        double startTime_;
+    };
+}

@@ -82,7 +82,12 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));
         ASSERT_TRUE((ameta.dim< 2 >() == 6));
+#ifdef BACKEND_MIC
+        // 3rd dimension is padded for MIC
+        ASSERT_TRUE((ameta.dim< 3 >() == 8));
+#else
         ASSERT_TRUE((ameta.dim< 3 >() == 7));
+#endif
     }
     {
         auto astorage = grid.template make_storage< icosahedral_topology_t::edges,
@@ -93,7 +98,12 @@ TEST(icosahedral_topology, make_storage) {
 
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));
+#ifdef BACKEND_MIC
+        // 3rd dimension is padded for MIC
+        ASSERT_TRUE((ameta.dim< 3 >() == 8));
+#else
         ASSERT_TRUE((ameta.dim< 3 >() == 7));
+#endif
         ASSERT_TRUE((ameta.dim< 4 >() == 8));
         ASSERT_TRUE((ameta.dim< 5 >() == 9));
     }

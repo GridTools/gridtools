@@ -136,7 +136,7 @@ TEST_F(cache_stencil, ij_cache) {
     auto pstencil = make_computation< backend_t >(domain,
         m_grid,
         make_multistage // mss_descriptor
-        (execute< forward >(),
+        (execute< parallel >(),
                                                       define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
                                                       make_stage< functor1 >(p_in(), p_buff()),
                                                       make_stage< functor1 >(p_buff(), p_out())));
@@ -179,7 +179,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
     auto pstencil = make_computation< backend_t >(domain,
         m_grid,
         make_multistage // mss_descriptor
-        (execute< forward >(),
+        (execute< parallel >(),
                                                       // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
                                                       make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
                                                       make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
@@ -224,7 +224,7 @@ TEST_F(cache_stencil, multi_cache) {
         make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
-            (execute< forward >(),
+            (execute< parallel >(),
                                           // test if define_caches works properly with multiple vectors of caches.
                                           // in this toy example two vectors are passed (IJ cache vector for p_buff
                                           // and p_buff_2, IJ cache vector for p_buff_3)

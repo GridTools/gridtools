@@ -35,17 +35,35 @@
 */
 #pragma once
 
-#include "common/multi_iterator.hpp"
+#include "common/hypercube_iterator.hpp"
 #include "common/array.hpp"
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"
 #include "storage/common/storage_info_rt.hpp"
 #include "storage/storage-facility.hpp"
+#include <iostream>
 
 namespace gridtools {
 
+    namespace _impl {
+        template < class T >
+        class default_precision {
+            static const double value;
+
+          public:
+            GT_FUNCTION operator double() const { return value; }
+        };
+
+        template <>
+        const double default_precision< float >::value = 1e-6;
+
+        template <>
+        const double default_precision< double >::value = 1e-14;
+    }
+
     template < typename value_type >
-    GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
+    GT_FUNCTION bool compare_below_threshold(
+        value_type expected, value_type actual, double precision = _impl::default_precision< value_type >()) {
         value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
         value_type absolute_error = math::fabs(expected - actual);
         value_type relative_error = absolute_error / absmax;
@@ -61,14 +79,14 @@ namespace gridtools {
         size_t m_max_error;
 
       public:
-        verifier(const double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
+        verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
         ~verifier() {}
 
         template < typename Grid, typename StorageType >
         bool verify(Grid const &grid_ /*TODO: unused*/,
             StorageType const &expected_field,
             StorageType const &actual_field,
-            const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > halos) {
+            const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > &halos) {
             if (StorageType::num_of_storages > 1)
                 throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
 
@@ -87,9 +105,9 @@ namespace gridtools {
             auto actual_view = make_host_view< access_mode::ReadOnly >(actual_field);
 
             size_t error_count = 0;
-            for (auto pos : cube_view) {
-                auto expected = expected_view(pos);
-                auto actual = actual_view(pos);
+            for (auto &&pos : cube_view) {
+                auto expected = expected_view(convert_to< int >(pos));
+                auto actual = actual_view(convert_to< int >(pos));
                 if (!compare_below_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected

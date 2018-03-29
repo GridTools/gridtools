@@ -41,7 +41,7 @@
 
 #include <boost/any.hpp>
 
-#include "handle.hpp"
+#include "handle_impl.hpp"
 
 namespace gridtools {
     namespace c_bindings {

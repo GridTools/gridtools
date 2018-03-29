@@ -41,7 +41,6 @@
 
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/and.hpp>
-#include <boost/mpl/max_element.hpp>
 #include <boost/type_traits.hpp>
 
 #include "alignment.hpp"
@@ -186,11 +185,9 @@ namespace gridtools {
          * @param indices pack of offsets
          * @return index
          */
-        template < typename IntT,
-            typename... Args,
-            typename std::enable_if< std::is_integral< IntT >::value, int >::type = 0 >
+        template < typename... Args >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) == ndims), int >::type index_part(
-            gridtools::array< IntT, ndims > const &idx, Args... indices) const {
+            gridtools::array< int, ndims > const &idx, Args... indices) const {
             return index(indices...);
         }
 
@@ -202,9 +199,9 @@ namespace gridtools {
          * @param indices pack of offsets
          * @return index
          */
-        template < typename IntT, typename... Args >
+        template < typename... Args >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type
-        index_part(gridtools::array< IntT, ndims > const &idx, Args... indices) const {
+        index_part(gridtools::array< int, ndims > const &idx, Args... indices) const {
             return index_part(idx, indices..., idx.template get< sizeof...(Args) >());
         }
 
@@ -344,10 +341,7 @@ namespace gridtools {
          * This could also be a halo point.
          * @return position of last accessible point
          */
-        GT_FUNCTION constexpr uint_t end() const {
-            typedef typename boost::mpl::max_element< typename layout_t::static_layout_vector >::type iter;
-            return end_part< true >();
-        }
+        GT_FUNCTION constexpr uint_t end() const { return end_part< true >(); }
 
         /**
          * @brief Returns the length of a dimension including the halo points (the outer region)
@@ -504,8 +498,7 @@ namespace gridtools {
          * @param offsets given offset array
          * @return index
          */
-        template < typename IntT = int >
-        GT_FUNCTION constexpr int index(gridtools::array< IntT, ndims > const &offsets) const {
+        GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
             return index_part(offsets);
         }
 

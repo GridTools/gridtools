@@ -33,32 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include "test_multi_iterator.cpp"
+// This file contains all header files required by the mic backend
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-static const int Size = 2;
-
-GT_FUNCTION int linear_index(gridtools::array< size_t, 2 > &index) { return index[0] * Size + index[1]; }
-
-__global__ void test_kernel1234(int *out_ptr) {
-    for (size_t i = 0; i < Size * Size; ++i)
-        out_ptr[i] = -1;
-
-    auto cube_view = make_hypercube_view(hypercube< 2 >{range{0, Size}, range{0, Size}});
-    for (auto pos : cube_view) {
-        out_ptr[linear_index(pos)] = linear_index(pos);
-    }
-};
-
-TEST(multi_iterator, iterate_on_device) {
-    int *out;
-    cudaMalloc(&out, sizeof(int) * Size * Size);
-
-    test_kernel1234<<< 1, 1 >>>(out);
-
-    int host_out[Size * Size];
-    cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost);
-
-    for (size_t i = 0; i < Size * Size; ++i)
-        ASSERT_EQ(i, host_out[i]) << "at i = " << i;
-}
+#include "../../storage/storage-facility.hpp"
+#include "../backend_fwd.hpp"
+#include "../execution_policy.hpp"
+#include "../iteration_policy.hpp"
+#include "backend_traits_mic.hpp"
+#include "strategy_mic.hpp"

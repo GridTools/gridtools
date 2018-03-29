@@ -38,7 +38,7 @@
 #include "stencil-composition/stencil-composition.hpp"
 #include "backend_select.hpp"
 
-using axis_t = gridtools::axis< 1 >;
+using axis_t = gridtools::axis< 1, 1 >;
 using axis = axis_t::axis_interval_t;
 
 using kfull = axis_t::full_interval;
@@ -52,14 +52,14 @@ using kmaximumm1 = kmaximum::shift< -1 >;
 using kbody_low = kfull::modify< 0, -1 >;
 using kbody = kfull::modify< 1, -1 >;
 
-using axis_b_t = gridtools::axis< 2 >;
+using axis_b_t = gridtools::axis< 2, 1 >;
 using axis_b = axis_b_t::axis_interval_t;
 
 using kfull_b = axis_b_t::full_interval;
 using kminimum_b = kfull_b::first_level;
 using kminimump1_b = kminimum_b::shift< 1 >;
 using kmaximum_b = kfull_b::last_level;
-using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 1, -1 >; // TODO name for some of the intervals seems wrong
+using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 0, -1 >;
 using kbody_low_b = axis_b_t::get_interval< 0 >;
 using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
 
@@ -80,17 +80,11 @@ class kcachef : public ::testing::Test {
     gridtools::data_view< storage_t, gridtools::access_mode::ReadWrite > m_inv, m_outv, m_refv;
 
     kcachef()
-        : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2}, m_grid(m_di, m_dj),
-          m_gridb(m_di, m_dj), m_meta(m_d1, m_d2, m_d3),
-          m_in(m_meta, [](int i, int j, int k) { return i + j + k; }, "in"), m_out(m_meta, -1., "out"),
-          m_ref(m_meta, -1., "ref"), m_inv(make_host_view(m_in)), m_outv(make_host_view(m_out)),
-          m_refv(make_host_view(m_ref)) {
-        m_grid.value_list[0] = 0;
-        m_grid.value_list[1] = m_d3 - 1;
-        m_gridb.value_list[0] = 0;
-        m_gridb.value_list[1] = m_d3 - 3;
-        m_gridb.value_list[2] = m_d3 - 1;
-
+        : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2},
+          m_grid(make_grid(m_di, m_dj, axis_t(m_d3))), m_gridb(make_grid(m_di, m_dj, axis_b_t(m_d3 - 2u, 2u))),
+          m_meta(m_d1, m_d2, m_d3), m_in(m_meta, [](int i, int j, int k) { return i + j + k; }, "in"),
+          m_out(m_meta, -1., "out"), m_ref(m_meta, -1., "ref"), m_inv(make_host_view(m_in)),
+          m_outv(make_host_view(m_out)), m_refv(make_host_view(m_ref)) {
         init_fields();
     }
 

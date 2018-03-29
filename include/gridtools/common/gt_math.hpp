@@ -36,7 +36,7 @@
 #pragma once
 #include "host_device.hpp"
 
-#include <math.h>
+#include <cmath>
 namespace gridtools {
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
@@ -121,11 +121,7 @@ namespace gridtools {
         }
 #endif
 #else
-        // forward to std::fabs
-        template < typename Value >
-        GT_FUNCTION auto fabs(Value val) -> decltype(std::fabs(val)) {
-            return std::fabs(val);
-        }
+        using std::fabs;
 #endif
 
 #ifdef __CUDACC__
@@ -143,13 +139,41 @@ namespace gridtools {
             return math::fabs(val);
         }
 #else
-        // forward to std::abs
-        template < typename Value >
-        GT_FUNCTION auto abs(Value val) -> decltype(std::abs(val)) {
-            return std::abs(val);
-        }
+        using std::abs;
 #endif
 
+#ifdef __CUDA_ARCH__
+        /**
+        * Function computing the exponential
+        */
+        GT_FUNCTION float exp(const float x) { return ::expf(x); }
+
+        GT_FUNCTION double exp(const double x) { return ::exp(x); }
+#else
+        using std::exp;
+#endif
+
+#ifdef __CUDA_ARCH__
+        /**
+        * Function computing the log function
+        */
+        GT_FUNCTION float log(const float x) { return ::logf(x); }
+
+        GT_FUNCTION double log(const double x) { return ::log(x); }
+#else
+        using std::log;
+#endif
+
+#ifdef __CUDA_ARCH__
+        /**
+        * Function computing the power function
+        */
+        GT_FUNCTION float pow(const float x, const float y) { return ::powf(x, y); }
+
+        GT_FUNCTION double pow(const double x, const double y) { return ::pow(x, y); }
+#else
+        using std::pow;
+#endif
     } // namespace math
 
 } // namespace gridtools

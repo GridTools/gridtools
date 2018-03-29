@@ -79,11 +79,3 @@
 #define GT_KERNEL
 #endif
 #endif
-
-#ifndef GT_NV_EXEC_CHECK_DISABLE
-#if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__)) // from thrust
-#define GT_NV_EXEC_CHECK_DISABLE #pragma nv_exec_check_disable
-#else
-#define GT_NV_EXEC_CHECK_DISABLE
-#endif
-#endif

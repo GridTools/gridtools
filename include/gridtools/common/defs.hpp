@@ -151,7 +151,7 @@ namespace gridtools {
  */
 /** enum specifying the type of backend we use */
 #ifndef PLATFORM_GUARD
-        enum platform { Cuda, Host };
+        enum platform { Cuda, Host, Mic };
 #endif
 
         enum strategy { Naive, Block };
@@ -212,50 +212,6 @@ namespace gridtools {
 #else
 #define GRIDBACKEND icosahedral
 #endif
-
-    template < typename Arg >
-    struct is_enum_type : public boost::mpl::and_< typename boost::mpl::not_< boost::is_arithmetic< Arg > >::type,
-                              typename boost::is_convertible< Arg, const int >::type >::type {};
-
-    template < typename Arg1, typename Arg2 >
-    struct any_enum_type : public boost::mpl::or_< is_enum_type< Arg1 >, is_enum_type< Arg2 > >::type {};
-
-    template < typename T >
-    struct is_backend_enum : boost::mpl::false_ {};
-
-    /** checking that no arithmetic operation is performed on enum types*/
-    template <>
-    struct is_backend_enum< enumtype::platform > : boost::mpl::true_ {};
-
-    struct error_no_operator_overload {};
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
 
     template < typename T >
     struct is_execution_engine : boost::mpl::false_ {};
