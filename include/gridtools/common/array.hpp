@@ -164,10 +164,18 @@ namespace gridtools {
     struct is_array_of< array< Value, D >, Value > : boost::mpl::true_ {};
 
     template < typename T >
-    class tuple_size;
+    struct tuple_size;
 
     template < typename T, size_t D >
-    class tuple_size< array< T, D > > : public gridtools::static_size_t< D > {};
+    struct tuple_size< array< T, D > > : std::integral_constant< size_t, D > {};
+
+    template < size_t, typename T >
+    struct tuple_element;
+
+    template < size_t I, typename T, size_t D >
+    struct tuple_element< I, array< T, D > > {
+        using type = T;
+    };
 
     template < size_t I, typename T, size_t D >
     GT_FUNCTION constexpr T &get(array< T, D > &arr) noexcept {

@@ -82,16 +82,6 @@ namespace gridtools {
     }
 
     namespace impl_ {
-        // TODO maybe needed for input type checking
-        //        template < typename T, typename Enable = void >
-        //        struct has_tuple_concept : public std::false_type {};
-        //
-        //        template < typename T >
-        //        struct has_tuple_concept< T,
-        //            meta::void_t< std::integral_constant< size_t, tuple_size< typename std::decay< T >::type >::value
-        //            > > >
-        //            : public std::true_type {};
-
         template < typename T >
         struct get_inner_type {
             using type = typename std::decay< decltype(get< 0 >(get< 0 >(std::declval< T >()))) >::type;
@@ -176,7 +166,7 @@ namespace gridtools {
      * b) convert a tuple or pair to an array e.g. convert_to<size_t>(tuple<size_t,size_t>) -> array<size_t,2>
      */
     template < typename NewT, typename Container >
-    GT_FUNCTION auto convert_to(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
+    GT_FUNCTION auto convert_to_array(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
         make_gt_index_sequence< tuple_size< typename std::decay< Container >::type >::value > >{}(
         std::forward< Container >(a))));
 
