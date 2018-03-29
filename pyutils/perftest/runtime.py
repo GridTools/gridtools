@@ -65,7 +65,8 @@ class Runtime(metaclass=abc.ABCMeta):
         return result.from_data(runtime=self,
                                 domain=domain,
                                 meantimes=meantimes,
-                                stdevtimes=stdevtimes)
+                                stdevtimes=stdevtimes,
+                                runs=runs)
 
     @staticmethod
     def _parse_time(output):

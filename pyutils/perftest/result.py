@@ -5,7 +5,7 @@ import json
 from perftest import ArgumentError, logger, ParseError, time
 
 
-version = 0.2
+version = 0.3
 
 
 class Data(dict):
@@ -42,7 +42,7 @@ class Result(Data):
         return [t.stdev for t in self.times]
 
 
-def from_data(runtime, domain, meantimes, stdevtimes):
+def from_data(runtime, domain, meantimes, stdevtimes, runs):
     """Creates a Result object from collected data.
 
     Args:
@@ -51,8 +51,8 @@ def from_data(runtime, domain, meantimes, stdevtimes):
         meantimes: List of mean run times per stencil.
         stdevtimes: List of stdev run times perf stencil.
     """
-    times_data = [Data(stencil=s.name, mean=m, stdev=d) for s, m, d in
-                  zip(runtime.stencils, meantimes, stdevtimes)]
+    times_data = [Data(stencil=s.name, mean=m, stdev=d, runs=runs) for s, m, d
+                  in zip(runtime.stencils, meantimes, stdevtimes)]
 
     runtime_data = Data(name=runtime.name,
                         version=runtime.version,
@@ -110,7 +110,8 @@ def load(filename):
     runtime_data = Data(**data['runtime'])
     config_data = Data(**data['config'])
 
-    times_data = [Data(stencil=d['stencil'], mean=d['mean'], stdev=d['stdev'])
+    times_data = [Data(stencil=d['stencil'], mean=d['mean'], stdev=d['stdev'],
+                       runs=d['runs'])
                   for d in data['times']]
 
     d = data['runtime']
