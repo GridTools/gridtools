@@ -132,6 +132,7 @@ namespace gridtools {
             };
 
           public:
+            GT_FUNCTION hypercube_view() {}
             GT_FUNCTION hypercube_view(const array< array< size_t, 0 >, 2 > &) {}
 
             GT_FUNCTION grid_iterator begin() const { return grid_iterator{{}, {}, {}}; }
@@ -142,10 +143,18 @@ namespace gridtools {
     /**
      * @brief constructs a view on a hypercube from an array of ranges (e.g. pairs); the end of the range is exclusive.
      */
-    template < typename Container >
+    template < typename Container,
+        typename = typename std::enable_if< (tuple_size< typename std::decay< Container >::type >::value > 0) >::type >
     GT_FUNCTION auto make_hypercube_view(Container &&cube)
         GT_AUTO_RETURN(impl_::hypercube_view< tuple_size< typename std::decay< Container >::type >::value >(
             transpose(std::forward< Container >(cube))));
+
+    /**
+     * @brief short-circuit for zero dimensional hypercube (transpose cannot work)
+     */
+    template < typename Container,
+        typename = typename std::enable_if< (tuple_size< typename std::decay< Container >::type >::value == 0) >::type >
+    GT_FUNCTION auto make_hypercube_view(Container &&cube) GT_AUTO_RETURN(impl_::hypercube_view< 0 >{});
 
     /**
      * @brief constructs a view on a hypercube from an array of integers (size of the loop in each dimension, ranges
