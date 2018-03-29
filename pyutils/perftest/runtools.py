@@ -100,10 +100,12 @@ async def _wait(task_id, outpath):
     # SLURM job states for unfinished jobs
     wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
     while True:
-        # Wait for job to finish, randomized sleep times are used to minimize
-        # the risk of polling SLURM too often (for different jobs, as for now
-        # polling is done per job)
-        await asyncio.sleep(random.uniform(1, 10))
+        # Allow other tasks to run
+        await asyncio.sleep(0)
+
+        # Wait for job to finish (we use time.sleep instead asyncio.sleep
+        # because we do not want to poll SLURM too often asynchronously)
+        time.sleep(1)
 
         # Run sacct to get job status
         sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
