@@ -135,61 +135,6 @@
 namespace gridtools {
     namespace meta {
 
-        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
-
-            template < class Cond, class Lhs, class Rhs >
-            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
-
-            template < class, class... >
-            struct concat;
-            template < class, class... >
-            struct push_back;
-
-            template < template < class... > class, class... >
-            struct rename;
-            template < template < class... > class, class... >
-            struct lfold;
-            template < template < class... > class, class... >
-            struct rfold;
-            template < template < class... > class, class... >
-            struct combine;
-            template < template < class... > class, class... >
-            struct transform;
-            template < template < class... > class, class... >
-            struct filter;
-        }
-
-#if !GT_BROKEN_TEMPLATE_ALIASES
-        inline namespace direct {
-
-            template < class T >
-            struct always {
-                template < class... >
-                using apply = T;
-            };
-
-            template < class Cond, class Lhs, class Rhs >
-            using if_ = typename lazy::if_< Cond, Lhs, Rhs >::type;
-            template < class List, class... Lists >
-            using concat = typename lazy::concat< List, Lists... >::type;
-            template < class List, class... Ts >
-            using push_back = typename lazy::push_back< List, Ts... >::type;
-
-            template < template < class... > class F, class... Args >
-            using rename = typename lazy::rename< F, Args... >::type;
-            template < template < class... > class F, class... Args >
-            using lfold = typename lazy::lfold< F, Args... >::type;
-            template < template < class... > class F, class... Args >
-            using rfold = typename lazy::rfold< F, Args... >::type;
-            template < template < class... > class F, class... Args >
-            using combine = typename lazy::combine< F, Args... >::type;
-            template < template < class... > class F, class... Args >
-            using transform = typename lazy::transform< F, Args... >::type;
-            template < template < class... > class F, class... Args >
-            using filter = typename lazy::filter< F, Args... >::type;
-        }
-#endif
-
         /**
          *   The default list constructor.
          *
@@ -297,6 +242,63 @@ namespace gridtools {
         using _8 = placeholder< 7 >;
         using _9 = placeholder< 8 >;
         using _10 = placeholder< 9 >;
+
+        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
+
+            template < class Cond, class Lhs, class Rhs >
+            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
+
+            template < class, class... >
+            struct concat;
+            template < class, class... >
+            struct push_back;
+
+            template < template < class... > class, class... >
+            struct rename;
+            template < template < class... > class, class... >
+            struct lfold;
+            template < template < class... > class, class... >
+            struct rfold;
+            template < template < class... > class, class... >
+            struct combine;
+            template < template < class... > class, class... >
+            struct transform;
+            template < template < class... > class, class... >
+            struct filter;
+        }
+
+#if !GT_BROKEN_TEMPLATE_ALIASES
+
+        template < class T >
+        using id = T;
+
+        template < class T >
+        struct always {
+            template < class... >
+            using apply = T;
+        };
+
+        template < class Cond, class Lhs, class Rhs >
+        using if_ = typename lazy::if_< Cond, Lhs, Rhs >::type;
+        template < class List, class... Lists >
+        using concat = typename lazy::concat< List, Lists... >::type;
+        template < class List, class... Ts >
+        using push_back = typename lazy::push_back< List, Ts... >::type;
+
+        template < template < class... > class F, class... Args >
+        using rename = typename lazy::rename< F, Args... >::type;
+        template < template < class... > class F, class... Args >
+        using lfold = typename lazy::lfold< F, Args... >::type;
+        template < template < class... > class F, class... Args >
+        using rfold = typename lazy::rfold< F, Args... >::type;
+        template < template < class... > class F, class... Args >
+        using combine = typename lazy::combine< F, Args... >::type;
+        template < template < class... > class F, class... Args >
+        using transform = typename lazy::transform< F, Args... >::type;
+        template < template < class... > class F, class... Args >
+        using filter = typename lazy::filter< F, Args... >::type;
+
+#endif
 
         GT_META_INTERNAL_LAZY_INLINE namespace lazy {
 
@@ -898,9 +900,6 @@ namespace gridtools {
         using lazy::is_set_fast;
 
 #if !GT_BROKEN_TEMPLATE_ALIASES
-
-        template < class T >
-        using id = T;
 
         /**
          *  Extracts "producing template" from the list.
