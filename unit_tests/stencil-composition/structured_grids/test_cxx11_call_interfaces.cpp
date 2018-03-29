@@ -730,6 +730,37 @@ namespace call_proc_interface_functors {
             }
         }
     };
+
+    struct test_functor2 {
+        typedef inout_accessor< 0, extent<>, 3 > in;
+        typedef boost::mpl::vector< in > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(in()) = (double)0.;
+        }
+    };
+
+    struct test_functor {
+        typedef inout_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            call_proc< test_functor2, x_interval >::with(eval, out());
+        }
+    };
+
+    struct call_with_local_variables_and_nested_call {
+        typedef inout_accessor< 0, extent<>, 3 > in;
+        //        typedef inout_accessor< 1, extent<>, 3 > out1;
+        typedef boost::mpl::vector< in > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            double local_in; //= eval();
+
+            call_proc< test_functor, x_interval >::with(eval, local_in, in());
+        }
+    };
 }
 
 class call_proc_interface : public testing::Test {
@@ -923,6 +954,18 @@ TEST_F(call_proc_interface, call_using_local_variables) {
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_proc_interface_functors::call_with_local_variable >(
                                        p_in(), p_out1(), p_out2())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+}
+
+TEST_F(call_proc_interface, call_using_local_variables_and_nested_call) {
+    auto comp = gridtools::make_computation< backend_t >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_with_local_variables_and_nested_call >(p_in())));
 
     execute_computation(comp);
 
