@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 function exit_if_error {
     if [ "x$1" != "x0" ]
@@ -25,6 +25,7 @@ function help {
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
    echo "-c      disable CPU communication tests          "
+   echo "-o      compile only (not tests are run)         "
    exit 1
 }
 
@@ -35,7 +36,7 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "hb:t:f:l:zmsidvq:x:inc" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:inco" opt; do
     case "$opt" in
     h|\?)
         help
@@ -69,6 +70,8 @@ while getopts "hb:t:f:l:zmsidvq:x:inc" opt; do
         ;;
     c) DISABLE_CPU_MPI_TESTS="ON"
         ;;
+    o) COMPILE_ONLY="ON"
+        ;;
     esac
 done
 
@@ -92,7 +95,7 @@ echo $@
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
 
-echo "BOOST_ROOT=$BOOST_ROOT" 
+echo "BOOST_ROOT=$BOOST_ROOT"
 
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
@@ -107,11 +110,14 @@ mkdir -p build;
 cd build;
 
 if [ "x$TARGET" == "xgpu" ]; then
-    USE_GPU=ON
+    ENABLE_HOST=ON
+    ENABLE_CUDA=ON
 else
-    USE_GPU=OFF
+    ENABLE_HOST=ON
+    ENABLE_CUDA=OFF
 fi
-echo "USE_GPU=$USE_GPU"
+echo "ENABLE_CUDA=$ENABLE_CUDA"
+echo "ENABLE_HOST=$ENABLE_HOST"
 
 if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
@@ -152,7 +158,7 @@ export START_TIME=$SECONDS
 
 if [[ "$BUILD_ON_CN" == "ON" ]]; then
     if [[ -z ${SRUN_BUILD_COMMAND} ]]; then
-        echo "No command for building on a compute node available, falling back to normal mode." 
+        echo "No command for building on a compute node available, falling back to normal mode."
         SRUN_BUILD_COMMAND=""
     else
         echo "Building on a compute node (launching from `hostname`)"
@@ -167,7 +173,8 @@ cmake \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DUSE_GPU:BOOL=$USE_GPU \
+-DENABLE_HOST:BOOL=$ENABLE_HOST \
+-DENABLE_CUDA:BOOL=$ENABLE_CUDA \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
@@ -226,7 +233,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     do
       echo "COMPILATION # ${i}"
       ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}  >& ${log_file};
-      
+
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
           break # Skip the make repetitions
@@ -236,7 +243,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     nwarnings=`grep -i "warning" ${log_file} | wc -l`
     if [ ${nwarnings} -ne 0 ]; then
         echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
-        error_code=$((error_code || `echo "1"` ))    
+        error_code=$((error_code || `echo "1"` ))
     fi
 
     if [ ${error_code} -ne 0 ]; then
@@ -256,6 +263,10 @@ fi
 
 exit_if_error ${error_code}
 
+if  [[ "$COMPILE_ONLY" == "ON" ]]; then
+    exit 0;
+fi
+
 queue_str=""
 if [[ ${QUEUE} ]] ; then
   queue_str="-q ${QUEUE}"
@@ -263,7 +274,7 @@ fi
 
 
 if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
-    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $ENABLE_CUDA
 else
     bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str}
 fi

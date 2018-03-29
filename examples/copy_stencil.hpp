@@ -36,6 +36,7 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 #include "benchmarker.hpp"
 
 /**
@@ -72,24 +73,12 @@ namespace copy_stencil {
 
     void handle_error(int_t) { std::cout << "error" << std::endl; }
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     struct copy_stencil_test {
         uint d1, d2, d3, t_steps;
         bool m_verify;
 
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
         storage_info_t meta_data_;
         data_store_t in, out;
 
@@ -148,11 +137,11 @@ namespace copy_stencil {
         }
 
         bool test_with_extents() {
-            auto copy = gridtools::make_computation< gridtools::BACKEND >(
+            auto copy = gridtools::make_computation< backend_t >(
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
+                (execute< parallel >(),
                     gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
             copy->ready();
@@ -172,10 +161,10 @@ namespace copy_stencil {
         }
 
         bool test() {
-            auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            auto copy = gridtools::make_computation< backend_t >(domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+                (execute< parallel >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
             copy->ready();
 

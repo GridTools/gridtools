@@ -242,8 +242,7 @@ namespace vertical_advection_dycore {
                                                      repository.utens(),
                                                      repository.dtr_stage()),
               di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
-              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2},
-              grid(di, dj, _impl::intervals_to_indices(gridtools::axis< 1 >{d3}.interval_sizes())) {
+              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2}, grid(make_grid(di, dj, axis_t(d3))) {
             repository.init_fields();
 
             repository.generate_reference();
@@ -261,7 +260,7 @@ namespace vertical_advection_dycore {
                     define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
                         cache< K, cache_io_policy::flush, kfull >(p_dcol()),
                         cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                    gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
+                    gridtools::make_stage< u_forward_function< float_type > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -276,11 +275,10 @@ namespace vertical_advection_dycore {
             auto down_stencil = gridtools::make_multistage(
                 execute< backward >(),
                 define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                gridtools::make_stage< u_backward_function< double > >(
+                gridtools::make_stage< u_backward_function< float_type > >(
                     p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
 
-            auto vertical_advection =
-                gridtools::make_computation< vertical_advection::va_backend >(domain, grid, up_stencil, down_stencil);
+            auto vertical_advection = gridtools::make_computation< backend_t >(domain, grid, up_stencil, down_stencil);
 
             vertical_advection->ready();
 
@@ -313,7 +311,7 @@ namespace vertical_advection_dycore {
 
         bool test_with_extents(uint_t t_steps, bool verify) {
 
-            auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+            auto vertical_advection = gridtools::make_computation< backend_t >(
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
@@ -321,7 +319,7 @@ namespace vertical_advection_dycore {
                     define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
                         cache< K, cache_io_policy::flush, kfull >(p_dcol()),
                         cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                    gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
+                    gridtools::make_stage_with_extent< u_forward_function< float_type >, extent< 0 > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -332,11 +330,14 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_multistage(
-                    execute< backward >(),
+                gridtools::make_multistage(execute< backward >(),
                     define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                    gridtools::make_stage_with_extent< u_backward_function< double >, extent< 0 > >(
-                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+                    gridtools::make_stage_with_extent< u_backward_function< float_type >, extent< 0 > >(p_utens_stage(),
+                                               p_u_pos(),
+                                               p_dtr_stage(),
+                                               p_ccol(),
+                                               p_dcol(),
+                                               p_data_col())));
 
             vertical_advection->ready();
 

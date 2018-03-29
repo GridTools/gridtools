@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "backend_select.hpp"
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
@@ -52,6 +53,19 @@ struct copy_functor {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval) {
         eval(out{}) = eval(in{});
+    }
+};
+
+struct copy_functor_with_expression {
+    typedef vector_accessor< 0, enumtype::inout > out;
+    typedef vector_accessor< 1, enumtype::in > in;
+
+    typedef boost::mpl::vector< out, in > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        // use an expression which is equivalent to a copy to simplify the check
+        eval(out{}) = eval(2. * in{} - in{});
     }
 };
 
@@ -81,23 +95,14 @@ struct call_copy_functor {
 
 class expandable_parameters : public testing::Test {
   protected:
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
     const uint_t halo_size = 0;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
+        data_store_t;
 
     storage_info_t meta_;
 
@@ -167,7 +172,7 @@ class expandable_parameters : public testing::Test {
 };
 
 TEST_F(expandable_parameters, copy) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(expand_factor< 2 >(),
+    auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_out(), p_in())));
@@ -181,13 +186,31 @@ TEST_F(expandable_parameters, copy) {
     ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
 }
 
-TEST_F(expandable_parameters, call_proc_copy) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+// TODO this should be enabled when working on a bug fix for expressions with vector_accessors
+TEST_F(expandable_parameters, copy_with_expression) {
+    auto comp = gridtools::make_computation< backend_t >(
         expand_factor< 2 >(),
         domain,
         grid,
         gridtools::make_multistage(
-            execute< forward >(), gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
+            execute< forward >(), gridtools::make_stage< copy_functor_with_expression >(p_out(), p_in())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
+
+TEST_F(expandable_parameters, call_proc_copy) {
+    auto comp =
+        gridtools::make_computation< backend_t >(expand_factor< 2 >(),
+            domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(),
+                                                     gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -199,7 +222,7 @@ TEST_F(expandable_parameters, call_proc_copy) {
 }
 
 TEST_F(expandable_parameters, call_copy) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(expand_factor< 2 >(),
+    auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(), gridtools::make_stage< call_copy_functor >(p_out(), p_in())));

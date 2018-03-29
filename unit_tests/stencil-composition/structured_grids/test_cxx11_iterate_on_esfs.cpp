@@ -47,20 +47,8 @@
 #include <stencil-composition/make_stencils_cxx11.hpp>
 #include <storage/storage-facility.hpp>
 
+#include "backend_select.hpp"
 #include "gtest/gtest.h"
-
-#ifdef __CUDACC__
-#define BACKEND \
-    ::gridtools::backend<::gridtools::enumtype::Cuda, ::gridtools::enumtype::GRIDBACKEND, ::gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND \
-    ::gridtools::backend<::gridtools::enumtype::Host, ::gridtools::enumtype::GRIDBACKEND, ::gridtools::enumtype::Block >
-#else
-#define BACKEND \
-    ::gridtools::backend<::gridtools::enumtype::Host, ::gridtools::enumtype::GRIDBACKEND, ::gridtools::enumtype::Naive >
-#endif
-#endif
 
 namespace gridtools {
     namespace {
@@ -72,8 +60,8 @@ namespace gridtools {
             using arg_list = vector< in_accessor< 0 >, inout_accessor< 1 > >;
         };
 
-        typedef storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
         typedef arg< 0, data_store_t > p_in;
         typedef arg< 1, data_store_t > p_out;

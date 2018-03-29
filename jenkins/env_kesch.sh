@@ -9,13 +9,14 @@ module load mvapich2gdr_gnu/2.2_cuda_8.0
 module load gcc/5.4.0-2.26
 module load cmake/3.9.1
 
+export HOST_COMPILER=`which g++`
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
-export BOOST_ROOT=/users/vogtha/boost_1_65_1
-export BOOST_INCLUDE=/users/vogtha/boost_1_65_1/include/
+export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0
+export BOOST_INCLUDE=/project/c14/install/kesch/boost/boost_1_66_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"

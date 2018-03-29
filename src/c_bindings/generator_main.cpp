@@ -40,9 +40,9 @@
 #include "c_bindings/generator.hpp"
 
 int main(int argc, const char *argv[]) {
-    if (argc > 2) {
+    if (argc > 3) {
         std::ofstream dst(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst);
+        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
     }
     if (argc > 1) {
         std::ofstream dst(argv[1]);

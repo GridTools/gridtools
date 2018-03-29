@@ -40,18 +40,14 @@
 #include <storage/storage-facility.hpp>
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-typedef backend< Cuda, structured, Block > backend_t;
-typedef storage_traits< Cuda > storage_traits_t;
-#else
-typedef backend< Host, structured, Naive > backend_t;
-typedef storage_traits< Host > storage_traits_t;
-#endif
-typedef storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-typedef storage_traits_t::data_store_t< float_type, storage_info_t > data_store_t;
+using storage_traits_t = typename backend_t::storage_traits_t;
+using storage_info_t = storage_traits_t::storage_info_t< 0, 3 >;
+using data_store_t = storage_traits_t::data_store_t< float_type, storage_info_t >;
 
 struct boundary {
 
@@ -79,7 +75,7 @@ struct functor1 {
 struct functor2 {
     typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
     typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 > > in;
-    typedef global_accessor< 2, enumtype::inout > bd;
+    typedef global_accessor< 2 > bd;
 
     typedef boost::mpl::vector< sol, in, bd > arg_list;
 
