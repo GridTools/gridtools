@@ -69,12 +69,12 @@ namespace gridtools {
                 type() = delete;
 
                 template < long unsigned int ndims >
-                constexpr static Value apply(const std::array< Value, ndims > data) {
+                GT_FUNCTION constexpr static Value apply(const std::array< Value, ndims > data) {
                     return data[Idx];
                 }
 
                 template < long unsigned int ndims >
-                constexpr static Value apply(const gridtools::array< Value, ndims > data) {
+                GT_FUNCTION constexpr static Value apply(const gridtools::array< Value, ndims > data) {
                     return data[Idx];
                 }
             };
