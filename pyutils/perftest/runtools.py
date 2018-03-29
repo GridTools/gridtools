@@ -11,7 +11,7 @@ import time
 from perftest import config, JobError, logger
 
 
-def run(commands, conf=None):
+def run(commands, conf=None, job_limit=None):
     """Runs the given command(s) using SLURM and the given configuration.
 
     `conf` must be a valid argument for `perftest.config.get`.
@@ -19,6 +19,8 @@ def run(commands, conf=None):
     Args:
         commands: A string or a list of strings, console command(s) to run.
         conf:  (Default value = None) The config to use or None for default.
+        job_limit: An integer defining the max number of jobs submitted to
+                   SLURM in parallel.
 
     Returns:
         A list of collected console outputs of all commands.
@@ -28,10 +30,36 @@ def run(commands, conf=None):
 
     conf = config.get(conf)
 
-    futures = [asyncio.ensure_future(_run(c, conf)) for c in commands]
-    asyncio.get_event_loop().run_until_complete(asyncio.gather(*futures))
+    if job_limit is None:
+        job_limit = len(commands)
 
-    return [future.result() for future in futures]
+    # Initialize list of outputs
+    outputs = [None] * len(commands)
+
+    # Put all commands into an asyncio queue
+    queue = asyncio.Queue()
+    for i, command in enumerate(commands):
+        queue.put_nowait((i, command))
+
+    # executor consumer coroutine, gets a command from the queue and runs it
+    async def executor():
+        while True:
+            i, command = await queue.get()
+            outputs[i] = await _run(command, conf)
+            queue.task_done()
+
+    # main execution coroutine, runs `job_limit` number of executors and waits
+    # until the queue is empty
+    async def execute():
+        executors = [asyncio.ensure_future(executor()) for _
+                     in range(job_limit)]
+        await queue.join()
+        for e in executors:
+            e.cancel()
+
+    # start execution
+    asyncio.get_event_loop().run_until_complete(execute())
+    return outputs
 
 
 def _submit(command, conf):
@@ -75,7 +103,7 @@ async def _wait(task_id, outpath):
         # Wait for job to finish, randomized sleep times are used to minimize
         # the risk of polling SLURM too often (for different jobs, as for now
         # polling is done per job)
-        await asyncio.sleep(random.uniform(5, 15))
+        await asyncio.sleep(random.uniform(1, 10))
 
         # Run sacct to get job status
         sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
@@ -120,7 +148,7 @@ async def _wait(task_id, outpath):
     return output
 
 
-async def _run(command, sbatch_template=None):
+async def _run(command, conf):
     """Asynchronous run command."""
-    task_id, outpath = _submit(command, sbatch_template)
+    task_id, outpath = _submit(command, conf)
     return await _wait(task_id, outpath)
