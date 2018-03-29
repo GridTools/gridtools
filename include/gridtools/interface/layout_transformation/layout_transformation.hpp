@@ -63,7 +63,6 @@ namespace gridtools {
             else if (impl::both_not_gpu_ptrs(dst, src))
                 impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
             else
-                // TODO should we support this mixed mode?
                 throw std::runtime_error("transform(): source and destination pointers need to be from the same memory "
                                          "space (both host or both gpu pointers)");
         }

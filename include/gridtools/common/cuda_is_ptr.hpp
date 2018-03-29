@@ -39,11 +39,6 @@
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 #include <iostream>
-#ifdef _USE_GPU_
-#ifdef USE_DRIVER_API
-#include <cuda.h>
-#endif
-#endif
 
 namespace gridtools {
     /**
@@ -55,7 +50,6 @@ namespace gridtools {
 #ifndef _USE_GPU_
         return false;
 #else
-#ifndef USE_DRIVER_API
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
@@ -66,23 +60,6 @@ namespace gridtools {
         } else {
             std::cerr << "CUDA ERROR in cudaPointerGetAttributes(): " << cudaGetErrorString(error) << std::endl;
         }
-#else
-        unsigned int mem_type;
-        CUdeviceptr cu_ptr = reinterpret_cast< CUdeviceptr >(ptr);
-        CUresult error = cuPointerGetAttribute(&mem_type, CU_POINTER_ATTRIBUTE_MEMORY_TYPE, cu_ptr);
-        if (error == CUDA_SUCCESS)
-            return mem_type == CU_MEMORYTYPE_DEVICE;
-        else if (error == CUDA_ERROR_INVALID_VALUE || error == CUDA_ERROR_NOT_INITIALIZED)
-            // invalid value -> ptr was not allocated with cudaMalloc, cudaMallocHost, ...
-            // not initialized -> cuda context was not initialized: would have been if cudaMalloc was called somewhere,
-            // i.e. cannot be a device ptr
-            return false;
-        else {
-            const char *error_string;
-            cuGetErrorString(error, &error_string);
-            std::cerr << "CUDA ERROR in cuPointerGetAttribute(): " << error_string << std::endl;
-        }
-#endif
         return false;
 #endif
     }
