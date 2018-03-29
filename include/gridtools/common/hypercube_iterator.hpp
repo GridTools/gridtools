@@ -163,9 +163,11 @@ namespace gridtools {
     template < typename Container >
     GT_FUNCTION auto make_hypercube_view_from_zero(Container &&sizes)
         GT_AUTO_RETURN(impl_::hypercube_view< tuple_size< typename std::decay< Container >::type >::value >(
-            array< array< size_t, tuple_size< Container >::value >, 2 >{
-                static_cast< array< size_t, tuple_size< Container >::value > >(
-                    array< size_t, tuple_size< Container >::value >{}), // icc 17 does not value-initialize the array
-                                                                        // without the static_cast to itself
+            array< array< size_t, tuple_size< typename std::decay< Container >::type >::value >, 2 >{
+                static_cast< array< size_t, tuple_size< typename std::decay< Container >::type >::value > >(
+                    array< size_t, tuple_size< typename std::decay< Container >::type >::value >{}), // icc 17 does not
+                                                                                                     // value-initialize
+                                                                                                     // the array
+                // without the static_cast to itself
                 convert_to< size_t >(std::forward< Container >(sizes))}));
 }
