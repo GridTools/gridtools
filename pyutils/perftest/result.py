@@ -41,6 +41,11 @@ class Result(Data):
         """List of all stencils' computation time stdandard deviation."""
         return [t.stdev for t in self.times]
 
+    @property
+    def runs(self):
+        """List of all stencils' number of runs."""
+        return [t.runs for t in self.times]
+
 
 def from_data(runtime, domain, meantimes, stdevtimes, runs):
     """Creates a Result object from collected data.

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import sys
 
 import perftest
 
@@ -21,6 +22,16 @@ def plot(args):
 
     # save result
     fig.savefig(args.output)
+
+
+def validate(args):
+    import perftest.result
+    import perftest.validate
+
+    res_a, res_b = (perftest.result.load(f) for f in args.input)
+
+    if not perftest.validate.ttest_validate(res_a, res_b, 0.9):
+        sys.exit(2)
 
 
 def run(args):
@@ -71,6 +82,14 @@ if __name__ == '__main__':
                                  'if not given')
     run_parser.add_argument('--config', '-c',
                             help='config name, default is machine config')
+
+    # command line arguments for `validate` action
+    validate_parser = subparsers.add_parser('validate',
+                                            help='statistically validate '
+                                                 'performance results')
+    validate_parser.set_defaults(func=validate)
+    validate_parser.add_argument('--input', '-i', required=True, nargs=2,
+                                 help='input result files')
 
     # command line aguments for `plot` action
     plot_parser = subparsers.add_parser('plot',
