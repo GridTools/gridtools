@@ -28,7 +28,7 @@ class Runtime(metaclass=abc.ABCMeta):
 
         self.stencils = stencils.load(self.grid)
 
-    def run(self, domain, runs):
+    def run(self, domain, runs, job_limit=None):
         """Method to run all stencils on the given `domain` size.
 
         Computes mean and stdev of the run times for all stencils for the
@@ -49,7 +49,7 @@ class Runtime(metaclass=abc.ABCMeta):
 
         # Run commands
         logger.info('Running stencils')
-        alloutputs = runtools.run(allcommands, self.config)
+        alloutputs = runtools.run(allcommands, self.config, job_limit)
         logger.info('Running stencils finished')
 
         # Parse outputs

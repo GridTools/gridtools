@@ -35,7 +35,7 @@ def run(args):
     rt = config.runtime(args.runtime)
 
     # run jobs
-    result = rt.run(args.domain, args.runs)
+    result = rt.run(args.domain, args.runs, args.max_parallel_jobs)
 
     # save result
     if not args.output.lower().endswith('.json'):
@@ -63,6 +63,9 @@ if __name__ == '__main__':
                             help='domain size (excluding halo)')
     run_parser.add_argument('--runs', default=10, type=int,
                             help='number of runs to do for each stencil')
+    run_parser.add_argument('--max-parallel-jobs', default=50, type=int,
+                            help='max number of jobs that are submitted to '
+                                 'SLURM in parallel')
     run_parser.add_argument('--output', '-o', required=True,
                             help='output file path, extension .json is added '
                                  'if not given')
