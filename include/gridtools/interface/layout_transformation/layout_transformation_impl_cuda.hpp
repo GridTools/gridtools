@@ -102,11 +102,6 @@ namespace gridtools {
                 transform_cuda_loop_kernel_functor< DataType, storage_info > f(dst, src, si_dst, si_src, i, j, k);
                 f(outer[0], outer[1]); // TODO make generic
             }
-
-            //            make_multi_iterator(outer_dims)
-            //                .iterate(
-            //                    transform_cuda_loop_kernel_functor< DataType, storage_info >(dst, src, si_dst, si_src,
-            //                    i, j, k));
         }
 #endif
 
