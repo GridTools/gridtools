@@ -215,7 +215,7 @@ namespace gridtools {
         struct is_instantiation_of;
         template < template < class... > class L >
         struct is_instantiation_of< L > {
-            using type = curry_fun< is_instantiation_of, L >;
+            using type = curry_fun< meta::is_instantiation_of, L >;
         };
         template < template < class... > class L, class T >
         struct is_instantiation_of< L, T > : std::false_type {};

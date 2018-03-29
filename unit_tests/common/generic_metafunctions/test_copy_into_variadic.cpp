@@ -32,6 +32,7 @@
 #include <type_traits>
 
 #include <boost/mpl/vector.hpp>
+#include <gtest/gtest.h>
 
 namespace gridtools {
     namespace {

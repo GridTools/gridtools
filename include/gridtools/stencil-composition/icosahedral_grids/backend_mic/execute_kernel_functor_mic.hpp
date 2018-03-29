@@ -83,8 +83,10 @@ namespace gridtools {
                     typename IterateDomain::grid_position_t memorized_position = m_it_domain.position();
 
                     // we fill the run_functor_arguments with the current color being processed
-                    using run_functor_arguments_t = GT_META_CALL(
-                        meta::replace, (typename RunFunctorArguments::color_t, color_type< (uint_t)Index::value >));
+                    using run_functor_arguments_t = GT_META_CALL(meta::replace,
+                        (RunFunctorArguments,
+                                                                     typename RunFunctorArguments::color_t,
+                                                                     color_type< (uint_t)Index::value >));
 
                     boost::mpl::for_each< loop_intervals_t >(
                         _impl::run_f_on_interval< execution_type_t, run_functor_arguments_t >(m_it_domain, m_grid));
