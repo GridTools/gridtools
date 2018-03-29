@@ -109,7 +109,7 @@ TEST(convert_to, size_t_to_int) {
     const size_t val1 = 2;
     gridtools::array< size_t, 2 > in{val0, val1};
 
-    auto result = convert_to< int >(in);
+    auto result = convert_to_array< int >(in);
 
     ASSERT_TYPE_EQ< gridtools::array< int, 2 >, decltype(result) >();
     ASSERT_EQ((int)val0, result[0]);
@@ -121,7 +121,7 @@ TEST(convert_to, size_t_to_double) {
     const size_t val1 = 2;
     gridtools::array< size_t, 2 > in{val0, val1};
 
-    auto result = convert_to< double >(in);
+    auto result = convert_to_array< double >(in);
 
     ASSERT_TYPE_EQ< gridtools::array< double, 2 >, decltype(result) >();
     ASSERT_EQ((double)val0, result[0]);
@@ -133,7 +133,7 @@ TEST(convert_to, from_pair) {
     const int val1 = 2;
     gridtools::pair< size_t, size_t > in{val0, val1};
 
-    auto result = convert_to< double >(in);
+    auto result = convert_to_array< double >(in);
 
     ASSERT_TYPE_EQ< gridtools::array< double, 2 >, decltype(result) >();
     ASSERT_EQ((double)val0, result[0]);

@@ -64,49 +64,39 @@ namespace gridtools {
      */
     template < typename T1, typename T2 >
     struct pair {
-        constexpr GT_FUNCTION pair() : first(), second() {}
-        constexpr GT_FUNCTION pair(const T1 &t1_, const T2 &t2_) : first(t1_), second(t2_) {}
-        template < class U1,
-            class U2,
-            class = typename std::enable_if< std::is_convertible< U1, T1 >::value &&
-                                             std::is_convertible< U2, T2 >::value >::type >
+        pair() = default;
+
+        template < class U1, class U2 >
         constexpr GT_FUNCTION pair(U1 &&t1_, U2 &&t2_)
             : first(std::forward< U1 >(t1_)), second(std::forward< U2 >(t2_)) {}
+
         template < class U1,
             class U2,
-            class = typename std::enable_if< std::is_convertible< U1, T1 >::value &&
-                                             std::is_convertible< U2, T2 >::value >::type >
+            typename std::enable_if< !std::is_same< pair< U1, U2 >, pair >::value, int >::type = 0 >
         constexpr GT_FUNCTION pair(const pair< U1, U2 > &p)
             : first(p.first), second(p.second) {}
+
         template < class U1,
             class U2,
-            class = typename std::enable_if< std::is_convertible< U1, T1 >::value &&
-                                             std::is_convertible< U2, T2 >::value >::type >
+            typename std::enable_if< !std::is_same< pair< U1, U2 >, pair >::value, int >::type = 0 >
         constexpr GT_FUNCTION pair(pair< U1, U2 > &&p)
-            : first(std::forward< U1 >(p.first)), second(std::forward< U2 >(p.second)) {}
-        pair(const pair &) = default;
-        pair(pair &&) = default;
+            : first(std::move(p.first)), second(std::move(p.second)) {}
 
-        pair &operator=(const pair &other) {
-            first = other.first;
-            second = other.second;
-            return *this;
-        }
-        template < typename U1, typename U2 >
+        template < typename U1,
+            typename U2,
+            typename std::enable_if< !std::is_same< pair< U1, U2 >, pair >::value, int >::type = 0 >
         pair &operator=(const pair< U1, U2 > &other) {
             first = other.first;
             second = other.second;
             return *this;
         }
-        pair &operator=(pair &&other) noexcept {
-            first = std::forward< T1 >(other.first);
-            second = std::forward< T2 >(other.second);
-            return *this;
-        }
-        template < typename U1, typename U2 >
+
+        template < typename U1,
+            typename U2,
+            typename std::enable_if< !std::is_same< pair< U1, U2 >, pair >::value, int >::type = 0 >
         pair &operator=(pair< U1, U2 > &&other) noexcept {
-            first = std::forward< T1 >(other.first);
-            second = std::forward< T2 >(other.second);
+            first = std::move(other.first);
+            second = std::move(other.second);
             return *this;
         }
 
@@ -150,10 +140,23 @@ namespace gridtools {
     }
 
     template < typename T >
-    class tuple_size;
+    struct tuple_size;
 
     template < typename T1, typename T2 >
-    class tuple_size< pair< T1, T2 > > : public gridtools::static_size_t< 2 > {};
+    struct tuple_size< pair< T1, T2 > > : std::integral_constant< size_t, 2 > {};
+
+    template < size_t I, typename T >
+    struct tuple_element;
+
+    template < typename T1, typename T2 >
+    struct tuple_element< 0, pair< T1, T2 > > {
+        using type = T1;
+    };
+
+    template < typename T1, typename T2 >
+    struct tuple_element< 1, pair< T1, T2 > > {
+        using type = T2;
+    };
 
     namespace impl_ {
         template < size_t I >

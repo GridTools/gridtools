@@ -171,7 +171,7 @@ namespace gridtools {
      * b) convert a tuple or pair to an array e.g. convert_to<size_t>(tuple<size_t,size_t>) -> array<size_t,2>
      */
     template < typename NewT, typename Container >
-    GT_FUNCTION auto convert_to(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
+    GT_FUNCTION auto convert_to_array(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
         make_gt_index_sequence< tuple_size< typename std::decay< Container >::type >::value > >{}(
         std::forward< Container >(a))));
 
