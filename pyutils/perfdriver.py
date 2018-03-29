@@ -61,7 +61,7 @@ if __name__ == '__main__':
     run_parser.add_argument('--domain', '-d', required=True, type=int,
                             nargs=3, metavar=('ISIZE', 'JSIZE', 'KSIZE'),
                             help='domain size (excluding halo)')
-    run_parser.add_argument('--runs', default=10, type=int,
+    run_parser.add_argument('--runs', default=100, type=int,
                             help='number of runs to do for each stencil')
     run_parser.add_argument('--max-parallel-jobs', default=50, type=int,
                             help='max number of jobs that are submitted to '
