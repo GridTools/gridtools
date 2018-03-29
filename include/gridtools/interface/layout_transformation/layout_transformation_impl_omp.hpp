@@ -38,7 +38,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
-#include "../../common/multi_iterator.hpp"
+#include "../../common/hypercube_iterator.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
 #include "../../storage/storage-facility.hpp"
@@ -88,11 +88,11 @@ namespace gridtools {
             storage_info si_dst(a_dims, a_dst_strides);
             storage_info si_src(a_dims, a_src_strides);
 
-            hypercube< GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
+            array< size_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
             for (size_t i = 0; i < GT_TRANSFORM_MAX_DIM - 3; ++i)
-                outer_dims[i] = range(0, a_dims[3 + i]);
+                outer_dims[i] = a_dims[3 + i];
 
-            for (auto i : make_hypercube_view(outer_dims)) {
+            for (auto i : make_hypercube_view_from_zero(outer_dims)) {
                 transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, i[0], i[1]); // TODO make generic
             }
         }

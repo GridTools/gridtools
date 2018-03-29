@@ -38,7 +38,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
-#include "../../common/multi_iterator.hpp"
+#include "../../common/hypercube_iterator.hpp"
 #include "../../storage/storage-facility.hpp"
 #include "call_cuda_kernel.hpp"
 #include "layout_transformation_config.hpp"
