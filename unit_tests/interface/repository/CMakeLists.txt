@@ -30,7 +30,7 @@ IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
     
     # clean the preprocessed file from comments and from everything before our class starts
     add_custom_target( process_generated_repository
-      COMMAND sed -i "/^#/d" ${GENERATED_REPOSITORY} # remove all lines starting with '#'
+      COMMAND sed -i '' "/^#/d" ${GENERATED_REPOSITORY} # remove all lines starting with '#'
       # remove everything before "class my_repository"
       COMMAND awk "/class my_repository/,0" ${GENERATED_REPOSITORY} > ${GENERATED_REPOSITORY}_tmp
       COMMAND cp ${GENERATED_REPOSITORY}_tmp ${GENERATED_REPOSITORY}
