@@ -84,7 +84,7 @@ namespace {
         array< size_t, dim > dims;
         std::copy(expected_index.dims().begin(), expected_index.dims().end(), dims.begin());
 
-        for (auto index : make_hypercube_view_from_zero(dims)) {
+        for (auto index : make_hypercube_view(dims)) {
             ASSERT_EQ(expected_ptr[expected_index(index)], actual_ptr[actual_index(index)]);
         }
     }
@@ -96,7 +96,7 @@ namespace {
         array< size_t, dim > dims;
         std::copy(index.dims().begin(), index.dims().end(), dims.begin());
 
-        for (auto i : make_hypercube_view_from_zero(dims)) {
+        for (auto i : make_hypercube_view(dims)) {
             ptr[index(i)] = f(i);
         }
     }

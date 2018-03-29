@@ -92,7 +92,7 @@ namespace gridtools {
             for (size_t i = 0; i < GT_TRANSFORM_MAX_DIM - 3; ++i)
                 outer_dims[i] = a_dims[3 + i];
 
-            for (auto i : make_hypercube_view_from_zero(outer_dims)) {
+            for (auto i : make_hypercube_view(outer_dims)) {
                 transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, i[0], i[1]); // TODO make generic
             }
         }
