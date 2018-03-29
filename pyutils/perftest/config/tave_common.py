@@ -12,7 +12,7 @@ def sbatch(command):
     return textwrap.dedent(f"""\
         #!/bin/bash -l
         #SBATCH --job-name=gridtools-test
-        #SBATCH --time=00:10:00
+        #SBATCH --time=00:01:00
         #SBATCH --constraint=flat,quad
 
         srun numactl -m 1 {command}

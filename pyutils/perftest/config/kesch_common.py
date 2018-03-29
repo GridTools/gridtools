@@ -30,7 +30,7 @@ def sbatch(command):
         #SBATCH --job-name=gridtools-test
         #SBATCH --partition=debug
         #SBATCH --gres=gpu:1
-        #SBATCH --time=00:10:00
+        #SBATCH --time=00:01:00
 
         srun {command}
 
