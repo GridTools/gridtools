@@ -89,17 +89,14 @@ namespace test_cycle_and_swap {
 
         typedef arg< 0, data_store_field_t > p_i_data;
 
-        auto comp = gridtools::make_computation< backend_t >(grid,
-            p_i_data() = i_data,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation< backend_t >(
+            grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
-        comp.run();
+        comp.run(p_i_data() = i_data);
         i_data.sync();
         swap< 0, 0 >::with< 0, 1 >(i_data);
+        comp.run(p_i_data() = i_data);
         i_data.sync();
-        comp.run();
-        comp.sync_all();
-
         iv = make_field_host_view(i_data);
         return (iv.get< 0, 0 >()(0, 0, 0) == 2 && iv.get< 0, 1 >()(0, 0, 0) == 0);
     }
@@ -140,9 +137,8 @@ namespace test_cycle_and_swap {
 
         typedef arg< 0, data_store_field_t > p_i_data;
 
-        auto comp = gridtools::make_computation< backend_t >(grid,
-            p_i_data() = i_data,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
+        auto comp = gridtools::make_computation< backend_t >(
+            grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {
@@ -169,17 +165,16 @@ namespace test_cycle_and_swap {
                 }
             }
         }
-        comp.run();
+        comp.run(p_i_data() = i_data);
         i_data.sync();
         swap< 0, 0 >::with< 0, 1 >(i_data);
-        i_data.sync();
 
         // note that the second run will do wrong computations at the first line of the 2D domain of the coordinates,
         // because the first line of
         // grid points at the boundaries has not been computed at the first run. However we just dont validate these
         // points with the verifier
-        comp.run();
-        comp.sync_all();
+        comp.run(p_i_data() = i_data);
+        i_data.sync();
 
 #if FLOAT_PRECISION == 4
         verifier verif(1e-6);
@@ -219,17 +214,15 @@ namespace test_cycle_and_swap {
 
         typedef arg< 0, data_store_field_t > p_i_data;
 
-        auto comp = gridtools::make_computation< backend_t >(grid,
-            p_i_data() = i_data,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation< backend_t >(
+            grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
-        comp.run();
+        comp.run(p_i_data() = i_data);
         i_data.sync();
         cycle< 0 >::by< 1 >(i_data);
         cycle_all::by< 1 >(i_data);
+        comp.run(p_i_data() = i_data);
         i_data.sync();
-        comp.run();
-        comp.sync_all();
 
         // renew the view, because it is not valid anymore
         iv = make_field_host_view(i_data);
