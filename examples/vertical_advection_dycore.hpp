@@ -288,7 +288,7 @@ namespace vertical_advection_dycore {
             return result;
         }
 
-        bool test_with_extents(uint_t t_steps, bool verify) {
+        bool test_with_extents(bool verify) {
 
             auto vertical_advection = gridtools::make_computation< backend_t >(
                 grid,
