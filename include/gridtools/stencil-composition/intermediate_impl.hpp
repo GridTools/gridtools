@@ -160,7 +160,7 @@ namespace gridtools {
                 if (m_view && check_consistency(m_data_storage, *m_view))
                     return boost::none;
                 m_data_storage.sync();
-                m_view = typename Backend::make_view_f{}(m_data_storage);
+                m_view.emplace(typename Backend::make_view_f{}(m_data_storage));
                 return m_view;
             }
         };
