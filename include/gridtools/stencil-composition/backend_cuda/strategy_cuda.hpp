@@ -43,7 +43,9 @@
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 #include "../tile.hpp"
-#include "common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../../common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 
 namespace gridtools {
@@ -82,15 +84,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-
-            typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value > iter_range;
+            GRIDTOOLS_STATIC_ASSERT(meta::is_list< MssComponents >::value, GT_INTERNAL_ERROR);
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                boost::mpl::for_each< iter_range >(mss_functor< MssComponents,
+                host_for_each< GT_META_CALL(meta::make_indices_for, MssComponents) >(mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
                     BackendIds,
