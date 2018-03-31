@@ -95,8 +95,12 @@ namespace gridtools {
             GT_AUTO_RETURN((Delegate{}(grid, std::forward< Args >(args)...)));
 
         // user protections
-        template < bool, class, class... Args >
-        void make_computation_dispatch(Args...) {
+        template < bool,
+            class,
+            class Arg,
+            class... Args,
+            enable_if_t< !is_grid< Arg >::value && !is_expand_factor< Arg >::value, int > = 0 >
+        void make_computation_dispatch(Arg const &, Args &&...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) < 0, "The computation is malformed");
         }
     }
@@ -111,13 +115,13 @@ namespace gridtools {
 #define POSITIONAL_WHEN_DEBUGGING false
 #endif
 
-    template < class Backend, class... Args >
-    auto make_computation(Args &&... args) GT_AUTO_RETURN(
-        (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(std::forward< Args >(args)...)));
+    template < class Backend, class Arg, class... Args >
+    auto make_computation(Arg const &arg, Args &&... args) GT_AUTO_RETURN(
+        (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(arg, std::forward< Args >(args)...)));
 
 #undef POSITIONAL_WHEN_DEBUGGING
 
-    template < class Backend, class... Args >
-    auto make_positional_computation(Args &&... args)
-        GT_AUTO_RETURN((_impl::make_computation_dispatch< true, Backend >(std::forward< Args >(args)...)));
+    template < class Backend, class Arg, class... Args >
+    auto make_positional_computation(Arg const &arg, Args &&... args)
+        GT_AUTO_RETURN((_impl::make_computation_dispatch< true, Backend >(arg, std::forward< Args >(args)...)));
 }
