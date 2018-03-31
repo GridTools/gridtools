@@ -74,11 +74,13 @@ namespace gridtools {
         using p_in = arg< 0, storage_t >;
         using p_out = arg< 1, storage_t >;
 
-        computation< void, p_in, p_out > m_computation =
-            make_computation< backend_t >(m_grid,
-                make_multistage(enumtype::execute< enumtype::forward >(),
-                                              make_stage< test_functor >(p_in{}, p_tmp{}),
-                                              make_stage< test_functor >(p_tmp{}, p_out{})));
+        computation< void, p_in, p_out > m_computation;
+
+        fixture()
+            : m_computation{make_computation< backend_t >(m_grid,
+                  make_multistage(enumtype::execute< enumtype::forward >(),
+                                                              make_stage< test_functor >(p_in{}, p_tmp{}),
+                                                              make_stage< test_functor >(p_tmp{}, p_out{})))} {}
 
         storage_t make_in(int n) const {
             return {m_meta, [=](int i, int j, int k) { return i + j + k + n; }};
