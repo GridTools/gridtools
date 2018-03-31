@@ -60,36 +60,39 @@ namespace gridtools {
         template < template < uint_t, bool, class, class, class, class > class Intermediate,
             uint_t Factor,
             bool IsStateful,
-            class Backend,
-            class Grid,
-            class... Args,
-            class ArgsPair = decltype(
-                split_args< is_arg_storage_pair >(std::forward< Args >(std::declval< Args >())...)),
-            class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
-            class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type) >
-        Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > make_intermediate(
-            Grid const &grid, Args &&... args) {
-            auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
-            return {grid, std::move(args_pair.first), std::move(args_pair.second)};
-        }
+            class Backend >
+        struct make_intermediate_f {
+            template < class Grid,
+                class... Args,
+                class ArgsPair = decltype(
+                    split_args< is_arg_storage_pair >(std::forward< Args >(std::declval< Args >())...)),
+                class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
+                class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type) >
+            Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > operator()(
+                Grid const &grid, Args &&... args) const {
+                auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
+                return {grid, std::move(args_pair.first), std::move(args_pair.second)};
+            }
+        };
 
         template < bool Positional,
             class Backend,
             class Grid,
             class... Args,
+            class Delegate = make_intermediate_f< intermediate, 1, Positional, Backend >,
             enable_if_t< is_grid< Grid >::value, int > = 0 >
-        auto make_computation_dispatch(Grid const &grid, Args &&... args) GT_AUTO_RETURN(
-            (make_intermediate< intermediate, 1, Positional, Backend >(grid, std::forward< Args >(args)...)));
+        auto make_computation_dispatch(Grid const &grid, Args &&... args)
+            GT_AUTO_RETURN((Delegate{}(grid, std::forward< Args >(args)...)));
 
         template < bool Positional,
             class Backend,
             class ExpandFactor,
             class Grid,
             class... Args,
+            class Delegate = make_intermediate_f< intermediate_expand, ExpandFactor::value, Positional, Backend >,
             enable_if_t< is_expand_factor< ExpandFactor >::value, int > = 0 >
         auto make_computation_dispatch(ExpandFactor, Grid const &grid, Args &&... args)
-            GT_AUTO_RETURN((make_intermediate< intermediate_expand, ExpandFactor::value, Positional, Backend >(
-                grid, std::forward< Args >(args)...)));
+            GT_AUTO_RETURN((Delegate{}(grid, std::forward< Args >(args)...)));
 
         // user protections
         template < bool, class, class... Args >
