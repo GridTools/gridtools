@@ -251,11 +251,11 @@ namespace gridtools {
         intermediate_expand(Grid const &grid,
             std::pair< ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs > &&arg_refs,
             MssDescriptorTrees const &msses)
-            : m_expandable_bound_arg_storage_pairs{std::move(arg_refs.first)},
-              m_intermediate{
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)},
-              m_intermediate_remainder{
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)} {}
+            : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
+              m_intermediate(
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)),
+              m_intermediate_remainder(
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)) {}
 
       public:
         template < class BoundArgStoragePairsRefs >
