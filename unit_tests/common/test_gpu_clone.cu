@@ -40,8 +40,9 @@
 
     This version uses a gpu enabled boost::fusion library
 */
+#include <common/gpu_clone.hpp>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/zip_view.hpp>
@@ -52,8 +53,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "common/defs.hpp"
-#include "common/gpu_clone.hpp"
+#include <common/defs.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -82,8 +82,6 @@ namespace gpu_clone_test {
         A(v_type const &a, v_type const &b) : v1(a), v2(b), zip_view(support_t(v1, v2)) {}
 
         GT_FUNCTION A(A const &a) : v1(a.v1), v2(a.v2), zip_view(support_t(v1, v2)) {}
-
-        ~A() {}
 
         void update_gpu_copy() const { clone_to_device(); }
 
@@ -148,16 +146,6 @@ namespace gpu_clone_test {
 
     __global__ void mul2(A *a) { boost::fusion::for_each(a->zip_view, mul2_fz()); }
 
-    // __global__
-    // void print_on_gpu(A * a) {
-    //     a->out();
-    // }
-
-    // __global__
-    // void print_on_gpu(B * b) {
-    //     b->out();
-    // }
-
     struct minus1_f {
         template < typename T >
         GT_FUNCTION // Avoid warning
@@ -208,10 +196,6 @@ namespace gpu_clone_test {
 
         B b1(bw1, bw2);
         B b2(bw1, bw2);
-
-        // b.out();
-
-        // printf("Now doing the same on GPU");
 
         b1.clone_to_device();
         // clang-format off

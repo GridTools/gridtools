@@ -51,11 +51,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template < typename RunFunctorArguments, typename LocalDomain >
-        __global__ void do_it_on_gpu(LocalDomain const *RESTRICT l_domain,
+        template < typename RunFunctorArguments >
+        __global__ void do_it_on_gpu(typename RunFunctorArguments::local_domain_t const *RESTRICT l_domain,
             typename RunFunctorArguments::grid_t const *grid,
-            const int starti,
-            const int startj,
             const uint_t nx,
             const uint_t ny) {
 
@@ -176,12 +174,12 @@ namespace gridtools {
 
             // initialize the i index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                i + starti, blockIdx.x);
+                i + grid->i_low_bound(), blockIdx.x);
             // initialize to color 0
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0, 0);
             // initialize the j index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                j + startj, blockIdx.y);
+                j + grid->j_low_bound(), blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -211,14 +209,9 @@ namespace gridtools {
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_cuda {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
-            typedef typename RunFunctorArguments::grid_t grid_t;
 
-            // ctor
-            explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
-                : m_local_domain(local_domain), m_grid(grid) {}
-
-            void operator()() {
+            template < class LocalDomain, class GridHolder >
+            void operator()(LocalDomain const &local_domain, GridHolder const &grid_holder) const {
 #ifdef VERBOSE
                 short_t count;
                 cudaGetDeviceCount(&count);
@@ -247,13 +240,10 @@ namespace gridtools {
                 }
 #endif
 
-                local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
-
-                grid_t const *grid_gp = m_grid.gpu_object_ptr;
-
+                auto const &grid = grid_holder.origin();
                 // number of threads
-                const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
-                const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
+                const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
+                const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
 
                 typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
@@ -297,26 +287,17 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
-                    (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>> //<<<nbx*nby,
+                    // ntx*nty>>>
+                    (local_domain.gpu_object_ptr, grid_holder.clone(), nx, ny);
 
-#ifndef NDEBUG
                 cudaDeviceSynchronize();
                 cudaError_t error = cudaGetLastError();
                 if (error != cudaSuccess) {
                     fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
                     exit(-1);
                 }
-#endif
-
-                // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
-                cudaDeviceSynchronize();
             }
-
-          private:
-            const local_domain_t &m_local_domain;
-            const grid_t &m_grid;
         };
 
     } // namespace icgrid

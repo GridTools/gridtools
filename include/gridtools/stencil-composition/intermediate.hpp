@@ -382,9 +382,9 @@ namespace gridtools {
         using mss_local_domain_list_t = copy_into_variadic< mss_local_domains_t, std::tuple<> >;
 
         struct run_f {
-            template < typename MssDescs >
+            template < class GridHolder, class MssDescs >
             reduction_type< MssDescs > operator()(MssDescs const &mss_descriptors,
-                Grid const &grid,
+                GridHolder const &grid,
                 mss_local_domain_list_t const &mss_local_domain_list) const {
                 auto reduction_data = make_reduction_data(mss_descriptors);
                 Backend::template run< convert_to_mss_components_array_t< MssDescs > >(
@@ -394,7 +394,7 @@ namespace gridtools {
         };
 
         // member fields
-        Grid m_grid;
+        typename Backend::backend_traits_t::template clone_holder< Grid > m_grid;
         performance_meter_t m_meter;
         branch_selector_t m_branch_selector;
         storage_info_map_t m_storage_info_map;
@@ -415,7 +415,6 @@ namespace gridtools {
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
-            typename Backend::setup_grid_f{}(m_grid);
             update_local_domains(std::tuple_cat(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
                 make_view_infos(m_bound_arg_storage_pair_fusion_list)));
         }

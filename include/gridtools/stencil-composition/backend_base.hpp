@@ -198,7 +198,7 @@ namespace gridtools {
         run(Grid const &grid, MssLocalDomains const &mss_local_domain_list, ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomains, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< typename Grid::value_type >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop< MssComponents, backend_ids_t, ReductionData >::run(
@@ -219,8 +219,6 @@ namespace gridtools {
         */
         static constexpr query_i_threads_f n_i_pes = &backend_traits_t::n_i_pes;
         static constexpr query_j_threads_f n_j_pes = &backend_traits_t::n_j_pes;
-
-        using setup_grid_f = typename backend_traits_t::setup_grid_f;
     };
 
 } // namespace gridtools
