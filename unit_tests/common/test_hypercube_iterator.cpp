@@ -37,6 +37,7 @@
 #include <common/hypercube_iterator.hpp>
 
 #include <common/pair.hpp>
+#include <common/make_array.hpp>
 #include <vector>
 
 #include <gtest/gtest.h>

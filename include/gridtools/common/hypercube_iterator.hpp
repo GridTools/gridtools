@@ -37,14 +37,10 @@
 #pragma once
 
 #include "array.hpp"
-#include "make_array.hpp"
 #include "array_addons.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
-#include "pair.hpp"
 #include "defs.hpp"
 #include "host_device.hpp"
-#include "generic_metafunctions/meta.hpp"
-#include "generic_metafunctions/is_all_integrals.hpp"
 
 namespace gridtools {
     namespace impl_ {
