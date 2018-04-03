@@ -36,10 +36,8 @@
 
 #include <common/hypercube_iterator.hpp>
 
-#include <common/tuple.hpp>
-#include "common/pair.hpp"
+#include <common/pair.hpp>
 #include <vector>
-#include "../tools/multiplet.hpp"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

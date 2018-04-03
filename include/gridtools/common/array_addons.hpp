@@ -36,7 +36,7 @@
 #pragma once
 #include "array.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
-#include "generic_metafunctions/meta.hpp"
+#include <boost/implicit_cast.hpp>
 #include <vector>
 #include <array>
 
@@ -141,7 +141,7 @@ namespace gridtools {
         struct convert_to_f< NewT, gt_index_sequence< Is... > > {
             template < typename Container, typename Res = array< NewT, sizeof...(Is) > >
             GT_FUNCTION Res operator()(Container &&a) {
-                return {static_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
+                return {boost::implicit_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
             }
         };
     }
