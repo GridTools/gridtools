@@ -92,3 +92,12 @@ TEST(pair, lt_gt_second_differ) {
     EXPECT_FALSE(smaller > bigger);
     EXPECT_FALSE(smaller >= bigger);
 }
+
+TEST(pair, construct_from_std_pair) {
+    std::pair< size_t, size_t > std_pair{1, 2};
+
+    gridtools::pair< size_t, size_t > gt_pair(std_pair);
+
+    ASSERT_EQ(std_pair.first, gt_pair.first);
+    ASSERT_EQ(std_pair.second, gt_pair.second);
+}

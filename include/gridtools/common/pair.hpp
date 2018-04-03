@@ -67,6 +67,14 @@ namespace gridtools {
         pair() = default;
 
         template < class U1, class U2 >
+        constexpr GT_FUNCTION pair(const std::pair< U1, U2 > &p)
+            : pair(p.first, p.second) {}
+
+        template < class U1, class U2 >
+        constexpr GT_FUNCTION pair(std::pair< U1, U2 > &&p)
+            : pair(std::move(p.first), std::move(p.second)) {}
+
+        template < class U1, class U2 >
         constexpr GT_FUNCTION pair(U1 &&t1_, U2 &&t2_)
             : first(std::forward< U1 >(t1_)), second(std::forward< U2 >(t2_)) {}
 
