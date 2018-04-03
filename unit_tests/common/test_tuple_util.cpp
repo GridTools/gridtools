@@ -44,7 +44,7 @@
 
 #include <common/defs.hpp>
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#ifdef __CUDACC__
 #define NO_CONSTEXPR
 #endif
 
