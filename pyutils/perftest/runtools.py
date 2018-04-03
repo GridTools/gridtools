@@ -163,6 +163,10 @@ def _poll(task_ids):
     for line in info.splitlines():
         jobid, jobname, state, exitcode = line.split('|')
         if state not in wait_states:
+            if state == 'TIMEOUT':
+                raise JobError(f'Job {jobid} ({jobname}) timed out, consider '
+                               f'increasing the time limit')
+
             exitcode = int(exitcode.split(':')[0])
             # There might be additional internal subtasks in the output, that
             # we do not want to add to the set of finished jobs so we have
