@@ -55,6 +55,7 @@ def run(commands, conf=None, job_limit=None):
         logger.debug('Finished jobs: ' + ', '.join(finished_ids))
         time.sleep(1)
 
+        # Get output of finished jobs, build set of still running jobs
         still_running = set()
         for index, task_id, outfile in running:
             if task_id in finished_ids:
