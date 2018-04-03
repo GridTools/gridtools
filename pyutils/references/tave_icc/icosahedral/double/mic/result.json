@@ -1,0 +1,49 @@
+{
+    "config": {
+        "clustername": "tave",
+        "configname": "tave_icc",
+        "hostname": "tave102"
+    },
+    "datetime": "2018-04-03T07:53:50.100499+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "mic",
+        "compiler": "/opt/intel/compilers_and_libraries_2017.4.196/linux/bin/intel64/icpc",
+        "datetime": "2018-04-03T07:50:21.000000+0000",
+        "grid": "icosahedral",
+        "name": "gridtools",
+        "precision": "double",
+        "version": "6a1deb489f8438eafb8efbe9da087d7b7f090100"
+    },
+    "times": [
+        {
+            "mean": 0.1967898,
+            "runs": 10,
+            "stdev": 0.0006084676198816517,
+            "stencil": "stencil on edges multifields"
+        },
+        {
+            "mean": 0.09121582,
+            "runs": 10,
+            "stdev": 0.00036119592344199033,
+            "stencil": "stencil on cells"
+        },
+        {
+            "mean": 0.1279987,
+            "runs": 10,
+            "stdev": 0.000490706757872988,
+            "stencil": "stencil on neighcell of edges"
+        },
+        {
+            "mean": 0.3041546,
+            "runs": 10,
+            "stdev": 0.006371983124062186,
+            "stencil": "stencil manual fold"
+        }
+    ],
+    "version": 0.3
+}

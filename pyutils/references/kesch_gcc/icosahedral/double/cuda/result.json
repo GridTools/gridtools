@@ -1,0 +1,49 @@
+{
+    "config": {
+        "clustername": "kesch",
+        "configname": "kesch_gcc",
+        "hostname": "keschln-0003"
+    },
+    "datetime": "2018-04-03T07:52:11.886096+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "cuda",
+        "compiler": "/global/opt/nvidia/cudatoolkit/8.0.61/bin/nvcc",
+        "datetime": "2018-04-03T07:50:21.000000+0000",
+        "grid": "icosahedral",
+        "name": "gridtools",
+        "precision": "double",
+        "version": "6a1deb489f8438eafb8efbe9da087d7b7f090100"
+    },
+    "times": [
+        {
+            "mean": 0.008622794,
+            "runs": 10,
+            "stdev": 9.344744823815257e-05,
+            "stencil": "stencil on edges multifields"
+        },
+        {
+            "mean": 0.003689671,
+            "runs": 10,
+            "stdev": 0.0005564056929066138,
+            "stencil": "stencil on cells"
+        },
+        {
+            "mean": 0.004786891,
+            "runs": 10,
+            "stdev": 0.000778858014181304,
+            "stencil": "stencil on neighcell of edges"
+        },
+        {
+            "mean": 0.008413424,
+            "runs": 10,
+            "stdev": 0.000909582271878446,
+            "stencil": "stencil manual fold"
+        }
+    ],
+    "version": 0.3
+}

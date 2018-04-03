@@ -1,0 +1,61 @@
+{
+    "config": {
+        "clustername": "tave",
+        "configname": "tave_icc",
+        "hostname": "tave102"
+    },
+    "datetime": "2018-04-03T07:52:37.539102+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "mic",
+        "compiler": "/opt/intel/compilers_and_libraries_2017.4.196/linux/bin/intel64/icpc",
+        "datetime": "2018-04-03T07:50:21.000000+0000",
+        "grid": "structured",
+        "name": "gridtools",
+        "precision": "float",
+        "version": "6a1deb489f8438eafb8efbe9da087d7b7f090100"
+    },
+    "times": [
+        {
+            "mean": 0.0007505416,
+            "runs": 10,
+            "stdev": 1.3370534479468909e-05,
+            "stencil": "copy"
+        },
+        {
+            "mean": 0.01570226,
+            "runs": 10,
+            "stdev": 0.0003071376318344736,
+            "stencil": "horizontal diffusion"
+        },
+        {
+            "mean": 0.009400897,
+            "runs": 10,
+            "stdev": 0.0012190071134060064,
+            "stencil": "horizontal diffusion fused"
+        },
+        {
+            "mean": 0.00807817,
+            "runs": 10,
+            "stdev": 0.0009256755042070026,
+            "stencil": "simple horizontal diffusion"
+        },
+        {
+            "mean": 0.007808756,
+            "runs": 10,
+            "stdev": 0.0002006937564328075,
+            "stencil": "vertical advection"
+        },
+        {
+            "mean": 0.0066295139999999995,
+            "runs": 10,
+            "stdev": 6.951687935714269e-05,
+            "stencil": "advection pd bott"
+        }
+    ],
+    "version": 0.3
+}

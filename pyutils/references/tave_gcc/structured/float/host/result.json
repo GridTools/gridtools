@@ -1,0 +1,61 @@
+{
+    "config": {
+        "clustername": "tave",
+        "configname": "tave_gcc",
+        "hostname": "tave102"
+    },
+    "datetime": "2018-04-03T07:52:31.997714+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "host",
+        "compiler": "/opt/gcc/7.1.0/bin/g++",
+        "datetime": "2018-04-03T07:50:21.000000+0000",
+        "grid": "structured",
+        "name": "gridtools",
+        "precision": "float",
+        "version": "6a1deb489f8438eafb8efbe9da087d7b7f090100"
+    },
+    "times": [
+        {
+            "mean": 0.003572471,
+            "runs": 10,
+            "stdev": 0.00010788734159606797,
+            "stencil": "copy"
+        },
+        {
+            "mean": 0.02456087,
+            "runs": 10,
+            "stdev": 0.0002410994679472448,
+            "stencil": "horizontal diffusion"
+        },
+        {
+            "mean": 0.05858582,
+            "runs": 10,
+            "stdev": 0.0002769875841581671,
+            "stencil": "horizontal diffusion fused"
+        },
+        {
+            "mean": 0.01747849,
+            "runs": 10,
+            "stdev": 0.00019302947644797113,
+            "stencil": "simple horizontal diffusion"
+        },
+        {
+            "mean": 0.09592622,
+            "runs": 10,
+            "stdev": 0.0007159692091455097,
+            "stencil": "vertical advection"
+        },
+        {
+            "mean": 0.04300048,
+            "runs": 10,
+            "stdev": 0.00029916409395365495,
+            "stencil": "advection pd bott"
+        }
+    ],
+    "version": 0.3
+}

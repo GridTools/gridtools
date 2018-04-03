@@ -1,0 +1,61 @@
+{
+    "config": {
+        "clustername": "daint",
+        "configname": "daint_gcc",
+        "hostname": "daint102"
+    },
+    "datetime": "2018-04-03T08:06:05.726016+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "host",
+        "compiler": "/opt/gcc/5.3.0/bin/g++",
+        "datetime": "2018-04-03T07:50:21.000000+0000",
+        "grid": "structured",
+        "name": "gridtools",
+        "precision": "double",
+        "version": "6a1deb489f8438eafb8efbe9da087d7b7f090100"
+    },
+    "times": [
+        {
+            "mean": 0.004923983,
+            "runs": 10,
+            "stdev": 3.275757963179413e-05,
+            "stencil": "copy"
+        },
+        {
+            "mean": 0.01318555,
+            "runs": 10,
+            "stdev": 7.68441171029593e-05,
+            "stencil": "horizontal diffusion"
+        },
+        {
+            "mean": 0.01983755,
+            "runs": 10,
+            "stdev": 5.116891960295156e-05,
+            "stencil": "horizontal diffusion fused"
+        },
+        {
+            "mean": 0.009571501,
+            "runs": 10,
+            "stdev": 0.00010019009126544275,
+            "stencil": "simple horizontal diffusion"
+        },
+        {
+            "mean": 0.01885743,
+            "runs": 10,
+            "stdev": 0.00021760526469325646,
+            "stencil": "vertical advection"
+        },
+        {
+            "mean": 0.07152966,
+            "runs": 10,
+            "stdev": 0.00024729398249407096,
+            "stencil": "advection pd bott"
+        }
+    ],
+    "version": 0.3
+}

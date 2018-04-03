@@ -1,0 +1,61 @@
+{
+    "config": {
+        "clustername": "kesch",
+        "configname": "kesch",
+        "hostname": "keschln-0002"
+    },
+    "datetime": "2018-04-03T07:54:39.907385+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "cuda",
+        "compiler": "nvcc",
+        "datetime": "2018-04-02T20:55:36.000000+0000",
+        "grid": "structured",
+        "name": "stella",
+        "precision": "double",
+        "version": "trunk"
+    },
+    "times": [
+        {
+            "mean": 0.001505686,
+            "runs": 10,
+            "stdev": 1.0826173223566423e-05,
+            "stencil": "copy"
+        },
+        {
+            "mean": 0.004061712,
+            "runs": 10,
+            "stdev": 1.7377262794301755e-05,
+            "stencil": "horizontal diffusion"
+        },
+        {
+            "mean": 0.004050928,
+            "runs": 10,
+            "stdev": 2.0889524115637026e-05,
+            "stencil": "horizontal diffusion fused"
+        },
+        {
+            "mean": 0.004738218,
+            "runs": 10,
+            "stdev": 3.647926528256239e-05,
+            "stencil": "simple horizontal diffusion"
+        },
+        {
+            "mean": 0.006894559,
+            "runs": 10,
+            "stdev": 0.0003209031122195954,
+            "stencil": "vertical advection"
+        },
+        {
+            "mean": 0.0198218,
+            "runs": 10,
+            "stdev": 0.0004483727814119758,
+            "stencil": "advection pd bott"
+        }
+    ],
+    "version": 0.3
+}
