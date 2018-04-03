@@ -75,7 +75,16 @@ def run(commands, conf=None, job_limit=None):
 
 
 def _submit(command, conf):
-    """Submits a command to SLURM using sbatch."""
+    """Submits a command to SLURM using sbatch.
+
+    Args:
+        command: A string, the command that should be submitted to SLURM.
+        conf: The config to use for the submission.
+
+    Returns:
+        A tuple of the SLURM job ID and a temporary file name to which the
+        job output will be written.
+    """
 
     with tempfile.NamedTemporaryFile(suffix='.sh', mode='w') as sbatch:
         # Generate SLURM sbatch file contents to submit job
@@ -116,11 +125,19 @@ def _submit(command, conf):
 
 
 def _poll(task_ids):
+    """Polls SLURM using sacct.
+
+    Args:
+        task_ids: A list or set of SLURM job IDs.
+
+    Returns:
+        A subset of `task_ids` with all job IDs of jobs that have finished
+        running.
+    """
+
+    # Early exit in case of empty job list
     if not task_ids:
         return set()
-
-    # SLURM job states for unfinished jobs
-    wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
 
     # Run sacct to get job status
     jobstr = ','.join(task_ids)
@@ -139,12 +156,20 @@ def _poll(task_ids):
 
     logger.debug('Sacct output while waiting:', info)
 
+    # SLURM job states for unfinished jobs
+    wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
+
+    # Parse sacct output
     for line in info.splitlines():
         jobid, jobname, state, exitcode = line.split('|')
         if state not in wait_states:
             exitcode = int(exitcode.split(':')[0])
+            # There might be additional internal subtasks in the output, that
+            # we do not want to add to the set of finished jobs so we have
+            # to check the ID here
             if jobid in task_ids:
                 finished.add(jobid)
+            # Throw an error if a job has failed (either main job or subtask)
             if exitcode != 0:
                 raise JobError(f'Job {jobid} ({jobname}) failed with exitcode '
                                f'{exitcode} and state {state}')
