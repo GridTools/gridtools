@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <type_traits>
+#include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
@@ -52,14 +54,13 @@ namespace gridtools {
         };
 
         template < typename RunFunctorArguments, typename LocalDomain >
-        __global__ void do_it_on_gpu(LocalDomain const *RESTRICT l_domain,
-            typename RunFunctorArguments::grid_t const *grid,
+        __global__ void do_it_on_gpu(LocalDomain const l_domain,
+            typename RunFunctorArguments::grid_t const grid,
             const int starti,
             const int startj,
             const uint_t nx,
             const uint_t ny) {
 
-            assert(l_domain);
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
@@ -89,7 +90,7 @@ namespace gridtools {
 
             // Doing construction of the ierate domain and assignment of pointers and strides
             // for the moment reductions are not supported so that the initial value is 0
-            iterate_domain_t it_domain(*l_domain, 0, block_size_i, block_size_j);
+            iterate_domain_t it_domain(l_domain, 0, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -188,11 +189,11 @@ namespace gridtools {
                 execution_type_t::type::iteration > iteration_policy_t;
 
             it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >(
-                grid->template value_at< iteration_policy_t::from >());
+                grid.template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(
-                _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, *grid));
+                _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, grid));
 
             __syncthreads();
         }
@@ -209,6 +210,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
+
+            // This is to ensure that grid is OK to pass to kernel function by value.
+            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< grid_t >::value, GT_INTERNAL_ERROR);
+            // Local domain effectively trivially_copyable, but formally not because of boost::fusion::vector impl.
+            // TODO(anstaf): replace fusion staff by gridtools tuples
+            // GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< local_domain_t >::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
@@ -242,10 +249,6 @@ namespace gridtools {
                     std::cout << "maxThreadsPerMultiProcessor " << prop.maxThreadsPerMultiProcessor << std::endl;
                 }
 #endif
-
-                local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
-
-                grid_t const *grid_gp = m_grid.gpu_object_ptr;
 
                 // number of threads
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
@@ -294,7 +297,7 @@ namespace gridtools {
 
                 _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t,
                     local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
-                    (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+                    (m_local_domain, m_grid, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
 #ifndef NDEBUG
                 cudaDeviceSynchronize();

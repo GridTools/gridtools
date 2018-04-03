@@ -63,7 +63,6 @@
 #include "../position_offset_type.hpp"
 #include "../location_type.hpp"
 #include "../../common/array_addons.hpp"
-#include "../../common/gpu_clone.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
@@ -732,7 +731,7 @@ namespace gridtools {
     /**
     */
     template < typename Backend >
-    class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
+    class icosahedral_topology {
       public:
         using cells = enumtype::cells;
         using edges = enumtype::edges;
@@ -761,18 +760,13 @@ namespace gridtools {
         using data_store_t =
             typename Backend::template data_store_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
 
-        const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
-
-      public:
-        icosahedral_topology() = delete;
+        array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
       public:
         template < typename... UInt >
 
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
             : m_dims{idim, jdim, kdim} {}
-
-        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
         template < typename LocationType,
             typename ValueType,

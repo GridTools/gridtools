@@ -429,8 +429,6 @@ namespace gridtools {
             // fill storage_wrapper_list
             boost::fusion::for_each(
                 m_storage_wrapper_list, _impl::initialize_storage_wrappers< view_list_fusion_t >(m_view_list));
-            // setup the computation for given backend (e.g., move grid to device)
-            typename Backend::setup_grid_f{}(m_grid);
             // instantiate mss_local_domains and wrapped local_domains with the right view_wrappers
             boost::fusion::for_each(m_mss_local_domain_list,
                 _impl::instantiate_mss_local_domain< Backend, storage_wrapper_fusion_list_t, DomainType, IsStateful >(

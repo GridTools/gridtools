@@ -50,7 +50,6 @@
 
 #include "../common/gt_assert.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../common/gpu_clone.hpp"
 #include "../common/host_device.hpp"
 #include "../common/generic_metafunctions/fusion_vector_check_bound.hpp"
 #include "arg.hpp"
@@ -62,54 +61,24 @@
 
 namespace gridtools {
 
-    namespace {
-        template < typename InIter, typename OutIter >
-        GT_FUNCTION void copy(InIter in, InIter end, OutIter out) {
-            for (; in != end; ++in, ++out)
-                *out = *in;
-        }
-
-        template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
-        GT_FUNCTION typename boost::enable_if_c< (N == 0), void >::type copy_ptrs(T &t, V &other) {
-            auto &left = boost::fusion::at_c< N >(t).second;
-            auto &right = boost::fusion::at_c< N >(other).second;
-#ifndef __CUDA_ARCH__
-            using std::copy;
-#endif
-            copy(right.begin(), right.end(), left.begin());
-        }
-
-        template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
-        GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, V &other) {
-            auto &left = boost::fusion::at_c< N >(t).second;
-            auto &right = boost::fusion::at_c< N >(other).second;
-#ifndef __CUDA_ARCH__
-            using std::copy;
-#endif
-            copy(right.begin(), right.end(), left.begin());
-            copy_ptrs< T, V, N - 1 >(t, other);
-        }
-    }
-
     /**
-     * This is the base class for local_domains to extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. There is one version which provide grid to the functor
-     * and one that does not
+     * This class extract the proper iterators/storages from the full domain
+     * to adapt it for a particular functor. This version does not provide grid
+     * to the function operator
      *
+     * @tparam StoragePointers The mpl vector of the storage pointer types
+     * @tparam MetaData The mpl vector of the meta data pointer types sequence
+     * @tparam EsfArgs The mpl vector of the args (i.e. placeholders for the storages)
+                       for the current ESF
+     * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
      */
-    template < typename T >
-    struct local_domain_base;
-
-    template < typename SWL, typename E, bool I >
-    class local_domain;
-
     template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
-    struct local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > >
-        : public clonable_to_gpu< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
+    struct local_domain {
 
-        typedef local_domain< StorageWrapperList, EsfArgs, IsStateful > derived_t;
-
-        typedef local_domain_base< derived_t > this_type;
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageWrapperList, is_storage_wrapper >::value),
+            "Local domain contains wrong type for parameter StorageWrapperList");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_sequence_of< EsfArgs, is_arg >::value), "Local domain contains wrong type for parameter EsfArgs");
 
         typedef EsfArgs esf_args;
 
@@ -179,14 +148,6 @@ namespace gridtools {
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
         //********** end members *****************
 
-        GT_FUNCTION_WARNING
-        local_domain_base() {}
-
-        GT_FUNCTION_DEVICE local_domain_base(local_domain_base const &other)
-            : m_local_storage_info_ptrs(other.m_local_storage_info_ptrs) {
-            copy_ptrs(m_local_data_ptrs, other.m_local_data_ptrs);
-        }
-
         struct print_local_storage {
             std::ostream &out_s;
             print_local_storage(std::ostream &out_s) : out_s(out_s) {}
@@ -219,41 +180,6 @@ namespace gridtools {
             boost::fusion::for_each(m_local_storage_info_ptrs, print_local_storage_info(out_s));
             out_s << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----\n";
         }
-    };
-
-    /**
-     * This class extract the proper iterators/storages from the full domain
-     * to adapt it for a particular functor. This version does not provide grid
-     * to the function operator
-     *
-     * @tparam StoragePointers The mpl vector of the storage pointer types
-     * @tparam MetaData The mpl vector of the meta data pointer types sequence
-     * @tparam EsfArgs The mpl vector of the args (i.e. placeholders for the storages)
-                       for the current ESF
-     * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
-     */
-    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
-    struct local_domain : public local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
-
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageWrapperList, is_storage_wrapper >::value),
-            "Local domain contains wrong type for parameter StorageWrapperList");
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< EsfArgs, is_arg >::value), "Local domain contains wrong type for parameter EsfArgs");
-
-        typedef local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > > base_type;
-
-        GT_FUNCTION
-        local_domain() {}
-
-        GT_FUNCTION_DEVICE local_domain(local_domain const &other) : base_type(other) {}
-
-        /**stub methods*/
-        GT_FUNCTION
-        uint_t i() const { return 1e9; }
-        GT_FUNCTION
-        uint_t j() const { return 1e9; }
-        GT_FUNCTION
-        uint_t k() const { return 1e9; }
     };
 
     template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
