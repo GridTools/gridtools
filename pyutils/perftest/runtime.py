@@ -3,7 +3,6 @@
 import abc
 import os
 import re
-import statistics
 import subprocess
 
 from perftest import NotFoundError, ParseError
@@ -58,15 +57,9 @@ class Runtime(metaclass=abc.ABCMeta):
         # Group times per stencil
         times = [alltimes[i:i+runs] for i in range(0, len(alltimes), runs)]
 
-        # Compute statistics
-        meantimes = [statistics.mean(t) for t in times]
-        stdevtimes = [statistics.stdev(t) if len(t) > 1 else 0 for t in times]
-
         return result.from_data(runtime=self,
                                 domain=domain,
-                                meantimes=meantimes,
-                                stdevtimes=stdevtimes,
-                                runs=runs)
+                                times=times)
 
     @staticmethod
     def _parse_time(output):

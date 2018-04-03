@@ -3,6 +3,7 @@
 import itertools
 import math
 import os
+import statistics
 
 import matplotlib
 matplotlib.use('Agg')
@@ -52,7 +53,7 @@ def get_titles(results):
 def compare(results):
     """Plots run time comparison of all results, one subplot per stencil."""
 
-    stencils, meantimes, stdevtimes = result.times_by_stencil(results)
+    stencils, stenciltimes = result.times_by_stencil(results)
 
     rows = math.floor(math.sqrt(len(stencils)))
     cols = math.ceil(len(stencils) / rows)
@@ -66,16 +67,16 @@ def compare(results):
     suptitle, titles = get_titles(results)
     fig.suptitle(suptitle, wrap=True)
 
-    xticks = list(range(len(results)))
-    for ax, stencil, means, stdevs in itertools.zip_longest(axes, stencils,
-                                                            meantimes,
-                                                            stdevtimes):
+    xticks = list(range(1, len(results) + 1))
+    for ax, stencil, times in itertools.zip_longest(axes, stencils,
+                                                    stenciltimes):
         if stencil:
             ax.set_title(stencil.title())
 
-            ax.bar(xticks, means, yerr=stdevs, width=0.8, color=colors)
+            medians = [statistics.median(t) for t in times]
+            ax.bar(xticks, medians, width=0.9, color=colors)
+            ax.boxplot(times, widths=0.9, medianprops={'color': 'black'})
 
-            ax.set_xticks(xticks)
             ax.set_xticklabels(titles, wrap=True)
         else:
             ax.set_visible(False)
@@ -88,7 +89,7 @@ def compare(results):
 def history(results, key='runtime'):
     """Plots run time history of all results."""
 
-    stencils, meantimes, stdevtimes = result.times_by_stencil(results)
+    stencils, meantimes, stdevtimes = result.statistics_by_stencil(results)
 
     def get_datetime(result):
         if key == 'runtime':

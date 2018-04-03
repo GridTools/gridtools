@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import json
+import statistics
 
 from perftest import ArgumentError, logger, ParseError, time
 
 
-version = 0.3
+version = 0.4
 
 
 class Data(dict):
@@ -31,33 +32,30 @@ class Result(Data):
         """List of all stencils (names of stencils)."""
         return [t.stencil for t in self.times]
 
-    @property
-    def meantimes(self):
+    def times_by_stencil(self):
+        """List of all timing, grouped by stencil."""
+        return [t.measurements for t in self.times]
+
+    def meantimes_by_stencil(self):
         """List of all stencils' mean computation time."""
-        return [t.mean for t in self.times]
+        return [statistics.mean(t.measurements) for t in self.times]
 
-    @property
-    def stdevtimes(self):
+    def stdevtimes_by_stencil(self):
         """List of all stencils' computation time stdandard deviation."""
-        return [t.stdev for t in self.times]
-
-    @property
-    def runs(self):
-        """List of all stencils' number of runs."""
-        return [t.runs for t in self.times]
+        return [statistics.stdev(t.measurements) if len(t) > 1 else 0 for t
+                in self.times]
 
 
-def from_data(runtime, domain, meantimes, stdevtimes, runs):
+def from_data(runtime, domain, times):
     """Creates a Result object from collected data.
 
     Args:
         runtime: A `perftest.runtime.Runtime` object.
         domain: The domain size as a tuple or list.
-        meantimes: List of mean run times per stencil.
-        stdevtimes: List of stdev run times perf stencil.
+        times: List of list of run times per stencil.
     """
-    times_data = [Data(stencil=s.name, mean=m, stdev=d, runs=runs) for s, m, d
-                  in zip(runtime.stencils, meantimes, stdevtimes)]
+    times_data = [Data(stencil=s.name, measurements=t) for s, t
+                  in zip(runtime.stencils, times)]
 
     runtime_data = Data(name=runtime.name,
                         version=runtime.version,
@@ -111,12 +109,7 @@ def load(filename):
     if data['version'] != version:
         raise ParseError('Unknown result file version')
 
-    times_data = [Data(**d) for d in data['times']]
-    runtime_data = Data(**data['runtime'])
-    config_data = Data(**data['config'])
-
-    times_data = [Data(stencil=d['stencil'], mean=d['mean'], stdev=d['stdev'],
-                       runs=d['runs'])
+    times_data = [Data(stencil=d['stencil'], measurements=d['measurements'])
                   for d in data['times']]
 
     d = data['runtime']
@@ -144,6 +137,23 @@ def load(filename):
 
 
 def times_by_stencil(results):
+    """Collects times of multiple results by stencils.
+
+    Args:
+        results: List of `Result` objects.
+
+    Returns:
+        A tuple of lists (stencils, times).
+    """
+    stencils = results[0].stencils
+    if any(stencils != r.stencils for r in results):
+        raise ArgumentError('All results must include the same stencils')
+
+    times = list(zip(*(r.times_by_stencil() for r in results)))
+    return stencils, times
+
+
+def statistics_by_stencil(results):
     """Computes mean and stdev times of multiple results by stencil.
 
     Args:
@@ -156,8 +166,8 @@ def times_by_stencil(results):
     if any(stencils != r.stencils for r in results):
         raise ArgumentError('All results must include the same stencils')
 
-    meantimes = list(zip(*(r.meantimes for r in results)))
-    stdevtimes = list(zip(*(r.stdevtimes for r in results)))
+    meantimes = list(zip(*(r.meantimes_by_stencil() for r in results)))
+    stdevtimes = list(zip(*(r.stdevtimes_by_stencil() for r in results)))
     return stencils, meantimes, stdevtimes
 
 
