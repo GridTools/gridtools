@@ -1,0 +1,85 @@
+{
+    "config": {
+        "clustername": "tave",
+        "configname": "tave_icc",
+        "hostname": "tave102"
+    },
+    "datetime": "2018-04-03T12:15:05.961825+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "mic",
+        "compiler": "/opt/intel/compilers_and_libraries_2017.4.196/linux/bin/intel64/icpc",
+        "datetime": "2018-04-03T11:57:27.000000+0000",
+        "grid": "icosahedral",
+        "name": "gridtools",
+        "precision": "double",
+        "version": "e37c5a133eb06207d1e5185b4c9a295d8e83d208"
+    },
+    "times": [
+        {
+            "measurements": [
+                0.196954,
+                0.196681,
+                0.197163,
+                0.196293,
+                0.196894,
+                0.196804,
+                0.196606,
+                0.19715,
+                0.197308,
+                0.196982
+            ],
+            "stencil": "stencil on edges multifields"
+        },
+        {
+            "measurements": [
+                0.0914388,
+                0.0906603,
+                0.0905111,
+                0.0909429,
+                0.0904911,
+                0.0913978,
+                0.0910909,
+                0.0913911,
+                0.0897312,
+                0.090596
+            ],
+            "stencil": "stencil on cells"
+        },
+        {
+            "measurements": [
+                0.128253,
+                0.128827,
+                0.127887,
+                0.128152,
+                0.127894,
+                0.128278,
+                0.12751,
+                0.128823,
+                0.12753,
+                0.127247
+            ],
+            "stencil": "stencil on neighcell of edges"
+        },
+        {
+            "measurements": [
+                0.364375,
+                0.301241,
+                0.302314,
+                0.305372,
+                0.303853,
+                0.304935,
+                0.305992,
+                0.30136,
+                0.302964,
+                0.304193
+            ],
+            "stencil": "stencil manual fold"
+        }
+    ],
+    "version": 0.4
+}

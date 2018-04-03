@@ -1,0 +1,85 @@
+{
+    "config": {
+        "clustername": "kesch",
+        "configname": "kesch_gcc",
+        "hostname": "keschln-0002"
+    },
+    "datetime": "2018-04-03T11:59:47.821634+0000",
+    "domain": [
+        128,
+        128,
+        80
+    ],
+    "runtime": {
+        "backend": "cuda",
+        "compiler": "/global/opt/nvidia/cudatoolkit/8.0.61/bin/nvcc",
+        "datetime": "2018-04-03T11:57:27.000000+0000",
+        "grid": "icosahedral",
+        "name": "gridtools",
+        "precision": "double",
+        "version": "e37c5a133eb06207d1e5185b4c9a295d8e83d208"
+    },
+    "times": [
+        {
+            "measurements": [
+                0.00868003,
+                0.00865741,
+                0.00847741,
+                0.0085761,
+                0.00868758,
+                0.00873808,
+                0.00865056,
+                0.00846547,
+                0.00863917,
+                0.00852669
+            ],
+            "stencil": "stencil on edges multifields"
+        },
+        {
+            "measurements": [
+                0.0035121,
+                0.00349258,
+                0.00352003,
+                0.00351066,
+                0.00352019,
+                0.00354237,
+                0.00349962,
+                0.00350915,
+                0.00351174,
+                0.00351123
+            ],
+            "stencil": "stencil on cells"
+        },
+        {
+            "measurements": [
+                0.0045583,
+                0.00455114,
+                0.00450074,
+                0.00455517,
+                0.00452963,
+                0.00452486,
+                0.00451939,
+                0.00454422,
+                0.00454899,
+                0.00451315
+            ],
+            "stencil": "stencil on neighcell of edges"
+        },
+        {
+            "measurements": [
+                0.00789859,
+                0.00783978,
+                0.0078791,
+                0.00791862,
+                0.0080376,
+                0.00797555,
+                0.00802138,
+                0.00791619,
+                0.00793805,
+                0.00786826
+            ],
+            "stencil": "stencil manual fold"
+        }
+    ],
+    "version": 0.4
+}
