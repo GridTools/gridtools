@@ -102,8 +102,7 @@ TEST(test_copy_stencil, run) {
     halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
     halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-    gridtools::grid< axis< 1 >::axis_interval_t, icosahedral_topology_t > grid_(
-        icosahedral_grid, di, dj, {halo_k, d3 - 1 - halo_k});
+    gridtools::grid< axis< 1 >::axis_interval_t, icosahedral_topology_t > grid_(di, dj, {halo_k, d3 - 1 - halo_k});
 
     auto copy = gridtools::make_computation< backend_t >(
         domain,

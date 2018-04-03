@@ -53,13 +53,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template < typename RunFunctorArguments, typename LocalDomain >
-        __global__ void do_it_on_gpu(LocalDomain const l_domain,
-            typename RunFunctorArguments::grid_t const grid,
-            const int starti,
-            const int startj,
-            const uint_t nx,
-            const uint_t ny) {
+        template < typename RunFunctorArguments >
+        __global__ void do_it_on_gpu(typename RunFunctorArguments::local_domain_t const l_domain,
+            typename RunFunctorArguments::grid_t const grid) {
 
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -79,6 +75,9 @@ namespace gridtools {
                 max_extent_t,
                 typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
+            const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
+            const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
+
             const uint_t block_size_i = (blockIdx.x + 1) * block_size_t::i_size_t::value < nx
                                             ? block_size_t::i_size_t::value
                                             : nx - blockIdx.x * block_size_t::i_size_t::value;
@@ -89,7 +88,7 @@ namespace gridtools {
             __shared__ shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the ierate domain and assignment of pointers and strides
-            iterate_domain_t it_domain(l_domain, grid.grid_topology(), block_size_i, block_size_j);
+            iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -177,12 +176,12 @@ namespace gridtools {
 
             // initialize the i index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                i + starti, blockIdx.x);
+                i + grid.i_low_bound(), blockIdx.x);
             // initialize to color 0
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0, 0);
             // initialize the j index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                j + startj, blockIdx.y);
+                j + grid.j_low_bound(), blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -296,9 +295,9 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
-                    (m_local_domain, m_grid, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>> //<<<nbx*nby,
+                    // ntx*nty>>>
+                    (m_local_domain, m_grid);
 
 #ifndef NDEBUG
                 cudaDeviceSynchronize();

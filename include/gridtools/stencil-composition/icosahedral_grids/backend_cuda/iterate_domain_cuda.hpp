@@ -89,11 +89,9 @@ namespace gridtools {
         };
 
         GT_FUNCTION
-        explicit iterate_domain_cuda(local_domain_t const &local_domain,
-            grid_topology_t const &grid_topology,
-            const uint_t block_size_i,
-            const uint_t block_size_j)
-            : super(local_domain, grid_topology), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+        explicit iterate_domain_cuda(
+            local_domain_t const &local_domain, const uint_t block_size_i, const uint_t block_size_j)
+            : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         GT_FUNCTION
         uint_t thread_position_x() const { return threadIdx.x; }
