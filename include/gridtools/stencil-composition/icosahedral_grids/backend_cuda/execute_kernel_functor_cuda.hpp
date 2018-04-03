@@ -215,7 +215,8 @@ namespace gridtools {
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< grid_t >::value, GT_INTERNAL_ERROR);
+            // TODO(anstaf): restore this when gpu/clang build wil pick up the right std headers
+            // GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< grid_t >::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
