@@ -12,3 +12,4 @@ env = dict(default.env,
 cmake_command = default.cmake_command
 make_command = default.make_command
 sbatch = default.sbatch
+StellaRuntime = default.StellaRuntime
