@@ -731,34 +731,32 @@ namespace call_proc_interface_functors {
         }
     };
 
-    struct test_functor2 {
-        typedef inout_accessor< 0, extent<>, 3 > in;
-        typedef boost::mpl::vector< in > arg_list;
+    struct functor_where_index_of_accessor_is_shifted_inner {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef boost::mpl::vector< out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(in()) = (double)0.;
+            eval(out()) = 1.;
         }
     };
 
-    struct test_functor {
-        typedef inout_accessor< 0, extent<>, 3 > in;
+    struct functor_where_index_of_accessor_is_shifted {
+        typedef inout_accessor< 0, extent<>, 3 > local_out;
         typedef inout_accessor< 1, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef boost::mpl::vector< local_out, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            call_proc< test_functor2, x_interval >::with(eval, out());
+            call_proc< functor_where_index_of_accessor_is_shifted_inner, x_interval >::with(eval, out());
         }
     };
 
-    struct call_with_local_variables_and_nested_call {
-        typedef inout_accessor< 0, extent<>, 3 > in;
-        //        typedef inout_accessor< 1, extent<>, 3 > out1;
-        typedef boost::mpl::vector< in > arg_list;
+    struct call_with_nested_calls_and_shifted_accessor_index {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef boost::mpl::vector< out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            double local_in; //= eval();
-
-            call_proc< test_functor, x_interval >::with(eval, local_in, in());
+            double local_out;
+            call_proc< functor_where_index_of_accessor_is_shifted, x_interval >::with(eval, local_out, out());
         }
     };
 }
@@ -788,6 +786,7 @@ class call_proc_interface : public testing::Test {
     data_store_t out2;
     data_store_t reference_unchanged;
     data_store_t reference_shifted;
+    data_store_t reference_all1;
 
     typedef arg< 0, data_store_t > p_in;
     typedef arg< 1, data_store_t > p_out1;
@@ -809,7 +808,7 @@ class call_proc_interface : public testing::Test {
           in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out1(meta_, -5), out2(meta_, -5),
           reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
           reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
-          domain(in, out1, out2) {
+          reference_all1(meta_, 1), domain(in, out1, out2) {
     }
 
     template < typename Computation >
@@ -965,9 +964,10 @@ TEST_F(call_proc_interface, call_using_local_variables_and_nested_call) {
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< call_proc_interface_functors::call_with_local_variables_and_nested_call >(p_in())));
+            gridtools::make_stage< call_proc_interface_functors::call_with_nested_calls_and_shifted_accessor_index >(
+                                       p_out1())));
 
     execute_computation(comp);
 
-    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, reference_all1, out1, verifier_halos));
 }
