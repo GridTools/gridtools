@@ -89,7 +89,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             static void run(
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< typename Grid::value_type >::value), GT_INTERNAL_ERROR);
 
                 host_for_each< GT_META_CALL(meta::make_indices_for, MssComponents) >(mss_functor< MssComponents,
                     Grid,

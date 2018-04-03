@@ -65,12 +65,12 @@ namespace gridtools {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
         GT_FUNCTION
-        interval(){};
+        interval() {}
 
-        interval(sfinae::_impl::dummy_type) { assert(false); } // using this just for SFINAE
+        interval(sfinae::_impl::dummy_type); // using this just for SFINAE
 
         GT_FUNCTION
-        interval(TFromLevel){};
+        interval(TFromLevel) {}
 
         static void static_info() {
             printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);

@@ -36,12 +36,11 @@
 #pragma once
 #include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
-#include "../../common/gpu_clone.hpp"
 
 namespace gridtools {
 
     template < typename Axis, typename GridTopology >
-    struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
+    struct grid : grid_base< Axis > {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), GT_INTERNAL_ERROR);
 
@@ -72,8 +71,6 @@ namespace gridtools {
             halo_descriptor const &direction_j,
             const decltype(grid_base< Axis >::value_list) &value_list)
             : grid_base< Axis >(direction_i, direction_j, value_list), m_grid_topology(grid_topology) {}
-
-        GT_FUNCTION grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }
