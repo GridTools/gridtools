@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 import os
-import random
 import re
 import subprocess
 import tempfile
@@ -36,29 +34,42 @@ def run(commands, conf=None, job_limit=None):
     # Initialize list of outputs
     outputs = [None] * len(commands)
 
-    # Put all commands into an asyncio queue
-    queue = asyncio.Queue()
-    for i, command in enumerate(commands):
-        queue.put_nowait((i, command))
+    # Put all commands into a list with indices
+    commands = list(enumerate(commands))
 
-    # executor consumer coroutine, gets a command from the queue and runs it
-    async def executor():
-        while True:
-            i, command = await queue.get()
-            outputs[i] = await _run(command, conf)
-            queue.task_done()
+    # Set of running jobs
+    running = set()
 
-    # main execution coroutine, runs `job_limit` number of executors and waits
-    # until the queue is empty
-    async def execute():
-        executors = [asyncio.ensure_future(executor()) for _
-                     in range(job_limit)]
-        await queue.join()
-        for e in executors:
-            e.cancel()
+    while any(output is None for output in outputs):
 
-    # start execution
-    asyncio.get_event_loop().run_until_complete(execute())
+        # Submit jobs if less than `job_limit` are running
+        while len(running) < job_limit and commands:
+            index, command = commands.pop()
+            task_id, outfile = _submit(command, conf)
+            running.add((index, task_id, outfile))
+            # Wait a bit to avoid overloading SLURM
+            time.sleep(0.1)
+
+        # Poll SLURM to get finished jobs
+        finished_ids = _poll([task_id for _, task_id, _ in running])
+        logger.debug('Finished jobs: ' + ', '.join(finished_ids))
+        time.sleep(1)
+
+        still_running = set()
+        for index, task_id, outfile in running:
+            if task_id in finished_ids:
+                logger.debug(f'Reading output of job {task_id}')
+                with open(outfile, 'r') as f:
+                    output = f.read()
+                logger.debug(f'Job {task_id} generated output:', output)
+                os.remove(outfile)
+                outputs[index] = output
+            else:
+                still_running.add((index, task_id, outfile))
+        running = still_running
+        logger.debug('Running jobs: ' + ', '.join(task_id for _, task_id, _
+                                                  in running))
+
     return outputs
 
 
@@ -79,11 +90,20 @@ def _submit(command, conf):
         # Create a file to store the job output
         # It is created in the working dir (normal /tmp does not seem to work)
         out = tempfile.NamedTemporaryFile(suffix='.out', dir='.', delete=False)
+        logger.debug(f'Created temporary output file {out.name} for command '
+                     f'"{command}"')
         out.close()
 
         # Run sbatch to start the job and specify job output file
         sbatch_command = ['sbatch', '-o', out.name, sbatch.name]
-        sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
+        try:
+            sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
+        except subprocess.CalledProcessError as e:
+            logger.warning('Submitting job failed the first time with output:',
+                           e.output)
+            # If the command fails, we wait a bit and retry once
+            time.sleep(1)
+            sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
 
         # Parse the task ID from the sbatch stdout
         task_id = re.match(r'Submitted batch job (\d+)',
@@ -94,63 +114,38 @@ def _submit(command, conf):
     return task_id, out.name
 
 
-async def _wait(task_id, outpath):
-    """Asynchronously waits for a running SLURM job by polling."""
+def _poll(task_ids):
+    if not task_ids:
+        return set()
 
     # SLURM job states for unfinished jobs
     wait_states = {'PENDING', 'CONFIGURING', 'RUNNING', 'COMPLETING'}
-    while True:
-        # Allow other tasks to run
-        await asyncio.sleep(0)
 
-        # Wait for job to finish (we use time.sleep instead asyncio.sleep
-        # because we do not want to poll SLURM too often asynchronously)
-        time.sleep(1)
+    # Run sacct to get job status
+    jobstr = ','.join(task_ids)
+    sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
+                     '--parsable2', '--noheader', '--jobs=' + jobstr]
+    logger.debug('Running "{}"'.format(' '.join(sacct_command)))
+    info = subprocess.check_output(sacct_command).decode().strip()
 
-        # Run sacct to get job status
-        sacct_command = ['sacct', '--format=jobid,jobname,state,exitcode',
-                         '--parsable2', '--noheader', '--jobs=' + str(task_id)]
-        logger.debug('Running "{}"'.format(' '.join(sacct_command)))
-        info = subprocess.check_output(sacct_command).decode().strip()
-        if info:
-            # Parse sacct output
-            logger.debug(f'Sacct output while waiting for {task_id}:', info)
-            infos = [line.split('|') for line in info.split('\n')]
-            # Break out of loop if all jobs have finished
-            if not any(state in wait_states for _, _, state, _ in infos):
-                break
-        else:
-            # We do nothing (apart from logging) if sacct gives no output
-            # Happens normally a very short time after job start
-            logger.debug(f'Sacct gave no output while waiting for {task_id}')
+    finished = set()
 
-    logger.debug(f'Job {task_id} finished')
+    if not info:
+        # We do nothing (apart from logging) if sacct gives no output
+        # Happens normally a very short time after job start
+        logger.debug(f'Sacct gave no output while waiting')
+        return finished
 
-    # Parse the final states and job return codes
-    failed = False
-    for jobid, jobname, state, exitcode in infos:
-        exitcode = int(exitcode.split(':')[0])
-        # Set `failed` flag if one subtask has non-zero exit code
-        if exitcode != 0:
-            logger.error(f'Job {jobid} ({jobname}) failed with exitcode '
-                         f'{exitcode} and state {state}')
-            failed = True
+    logger.debug('Sacct output while waiting:', info)
 
-    # Try to read job output (independent of the job status)
-    with open(outpath, 'r') as out:
-        output = out.read()
-    os.remove(outpath)
+    for line in info.splitlines():
+        jobid, jobname, state, exitcode = line.split('|')
+        if state not in wait_states:
+            exitcode = int(exitcode.split(':')[0])
+            if jobid in task_ids:
+                finished.add(jobid)
+            if exitcode != 0:
+                raise JobError(f'Job {jobid} ({jobname}) failed with exitcode '
+                               f'{exitcode} and state {state}')
 
-    # Raise error if job has failed, include the job output in the message
-    if failed:
-        raise JobError(f'Job {task_id} failed with output:', output)
-
-    logger.debug(f'Job {task_id} generated output:', output)
-
-    return output
-
-
-async def _run(command, conf):
-    """Asynchronous run command."""
-    task_id, outpath = _submit(command, conf)
-    return await _wait(task_id, outpath)
+    return finished
