@@ -282,6 +282,17 @@ namespace call_interface_functors {
             eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with(eval, in(-1, -1, 0));
         }
     };
+
+    struct call_with_different_type_on_first_out {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > bool_out;
+        typedef inout_accessor< 2, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, bool_out, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = call< copy_functor, x_interval >::with(eval, in());
+        }
+    };
 }
 
 class call_interface : public testing::Test {
@@ -294,6 +305,8 @@ class call_interface : public testing::Test {
     typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
     typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
         data_store_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< bool, storage_info_t >
+        data_store_bool_t;
 
     storage_info_t meta_;
 
@@ -306,16 +319,19 @@ class call_interface : public testing::Test {
 
     data_store_t in;
     data_store_t out;
+    data_store_bool_t out_bool;
 
     static constexpr float_type default_value = -1;
     data_store_t reference_unchanged;
     data_store_t reference_shifted;
     data_store_t reference_smaller_interval;
     data_store_t reference_plus1;
+    data_store_t reference_all1;
 
     typedef arg< 0, data_store_t > p_in;
     typedef arg< 1, data_store_t > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+    typedef arg< 2, data_store_bool_t > p_bool;
+    typedef boost::mpl::vector< p_in, p_out, p_bool > accessor_list;
 
     aggregator_type< accessor_list > domain;
 
@@ -330,7 +346,7 @@ class call_interface : public testing::Test {
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
           in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out(meta_, default_value),
-          reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
+          out_bool(meta_, false), reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
           reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
           reference_smaller_interval(meta_,
               [this](int i, int j, int k) {
@@ -339,7 +355,8 @@ class call_interface : public testing::Test {
                   else
                       return default_value;
               }),
-          reference_plus1(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k + 1; }), domain(in, out) {
+          reference_plus1(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k + 1; }),
+          reference_all1(meta_, 1), domain(in, out, out_bool) {
     }
 
     template < typename Computation >
@@ -564,6 +581,19 @@ TEST_F(call_interface, call_with_offsets_to_call_with_offsets_to_copy_functor) {
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_with_offsets_call_with_offsets_copy_functor >(
                                        p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_with_different_type_on_first_out) {
+    auto comp = gridtools::make_computation< backend_t >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_with_different_type_on_first_out >(
+                                       p_in(), p_bool(), p_out())));
 
     execute_computation(comp);
 
