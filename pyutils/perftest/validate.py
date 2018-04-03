@@ -23,5 +23,3 @@ def ttest_validate(result_a, result_b, p_value):
     if not passed:
         logger.info('Validation failed')
     return passed
-
-
