@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "c_bindings/handle.hpp"
+#include "c_bindings/handle.h"
+#include "c_bindings/handle_impl.hpp"
 
 void gt_release(gt_handle const *obj) { delete obj; }
