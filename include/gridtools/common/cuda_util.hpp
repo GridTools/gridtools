@@ -39,8 +39,13 @@
 
 namespace gridtools {
     namespace cuda_util {
+        template < class >
+        struct is_cloneable;
+
+#ifndef __INTEL_COMPILER
         template < class T >
         struct is_cloneable : std::is_trivially_copyable< T > {};
+#endif
     }
 }
 
