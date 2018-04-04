@@ -163,6 +163,44 @@ namespace gridtools {
                 return {implicit_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
             }
         };
+
+        template < class, class >
+        struct join_array_f;
+
+        template < size_t... Is, size_t... Js >
+        struct join_array_f< gt_index_sequence< Is... >, gt_index_sequence< Js... > > {
+            template < typename ContainerA,
+                typename ContainerB,
+                typename Res =
+                    array< typename std::common_type<
+                               typename tuple_element< Is, typename std::decay< ContainerA >::type >::type...,
+                               typename tuple_element< Js, typename std::decay< ContainerB >::type >::type... >::type,
+                        sizeof...(Is) + sizeof...(Js) > >
+            GT_FUNCTION Res operator()(ContainerA &&a, ContainerB &&b) {
+                return {get< Is >(std::forward< ContainerA >(a))..., get< Js >(std::forward< ContainerB >(b))...};
+            }
+        };
+
+        template <>
+        struct join_array_f< gt_index_sequence<>, gt_index_sequence<> > {
+            template < typename TA,
+                size_t SizeA,
+                typename TB,
+                size_t SizeB,
+                typename Res = array< typename std::common_type< TA, TB >::type, 0 > >
+            GT_FUNCTION Res operator()(const array< TA, SizeA > &a, const array< TB, SizeB > &b) {
+                return {};
+            }
+
+            // if the Containers are empty tuples we don't know the return type...
+            template < typename ContainerA, typename ContainerB, typename Res = array< boost::mpl::void_, 0 > >
+            GT_FUNCTION typename std::enable_if< !is_array< typename std::decay< ContainerA >::type >::value ||
+                                                     !is_array< typename std::decay< ContainerB >::type >::value,
+                Res >::type
+            operator()(ContainerA &&a, ContainerB &&b) {
+                return {};
+            }
+        };
     }
 
     /**
@@ -183,6 +221,15 @@ namespace gridtools {
     GT_FUNCTION auto convert_to_array(Container &&a) GT_AUTO_RETURN((impl_::convert_to_f< NewT,
         make_gt_index_sequence< tuple_size< typename std::decay< Container >::type >::value > >{}(
         std::forward< Container >(a))));
+
+    /**
+     *
+     */
+    template < typename ContainerA, typename ContainerB >
+    GT_FUNCTION auto join_array(ContainerA &&a, ContainerB &&b) GT_AUTO_RETURN(
+        (impl_::join_array_f< make_gt_index_sequence< tuple_size< typename std::decay< ContainerA >::type >::value >,
+            make_gt_index_sequence< tuple_size< typename std::decay< ContainerB >::type >::value > >{}(
+            std::forward< ContainerA >(a), std::forward< ContainerB >(b))));
 
 } // namespace gridtools
 
