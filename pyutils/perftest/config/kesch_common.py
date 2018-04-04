@@ -31,7 +31,7 @@ def sbatch(command):
         #SBATCH --partition=debug
         #SBATCH --nodes=1
         #SBATCH --ntasks-per-node=1
-        #SBATCH --cpus-per-task=24
+        #SBATCH --cpus-per-task=12
         #SBATCH --gres=gpu:1
         #SBATCH --time=00:02:00
 
