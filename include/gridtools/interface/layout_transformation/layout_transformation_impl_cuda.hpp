@@ -98,7 +98,7 @@ namespace gridtools {
             // this can be optimized but it is not as bad as it looks as one of the memories is coalescing (assuming one
             // of the layouts is a suitable gpu layout...)
 
-            for (auto outer : make_hypercube_view_from_zero(outer_dims)) {
+            for (auto outer : make_hypercube_view(outer_dims)) {
                 transform_cuda_loop_kernel_functor< DataType, storage_info > f(dst, src, si_dst, si_src, i, j, k);
                 f(outer[0], outer[1]); // TODO make generic
             }

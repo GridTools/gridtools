@@ -85,7 +85,7 @@ namespace {
         std::copy(expected_index.dims().begin(), expected_index.dims().end(), dims.begin());
 
         for (auto index : make_hypercube_view(dims)) {
-            ASSERT_EQ(expected_ptr[expected_index(index)], actual_ptr[actual_index(index)]);
+            EXPECT_EQ(expected_ptr[expected_index(index)], actual_ptr[actual_index(index)]);
         }
     }
 

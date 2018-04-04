@@ -128,7 +128,7 @@ TEST(layout_transformation, 4D_reverse_layout_cuda) {
     double *dst = new double[dst_index.size()];
     double *d_dst;
     cudaMalloc(&d_dst, sizeof(double) * dst_index.size());
-    init< 4 >(src, src_index, [](const array< size_t, 4 > &a) { return -1.; });
+    init< 4 >(dst, dst_index, [](const array< size_t, 4 > &a) { return -1.; });
     cudaMemcpy(d_dst, dst, sizeof(double) * dst_index.size(), cudaMemcpyHostToDevice);
 
     gridtools::interface::transform(d_dst, d_src, dims, dst_strides, src_strides);
