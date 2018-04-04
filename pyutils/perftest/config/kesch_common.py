@@ -30,7 +30,6 @@ def sbatch(command):
         #SBATCH --job-name=gridtools-test
         #SBATCH --partition=debug
         #SBATCH --nodes=1
-        #SBATCH --ntasks-per-core=2
         #SBATCH --ntasks-per-node=1
         #SBATCH --cpus-per-task=24
         #SBATCH --gres=gpu:1
