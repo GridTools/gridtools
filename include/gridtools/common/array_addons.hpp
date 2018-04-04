@@ -36,7 +36,7 @@
 #pragma once
 #include "array.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
-#include "generic_metafunctions/meta.hpp"
+#include <boost/implicit_cast.hpp>
 #include <vector>
 #include <array>
 
@@ -82,6 +82,20 @@ namespace gridtools {
     }
 
     namespace impl_ {
+
+        template < class T >
+        struct icast_identity {
+            typedef T type;
+        };
+
+        /**
+         * @brief implicit cast from boost, but decorated with GT_FUNCTION
+         */
+        template < typename T >
+        GT_FUNCTION T implicit_cast(typename icast_identity< T >::type x) {
+            return x;
+        }
+
         template < typename T >
         struct get_inner_type {
             using type = typename std::decay< decltype(get< 0 >(get< 0 >(std::declval< T >()))) >::type;
@@ -146,7 +160,7 @@ namespace gridtools {
         struct convert_to_f< NewT, gt_index_sequence< Is... > > {
             template < typename Container, typename Res = array< NewT, sizeof...(Is) > >
             GT_FUNCTION Res operator()(Container &&a) {
-                return {static_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
+                return {implicit_cast< NewT >(get< Is >(std::forward< Container >(a)))...};
             }
         };
     }

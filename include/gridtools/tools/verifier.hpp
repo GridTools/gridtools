@@ -93,7 +93,7 @@ namespace gridtools {
             // TODO This is following the original implementation. Shouldn't we deduce the range from the grid (as we
             // already pass it)?
             storage_info_rt meta_rt = make_storage_info_rt(*(expected_field.get_storage_info_ptr()));
-            hypercube< StorageType::storage_info_t::layout_t::masked_length > bounds;
+            array< array< size_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > bounds;
             for (size_t i = 0; i < bounds.size(); ++i) {
                 bounds[i] = {halos[i][0], meta_rt.unaligned_dims()[i] - halos[i][1]};
             }
@@ -106,8 +106,8 @@ namespace gridtools {
 
             size_t error_count = 0;
             for (auto &&pos : cube_view) {
-                auto expected = expected_view(convert_to< int >(pos));
-                auto actual = actual_view(convert_to< int >(pos));
+                auto expected = expected_view(convert_to_array< int >(pos));
+                auto actual = actual_view(convert_to_array< int >(pos));
                 if (!compare_below_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected
