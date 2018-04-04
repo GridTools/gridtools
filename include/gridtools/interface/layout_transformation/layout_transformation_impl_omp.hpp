@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include "../../common/make_array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/hypercube_iterator.hpp"
@@ -47,14 +48,13 @@
 
 namespace gridtools {
     namespace impl {
-        template < typename DataType, typename StorageInfo, typename... OuterIndices >
-        GT_FUNCTION_HOST typename std::enable_if< is_all_integral< OuterIndices... >::value >::type
-        transform_openmp_loop_impl(DataType *dst,
+        template < typename DataType, typename StorageInfo, typename OuterIndices >
+        GT_FUNCTION_HOST void transform_openmp_loop_impl(DataType *dst,
             DataType *src,
             const StorageInfo &si_dst,
             const StorageInfo &si_src,
             const gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > &a_dims,
-            OuterIndices... outer_indices) {
+            const OuterIndices &outer_indices) {
             const uint_t n_i = a_dims[0];
             const uint_t n_j = a_dims[1];
             const uint_t n_k = a_dims[2];
@@ -62,7 +62,8 @@ namespace gridtools {
             for (int i = 0; i < n_i; ++i)
                 for (int j = 0; j < n_j; ++j)
                     for (int k = 0; k < n_k; ++k) {
-                        dst[si_dst.index(i, j, k, outer_indices...)] = src[si_src.index(i, j, k, outer_indices...)];
+                        auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer_indices));
+                        dst[si_dst.index(index)] = src[si_src.index(index)];
                     }
         }
 
@@ -92,8 +93,8 @@ namespace gridtools {
             for (size_t i = 0; i < GT_TRANSFORM_MAX_DIM - 3; ++i)
                 outer_dims[i] = a_dims[3 + i];
 
-            for (auto i : make_hypercube_view(outer_dims)) {
-                transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, i[0], i[1]); // TODO make generic
+            for (auto &&i : make_hypercube_view(outer_dims)) {
+                transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, i);
             }
         }
     }

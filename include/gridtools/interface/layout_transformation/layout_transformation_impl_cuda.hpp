@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include "../../common/make_array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/hypercube_iterator.hpp"
@@ -55,10 +56,10 @@ namespace gridtools {
                 DataType *dst, DataType *src, const StorageInfo &si_dst, const StorageInfo &si_src, int i, int j, int k)
                 : dst(dst), src(src), si_dst(si_dst), si_src(si_src), i(i), j(j), k(k) {}
 
-            template < typename... OuterIndices >
-            GT_FUNCTION typename std::enable_if< is_all_integral< OuterIndices... >::value >::type operator()(
-                OuterIndices... outer_indices) {
-                dst[si_dst.index(i, j, k, outer_indices...)] = src[si_src.index(i, j, k, outer_indices...)];
+            template < typename OuterIndices >
+            GT_FUNCTION void operator()(const OuterIndices &outer_indices) {
+                auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer_indices));
+                dst[si_dst.index(index)] = src[si_src.index(index)];
             }
 
           private:
@@ -98,9 +99,9 @@ namespace gridtools {
             // this can be optimized but it is not as bad as it looks as one of the memories is coalescing (assuming one
             // of the layouts is a suitable gpu layout...)
 
-            for (auto outer : make_hypercube_view(outer_dims)) {
+            for (auto &&outer : make_hypercube_view(outer_dims)) {
                 transform_cuda_loop_kernel_functor< DataType, storage_info > f(dst, src, si_dst, si_src, i, j, k);
-                f(outer[0], outer[1]); // TODO make generic
+                f(outer);
             }
         }
 #endif
