@@ -34,7 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <type_traits>
+
+#include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
@@ -42,7 +43,6 @@
 #include "../../backend_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../iterate_domain.hpp"
-
 namespace gridtools {
 
     namespace _impl_iccuda {
@@ -54,8 +54,8 @@ namespace gridtools {
         };
 
         template < typename RunFunctorArguments >
-        __global__ void do_it_on_gpu(typename RunFunctorArguments::local_domain_t const l_domain,
-            typename RunFunctorArguments::grid_t const grid) {
+        __device__ void do_it_on_gpu_impl(typename RunFunctorArguments::local_domain_t const &l_domain,
+            typename RunFunctorArguments::grid_t const &grid) {
 
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -200,6 +200,21 @@ namespace gridtools {
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(
                 _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, grid));
         }
+
+#ifndef NDEBUG
+        template < typename RunFunctorArguments >
+        __global__ void do_it_on_gpu(typename RunFunctorArguments::local_domain_t const *l_domain,
+            typename RunFunctorArguments::grid_t const *grid) {
+            do_it_on_gpu_impl< RunFunctorArguments >(*l_domain, *grid);
+        }
+#else
+        template < typename RunFunctorArguments >
+        __global__ void do_it_on_gpu(
+            typename RunFunctorArguments::local_domain_t l_domain, typename RunFunctorArguments::grid_t grid) {
+            do_it_on_gpu_impl< RunFunctorArguments >(l_domain, grid);
+        }
+#endif
+
     } // namespace _impl_iccuda
 
     namespace icgrid {
@@ -214,8 +229,8 @@ namespace gridtools {
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            // TODO(anstaf): restore this when gpu/clang build wil pick up the right std headers
-            // GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< grid_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< local_domain_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< grid_t >::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
@@ -295,21 +310,24 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>> //<<<nbx*nby,
-                    // ntx*nty>>>
-                    (m_local_domain, m_grid);
-
 #ifndef NDEBUG
+                auto domain_clone = cuda_util::make_clone(m_local_domain);
+                auto grid_clone = cuda_util::make_clone(m_grid);
+                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>>(
+                    domain_clone.get(), grid_clone.get());
+
                 cudaDeviceSynchronize();
                 cudaError_t error = cudaGetLastError();
                 if (error != cudaSuccess) {
                     fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
                     exit(-1);
                 }
-#endif
-
+#else
+                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>>(
+                    m_local_domain, m_grid);
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
                 cudaDeviceSynchronize();
+#endif
             }
 
           private:

@@ -48,6 +48,7 @@
 #include <boost/utility.hpp>
 #include <iosfwd>
 
+#include "../common/cuda_util.hpp"
 #include "../common/gt_assert.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/host_device.hpp"
@@ -207,5 +208,12 @@ namespace gridtools {
     struct local_domain_esf_args< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
         typedef EsfArgs type;
     };
+
+    // Force cloning to cuda device, even though local_domain is not trivially copyable because of boost fusion
+    // containers implementation.
+    namespace cuda_util {
+        template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+        struct is_cloneable< local_domain< StorageWrapperList, EsfArgs, IsStateful > > : std::true_type {};
+    }
 
 } // namespace gridtools

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <type_traits>
+#include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
@@ -211,12 +211,9 @@ namespace gridtools {
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            // This is to ensure that grid is OK to pass to kernel function by value.
-            // TODO(anstaf): restore this when gpu/clang build wil pick up the right std headers
-            // GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< grid_t >::value, GT_INTERNAL_ERROR);
-            // Local domain effectively trivially_copyable, but formally not because of boost::fusion::vector impl.
-            // TODO(anstaf): replace fusion staff by gridtools tuples
-            // GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable< local_domain_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< local_domain_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< grid_t >::value, GT_INTERNAL_ERROR);
+
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
                 : m_local_domain(local_domain), m_grid(grid) {}
