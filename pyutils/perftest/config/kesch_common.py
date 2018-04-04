@@ -16,7 +16,8 @@ env = dict(default.env,
            GCLOCK=875,
            MALLOC_MMAP_MAX_=0,
            MALLOC_TRIM_THRESHOLD_=536870912,
-           OMP_PROC_BIND='true')
+           OMP_PROC_BIND='true',
+           OMP_NUM_THREADS=12)
 
 cmake_command = default.cmake_command + [
     '-DBOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0']

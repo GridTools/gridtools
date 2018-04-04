@@ -12,7 +12,8 @@ modules = default.modules | {'daint-gpu',
 env = dict(default.env,
            CUDA_ARCH='sm_60',
            CUDA_AUTO_BOOST=0,
-           OMP_PROC_BIND='true')
+           OMP_PROC_BIND='true',
+           OMP_NUM_THREADS=24)
 
 cmake_command = default.cmake_command + [
     '-DBOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_66_0']
