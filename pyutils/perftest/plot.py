@@ -89,9 +89,6 @@ def compare(results):
 def history(results, key='runtime'):
     """Plots run time history of all results."""
 
-    stencils, q1s, q2s, q3s = result.percentiles_by_stencil(results,
-                                                            [25, 50, 75])
-
     def get_datetime(result):
         if key == 'runtime':
             datetime = result.runtime.datetime
@@ -102,6 +99,9 @@ def history(results, key='runtime'):
         return time.local_time(datetime)
 
     results = sorted(results, key=get_datetime)
+
+    stencils, q1s, q2s, q3s = result.percentiles_by_stencil(results,
+                                                            [25, 50, 75])
 
     dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
 
