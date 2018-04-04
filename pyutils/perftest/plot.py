@@ -89,7 +89,8 @@ def compare(results):
 def history(results, key='runtime'):
     """Plots run time history of all results."""
 
-    stencils, meantimes, stdevtimes = result.statistics_by_stencil(results)
+    stencils, q1s, q2s, q3s = result.percentiles_by_stencil(results,
+                                                            [25, 50, 75])
 
     def get_datetime(result):
         if key == 'runtime':
@@ -118,11 +119,9 @@ def history(results, key='runtime'):
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    for stencil, means, stdevs in zip(stencils, meantimes, stdevtimes):
-        fill_min = [m - s for m, s in zip(means, stdevs)]
-        fill_max = [m + s for m, s in zip(means, stdevs)]
-        ax.fill_between(dates, fill_min, fill_max, alpha=0.4)
-        ax.plot(dates, means, 'o-', label=stencil.title())
+    for stencil, q1, q2, q3 in zip(stencils, q1s, q2s, q3s):
+        ax.fill_between(dates, q1, q3, alpha=0.4)
+        ax.plot(dates, q2, 'o-', label=stencil.title())
 
     ax.legend()
     fig.autofmt_xdate()

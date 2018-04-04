@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import json
-import statistics
+
+import numpy as np
 
 from perftest import ArgumentError, logger, ParseError, time
 
@@ -36,14 +37,8 @@ class Result(Data):
         """List of all timing, grouped by stencil."""
         return [t.measurements for t in self.times]
 
-    def meantimes_by_stencil(self):
-        """List of all stencils' mean computation time."""
-        return [statistics.mean(t.measurements) for t in self.times]
-
-    def stdevtimes_by_stencil(self):
-        """List of all stencils' computation time stdandard deviation."""
-        return [statistics.stdev(t.measurements) if len(t) > 1 else 0 for t
-                in self.times]
+    def mapped_times(self, func):
+        return [func(t.measurements) for t in self.times]
 
 
 def from_data(runtime, domain, times):
@@ -136,6 +131,10 @@ def load(filename):
     return result
 
 
+def by_stencils(results_data):
+    return list(zip(*results_data))
+
+
 def times_by_stencil(results):
     """Collects times of multiple results by stencils.
 
@@ -149,7 +148,7 @@ def times_by_stencil(results):
     if any(stencils != r.stencils for r in results):
         raise ArgumentError('All results must include the same stencils')
 
-    times = list(zip(*(r.times_by_stencil() for r in results)))
+    times = by_stencils(r.times_by_stencil() for r in results)
     return stencils, times
 
 
@@ -166,9 +165,23 @@ def statistics_by_stencil(results):
     if any(stencils != r.stencils for r in results):
         raise ArgumentError('All results must include the same stencils')
 
-    meantimes = list(zip(*(r.meantimes_by_stencil() for r in results)))
-    stdevtimes = list(zip(*(r.stdevtimes_by_stencil() for r in results)))
+    meantimes = by_stencils(r.mapped_times(np.mean) for r in results)
+    stdevtimes = by_stencils(r.mapped_times(np.std) for r in results)
     return stencils, meantimes, stdevtimes
+
+
+def percentiles_by_stencil(results, percentiles):
+    stencils = results[0].stencils
+    if any(stencils != r.stencils for r in results):
+        raise ArgumentError('All results must include the same stencils')
+
+    qtimes = []
+    for q in percentiles:
+        def compute_q(times):
+            return np.percentile(times, q)
+        qtimes.append(by_stencils(r.mapped_times(compute_q) for r in results))
+
+    return (stencils, *qtimes)
 
 
 def compare(results):
