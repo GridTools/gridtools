@@ -30,6 +30,7 @@ def sbatch(command):
         #!/bin/bash -l
         #SBATCH --job-name=gridtools-test
         #SBATCH --partition=debug
+        #SBATCH --exclusive
         #SBATCH --nodes=1
         #SBATCH --ntasks-per-node=1
         #SBATCH --cpus-per-task=12
