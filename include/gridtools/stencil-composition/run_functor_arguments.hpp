@@ -168,7 +168,7 @@ namespace gridtools {
         typedef ExtentSizes extent_sizes_t;
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         typedef typename boost::mpl::fold< extent_sizes_t,
-            typename grid_traits_t::null_extent_t,
+            extent<>,
             enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
@@ -192,6 +192,15 @@ namespace gridtools {
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
         typedef Color color_t;
+
+        // Maximum extent of all ESF will determine the size of the CUDA block:
+        // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
+        //    each CUDA thread will execute two grid points (one at the core of the block and
+        //    another within one of the halo regions)
+        // *  Otherwise each CUDA thread executes only one grid point.
+        typedef block_size< physical_domain_block_size_t::i_size_t::value,
+            physical_domain_block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value +
+                !!max_extent_t::iminus::value + !!max_extent_t::iplus::value > cuda_block_size_t;
     };
 
     template < typename T >
