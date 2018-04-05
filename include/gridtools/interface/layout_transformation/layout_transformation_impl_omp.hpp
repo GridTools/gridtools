@@ -48,25 +48,6 @@
 
 namespace gridtools {
     namespace impl {
-        template < typename DataType, typename StorageInfo, typename OuterIndices >
-        GT_FUNCTION_HOST void transform_openmp_loop_impl(DataType *dst,
-            DataType *src,
-            const StorageInfo &si_dst,
-            const StorageInfo &si_src,
-            const gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > &a_dims,
-            const OuterIndices &outer_indices) {
-            const uint_t n_i = a_dims[0];
-            const uint_t n_j = a_dims[1];
-            const uint_t n_k = a_dims[2];
-#pragma omp parallel for collapse(3)
-            for (int i = 0; i < n_i; ++i)
-                for (int j = 0; j < n_j; ++j)
-                    for (int k = 0; k < n_k; ++k) {
-                        auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer_indices));
-                        dst[si_dst.index(index)] = src[si_src.index(index)];
-                    }
-        }
-
         template < typename DataType >
         void transform_openmp_loop(DataType *dst,
             DataType *src,
@@ -93,8 +74,14 @@ namespace gridtools {
             for (size_t i = 0; i < GT_TRANSFORM_MAX_DIM - 3; ++i)
                 outer_dims[i] = a_dims[3 + i];
 
-            for (auto &&i : make_hypercube_view(outer_dims)) {
-                transform_openmp_loop_impl(dst, src, si_dst, si_src, a_dims, i);
+            for (auto &&outer : make_hypercube_view(outer_dims)) {
+#pragma omp parallel for collapse(3)
+                for (int i = 0; i < a_dims[0]; ++i)
+                    for (int j = 0; j < a_dims[1]; ++j)
+                        for (int k = 0; k < a_dims[2]; ++k) {
+                            auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer));
+                            dst[si_dst.index(index)] = src[si_src.index(index)];
+                        }
             }
         }
     }

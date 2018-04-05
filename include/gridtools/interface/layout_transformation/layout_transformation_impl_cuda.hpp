@@ -50,28 +50,6 @@
 namespace gridtools {
     namespace impl {
 #ifdef __CUDACC__
-        template < typename DataType, typename StorageInfo >
-        struct transform_cuda_loop_kernel_functor {
-            GT_FUNCTION transform_cuda_loop_kernel_functor(
-                DataType *dst, DataType *src, const StorageInfo &si_dst, const StorageInfo &si_src, int i, int j, int k)
-                : dst(dst), src(src), si_dst(si_dst), si_src(si_src), i(i), j(j), k(k) {}
-
-            template < typename OuterIndices >
-            GT_FUNCTION void operator()(const OuterIndices &outer_indices) {
-                auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer_indices));
-                dst[si_dst.index(index)] = src[si_src.index(index)];
-            }
-
-          private:
-            DataType *dst;
-            DataType *src;
-            const StorageInfo &si_dst;
-            const StorageInfo &si_src;
-            const int i;
-            const int j;
-            const int k;
-        };
-
         template < typename DataType >
         __global__ void transform_cuda_loop_kernel(DataType *dst,
             DataType *src,
@@ -100,8 +78,8 @@ namespace gridtools {
             // of the layouts is a suitable gpu layout...)
 
             for (auto &&outer : make_hypercube_view(outer_dims)) {
-                transform_cuda_loop_kernel_functor< DataType, storage_info > f(dst, src, si_dst, si_src, i, j, k);
-                f(outer);
+                auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer));
+                dst[si_dst.index(index)] = src[si_src.index(index)];
             }
         }
 #endif
