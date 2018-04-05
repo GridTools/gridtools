@@ -63,4 +63,19 @@ namespace gridtools {
     GT_FUNCTION constexpr T array_dot_product(array< T, D > const &a, array< U, D > const &b) {
         return _impl::dot_impl(a, b, typename make_gt_integer_sequence< size_t, D >::type{});
     }
+
+    /**
+     * @brief dot product for gridtools::array (enabled for all arithmetic types).
+     * This is the operator version of it.
+     *
+     * \param First array
+     * \param Second Array
+     *
+     * \return Value corresponding to the first array value type
+     */
+    template < typename T, typename U, size_t D, typename std::enable_if< std::is_arithmetic< T >::value and std::is_arithmetic< U >::value, T >::type = 0 >
+    GT_FUNCTION constexpr T operator*(array< T, D > const& a, array< U, D > const &b)
+    {
+        return array_dot_product(a, b);
+    }
 } // namespace gridtools
