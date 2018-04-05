@@ -38,6 +38,14 @@ class Result(Data):
         return [t.measurements for t in self.times]
 
     def mapped_times(self, func):
+        """Applies a function to the list of measured times by stencil.
+
+        Args:
+            func: Function to apply to each stencils list of measured times.
+
+        Returns:
+            A list of values as returned by `func`, one per stencil.
+        """
         return [func(t.measurements) for t in self.times]
 
 
@@ -171,6 +179,18 @@ def statistics_by_stencil(results):
 
 
 def percentiles_by_stencil(results, percentiles):
+    """Computes given percentiles of measured run times of multiple results
+       and sorts them by stencil.
+
+    Args:
+        results: List of `Result` objects.
+        percentils: List of percentiles, each percentile must be in the range
+                    [0, 100] (inclusive).
+
+    Returns:
+        A tuple of lists (stencils, percentiles 1, percentiles 2, ...). The
+        number of returned values depends on the number of input percentiles.
+    """
     stencils = results[0].stencils
     if any(stencils != r.stencils for r in results):
         raise ArgumentError('All results must include the same stencils')

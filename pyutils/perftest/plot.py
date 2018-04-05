@@ -28,7 +28,18 @@ def discrete_colors(n):
 
 
 def get_titles(results):
-    """Generates plot titles."""
+    """Generates plot titles. Compares the stored runtime info in the results
+    and groups them by common and different values to automtically generate
+    figure title and plot captions.
+
+    Args:
+        results: List of `result.Result` objects.
+
+    Returns:
+        A tuple with two elements. The first element is a single string,
+        usable as a common title. The second element is a list of strings,
+        one per given result, usable as subtitles or plot captions.
+    """
     common, diff = result.compare([r.runtime for r in results])
 
     def titlestr(k, v):
@@ -51,7 +62,11 @@ def get_titles(results):
 
 
 def compare(results):
-    """Plots run time comparison of all results, one subplot per stencil."""
+    """Plots run time comparison of all results, one subplot per stencil.
+
+    Args:
+        results: List of `result.Result` objects.
+    """
 
     stencils, stenciltimes = result.times_by_stencil(results)
 
@@ -87,8 +102,20 @@ def compare(results):
 
 
 def history(results, key='job', limit=None):
-    """Plots run time history of all results."""
+    """Plots run time history of all results. Depending on the argument `job`,
+       The results are either ordered by runtime (i.e. commit/build time) or
+       job time (i.e. when the job was run).
 
+    Args:
+        results: List of `result.Result` objects.
+        key: Either 'job' or 'runtime'.
+        limit: Optionally limits the number of plotted results to the given
+               number, i.e. only displays the most recent results. If `None`,
+               all given results are plotted.
+    """
+
+    # get date/time either from the runtime (commit/build) or job (when job
+    # was run)
     def get_datetime(result):
         if key == 'runtime':
             datetime = result.runtime.datetime
@@ -98,7 +125,10 @@ def history(results, key='job', limit=None):
             raise ArgumentError('"key" argument must be "runtime" or "job"')
         return time.local_time(datetime)
 
+    # sort results by desired reference time
     results = sorted(results, key=get_datetime)
+
+    #
     if limit is not None:
         if not isinstance(limit, int) or limit <= 0:
             raise ArgumentError('"limit" must be a positive integer')
