@@ -58,33 +58,31 @@ struct shift_acc_forward_fill_and_flush {
     }
 };
 
-struct shift_acc_backward_fill {
+struct shift_acc_backward_fill_and_flush {
 
-    typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > in;
-    typedef accessor< 1, enumtype::inout, extent<> > out;
+    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > in;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector< in > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
-        eval(in()) = eval(in()) + eval(in(0, 0, -1));
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+        eval(in()) = eval(in()) + eval(in(0, 0, 1));
     }
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(in()) = eval(in());
     }
 };
 
 struct copy_fill {
 
-    typedef accessor< 0, enumtype::in > in;
-    typedef accessor< 1, enumtype::inout, extent<> > out;
+    typedef accessor< 0, enumtype::inout > in;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector< in > arg_list;
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {
-        eval(out()) = eval(in());
+        eval(in()) = eval(in());
     }
 };
 
@@ -94,7 +92,7 @@ TEST_F(kcachef, fill_and_flush_forward) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
             for (uint_t k = 1; k < m_d3; ++k) {
-                m_refv(i, j, k) = m_inv(i, j, k - 1) + m_inv(i, j, k);
+                m_refv(i, j, k) = m_inv(i, j, k) + m_refv(i, j, k-1);
             }
         }
     }
@@ -109,7 +107,7 @@ TEST_F(kcachef, fill_and_flush_forward) {
         m_grid,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
+            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
             gridtools::make_stage< shift_acc_forward_fill_and_flush >(p_in())));
 
     kcache_stencil->ready();
@@ -118,8 +116,47 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     kcache_stencil->run();
 
-    m_out.sync();
-    m_out.reactivate_host_write_views();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+
+    m_in.sync();
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
+    kcache_stencil->finalize();
+}
+
+TEST_F(kcachef, fill_and_flush_backward) {
+
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
+            for (int_t k = m_d3 - 2; k >= 0; --k) {
+                m_refv(i, j, k) = m_refv(i, j, k + 1) + m_inv(i, j, k);
+            }
+        }
+    }
+
+    typedef arg< 0, storage_t > p_in;
+
+    typedef boost::mpl::vector< p_in > accessor_list;
+    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in));
+
+    auto kcache_stencil = gridtools::make_computation< backend_t >(
+        domain,
+        m_grid,
+        gridtools::make_multistage
+        (execute< backward >(),
+            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
+            gridtools::make_stage< shift_acc_backward_fill_and_flush >(p_in())));
+
+    kcache_stencil->ready();
+
+    kcache_stencil->steady();
+
+    kcache_stencil->run();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -128,101 +165,48 @@ TEST_F(kcachef, fill_and_flush_forward) {
 #endif
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
+    m_in.sync();
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
     kcache_stencil->finalize();
 }
 
-// TEST_F(kcachef, fill_backward) {
+TEST_F(kcachef, fill_copy_forward) {
 
-//    for (uint_t i = 0; i < m_d1; ++i) {
-//        for (uint_t j = 0; j < m_d2; ++j) {
-//            m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1) + m_inv(i, j, m_d3 - 2);
-//            for (int_t k = m_d3 - 2; k >= 1; --k) {
-//                m_refv(i, j, k) = m_inv(i, j, k + 1) + m_inv(i, j, k) + m_inv(i, j, k - 1);
-//            }
-//            m_refv(i, j, 0) = m_inv(i, j, 1) + m_inv(i, j, 0);
-//        }
-//    }
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            for (uint_t k = 0; k < m_d3; ++k) {
+                m_refv(i, j, k) = m_inv(i, j, k);
+            }
+        }
+    }
 
-//    typedef arg< 0, storage_t > p_in;
-//    typedef arg< 1, storage_t > p_out;
+    typedef arg< 0, storage_t > p_in;
 
-//    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-//    gridtools::aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
+    typedef boost::mpl::vector< p_in > accessor_list;
+    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in));
 
-//    auto kcache_stencil = gridtools::make_computation< backend_t >(
-//        domain,
-//        m_grid,
-//        gridtools::make_multistage // mss_descriptor
-//        (execute< backward >(),
-//            define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
-//            gridtools::make_stage< shift_acc_backward_fill >(p_in() // esf_descriptor
-//                ,
-//                p_out())));
+    auto kcache_stencil =
+        gridtools::make_computation< backend_t >(domain,
+            m_grid,
+            gridtools::make_multistage
+            (execute< forward >(),
+                                                     define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
+                                                     gridtools::make_stage< copy_fill >(p_in())));
 
-//    kcache_stencil->ready();
+    kcache_stencil->ready();
 
-//    kcache_stencil->steady();
+    kcache_stencil->steady();
 
-//    kcache_stencil->run();
+    kcache_stencil->run();
 
-//    m_out.sync();
-//    m_out.reactivate_host_write_views();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-//#if FLOAT_PRECISION == 4
-//    verifier verif(1e-6);
-//#else
-//    verifier verif(1e-10);
-//#endif
-//    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-
-//    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-//    kcache_stencil->finalize();
-//}
-
-// TEST_F(kcachef, fill_copy_forward) {
-
-//    for (uint_t i = 0; i < m_d1; ++i) {
-//        for (uint_t j = 0; j < m_d2; ++j) {
-//            for (uint_t k = 0; k < m_d3; ++k) {
-//                m_refv(i, j, k) = m_inv(i, j, k);
-//            }
-//        }
-//    }
-
-//    typedef arg< 0, storage_t > p_in;
-//    typedef arg< 1, storage_t > p_out;
-
-//    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-//    gridtools::aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
-
-//    auto kcache_stencil =
-//        gridtools::make_computation< backend_t >(domain,
-//            m_grid,
-//            gridtools::make_multistage // mss_descriptor
-//            (execute< forward >(),
-//                                                     define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
-//                                                     gridtools::make_stage< copy_fill >(p_in() // esf_descriptor
-//                                                         ,
-//                                                         p_out())));
-
-//    kcache_stencil->ready();
-
-//    kcache_stencil->steady();
-
-//    kcache_stencil->run();
-
-//    m_out.sync();
-//    m_out.reactivate_host_write_views();
-
-//#if FLOAT_PRECISION == 4
-//    verifier verif(1e-6);
-//#else
-//    verifier verif(1e-10);
-//#endif
-//    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-
-//    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-//    kcache_stencil->finalize();
-//}
+    m_in.sync();
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
+    kcache_stencil->finalize();
+}
