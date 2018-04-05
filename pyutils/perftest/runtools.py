@@ -53,7 +53,7 @@ def run(commands, conf=None, job_limit=None):
         # Poll SLURM to get finished jobs
         finished_ids = _poll([task_id for _, task_id, _ in running])
         logger.debug('Finished jobs: ' + ', '.join(finished_ids))
-        time.sleep(1)
+        time.sleep(10)
 
         # Get output of finished jobs, build set of still running jobs
         still_running = set()
