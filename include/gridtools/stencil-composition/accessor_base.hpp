@@ -50,39 +50,301 @@ namespace gridtools {
 
 #ifdef __INTEL_COMPILER
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
-         * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
-         * in the most common case. */
+         * class with a normal array member and even produces incorrect code. */
         template < typename T, std::size_t Dim >
-        struct pseudo_array_type {
-            using type = array< T, Dim >;
+        struct pseudo_array {
+            GRIDTOOLS_STATIC_ASSERT(!Dim, "Pseudo array not implemented for the given number of dimensions");
         };
 
         template < typename T >
-        struct pseudo_array_type< T, 3 > {
-            struct type {
-                T data0, data1, data2;
+        struct pseudo_array< T, 2 > {
+            T data0, data1;
 
-                constexpr type(array< T, 3 > const &a)
-                    : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()) {}
+            constexpr pseudo_array(array< T, 2 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()) {}
 
-                constexpr type(T const &data0, T const &data1, T const &data2)
-                    : data0(data0), data1(data1), data2(data2) {}
+            constexpr pseudo_array(T data0 = 0, T data1 = 0) : data0(data0), data1(data1) {}
 
-                template < std::size_t Idx >
-                GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
-                    return data0;
-                }
-                template < std::size_t Idx >
-                GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
-                    return data1;
-                }
-                template < std::size_t Idx >
-                GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
-                    return data2;
-                }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
 
-                GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
-            };
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+        };
+
+        template < typename T >
+        struct pseudo_array< T, 3 > {
+            T data0, data1, data2;
+
+            constexpr pseudo_array(array< T, 3 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()) {}
+
+            pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0) : data0(data0), data1(data1), data2(data2) {}
+
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                return data2;
+            }
+
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+        };
+
+        template < typename T >
+        struct pseudo_array< T, 4 > {
+            T data0, data1, data2, data3;
+
+            constexpr pseudo_array(array< T, 4 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
+                  data3(a.template get< 3 >()) {}
+
+            constexpr pseudo_array(T data0, T data1, T data2, T data3)
+                : data0(data0), data1(data1), data2(data2), data3(data3) {}
+
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                return data2;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 3, T const & >::type get() const {
+                return data3;
+            }
+
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+        };
+
+        template < typename T >
+        struct pseudo_array< T, 5 > {
+            T data0, data1, data2, data3, data4;
+
+            constexpr pseudo_array(array< T, 5 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
+                  data3(a.template get< 3 >()), data4(a.template get< 4 >()) {}
+
+            constexpr pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0)
+                : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4) {}
+
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                return data2;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 3, T const & >::type get() const {
+                return data3;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 4, T const & >::type get() const {
+                return data4;
+            }
+
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+        };
+
+        template < typename T >
+        struct pseudo_array< T, 6 > {
+            T data0, data1, data2, data3, data4, data5;
+
+            constexpr pseudo_array(array< T, 6 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
+                  data3(a.template get< 3 >()), data4(a.template get< 4 >()), data5(a.template get< 5 >()) {}
+
+            constexpr pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0, T data5 = 0)
+                : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4), data5(data5) {}
+
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                return data2;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 3, T const & >::type get() const {
+                return data3;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 4, T const & >::type get() const {
+                return data4;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 5, T const & >::type get() const {
+                return data5;
+            }
+
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+        };
+
+        template < typename T >
+        struct pseudo_array< T, 7 > {
+            T data0, data1, data2, data3, data4, data5, data6;
+
+            constexpr pseudo_array(array< T, 7 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
+                  data3(a.template get< 3 >()), data4(a.template get< 4 >()), data5(a.template get< 5 >()),
+                  data6(a.template get< 6 >()) {}
+
+            constexpr pseudo_array(
+                T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0, T data5 = 0, T data6 = 0)
+                : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4), data5(data5), data6(data6) {}
+
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                return data2;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 3, T const & >::type get() const {
+                return data3;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 4, T const & >::type get() const {
+                return data4;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 5, T const & >::type get() const {
+                return data5;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 6, T const & >::type get() const {
+                return data6;
+            }
+
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
+        };
+
+        template < typename T >
+        struct pseudo_array< T, 15 > {
+            T data0, data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13,
+                data14;
+
+            constexpr pseudo_array(array< T, 15 > const &a)
+                : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
+                  data3(a.template get< 3 >()), data4(a.template get< 4 >()), data5(a.template get< 5 >()),
+                  data6(a.template get< 6 >()), data7(a.template get< 7 >()), data8(a.template get< 8 >()),
+                  data9(a.template get< 9 >()), data10(a.template get< 10 >()), data11(a.template get< 11 >()),
+                  data12(a.template get< 12 >()), data13(a.template get< 13 >()), data14(a.template get< 14 >()) {}
+
+            constexpr pseudo_array(T data0 = 0,
+                T data1 = 0,
+                T data2 = 0,
+                T data3 = 0,
+                T data4 = 0,
+                T data5 = 0,
+                T data6 = 0,
+                T data7 = 0,
+                T data8 = 0,
+                T data9 = 0,
+                T data10 = 0,
+                T data11 = 0,
+                T data12 = 0,
+                T data13 = 0,
+                T data14 = 0)
+                : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4), data5(data5), data6(data6),
+                  data7(data7), data8(data8), data9(data9), data10(data10), data11(data11), data12(data12),
+                  data13(data13), data14(data14) {}
+
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                return data0;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                return data1;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                return data2;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 3, T const & >::type get() const {
+                return data3;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 4, T const & >::type get() const {
+                return data4;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 5, T const & >::type get() const {
+                return data5;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 6, T const & >::type get() const {
+                return data6;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 7, T const & >::type get() const {
+                return data7;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 8, T const & >::type get() const {
+                return data8;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 9, T const & >::type get() const {
+                return data9;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 10, T const & >::type get() const {
+                return data10;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 11, T const & >::type get() const {
+                return data11;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 12, T const & >::type get() const {
+                return data12;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 13, T const & >::type get() const {
+                return data13;
+            }
+            template < std::size_t Idx >
+            GT_FUNCTION constexpr typename std::enable_if< Idx == 14, T const & >::type get() const {
+                return data14;
+            }
+
+            GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
         };
 #endif
 
@@ -146,7 +408,7 @@ namespace gridtools {
 
 #ifdef __INTEL_COMPILER
         /* The Intel compiler does not want to vectorize when we use a real array here. */
-        using offsets_t = typename _impl::pseudo_array_type< int_t, Dim >::type;
+        using offsets_t = _impl::pseudo_array< int_t, Dim >;
         offsets_t m_offsets;
         /* The Intel compiler likes to generate calls to memset if we don't have this additional member.*/
         int_t m_workaround;
