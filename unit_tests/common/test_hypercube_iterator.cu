@@ -34,24 +34,31 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
-#include <type_traits>
+#include <common/test_hypercube_iterator.cpp>
 
-/**
- * Compare 2 types for equality. Will produce a readable error message (hopefully).
- */
-template < typename expected, typename actual__, typename Enable = void >
-struct ASSERT_TYPE_EQ {
-    static_assert(sizeof(expected) >= 0, "forces template instantiation");
-    static_assert(sizeof(actual__) >= 0, "forces template instantiation");
+static const size_t Size = 2;
+
+GT_FUNCTION int linear_index(gridtools::array< size_t, 2 > &index) { return index[0] * Size + index[1]; }
+
+__global__ void test_kernel(int *out_ptr) {
+    for (size_t i = 0; i < Size * Size; ++i)
+        out_ptr[i] = -1;
+
+    using hypercube_t = gridtools::array< gridtools::array< size_t, 2 >, 2 >;
+    for (auto pos : make_hypercube_view(hypercube_t{{{0ul, Size}, {0ul, Size}}})) {
+        out_ptr[linear_index(pos)] = linear_index(pos);
+    }
 };
-template < typename expected, typename actual__ >
-struct ASSERT_TYPE_EQ< expected,
-    actual__,
-    typename std::enable_if< !std::is_same< expected, actual__ >::value >::type > {
-    typename expected::expected_type see_expected_type_above;
-    typename actual__::actual_type__ see_actual___type_above;
-    static_assert(std::is_same< expected, actual__ >::value, "TYPES DON'T MATCH (see types above)");
-    static_assert(sizeof(expected) >= 0, "forces template instantiation");
-    static_assert(sizeof(actual__) >= 0, "forces template instantiation");
-};
+
+TEST(multi_iterator, iterate_on_device) {
+    int *out;
+    cudaMalloc(&out, sizeof(int) * Size * Size);
+
+    test_kernel<<< 1, 1 >>>(out);
+
+    int host_out[Size * Size];
+    cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost);
+
+    for (size_t i = 0; i < Size * Size; ++i)
+        ASSERT_EQ(i, host_out[i]) << "at i = " << i;
+}

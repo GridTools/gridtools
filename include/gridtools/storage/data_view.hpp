@@ -38,14 +38,26 @@
 
 #include <assert.h>
 
+#include <boost/mpl/and.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/if.hpp>
-#include <boost/mpl/and.hpp>
 #include <boost/type_traits.hpp>
 
 #include "../common/gt_assert.hpp"
 #include "common/definitions.hpp"
 #include "common/storage_info_interface.hpp"
+
+#ifndef CHECK_MEMORY_SPACE
+
+#ifdef __CUDA_ARCH__
+#define CHECK_MEMORY_SPACE(device_view) \
+    ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
+#else
+#define CHECK_MEMORY_SPACE(device_view) \
+    ASSERT_OR_THROW(!device_view, "can not access a device view from a host function")
+#endif
+
+#endif
 
 namespace gridtools {
 
@@ -139,7 +151,10 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        GT_FUNCTION storage_info_t const &storage_info() const { return *m_storage_info; }
+        GT_FUNCTION storage_info_t const &storage_info() const {
+            CHECK_MEMORY_SPACE(m_device_view);
+            return *m_storage_info;
+        }
 
         /**
          * data getter
@@ -164,6 +179,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
                                         typename is_all_integral_or_enum< Coords... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
+            CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptrs[0][m_storage_info->index(c...)];
         }
 
@@ -174,6 +190,7 @@ namespace gridtools {
          */
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
+            CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
@@ -290,3 +307,5 @@ namespace gridtools {
      * @}
      */
 }
+
+#undef CHECK_MEMORY_SPACE

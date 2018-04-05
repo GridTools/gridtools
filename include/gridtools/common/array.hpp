@@ -38,7 +38,6 @@
 @file
 @brief Implementation of an array class
 */
-
 #include <algorithm>
 #include "defs.hpp"
 #include "gt_assert.hpp"
@@ -74,7 +73,7 @@ namespace gridtools {
 
         typedef T value_type;
 
-        array< T, D + 1 > append_dim(T const &val) const {
+        GT_FUNCTION array< T, D + 1 > append_dim(T const &val) const {
             array< T, D + 1 > ret;
             for (size_t c = 0; c < D; ++c) {
                 ret[c] = this->operator[](c);
@@ -83,7 +82,7 @@ namespace gridtools {
             return ret;
         }
 
-        array< T, D + 1 > prepend_dim(T const &val) const {
+        GT_FUNCTION array< T, D + 1 > prepend_dim(T const &val) const {
             array< T, D + 1 > ret;
             for (size_t c = 1; c <= D; ++c) {
                 ret[c] = this->operator[](c - 1);
@@ -165,9 +164,35 @@ namespace gridtools {
     struct is_array_of< array< Value, D >, Value > : boost::mpl::true_ {};
 
     template < typename T >
-    class tuple_size;
+    struct tuple_size;
 
     template < typename T, size_t D >
-    class tuple_size< array< T, D > > : public gridtools::static_size_t< D > {};
+    struct tuple_size< array< T, D > > : std::integral_constant< size_t, D > {};
+
+    template < size_t, typename T >
+    struct tuple_element;
+
+    template < size_t I, typename T, size_t D >
+    struct tuple_element< I, array< T, D > > {
+        using type = T;
+    };
+
+    template < size_t I, typename T, size_t D >
+    GT_FUNCTION constexpr T &get(array< T, D > &arr) noexcept {
+        GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
+        return arr[I];
+    }
+
+    template < size_t I, typename T, size_t D >
+    GT_FUNCTION constexpr const T &get(const array< T, D > &arr) noexcept {
+        GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
+        return arr[I];
+    }
+
+    template < size_t I, typename T, size_t D >
+    GT_FUNCTION constexpr T &&get(array< T, D > &&arr) noexcept {
+        GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
+        return std::move(get< I >(arr));
+    }
 
 } // namespace gridtools
