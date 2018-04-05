@@ -288,7 +288,8 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t, ntx * nty * ntz ><<< blocks, threads >>>(
+                constexpr size_t num_threads = cuda_block_size_t::i_size_t::value * cuda_block_size_t::j_size_t::value;
+                _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t, num_threads ><<< blocks, threads >>>(
                     m_local_domain, m_grid);
 
 #ifndef NDEBUG
