@@ -121,7 +121,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # slightly improve performance
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-subscript-in-range -qoverride-limits")
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552")
 endif()
 
 Find_Package( OpenMP )
