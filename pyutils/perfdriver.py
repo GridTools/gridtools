@@ -18,7 +18,7 @@ def plot(args):
     if args.mode == 'compare':
         fig = perftest.plot.compare(results)
     elif args.mode == 'history':
-        fig = perftest.plot.history(results, args.date)
+        fig = perftest.plot.history(results, args.date, args.limit)
 
     # save result
     fig.savefig(args.output)
@@ -119,11 +119,14 @@ if __name__ == '__main__':
                                           ' supported by matplotlib')
     plot_history_parser.add_argument('--input', '-i', required=True, nargs='+',
                                      help='any number of input files')
-    plot_history_parser.add_argument('--date', '-d', default='runtime',
+    plot_history_parser.add_argument('--date', '-d', default='job',
                                      choices=['runtime', 'job'],
                                      help='date to use, either the '
                                           'build/commit date of the runtime '
                                           'or the date when the job was run')
+    plot_history_parser.add_argument('--limit', '-l', type=int,
+                                     help='limit the history size to the '
+                                          'given number of results')
 
     args = parser.parse_args()
     perftest.set_verbose(args.verbose)

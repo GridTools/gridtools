@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import copy
 import itertools
 import math
 import os
@@ -86,7 +87,7 @@ def compare(results):
     return fig
 
 
-def history(results, key='runtime'):
+def history(results, key='job', limit=None):
     """Plots run time history of all results."""
 
     def get_datetime(result):
@@ -99,31 +100,38 @@ def history(results, key='runtime'):
         return time.local_time(datetime)
 
     results = sorted(results, key=get_datetime)
+    if limit is not None:
+        if not isinstance(limit, int) or limit <= 0:
+            raise ArgumentError('"limit" must be a positive integer')
+        results = results[-limit:]
 
-    stencils, q1s, q2s, q3s = result.percentiles_by_stencil(results,
-                                                            [25, 50, 75])
+    data = result.percentiles_by_stencil(results, [0, 25, 50, 75, 100])
 
     dates = [matplotlib.dates.date2num(get_datetime(r)) for r in results]
 
     if len(dates) > len(set(dates)):
         logger.warning('Non-unique datetimes in history plot')
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=figsize(2, 1))
+
 
     locator = matplotlib.dates.AutoDateLocator()
     formatter = matplotlib.dates.AutoDateFormatter(locator)
-    formatter.scaled[1 / 24] = '%y-%m-%d %H'
+    formatter.scaled[1 / 24] = '%y-%m-%d %H:%M'
     formatter.scaled[1 / (24 * 60)] = '%y-%m-%d %H:%M'
     formatter.scaled[1 / (24 * 60 * 60)] = '%y-%m-%d %H:%M:%S'
 
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    for stencil, q1, q2, q3 in zip(stencils, q1s, q2s, q3s):
-        ax.fill_between(dates, q1, q3, alpha=0.4)
-        ax.plot(dates, q2, 'o-', label=stencil.title())
+    colors = discrete_colors(len(data[0]))
 
-    ax.legend()
+    for color, stencil, mint, q1, q2, q3, maxt in zip(colors, *data):
+        ax.fill_between(dates, mint, maxt, alpha=0.2, color=color)
+        ax.fill_between(dates, q1, q3, alpha=0.5, color=color)
+        ax.plot(dates, q2, '|-', label=stencil.title(), color=color)
+
+    ax.legend(loc='upper left')
     fig.autofmt_xdate()
     fig.tight_layout()
 
