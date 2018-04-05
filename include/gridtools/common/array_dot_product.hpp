@@ -40,9 +40,11 @@
 
 namespace gridtools {
     namespace _impl {
-        template <typename T, typename U, size_t D, size_t ...Is>
-        GT_FUNCTION constexpr auto dot_impl(array< T, D > const& a, array< U, D > const& b, gt_integer_sequence<size_t, Is...>) -> decltype(accumulate(plus_functor{}, (a[Is]*b[Is])...)) {
-            return accumulate(plus_functor{}, (a[Is]*b[Is])...);
+        template < typename T, typename U, size_t D, size_t... Is >
+        GT_FUNCTION constexpr auto dot_impl(
+            array< T, D > const &a, array< U, D > const &b, gt_integer_sequence< size_t, Is... >)
+            -> decltype(accumulate(plus_functor{}, (a[Is] * b[Is])...)) {
+            return accumulate(plus_functor{}, (a[Is] * b[Is])...);
         }
     }
 
@@ -54,9 +56,11 @@ namespace gridtools {
      *
      * \return Value corresponding to the first array value type
      */
-    template < typename T, typename U, size_t D, typename std::enable_if< std::is_arithmetic< T >::value and std::is_arithmetic< U >::value, T >::type = 0 >
-    GT_FUNCTION constexpr T array_dot_product(array< T, D > const& a, array< U, D > const &b)
-    {
-        return _impl::dot_impl( a, b, typename make_gt_integer_sequence<size_t, D>::type{} );
+    template < typename T,
+        typename U,
+        size_t D,
+        typename std::enable_if< std::is_arithmetic< T >::value and std::is_arithmetic< U >::value, T >::type = 0 >
+    GT_FUNCTION constexpr T array_dot_product(array< T, D > const &a, array< U, D > const &b) {
+        return _impl::dot_impl(a, b, typename make_gt_integer_sequence< size_t, D >::type{});
     }
 } // namespace gridtools
