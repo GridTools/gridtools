@@ -39,7 +39,7 @@
 
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
 #include "position_offset_type.hpp"
 
@@ -68,9 +68,9 @@ namespace gridtools {
         using layout_val_t = std::integral_constant< int, layout_t::template at_unsafe< Coordinate >() >;
 
         /* check if we are at a masked-out value (-> stride == 0) */
-        using is_masked_t = meta::bool_constant< layout_val_t::value == -1 >;
+        using is_masked_t = bool_constant< layout_val_t::value == -1 >;
         /* check if we are at the maximum value (-> stride == 1) */
-        using is_max_t = meta::bool_constant< layout_max_t::value == layout_val_t::value >;
+        using is_max_t = bool_constant< layout_max_t::value == layout_val_t::value >;
 
         /* return constants for masked and max coordinates, otherwise lookup stride */
         return is_masked_t::value ? 0 : is_max_t::value ? 1 : strides[layout_val_t::value];

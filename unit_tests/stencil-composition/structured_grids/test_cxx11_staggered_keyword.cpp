@@ -76,18 +76,15 @@ namespace test_staggered_keyword {
 
         typedef arg< 0, storage_t > p_i_data;
         typedef arg< 1, storage_t > p_j_data;
-        typedef boost::mpl::vector< p_i_data, p_j_data > accessor_list;
 
-        aggregator_type< accessor_list > domain(i_data, j_data);
         auto comp = gridtools::make_computation< backend_t >(
-            domain,
             grid,
+            p_i_data() = i_data,
+            p_j_data() = j_data,
             gridtools::make_multistage(execute< forward >(),
                 gridtools::make_stage< functor, staggered< 5, 5, 5, 5 > >(p_i_data(), p_j_data())));
 
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.run();
 
         return (functor::ok_i && functor::ok_j);
     }

@@ -33,24 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-
-#include <tuple>
-
-#include <boost/fusion/include/is_sequence.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/copy.hpp>
-
-#include "defs.hpp"
-
-/**
- *   Make "default constructed" fusion sequence without NVCC warnings even if the types of in that sequence are
- *   not constructible on device.
- */
-template < typename T >
-T default_host_container() {
-    GRIDTOOLS_STATIC_ASSERT(boost::fusion::traits::is_sequence< T >::value, "T should be fusion sequence.");
-    using tuple_t = typename boost::mpl::copy< T, boost::mpl::back_inserter< std::tuple<> > >::type;
-    return tuple_t{};
-}
+#include "test_computation.cpp"

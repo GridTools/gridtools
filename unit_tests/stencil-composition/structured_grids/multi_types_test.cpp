@@ -253,18 +253,16 @@ namespace multi_types_test {
         typedef arg< 1, data_store2_t > p_field2;
         typedef arg< 2, data_store3_t > p_field3;
 
-        typedef boost::mpl::vector< p_field1, p_field2, p_field3, p_temp > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain(field1, field2, field3);
-
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
         auto grid = make_grid(di, dj, axis_t(d3));
 
         auto test_computation = gridtools::make_computation< backend_t >(
-            domain,
             grid,
+            p_field1() = field1,
+            p_field2() = field2,
+            p_field3() = field3,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< function1 >(p_temp(), p_field1()),
@@ -274,13 +272,9 @@ namespace multi_types_test {
                 gridtools::make_stage< function1 >(p_temp(), p_field1()),
                 gridtools::make_stage< function3 >(p_field3(), p_temp(), p_field1())));
 
-        test_computation->ready();
+        test_computation.run();
 
-        test_computation->steady();
-
-        test_computation->run();
-
-        test_computation->finalize();
+        test_computation.sync_all();
 
         auto f1v = make_host_view(field1);
         auto f2v = make_host_view(field2);

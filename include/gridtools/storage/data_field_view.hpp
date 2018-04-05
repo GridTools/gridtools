@@ -72,11 +72,6 @@ namespace gridtools {
         bool m_device_view;
 
         /**
-         * @brief data_field_view constructor
-         */
-        data_field_view() {}
-
-        /**
          * @brief data_field_view constructor. This constructor is normally not called by the user because it is more
          * convenient to use the provided make functions.
          * @param data_ptrs list of pointers to the data
@@ -151,4 +146,9 @@ namespace gridtools {
 
     template < typename T, access_mode AccessMode >
     struct is_data_field_view< data_field_view< T, AccessMode > > : boost::mpl::true_ {};
+
+    namespace advanced {
+        template < typename T, access_mode AccessMode >
+        auto storage_info_ptr(data_field_view< T, AccessMode > const &src) GT_AUTO_RETURN(src.m_storage_infos[0]);
+    }
 }

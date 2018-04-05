@@ -76,9 +76,8 @@ namespace gridtools {
             typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-
+            static void run(
+                LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 boost::mpl::for_each< iter_range >(mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
@@ -102,10 +101,6 @@ namespace gridtools {
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_host &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
                     typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
@@ -117,7 +112,7 @@ namespace gridtools {
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
-                kernel_functor_executor_t(local_domain, grid, reduction_data)();
+                kernel_functor_executor_t(local_domain, grid.origin(), reduction_data)();
             }
         };
     };
@@ -148,9 +143,12 @@ namespace gridtools {
 
             typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value > iter_range;
 
-            template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+            template < typename LocalDomainListArray, typename GridHolder >
+            static void run(LocalDomainListArray const &local_domain_lists,
+                const GridHolder &grid_holder,
+                ReductionData &reduction_data) {
+                const auto &grid = grid_holder.origin();
+                GRIDTOOLS_STATIC_ASSERT((is_grid< decay_t< decltype(grid) > >::value), GT_INTERNAL_ERROR);
 
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
@@ -164,11 +162,11 @@ namespace gridtools {
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
                             boost::mpl::for_each< iter_range >(mss_functor< MssComponents,
-                                Grid,
+                                GridHolder,
                                 LocalDomainListArray,
                                 BackendIds,
                                 ReductionData,
-                                execution_info_host >(local_domain_lists, grid, reduction_data, {bi, bj}));
+                                execution_info_host >(local_domain_lists, grid_holder, reduction_data, {bi, bj}));
                         }
                     }
                 }
@@ -186,13 +184,14 @@ namespace gridtools {
 
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template < typename LocalDomain, typename GridHolder, typename ReductionData >
             static void run(const LocalDomain &local_domain,
-                const Grid &grid,
+                const GridHolder &grid_holder,
                 ReductionData &reduction_data,
                 const execution_info_host &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                const auto &grid = grid_holder.origin();
+                GRIDTOOLS_STATIC_ASSERT((is_grid< decay_t< decltype(grid) > >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;

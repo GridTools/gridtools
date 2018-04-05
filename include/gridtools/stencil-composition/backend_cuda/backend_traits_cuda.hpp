@@ -37,6 +37,7 @@
 #include <boost/mpl/for_each.hpp>
 
 #include "../../common/numerics.hpp"
+#include "../../common/gpu_clone.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
@@ -63,16 +64,8 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
 
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of CUDA we have to retrieve the GPU pointer.
-        */
-        struct extract_storage_info_ptr_f {
-            template < typename StorageInfo >
-            StorageInfo const *operator()(StorageInfo const *t) {
-                GRIDTOOLS_STATIC_ASSERT(is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR);
-                return t->get_gpu_ptr();
-            }
-        };
+        template < class T >
+        using clone_holder = gpu_clone_holder< T >;
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
@@ -186,14 +179,6 @@ namespace gridtools {
             return StorageInfo::get_initial_offset();
         }
 
-        struct setup_grid_f {
-            template < typename Grid >
-            void operator()(Grid const &grid) const {
-                GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
-                grid.clone_to_device();
-            }
-        };
-
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
@@ -204,12 +189,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             template < typename LocalDomain, typename Grid, typename ReductionData >
-            static void run(LocalDomain &local_domain,
-                const Grid &grid,
-                ReductionData &reduction_data,
-                const execution_info_cuda &execution_info) {
+            static void run(LocalDomain &local_domain, const Grid &grid, ReductionData &, const execution_info_cuda &) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
@@ -217,7 +198,7 @@ namespace gridtools {
 
                 typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
                     kernel_functor_executor_t;
-                kernel_functor_executor_t(local_domain, grid)();
+                kernel_functor_executor_t{}(local_domain, grid);
             }
         };
 

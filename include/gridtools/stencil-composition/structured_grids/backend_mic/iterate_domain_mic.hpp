@@ -218,7 +218,7 @@ namespace gridtools {
         /** @brief Returns the current data index at offset (0, 0, 0) per meta storage. */
         GT_FUNCTION array_index_t index() const {
             array_index_t index_array;
-            gridtools::for_each< meta::make_indices< N_META_STORAGES > >(index_getter(*this, index_array));
+            gridtools::for_each< GT_META_CALL(meta::make_indices, N_META_STORAGES) >(index_getter(*this, index_array));
             return index_array;
         }
 

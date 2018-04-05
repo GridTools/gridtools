@@ -50,6 +50,7 @@
 #include "grid_traits.hpp"
 #include "computation.hpp"
 #include "storage_info_extender.hpp"
+#include "caches/define_caches.hpp"
 
 #ifndef STRUCTURED_GRIDS
 #include "icosahedral_grids/grid.hpp"

@@ -34,16 +34,92 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../gridtools.hpp"
+
+#include <cstdio>
+#include <type_traits>
+
+#include "host_device.hpp"
+#include "defs.hpp"
+#include "gt_assert.hpp"
 
 /**
 @file
-@brief implements a class to copy to and from GPU objects using the CRTP pattern
+@brief implements a class to copy to and from GPU objects
 */
 
 namespace gridtools {
 
-#if defined(_USE_GPU_) || defined(__CUDACC__)
+    template < class T >
+    struct is_gpu_cloneable : std::is_trivially_copyable< T > {};
+
+#if defined(__CUDACC__)
+
+    template < class T >
+    class gpu_clone_ptr {
+        GRIDTOOLS_STATIC_ASSERT(is_gpu_cloneable< T >::value, GT_INTERNAL_ERROR);
+
+        T *m_ptr;
+
+      public:
+        gpu_clone_ptr(T const &src) {
+            CHECK_CUDA_ERROR(cudaMalloc(&m_ptr, sizeof(T)));
+            try {
+                CHECK_CUDA_ERROR(cudaMemcpy(m_ptr, &src, sizeof(T), cudaMemcpyHostToDevice));
+            } catch (...) {
+                cudaFree(m_ptr);
+                throw;
+            }
+        }
+        gpu_clone_ptr(gpu_clone_ptr &&src) noexcept {
+            m_ptr = src.m_ptr;
+            src.m_ptr = nullptr;
+        }
+        ~gpu_clone_ptr() {
+            if (m_ptr)
+                cudaFree(m_ptr);
+        }
+        gpu_clone_ptr &operator=(T const &src) {
+            CHECK_CUDA_ERROR(cudaMemcpy(m_ptr, &src, sizeof(T), cudaMemcpyHostToDevice));
+            return *this;
+        }
+        gpu_clone_ptr &operator=(gpu_clone_ptr &&src) {
+            if (m_ptr)
+                cudaFree(m_ptr);
+            m_ptr = src.m_ptr;
+            src.m_ptr = nullptr;
+            return *this;
+        }
+
+        T *get() const { return m_ptr; }
+    };
+
+    template < class T >
+    class gpu_clone_holder {
+        T m_origin;
+        mutable gpu_clone_ptr< T > m_gpu_clone_ptr;
+        mutable bool m_dirty = false;
+
+      public:
+        using value_type = T;
+
+        gpu_clone_holder(T const &src) : m_origin(src), m_gpu_clone_ptr(m_origin) {}
+        gpu_clone_holder(T &&src) : m_origin(std::move(src)), m_gpu_clone_ptr(m_origin) {}
+
+        const T &corigin() const { return m_origin; }
+        const T &origin() const { return m_origin; }
+        T &origin() {
+            m_dirty = true;
+            return m_origin;
+        }
+
+        T const *clone() const {
+            if (m_dirty) {
+                m_gpu_clone_ptr = m_origin;
+                m_dirty = false;
+            }
+            return m_gpu_clone_ptr.get();
+        }
+    };
 
     /**
        @brief this struct is necessary because otherwise the object would be copied to a temporary storage on the GPU
@@ -83,7 +159,6 @@ namespace gridtools {
     */
     template < typename DerivedType >
     struct clonable_to_gpu {
-        typedef boost::true_type actually_clonable;
         typedef DerivedType derived_type;
         derived_type *gpu_object_ptr;
 
@@ -105,17 +180,31 @@ namespace gridtools {
 #else
     template < typename DerivedType >
     struct clonable_to_gpu {
-        typedef boost::false_type actually_clonable;
         void clone_to_device() const {}
         void clone_from_device() const {}
     };
+
+    template < class T >
+    class gpu_clone_holder {
+        T m_origin;
+
+      public:
+        gpu_clone_holder(T const &src) : m_origin(src) {}
+        gpu_clone_holder(T &&src) : m_origin(std::move(src)) {}
+
+        const T &corigin() const { return m_origin; }
+        const T &origin() const { return m_origin; }
+        T &origin() { return m_origin; }
+        T const *clone_ptr() const { return &m_origin; }
+    };
+
 #endif
 
 #ifdef __CUDACC__
     template < typename T >
     GT_FUNCTION clonable_to_gpu< T >::clonable_to_gpu() {
 #ifndef __CUDA_ARCH__
-        cudaMalloc(&gpu_object_ptr, sizeof(clonable_to_gpu< T >::derived_type));
+        cudaMalloc(&gpu_object_ptr, sizeof(derived_type));
 #endif
     }
 
@@ -140,8 +229,8 @@ namespace gridtools {
 #ifndef NDEBUG
         cudaError_t error = cudaGetLastError();
         if (error != cudaSuccess) {
-            fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
-            exit(-1);
+            std::fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+            std::exit(-1);
         }
 #endif
     }

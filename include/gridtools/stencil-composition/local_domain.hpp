@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <iostream>
+
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/zip.hpp>
@@ -46,7 +48,6 @@
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/sort.hpp>
 #include <boost/utility.hpp>
-#include <iosfwd>
 
 #include "../common/gt_assert.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"

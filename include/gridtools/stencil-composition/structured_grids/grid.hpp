@@ -39,7 +39,7 @@
 namespace gridtools {
 
     template < typename Axis >
-    struct grid : public clonable_to_gpu< grid< Axis > >, public grid_base< Axis > {
+    struct grid : grid_base< Axis > {
         using this_type = grid< Axis >;
         using base_type = grid_base< Axis >;
         static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
@@ -54,8 +54,6 @@ namespace gridtools {
             halo_descriptor const &direction_j,
             const decltype(base_type::value_list) &value_list)
             : base_type(direction_i, direction_j, value_list) {}
-
-        GT_FUNCTION grid(const this_type &other) : base_type(other) {}
 
         DEPRECATED_REASON(GT_FUNCTION explicit grid(uint_t *i, uint_t *j), "Use constructor with halo_descriptors")
             : base_type(i, j) {}

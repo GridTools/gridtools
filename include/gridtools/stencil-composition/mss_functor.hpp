@@ -105,7 +105,7 @@ namespace gridtools {
     struct mss_functor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< typename Grid::value_type >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
@@ -132,13 +132,15 @@ namespace gridtools {
         };
 
       private:
-        MssLocalDomainArray &m_local_domain_lists;
+        MssLocalDomainArray const &m_local_domain_lists;
         const Grid &m_grid;
         ReductionData &m_reduction_data;
         const ExecutionInfo m_execution_info;
 
+        using grid_t = typename Grid::value_type;
+
       public:
-        mss_functor(MssLocalDomainArray &local_domain_lists,
+        mss_functor(MssLocalDomainArray const &local_domain_lists,
             const Grid &grid,
             ReductionData &reduction_data,
             const ExecutionInfo &execution_info)
@@ -175,7 +177,7 @@ namespace gridtools {
 
             typedef typename mss_components_t::execution_engine_t ExecutionEngine;
 
-            typedef typename mss_loop_intervals< mss_components_t, Grid >::type
+            typedef typename mss_loop_intervals< mss_components_t, grid_t >::type
                 LoopIntervals; // List of intervals on which functors are defined
             // wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<
@@ -189,7 +191,7 @@ namespace gridtools {
             // computed extent sizes to know where to compute functot at<i>
             typedef typename mss_components_t::extent_sizes_t extent_sizes;
             // Map between interval and actual arguments to pass to Do methods
-            typedef typename mss_functor_do_method_lookup_maps< mss_components_t, Grid >::type functors_map_t;
+            typedef typename mss_functor_do_method_lookup_maps< mss_components_t, grid_t >::type functors_map_t;
 
             typedef backend_traits_from_id< BackendIds::s_backend_id > backend_traits_t;
 
@@ -273,7 +275,7 @@ namespace gridtools {
                 local_domain_t,
                 typename mss_components_t::cache_sequence_t,
                 async_esf_map_t,
-                Grid,
+                grid_t,
                 ExecutionEngine,
                 typename mss_components_is_reduction< mss_components_t >::type,
                 ReductionData,

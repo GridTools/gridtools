@@ -103,22 +103,17 @@ namespace test_expandable_parameters_icosahedral {
         using p_list_out = arg< 0, std::vector< decltype(storage1) >, enumtype::cells >;
         using p_list_in = arg< 1, std::vector< decltype(storage10) >, enumtype::cells >;
 
-        typedef boost::mpl::vector< p_list_out, p_list_in > args_t;
-
-        aggregator_type< args_t > domain_(list_out_, list_in_);
-
         auto comp_ = make_computation< backend_t >(
             expand_factor< 2 >(),
-            domain_,
             grid_,
+            p_list_out{} = list_out_,
+            p_list_in{} = list_in_,
             make_multistage(enumtype::execute< enumtype::forward >(),
                 make_stage< functor_exp, icosahedral_topology_t, icosahedral_topology_t::cells >(
                                 p_list_out(), p_list_in())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.run();
+        comp_.sync_all();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

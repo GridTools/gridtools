@@ -98,7 +98,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                using iter_range = meta::make_indices< boost::mpl::size< MssComponents >::value >;
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
@@ -139,7 +139,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                using iter_range = meta::make_indices< boost::mpl::size< MssComponents >::value >;
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,

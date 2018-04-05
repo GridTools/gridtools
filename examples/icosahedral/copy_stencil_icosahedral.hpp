@@ -88,20 +88,15 @@ namespace test_copy_stencil_icosahedral {
         using p_out = arg< 0, decltype(storage1), enumtype::cells >;
         using p_in = arg< 1, decltype(storage10), enumtype::cells >;
 
-        typedef boost::mpl::vector< p_out, p_in > args_t;
-
-        aggregator_type< args_t > domain_(storage1, storage10);
-
         auto comp_ = make_computation< backend_t >(
-            domain_,
             grid_,
+            p_out() = storage1,
+            p_in() = storage10,
             make_multistage(enumtype::execute< enumtype::forward >(),
                 make_stage< functor_copy, icosahedral_topology_t, icosahedral_topology_t::cells >(p_out(), p_in())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.run();
+        comp_.sync_all();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

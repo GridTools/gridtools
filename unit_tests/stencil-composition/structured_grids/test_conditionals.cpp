@@ -70,25 +70,18 @@ namespace test_conditionals {
         data_store_t dummy(meta_data_, 0.);
         typedef arg< 0, data_store_t > p_dummy;
 
-        typedef boost::mpl::vector1< p_dummy > arg_list;
-        aggregator_type< arg_list > domain_(dummy);
-
         auto comp_ = make_computation< backend_t >(
-            domain_,
             grid_,
+            p_dummy() = dummy,
             if_(cond,
                 make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
                 if_(cond2,
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
-        bool result = true;
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
-        result = result && (make_host_view(dummy)(0, 0, 0) == 1);
-        return result;
+        comp_.run();
+        comp_.sync_all();
+        return make_host_view(dummy)(0, 0, 0) == 1;
     }
 } // namespace test_conditional
 

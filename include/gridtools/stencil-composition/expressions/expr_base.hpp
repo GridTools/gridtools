@@ -37,7 +37,9 @@
 
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../accessor_fwd.hpp"
 #include "../global_accessor_fwd.hpp"
 
@@ -64,29 +66,28 @@ namespace gridtools {
 
     namespace expressions {
 
-        template < class Arg >
-        using expr_or_accessor = std::integral_constant< bool,
-            meta::is_instantiation_of< expr >::apply< Arg >::value || is_accessor< Arg >::value ||
-                is_global_accessor< Arg >::value || is_global_accessor_with_arguments< Arg >::value >;
+        template < class >
+        struct is_expr : std::false_type {};
+        template < class... Ts >
+        struct is_expr< expr< Ts... > > : std::true_type {};
 
-        template < class Op,
-            class... Args,
-            typename std::enable_if< meta::disjunction< expr_or_accessor< Args >... >::value, int >::type = 0 >
+        template < class Arg >
+        using expr_or_accessor =
+            bool_constant< is_expr< Arg >::value || is_accessor< Arg >::value || is_global_accessor< Arg >::value ||
+                           is_global_accessor_with_arguments< Arg >::value >;
+
+        template < class Op, class... Args, enable_if_t< disjunction< expr_or_accessor< Args >... >::value, int > = 0 >
         GT_FUNCTION constexpr expr< Op, Args... > make_expr(Op, Args... args) {
             return {args...};
         }
 
         namespace evaluation {
-            template < class Eval,
-                class Arg,
-                typename std::enable_if< std::is_arithmetic< Arg >::value, int >::type = 0 >
+            template < class Eval, class Arg, enable_if_t< std::is_arithmetic< Arg >::value, int > = 0 >
             GT_FUNCTION constexpr Arg apply_eval(Eval &, Arg arg) {
                 return arg;
             }
 
-            template < class Eval,
-                class Arg,
-                typename std::enable_if< !std::is_arithmetic< Arg >::value, int >::type = 0 >
+            template < class Eval, class Arg, enable_if_t< !std::is_arithmetic< Arg >::value, int > = 0 >
             GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
 
             template < class Eval, class Op, class Arg >

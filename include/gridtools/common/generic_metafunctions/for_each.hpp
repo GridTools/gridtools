@@ -49,12 +49,29 @@ namespace gridtools {
                 (void)(int[]){((void)fun(Ts{}), 0)...};
             }
         };
+
+        template < class List >
+        struct host_for_each_f;
+
+        template < template < class... > class L, class... Ts >
+        struct host_for_each_f< L< Ts... > > {
+            template < class Fun >
+            void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
     }
 
     /// Calls fun(T{}) for each element of the type list List.
     template < class List, class Fun >
     GT_FUNCTION Fun for_each(Fun const &fun) {
         _impl::for_each_f< List >{}(fun);
+        return fun;
+    };
+
+    template < class List, class Fun >
+    Fun host_for_each(Fun const &fun) {
+        _impl::host_for_each_f< List >{}(fun);
         return fun;
     };
 }

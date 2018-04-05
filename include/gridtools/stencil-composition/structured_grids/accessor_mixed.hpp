@@ -77,12 +77,12 @@ namespace gridtools {
         using offset_map_t = meta::list< meta::list< key_t< Base::n_dimensions - Inxs >, val_t< Vals > >... >;
 
         template < int_t I >
-        using find_t = meta::mp_find< offset_map_t, key_t< I > >;
+        using find_t = GT_META_CALL(meta::mp_find, (offset_map_t, key_t< I >));
 
       public:
         template < ushort_t I, class Found = find_t< I > >
         GT_FUNCTION constexpr typename std::enable_if< !std::is_void< Found >::value, int_t >::type get() const {
-            return meta::second< Found >::value;
+            return meta::lazy::second< Found >::type::value;
         }
         template < ushort_t I, class Found = find_t< I > >
         GT_FUNCTION constexpr typename std::enable_if< std::is_void< Found >::value, int_t >::type get() const {

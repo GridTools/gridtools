@@ -34,13 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <memory>
 #include <type_traits>
 #include <utility>
 
-#include <boost/fusion/include/make_vector.hpp>
-
 #include "../common/defs.hpp"
+#include "../common/split_args.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+#include "grid.hpp"
 #include "expandable_parameters/expand_factor.hpp"
 #include "expandable_parameters/intermediate_expand.hpp"
 #include "intermediate.hpp"
@@ -48,69 +49,79 @@
 namespace gridtools {
     namespace _impl {
 
-        template < bool Positional,
-            typename Backend,
-            typename Domain,
-            typename Grid,
-            typename... MssDescriptorTrees,
-            typename Res = intermediate< 1,
-                Positional,
-                Backend,
-                typename std::decay< Domain >::type,
-                Grid,
-                typename std::decay< MssDescriptorTrees >::type... > >
-        std::shared_ptr< Res > make_computation(
-            Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return std::make_shared< Res >(
-                std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...);
-        }
+#if GT_BROKEN_TEMPLATE_ALIASES
+        template < class List >
+        struct decay_elements : meta::transform< std::decay, List > {};
+#else
+        template < class List >
+        using decay_elements = meta::transform< decay_t, List >;
+#endif
 
-        template < typename Expand,
-            bool Positional,
-            typename Backend,
-            typename Domain,
-            typename Grid,
-            typename... MssDescriptorTrees,
-            typename Res = intermediate_expand< Expand,
-                Positional,
-                Backend,
-                typename std::decay< Domain >::type,
-                Grid,
-                typename std::decay< MssDescriptorTrees >::type... > >
-        std::shared_ptr< Res > make_computation_expandable(
-            Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return std::make_shared< Res >(
-                std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...);
-        }
+        template < template < uint_t, bool, class, class, class, class > class Intermediate,
+            uint_t Factor,
+            bool IsStateful,
+            class Backend >
+        struct make_intermediate_f {
+            template < class Grid,
+                class... Args,
+                class ArgsPair = decltype(
+                    split_args< is_arg_storage_pair >(std::forward< Args >(std::declval< Args >())...)),
+                class ArgStoragePairs = GT_META_CALL(decay_elements, typename ArgsPair::first_type),
+                class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type) >
+            Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > operator()(
+                Grid const &grid, Args &&... args) const {
+                auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
+                return {grid, std::move(args_pair.first), std::move(args_pair.second)};
+            }
+        };
 
         template < bool Positional,
-            typename Backend,
-            typename Arg,
-            typename... Args,
-            typename std::enable_if< is_aggregator_type< typename std::decay< Arg >::type >::value, int >::type = 0 >
-        auto make_computation_dispatch(Arg &&arg, Args &&... args) GT_AUTO_RETURN(
-            (make_computation< Positional, Backend >(std::forward< Arg >(arg), std::forward< Args >(args)...)));
+            class Backend,
+            class Grid,
+            class... Args,
+            class Delegate = make_intermediate_f< intermediate, 1, Positional, Backend >,
+            enable_if_t< is_grid< Grid >::value, int > = 0 >
+        auto make_computation_dispatch(Grid const &grid, Args &&... args)
+            GT_AUTO_RETURN((Delegate{}(grid, std::forward< Args >(args)...)));
 
         template < bool Positional,
-            typename Backend,
-            typename Arg,
-            typename... Args,
-            typename std::enable_if< is_expand_factor< Arg >::value, int >::type = 0 >
-        auto make_computation_dispatch(Arg, Args &&... args)
-            GT_AUTO_RETURN((make_computation_expandable< Arg, Positional, Backend >(std::forward< Args >(args)...)));
+            class Backend,
+            class ExpandFactor,
+            class Grid,
+            class... Args,
+            class Delegate = make_intermediate_f< intermediate_expand, ExpandFactor::value, Positional, Backend >,
+            enable_if_t< is_expand_factor< ExpandFactor >::value, int > = 0 >
+        auto make_computation_dispatch(ExpandFactor, Grid const &grid, Args &&... args)
+            GT_AUTO_RETURN((Delegate{}(grid, std::forward< Args >(args)...)));
 
         // user protections
-        template < bool, typename, typename... Args >
-        void make_computation_dispatch(Args &&...) {
+        template < bool,
+            class,
+            class Arg,
+            class... Args,
+            enable_if_t< !is_grid< Arg >::value && !is_expand_factor< Arg >::value, int > = 0 >
+        void make_computation_dispatch(Arg const &, Args &&...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) < 0, "The computation is malformed");
         }
     }
 
-    template < typename Backend, typename... Args >
-    auto make_computation(Args &&... args) GT_AUTO_RETURN(
-        (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(std::forward< Args >(args)...)));
+#ifndef NDEBUG
+#define POSITIONAL_WHEN_DEBUGGING true
+#ifndef SUPPRESS_MESSAGES
+#pragma message( \
+    ">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
+#endif
+#else
+#define POSITIONAL_WHEN_DEBUGGING false
+#endif
 
-    template < typename Backend, typename... Args >
-    auto make_positional_computation(Args &&... args)
-        GT_AUTO_RETURN((_impl::make_computation_dispatch< true, Backend >(std::forward< Args >(args)...)));
+    template < class Backend, class Arg, class... Args >
+    auto make_computation(Arg const &arg, Args &&... args) GT_AUTO_RETURN(
+        (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(arg, std::forward< Args >(args)...)));
+
+#undef POSITIONAL_WHEN_DEBUGGING
+
+    template < class Backend, class Arg, class... Args >
+    auto make_positional_computation(Arg const &arg, Args &&... args)
+        GT_AUTO_RETURN((_impl::make_computation_dispatch< true, Backend >(arg, std::forward< Args >(args)...)));
 }

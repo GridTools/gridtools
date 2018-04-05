@@ -103,24 +103,16 @@ namespace copy_stencils_3D_2D_1D_0D {
         typedef arg< 0, src_storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain(in, out);
-
         auto grid_ = make_grid(d1, d2, d3);
 
-        auto copy = gridtools::make_computation< backend_t >(domain,
-            grid_,
-            gridtools::make_multistage                                                    // mss_descriptor
-            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
-                                                                 ));
+        auto copy = gridtools::make_computation< backend_t >(grid_,
+            p_in() = in,
+            p_out() = out,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
-        copy->ready();
-        copy->steady();
+        copy.run();
 
-        copy->run();
-
-        copy->finalize();
+        copy.sync_all();
 
         bool ok = true;
         auto outv = make_host_view(out);

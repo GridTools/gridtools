@@ -34,34 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
-#include <type_traits>
-#include <utility>
-
-#include <boost/fusion/include/filter_view.hpp>
-#include <boost/fusion/include/joint_view.hpp>
-#include <boost/fusion/include/zip_view.hpp>
-
-namespace gridtools {
-
-    /**
-     *  Here go generators for the fusion views that do the right C++11 perfect forwarding.
-     */
-
-    template < typename Lhs, typename Rhs >
-    boost::fusion::joint_view< typename std::remove_reference< Lhs >::type,
-        typename std::remove_reference< Rhs >::type >
-    make_joint_view(Lhs &&lhs, Rhs &&rhs) {
-        return {lhs, rhs};
-    }
-
-    template < typename Pred, typename Sec >
-    static boost::fusion::filter_view< typename std::remove_reference< Sec >::type, Pred > make_filter_view(Sec &&sec) {
-        return {std::forward< Sec >(sec)};
-    };
-
-    template < typename Secs >
-    static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
-        return {std::forward< Secs >(secs)};
-    };
-}
+#include "test_tuple_util.cpp"

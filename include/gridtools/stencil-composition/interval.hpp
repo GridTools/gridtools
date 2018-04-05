@@ -45,7 +45,7 @@
 #include "level_metafunctions.hpp"
 #include "../common/host_device.hpp"
 #include "../common/gt_assert.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "sfinae.hpp"
 
 namespace gridtools {
@@ -65,12 +65,12 @@ namespace gridtools {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
         GT_FUNCTION
-        interval(){};
+        interval() {}
 
-        interval(sfinae::_impl::dummy_type) { assert(false); } // using this just for SFINAE
+        interval(sfinae::_impl::dummy_type); // using this just for SFINAE
 
         GT_FUNCTION
-        interval(TFromLevel){};
+        interval(TFromLevel) {}
 
         static void static_info() {
             printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);
@@ -161,7 +161,7 @@ namespace gridtools {
     namespace _impl {
         template < typename... Intervals >
         struct join_interval {
-            GRIDTOOLS_STATIC_ASSERT((meta::conjunction< is_interval< Intervals >... >::value),
+            GRIDTOOLS_STATIC_ASSERT((conjunction< is_interval< Intervals >... >::value),
                 GT_INTERNAL_ERROR_MSG("Expected all types to be intervals."));
             using from_levels_vector = sort_levels< typename Intervals::FromLevel... >;
             using to_levels_vector = sort_levels< typename Intervals::ToLevel... >;

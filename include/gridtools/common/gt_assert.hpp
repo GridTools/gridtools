@@ -35,8 +35,12 @@
 */
 #pragma once
 #include <stdexcept>
+#include <strstream>
 
 #ifdef __CUDACC__
+
+#include <cuda_runtime.h>
+
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
 // we take the cuda assert for arch greater than 2.x
 #include <assert.h>
@@ -48,10 +52,38 @@
 #include <cassert>
 #endif
 
+namespace gridtools {
+    namespace _impl {
+        template < class T >
+        void do_throw(T const &msg, const char *fun, const char *file, size_t line, const char *cond) {
+            std::ostringstream strm;
+            strm << "in function \"" << fun << "\" [" << file << ":" << line << "] condition \"" << cond
+                 << "\" failed with message: " << msg;
+            throw std::runtime_error(strm.str());
+        }
+    }
+}
+
 #ifdef __CUDA_ARCH__
 #define ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
 #define ASSERT_OR_THROW(cond, msg) \
     if (!cond)                     \
-    throw std::runtime_error(msg)
+        ::gridtools::_impl::do_throw(msg, __func__, __FILE__, __LINE__, #cond);
+#endif
+
+#ifdef __CUDACC__
+
+namespace gridtools {
+    namespace _impl {
+        std::string cuda_error_msg(cudaError_t err) {
+            std::ostringstream strm;
+            strm << "CUDA error: " << cudaGetErrorName(err) << "(" << cudaGetErrorString(err) << ")";
+            return strm.str();
+        }
+    }
+}
+
+#define CHECK_CUDA_ERROR(err) ASSERT_OR_THROW((err) == cudaSuccess, ::gridtools::_impl::cuda_error_msg(err))
+
 #endif

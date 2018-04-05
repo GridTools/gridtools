@@ -37,6 +37,7 @@
 
 #include <utility>
 
+#include "../../common/fake_clone.hpp"
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
@@ -65,10 +66,8 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Host > {
 
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of Host backend we have to return the CPU pointer.
-        */
-        using extract_storage_info_ptr_f = identity;
+        template < class T >
+        using clone_holder = fake_clone_holder< T >;
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
@@ -166,8 +165,6 @@ namespace gridtools {
             return StorageInfo::get_initial_offset();
         }
 
-        using setup_grid_f = noop;
-
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
@@ -183,10 +180,6 @@ namespace gridtools {
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_host &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-
                 // each strategy executes a different high level loop for a mss
                 strategy_from_id_host< backend_ids_t::s_strategy_id >::template mss_loop<
                     RunFunctorArgs >::template run(local_domain, grid, reduction_data, execution_info);

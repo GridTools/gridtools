@@ -46,14 +46,11 @@ namespace gridtools {
     */
     template < typename TimerImpl >
     class timer {
-        DISALLOW_COPY_AND_ASSIGN(timer);
-
       protected:
         GT_FUNCTION_HOST timer(std::string name) {
             m_name = name;
             reset();
         }
-        GT_FUNCTION_HOST ~timer() {}
 
       public:
         /**
