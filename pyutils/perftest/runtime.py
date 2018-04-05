@@ -183,5 +183,5 @@ class GridtoolsRuntime(Runtime):
         binary = self.binary(stencil)
         ni, nj, nk = domain
         halo = stencil.halo
-        ni, nj, nk = ni + 2 * halo, nj + 2 * halo, nk + 2 * halo
+        ni, nj = ni + 2 * halo, nj + 2 * halo
         return f'{binary} {ni} {nj} {nk} 10'
