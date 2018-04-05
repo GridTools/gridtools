@@ -92,7 +92,7 @@ TEST_F(kcachef, fill_and_flush_forward) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
             for (uint_t k = 1; k < m_d3; ++k) {
-                m_refv(i, j, k) = m_inv(i, j, k) + m_refv(i, j, k-1);
+                m_refv(i, j, k) = m_inv(i, j, k) + m_refv(i, j, k - 1);
             }
         }
     }
@@ -147,8 +147,7 @@ TEST_F(kcachef, fill_and_flush_backward) {
     auto kcache_stencil = gridtools::make_computation< backend_t >(
         domain,
         m_grid,
-        gridtools::make_multistage
-        (execute< backward >(),
+        gridtools::make_multistage(execute< backward >(),
             define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
             gridtools::make_stage< shift_acc_backward_fill_and_flush >(p_in())));
 
@@ -185,13 +184,12 @@ TEST_F(kcachef, fill_copy_forward) {
     typedef boost::mpl::vector< p_in > accessor_list;
     gridtools::aggregator_type< accessor_list > domain((p_in() = m_in));
 
-    auto kcache_stencil =
-        gridtools::make_computation< backend_t >(domain,
-            m_grid,
-            gridtools::make_multistage
-            (execute< forward >(),
-                                                     define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
-                                                     gridtools::make_stage< copy_fill >(p_in())));
+    auto kcache_stencil = gridtools::make_computation< backend_t >(
+        domain,
+        m_grid,
+        gridtools::make_multistage(execute< forward >(),
+            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
+            gridtools::make_stage< copy_fill >(p_in())));
 
     kcache_stencil->ready();
 
