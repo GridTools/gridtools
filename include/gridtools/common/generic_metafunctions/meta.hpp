@@ -37,7 +37,7 @@
 
 /**
  *  @file
- *  Minimalistic C++11 metaprogramming library.
+ *  C++11 metaprogramming library.
  *
  *  Basic Concepts
  *  ==============
@@ -54,11 +54,11 @@
  *  Examples of non lists:
  *    std::array<N, double> : first template argument is not a class
  *    int : is not the instantiation of template
- *    struct foo; is not an instantiation of template;
+ *    struct foo; is not an instantiation of template
  *
  *  Function
  *  --------
- *  A template class or alias with class template parameters.
+ *  A template class or an alias with class template parameters.
  *  Note the difference with MPL approach: function is not required to have `type` inner alias.
  *  Functions that have `type` inside are called lazy functions in the context of this library.
  *  The function arguments are the actual parameters of the instantiation: Arg1, Arg2 etc. in F<Arg1, Arg2 etc.>
