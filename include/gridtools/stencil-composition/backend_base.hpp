@@ -49,7 +49,6 @@
 #include "./backend_mic/backend_mic.hpp"
 #include "./backend_host/backend_host.hpp"
 
-#include "../common/pair.hpp"
 #include "./accessor.hpp"
 #include "./aggregator_type.hpp"
 #include "./intermediate_impl.hpp"

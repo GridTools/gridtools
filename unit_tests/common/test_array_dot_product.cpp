@@ -33,25 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/array_dot_product.hpp"
 
-#pragma once
-#include <type_traits>
+using namespace gridtools;
 
-/**
- * Compare 2 types for equality. Will produce a readable error message (hopefully).
- */
-template < typename expected, typename actual__, typename Enable = void >
-struct ASSERT_TYPE_EQ {
-    static_assert(sizeof(expected) >= 0, "forces template instantiation");
-    static_assert(sizeof(actual__) >= 0, "forces template instantiation");
-};
-template < typename expected, typename actual__ >
-struct ASSERT_TYPE_EQ< expected,
-    actual__,
-    typename std::enable_if< !std::is_same< expected, actual__ >::value >::type > {
-    typename expected::expected_type see_expected_type_above;
-    typename actual__::actual_type__ see_actual___type_above;
-    static_assert(std::is_same< expected, actual__ >::value, "TYPES DON'T MATCH (see types above)");
-    static_assert(sizeof(expected) >= 0, "forces template instantiation");
-    static_assert(sizeof(actual__) >= 0, "forces template instantiation");
-};
+TEST(array_dot_product, test_dot_product) {
+    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
+    constexpr array< uint_t, 4 > b{1, 2, 3, 4};
+
+    static_assert(array_dot_product(a,b) == 1+2*2+3*3+4*4, " ");
+    ASSERT_EQ(array_dot_product(a,b), 1+2*2+3*3+4*4);
+}
