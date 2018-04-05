@@ -34,13 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../../../common/cuda_util.hpp"
+#include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../iterate_domain.hpp"
-
 namespace gridtools {
 
     namespace _impl_iccuda {
@@ -51,15 +53,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template < typename RunFunctorArguments, typename LocalDomain >
-        __global__ void do_it_on_gpu(LocalDomain const *RESTRICT l_domain,
-            typename RunFunctorArguments::grid_t const *grid,
-            const int starti,
-            const int startj,
-            const uint_t nx,
-            const uint_t ny) {
+        template < typename RunFunctorArguments >
+        __device__ void do_it_on_gpu_impl(typename RunFunctorArguments::local_domain_t const &l_domain,
+            typename RunFunctorArguments::grid_t const &grid) {
 
-            assert(l_domain);
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
@@ -78,6 +75,9 @@ namespace gridtools {
                 max_extent_t,
                 typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
+            const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
+            const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
+
             const uint_t block_size_i = (blockIdx.x + 1) * block_size_t::i_size_t::value < nx
                                             ? block_size_t::i_size_t::value
                                             : nx - blockIdx.x * block_size_t::i_size_t::value;
@@ -88,7 +88,7 @@ namespace gridtools {
             __shared__ shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the ierate domain and assignment of pointers and strides
-            iterate_domain_t it_domain(*l_domain, grid->grid_topology(), block_size_i, block_size_j);
+            iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
@@ -176,12 +176,12 @@ namespace gridtools {
 
             // initialize the i index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                i + starti, blockIdx.x);
+                i + grid.i_low_bound(), blockIdx.x);
             // initialize to color 0
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0, 0);
             // initialize the j index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                j + startj, blockIdx.y);
+                j + grid.j_low_bound(), blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -194,12 +194,27 @@ namespace gridtools {
                 execution_type_t::type::iteration > iteration_policy_t;
 
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
-                grid->template value_at< iteration_policy_t::from >());
+                grid.template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(
-                _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, *grid));
+                _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, grid));
         }
+
+#ifndef NDEBUG
+        template < typename RunFunctorArguments >
+        __global__ void do_it_on_gpu(typename RunFunctorArguments::local_domain_t const *l_domain,
+            typename RunFunctorArguments::grid_t const *grid) {
+            do_it_on_gpu_impl< RunFunctorArguments >(*l_domain, *grid);
+        }
+#else
+        template < typename RunFunctorArguments >
+        __global__ void do_it_on_gpu(
+            typename RunFunctorArguments::local_domain_t l_domain, typename RunFunctorArguments::grid_t grid) {
+            do_it_on_gpu_impl< RunFunctorArguments >(l_domain, grid);
+        }
+#endif
+
     } // namespace _impl_iccuda
 
     namespace icgrid {
@@ -213,6 +228,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
+
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< local_domain_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< grid_t >::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
@@ -246,10 +264,6 @@ namespace gridtools {
                     std::cout << "maxThreadsPerMultiProcessor " << prop.maxThreadsPerMultiProcessor << std::endl;
                 }
 #endif
-
-                local_domain_t *local_domain_gp = m_local_domain.gpu_object_ptr;
-
-                grid_t const *grid_gp = m_grid.gpu_object_ptr;
 
                 // number of threads
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
@@ -297,21 +311,24 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
-                    (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
-
 #ifndef NDEBUG
+                auto domain_clone = cuda_util::make_clone(m_local_domain);
+                auto grid_clone = cuda_util::make_clone(m_grid);
+                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>>(
+                    domain_clone.get(), grid_clone.get());
+
                 cudaDeviceSynchronize();
                 cudaError_t error = cudaGetLastError();
                 if (error != cudaSuccess) {
                     fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
                     exit(-1);
                 }
-#endif
-
+#else
+                _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t ><<< blocks, threads >>>(
+                    m_local_domain, m_grid);
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
                 cudaDeviceSynchronize();
+#endif
             }
 
           private:

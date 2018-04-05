@@ -41,6 +41,7 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/transform_view.hpp>
 #include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/find.hpp>
 
 #include "../storage/storage-facility.hpp"
 

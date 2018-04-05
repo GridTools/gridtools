@@ -115,14 +115,6 @@ namespace gridtools {
                 boost::mpl::set0<> >::type,
             get_storage_info_map_element< boost::mpl::_ > > >::type;
 
-        template < class Arg, class LocalDomain, class View >
-        void set_view_to_local_domain(LocalDomain &local_domain, View const &view) {
-            namespace f = boost::fusion;
-            advanced::copy_raw_pointers(view, f::at_key< Arg >(local_domain.m_local_data_ptrs));
-            *f::find< typename View::storage_info_t const * >(local_domain.m_local_storage_info_ptrs) =
-                advanced::storage_info_ptr(view);
-        }
-
         template < typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void >
         struct get_view;
 
@@ -139,10 +131,6 @@ namespace gridtools {
             // same for make_field_device_view and make_field_host_view.
             typedef decltype(make_field_host_view< AccessMode, Elem >(std::declval< Elem & >())) type;
         };
-
-        template < class LocalDomain, class Arg >
-        using local_domain_has_arg =
-            typename boost::mpl::has_key< typename LocalDomain::data_ptr_fusion_map, Arg >::type;
 
         template < class Arg, class DataStorage >
         struct bound_arg_storage_pair {
@@ -188,22 +176,27 @@ namespace gridtools {
             }
         };
 
+        template < class LocalDomain, class Arg >
+        using local_domain_has_arg =
+            typename boost::mpl::has_key< typename LocalDomain::data_ptr_fusion_map, Arg >::type;
+
         template < class LocalDomain >
         struct set_view_to_local_domain_f {
             LocalDomain &m_local_domain;
             template < class Arg, class OptView >
-            typename std::enable_if< local_domain_has_arg< LocalDomain, Arg >::value, bool >::type operator()(
+            enable_if_t< local_domain_has_arg< LocalDomain, Arg >::value > operator()(
                 boost::fusion::pair< Arg, OptView > const &info) const {
                 if (!info.second)
-                    return false;
-                set_view_to_local_domain< Arg >(m_local_domain, *info.second);
-                return true;
+                    return;
+                auto const &view = *info.second;
+                namespace f = boost::fusion;
+                advanced::copy_raw_pointers(view, f::at_key< Arg >(m_local_domain.m_local_data_ptrs));
+                auto const *storage_info = advanced::storage_info_ptr(view);
+                *f::find< decltype(storage_info) >(m_local_domain.m_local_storage_info_ptrs) = storage_info;
             }
             template < class Arg, class OptView >
-            typename std::enable_if< !local_domain_has_arg< LocalDomain, Arg >::value, bool >::type operator()(
-                boost::fusion::pair< Arg, OptView > const &info) const {
-                return false;
-            }
+            enable_if_t< !local_domain_has_arg< LocalDomain, Arg >::value > operator()(
+                boost::fusion::pair< Arg, OptView > const &info) const {}
         };
 
         template < class ViewInfos >
@@ -212,10 +205,7 @@ namespace gridtools {
 
             template < class LocalDomain >
             void operator()(LocalDomain &local_domain) const {
-                if (boost::fusion::count(
-                        tuple_util::transform(set_view_to_local_domain_f< LocalDomain >{local_domain}, m_view_infos),
-                        true))
-                    local_domain.clone_to_device();
+                tuple_util::for_each(set_view_to_local_domain_f< LocalDomain >{local_domain}, m_view_infos);
             }
         };
 

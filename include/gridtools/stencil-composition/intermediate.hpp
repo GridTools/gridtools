@@ -415,7 +415,6 @@ namespace gridtools {
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
-            typename Backend::setup_grid_f{}(m_grid);
             update_local_domains(std::tuple_cat(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
                 make_view_infos(m_bound_arg_storage_pair_fusion_list)));
         }
