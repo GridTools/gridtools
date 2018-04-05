@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import copy
 import itertools
 import math
 import os
@@ -113,7 +112,6 @@ def history(results, key='job', limit=None):
         logger.warning('Non-unique datetimes in history plot')
 
     fig, ax = plt.subplots(figsize=figsize(2, 1))
-
 
     locator = matplotlib.dates.AutoDateLocator()
     formatter = matplotlib.dates.AutoDateFormatter(locator)
