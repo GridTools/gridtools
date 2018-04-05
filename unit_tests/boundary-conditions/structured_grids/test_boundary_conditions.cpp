@@ -58,21 +58,10 @@ using gridtools::plus_;
 
 #include <boost/utility/enable_if.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define ARCH Cuda
-#define BACKEND backend< ARCH, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define ARCH Host
-#define BACKEND backend< ARCH, GRIDBACKEND, Block >
-#else
-#define ARCH Host
-#define BACKEND backend< ARCH, GRIDBACKEND, Naive >
-#endif
-#endif
 
 struct bc_basic {
 
@@ -164,8 +153,8 @@ bool basic() {
     uint_t d2 = 3;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
@@ -263,8 +252,8 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
@@ -367,8 +356,8 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
@@ -471,8 +460,8 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
@@ -575,8 +564,8 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
@@ -705,8 +694,8 @@ bool usingzero_3_empty_halos() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
@@ -783,8 +772,8 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
@@ -915,8 +904,8 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 

@@ -37,21 +37,12 @@
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace cs_test {
-
-#ifdef __CUDACC__
-    using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
-#else
-#ifdef BACKEND_BLOCK
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Block >;
-#else
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Naive >;
-#endif
-#endif
 
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
@@ -112,7 +103,7 @@ TEST(test_copy_stencil, run) {
     halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
     gridtools::grid< axis< 1 >::axis_interval_t, icosahedral_topology_t > grid_(
-        icosahedral_grid, di, dj, {halo_k, d3 - 1 - halo_k});
+        icosahedral_grid, di, dj, {halo_k, d3 - halo_k});
 
     auto copy = gridtools::make_computation< backend_t >(
         domain,

@@ -1,5 +1,13 @@
 cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
+
+if( GRIDTOOLS_MODULES )
+# To be completed!
+  
+  add_subdirectory( modules/storage )
+
+else()
+
 cmake_minimum_required(VERSION 3.0)
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -22,27 +30,38 @@ include (testing)
 # ===============
 # library header files
 # ===============
-include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/gridtools" )
 
 # ===============
 # compile gcl:
 # ===============
-add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
+add_library( gcl src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
 
 set(exe_LIBS ${exe_LIBS} gcl)
 
+# ===============
+# compile c_bindings_generator:
+# ===============
 
-# ===============
-# add all cpp files in src:
-# ===============
-file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-list(REMOVE_ITEM sources "${CMAKE_CURRENT_SOURCE_DIR}/src/GCL.cpp")
-foreach( src_file ${sources} )
-    get_filename_component (exec ${src_file} NAME_WE )
-    add_executable (${exec} ${src_file})
-    target_link_libraries(${exec} ${exe_LIBS})
-endforeach(src_file)
+add_library(c_bindings_handle src/c_bindings/handle.cpp)
+set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+
+set(exe_LIBS ${exe_LIBS} c_bindings_handle)
+
+enable_language (Fortran)
+
+add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
+target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
+target_include_directories(c_bindings_handle_fortran INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+
+add_library(c_bindings_generator src/c_bindings/generator.cpp)
+set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+
+set(exe_LIBS ${exe_LIBS} c_bindings_generator)
+
+add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
+target_link_libraries(c_bindings_generator_main c_bindings_generator)
 
 # ===============
 # examples and tests
@@ -82,3 +101,5 @@ message("compile definitions: ${COMPILE_DEFINITIONS}")
 # Apply final actions
 # ===========
 include (post_config_actions)
+
+endif()

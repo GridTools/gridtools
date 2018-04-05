@@ -55,12 +55,13 @@
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/make_stencils.hpp"
+#include "backend_select.hpp"
 
 namespace positional_when_debug_test {
 
-    using grid_t = gridtools::grid< gridtools::axis< 1 >::axis_interval_t >;
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis_t;
+    using axis_t = gridtools::axis< 1 >;
+    using grid_t = gridtools::grid< axis_t::axis_interval_t >;
+    using x_interval = axis_t::get_interval< 0 >;
 
     struct test_functor {
         typedef gridtools::accessor< 0, gridtools::enumtype::inout > in;
@@ -79,14 +80,9 @@ TEST(test_make_computation, positional_when_debug) {
 
     using namespace gridtools;
     using namespace gridtools::enumtype;
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#endif
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
     meta_data_t sinfo(3, 3, 3);
     storage_t a_storage(sinfo, 0);
 
@@ -96,7 +92,7 @@ TEST(test_make_computation, positional_when_debug) {
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
        This is a TODO in aggregator_type.hpp */
     aggregator_type< accessor_list_t > dm(a_storage);
-    auto test_computation = make_computation< BACKEND >(dm,
+    auto test_computation = make_computation< backend_t >(dm,
         positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage // mss_descriptor
         (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));

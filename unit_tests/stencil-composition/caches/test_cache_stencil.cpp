@@ -42,6 +42,7 @@
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 constexpr int halo_size = 1;
 
@@ -84,14 +85,8 @@ namespace test_cache_stencil {
         }
     };
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, structured, Block >
-#else
-#define BACKEND backend< Host, structured, Block >
-#endif
-
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
@@ -138,14 +133,13 @@ TEST_F(cache_stencil, ij_cache) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil =
-        make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                   define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                   make_stage< functor1 >(p_in(), p_buff()),
-                                                   make_stage< functor1 >(p_buff(), p_out())));
+    auto pstencil = make_computation< backend_t >(domain,
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< parallel >(),
+                                                      define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                      make_stage< functor1 >(p_in(), p_buff()),
+                                                      make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -182,15 +176,14 @@ TEST_F(cache_stencil, ij_cache_offset) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil =
-        make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                   // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                   make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                   make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-                                                   ));
+    auto pstencil = make_computation< backend_t >(domain,
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< parallel >(),
+                                                      // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                      make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                      make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                      ));
 
     pstencil->ready();
 
@@ -227,21 +220,21 @@ TEST_F(cache_stencil, multi_cache) {
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto stencil = make_computation< gridtools::BACKEND >(
-        domain,
-        m_grid,
-        make_multistage // mss_descriptor
-        (execute< forward >(),
-            // test if define_caches works properly with multiple vectors of caches.
-            // in this toy example two vectors are passed (IJ cache vector for p_buff
-            // and p_buff_2, IJ cache vector for p_buff_3)
-            define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
-                cache< IJ, cache_io_policy::local >(p_buff_3())),
-            make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
-            make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-            make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-            make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
-            ));
+    auto stencil =
+        make_computation< backend_t >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< parallel >(),
+                                          // test if define_caches works properly with multiple vectors of caches.
+                                          // in this toy example two vectors are passed (IJ cache vector for p_buff
+                                          // and p_buff_2, IJ cache vector for p_buff_3)
+                                          define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
+                                              cache< IJ, cache_io_policy::local >(p_buff_3())),
+                                          make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
+                                          make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+                                          make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+                                          make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+                                          ));
     stencil->ready();
 
     stencil->steady();

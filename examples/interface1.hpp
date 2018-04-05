@@ -39,6 +39,7 @@
 #include "benchmarker.hpp"
 #include "horizontal_diffusion_repository.hpp"
 #include <tools/verifier.hpp>
+#include "backend_select.hpp"
 
 /**
   @file
@@ -116,12 +117,8 @@ namespace horizontal_diffusion {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-#if !defined(CUDA_EXAMPLE)
-            eval(out()) = eval(in()) - eval(coeff()) * (eval(flx() - flx(-1, 0, 0) + fly() - fly(0, -1, 0)));
-#else
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
-#endif
         }
     };
 
@@ -141,16 +138,6 @@ namespace horizontal_diffusion {
         uint_t d2 = y;
         uint_t d3 = z;
         uint_t halo_size = 2;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
 
@@ -194,11 +181,11 @@ namespace horizontal_diffusion {
           3) The actual grid dimensions
         */
 
-        auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
+        auto horizontal_diffusion = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
+            (execute< parallel >(),
                 define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
                 gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent(                            // independent_esf

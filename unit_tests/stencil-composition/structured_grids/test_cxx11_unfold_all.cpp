@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include "backend_select.hpp"
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
@@ -48,20 +49,16 @@ struct functor {
     GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-
 bool predicate() { return false; }
 
 TEST(unfold_all, test) {
 
     using namespace gridtools;
 
-    conditional< 0 > cond(predicate);
-
     auto grid = make_grid(2, 2, 3);
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
     meta_data_t meta_data_(3, 3, 3);
     storage_t s0(meta_data_, 0.);
     storage_t s1(meta_data_, 0.);
@@ -90,5 +87,5 @@ TEST(unfold_all, test) {
             make_stage< functor< 11 > >(p0(), p1()),
             make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
 
-    auto comp = make_computation< BACKEND >(domain, grid, if_(cond, mss1, mss2));
+    auto comp = make_computation< backend_t >(domain, grid, if_(predicate, mss1, mss2));
 }

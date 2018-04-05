@@ -43,10 +43,7 @@
 #include <stencil-composition/make_computation.hpp>
 #include <tools/verifier.hpp>
 
-#ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
-#include <papi.hpp>
-#endif
+#include "backend_select.hpp"
 
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
@@ -154,23 +151,8 @@ namespace tridiagonal {
                       << std::endl;
         d3 = 6;
 
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-        typedef gridtools::BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_t;
-        typedef gridtools::BACKEND::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
 
         // Definition of the actual data fields that are used for input/output
         meta_t meta_(d1, d2, d3);
@@ -222,7 +204,7 @@ namespace tridiagonal {
           3) The actual domain dimensions
          */
 
-        auto solver = gridtools::make_computation< gridtools::BACKEND >(
+        auto solver = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

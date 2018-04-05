@@ -39,20 +39,11 @@
 #include <common/gt_assert.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
-using icosahedral_topology_t = icosahedral_topology< BACKEND >;
+using icosahedral_topology_t = icosahedral_topology< backend_t >;
 TEST(icosahedral_topology, layout) {
     using alayout_t = icosahedral_topology_t::layout_t< selector< 1, 1, 1, 1 > >;
 #ifdef __CUDACC__
@@ -91,7 +82,12 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));
         ASSERT_TRUE((ameta.dim< 2 >() == 6));
+#ifdef BACKEND_MIC
+        // 3rd dimension is padded for MIC
+        ASSERT_TRUE((ameta.dim< 3 >() == 8));
+#else
         ASSERT_TRUE((ameta.dim< 3 >() == 7));
+#endif
     }
     {
         auto astorage = grid.template make_storage< icosahedral_topology_t::edges,
@@ -102,7 +98,12 @@ TEST(icosahedral_topology, make_storage) {
 
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));
+#ifdef BACKEND_MIC
+        // 3rd dimension is padded for MIC
+        ASSERT_TRUE((ameta.dim< 3 >() == 8));
+#else
         ASSERT_TRUE((ameta.dim< 3 >() == 7));
+#endif
         ASSERT_TRUE((ameta.dim< 4 >() == 8));
         ASSERT_TRUE((ameta.dim< 5 >() == 9));
     }
