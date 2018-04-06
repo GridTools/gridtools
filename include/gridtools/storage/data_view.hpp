@@ -64,6 +64,8 @@ namespace gridtools {
     /** \ingroup storage
      * @{
      */
+    template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
+    struct data_view;
 
     namespace advanced {
         /** Function to access the protected data member of the views
@@ -103,6 +105,10 @@ namespace gridtools {
         inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i] + dv.m_storage_info->get_initial_offset();
         }
+
+        template < typename DataStore, access_mode AccessMode >
+        typename DataStore::storage_info_t const *storage_info_ptr(data_view< DataStore, AccessMode > const &);
+
     } // namespace advanced
 
     /**
@@ -111,7 +117,7 @@ namespace gridtools {
      * @tparam DataStore data store type
      * @tparam AccessMode access mode (default is read-write)
      */
-    template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
+    template < typename DataStore, access_mode AccessMode >
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
@@ -151,7 +157,7 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        GT_FUNCTION storage_info_t const &storage_info() const {
+        storage_info_t const &storage_info() const {
             CHECK_MEMORY_SPACE(m_device_view);
             return *m_storage_info;
         }
@@ -291,6 +297,8 @@ namespace gridtools {
 
         template < typename Src, typename Dst >
         friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
+
+        friend storage_info_t const *advanced::storage_info_ptr(data_view const &);
     };
 
     template < typename T >
@@ -300,8 +308,10 @@ namespace gridtools {
     struct is_data_view< data_view< Storage, AccessMode > > : boost::mpl::true_ {};
 
     namespace advanced {
-        template < typename Storage, access_mode AccessMode >
-        auto storage_info_ptr(data_view< Storage, AccessMode > const &src) GT_AUTO_RETURN(&src.storage_info());
+        template < typename DataStore, access_mode AccessMode >
+        typename DataStore::storage_info_t const *storage_info_ptr(data_view< DataStore, AccessMode > const &src) {
+            return src.m_storage_info;
+        }
     }
     /**
      * @}
