@@ -53,13 +53,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template < typename RunFunctorArguments, typename LocalDomain >
-        __global__ void do_it_on_gpu(LocalDomain const l_domain,
-            typename RunFunctorArguments::grid_t const grid,
-            const int starti,
-            const int startj,
-            const uint_t nx,
-            const uint_t ny) {
+        template < typename RunFunctorArguments, size_t NumThreads >
+        __global__ void __launch_bounds__(NumThreads)
+            do_it_on_gpu(typename RunFunctorArguments::local_domain_t const l_domain,
+                typename RunFunctorArguments::grid_t const grid) {
 
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -78,6 +75,10 @@ namespace gridtools {
                 strides_t,
                 max_extent_t,
                 typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
+
+            // number of threads
+            const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
+            const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
 
             const uint_t block_size_i = (blockIdx.x + 1) * block_size_t::i_size_t::value < nx
                                             ? block_size_t::i_size_t::value
@@ -175,8 +176,8 @@ namespace gridtools {
             it_domain.reset_index();
 
             // initialize the indices
-            it_domain.template initialize< 0 >(i + starti, blockIdx.x);
-            it_domain.template initialize< 1 >(j + startj, blockIdx.y);
+            it_domain.template initialize< 0 >(i + grid.i_low_bound(), blockIdx.x);
+            it_domain.template initialize< 1 >(j + grid.j_low_bound(), blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -260,19 +261,14 @@ namespace gridtools {
                 //    another within one of the halo regions)
                 // *  Otherwise each CUDA thread executes only one grid point.
                 // Based on the previous we compute the size of the CUDA block required.
-                typedef typename boost::mpl::fold< typename RunFunctorArguments::extent_sizes_t,
-                    extent< 0, 0, 0, 0, 0, 0 >,
-                    enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type maximum_extent_t;
+                typedef typename RunFunctorArguments::max_extent_t maximum_extent_t;
 
-                typedef block_size< block_size_t::i_size_t::value,
-                    (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
-                                        (maximum_extent_t::iminus::value != 0 ? 1 : 0) +
-                                        (maximum_extent_t::iplus::value != 0 ? 1 : 0)) > cuda_block_size_t;
+                typedef typename RunFunctorArguments::cuda_block_size_t cuda_block_size_t;
 
                 // number of grid points that a cuda block covers
-                const uint_t ntx = block_size_t::i_size_t::value;
-                const uint_t nty = block_size_t::j_size_t::value;
-                const uint_t ntz = 1;
+                constexpr uint_t ntx = block_size_t::i_size_t::value;
+                constexpr uint_t nty = block_size_t::j_size_t::value;
+                constexpr uint_t ntz = 1;
                 dim3 threads(cuda_block_size_t::i_size_t::value, cuda_block_size_t::j_size_t::value, ntz);
 
                 // number of blocks required
@@ -293,20 +289,21 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
-                    (m_local_domain, m_grid, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+                constexpr size_t num_threads = cuda_block_size_t::i_size_t::value * cuda_block_size_t::j_size_t::value;
+                _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t, num_threads ><<< blocks, threads >>>(
+                    m_local_domain, m_grid);
 
 #ifndef NDEBUG
                 cudaDeviceSynchronize();
                 cudaError_t error = cudaGetLastError();
                 if (error != cudaSuccess) {
-                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorName(error), __FILE__, __LINE__);
                     exit(-1);
                 }
-#endif
+#else
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
                 cudaDeviceSynchronize();
+#endif
             }
 
           private:
