@@ -51,12 +51,12 @@ TEST(test_axis, intervals) {
     using axis_t = axis< 3 >;
 
     // full interval
-    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, axis_t::full_interval >();
+    ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 3, -1 > >, axis_t::full_interval >();
 
     // intervals by id
-    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 1, -1 > >, axis_t::get_interval< 0 > >();
-    ASSERT_TYPE_EQ< interval< level< 1, -1 >, level< 2, -1 > >, axis_t::get_interval< 1 > >();
+    ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 1, -1 > >, axis_t::get_interval< 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 1, 1 >, level< 2, -1 > >, axis_t::get_interval< 1 > >();
 
     // hull of multiple intervals
-    ASSERT_TYPE_EQ< interval< level< 1, -1 >, level< 3, -1 > >, axis_t::get_interval< 1, 2 > >();
+    ASSERT_TYPE_EQ< interval< level< 1, 1 >, level< 3, -1 > >, axis_t::get_interval< 1, 2 > >();
 }

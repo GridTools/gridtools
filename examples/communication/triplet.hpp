@@ -38,12 +38,6 @@
 
 #define USE_DOUBLE false
 
-#ifndef USE_DOUBLE
-#define USE_DOUBLE true
-#else
-#pragma message("USE_DOUBLE already defined, good!")
-#endif
-
 template < typename T, typename lmap >
 struct array {
     T *ptr;

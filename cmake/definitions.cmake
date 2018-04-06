@@ -8,6 +8,10 @@ if(VERBOSE)
     add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
+## enable boost variadic PP
+## (for nvcc this is not done automatically by boost as it is no tested compiler)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_PP_VARIADICS=1")
+
 ## set boost fusion sizes ##
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
@@ -32,9 +36,12 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT ENABLE_CUDA)
+if(NOT ENABLE_CUDA AND NOT ENABLE_MIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
-endif(NOT ENABLE_CUDA)
+endif()
+
+## clang tools ##
+find_package(ClangTools)
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
@@ -61,19 +68,15 @@ if( ENABLE_CUDA )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${CUDA_VERSION} -DGT_CUDA_VERSION=${CUDA_VERSION}")
+  if( ${CUDA_VERSION} VERSION_LESS "80" )
+    message(ERROR " CUDA 7.X or lower is not supported")
+  endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  if( ${CUDA_VERSION} VERSION_LESS "70" )
-      error(STATUS "CUDA 6.0 or lower does not supported")
-  endif()
-  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")    
-  if( ${CUDA_VERSION} VERSION_LESS "80" )
-      add_definitions(-DBOOST_RESULT_OF_USE_TR1)
-  endif()
+  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
@@ -97,6 +100,15 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
+if( ENABLE_MIC )
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xmic-avx512")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=knl -mtune=knl")
+    endif()
+    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
+endif( ENABLE_MIC )
+
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
@@ -107,17 +119,15 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
     # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'")
+    # slightly improve performance
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-subscript-in-range -qoverride-limits")
 endif()
 
 Find_Package( OpenMP )
 
-
 ## openmp ##
 if(OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-    set( PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project" )
-else()
-    set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil" )
 endif()
 
 ## performance meters ##
@@ -125,35 +135,10 @@ if(ENABLE_PERFORMANCE_METERS)
     add_definitions(-DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
-# always use fopenmp and lpthread as cc/ld flags
+# always use lpthread as cc/ld flags
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
 set ( exe_LIBS -lpthread ${exe_LIBS} )
-
-## papi wrapper ##
-if ( PAPI_WRAP_LIBRARY )
-  find_package(PapiWrap)
-  if ( PAPI_WRAP_FOUND )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI_WRAP" )
-    set( PAPI_WRAP_MODULE "ON" )
-    include_directories( "${PAPI_WRAP_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_WRAP_LIBRARIES}" )
-  else()
-    message ("papi-wrap not found. Please set PAPI_WRAP_PREFIX to the root path of the papi-wrap library. papi-wrap not used!")
-  endif()
-endif()
-
-## papi ##
-if(USE_PAPI)
-  find_package(PAPI REQUIRED)
-  if(PAPI_FOUND)
-    include_directories( "${PAPI_INCLUDE_DIRS}" )
-    set ( exe_LIBS "${exe_LIBS}" "${PAPI_LIBRARIES}" )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_PAPI" )
-  else()
-    message("PAPI library not found. set the PAPI_PREFIX")
-  endif()
-endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
