@@ -128,13 +128,14 @@ namespace gridtools {
         const static access_mode mode = AccessMode;
         const static uint_t num_of_storages = 1;
 
-      protected:
+      private:
         data_t *m_raw_ptrs[1];
 
-      public:
         state_machine_t *m_state_machine_ptr;
         storage_info_t const *m_storage_info;
         bool m_device_view;
+
+      public:
         /**
          * @brief data_view constructor
          */
@@ -298,7 +299,8 @@ namespace gridtools {
         template < typename Src, typename Dst >
         friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
 
-        friend storage_info_t const *advanced::storage_info_ptr(data_view const &);
+        template < typename D, access_mode A >
+        friend typename D::storage_info_t const *advanced::storage_info_ptr(data_view< D, A > const &);
     };
 
     template < typename T >
