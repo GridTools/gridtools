@@ -193,11 +193,9 @@ namespace gridtools {
         typedef ReductionData reduction_data_t;
         typedef Color color_t;
 
-        // Maximum extent of all ESF will determine the size of the CUDA block:
-        // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
-        //    each CUDA thread will execute two grid points (one at the core of the block and
-        //    another within one of the halo regions)
-        // *  Otherwise each CUDA thread executes only one grid point.
+        // This calculates the size of the block that is passed to CUDA device.
+        // The calculation is tightly coupled with the algorithm we process halos in CUDA.
+        // For detail description, please se comments in structured_grids/backend_cuda/execute_kernel_functor_cuda.hpp
         typedef block_size< physical_domain_block_size_t::i_size_t::value,
             physical_domain_block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value +
                 !!max_extent_t::iminus::value + !!max_extent_t::iplus::value > cuda_block_size_t;
