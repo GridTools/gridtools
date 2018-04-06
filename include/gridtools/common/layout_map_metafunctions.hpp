@@ -49,9 +49,15 @@
 
 namespace gridtools {
 
+    /** \brief Given a layout map this metafunction provided back the
+        maximum value contained in the sequence of indices.
+
+        \tparam LayoutMap The layout map to process
+    */
     template < typename LayoutMap >
     struct max_value;
 
+    /// \private
     template < short_t... Is >
     struct max_value< layout_map< Is... > > {
 
@@ -68,15 +74,19 @@ namespace gridtools {
         static constexpr short_t value = type::value;
     };
 
+    /** \brief Compute the reverse of a layout. For instance the reverse og
+        `layout_map<1,0,-1,2>` is `layout<1,2,-1,0>`
+
+        \tparam LayoutMap The layout map to process
+    */
     template < typename LayoutMap >
     struct reverse_map;
 
+    /// \private
     template < short_t... Is >
     struct reverse_map< layout_map< Is... > > {
-        template < short_t I, short_t Max >
-        struct new_value {
-            static const short_t value = (Max - I) > Max ? I : Max - I;
-        };
+        static constexpr int max = layout_map< Is... >::max();
+        using type = layout_map< (Is < 0 ? Is : max - Is)... >;
     };
 
     template < typename DATALO, typename PROCLO >
