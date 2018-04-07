@@ -77,20 +77,25 @@
  *    - std::array : first parameter is not a class
  *    - meta::list<int> : is not a template
  *
+ *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling without
+ *  prefix [This is not always the case at a moment. ]
+ *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high order
+ *  functions.
+ *
  *  Meta Class
  *  ----------
- *  A class that have `apply` inner class or alias, which is function.
+ *  A class that have `apply` inner template class or alias, which is function.
  *  Meta classes are used to return functions from functions.
  *
  *  Examples:
  *    - meta::always<void>
  *    - meta::rename<std::tuple>
  *
- *  Meta Function
- *  -------------
- *  A template class or alias with template of class class template parameters.
+ *  High Order Function
+ *  -------------------
+ *  A template class or alias which first parameters are template of class class templates and the rest are classes
  *  Examples of metafuction signatures:
- *  template <template <class...> class> struct foo;
+ *  template <template <class...> class, class...> struct foo;
  *  template <template <class...> class, template <class...> class> struct bar;
  *  template <template <class...> class...> struct baz;
  *
@@ -98,6 +103,60 @@
  *    - meta::rename
  *    - meta::lfold
  *    - meta::is_instantiation_of
+ *
+ *  Library Structure
+ *  =================
+ *
+ *  It consists of the set of functions, `_c` functions and high order functions.
+ *
+ *  Regularly, a function has also its lazy version, which is defined in the `lazy` nested namespace under the same
+ *  name. Exceptions are functions that return:
+ *   - a struct with a nested `type` alias, which points to the struct itself;`
+ *       ex: `list`
+ *   - a struct derived from `std::intergral_constant`
+ *       ex: `length`, `is_list`
+ *   - meta class
+ *
+ *  nVidia and Intel compilers with versions < 9 and < 18 respectively have a bug that doesn't allow to use template
+ *  aliases. To deal with that, the library has two modes that are switching by `GT_BROKEN_TEMPLATE_ALIASES` macro.
+ *  If the value of `GT_BROKEN_TEMPLATE_ALIASES` is set to non zero, the notion of function is degradated to lazy
+ *  function like in MPL.
+ *
+ *  In this case non-lazy functions don't exist and `lazy` nested namespace is `inline` [I.e. `meta::concat`
+ *  for example is the same as `meta::lazy::concat`]. High order functions in this case interpret their functional
+ *  parameters as a lazy functions [I.e. they use `::type` to invoke them].
+ *
+ *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
+ *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility only
+ *  using that two macros. Direct `#if GT_BROKEN_TEMPLATE_ALIASES`... could be necessary.
+ *
+ *  Syntax sugar: All high order functions being called with only functional arguments return partially applied versions
+ *  of themselves [which became plane functions].
+ *  Example, where it could be useful is:
+ *  transform a list of lists:  `using out = meta::transform<meta::transform<fun>::apply, in>;`
+ *
+ *  Guidelines for Using Meta in Compatible with Retarded Compilers Mode
+ *  =====================================================================
+ *    - don't punic;
+ *    - write and debug your code for some sane compiler pretending that template aliases are not a problem;
+ *    - uglify each and every call of the function from meta `namespace` with `GT_META_CALL` macro;
+ *    - uglify with the same macro calls to the functions that you define using composition of `meta::` functions;
+ *    - replace every definition of template alias in you code with `GT_META_DEFINE_ALIAS`;
+ *    - modifications above should not break compilation for the sane compiler, check it;
+ *    - also check if the code compiles for your retarded compiler;
+ *    - if yes, you are lucky;
+ *    - if not, possible reason is that you have hand written lazy function and its `direct` counterpart that is
+ *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order function.
+ *      in this case, you need to add retarded version (where `lazy_foo` would just named `foo`) under
+ *      `#if GT_BROKEN_TEMPLATE_ALIASES`;
+ *    - if it is still not your case, ask @anstaf.
+ *
+ *  TODO List
+ *  =========
+ *   - rename all "hybrid" functions to `*_c` together with adding regular version.
+ *   - implement cartesian product
+ *   - add numeric stuff like `plus`, `less` etc.
+ * *
  */
 
 #include <functional>
@@ -113,7 +172,14 @@
 
 #if GT_BROKEN_TEMPLATE_ALIASES
 
+/**
+ * backward compatible way to call function
+ */
 #define GT_META_CALL(fun, args) typename GT_META_INTERNAL_APPLY(fun, args)::type
+
+/**
+ * backward compatible way to define an alias to the function composition
+ */
 #define GT_META_DEFINE_ALIAS(name, fun, args) \
     struct name : GT_META_INTERNAL_APPLY(fun, args) {}
 
@@ -123,7 +189,13 @@
 
 #else
 
+/**
+ * backward compatible way to call function
+ */
 #define GT_META_CALL(fun, args) GT_META_INTERNAL_APPLY(fun, args)
+/**
+ * backward compatible way to define an alias to the function composition
+ */
 #define GT_META_DEFINE_ALIAS(name, fun, args) using name = GT_META_INTERNAL_APPLY(fun, args)
 
 // internal
@@ -165,12 +237,20 @@ namespace gridtools {
             };
         };
 
+        /**
+         *  Partially apply function F with provided arguments BoundArgs
+         *
+         *  Note:  if `BoundArgs...` is empty this function just converts a function to the meta class. Like mpl::quote
+         */
         template < template < class... > class F, class... BoundArgs >
         struct curry {
             template < class... Args >
             GT_META_DEFINE_ALIAS(apply, F, (BoundArgs..., Args...));
         };
 
+        /**
+         *  Partially apply high order function F with provided argument G
+         */
         template < template < template < class... > class, class... > class F, template < class... > class G >
         struct curry_fun {
             template < class... Args >
@@ -222,13 +302,16 @@ namespace gridtools {
         template < template < class... > class L, class... Ts >
         struct is_instantiation_of< L, L< Ts... > > : std::true_type {};
 
+        /**
+         *  returns predicate that is the opposite of Pred
+         */
         template < template < class... > class Pred >
         struct not_ {
             template < class T >
             GT_META_DEFINE_ALIAS(apply, negation, Pred< T >);
         };
 
-        /// placeholder  definitions fo bind
+        /// placeholder definitions for bind
         template < size_t >
         struct placeholder;
 
@@ -245,9 +328,15 @@ namespace gridtools {
 
         GT_META_INTERNAL_LAZY_INLINE namespace lazy {
 
+            /**
+             *  Normalized std::conditional version, which is proper function in the terms of meta library.
+             *
+             *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
+             */
             template < class Cond, class Lhs, class Rhs >
             GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
 
+            /// some forward declarations is needed here for technical reason.
             template < class, class... >
             struct concat;
             template < class, class... >
@@ -269,6 +358,9 @@ namespace gridtools {
 
 #if !GT_BROKEN_TEMPLATE_ALIASES
 
+        /**
+         *  Identity
+         */
         template < class T >
         using id = T;
 
@@ -278,6 +370,7 @@ namespace gridtools {
             using apply = T;
         };
 
+        // 'direct' versions of lazy functions
         template < class Cond, class Lhs, class Rhs >
         using if_ = typename lazy::if_< Cond, Lhs, Rhs >::type;
         template < class List, class... Lists >
@@ -302,6 +395,9 @@ namespace gridtools {
 
         GT_META_INTERNAL_LAZY_INLINE namespace lazy {
 
+            /**
+             *  Identity (lazy)
+             */
             template < class T >
             struct id {
                 using type = T;
@@ -332,14 +428,16 @@ namespace gridtools {
 
             /**
              *   Instantiate F with the parameters taken from List.
+             *
+             *   Alternative interpretation: apply function F to the arguments taken form List.
              */
-            template < template < class... > class To >
-            struct rename< To > {
-                using type = curry_fun< meta::rename, To >;
-            };
             template < template < class... > class To, template < class... > class From, class... Ts >
             struct rename< To, From< Ts... > > {
                 using type = GT_META_CALL(To, Ts...);
+            };
+            template < template < class... > class To >
+            struct rename< To > {
+                using type = curry_fun< meta::rename, To >;
             };
 
             /**
@@ -609,12 +707,12 @@ namespace gridtools {
             };
 
             /**
-             *   Transform Lists by applying F element wise.
+             *   Transform `Lists` by applying `F` element wise.
              *
-             *   I.e the first element of resulting list would be F<first_from_l0, first_froml1, ...>;
-             *   the second would be F<second_from_l0, ...> and so on.
+             *   I.e the first element of resulting list would be `F<first_from_l0, first_froml1, ...>`;
+             *   the second would be `F<second_from_l0, ...>` and so on.
              *
-             *   For N lists M elements each complexity is O(log(N))
+             *   For N lists M elements each complexity is O(N). I.e for one list it is O(1).
              */
             template < template < class... > class F >
             struct transform< F > {
@@ -641,8 +739,7 @@ namespace gridtools {
                 lfold,
                 (transform< meta::push_back >::type::apply, typename transform< list, List >::type, list< Lists... >));
 
-            // internals for generic transform
-
+            // transform, generic version
             template < template < class... > class F, class List, class... Lists >
             struct transform< F, List, Lists... >
                 : transform< rename< F >::type::template apply, typename zip< List, Lists... >::type > {};
@@ -665,6 +762,7 @@ namespace gridtools {
             template < class Lists >
             GT_META_DEFINE_ALIAS(flatten, combine, (meta::concat, Lists));
 
+            // concat, generic version
             template < class L1, class L2, class L3, class... Lists >
             struct concat< L1, L2, L3, Lists... > : flatten< list< L1, L2, L3, Lists... > > {};
 
@@ -693,7 +791,7 @@ namespace gridtools {
                 dedup_step_impl, meta::if_, (st_contains< S, T >, S, typename push_back< S, T >::type));
 
             /**
-             *  Removes duplicates from the List
+             *  Removes duplicates from the List.
              */
             template < class List >
             GT_META_DEFINE_ALIAS(dedup, lfold, (dedup_step_impl, typename clear< List >::type, List));
@@ -772,15 +870,27 @@ namespace gridtools {
             template < class... Ts >
             GT_META_DEFINE_ALIAS(disjunction_fast, negation, conjunction_fast< negation< Ts >... >);
 
+            /**
+             *   all elements in lists are true
+             */
             template < class List >
             struct all : rename< conjunction_fast, List >::type {};
 
+            /**
+             *   some element is true
+             */
             template < class List >
             struct any : rename< disjunction_fast, List >::type {};
 
+            /**
+             *  All elements satisfy predicate
+             */
             template < template < class... > class Pred, class List >
             GT_META_DEFINE_ALIAS(all_of, all, (typename transform< Pred, List >::type));
 
+            /**
+             *  Some element satisfy predicate
+             */
             template < template < class... > class Pred, class List >
             GT_META_DEFINE_ALIAS(any_of, any, (typename transform< Pred, List >::type));
 
@@ -862,13 +972,15 @@ namespace gridtools {
                 };
             };
 
+            /**
+             *  replace element at given position
+             */
             template < class List, class N, class New >
             GT_META_DEFINE_ALIAS(replace_at,
                 transform,
                 (GT_META_INTERNAL_LAZY_PARAM((replace_at_impl< N, New >::template apply)),
                                      List,
                                      typename make_indices_for< List >::type));
-
             template < class List, size_t N, class New >
             GT_META_DEFINE_ALIAS(replace_at_c, replace_at, (List, std::integral_constant< size_t, N >, New));
 
@@ -911,6 +1023,7 @@ namespace gridtools {
         template < template < class... > class L, class... Ts >
         struct ctor< L< Ts... > > : curry< L > {};
 
+        // 'direct' versions of lazy functions
         template < class List >
         using clear = typename lazy::clear< List >::type;
         template < class ISeq >
