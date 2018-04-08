@@ -58,7 +58,9 @@ namespace gridtools {
 #include "gt_assert.hpp"
 
 // TODO(anstaf): report error code here
-#define GT_CUDA_CHECK(err) ASSERT_OR_THROW(err == cudaSuccess, "cuda failure")
+#define GT_CUDA_CHECK(err)  \
+    if (err != cudaSuccess) \
+    throw std::runtime_error("cuda failure")
 
 namespace gridtools {
     namespace cuda_util {

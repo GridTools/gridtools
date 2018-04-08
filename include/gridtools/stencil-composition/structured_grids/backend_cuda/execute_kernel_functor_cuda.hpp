@@ -254,15 +254,6 @@ namespace gridtools {
 
                 typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
 
-                // compute the union (or enclosing) extent for the extents of all ESFs.
-                // This maximum extent of all ESF will determine the size of the CUDA block:
-                // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
-                //    each CUDA thread will execute two grid points (one at the core of the block and
-                //    another within one of the halo regions)
-                // *  Otherwise each CUDA thread executes only one grid point.
-                // Based on the previous we compute the size of the CUDA block required.
-                typedef typename RunFunctorArguments::max_extent_t maximum_extent_t;
-
                 typedef typename RunFunctorArguments::cuda_block_size_t cuda_block_size_t;
 
                 // number of grid points that a cuda block covers
