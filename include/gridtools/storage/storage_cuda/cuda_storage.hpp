@@ -87,15 +87,15 @@ namespace gridtools {
         cuda_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
             : m_cpu_ptr(new data_t[size]), m_size{size} {
             // New will align addresses according to the size(data_t)
-            data_t *m_allocated_ptr;
-            cudaError_t err = cudaMalloc(&m_allocated_ptr, (size + Align) * sizeof(data_t));
+            data_t *allocated_ptr;
+            cudaError_t err = cudaMalloc(&allocated_ptr, (size + Align) * sizeof(data_t));
             ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory in constructor.");
 
             uint_t delta =
-                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
+                ((reinterpret_cast< std::uintptr_t >(allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
-            m_gpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
-            m_offset = m_allocated_ptr - m_gpu_ptr;
+            m_gpu_ptr = (delta == 0) ? allocated_ptr : allocated_ptr + (Align - delta);
+            m_offset = allocated_ptr - m_gpu_ptr;
         }
 
         /*
@@ -115,11 +115,11 @@ namespace gridtools {
                 m_state.m_hnu = true;
             } else if (own == ownership::ExternalCPU) {
                 m_cpu_ptr = external_ptr;
-                data_t *m_allocated_ptr;
-                cudaError_t err = cudaMalloc(&m_allocated_ptr, size * sizeof(data_t));
+                data_t *allocated_ptr;
+                cudaError_t err = cudaMalloc(&allocated_ptr, size * sizeof(data_t));
                 ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
-                m_gpu_ptr = m_allocated_ptr;
-                m_offset = m_allocated_ptr - m_gpu_ptr;
+                m_gpu_ptr = allocated_ptr;
+                m_offset = allocated_ptr - m_gpu_ptr;
                 m_state.m_dnu = true;
             }
             ASSERT_OR_THROW((m_gpu_ptr && m_cpu_ptr), "Failed to create cuda_storage.");
@@ -148,8 +148,10 @@ namespace gridtools {
         ~cuda_storage() {
             if ((m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full) && m_cpu_ptr)
                 delete[] m_cpu_ptr;
-            if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr)
-                cudaFree(m_gpu_ptr - m_offset);
+            if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr) {
+                cudaError_t err = cudaFree(m_gpu_ptr + m_offset);
+                ASSERT_OR_THROW((err == cudaSuccess), "failed to free GPU memory.");
+            }
         }
 
         /*

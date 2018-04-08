@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include "./array.hpp"
 #include "./generic_metafunctions/gt_integer_sequence.hpp"
 #include "./generic_metafunctions/accumulate.hpp"
@@ -73,9 +74,11 @@ namespace gridtools {
      *
      * \return Value corresponding to the first array value type
      */
-    template < typename T, typename U, size_t D, typename std::enable_if< std::is_arithmetic< T >::value and std::is_arithmetic< U >::value, T >::type = 0 >
-    GT_FUNCTION constexpr T operator*(array< T, D > const& a, array< U, D > const &b)
-    {
+    template < typename T,
+        typename U,
+        size_t D,
+        typename std::enable_if< std::is_arithmetic< T >::value and std::is_arithmetic< U >::value, T >::type = 0 >
+    GT_FUNCTION constexpr T operator*(array< T, D > const &a, array< U, D > const &b) {
         return array_dot_product(a, b);
     }
 } // namespace gridtools

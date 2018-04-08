@@ -54,6 +54,7 @@
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
+#include "../../common/array_dot_product.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/binary_ops.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
@@ -323,21 +324,6 @@ namespace gridtools {
         }
 
         /**
-         * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
-         * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
-         * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
-         * in a container with size 100x128x80 because the "innermost" dimension gets aligned.
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int collapsed_dim() const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
-            return layout_t::template at< Coord >() < 0 ? 1 : m_dims.template get< Coord >();
-        }
-
-        /**
          * @brief member function to retrieve the (aligned) stride (e.g., I, J, or K)
          * @tparam Coord queried coordinate
          * @return aligned stride size
@@ -381,8 +367,7 @@ namespace gridtools {
          * @return index
          */
         GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
-            return array_dot_product(
-                offsets, m_strides); // inner_product(offsets.begin(), offsets.end(), m_strides.begin(), 0);
+            return offsets * m_strides; // array_dot_product(offsets,m_strides);
         }
 
         GT_FUNCTION constexpr int first_index_of_inner_region() const {
