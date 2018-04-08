@@ -57,6 +57,8 @@ namespace gridtools {
         using decay_elements = meta::transform< decay_t, List >;
 #endif
 
+        /// generator for intermediate and intermediate_expand classes
+        /// Note: here we use the fact that template signatures and ctor parameters for both classes are the same.
         template < template < uint_t, bool, class, class, class, class > class Intermediate,
             uint_t Factor,
             bool IsStateful,
@@ -70,11 +72,14 @@ namespace gridtools {
                 class Msses = GT_META_CALL(decay_elements, typename ArgsPair::second_type) >
             Intermediate< Factor, IsStateful, Backend, Grid, ArgStoragePairs, Msses > operator()(
                 Grid const &grid, Args &&... args) const {
+                // split ar_storage_pair amd mss descriptor arguments and forward it to intermediate constructor
                 auto &&args_pair = split_args< is_arg_storage_pair >(std::forward< Args >(args)...);
                 return {grid, std::move(args_pair.first), std::move(args_pair.second)};
             }
         };
 
+        /// Dispatch between `intermediate` and `intermediate_expand` on the first parameter type.
+        ///
         template < bool Positional,
             class Backend,
             class Grid,
@@ -115,6 +120,8 @@ namespace gridtools {
 #define POSITIONAL_WHEN_DEBUGGING false
 #endif
 
+    /// generator for intermediate/intermediate_expand
+    ///
     template < class Backend, class Arg, class... Args >
     auto make_computation(Arg const &arg, Args &&... args) GT_AUTO_RETURN(
         (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(arg, std::forward< Args >(args)...)));

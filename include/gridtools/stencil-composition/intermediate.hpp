@@ -394,33 +394,64 @@ namespace gridtools {
         };
 
         // member fields
+
         Grid m_grid;
+
         performance_meter_t m_meter;
+
+        /// branch_selector is responsible for choosing the right branch of in condition MSS tree.
+        ///
         branch_selector_t m_branch_selector;
+
+        /// is needed for dedup_storage_info method.
+        ///
         storage_info_map_t m_storage_info_map;
+
+        /// tuple with temporary storages
+        //
         tmp_arg_storage_pair_fusion_list_t m_tmp_arg_storage_pair_fusion_list;
+
+        /// tuple with storages that are bound during costruction
+        /// Each item holds a storage and its view
         bound_arg_storage_pair_fusion_list_t m_bound_arg_storage_pair_fusion_list;
+
+        /// Here are local domains (structures with raw pointers for passing to backed.
         mss_local_domain_list_t m_mss_local_domain_list;
 
       public:
         intermediate(Grid const &grid,
             std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... > arg_storage_pairs,
             std::tuple< MssDescriptors... > msses)
-            : m_grid(grid), m_meter("NoName"), m_branch_selector(std::move(msses)),
+            // grid just stored to the member
+            : m_grid(grid),
+              m_meter("NoName"),
+              // pass mss descriptor condition trees to branch_selector that owns them and provides the interface to
+              // a functor with a chosen condition branch
+              m_branch_selector(std::move(msses)),
+              // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
+              // that ensures, that only
               m_tmp_arg_storage_pair_fusion_list(dedup_storage_info(_impl::make_tmp_arg_storage_pairs< max_i_extent_t,
                   Backend,
                   storage_wrapper_list_t,
                   tmp_arg_storage_pair_fusion_list_t >(grid))),
+              // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_fusion_list(dedup_storage_info(std::move(arg_storage_pairs))) {
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
+
+            // Here we make views (actually supplemental view_info structures are made) from both temporary and bound
+            // storages, concatenate them together and pass to `update_local_domains`
             update_local_domains(std::tuple_cat(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
                 make_view_infos(m_bound_arg_storage_pair_fusion_list)));
+            // now only local domanis missing pointers from free (not bound) storages.
         }
 
         void sync_all() const { boost::fusion::for_each(m_bound_arg_storage_pair_fusion_list, _impl::sync_f{}); }
 
+        // TODO(anstaf): introduce overload that takes a tuple of arg_storage_pair's. it will simplify a bit
+        //               implementation of the `intermediate_expanded` and `computation` by getting rid of
+        //               `boost::fusion::invoke`.
         template < class... Args, class... DataStores >
         typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
             arg_storage_pair< Args, DataStores > const &... srcs) {
@@ -429,9 +460,15 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 meta::is_set_fast< meta::list< Args... > >::value, "free placeholders should be all different");
 
+            // make views from bound storages again (in the case old views got inconsistent)
+            // make views from free storages;
+            // concatenate them into a single tuple.
+            // push view for updating the local domains.
             update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_fusion_list),
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));
+            // now local domains are fully set up.
             m_meter.start();
+            // branch selector calls run_f functor on the right branch of mss condition tree.
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
             m_meter.pause();
             return res;

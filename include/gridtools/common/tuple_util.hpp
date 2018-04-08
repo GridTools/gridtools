@@ -35,6 +35,8 @@
 */
 
 /**
+ *  @file
+ *
  *  Here is a set of algorithms that are defined on "tuple like" structures
  *  To be a "tuple like", a structure should:
  *    - be a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ]
@@ -60,6 +62,18 @@
  *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a tuple
  *  of tuple of tuple of integers you can do it in one expression:
  *  auto out = transform(transform([](int x) {return x;}), input);
+ *
+ *
+ *  TODO list
+ *  =========
+ *  - extend concept to be applied to std::array's
+ *  - add for_each_in_cartesian_product
+ *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
+ *  - supply all functions here with `GT_FUNCTION` variants.
+ *  - add apply (generic version of std::apply)
+ *  - add push_front
+ *  - add for_each_index
+ *
  */
 #pragma once
 
@@ -396,6 +410,7 @@ namespace gridtools {
         }
 
         /// like boost::fusion::transform, but can take any number of tuples as input
+        ///
         template < class Fun, class Tup, class... Tups >
         void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
             _impl::for_each_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...);
@@ -450,6 +465,7 @@ namespace gridtools {
         inline constexpr _impl::transform_f< clone > deep_copy() { return {}; }
 
         /// All the references within input are copied as values into output. Output type doesn't contain references.
+        ///
         template < class Tup >
         auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward< Tup >(tup)));
     }

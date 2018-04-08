@@ -69,6 +69,12 @@ namespace gridtools {
         return fun;
     };
 
+    // TODO(anstaf): avoid copying the same thing with and without GT_FUNCTION.
+    //               Possible solution is boost preprocessor vertical repetition pattern
+    //               it should be for_each, host::for_each and device::for_each
+    //               for CUDA they will be different, for others all are aliases to host::for_each
+    //               The same pattern could be applied for all template functions that we use both in
+    //               device and host context.
     template < class List, class Fun >
     Fun host_for_each(Fun const &fun) {
         _impl::host_for_each_f< List >{}(fun);

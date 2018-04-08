@@ -211,17 +211,15 @@ namespace gridtools {
        @brief the intermediate representation object
 
        The expandable parameters are long lists of storages on which the same stencils are applied,
-       in a Single-Stencil-Multiple-Storage way. In order to avoid resource contemption usually
+       in a Single-Stencil-Multiple-Storage way. In order to avoid resource contention usually
        it is convenient to split the execution in multiple stencil, each stencil operating on a chunk
        of the list. Say that we have an expandable parameters list of length 23, and a chunk size of
        4, we'll execute 5 stencil with a "vector width" of 4, and one stencil with a "vector width"
        of 3 (23%4).
 
-       This object contains two unique pointers of @ref gridtools::intermediate type, one with a vector width
+       This object contains two objects of @ref gridtools::intermediate type, one with a vector width
        corresponding to the expand factor defined by the user (4 in the previous example), and another
        one with a vector width of expand_factor%total_parameters (3 in the previous example).
-       In case the total number of parameters is a multiple of the expand factor, the second
-       intermediate object does not get instantiated.
      */
     template < uint_t ExpandFactor,
         bool IsStateful,
@@ -243,15 +241,26 @@ namespace gridtools {
             non_expandable_bound_arg_storage_pairs_t,
             _impl::expand_detail::converted_mss_descriptors_trees< N, MssDescriptorTrees > >;
 
+        /// Storages that are expandable, is bound in construction time.
+        ///
         expandable_bound_arg_storage_pairs_t m_expandable_bound_arg_storage_pairs;
+
+        /// The object of `intermediate` type to which the computation will be delegated.
+        //
         converted_intermediate< ExpandFactor > m_intermediate;
+
+        /// If the actual size of storages is not divided by `ExpandFactor`, this `intermediate` will process
+        /// reminder.
         converted_intermediate< 1 > m_intermediate_remainder;
 
         template < class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs >
         intermediate_expand(Grid const &grid,
             std::pair< ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs > &&arg_refs,
             MssDescriptorTrees const &msses)
+            // expandable arg_storage_pairs are kept as a class member until run will be called.
             : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
+              // plain arg_storage_pairs are bound to both intermediates;
+              // msses descriptors got transformed and also got passed to intermediates.
               m_intermediate(
                   grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)),
               m_intermediate_remainder(
@@ -261,21 +270,31 @@ namespace gridtools {
         template < class BoundArgStoragePairsRefs >
         intermediate_expand(
             Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs, MssDescriptorTrees const &msses)
+            // public constructor splits given ard_storage_pairs to expandable and plain ones and delegates to the
+            // private constructor.
             : intermediate_expand(
                   grid, split_args_tuple< _impl::expand_detail::is_expandable >(std::move(arg_storage_pairs)), msses) {}
 
         template < class... Args, class... DataStores >
         notype run(arg_storage_pair< Args, DataStores > const &... args) {
+            // split arguments to expadable and plain ard_storage_pairs
             auto arg_groups = split_args< _impl::expand_detail::is_expandable >(args...);
+            // concatenate expandable portion of arguments with the bound expandable ard_storage_pairs
             auto expandable_args = std::tuple_cat(m_expandable_bound_arg_storage_pairs, arg_groups.first);
             const auto &plain_args = arg_groups.second;
+            // extract size from the vectors within expandable args.
+            // if vectors are not of the same length assert within `get_expandable_size` fails.
             size_t size = _impl::expand_detail::get_expandable_size(expandable_args);
             size_t offset = 0;
             for (; size - offset >= ExpandFactor; offset += ExpandFactor) {
+                // form the chunks from expandable_args with the given offset
                 auto converted_args =
                     _impl::expand_detail::convert_arg_storage_pairs< ExpandFactor >(offset, expandable_args);
+                // concatenate that chunk with the plain portion of the arguments
+                // and invoke the `run` of the `m_intermediate`.
                 _impl::expand_detail::invoke_run(m_intermediate, std::tuple_cat(plain_args, converted_args));
             }
+            // process the reminder the same way
             for (; offset < size; ++offset) {
                 auto converted_args = _impl::expand_detail::convert_arg_storage_pairs< 1 >(offset, expandable_args);
                 _impl::expand_detail::invoke_run(m_intermediate_remainder, std::tuple_cat(plain_args, converted_args));

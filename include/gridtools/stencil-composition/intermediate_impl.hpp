@@ -52,6 +52,9 @@
 namespace gridtools {
     namespace _impl {
 
+        /// this functor takes storage infos shared pointers (or types that contain storage_infos);
+        /// stashes all infos that are passed through for the first time;
+        /// if info is about to pass through twice, the functor substitutes it with the stashed one.
         template < class StorageInfoMap >
         struct dedup_storage_info_f {
             StorageInfoMap &m_storage_info_map;
@@ -132,6 +135,8 @@ namespace gridtools {
             typedef decltype(make_field_host_view< AccessMode, Elem >(std::declval< Elem & >())) type;
         };
 
+        /// This struct is used to hold bound storages. It holds a view.
+        /// the method updated_view return creates a view only if the previously returned view was inconsistent.
         template < class Arg, class DataStorage >
         struct bound_arg_storage_pair {
             using view_t = typename get_view< DataStorage >::type;
@@ -180,9 +185,12 @@ namespace gridtools {
         using local_domain_has_arg =
             typename boost::mpl::has_key< typename LocalDomain::data_ptr_fusion_map, Arg >::type;
 
+        // set pointers from the given view info to the local domain
         template < class LocalDomain >
         struct set_view_to_local_domain_f {
             LocalDomain &m_local_domain;
+
+            // if the arg belongs to the local domain we set pointers
             template < class Arg, class OptView >
             enable_if_t< local_domain_has_arg< LocalDomain, Arg >::value > operator()(
                 boost::fusion::pair< Arg, OptView > const &info) const {
@@ -190,10 +198,13 @@ namespace gridtools {
                     return;
                 auto const &view = *info.second;
                 namespace f = boost::fusion;
+                // here we set data pointers
                 advanced::copy_raw_pointers(view, f::at_key< Arg >(m_local_domain.m_local_data_ptrs));
+                // here we set meta data pointers
                 auto const *storage_info = advanced::storage_info_ptr(view);
                 *f::find< decltype(storage_info) >(m_local_domain.m_local_storage_info_ptrs) = storage_info;
             }
+            // do nothing if arg is not in this local domain
             template < class Arg, class OptView >
             enable_if_t< !local_domain_has_arg< LocalDomain, Arg >::value > operator()(
                 boost::fusion::pair< Arg, OptView > const &info) const {}
@@ -210,15 +221,18 @@ namespace gridtools {
         };
 
         struct get_local_domain_list_f {
-            // Mind the double parents after GT_AUTO_RETURN here. They are for the reason.
+            // Mind the double parens after GT_AUTO_RETURN. They are here for the reason.
             template < class T >
             auto operator()(T &&obj) const GT_AUTO_RETURN((std::forward< T >(obj).local_domain_list));
         };
 
         template < class ViewInfos, class MssLocalDomains >
         void update_local_domains(ViewInfos const &view_infos, MssLocalDomains &mss_local_domains) {
+            // here we produce from mss_local_domains a flat tuple of references to local_domain;
             auto &&local_domains =
                 tuple_util::flatten(tuple_util::transform(get_local_domain_list_f{}, mss_local_domains));
+            // and for each possible local_domain/view_info pair call set_view_to_local_domain_f functor
+            // TODO(anstaf): add for_each_cartesian_product to tuple_util and use it here.
             tuple_util::for_each(update_local_domain_f< ViewInfos >{view_infos}, std::move(local_domains));
         }
 
