@@ -323,26 +323,7 @@ namespace gridtools {
             return m_dims.template get< Coord >();
         }
 
-// <<<<<<< HEAD:include/storage/common/storage_info_interface.hpp
-//         /*
-//          * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
-//          * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
-//          * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
-//          * in a container with size 100x128x80 because the "innermost" dimension gets aligned.
-//          * @tparam Coord queried coordinate
-//          * @return size of dimension
-//          */
-//         template < int Coord >
-//         GT_FUNCTION constexpr int collapsed_dim() const {
-//             GRIDTOOLS_STATIC_ASSERT(
-//                 (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
-//             return layout_t::template at< Coord >() < 0 ? 1 : m_dims.template get< Coord >();
-//         }
-
-//         /*
-// =======
         /**
->>>>>>> ethz/master:include/gridtools/storage/common/storage_info_interface.hpp
          * @brief member function to retrieve the (aligned) stride (e.g., I, J, or K)
          * @tparam Coord queried coordinate
          * @return aligned stride size
@@ -358,61 +339,6 @@ namespace gridtools {
          * @brief return the array of (aligned) strides, see stride() for details.
          */
         GT_FUNCTION constexpr const array< uint_t, ndims > &strides() const { return m_strides; }
-
-        /**
-         * @brief member function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
-         * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
-         * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
-         * in a container with size 100x128x80 because the "innermost" dimension gets aligned. Still though the
-         * unaligned size will be 100x110x80.
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        //<<<<<<< HEAD:include/storage/common/storage_info_interface.hpp
-        // template < int Coord >
-        // GT_FUNCTION constexpr int unaligned_dim() const {
-        //     GRIDTOOLS_STATIC_ASSERT((Coord < ndims),
-        //         GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned dimension call."));
-        //     return 0;//m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
-        //     //: dim< Coord >();
-        // }
-
-        // /*
-        //  * @brief member function to retrieve the (unaligned) stride (e.g., I, J, or K)
-        //  * @tparam Coord queried coordinate
-        //  * @return unaligned stride size
-        //  */
-        // template < int Coord >
-        // GT_FUNCTION constexpr int unaligned_stride() const {
-        //     GRIDTOOLS_STATIC_ASSERT(
-        //         (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride
-        //         call."));
-        //     return 0;//m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride<
-        //     Coord >()
-        //     // : stride< Coord >();
-        // }
-// =======
-//         template < int Coord >
-//         GT_FUNCTION constexpr int unaligned_dim() const {
-//             GRIDTOOLS_STATIC_ASSERT((Coord < ndims),
-//                 GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned dimension call."));
-//             return m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
-//                                                                  : dim< Coord >();
-//         }
-
-//         /**
-//          * @brief member function to retrieve the (unaligned) stride (e.g., I, J, or K)
-//          * @tparam Coord queried coordinate
-//          * @return unaligned stride size
-//          */
-//         template < int Coord >
-//         GT_FUNCTION constexpr int unaligned_stride() const {
-//             GRIDTOOLS_STATIC_ASSERT(
-//                 (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride call."));
-//             return m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
-//                                                                     : stride< Coord >();
-//         }
-// >>>>>>> ethz/master:include/gridtools/storage/common/storage_info_interface.hpp
 
         /**
          * @brief member function to retrieve an offset (or index) when given offsets in I,J,K, etc.
@@ -441,24 +367,12 @@ namespace gridtools {
          * @return index
          */
         GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
-            return offsets*m_strides; //array_dot_product(offsets,m_strides);
+            return offsets * m_strides; // array_dot_product(offsets,m_strides);
         }
 
         GT_FUNCTION constexpr int first_index_of_inner_region() const {
             return first_index_impl(typename make_gt_integer_sequence< int, ndims >::type{});
         }
-
-        /**
-         * @brief function that returns the initial offset. The initial offset
-         * has to be added if we use alignment in combination with a halo
-         * in the aligned dimension. We want to have the first non halo point
-         * aligned. Therefore we have to introduce an initial offset.
-         * @return initial offset
-         */
-        // GT_FUNCTION constexpr uint_t get_initial_offset() const {
-        //     return 0;//index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
-        //     // return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
-        // }
 
         /**
          * @brief function to check for equality of two given storage_infos
