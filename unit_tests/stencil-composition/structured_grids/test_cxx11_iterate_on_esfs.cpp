@@ -44,7 +44,7 @@
 #include <stencil-composition/backend.hpp>
 #include <stencil-composition/independent_esf.hpp>
 #include <stencil-composition/make_stage.hpp>
-#include <stencil-composition/make_stencils.hpp>
+#include <stencil-composition/make_stencils_cxx11.hpp>
 #include <storage/storage-facility.hpp>
 
 #include "backend_select.hpp"

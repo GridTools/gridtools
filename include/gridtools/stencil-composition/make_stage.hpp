@@ -36,7 +36,7 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids/make_stage.hpp"
+#include "stencil-composition/structured_grids/make_stage_cxx11.hpp"
 #else
-#include "icosahedral_grids/make_stage.hpp"
+#include "stencil-composition/icosahedral_grids/make_stage.hpp"
 #endif

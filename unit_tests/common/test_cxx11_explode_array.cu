@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 
-#include "test_explode_array.hpp"
+#include "test_cxx11_explode_array.hpp"
 
 __global__ void explode_static_kernel(bool *result) { *result = test_explode_static(); }
 

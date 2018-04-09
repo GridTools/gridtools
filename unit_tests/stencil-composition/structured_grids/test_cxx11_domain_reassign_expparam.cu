@@ -33,6 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-
-#include "make_stencils_cxx11.hpp"
+#include "test_cxx11_domain_reassign_expparam.cpp"

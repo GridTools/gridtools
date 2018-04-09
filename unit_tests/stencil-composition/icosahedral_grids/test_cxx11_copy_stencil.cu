@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_conditional_switches.cpp"
+#include "test_cxx11_copy_stencil.cpp"

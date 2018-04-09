@@ -34,34 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "test_accumulate.hpp"
 
-__global__ void accumulate_and_kernel(bool *result) { *result = test_accumulate_and(); }
+#include "test_cxx11_explode_array.hpp"
 
-__global__ void accumulate_or_kernel(bool *result) { *result = test_accumulate_or(); }
+TEST(explode_array, test_explode_static) { ASSERT_TRUE(test_explode_static()); }
 
-TEST(accumulate, test_and) {
-    bool result;
-    bool *resultDevice;
-    cudaMalloc(&resultDevice, sizeof(bool));
+TEST(explode_array, test_explode_with_object) { ASSERT_TRUE(test_explode_with_object()); }
 
-    // clang-format off
-    accumulate_and_kernel<<<1,1>>>(resultDevice);
-    // clang-format on
+TEST(explode_array, tuple) { ASSERT_TRUE((test_explode_with_tuple())); }
 
-    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
-    ASSERT_TRUE(result);
-}
-
-TEST(accumulate, test_or) {
-    bool result;
-    bool *resultDevice;
-    cudaMalloc(&resultDevice, sizeof(bool));
-
-    // clang-format off
-    accumulate_or_kernel<<<1,1>>>(resultDevice);
-    // clang-format on
-
-    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
-    ASSERT_TRUE(result);
-}
+TEST(explode_array, tuple_with_object) { ASSERT_TRUE((test_explode_with_tuple_with_object())); }

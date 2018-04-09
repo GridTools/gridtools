@@ -33,4 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_positional_when_debug.cpp"
+
+#include "./test_cxx11_distributed_boundaries.cpp"
