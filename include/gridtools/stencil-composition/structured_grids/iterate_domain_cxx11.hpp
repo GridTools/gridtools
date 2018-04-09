@@ -309,6 +309,23 @@ namespace gridtools {
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
+        template < typename ReturnType, typename Accesor, bool DirectGMemAccess, typename DataPointer >
+        GT_FUNCTION typename boost::enable_if_c< DirectGMemAccess, ReturnType >::type get_value_dispatch(
+            DataPointer * RESTRICT real_storage_pointer, const int pointer_offset) const {
+            return get_gmem_value< ReturnType >(real_storage_pointer, pointer_offset);
+        }
+
+        template < typename ReturnType, typename Accessor, bool DirectGMemAccess, typename DataPointer >
+        GT_FUNCTION typename boost::enable_if_c< !DirectGMemAccess, ReturnType >::type get_value_dispatch(
+            DataPointer * RESTRICT real_storage_pointer, const int pointer_offset) const {
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    ReturnType,
+                    Accessor,
+                    DataPointer * >(real_storage_pointer, pointer_offset);
+        }
+
+
         /** @brief method returning the data pointer of an accessor
             specialization for the accessor placeholders for standard storages
 
@@ -558,15 +575,7 @@ namespace gridtools {
             grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
-        if (DirectGMemAccess) {
-            return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
-        } else {
-            return static_cast< const IterateDomainImpl * >(this)
-                ->template get_value_impl<
-                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                    Accessor,
-                    data_t * >(real_storage_pointer, pointer_offset);
-        }
+        return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }
 
 } // namespace gridtools
