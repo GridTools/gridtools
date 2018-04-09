@@ -88,8 +88,8 @@ namespace gridtools {
 
             __shared__ shared_iterate_domain_t shared_iterate_domain;
 
-            // Doing construction of the ierate domain and assignment of pointers and strides
-            iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
+            // Doing construction of the iterate domain and assignment of pointers and strides
+            iterate_domain_t it_domain(l_domain, grid.grid_topology(), block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 

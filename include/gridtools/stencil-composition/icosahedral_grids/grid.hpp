@@ -46,23 +46,35 @@ namespace gridtools {
 
         typedef GridTopology grid_topology_t;
 
+      private:
+        GridTopology m_grid_topology;
+
+      public:
         static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
 
-        DEPRECATED_REASON(GT_FUNCTION explicit grid(const array< uint_t, 5 > &i, const array< uint_t, 5 > &j),
+        DEPRECATED_REASON(
+            GT_FUNCTION explicit grid(
+                GridTopology const &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j),
             "Use constructor with halo_descriptors")
             : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
-                  halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])) {}
+                  halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
+              m_grid_topology(grid_topology) {}
 
-        DEPRECATED_REASON(
-            GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
+        DEPRECATED_REASON(GT_FUNCTION explicit grid(GridTopology const &grid_topology,
+                              halo_descriptor const &direction_i,
+                              halo_descriptor const &direction_j),
             "This constructor does not initialize the vertical axis, use the constructor with 4 arguments.")
-            : grid_base< Axis >(direction_i, direction_j) {}
+            : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
         GT_FUNCTION
-        explicit grid(halo_descriptor const &direction_i,
+        explicit grid(GridTopology const &grid_topology,
+            halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
             const decltype(grid_base< Axis >::value_list) &value_list)
-            : grid_base< Axis >(direction_i, direction_j, value_list) {}
+            : grid_base< Axis >(direction_i, direction_j, value_list), m_grid_topology(grid_topology) {}
+
+        GT_FUNCTION
+        GridTopology const &grid_topology() const { return m_grid_topology; }
     };
 
     template < typename Grid >
@@ -72,10 +84,12 @@ namespace gridtools {
     struct is_grid< grid< Axis, GridTopology > > : boost::mpl::true_ {};
 
     template < typename Axis, typename GridTopology >
-    GT_FUNCTION_HOST grid< typename Axis::axis_interval_t, GridTopology > make_grid(
-        GridTopology const &, halo_descriptor const &direction_i, halo_descriptor const &direction_j, Axis axis) {
+    GT_FUNCTION_HOST grid< typename Axis::axis_interval_t, GridTopology > make_grid(GridTopology const &grid_topology,
+        halo_descriptor const &direction_i,
+        halo_descriptor const &direction_j,
+        Axis axis) {
         return grid< typename Axis::axis_interval_t, GridTopology >(
-            direction_i, direction_j, _impl::intervals_to_indices(axis.interval_sizes()));
+            grid_topology, direction_i, direction_j, _impl::intervals_to_indices(axis.interval_sizes()));
     }
     template < typename GridTopology >
     GT_FUNCTION_HOST grid< axis< 1 >::axis_interval_t, GridTopology > make_grid(
@@ -84,9 +98,11 @@ namespace gridtools {
     }
     template < typename Axis, typename GridTopology >
     GT_FUNCTION_HOST grid< typename Axis::axis_interval_t, GridTopology > make_grid(
-        GridTopology const &, uint_t di, uint_t dj, Axis axis) {
-        return grid< typename Axis::axis_interval_t, GridTopology >(
-            halo_descriptor(di), halo_descriptor(dj), _impl::intervals_to_indices(axis.interval_sizes()));
+        GridTopology const &grid_topology, uint_t di, uint_t dj, Axis axis) {
+        return grid< typename Axis::axis_interval_t, GridTopology >(grid_topology,
+            halo_descriptor(di),
+            halo_descriptor(dj),
+            _impl::intervals_to_indices(axis.interval_sizes()));
     }
     template < typename GridTopology >
     GT_FUNCTION_HOST grid< axis< 1 >::axis_interval_t, GridTopology > make_grid(GridTopology const &grid_topology,
