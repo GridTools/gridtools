@@ -62,8 +62,8 @@ namespace gridtools {
             return m_neigh_indexes[index(coord)];
         }
 
-        void insert_neighbour(array< uint_t, 4 > const &coord, array< uint_t, 4 > neighbour) {
-            at(coord).push_back(neighbour);
+        void insert_neighbour(array< uint_t, 4 > const& coord, array< uint_t, 4 > neighbour) {
+            at(coord).push_back(std::move(neighbour));
         }
 
       private:
