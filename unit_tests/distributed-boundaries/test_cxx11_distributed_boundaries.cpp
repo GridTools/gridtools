@@ -52,7 +52,6 @@
 template < typename View >
 void show_view(View const &view) {
     std::cout << "--------------------------------------------\n";
-    std::cout << "length:total : " << view.storage_info().length() << ":" << view.storage_info().total_length() << ", ";
 
     std::cout << "lenth-end<i> : " << view.template length< 0 >() << ":" << view.template total_length< 0 >() << ", ";
     std::cout << "lenth-end<j> : " << view.template length< 1 >() << ":" << view.template total_length< 1 >() << ", ";
@@ -119,8 +118,10 @@ TEST(DistributedBoundaries, Test) {
 
     using cabc_t = distributed_boundaries< comm_traits< storage_type, comm_arch > >;
 
-    halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.dim< 0 >()};
-    halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.dim< 1 >()};
+    halo_descriptor di{
+        halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.padded_length< 0 >()};
+    halo_descriptor dj{
+        halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length< 1 >()};
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim< 2 >()};
     array< halo_descriptor, 3 > halos{di, dj, dk};
 

@@ -191,3 +191,17 @@ TEST(DataViewTest, Looping) {
         }
     }
 }
+
+TEST(DataViewTest, CheckMemorySpace) {
+    typedef cuda_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
+    storage_info_t si(2 + 2 * 1, 2 + 2 * 3, 2 + 2 * 3);
+
+    typedef data_store< cuda_storage< int >, storage_info_t > data_store_t;
+
+    data_store_t ds(si, -1, "ds");
+    auto view = make_device_view< access_mode::ReadWrite >(ds);
+
+#ifndef NDEBUG
+    EXPECT_THROW(view(0, 0, 1), std::runtime_error);
+#endif
+}

@@ -41,7 +41,7 @@
 
 __global__ void initial_check_s1(int *s) {
     ASSERT_OR_THROW((s[0] == 10), "check failed");
-    ASSERT_OR_THROW((s[1] == (s[1] == 10)), "check failed");
+    ASSERT_OR_THROW((s[1] == 10), "check failed");
     if (s[0] != 10 || s[1] != 10) {
         s[0] = -1;
         s[1] = -1;
@@ -101,22 +101,18 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s2.get_cpu_ptr(), s2.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[0]);
     EXPECT_EQ(s1.get_gpu_ptr(), s1.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[1]);
     EXPECT_EQ(s2.get_gpu_ptr(), s2.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[1]);
-    // manually exchange the ptrs
-    std::array< int *, 2 > tmp = {s1.get_cpu_ptr(), s1.get_gpu_ptr()};
-    s1.set_ptrs(s2.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >());
-    s2.set_ptrs(tmp);
+    // swap the storages
+    s1.swap(s2);
     // check if changes are there
     EXPECT_EQ(s2.get_cpu_ptr()[1], 40);
     EXPECT_EQ(s2.get_cpu_ptr()[0], 30);
     EXPECT_EQ(s1.get_cpu_ptr()[1], 400);
     EXPECT_EQ(s1.get_cpu_ptr()[0], 300);
-    EXPECT_EQ(s2.get_gpu_ptr(), tmp[1]);
-    EXPECT_EQ(s2.get_cpu_ptr(), tmp[0]);
 }
 
 TEST(StorageHostTest, InitializedStorage) {
     // create two storages
-    gridtools::cuda_storage< int > s1(2, 10);
+    gridtools::cuda_storage< int > s1(2, [](int) { return 10; });
     // initial check
     initial_check_s1<<< 1, 1 >>>(s1.get_gpu_ptr());
     s1.clone_from_device();

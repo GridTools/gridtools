@@ -55,19 +55,14 @@ TEST(StorageInfoRT, Make3D) {
     ASSERT_EQ(si.dim< 2 >(), dims[2]);
 
     auto unaligned_dims = storage_info_rt_.unaligned_dims();
-    ASSERT_EQ(si.unaligned_dim< 0 >(), unaligned_dims[0]);
-    ASSERT_EQ(si.unaligned_dim< 1 >(), unaligned_dims[1]);
-    ASSERT_EQ(si.unaligned_dim< 2 >(), unaligned_dims[2]);
+    ASSERT_EQ(si.total_length< 0 >(), unaligned_dims[0]);
+    ASSERT_EQ(si.total_length< 1 >(), unaligned_dims[1]);
+    ASSERT_EQ(si.total_length< 2 >(), unaligned_dims[2]);
 
     auto strides = storage_info_rt_.strides();
     ASSERT_EQ(si.stride< 0 >(), strides[0]);
     ASSERT_EQ(si.stride< 1 >(), strides[1]);
     ASSERT_EQ(si.stride< 2 >(), strides[2]);
-
-    auto unaligned_strides = storage_info_rt_.unaligned_strides();
-    ASSERT_EQ(si.unaligned_stride< 0 >(), unaligned_strides[0]);
-    ASSERT_EQ(si.unaligned_stride< 1 >(), unaligned_strides[1]);
-    ASSERT_EQ(si.unaligned_stride< 2 >(), unaligned_strides[2]);
 }
 
 TEST(StorageInfoRT, Make3Dmasked) {
@@ -82,17 +77,12 @@ TEST(StorageInfoRT, Make3Dmasked) {
     ASSERT_EQ(si.dim< 2 >(), dims[2]);
 
     auto unaligned_dims = storage_info_rt_.unaligned_dims();
-    ASSERT_EQ(si.unaligned_dim< 0 >(), unaligned_dims[0]);
-    ASSERT_EQ(si.unaligned_dim< 1 >(), unaligned_dims[1]);
-    ASSERT_EQ(si.unaligned_dim< 2 >(), unaligned_dims[2]);
+    ASSERT_EQ(si.total_length< 0 >(), unaligned_dims[0]);
+    ASSERT_EQ(si.total_length< 1 >(), unaligned_dims[1]);
+    ASSERT_EQ(si.total_length< 2 >(), unaligned_dims[2]);
 
     auto strides = storage_info_rt_.strides();
     ASSERT_EQ(si.stride< 0 >(), strides[0]);
     ASSERT_EQ(si.stride< 1 >(), strides[1]);
     ASSERT_EQ(si.stride< 2 >(), strides[2]);
-
-    auto unaligned_strides = storage_info_rt_.unaligned_strides();
-    ASSERT_EQ(si.unaligned_stride< 0 >(), unaligned_strides[0]);
-    ASSERT_EQ(si.unaligned_stride< 1 >(), unaligned_strides[1]);
-    ASSERT_EQ(si.unaligned_stride< 2 >(), unaligned_strides[2]);
 }
