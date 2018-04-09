@@ -34,13 +34,34 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include "test_accumulate.hpp"
 
-#include "test_cxx11_explode_array.hpp"
+__global__ void accumulate_and_kernel(bool *result) { *result = test_accumulate_and(); }
 
-TEST(explode_array, test_explode_static) { ASSERT_TRUE(test_explode_static()); }
+__global__ void accumulate_or_kernel(bool *result) { *result = test_accumulate_or(); }
 
-TEST(explode_array, test_explode_with_object) { ASSERT_TRUE(test_explode_with_object()); }
+TEST(accumulate, test_and) {
+    bool result;
+    bool *resultDevice;
+    cudaMalloc(&resultDevice, sizeof(bool));
 
-TEST(explode_array, tuple) { ASSERT_TRUE((test_explode_with_tuple())); }
+    // clang-format off
+    accumulate_and_kernel<<<1,1>>>(resultDevice);
+    // clang-format on
 
-TEST(explode_array, tuple_with_object) { ASSERT_TRUE((test_explode_with_tuple_with_object())); }
+    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+    ASSERT_TRUE(result);
+}
+
+TEST(accumulate, test_or) {
+    bool result;
+    bool *resultDevice;
+    cudaMalloc(&resultDevice, sizeof(bool));
+
+    // clang-format off
+    accumulate_or_kernel<<<1,1>>>(resultDevice);
+    // clang-format on
+
+    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+    ASSERT_TRUE(result);
+}

@@ -33,4 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_cycle_and_swap.cpp"
+#include "gtest/gtest.h"
+
+#include "test_explode_array.hpp"
+
+TEST(explode_array, test_explode_static) { ASSERT_TRUE(test_explode_static()); }
+
+TEST(explode_array, test_explode_with_object) { ASSERT_TRUE(test_explode_with_object()); }
+
+TEST(explode_array, tuple) { ASSERT_TRUE((test_explode_with_tuple())); }
+
+TEST(explode_array, tuple_with_object) { ASSERT_TRUE((test_explode_with_tuple_with_object())); }

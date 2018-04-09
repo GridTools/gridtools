@@ -38,7 +38,7 @@
 #include "../esf.hpp"
 #include "../make_stage.hpp"
 
-#include "make_reduction_cxx11.hpp"
+#include "make_reduction.hpp"
 
 #include "../make_computation.hpp"
 #include "../../common/binops.hpp"
