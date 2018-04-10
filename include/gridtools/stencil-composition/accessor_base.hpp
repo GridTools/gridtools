@@ -60,10 +60,10 @@ namespace gridtools {
         struct pseudo_array< T, 2 > {
             T data0, data1;
 
-            constexpr pseudo_array(array< T, 2 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 2 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()) {}
 
-            constexpr pseudo_array(T data0 = 0, T data1 = 0) : data0(data0), data1(data1) {}
+            GT_FUNCTION constexpr pseudo_array(T data0 = 0, T data1 = 0) : data0(data0), data1(data1) {}
 
             template < std::size_t Idx >
             GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
@@ -81,10 +81,11 @@ namespace gridtools {
         struct pseudo_array< T, 3 > {
             T data0, data1, data2;
 
-            constexpr pseudo_array(array< T, 3 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 3 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()) {}
 
-            pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0) : data0(data0), data1(data1), data2(data2) {}
+            GT_FUNCTION constexpr pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0)
+                : data0(data0), data1(data1), data2(data2) {}
 
             template < std::size_t Idx >
             GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
@@ -106,11 +107,11 @@ namespace gridtools {
         struct pseudo_array< T, 4 > {
             T data0, data1, data2, data3;
 
-            constexpr pseudo_array(array< T, 4 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 4 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
                   data3(a.template get< 3 >()) {}
 
-            constexpr pseudo_array(T data0, T data1, T data2, T data3)
+            GT_FUNCTION constexpr pseudo_array(T data0, T data1, T data2, T data3)
                 : data0(data0), data1(data1), data2(data2), data3(data3) {}
 
             template < std::size_t Idx >
@@ -137,11 +138,11 @@ namespace gridtools {
         struct pseudo_array< T, 5 > {
             T data0, data1, data2, data3, data4;
 
-            constexpr pseudo_array(array< T, 5 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 5 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
                   data3(a.template get< 3 >()), data4(a.template get< 4 >()) {}
 
-            constexpr pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0)
+            GT_FUNCTION constexpr pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0)
                 : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4) {}
 
             template < std::size_t Idx >
@@ -172,11 +173,12 @@ namespace gridtools {
         struct pseudo_array< T, 6 > {
             T data0, data1, data2, data3, data4, data5;
 
-            constexpr pseudo_array(array< T, 6 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 6 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
                   data3(a.template get< 3 >()), data4(a.template get< 4 >()), data5(a.template get< 5 >()) {}
 
-            constexpr pseudo_array(T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0, T data5 = 0)
+            GT_FUNCTION constexpr pseudo_array(
+                T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0, T data5 = 0)
                 : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4), data5(data5) {}
 
             template < std::size_t Idx >
@@ -211,12 +213,12 @@ namespace gridtools {
         struct pseudo_array< T, 7 > {
             T data0, data1, data2, data3, data4, data5, data6;
 
-            constexpr pseudo_array(array< T, 7 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 7 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
                   data3(a.template get< 3 >()), data4(a.template get< 4 >()), data5(a.template get< 5 >()),
                   data6(a.template get< 6 >()) {}
 
-            constexpr pseudo_array(
+            GT_FUNCTION constexpr pseudo_array(
                 T data0 = 0, T data1 = 0, T data2 = 0, T data3 = 0, T data4 = 0, T data5 = 0, T data6 = 0)
                 : data0(data0), data1(data1), data2(data2), data3(data3), data4(data4), data5(data5), data6(data6) {}
 
@@ -257,14 +259,14 @@ namespace gridtools {
             T data0, data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13,
                 data14;
 
-            constexpr pseudo_array(array< T, 15 > const &a)
+            GT_FUNCTION constexpr pseudo_array(array< T, 15 > const &a)
                 : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()),
                   data3(a.template get< 3 >()), data4(a.template get< 4 >()), data5(a.template get< 5 >()),
                   data6(a.template get< 6 >()), data7(a.template get< 7 >()), data8(a.template get< 8 >()),
                   data9(a.template get< 9 >()), data10(a.template get< 10 >()), data11(a.template get< 11 >()),
                   data12(a.template get< 12 >()), data13(a.template get< 13 >()), data14(a.template get< 14 >()) {}
 
-            constexpr pseudo_array(T data0 = 0,
+            GT_FUNCTION constexpr pseudo_array(T data0 = 0,
                 T data1 = 0,
                 T data2 = 0,
                 T data3 = 0,
