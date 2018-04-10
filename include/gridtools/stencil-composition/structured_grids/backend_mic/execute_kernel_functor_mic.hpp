@@ -35,6 +35,12 @@
 */
 
 #pragma once
+
+#include <boost/mpl/begin_end.hpp>
+#include <boost/mpl/deref.hpp>
+#include <boost/mpl/identity.hpp>
+#include <boost/mpl/next_prior.hpp>
+
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
@@ -47,6 +53,38 @@
 namespace gridtools {
 
     namespace _impl {
+
+        /**
+         * @brief Simplified copy of boost::mpl::for_each for looping over loop_intervals. Needed because ICC can not
+         * vectorize the original boost::mpl::for_each.
+         */
+        template < bool done = true >
+        struct boost_mpl_for_each_mic_impl {
+            template < typename Iterator, typename LastIterator, typename F >
+            GT_FUNCTION static void execute(F const &f) {}
+        };
+
+        template <>
+        struct boost_mpl_for_each_mic_impl< false > {
+            template < typename Iterator, typename LastIterator, typename F >
+            GT_FUNCTION static void execute(F const &f) {
+                using arg = typename ::boost::mpl::deref< Iterator >::type;
+                using next = typename ::boost::mpl::next< Iterator >::type;
+
+                f(arg{});
+
+                boost_mpl_for_each_mic_impl<::boost::is_same< next, LastIterator >::value >::template execute< next,
+                    LastIterator >(f);
+            }
+        };
+
+        template < typename Sequence, typename F >
+        GT_FUNCTION void boost_mpl_for_each_mic(F const &f) {
+            using first = typename ::boost::mpl::begin< Sequence >::type;
+            using last = typename ::boost::mpl::end< Sequence >::type;
+
+            boost_mpl_for_each_mic_impl<::boost::is_same< first, last >::value >::template execute< first, last >(f);
+        }
 
         /**
          * @brief Meta function to check if all ESFs can be computed independently per column. This is possible if the
@@ -440,7 +478,7 @@ namespace gridtools {
 
                 using max_extent_t = typename RunFunctorArguments::max_extent_t;
 
-                boost::mpl::for_each< loop_intervals_t >(
+                gridtools::_impl::boost_mpl_for_each_mic< loop_intervals_t >(
                     gridtools::_impl::interval_functor_mic< RunFunctorArguments, ExecutionInfo >(
                         it_domain, m_grid, execution_info));
 
