@@ -29,7 +29,7 @@ def sbatch(command):
     return textwrap.dedent(f"""\
         #!/bin/bash -l
         #SBATCH --job-name=gridtools-test
-        #SBATCH --partition=debug
+        #SBATCH --partition=dev
         #SBATCH --exclusive
         #SBATCH --nodes=1
         #SBATCH --ntasks-per-node=1
