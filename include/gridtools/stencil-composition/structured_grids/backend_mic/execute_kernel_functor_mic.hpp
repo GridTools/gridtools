@@ -168,8 +168,10 @@ namespace gridtools {
                 run_esf_functor_t run_esf(m_it_domain);
                 for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
                     m_it_domain.set_k_block_index(k);
+#ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
+#endif
                     for (int_t i = m_i_vecfirst; i < m_i_veclast; ++i) {
                         m_it_domain.set_i_block_index(i);
                         run_esf(index);
@@ -245,8 +247,10 @@ namespace gridtools {
                     for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
                          iteration_policy_t::increment(k)) {
                         m_it_domain.set_k_block_index(k);
+#ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
+#endif
                         for (int_t i = i_first; i < i_last; ++i) {
                             m_it_domain.set_i_block_index(i);
                             run_esf(index);
@@ -302,8 +306,10 @@ namespace gridtools {
                 m_it_domain.set_k_block_index(m_execution_info.k);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
+#ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
+#endif
                     for (int_t i = i_first; i < i_last; ++i) {
                         m_it_domain.set_i_block_index(i);
                         run_esf(index);
