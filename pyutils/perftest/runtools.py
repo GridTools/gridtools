@@ -163,19 +163,23 @@ def _poll(task_ids):
     for line in info.splitlines():
         jobid, jobname, state, exitcode = line.split('|')
         if state not in wait_states:
-            if state == 'TIMEOUT':
+            if state == 'CANCELLED':
+                raise JobError(f'Job {jobid} ({jobname}) was cancelled')
+            elif state == 'COMPLETED':
+                # There might be additional internal subtasks in the output, that
+                # we do not want to add to the set of finished jobs so we have
+                # to check the ID here
+                if jobid in task_ids:
+                    finished.add(jobid)
+            elif state == 'FAILED':
+                exitcode = int(exitcode.split(':')[0])
+                raise JobError(f'Job {jobid} ({jobname}) failed with exitcode '
+                               f'{exitcode}')
+            elif state == 'NODE_FAIL':
+                raise JobError(f'Node failure for job {jobid} ({jobname})')
+            elif state == 'TIMEOUT':
                 raise JobError(f'Job {jobid} ({jobname}) timed out, consider '
                                f'increasing the time limit')
 
-            exitcode = int(exitcode.split(':')[0])
-            # There might be additional internal subtasks in the output, that
-            # we do not want to add to the set of finished jobs so we have
-            # to check the ID here
-            if jobid in task_ids:
-                finished.add(jobid)
-            # Throw an error if a job has failed (either main job or subtask)
-            if exitcode != 0:
-                raise JobError(f'Job {jobid} ({jobname}) failed with exitcode '
-                               f'{exitcode} and state {state}')
 
     return finished
