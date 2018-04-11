@@ -61,7 +61,7 @@ namespace gridtools {
         template < bool done = true >
         struct boost_mpl_for_each_mic_impl {
             template < typename Iterator, typename LastIterator, typename F >
-            GT_FUNCTION static void execute(F const &f) {}
+            GT_FUNCTION static void execute(F const &) {}
         };
 
         template <>
@@ -153,9 +153,6 @@ namespace gridtools {
                 using run_esf_functor_t =
                     typename backend_traits_t::run_esf_functor_h_t::template apply< RunFunctorArguments,
                         Interval >::type;
-
-                using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
-                using extent_t = typename boost::mpl::at< extent_sizes_t, Index >::type;
 
                 const int_t k_first = m_grid.template value_at< typename iteration_policy_t::from >();
                 const int_t k_last = m_grid.template value_at< typename iteration_policy_t::to >();
@@ -477,12 +474,9 @@ namespace gridtools {
 
             template < class ExecutionInfo >
             GT_FUNCTION void operator()(const ExecutionInfo &execution_info) const {
-                using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
                 using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
-
-                using max_extent_t = typename RunFunctorArguments::max_extent_t;
 
                 gridtools::_impl::boost_mpl_for_each_mic< loop_intervals_t >(
                     gridtools::_impl::interval_functor_mic< RunFunctorArguments, ExecutionInfo >(
