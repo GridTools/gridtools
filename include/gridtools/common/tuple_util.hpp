@@ -409,7 +409,7 @@ namespace gridtools {
             return {std::move(fun)};
         }
 
-        /// like boost::fusion::transform, but can take any number of tuples as input
+        /// like boost::fusion::for_each, but can take any number of tuples as input
         ///
         template < class Fun, class Tup, class... Tups >
         void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {

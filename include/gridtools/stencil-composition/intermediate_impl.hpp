@@ -201,7 +201,7 @@ namespace gridtools {
                 // here we set data pointers
                 advanced::copy_raw_pointers(view, f::at_key< Arg >(m_local_domain.m_local_data_ptrs));
                 // here we set meta data pointers
-                auto const *storage_info = advanced::storage_info_ptr(view);
+                auto const *storage_info = advanced::storage_info_raw_ptr(view);
                 *f::find< decltype(storage_info) >(m_local_domain.m_local_storage_info_ptrs) = storage_info;
             }
             // do nothing if arg is not in this local domain

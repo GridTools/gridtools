@@ -149,6 +149,6 @@ namespace gridtools {
 
     namespace advanced {
         template < typename T, access_mode AccessMode >
-        auto storage_info_ptr(data_field_view< T, AccessMode > const &src) GT_AUTO_RETURN(src.m_storage_infos[0]);
+        auto storage_info_raw_ptr(data_field_view< T, AccessMode > const &src) GT_AUTO_RETURN(src.m_storage_infos[0]);
     }
 }

@@ -49,9 +49,7 @@ namespace gridtools {
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
-       When we know beforehand that the dimension which we are querying is
-       a compile-time one, we can use the static method get_constexpr() to get the offset.
-       Otherwise the method get() checks before among the static dimensions, and if the
+       Method get() checks before among the static dimensions, and if the
        queried dimension is not found it looks up in the dynamic dimensions. Note that this
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
@@ -80,10 +78,12 @@ namespace gridtools {
         using find_t = GT_META_CALL(meta::mp_find, (offset_map_t, key_t< I >));
 
       public:
+        // An overload for the statically linked dimensions. No lookup is done.
         template < ushort_t I, class Found = find_t< I > >
         GT_FUNCTION constexpr typename std::enable_if< !std::is_void< Found >::value, int_t >::type get() const {
             return meta::lazy::second< Found >::type::value;
         }
+        // An overload for the dynamically linked dimensions. Lookup is delegated to the Base.
         template < ushort_t I, class Found = find_t< I > >
         GT_FUNCTION constexpr typename std::enable_if< std::is_void< Found >::value, int_t >::type get() const {
             return Base::template get< I >();

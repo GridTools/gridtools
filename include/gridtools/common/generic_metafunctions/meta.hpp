@@ -84,8 +84,8 @@
  *
  *  Meta Class
  *  ----------
- *  A class that have `apply` inner template class or alias, which is function.
- *  Meta classes are used to return functions from functions.
+ *  A class that have `apply` inner template class or alias, which is a function [here and below the term `function`
+ *  used in the context of this library]. Meta classes are used to return functions from functions.
  *
  *  Examples:
  *    - meta::always<void>

@@ -107,7 +107,7 @@ namespace gridtools {
         }
 
         template < typename DataStore, access_mode AccessMode >
-        typename DataStore::storage_info_t const *storage_info_ptr(data_view< DataStore, AccessMode > const &);
+        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view< DataStore, AccessMode > const &);
 
     } // namespace advanced
 
@@ -300,7 +300,7 @@ namespace gridtools {
         friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
 
         template < typename D, access_mode A >
-        friend typename D::storage_info_t const *advanced::storage_info_ptr(data_view< D, A > const &);
+        friend typename D::storage_info_t const *advanced::storage_info_raw_ptr(data_view< D, A > const &);
     };
 
     template < typename T >
@@ -311,7 +311,7 @@ namespace gridtools {
 
     namespace advanced {
         template < typename DataStore, access_mode AccessMode >
-        typename DataStore::storage_info_t const *storage_info_ptr(data_view< DataStore, AccessMode > const &src) {
+        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view< DataStore, AccessMode > const &src) {
             return src.m_storage_info;
         }
     }
