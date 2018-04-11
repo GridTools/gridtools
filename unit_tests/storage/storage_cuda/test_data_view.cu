@@ -194,7 +194,7 @@ TEST(DataViewTest, Looping) {
 
 TEST(DataViewTest, CheckMemorySpace) {
     typedef cuda_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
-    storage_info_t si(2, 2, 2);
+    storage_info_t si(2 + 2 * 1, 2 + 2 * 3, 2 + 2 * 3);
 
     typedef data_store< cuda_storage< int >, storage_info_t > data_store_t;
 

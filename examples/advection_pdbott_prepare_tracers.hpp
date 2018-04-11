@@ -63,9 +63,9 @@ namespace adv_prepare_tracers {
         auto inv = make_host_view(in_);
         auto outv = make_host_view(out_);
         auto rhov = make_host_view(rho_);
-        for (int_t i = 0; i < in_.template unaligned_dim< 0 >(); ++i)
-            for (int_t j = 0; j < in_.template unaligned_dim< 1 >(); ++j)
-                for (int_t k = 0; k < in_.template unaligned_dim< 2 >(); ++k) {
+        for (int_t i = 0; i < in_.template total_length< 0 >(); ++i)
+            for (int_t j = 0; j < in_.template total_length< 1 >(); ++j)
+                for (int_t k = 0; k < in_.template total_length< 2 >(); ++k) {
                     outv(i, j, k) = rhov(i, j, k) * inv(i, j, k);
                 }
     }

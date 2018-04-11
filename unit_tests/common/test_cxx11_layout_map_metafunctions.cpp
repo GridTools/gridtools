@@ -53,6 +53,7 @@ TEST(layout_map_metafunctions, filter_layout) {
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< filtered_layout_map_t, layout_map< 1, -1, -1, 0 > >::value), "Error");
     }
 }
+
 TEST(layout_map_metafunctions, extend_layout_map) {
     {
         using layout_map_t = layout_map< 0, 1, 2, 3 >;
@@ -71,5 +72,23 @@ TEST(layout_map_metafunctions, extend_layout_map) {
         using extended_layout_map_t = extend_layout_map< layout_map_t, 3 >::type;
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same< extended_layout_map_t, layout_map< 6, 4, 3, 5, 0, 1, 2 > >::value), "Error");
+    }
+}
+
+TEST(layout_map_metafunctions, max_value) {
+    {
+        using layout_map_t = layout_map< 0, 1, 2, 3 >;
+
+        GRIDTOOLS_STATIC_ASSERT(max_value<layout_map_t>::value==3, " ");
+    }
+    {
+        using layout_map_t = layout_map< 0, 1, -1, 2 >;
+
+        GRIDTOOLS_STATIC_ASSERT(max_value<layout_map_t>::value==2, " ");
+    }
+    {
+        using layout_map_t = layout_map< 0, 1, -1, -1 >;
+
+        GRIDTOOLS_STATIC_ASSERT(max_value<layout_map_t>::value==1, " ");
     }
 }

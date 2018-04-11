@@ -93,7 +93,7 @@ namespace gridtools {
         */
         template < typename DataView >
         inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
-            return dv.m_raw_ptrs[i] + dv.m_storage_info->get_initial_offset();
+            return dv.m_raw_ptrs[i];
         }
     } // namespace advanced
 

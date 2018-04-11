@@ -49,9 +49,40 @@
 
 namespace gridtools {
 
+    /** \brief Given a layout map this metafunction provided back the
+        maximum value contained in the sequence of indices.
+
+        \tparam LayoutMap The layout map to process
+    */
+    template < typename LayoutMap >
+    struct max_value;
+
+    /// \private
+    template < short_t... Is >
+    struct max_value< layout_map< Is... > > {
+
+        template < typename Current, typename Next >
+        struct get_max {
+            using type =
+                std::integral_constant< short_t, (Current::value > Next::value) ? Current::value : Next::value >;
+            static constexpr short_t value = type::value;
+        };
+
+        using type =
+            typename meta::combine< get_max >::template apply< std::tuple< std::integral_constant< short_t, Is >... > >;
+
+        static constexpr short_t value = type::value;
+    };
+
+    /** \brief Compute the reverse of a layout. For instance the reverse og
+        `layout_map<1,0,-1,2>` is `layout<1,2,-1,0>`
+
+        \tparam LayoutMap The layout map to process
+    */
     template < typename LayoutMap >
     struct reverse_map;
 
+    /// \private
     template < short_t... Is >
     struct reverse_map< layout_map< Is... > > {
         static constexpr int max = layout_map< Is... >::max();

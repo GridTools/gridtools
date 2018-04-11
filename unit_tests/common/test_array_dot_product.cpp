@@ -33,39 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/array_dot_product.hpp"
 
-#pragma once
+using namespace gridtools;
 
-#include "definitions.hpp"
-#include "../../common/gt_assert.hpp"
-#include "../../common/array.hpp"
-#include "storage_info_metafunctions.hpp"
+TEST(array_dot_product, test_dot_product) {
+    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
+    constexpr array< uint_t, 4 > b{1, 2, 3, 4};
 
-namespace gridtools {
-
-    /** \ingroup storage
-     * @{
-     */
-
-    /**
-     * @brief This struct is used to pass alignment information to storage info types. Alignment is in terms of number
-     * of elements.
-     * @tparam alignment value
-     */
-    template < uint_t N >
-    struct alignment {
-        const static uint_t value = N;
-
-        static constexpr uint_t get() { return value; }
-    };
-
-    template < typename T >
-    struct is_alignment : boost::mpl::false_ {};
-
-    template < uint_t N >
-    struct is_alignment< alignment< N > > : boost::mpl::true_ {};
-
-    /**
-     * @}
-     */
+    static_assert(array_dot_product(a, b) == 1 + 2 * 2 + 3 * 3 + 4 * 4, " ");
+    ASSERT_EQ(array_dot_product(a, b), 1 + 2 * 2 + 3 * 3 + 4 * 4);
 }

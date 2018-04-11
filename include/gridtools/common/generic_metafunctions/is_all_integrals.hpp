@@ -44,6 +44,11 @@ namespace gridtools {
     template < typename... IntTypes >
     using is_all_integral = meta::conjunction< std::is_integral< IntTypes >... >;
 
+    /* check if all given types are unsigned integral types */
+    template < typename... IntTypes >
+    using is_all_unsigned =
+        meta::conjunction< meta::conjunction< std::is_integral< IntTypes >... >, std::is_unsigned< IntTypes >... >;
+
     /* check if all given types are integral types */
     template < typename T >
     using is_integral_or_enum = meta::bool_constant< std::is_integral< T >::value || std::is_enum< T >::value >;
