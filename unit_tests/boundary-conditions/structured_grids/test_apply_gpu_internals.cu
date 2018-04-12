@@ -165,4 +165,3 @@ TEST(apply_gpu, configurtation) {
         EXPECT_EQ(c.configuration[2], res[2]);
     }
 }
-#endif
