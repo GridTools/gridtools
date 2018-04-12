@@ -35,6 +35,7 @@
 */
 
 #include <gtest/gtest.h>
+#define GT_SINGLE_KERNEL_BC
 #include <boundary-conditions/apply_gpu.hpp>
 
 namespace gt = gridtools;
@@ -164,3 +165,4 @@ TEST(apply_gpu, configurtation) {
         EXPECT_EQ(c.configuration[2], res[2]);
     }
 }
+#endif
