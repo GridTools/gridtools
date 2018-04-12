@@ -33,5 +33,56 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include "test_grid.cpp"
+#include <type_traits>
+
+namespace gridtools {
+    namespace cuda_util {
+        template < class >
+        struct is_cloneable;
+
+#ifndef __INTEL_COMPILER
+        template < class T >
+        struct is_cloneable : std::is_trivially_copyable< T > {};
+#endif
+    }
+}
+
+#ifdef __CUDACC__
+
+#include <memory>
+#include <cuda_runtime.h>
+
+#include "defs.hpp"
+#include "gt_assert.hpp"
+
+// TODO(anstaf): report error code here
+#define GT_CUDA_CHECK(err)  \
+    if (err != cudaSuccess) \
+    throw std::runtime_error("cuda failure")
+
+namespace gridtools {
+    namespace cuda_util {
+        namespace _impl {
+            struct deleter_f {
+                template < class T >
+                void operator()(T *ptr) const {
+                    cudaFree(ptr);
+                }
+            };
+        }
+
+        template < class T, class Res = std::unique_ptr< T, _impl::deleter_f > >
+        Res make_clone(T const &src) {
+            GRIDTOOLS_STATIC_ASSERT(is_cloneable< T >::value, GT_INTERNAL_ERROR);
+            T *ptr;
+            GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T)));
+            Res res{ptr};
+            GT_CUDA_CHECK(cudaMemcpy(ptr, &src, sizeof(T), cudaMemcpyHostToDevice));
+            return res;
+        }
+    }
+}
+
+#endif

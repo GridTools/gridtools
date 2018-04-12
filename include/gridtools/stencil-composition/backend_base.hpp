@@ -222,8 +222,6 @@ namespace gridtools {
         */
         static constexpr query_i_threads_f n_i_pes = &backend_traits_t::n_i_pes;
         static constexpr query_j_threads_f n_j_pes = &backend_traits_t::n_j_pes;
-
-        using setup_grid_f = typename backend_traits_t::setup_grid_f;
     };
 
 } // namespace gridtools
