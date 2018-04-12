@@ -135,8 +135,6 @@ namespace gridtools {
                 // set all the storage ptrs
                 boost::mpl::for_each< typename Elem::storage_wrapper_list_t >(
                     assign_ptrs< Elem >(elem, m_storage_wrappers, m_aggregator));
-                // clone the local domain to the device
-                elem.clone_to_device();
             }
 
           private:

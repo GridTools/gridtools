@@ -72,16 +72,6 @@
 
 namespace gridtools {
 
-    namespace {
-        template < class InputIt, class OutputIt >
-        GT_FUNCTION OutputIt copy_ptrs(InputIt first, InputIt last, OutputIt d_first, const int offset = 0) {
-            while (first != last) {
-                *d_first++ = (*first++) + offset;
-            }
-            return d_first;
-        }
-    }
-
     /* data structure that can be used to store the data pointers of a given list of storages */
     template < typename StorageWrapperList, int I = boost::mpl::size< StorageWrapperList >::value - 1 >
     struct data_ptr_cached /** @cond */ : data_ptr_cached< StorageWrapperList, I - 1 > /** @endcond */ {

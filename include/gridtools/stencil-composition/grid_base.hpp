@@ -37,7 +37,6 @@
 #pragma once
 #include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
-#include "../common/gpu_clone.hpp"
 #include "interval.hpp"
 #include "axis.hpp"
 
@@ -81,11 +80,6 @@ namespace gridtools {
         halo_descriptor m_direction_j;
 
       public:
-        GT_FUNCTION grid_base(const grid_base< Axis > &other)
-            : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j) {
-            value_list = other.value_list;
-        }
-
         DEPRECATED_REASON(
             GT_FUNCTION explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
             "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
