@@ -35,130 +35,6 @@
 */
 #pragma once
 
-/**
- *  @file
- *  C++11 metaprogramming library.
- *
- *  Basic Concepts
- *  ==============
- *
- *  List
- *  ----
- *  An instantiation of the template class with class template parameters.
- *
- *  Examples of lists:
- *    meta::list<void, int> : elements are void and int
- *    std::tuple<double, double> : elements are double and double
- *    std::vector<std::tuple<>, some_allocator>: elements are std::tuple<> and some_allocator
- *
- *  Examples of non lists:
- *    std::array<N, double> : first template argument is not a class
- *    int : is not the instantiation of template
- *    struct foo; is not an instantiation of template
- *
- *  Function
- *  --------
- *  A template class or an alias with class template parameters.
- *  Note the difference with MPL approach: function is not required to have `type` inner alias.
- *  Functions that have `type` inside are called lazy functions in the context of this library.
- *  The function arguments are the actual parameters of the instantiation: Arg1, Arg2 etc. in F<Arg1, Arg2 etc.>
- *  The function invocation result is just F<Arg1, Arg2 etc.> not F<Arg1, Arg2 etc.>::type.
- *  This simplification of the function concepts (comparing with MPL) is possible because of C++ aliases.
- *  And it is significant for compile time performance.
- *
- *  Examples of functions:
- *    - std::is_same
- *    - std::pair
- *    - std::tuple
- *    - meta::list
- *    - meta::is_list
- *
- *  Examples of non functions:
- *    - std::array : first parameter is not a class
- *    - meta::list<int> : is not a template
- *
- *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling without
- *  prefix [This is not always the case at a moment. ]
- *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high order
- *  functions.
- *
- *  Meta Class
- *  ----------
- *  A class that have `apply` inner template class or alias, which is a function [here and below the term `function`
- *  used in the context of this library]. Meta classes are used to return functions from functions.
- *
- *  Examples:
- *    - meta::always<void>
- *    - meta::rename<std::tuple>
- *
- *  High Order Function
- *  -------------------
- *  A template class or alias which first parameters are template of class class templates and the rest are classes
- *  Examples of metafuction signatures:
- *  template <template <class...> class, class...> struct foo;
- *  template <template <class...> class, template <class...> class> struct bar;
- *  template <template <class...> class...> struct baz;
- *
- *  Examples:
- *    - meta::rename
- *    - meta::lfold
- *    - meta::is_instantiation_of
- *
- *  Library Structure
- *  =================
- *
- *  It consists of the set of functions, `_c` functions and high order functions.
- *
- *  Regularly, a function has also its lazy version, which is defined in the `lazy` nested namespace under the same
- *  name. Exceptions are functions that return:
- *   - a struct with a nested `type` alias, which points to the struct itself;`
- *       ex: `list`
- *   - a struct derived from `std::intergral_constant`
- *       ex: `length`, `is_list`
- *   - meta class
- *
- *  nVidia and Intel compilers with versions < 9 and < 18 respectively have a bug that doesn't allow to use template
- *  aliases. To deal with that, the library has two modes that are switching by `GT_BROKEN_TEMPLATE_ALIASES` macro.
- *  If the value of `GT_BROKEN_TEMPLATE_ALIASES` is set to non zero, the notion of function is degradated to lazy
- *  function like in MPL.
- *
- *  In this case non-lazy functions don't exist and `lazy` nested namespace is `inline` [I.e. `meta::concat`
- *  for example is the same as `meta::lazy::concat`]. High order functions in this case interpret their functional
- *  parameters as a lazy functions [I.e. they use `::type` to invoke them].
- *
- *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
- *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility only
- *  using that two macros. Direct `#if GT_BROKEN_TEMPLATE_ALIASES`... could be necessary.
- *
- *  Syntax sugar: All high order functions being called with only functional arguments return partially applied versions
- *  of themselves [which became plane functions].
- *  Example, where it could be useful is:
- *  transform a list of lists:  `using out = meta::transform<meta::transform<fun>::apply, in>;`
- *
- *  Guidelines for Using Meta in Compatible with Retarded Compilers Mode
- *  =====================================================================
- *    - don't punic;
- *    - write and debug your code for some sane compiler pretending that template aliases are not a problem;
- *    - uglify each and every call of the function from meta `namespace` with `GT_META_CALL` macro;
- *    - uglify with the same macro calls to the functions that you define using composition of `meta::` functions;
- *    - replace every definition of template alias in you code with `GT_META_DEFINE_ALIAS`;
- *    - modifications above should not break compilation for the sane compiler, check it;
- *    - also check if the code compiles for your retarded compiler;
- *    - if yes, you are lucky;
- *    - if not, possible reason is that you have hand written lazy function and its `direct` counterpart that is
- *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order function.
- *      in this case, you need to add retarded version (where `lazy_foo` would just named `foo`) under
- *      `#if GT_BROKEN_TEMPLATE_ALIASES`;
- *    - if it is still not your case, ask @anstaf.
- *
- *  TODO List
- *  =========
- *   - rename all "hybrid" functions to `*_c` together with adding regular version.
- *   - implement cartesian product
- *   - add numeric stuff like `plus`, `less` etc.
- * *
- */
-
 #include <functional>
 #include <type_traits>
 #include <boost/preprocessor.hpp>
@@ -205,6 +81,138 @@
 #endif
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+    */
+    /** \ingroup allmeta
+        @{
+    */
+    /** \defgroup meta Meta-Programming Library
+        @{
+    */
+
+    /**
+     *  C++11 metaprogramming library.
+     *
+     *  Basic Concepts
+     *  ==============
+     *
+     *  List
+     *  ----
+     *  An instantiation of the template class with class template parameters.
+     *
+     *  Examples of lists:
+     *    meta::list<void, int> : elements are void and int
+     *    std::tuple<double, double> : elements are double and double
+     *    std::vector<std::tuple<>, some_allocator>: elements are std::tuple<> and some_allocator
+     *
+     *  Examples of non lists:
+     *    std::array<N, double> : first template argument is not a class
+     *    int : is not the instantiation of template
+     *    struct foo; is not an instantiation of template
+     *
+     *  Function
+     *  --------
+     *  A template class or an alias with class template parameters.
+     *  Note the difference with MPL approach: function is not required to have `type` inner alias.
+     *  Functions that have `type` inside are called lazy functions in the context of this library.
+     *  The function arguments are the actual parameters of the instantiation: Arg1, Arg2 etc. in F<Arg1, Arg2 etc.>
+     *  The function invocation result is just F<Arg1, Arg2 etc.> not F<Arg1, Arg2 etc.>::type.
+     *  This simplification of the function concepts (comparing with MPL) is possible because of C++ aliases.
+     *  And it is significant for compile time performance.
+     *
+     *  Examples of functions:
+     *    - std::is_same
+     *    - std::pair
+     *    - std::tuple
+     *    - meta::list
+     *    - meta::is_list
+     *
+     *  Examples of non functions:
+     *    - std::array : first parameter is not a class
+     *    - meta::list<int> : is not a template
+     *
+     *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling without
+     *  prefix [This is not always the case at a moment. ]
+     *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high order
+     *  functions.
+     *
+     *  Meta Class
+     *  ----------
+     *  A class that have `apply` inner template class or alias, which is a function [here and below the term `function`
+     *  used in the context of this library]. Meta classes are used to return functions from functions.
+     *
+     *  Examples:
+     *    - meta::always<void>
+     *    - meta::rename<std::tuple>
+     *
+     *  High Order Function
+     *  -------------------
+     *  A template class or alias which first parameters are template of class class templates and the rest are classes
+     *  Examples of metafuction signatures:
+     *  template <template <class...> class, class...> struct foo;
+     *  template <template <class...> class, template <class...> class> struct bar;
+     *  template <template <class...> class...> struct baz;
+     *
+     *  Examples:
+     *    - meta::rename
+     *    - meta::lfold
+     *    - meta::is_instantiation_of
+     *
+     *  Library Structure
+     *  =================
+     *
+     *  It consists of the set of functions, `_c` functions and high order functions.
+     *
+     *  Regularly, a function has also its lazy version, which is defined in the `lazy` nested namespace under the same
+     *  name. Exceptions are functions that return:
+     *   - a struct with a nested `type` alias, which points to the struct itself;`
+     *       ex: `list`
+     *   - a struct derived from `std::intergral_constant`
+     *       ex: `length`, `is_list`
+     *   - meta class
+     *
+     *  nVidia and Intel compilers with versions < 9 and < 18 respectively have a bug that doesn't allow to use template
+     *  aliases. To deal with that, the library has two modes that are switching by `GT_BROKEN_TEMPLATE_ALIASES` macro.
+     *  If the value of `GT_BROKEN_TEMPLATE_ALIASES` is set to non zero, the notion of function is degradated to lazy
+     *  function like in MPL.
+     *
+     *  In this case non-lazy functions don't exist and `lazy` nested namespace is `inline` [I.e. `meta::concat`
+     *  for example is the same as `meta::lazy::concat`]. High order functions in this case interpret their functional
+     *  parameters as a lazy functions [I.e. they use `::type` to invoke them].
+     *
+     *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
+     *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility only
+     *  using that two macros. Direct `#if GT_BROKEN_TEMPLATE_ALIASES`... could be necessary.
+     *
+     *  Syntax sugar: All high order functions being called with only functional arguments return partially applied versions
+     *  of themselves [which became plane functions].
+     *  Example, where it could be useful is:
+     *  transform a list of lists:  `using out = meta::transform<meta::transform<fun>::apply, in>;`
+     *
+     *  Guidelines for Using Meta in Compatible with Retarded Compilers Mode
+     *  =====================================================================
+     *    - don't punic;
+     *    - write and debug your code for some sane compiler pretending that template aliases are not a problem;
+     *    - uglify each and every call of the function from meta `namespace` with `GT_META_CALL` macro;
+     *    - uglify with the same macro calls to the functions that you define using composition of `meta::` functions;
+     *    - replace every definition of template alias in you code with `GT_META_DEFINE_ALIAS`;
+     *    - modifications above should not break compilation for the sane compiler, check it;
+     *    - also check if the code compiles for your retarded compiler;
+     *    - if yes, you are lucky;
+     *    - if not, possible reason is that you have hand written lazy function and its `direct` counterpart that is
+     *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order function.
+     *      in this case, you need to add retarded version (where `lazy_foo` would just named `foo`) under
+     *      `#if GT_BROKEN_TEMPLATE_ALIASES`;
+     *    - if it is still not your case, ask @anstaf.
+     *
+     *  TODO List
+     *  =========
+     *   - rename all "hybrid" functions to `*_c` together with adding regular version.
+     *   - implement cartesian product
+     *   - add numeric stuff like `plus`, `less` etc.
+     * *
+     */
     namespace meta {
 
         /**
@@ -1071,6 +1079,9 @@ namespace gridtools {
         using replace_at_c = typename lazy::replace_at_c< List, N, New >::type;
 #endif
     }
+    /** @} */
+    /** @} */
+    /** @} */
 }
 
 #undef GT_META_INTERNAL_LAZY_INLINE

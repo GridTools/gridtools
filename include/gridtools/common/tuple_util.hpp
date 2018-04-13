@@ -34,47 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/**
- *  @file
- *
- *  Here is a set of algorithms that are defined on "tuple like" structures
- *  To be a "tuple like", a structure should:
- *    - be a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ]
- *    - have accessors like do_get(std::integral_constant< size_t, I >, foo<Ts...>) defined in
- *      gridtools::tuple_util::traits namespace, or being available via ADL
- *    - have an element wise ctor
- *    - have a ctor from another tuple of the same kind. [ i.e. foo<double, double> should be
- *      constructible from foo<int, int> or foo<double&&, double&&>]
- *
- *  If the opposite is not mentioned explicitly, the algorithms produce tuples of references. L-value or R-value
- *  depending on algorithm input.
- *
- *  Almost all algorithms are defined in two forms:
- *    1) conventional template functions;
- *    2) functions that return generic functors
- *
- *  For example you can do:
- *    auto ints = transform([](int x) {return x;}, input);
- *  our you can:
- *    auto convert_to_ints = transform([](int x) {return x;});
- *    auto ints = convert_to_ints(input);
- *
- *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a tuple
- *  of tuple of tuple of integers you can do it in one expression:
- *  auto out = transform(transform([](int x) {return x;}), input);
- *
- *
- *  TODO list
- *  =========
- *  - extend concept to be applied to std::array's
- *  - add for_each_in_cartesian_product
- *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
- *  - supply all functions here with `GT_FUNCTION` variants.
- *  - add apply (generic version of std::apply)
- *  - add push_front
- *  - add for_each_index
- *
- */
 #pragma once
 
 #include <array>
@@ -90,6 +49,54 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+    */
+    /** \defgroup tupleutils Utilities for Tuples
+        @{
+    */
+
+    /**
+     *  @file
+     *
+     *  Here is a set of algorithms that are defined on "tuple like" structures
+     *  To be a "tuple like", a structure should:
+     *    - be a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ]
+     *    - have accessors like do_get(std::integral_constant< size_t, I >, foo<Ts...>) defined in
+     *      gridtools::tuple_util::traits namespace, or being available via ADL
+     *    - have an element wise ctor
+     *    - have a ctor from another tuple of the same kind. [ i.e. foo<double, double> should be
+     *      constructible from foo<int, int> or foo<double&&, double&&>]
+     *
+     *  If the opposite is not mentioned explicitly, the algorithms produce tuples of references. L-value or R-value
+     *  depending on algorithm input.
+     *
+     *  Almost all algorithms are defined in two forms:
+     *    1) conventional template functions;
+     *    2) functions that return generic functors
+     *
+     *  For example you can do:
+     *    auto ints = transform([](int x) {return x;}, input);
+     *  our you can:
+     *    auto convert_to_ints = transform([](int x) {return x;});
+     *    auto ints = convert_to_ints(input);
+     *
+     *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a tuple
+     *  of tuple of tuple of integers you can do it in one expression:
+     *  auto out = transform(transform([](int x) {return x;}), input);
+     *
+     *
+     *  TODO list
+     *  =========
+     *  - extend concept to be applied to std::array's
+     *  - add for_each_in_cartesian_product
+     *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
+     *  - supply all functions here with `GT_FUNCTION` variants.
+     *  - add apply (generic version of std::apply)
+     *  - add push_front
+     *  - add for_each_index
+     *
+     */
     namespace tuple_util {
 
         namespace traits {
@@ -469,4 +476,6 @@ namespace gridtools {
         template < class Tup >
         auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward< Tup >(tup)));
     }
+    /** @} */
+    /** @} */
 }
