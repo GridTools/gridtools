@@ -76,7 +76,7 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     * @brief Specialization for the \ref gridtools::_impl::Block strategy.
+     * @brief Specialization for the \ref gridtools::enumtype::Block strategy.
      */
     template <>
     struct strategy_from_id_mic< enumtype::Block > {

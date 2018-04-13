@@ -38,7 +38,7 @@
 #include "array.hpp"
 
 namespace gridtools {
-    /** \defgroup common Common Shared Utilities
+    /** \ingroup common
         @{
      */
 

@@ -47,7 +47,7 @@
 #include "defs.hpp"
 
 namespace gridtools {
-    /** \ingroup common
+    /** \addtogroup common
         @{
         \defgroup Variadic Pack Metafunctions
         @{

@@ -41,9 +41,9 @@
 namespace gridtools {
     namespace expressions {
 
-        /** \ingroup stencil-composition
+        /** \addtogroup stencil-composition
             @{
-            \ingroup expressions
+            \addtogroup expressions
             @{
         */
         struct minus_f {

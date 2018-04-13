@@ -41,11 +41,11 @@
 
 namespace gridtools {
 
-    /** \ingroup common
+    /** \addtogroup common
         @{
-        \ingroup allmeta
+        \addtogroup allmeta
         @{
-        \ingroup variadic
+        \addtogroup variadic
         @{
     */
     /**@brief specialization to stop the recursion*/

@@ -39,11 +39,11 @@
 #include <boost/mpl/if.hpp>
 
 namespace gridtools {
-    /** \ingroup common
+    /** \addtogroup common
         @{
-        \ingroup allmeta
+        \addtogroup allmeta
         @{
-        \ingroup mplutil
+        \addtogroup mplutil
         @{
     */
 
@@ -53,6 +53,7 @@ namespace gridtools {
      */
     template < typename T >
     using void_if_empty_t = typename boost::mpl::if_< boost::mpl::size< T >, T, boost::mpl::void_ >::type;
+
     /** @} */
     /** @} */
     /** @} */

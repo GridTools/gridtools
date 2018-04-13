@@ -56,7 +56,7 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Naive strategy
+       @brief specialization for the \ref gridtools::enumtype::Naive strategy
     */
     template <>
     struct strategy_from_id_mic< enumtype::Naive > {
@@ -128,7 +128,7 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Block strategy
+       @brief specialization for the \ref gridtools::enumtype::Block strategy
        The loops over i and j are split according to the values of BI and BJ
     */
     template <>

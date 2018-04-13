@@ -39,11 +39,11 @@
 #include <vector>
 
 namespace gridtools {
-    /** \ingroup common Common Shared Utilities
+    /** \addtogroup common
         @{
      */
 
-    /** \ingroup array
+    /** \addtogroup array
         @{
     */
 
@@ -87,11 +87,11 @@ namespace gridtools {
 
 } // namespace gridtools
 
-/** \ingroup common Common Shared Utilities
+/** \addtogroup common Common Shared Utilities
     @{
 */
 
-/** \ingroup array
+/** \addtogroup array
     @{
 */
 

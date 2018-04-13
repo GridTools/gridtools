@@ -92,7 +92,7 @@ namespace gridtools {
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
-       It is a language keyword. Usage examples can be found in the unit test \ref accessor_tests.hpp.
+       It is a language keyword. Usage examples can be found in the unit tests.
        Possible interfaces:
        - runtime alias
 \verbatim

@@ -655,7 +655,7 @@ arbitrary neighbors with arbitrary sizes.</span></p>
     same layout is assumed for the data and the computing grid.
     While this is completely transparent to the library, the
     application may need special attention to the logic. This can be
-    seen in \link descriptors_3D.cpp \endlink
+    seen in \link descriptors.cpp \endlink
     In this example the coordinates to the pattern are registered in
     inverse order with respect the tuple ordering (i,j,k). that is k
     has the smallest stride while i has the largest. To fill the data

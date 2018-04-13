@@ -138,7 +138,6 @@ namespace gridtools {
 
             /**
             @brief core of the kernel execution
-            @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
             */
             explicit execute_kernel_functor_mic(const local_domain_t &local_domain,
                 const grid_t &grid,

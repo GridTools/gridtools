@@ -127,7 +127,7 @@ namespace gridtools {
         /**
            The for_mss takes the current MSS that needs to be analyzed.
 
-           the ::type is the final map obtained by updating the one provided in
+           the `type` is the final map obtained by updating the one provided in
            compute_extents_of
 
            \tparam MssDescriptor The mulstistage computation to be processed

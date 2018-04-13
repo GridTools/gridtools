@@ -37,11 +37,11 @@
 #include "array.hpp"
 
 namespace gridtools {
-    /** \defgroup common Common Shared Utilities
+    /** \addtogroup common
         @{
      */
 
-    /** \ingroup array
+    /** \addtogroup array
         @{
     */
 

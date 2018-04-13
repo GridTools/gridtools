@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/** \ingroup common
+/** \addtogroup common
     @{
 */
 
-/** \ingroup fixes
+/** \addtogroup fixes
     @{
 */
 
@@ -48,8 +48,8 @@
     "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
 #endif
 
-#include "boost/variant.hpp"
-#include "boost/preprocessor/seq.hpp"
+#include <boost/variant.hpp>
+#include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/tuple.hpp>
 
 /*

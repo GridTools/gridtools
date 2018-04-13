@@ -35,11 +35,11 @@
 */
 #pragma once
 
-/** \ingroup common
+/** \addtogroup common
     @{
-    \ingroup allmeta
+    \addtogroup allmeta
     @{
-    \ingroup variadic
+    \addtogroup variadic
     @{
 */
 
