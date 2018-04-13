@@ -34,15 +34,27 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/**
- * Some c++14/c++17 type_traits drop offs
- */
-
 #pragma once
 
 #include <type_traits>
 
 namespace gridtools {
+
+    /** \ingroup common
+        @{
+    */
+    /** \ingroup allmeta
+        @{
+    */
+    /** \defgroup typetraits C++14/17 type-traits
+        @{
+    */
+
+    /**
+     * @file
+     * Some c++14/c++17 type_traits drop offs. Please refer to C++14/17 specifications
+     * to know more about them.
+     */
 
     template < bool V >
     using bool_constant = std::integral_constant< bool, V >;
@@ -113,4 +125,8 @@ namespace gridtools {
     using underlying_type_t = typename std::underlying_type< T >::type;
     template < class T >
     using result_of_t = typename std::result_of< T >::type;
+
+    /** @} */
+    /** @} */
+    /** @} */
 }
