@@ -83,6 +83,11 @@ namespace gridtools {
             return dv.m_raw_ptrs[i];
         }
 
+        /**
+         *  Copy the raw pointers from the data_view or data_field_view to the destination.
+         *
+         *  Destination should be an array or should model STL container concept.
+         */
         template < typename Src, typename Dst >
         void copy_raw_pointers(Src const &src, Dst &dst) {
             using std::copy;
