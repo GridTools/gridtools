@@ -113,7 +113,7 @@ namespace copy_stencil {
 
         copy.run();
 
-        copy.sync_all();
+        copy.sync_bound_data_stores();
 
 #ifdef BENCHMARK
         std::cout << copy.print_meter() << std::endl;

@@ -35,15 +35,11 @@
 */
 #pragma once
 
+#include <tuple>
 #include <utility>
 
 #include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/copy.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/transform.hpp>
-#include <boost/fusion/include/any.hpp>
-#include <boost/fusion/include/copy.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/bool.hpp>
@@ -214,15 +210,6 @@ namespace gridtools {
         struct storage_info_fits_grid_f {
             Grid const &grid;
 
-            /**
-               The element of the metadata set that describe the sizes
-               of the storages. boost::fusion::any is stopping
-               iteration when a `true` is returned, so the iteration
-               returns `false` when the check passes.
-
-               \tparam The type element of a metadata set which is a pointer to a metadata
-               \param mde The element of a metadata set which is a pointer to a metadata
-             */
             template < uint_t Id, class Layout, class Halo, class Alignment >
             bool operator()(storage_info_interface< Id, Layout, Halo, Alignment > const &src) const {
 
@@ -314,7 +301,7 @@ namespace gridtools {
         struct to_arg_storage_pair {
             using type = arg_storage_pair< Arg, typename Arg::data_store_t >;
         };
-        using tmp_arg_storage_pair_fusion_list_t = GT_META_CALL(
+        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(
             meta::rename,
             (meta::defer< std::tuple >::apply,
                 GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t))));
@@ -322,7 +309,7 @@ namespace gridtools {
         template < class Arg >
         using to_arg_storage_pair = arg_storage_pair< Arg, typename Arg::data_store_t >;
 
-        using tmp_arg_storage_pair_fusion_list_t =
+        using tmp_arg_storage_pair_tuple_t =
             meta::rename< std::tuple, meta::transform< to_arg_storage_pair, tmp_placeholders_t > >;
 #endif
 
@@ -340,7 +327,7 @@ namespace gridtools {
 
         using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
 
-        using bound_arg_storage_pair_fusion_list_t =
+        using bound_arg_storage_pair_tuple_t =
             std::tuple< _impl::bound_arg_storage_pair< BoundPlaceholders, BoundDataStores >... >;
 
       public:
@@ -378,7 +365,7 @@ namespace gridtools {
             IsStateful >::type mss_local_domains_t;
 
       private:
-        // creates a fusion vector of local domains
+        // creates a tuple of local domains
         using mss_local_domain_list_t = copy_into_variadic< mss_local_domains_t, std::tuple<> >;
 
         struct run_f {
@@ -400,22 +387,23 @@ namespace gridtools {
         performance_meter_t m_meter;
 
         /// branch_selector is responsible for choosing the right branch of in condition MSS tree.
-        ///
+        //
         branch_selector_t m_branch_selector;
 
         /// is needed for dedup_storage_info method.
-        ///
+        //
         storage_info_map_t m_storage_info_map;
 
         /// tuple with temporary storages
         //
-        tmp_arg_storage_pair_fusion_list_t m_tmp_arg_storage_pair_fusion_list;
+        tmp_arg_storage_pair_tuple_t m_tmp_arg_storage_pair_tuple;
 
         /// tuple with storages that are bound during costruction
-        /// Each item holds a storage and its view
-        bound_arg_storage_pair_fusion_list_t m_bound_arg_storage_pair_fusion_list;
+        //  Each item holds a storage and its view
+        bound_arg_storage_pair_tuple_t m_bound_arg_storage_pair_tuple;
 
         /// Here are local domains (structures with raw pointers for passing to backed.
+        //
         mss_local_domain_list_t m_mss_local_domain_list;
 
       public:
@@ -430,24 +418,24 @@ namespace gridtools {
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               // that ensures, that only
-              m_tmp_arg_storage_pair_fusion_list(dedup_storage_info(_impl::make_tmp_arg_storage_pairs< max_i_extent_t,
+              m_tmp_arg_storage_pair_tuple(dedup_storage_info(_impl::make_tmp_arg_storage_pairs< max_i_extent_t,
                   Backend,
                   storage_wrapper_list_t,
-                  tmp_arg_storage_pair_fusion_list_t >(grid))),
+                  tmp_arg_storage_pair_tuple_t >(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
-              m_bound_arg_storage_pair_fusion_list(dedup_storage_info(std::move(arg_storage_pairs))) {
+              m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
 
             // Here we make views (actually supplemental view_info structures are made) from both temporary and bound
             // storages, concatenate them together and pass to `update_local_domains`
-            update_local_domains(std::tuple_cat(make_view_infos(m_tmp_arg_storage_pair_fusion_list),
-                make_view_infos(m_bound_arg_storage_pair_fusion_list)));
+            update_local_domains(std::tuple_cat(
+                make_view_infos(m_tmp_arg_storage_pair_tuple), make_view_infos(m_bound_arg_storage_pair_tuple)));
             // now only local domanis missing pointers from free (not bound) storages.
         }
 
-        void sync_all() const { boost::fusion::for_each(m_bound_arg_storage_pair_fusion_list, _impl::sync_f{}); }
+        void sync_bound_data_stores() const { tuple_util::for_each(m_bound_arg_storage_pair_tuple, _impl::sync_f{}); }
 
         // TODO(anstaf): introduce overload that takes a tuple of arg_storage_pair's. it will simplify a bit
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
@@ -464,7 +452,7 @@ namespace gridtools {
             // make views from free storages;
             // concatenate them into a single tuple.
             // push view for updating the local domains.
-            update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_fusion_list),
+            update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_tuple),
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));
             // now local domains are fully set up.
             m_meter.start();

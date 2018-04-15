@@ -132,7 +132,7 @@ namespace ico_operators {
                     gridtools::make_stage< div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                         p_edge_length(), p_cell_area_reciprocal(), p_orientation_of_normal(), p_div_weights())));
             stencil_prep.run();
-            stencil_prep.sync_all();
+            stencil_prep.sync_bound_data_stores();
         }
 
         {
@@ -151,7 +151,7 @@ namespace ico_operators {
                         icosahedral_topology_t,
                         icosahedral_topology_t::edges >(p_edge_length(), p_cell_area_reciprocal(), p_l_over_A())));
             stencil_prep_on_edges.run();
-            stencil_prep_on_edges.sync_all();
+            stencil_prep_on_edges.sync_bound_data_stores();
         }
 
         bool result = true;

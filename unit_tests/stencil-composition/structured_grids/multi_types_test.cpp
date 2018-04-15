@@ -274,7 +274,7 @@ namespace multi_types_test {
 
         test_computation.run();
 
-        test_computation.sync_all();
+        test_computation.sync_bound_data_stores();
 
         auto f1v = make_host_view(field1);
         auto f2v = make_host_view(field2);

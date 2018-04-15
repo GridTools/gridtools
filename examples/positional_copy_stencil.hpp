@@ -133,7 +133,7 @@ namespace positional_copy_stencil {
                     )));
 
         init.run();
-        init.sync_all();
+        init.sync_bound_data_stores();
 
         auto copy =
             gridtools::make_computation< backend_t >(grid,
@@ -145,7 +145,7 @@ namespace positional_copy_stencil {
                                                              ,
                                                              p_out())));
         copy.run();
-        copy.sync_all();
+        copy.sync_bound_data_stores();
 
         storage_t ref(meta_, [](int i, int j, int k) { return static_cast< double >(_value_) * (i + j + k); });
 

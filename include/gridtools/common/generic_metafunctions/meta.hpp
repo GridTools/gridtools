@@ -132,9 +132,11 @@ namespace gridtools {
      *    - std::array : first parameter is not a class
      *    - meta::list<int> : is not a template
      *
-     *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling without
+     *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling
+     * without
      *  prefix [This is not always the case at a moment. ]
-     *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high order
+     *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high
+     * order
      *  functions.
      *
      *  Meta Class
@@ -182,10 +184,12 @@ namespace gridtools {
      *  parameters as a lazy functions [I.e. they use `::type` to invoke them].
      *
      *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
-     *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility only
+     *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility
+     * only
      *  using that two macros. Direct `#if GT_BROKEN_TEMPLATE_ALIASES`... could be necessary.
      *
-     *  Syntax sugar: All high order functions being called with only functional arguments return partially applied versions
+     *  Syntax sugar: All high order functions being called with only functional arguments return partially applied
+     * versions
      *  of themselves [which became plane functions].
      *  Example, where it could be useful is:
      *  transform a list of lists:  `using out = meta::transform<meta::transform<fun>::apply, in>;`
@@ -195,13 +199,25 @@ namespace gridtools {
      *    - don't punic;
      *    - write and debug your code for some sane compiler pretending that template aliases are not a problem;
      *    - uglify each and every call of the function from meta `namespace` with `GT_META_CALL` macro;
+     *      for example the code like:
+     *         using my_stuff = meta::concat<a, meta::front<b>, meta::clear<c>>;
+     *      should be uglified like:
+     *         using m_staff = GT_META_CALL(meta::concat, (GT_META_CALL(meta::front, a), GT_META_CALL(meta::clear, c)));
      *    - uglify with the same macro calls to the functions that you define using composition of `meta::` functions;
      *    - replace every definition of template alias in you code with `GT_META_DEFINE_ALIAS`;
+     *      for example the code like:
+     *         template <class T, class U>
+     *         using my_lookup = meta::second<meta::mp_find<typename T::the_map, my_get_key<U>>>;
+     *      should be uglified like:
+     *         template <class T, class U>
+     *         GT_META_DEFINE_ALIAS(my_lookup, meta::second, (GT_META_CALL(meta::mp_find,
+     *            (GT_META_CALL(typename T::the_map, GT_META_CALL(my_get_key, U)))));
      *    - modifications above should not break compilation for the sane compiler, check it;
      *    - also check if the code compiles for your retarded compiler;
      *    - if yes, you are lucky;
      *    - if not, possible reason is that you have hand written lazy function and its `direct` counterpart that is
-     *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order function.
+     *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order
+     * function.
      *      in this case, you need to add retarded version (where `lazy_foo` would just named `foo`) under
      *      `#if GT_BROKEN_TEMPLATE_ALIASES`;
      *    - if it is still not your case, ask @anstaf.
@@ -629,8 +645,7 @@ namespace gridtools {
              *   Complexity is O(N).
              *
              *   WARNING: Please use as a last resort. Consider `transform` ( which complexity is O(1) ) or `combine`
-             * (which
-             *   has the same complexity but O(log(N)) template depth).
+             *   (which has the same complexity but O(log(N)) template depth).
              */
             template < template < class... > class F >
             struct lfold< F > {

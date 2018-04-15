@@ -211,7 +211,7 @@ namespace tridiagonal {
 
         solver.run();
 
-        solver.sync_all();
+        solver.sync_bound_data_stores();
 
 #ifdef BENCHMARK
         std::cout << solver.print_meter() << std::endl;

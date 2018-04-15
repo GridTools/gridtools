@@ -80,7 +80,7 @@ namespace test_conditionals {
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
         comp_.run();
-        comp_.sync_all();
+        comp_.sync_bound_data_stores();
         return make_host_view(dummy)(0, 0, 0) == 1;
     }
 } // namespace test_conditional

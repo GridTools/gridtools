@@ -142,6 +142,11 @@ namespace gridtools {
         static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (8, int)))),
                           f< f< f< int, int >, f< int, int > >, f< f< int, int >, f< int, int > > > >{},
             "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, g< int, int >)), f< int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, g< int, int, int >)), f< int, f< int, int > > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (4, int)))),
+                          f< f< int, int >, f< int, int > > >{},
+            "");
 
         // concat
         static_assert(std::is_same< GT_META_CALL(concat, g< int >), g< int > >{}, "");
@@ -226,6 +231,33 @@ namespace gridtools {
         static_assert(is_set_fast< f< int, void > >{}, "");
         static_assert(!is_set_fast< int >{}, "");
         //        static_assert(!is_set_fast< f< int, void, int > >{}, "");
+
+        // lfold
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g<>)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int >)), f< int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int >)), f< f< int, int >, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int >)), f< f< int, int >, int > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(lfold, (f, int, g< int, int, int >)), f< f< f< int, int >, int >, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int, int, int >)),
+                          f< f< f< f< int, int >, int >, int >, int > >{},
+            "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int, int, int, int >)),
+                          f< f< f< f< f< int, int >, int >, int >, int >, int > >{},
+            "");
+
+        // rfold
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g<>)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int >)), f< int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int >)), f< int, f< int, int > > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int >)), f< int, f< int, f< int, int > > > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int, int >)),
+                          f< int, f< int, f< int, f< int, int > > > > >{},
+            "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int, int, int >)),
+                          f< int, f< int, f< int, f< int, f< int, int > > > > > >{},
+            "");
     }
 }
 

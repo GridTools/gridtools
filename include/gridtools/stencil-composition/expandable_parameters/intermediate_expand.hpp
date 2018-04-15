@@ -46,6 +46,7 @@
 #include <boost/mpl/logical.hpp>
 #include <boost/mpl/transform.hpp>
 
+#include <boost/fusion/include/any.hpp>
 #include <boost/fusion/include/count.hpp>
 #include <boost/fusion/include/empty.hpp>
 #include <boost/fusion/include/filter_if.hpp>
@@ -242,7 +243,7 @@ namespace gridtools {
             _impl::expand_detail::converted_mss_descriptors_trees< N, MssDescriptorTrees > >;
 
         /// Storages that are expandable, is bound in construction time.
-        ///
+        //
         expandable_bound_arg_storage_pairs_t m_expandable_bound_arg_storage_pairs;
 
         /// The object of `intermediate` type to which the computation will be delegated.
@@ -302,10 +303,10 @@ namespace gridtools {
             return {};
         }
 
-        void sync_all() const {
+        void sync_bound_data_stores() const {
             boost::fusion::for_each(m_expandable_bound_arg_storage_pairs, _impl::expand_detail::sync_f{});
-            m_intermediate.sync_all();
-            m_intermediate_remainder.sync_all();
+            m_intermediate.sync_bound_data_stores();
+            m_intermediate_remainder.sync_bound_data_stores();
         }
 
         std::string print_meter() const {

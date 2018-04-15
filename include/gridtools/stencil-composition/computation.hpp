@@ -97,7 +97,7 @@ namespace gridtools {
         struct iface {
             virtual ~iface() = default;
             virtual ReturnType run(arg_storage_pair_crefs_t const &) = 0;
-            virtual void sync_all() = 0;
+            virtual void sync_bound_data_stores() = 0;
             virtual std::string print_meter() const = 0;
             virtual double get_meter() const = 0;
             virtual void reset_meter() = 0;
@@ -112,7 +112,7 @@ namespace gridtools {
             ReturnType run(arg_storage_pair_crefs_t const &args) override {
                 return _impl::computation_detail::invoke_run< ReturnType >(m_obj, args);
             }
-            void sync_all() override { m_obj.sync_all(); }
+            void sync_bound_data_stores() override { m_obj.sync_bound_data_stores(); }
             std::string print_meter() const override { return m_obj.print_meter(); }
             double get_meter() const override { return m_obj.get_meter(); }
             void reset_meter() override { return m_obj.reset_meter(); }
@@ -139,7 +139,7 @@ namespace gridtools {
             return m_impl->run(permute_to< arg_storage_pair_crefs_t >(boost::fusion::make_vector(std::cref(args)...)));
         }
 
-        void sync_all() { m_impl->sync_all(); }
+        void sync_bound_data_stores() { m_impl->sync_bound_data_stores(); }
 
         std::string print_meter() const { return m_impl->print_meter(); }
 

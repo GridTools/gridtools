@@ -125,7 +125,7 @@ TEST(Laplace, test) {
      */
     laplace.run();
 
-    laplace.sync_all();
+    laplace.sync_bound_data_stores();
 
     storage_t ref(metadata_, -7.3);
 

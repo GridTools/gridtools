@@ -134,7 +134,7 @@ namespace test_conditional_switches {
         p = false;
         comp_.run();
 
-        comp_.sync_all();
+        comp_.sync_bound_data_stores();
         return result && make_host_view(dummy)(0, 0, 0) == 5662;
     }
 } // namespace test_conditional

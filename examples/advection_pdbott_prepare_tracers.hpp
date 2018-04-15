@@ -109,7 +109,7 @@ namespace adv_prepare_tracers {
 #ifdef BENCHMARK
         benchmarker::run(comp_, t_steps);
 #endif
-        comp_.sync_all();
+        comp_.sync_bound_data_stores();
 
         verifier verif(1e-6);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};

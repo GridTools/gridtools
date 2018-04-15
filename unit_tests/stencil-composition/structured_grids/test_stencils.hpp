@@ -112,7 +112,7 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         copy.run();
 
-        copy.sync_all();
+        copy.sync_bound_data_stores();
 
         bool ok = true;
         auto outv = make_host_view(out);

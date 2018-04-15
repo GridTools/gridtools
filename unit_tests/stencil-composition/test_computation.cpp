@@ -69,7 +69,7 @@ namespace gridtools {
                 return {args.m_value.name()...};
             }
 
-            void sync_all() { m_synced = true; }
+            void sync_bound_data_stores() { m_synced = true; }
             void reset_meter() { m_count = 0; }
             std::string print_meter() const {
                 std::ostringstream strm;
@@ -93,7 +93,7 @@ namespace gridtools {
             testee.run();
             EXPECT_EQ(testee.print_meter(), "not synced:2");
             EXPECT_EQ(testee.get_meter(), 2);
-            testee.sync_all();
+            testee.sync_bound_data_stores();
             EXPECT_EQ(testee.print_meter(), "synced:2");
             testee.reset_meter();
             EXPECT_EQ(testee.get_meter(), 0);

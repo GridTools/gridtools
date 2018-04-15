@@ -96,7 +96,7 @@ namespace test_copy_stencil_icosahedral {
                 make_stage< functor_copy, icosahedral_topology_t, icosahedral_topology_t::cells >(p_out(), p_in())));
 
         comp_.run();
-        comp_.sync_all();
+        comp_.sync_bound_data_stores();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

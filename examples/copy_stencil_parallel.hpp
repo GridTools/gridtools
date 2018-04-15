@@ -185,7 +185,7 @@ namespace copy_stencil {
         printf("computation run\n");
 #endif
 
-        copy.sync_all();
+        copy.sync_bound_data_stores();
 
 #ifdef VERBOSE
         printf("computation finalized\n");

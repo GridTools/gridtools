@@ -113,7 +113,7 @@ namespace test_expandable_parameters_icosahedral {
                                 p_list_out(), p_list_in())));
 
         comp_.run();
-        comp_.sync_all();
+        comp_.sync_bound_data_stores();
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);

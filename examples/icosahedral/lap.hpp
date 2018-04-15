@@ -180,7 +180,7 @@ namespace ico_operators {
                         icosahedral_topology_t::vertices >(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
             stencil_.run();
-            stencil_.sync_all();
+            stencil_.sync_bound_data_stores();
         }
 
         /*

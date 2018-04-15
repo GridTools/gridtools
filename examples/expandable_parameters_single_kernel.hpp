@@ -166,7 +166,7 @@ namespace test_expandable_parameters {
                                                            p_4_tmp())));
 
         comp_.run();
-        comp_.sync_all();
+        comp_.sync_bound_data_stores();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {
