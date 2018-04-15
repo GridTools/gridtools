@@ -435,7 +435,7 @@ namespace gridtools {
             // now only local domanis missing pointers from free (not bound) storages.
         }
 
-        void sync_bound_data_stores() const { tuple_util::for_each(m_bound_arg_storage_pair_tuple, _impl::sync_f{}); }
+        void sync_bound_data_stores() const { tuple_util::for_each(_impl::sync_f{}, m_bound_arg_storage_pair_tuple); }
 
         // TODO(anstaf): introduce overload that takes a tuple of arg_storage_pair's. it will simplify a bit
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
