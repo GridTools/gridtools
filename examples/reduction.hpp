@@ -129,7 +129,7 @@ namespace test_reduction {
         float_type sum_redt = sum_red_.run();
         float_type precision;
 #if FLOAT_PRECISION == 4
-        precision = 1e-6;
+        precision = 2e-6;
 #else
         precision = 1e-12;
 #endif
