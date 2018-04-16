@@ -92,8 +92,8 @@ namespace aligned_copy_stencil {
 
 #ifdef __CUDACC__
 #ifndef NDEBUG
-            if (!check_pointer_alignment(&eval(in()), 8 * meta_data_t::alignment_t::value) ||
-                !check_pointer_alignment(&eval(out()), 8 * meta_data_t::alignment_t::value)) {
+            if (!check_pointer_alignment(&eval(in()), sizeof(float_type) * meta_data_t::alignment_t::value) ||
+                !check_pointer_alignment(&eval(out()), sizeof(float_type) * meta_data_t::alignment_t::value)) {
                 printf("alignment error in some storages with first meta_storage \n");
                 assert(false);
             }
