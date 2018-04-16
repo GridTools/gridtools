@@ -36,7 +36,7 @@
 #pragma once
 #include <type_traits>
 #include <boost/type_traits/remove_reference.hpp>
-#include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
+#include "../../common/generic_metafunctions/gt_decay.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
 #include "../../common/array.hpp"
