@@ -52,15 +52,11 @@ using namespace gridtools::expressions;
 namespace {
     // used to ensure that types are correctly passed between function calls (no implicit conversion)
     template < typename tag >
-    struct special_type {
-        //        special_type() : m_value{0} {};
-        //        explicit special_type(float_type value) : m_value(value){};
-        //        float_type m_value;
-    };
+    struct special_type {};
 
     template < typename dst_tag, typename src_tag >
-    special_type< dst_tag > convert_to(special_type< src_tag > src) {
-        return special_type< dst_tag >{/*src.m_value*/};
+    special_type< dst_tag > convert_to(special_type< src_tag >) {
+        return special_type< dst_tag >{};
     }
 
     struct in_tag {};
