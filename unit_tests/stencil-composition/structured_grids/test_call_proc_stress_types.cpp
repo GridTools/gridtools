@@ -33,13 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <common/generic_metafunctions/gt_decay.hpp>
-#include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <common/generic_metafunctions/gt_decay.hpp>
 #include <test_helper.hpp>
-#include <tools/verifier.hpp>
 #include "backend_select.hpp"
+#include "gtest/gtest.h"
 
 /**
  * Compile-time test to ensure that types are correct in all call_proc stages
@@ -96,11 +95,11 @@ namespace {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_return_type = typename gt_decay< decltype(eval(out{})) >::type;
-            ASSERT_TYPE_EQ< special_type< out_tag >, out_return_type >{};
+            using out_type = typename gt_decay< decltype(eval(out{})) >::type;
+            ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
 
-            using local_return_type = typename gt_decay< decltype(eval(local{})) >::type;
-            ASSERT_TYPE_EQ< special_type< local_tag >, local_return_type >{};
+            using local_type = typename gt_decay< decltype(eval(local{})) >::type;
+            ASSERT_TYPE_EQ< special_type< local_tag >, local_type >{};
         }
     };
 
@@ -111,11 +110,11 @@ namespace {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_return_type = typename gt_decay< decltype(eval(out{})) >::type;
-            ASSERT_TYPE_EQ< special_type< out_tag >, out_return_type >{};
+            using out_type = typename gt_decay< decltype(eval(out{})) >::type;
+            ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
 
-            using in_return_type = typename gt_decay< decltype(eval(in{})) >::type;
-            ASSERT_TYPE_EQ< special_type< in_tag >, in_return_type >{};
+            using in_type = typename gt_decay< decltype(eval(in{})) >::type;
+            ASSERT_TYPE_EQ< special_type< in_tag >, in_type >{};
 
             special_type< local_tag > local{};
 
@@ -130,11 +129,11 @@ namespace {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_return_type = typename gt_decay< decltype(eval(out{})) >::type;
-            ASSERT_TYPE_EQ< special_type< out_tag >, out_return_type >{};
+            using out_type = typename gt_decay< decltype(eval(out{})) >::type;
+            ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
 
-            using in_return_type = typename gt_decay< decltype(eval(in{})) >::type;
-            ASSERT_TYPE_EQ< special_type< in_tag >, in_return_type >{};
+            using in_type = typename gt_decay< decltype(eval(in{})) >::type;
+            ASSERT_TYPE_EQ< special_type< in_tag >, in_type >{};
 
             call_proc< triple_nesting_with_type_switching_second_stage >::with(eval, in(), out());
         }
