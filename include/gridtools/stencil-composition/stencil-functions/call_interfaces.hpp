@@ -312,6 +312,11 @@ namespace gridtools {
                     typename CallerAggregator::template accessor_return_type< get_passed_argument_t< Accessor > >::type;
             };
 
+            template < typename Type >
+            struct accessor_return_type< _impl::wrap_reference< Type > > {
+                using type = Type;
+            };
+
           private:
             template < typename Accessor >
             using accessor_return_type_t = typename accessor_return_type< Accessor >::type;
