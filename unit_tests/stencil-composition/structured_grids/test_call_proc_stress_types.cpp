@@ -96,8 +96,7 @@ namespace {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_return_type = typename gt_decay<
-                typename std::decay< Evaluation >::type::template accessor_return_type< out >::type >::type;
+            using out_return_type = typename gt_decay< decltype(eval(out{})) >::type;
             ASSERT_TYPE_EQ< special_type< out_tag >, out_return_type >{};
 
             using local_return_type = typename gt_decay< decltype(eval(local{})) >::type;
@@ -112,12 +111,10 @@ namespace {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_return_type = typename gt_decay<
-                typename std::decay< Evaluation >::type::template accessor_return_type< out >::type >::type;
+            using out_return_type = typename gt_decay< decltype(eval(out{})) >::type;
             ASSERT_TYPE_EQ< special_type< out_tag >, out_return_type >{};
 
-            using in_return_type = typename gt_decay<
-                typename std::decay< Evaluation >::type::template accessor_return_type< in >::type >::type;
+            using in_return_type = typename gt_decay< decltype(eval(in{})) >::type;
             ASSERT_TYPE_EQ< special_type< in_tag >, in_return_type >{};
 
             special_type< local_tag > local{};
@@ -133,12 +130,10 @@ namespace {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_return_type = typename gt_decay<
-                typename std::decay< Evaluation >::type::template accessor_return_type< out >::type >::type;
+            using out_return_type = typename gt_decay< decltype(eval(out{})) >::type;
             ASSERT_TYPE_EQ< special_type< out_tag >, out_return_type >{};
 
-            using in_return_type = typename gt_decay<
-                typename std::decay< Evaluation >::type::template accessor_return_type< in >::type >::type;
+            using in_return_type = typename gt_decay< decltype(eval(in{})) >::type;
             ASSERT_TYPE_EQ< special_type< in_tag >, in_return_type >{};
 
             call_proc< triple_nesting_with_type_switching_second_stage >::with(eval, in(), out());
