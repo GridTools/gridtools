@@ -149,8 +149,8 @@ namespace gridtools {
             const int thread = omp_get_thread_num();
             const int total_threads = omp_get_max_threads();
             const int thread_offset =
-                (sinfo->padded_total_length() - StorageInfo::get_initial_offset()) * thread / total_threads;
-            return StorageInfo::get_initial_offset() + thread_offset;
+                (sinfo->padded_total_length()) * thread / total_threads;
+            return thread_offset;
 #else
             using grid_traits_t = GridTraits;
             // get the thread ID
@@ -161,7 +161,7 @@ namespace gridtools {
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
             const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
-            return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
+            return stride_i * (i * blocksize + halo_i);
 #endif
         }
 
@@ -172,7 +172,7 @@ namespace gridtools {
         */
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            return StorageInfo::get_initial_offset();
+            return 0;
         }
 
         using setup_grid_f = noop;
