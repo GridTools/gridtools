@@ -108,11 +108,14 @@ namespace gridtools {
         GT_FUNCTION
         explicit run_esf_functor(iterate_domain_t &iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-        /**
-         * \brief given the index of a functor in the functors
-         * list, it calls a kernel on the GPU executing the
-         * operations defined on that functor.
-         */
+/**
+ * \brief given the index of a functor in the functors
+ * list, it calls a kernel on the GPU executing the
+ * operations defined on that functor.
+ */
+#if defined(__CUDACC__) && CUDART_VERSION <= 8000
+#pragma nv_exec_check_disable
+#endif
         template < typename Index >
         GT_FUNCTION void operator()(Index const &) const {
 
