@@ -81,8 +81,8 @@ namespace gridtools {
      *    auto convert_to_ints = transform([](int x) {return x;});
      *    auto ints = convert_to_ints(input);
      *
-     *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a tuple
-     *  of tuple of tuple of integers you can do it in one expression:
+     *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a
+     *  tuple of tuple of tuple of integers you can do it in one expression:
      *  auto out = transform(transform([](int x) {return x;}), input);
      *
      *
@@ -430,6 +430,8 @@ namespace gridtools {
 
         inline constexpr _impl::flatten_f flatten() { return {}; }
 
+        /// Takes a tuple of tuples and concatenate the inner tuples into a one.
+        /// Note that it doesn't go recursive.
         template < class Tup >
         auto flatten(Tup &&tup) GT_AUTO_RETURN(flatten()(std::forward< Tup >(tup)));
 

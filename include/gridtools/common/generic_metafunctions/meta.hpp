@@ -781,6 +781,8 @@ namespace gridtools {
 
             /**
              *  Flatten a list of lists.
+             *
+             *  Note: this function doesn't go recursive. It just concatenates the inner lists.
              */
             template < class Lists >
             GT_META_DEFINE_ALIAS(flatten, combine, (meta::concat, Lists));

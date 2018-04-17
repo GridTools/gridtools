@@ -155,6 +155,10 @@ namespace gridtools {
                           g< int, void, double, void, int > >{},
             "");
 
+        // flatten
+        static_assert(std::is_same< GT_META_CALL(flatten, f< g< int > >), g< int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(flatten, (f< g< int >, f< bool > >)), g< int, bool > >{}, "");
+
         // filter
         static_assert(std::is_same< GT_META_CALL(filter, (std::is_pointer, f<>)), f<> >{}, "");
         static_assert(std::is_same< GT_META_CALL(filter, (std::is_pointer, f< void, int *, double, double ** >)),
