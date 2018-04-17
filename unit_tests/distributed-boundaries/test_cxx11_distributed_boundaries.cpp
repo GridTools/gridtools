@@ -296,5 +296,4 @@ TEST(DistributedBoundaries, Test) {
     EXPECT_TRUE(ok);
 
     EXPECT_THROW(cabc.exchange(a, b, c, d), std::runtime_error);
-
 }
