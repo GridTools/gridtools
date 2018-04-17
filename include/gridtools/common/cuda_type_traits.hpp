@@ -37,7 +37,7 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/type_traits.hpp>
-#include "generic_metafunctions/gt_decay.hpp"
+#include "generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "defs.hpp"
 
 namespace gridtools {
@@ -61,7 +61,7 @@ namespace gridtools {
     } // namespace _impl
 
     template < typename T >
-    struct is_texture_type : boost::mpl::has_key< _impl::texture_types, typename gt_decay< T >::type > {};
+    struct is_texture_type : boost::mpl::has_key< _impl::texture_types, typename remove_qualifiers< T >::type > {};
 
     template < typename T >
     using is_texture_type_t = typename is_texture_type< T >::type;

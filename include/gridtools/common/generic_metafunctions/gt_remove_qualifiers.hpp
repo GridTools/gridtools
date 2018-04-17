@@ -71,7 +71,7 @@ namespace gridtools {
      * @brief remove everything from type
      */
     template < typename T >
-    struct gt_decay {
+    struct remove_qualifiers {
         using type = typename boost::remove_cv< typename boost::remove_reference<
             typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type;
     };
