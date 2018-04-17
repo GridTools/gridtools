@@ -1,4 +1,4 @@
-/*x
+/*
   GridTools Libraries
 
   Copyright (c) 2017, ETH Zurich and MeteoSwiss
