@@ -64,9 +64,9 @@ namespace gridtools {
         typedef state_machine state_machine_t;
 
       private:
+        data_t *m_allocated_ptr = nullptr;
         data_t *m_cpu_ptr;
         ownership m_ownership = ownership::Full;
-        uint_t m_data_offset;
 
       public:
         /*
@@ -75,24 +75,14 @@ namespace gridtools {
          * risk of L1 cache set conflicts.
          * @param size defines the size of the storage and the allocated space.
          */
-        mic_storage(uint_t size) {
-            // get data_offset and update it atomically for next allocation
-            static std::atomic< uint_t > s_data_offset(64);
-            uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
-            uint_t next_data_offset;
-            do {
-                m_data_offset = data_offset / sizeof(data_t);
-                next_data_offset = 2 * data_offset;
-                if (next_data_offset > 8192)
-                    next_data_offset = 64;
-            } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
-
-            // allocate memory aligned to 2MB
-            if (posix_memalign(
-                    reinterpret_cast< void ** >(&m_cpu_ptr), 2 * 1024 * 1024, (size + m_data_offset) * sizeof(data_t)))
-                throw std::bad_alloc();
-
-            m_cpu_ptr += m_data_offset;
+        template < uint_t Align = 1 >
+        mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
+            : m_allocated_ptr(new data_t[size + Align]), m_cpu_ptr(nullptr) {
+            // New will align addresses according to the size(data_t)
+            uint_t delta =
+                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
+                sizeof(data_t);
+            m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
         }
 
         /*
@@ -113,9 +103,12 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        mic_storage(uint_t size, data_t initializer) : mic_storage(size) {
+        template < typename Funct, uint_t Align = 1 >
+        mic_storage(
+            uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment< Align > a = alignment< 1u >{})
+            : mic_storage(size, offset_to_align, a) {
             for (uint_t i = 0; i < size; ++i) {
-                m_cpu_ptr[i] = initializer;
+                m_cpu_ptr[i] = initializer(i);
             }
         }
 
@@ -124,7 +117,7 @@ namespace gridtools {
          */
         ~mic_storage() {
             if (m_ownership == ownership::Full && m_cpu_ptr) {
-                free(m_cpu_ptr - m_data_offset);
+                delete[] m_allocated_ptr;
             }
         }
 
@@ -135,7 +128,6 @@ namespace gridtools {
             using std::swap;
             swap(m_cpu_ptr, other.m_cpu_ptr);
             swap(m_ownership, other.m_ownership);
-            swap(m_data_offset, other.m_data_offset);
         }
 
         /*
