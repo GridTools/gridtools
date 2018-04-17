@@ -53,11 +53,6 @@ namespace {
     template < typename tag >
     struct special_type {};
 
-    template < typename dst_tag, typename src_tag >
-    special_type< dst_tag > convert_to(special_type< src_tag >) {
-        return special_type< dst_tag >{};
-    }
-
     struct in_tag {};
     struct out_tag {};
 }
