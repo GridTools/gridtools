@@ -176,7 +176,7 @@ namespace gridtools {
     template < typename StorageWrapperList >
     struct max_i_extent_from_storage_wrapper_list {
         typedef
-            typename boost::mpl::transform< StorageWrapperList, tile_from_storage_wrapper< 1 > >::type all_i_tiles_t;
+            typename boost::mpl::transform< StorageWrapperList, tile_from_storage_wrapper< 0 > >::type all_i_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_minus_t_from_tile< boost::mpl::_ > >::type
             all_i_minus_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_plus_t_from_tile< boost::mpl::_ > >::type
