@@ -275,21 +275,21 @@ namespace gridtools {
 
     /**
        @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument the
-       direation, an arbitrary number of data fields, and the coordinates ID) in the halo region, see \ref
+       direction, an arbitrary number of data fields, and the coordinates ID) in the halo region, see \ref
        gridtools::halo_descriptor
 
        For GPUs the idea is to let a single kernel deal with all the 26 boundary areas. The kernel configuration
-       will depends on the largest dimensions of these boundary areas. The configuration shape will have dimensions
+       will depend on the largest dimensions of these boundary areas. The configuration shape will have dimensions
        sorted by decreasing sizes.
 
        For this reason each boundary area dimensions will be sorted by decreasing sizes and then the permutation
-       needed to map the threads to the coordinates to use in the user provided boundary operartors are kept.
+       needed to map the threads to the coordinates to use in the user provided boundary operators are kept.
 
        The shape information is kept in \ref _impl::kernel_configuration::shape class, while the kernel
        configuration and the collections of shapes to be accessed in the kernel are stored in the \ref
        _impl::kernel_configuration class.
 
-       The kernel will then apply the user provided boubary functions in order to all the areas one after the other.
+       The kernel will then apply the user provided boundary functions in order to all the areas one after the other.
     */
     template < typename BoundaryFunction,
         typename Predicate = default_predicate,
@@ -351,7 +351,7 @@ namespace gridtools {
 /**
 @file
 @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument the
-direation, an arbitrary number of data fields, and the coordinates ID) in the halo region, see \ref
+direction, an arbitrary number of data fields, and the coordinates ID) in the halo region, see \ref
 gridtools::halo_descriptor
 */
 namespace gridtools {
@@ -361,7 +361,7 @@ namespace gridtools {
         */
 
     /**
-       @brief kernel to appy boundary conditions to the data fields requested
+       @brief kernel to apply boundary conditions to the data fields requested
     */
         template < typename BoundaryFunction, typename Direction, typename... DataViews >
             __global__ void loop_kernel(BoundaryFunction boundary_function,
