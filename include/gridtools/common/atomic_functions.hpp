@@ -47,7 +47,7 @@
 * Namespace providing a set of atomic functions working for all backends
 */
 namespace gridtools {
-    /** \ingroup common Common Shared Utilities
+    /** \ingroup common
         @{
      */
 
