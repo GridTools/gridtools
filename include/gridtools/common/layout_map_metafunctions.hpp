@@ -162,12 +162,14 @@ namespace gridtools {
 
     enum class InsertLocation { pre, post };
 
-    template < typename LayoutMap, ushort_t NExtraDim, InsertLocation Location = InsertLocation::pre >
+    template < typename LayoutMap, ushort_t NExtraDim, InsertLocation Location = InsertLocation::post >
     struct extend_layout_map;
 
     /*
      * metafunction to extend a layout_map with certain number of dimensions.
-     * Example of use: extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
+     * Example of use:
+     * a) extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
+     * b) extend_layout_map< layout_map<0, 1, 3, 2>, 3, InsertLocation::pre> == layout_map<0, 1, 2, 3, 4, 6, 5>
      */
     template < ushort_t NExtraDim, int_t... Args, InsertLocation Location >
     struct extend_layout_map< layout_map< Args... >, NExtraDim, Location > {
@@ -177,11 +179,11 @@ namespace gridtools {
 
         // build an extended layout
         template < int_t... Indices, int_t... InitialIndices >
-        struct build_ext_layout< InsertLocation::pre, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
+        struct build_ext_layout< InsertLocation::post, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
             typedef layout_map< InitialIndices..., Indices... > type;
         };
         template < int_t... Indices, int_t... InitialIndices >
-        struct build_ext_layout< InsertLocation::post, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
+        struct build_ext_layout< InsertLocation::pre, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
             typedef layout_map< Indices..., InitialIndices... > type;
         };
 
@@ -192,7 +194,7 @@ namespace gridtools {
 
     template < short_t D >
     struct default_layout_map {
-        using type = typename extend_layout_map< layout_map<>, D, InsertLocation::post >::type;
+        using type = typename extend_layout_map< layout_map<>, D, InsertLocation::pre >::type;
     };
 
     template < short_t D >

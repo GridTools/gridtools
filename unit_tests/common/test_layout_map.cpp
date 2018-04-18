@@ -137,38 +137,34 @@ TEST(LayoutMap, DefaultLayout) {
 
 TEST(LayoutMap, Extender) {
     typedef layout_map< 0, 1, 2 > layout;
-    // create some extended layout maps
-    // the extension by 1 dimensions means that all original layout_map args are increased by 1 and a 0 is added at the
-    // end
+
     typedef typename extend_layout_map< layout, 1 >::type ext_layout_1;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< ext_layout_1, layout_map< 1, 2, 3, 0 > >::type::value), "layout_map type is wrong");
-    // the extension by 2 dimensions means that all original layout_map args are increased by 2 and 0, 1 is added at the
-    // end
+    ASSERT_TYPE_EQ< layout_map< 1, 2, 3, 0 >, ext_layout_1 >();
+
     typedef typename extend_layout_map< layout, 2 >::type ext_layout_2;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< ext_layout_2, layout_map< 2, 3, 4, 0, 1 > >::type::value), "layout_map type is wrong");
-    // the extension by 3 dimensions means that all original layout_map args are increased by 3 and 0, 1, 2 is added at
-    // the end
+    ASSERT_TYPE_EQ< layout_map< 2, 3, 4, 0, 1 >, ext_layout_2 >();
+
     typedef typename extend_layout_map< layout, 3 >::type ext_layout_3;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< ext_layout_3, layout_map< 3, 4, 5, 0, 1, 2 > >::type::value), "layout_map type is wrong");
+    ASSERT_TYPE_EQ< layout_map< 3, 4, 5, 0, 1, 2 >, ext_layout_3 >();
+
+    typedef typename extend_layout_map< layout, 1, InsertLocation::pre >::type ext_layout_post_1;
+    ASSERT_TYPE_EQ< layout_map< 0, 1, 2, 3 >, ext_layout_post_1 >();
 
     // try the same again with a special layout
     typedef layout_map< 2, 1, -1, 0 > special_layout;
-    // the extension by 1 dimensions means that all original layout_map args are increased by 1 and a 0 is added at the
-    // end
+
     typedef typename extend_layout_map< special_layout, 1 >::type ext_special_layout_1;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< ext_special_layout_1, layout_map< 3, 2, -1, 1, 0 > >::type::value),
-        "layout_map type is wrong");
-    // the extension by 2 dimensions means that all original layout_map args are increased by 2 and 0, 1 is added at the
-    // end
+    ASSERT_TYPE_EQ< layout_map< 3, 2, -1, 1, 0 >, ext_special_layout_1 >();
+
     typedef typename extend_layout_map< special_layout, 2 >::type ext_special_layout_2;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< ext_special_layout_2, layout_map< 4, 3, -1, 2, 0, 1 > >::type::value),
-        "layout_map type is wrong");
-    // the extension by 3 dimensions means that all original layout_map args are increased by 3 and 0, 1, 2 is added at
-    // the end
+    ASSERT_TYPE_EQ< layout_map< 4, 3, -1, 2, 0, 1 >, ext_special_layout_2 >();
+
     typedef typename extend_layout_map< special_layout, 3 >::type ext_special_layout_3;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< ext_special_layout_3, layout_map< 5, 4, -1, 3, 0, 1, 2 > >::type::value),
-        "layout_map type is wrong");
+    ASSERT_TYPE_EQ< layout_map< 5, 4, -1, 3, 0, 1, 2 >, ext_special_layout_3 >();
+
+    typedef typename extend_layout_map< special_layout, 1, InsertLocation::pre >::type ext_special_layout_post_1;
+    ASSERT_TYPE_EQ< layout_map< 0, 3, 2, -1, 1 >, ext_special_layout_post_1 >();
+
+    typedef typename extend_layout_map< special_layout, 2, InsertLocation::pre >::type ext_special_layout_post_2;
+    ASSERT_TYPE_EQ< layout_map< 0, 1, 4, 3, -1, 2 >, ext_special_layout_post_2 >();
 }
