@@ -70,7 +70,7 @@ vertical_advection_dycore::vertical_advection_test get_test() {
 
 TEST(vertical_advection_dycore, test) {
     auto const &opts = Options::getInstance();
-    uint_t steps = std::min(opts.m_size[3], 1);
+    uint_t steps = std::max(opts.m_size[3], 1);
     bool verify = opts.m_verify;
     EXPECT_TRUE(get_test().test(steps, verify));
     EXPECT_TRUE(get_test().test_with_extents(verify));
