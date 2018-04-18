@@ -33,21 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "type_traits.hpp"
-#include "meta.hpp"
+#include <common/split_args.hpp>
+
+#include <tuple>
+#include <type_traits>
+#include <gtest/gtest.h>
 
 namespace gridtools {
 
-    /* check if all given types are integral types */
-    template < typename... IntTypes >
-    GT_META_DEFINE_ALIAS(is_all_integral, conjunction, std::is_integral< IntTypes >...);
+    template < class Testee, class FirstSink, class SecondSink >
+    void helper(Testee &&testee, FirstSink first_sink, SecondSink second_sink) {
+        first_sink(std::forward< Testee >(testee).first);
+        second_sink(std::forward< Testee >(testee).second);
+    }
 
-    template < typename T >
-    GT_META_DEFINE_ALIAS(is_integral_or_enum, bool_constant, std::is_integral< T >::value || std::is_enum< T >::value);
+    TEST(raw_split_args, functional) {
+        int val = 1;
+        const int c_val = 2;
+        helper(raw_split_args< std::is_lvalue_reference >(42, c_val, 0., val, c_val),
+            [](std::tuple< int const &, int &, int const & > const &x) { EXPECT_EQ(std::make_tuple(2, 1, 2), x); },
+            [](std::tuple< int &&, double && > const &x) { EXPECT_EQ(std::make_tuple(42, 0.), x); });
+    }
 
-    /* check if all given types are integral types or enums */
-    template < typename... IntTypes >
-    GT_META_DEFINE_ALIAS(is_all_integral_or_enum, conjunction, is_integral_or_enum< IntTypes >...);
+    TEST(split_args, functional) {
+        int ival = 1;
+        const double dval = 2;
+        helper(split_args< std::is_integral >(42, dval, 0., ival),
+            [](std::tuple< int &&, int & > const &x) { EXPECT_EQ(std::make_tuple(42, 1), x); },
+            [](std::tuple< const double &, double && > const &x) { EXPECT_EQ(std::make_tuple(2., 0.), x); });
+    }
 }

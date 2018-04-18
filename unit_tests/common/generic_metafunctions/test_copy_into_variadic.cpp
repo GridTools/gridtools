@@ -1,24 +1,18 @@
 /*
   GridTools Libraries
-
   Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
-
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
   met:
-
   1. Redistributions of source code must retain the above copyright
   notice, this list of conditions and the following disclaimer.
-
   2. Redistributions in binary form must reproduce the above copyright
   notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
-
   3. Neither the name of the copyright holder nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
-
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -30,29 +24,31 @@
   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "mss.hpp"
-#include "reductions/reduction_descriptor.hpp"
+
+#include <common/generic_metafunctions/copy_into_variadic.hpp>
+
+#include <type_traits>
+
+#include <boost/mpl/vector.hpp>
+#include <gtest/gtest.h>
 
 namespace gridtools {
+    namespace {
+        template < class... >
+        struct dst;
+        template < class... Ts >
+        using src = boost::mpl::vector< Ts... >;
 
-    template < typename T1, typename T2, typename T3 >
-    struct mss_descriptor;
-    /**
-     * type traits for a-mss descriptor. Amss descriptor is any descriptor that implements the concept
-     * a MSS: currently mss_descriptor and reduction_descriptor
-     */
-    template < typename T >
-    struct amss_descriptor_is_reduction;
-
-    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSeq >
-    struct amss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSeq > >
-        : boost::mpl::false_ {};
-
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct amss_descriptor_is_reduction< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > >
-        : boost::mpl::true_ {};
+        static_assert(std::is_same< copy_into_variadic< src<>, dst<> >, dst<> >{}, "empty into empty");
+        static_assert(
+            std::is_same< copy_into_variadic< src< int, void >, dst<> >, dst< int, void > >{}, "non empty into empty");
+        static_assert(
+            std::is_same< copy_into_variadic< src<>, dst< int, void > >, dst< int, void > >{}, "empty into non empty");
+        static_assert(std::is_same< copy_into_variadic< src< void >, dst< int > >, dst< int, void > >{},
+            "non empty into non empty");
+    }
 }
+
+TEST(dummy, dummy) {}
