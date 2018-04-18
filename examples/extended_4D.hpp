@@ -120,7 +120,7 @@ namespace assembly {
         }
 
         template < typename... Ints >
-        GT_FUNCTION value_type &operator()(Ints &&... args_) {
+        GT_FUNCTION value_type const &operator()(Ints &&... args_) const {
             return m_values[meta_t{}.index(args_...)];
         }
 

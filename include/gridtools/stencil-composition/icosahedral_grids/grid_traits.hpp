@@ -61,8 +61,6 @@ namespace gridtools {
             typedef typename init_map_of_extents< Placeholders >::type type;
         };
 
-        typedef extent< 0 > null_extent_t;
-
         template < enumtype::platform BackendId >
         struct with_arch {
             typedef icgrid::grid_traits_arch< BackendId > type;

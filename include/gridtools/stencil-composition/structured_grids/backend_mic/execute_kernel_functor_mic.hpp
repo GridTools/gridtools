@@ -35,6 +35,12 @@
 */
 
 #pragma once
+
+#include <boost/mpl/begin_end.hpp>
+#include <boost/mpl/deref.hpp>
+#include <boost/mpl/identity.hpp>
+#include <boost/mpl/next_prior.hpp>
+
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
@@ -47,6 +53,38 @@
 namespace gridtools {
 
     namespace _impl {
+
+        /**
+         * @brief Simplified copy of boost::mpl::for_each for looping over loop_intervals. Needed because ICC can not
+         * vectorize the original boost::mpl::for_each.
+         */
+        template < bool done = true >
+        struct boost_mpl_for_each_mic_impl {
+            template < typename Iterator, typename LastIterator, typename F >
+            GT_FUNCTION static void execute(F const &) {}
+        };
+
+        template <>
+        struct boost_mpl_for_each_mic_impl< false > {
+            template < typename Iterator, typename LastIterator, typename F >
+            GT_FUNCTION static void execute(F const &f) {
+                using arg = typename ::boost::mpl::deref< Iterator >::type;
+                using next = typename ::boost::mpl::next< Iterator >::type;
+
+                f(arg{});
+
+                boost_mpl_for_each_mic_impl<::boost::is_same< next, LastIterator >::value >::template execute< next,
+                    LastIterator >(f);
+            }
+        };
+
+        template < typename Sequence, typename F >
+        GT_FUNCTION void boost_mpl_for_each_mic(F const &f) {
+            using first = typename ::boost::mpl::begin< Sequence >::type;
+            using last = typename ::boost::mpl::end< Sequence >::type;
+
+            boost_mpl_for_each_mic_impl<::boost::is_same< first, last >::value >::template execute< first, last >(f);
+        }
 
         /**
          * @brief Meta function to check if all ESFs can be computed independently per column. This is possible if the
@@ -116,9 +154,6 @@ namespace gridtools {
                     typename backend_traits_t::run_esf_functor_h_t::template apply< RunFunctorArguments,
                         Interval >::type;
 
-                using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
-                using extent_t = typename boost::mpl::at< extent_sizes_t, Index >::type;
-
                 const int_t k_first = m_grid.template value_at< typename iteration_policy_t::from >();
                 const int_t k_last = m_grid.template value_at< typename iteration_policy_t::to >();
 
@@ -130,8 +165,10 @@ namespace gridtools {
                 run_esf_functor_t run_esf(m_it_domain);
                 for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
                     m_it_domain.set_k_block_index(k);
+#ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
+#endif
                     for (int_t i = m_i_vecfirst; i < m_i_veclast; ++i) {
                         m_it_domain.set_i_block_index(i);
                         run_esf(index);
@@ -207,8 +244,10 @@ namespace gridtools {
                     for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
                          iteration_policy_t::increment(k)) {
                         m_it_domain.set_k_block_index(k);
+#ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
+#endif
                         for (int_t i = i_first; i < i_last; ++i) {
                             m_it_domain.set_i_block_index(i);
                             run_esf(index);
@@ -264,8 +303,10 @@ namespace gridtools {
                 m_it_domain.set_k_block_index(m_execution_info.k);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
+#ifdef NDEBUG
 #pragma ivdep
 #pragma omp simd
+#endif
                     for (int_t i = i_first; i < i_last; ++i) {
                         m_it_domain.set_i_block_index(i);
                         run_esf(index);
@@ -433,14 +474,11 @@ namespace gridtools {
 
             template < class ExecutionInfo >
             GT_FUNCTION void operator()(const ExecutionInfo &execution_info) const {
-                using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
                 using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
-                using max_extent_t = typename RunFunctorArguments::max_extent_t;
-
-                boost::mpl::for_each< loop_intervals_t >(
+                gridtools::_impl::boost_mpl_for_each_mic< loop_intervals_t >(
                     gridtools::_impl::interval_functor_mic< RunFunctorArguments, ExecutionInfo >(
                         it_domain, m_grid, execution_info));
 

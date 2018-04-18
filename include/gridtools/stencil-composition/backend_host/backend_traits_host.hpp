@@ -166,8 +166,6 @@ namespace gridtools {
             return StorageInfo::get_initial_offset();
         }
 
-        using setup_grid_f = noop;
-
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss

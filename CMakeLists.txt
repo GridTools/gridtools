@@ -72,6 +72,13 @@ if(NOT DISABLE_TESTING)
   add_subdirectory(unit_tests)
 endif()
 
+# ===============
+# Python scripts
+# ===============
+if(ENABLE_PYUTILS)
+    add_subdirectory(pyutils)
+endif()
+
 # Add all targets to the build-tree export set
 export(TARGETS gcl
   FILE "${PROJECT_BINARY_DIR}/cmake/GridToolsTargets.cmake")

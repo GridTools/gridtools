@@ -112,23 +112,6 @@ namespace gridtools {
             ASSERT_OR_THROW((m_begin >= m_minus), "Invalid halo_descriptor: begin of compute domain inside halo.");
         }
 
-        GT_FUNCTION halo_descriptor &operator=(halo_descriptor const &hh) {
-            m_minus = hh.minus();
-            m_plus = hh.plus();
-            m_begin = hh.begin();
-            m_end = hh.end();
-            m_total_length = hh.total_length();
-            return *this;
-        }
-
-        GT_FUNCTION halo_descriptor(halo_descriptor const &hh) {
-            m_minus = hh.minus();
-            m_plus = hh.plus();
-            m_begin = hh.begin();
-            m_end = hh.end();
-            m_total_length = hh.total_length();
-        }
-
         /**
            Begin index for the loop on the outside region.
            \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
