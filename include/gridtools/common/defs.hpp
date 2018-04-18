@@ -241,9 +241,14 @@ namespace gridtools {
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
 
+#ifdef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
+/* disable GT_AUTO_RETURN macro for doxygen as it creates many warnings */
+#define GT_AUTO_RETURN(expr)
+#else
 #define GT_AUTO_RETURN(expr)          \
     ->decltype(expr) { return expr; } \
     static_assert(1, "")
+#endif
 
 //################ Type aliases for GridTools ################
 
