@@ -336,10 +336,10 @@ namespace gridtools {
          * Specialization for the generic accessors placeholders with arguments.
         */
         template < typename Acc, typename... Args >
-        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
+        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
                 std::cref(**boost::fusion::at< typename Acc::index_t >(local_domain.m_local_data_ptrs).second.data()),
-                accessor.get_arguments()));
+                accessor.get_arguments())) /** @endcond */;
 
         /**
          * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
