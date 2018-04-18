@@ -225,7 +225,7 @@ namespace gridtools {
             }
 
             GT_FUNCTION
-            shape_type const &shape(uint_t i, uint_t j, uint_t k) const { return sizes[i][j][k]; }
+            shape_type const &shape(uint_t i, uint_t j, uint_t k) const { return sizes[i+1][j+1][k+1]; }
         };
     } // namespace _impl
 
@@ -238,7 +238,7 @@ namespace gridtools {
 #define RUN_BC_ON(x, y, z)                                                                               \
     if (predicate(direction< x, y, z >())) {                                                             \
         auto const &shape =                                                                              \
-            conf.shape(static_cast< int >(x) + 1, static_cast< int >(y) + 1, static_cast< int >(z) + 1); \
+            conf.shape(static_cast< int >(x), static_cast< int >(y), static_cast< int >(z)); \
         if ((th[0] < shape.max()) && (th[1] < shape.median()) && (th[2] < shape.min())) {                \
             boundary_function(direction< x, y, z >{},                                                    \
                 data_views...,                                                                           \
