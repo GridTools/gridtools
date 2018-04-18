@@ -49,6 +49,7 @@ namespace gridtools {
      */
 
     namespace _impl {
+        /// Since predicate is runtime evaluated possibly on host-only data, we need to evaluate it before passing it to the CUDA kernels
         struct precomputed_pred {
             array< array< array< bool, 3 >, 3 >, 3 > m_values;
 
@@ -100,6 +101,19 @@ namespace gridtools {
             }
         };
 
+        /** This class contains the information needed to identify
+            which elements to access when applying boundary conditions
+            depending on what region is targeted. Regions are
+            identified by gridtools::direction which are equivalent to
+            unit vectors (in infinite-norm).
+
+            A configuration is an array of 26 shapes (actually 27, to
+            make the addressing easier). A shape identifies a region
+            of the boundary, which also inform of starting point for
+            an iteration relative to the thread-ids, sizes and
+            permutation to not go out of bound in the kernel
+            configuration.
+         */
         struct kernel_configuration {
             struct shape_type {
                 array< uint_t, 3 > m_size;
@@ -162,6 +176,12 @@ namespace gridtools {
             array< uint_t, 3 > configuration = {{0, 0, 0}};
             array< array< array< shape_type, 3 >, 3 >, 3 > sizes;
 
+            /** Kernel configuration takes the halo descriptors and
+                generates the shapes of all possible halos portions
+                that may be exchanged in a halo exchange
+                operatior. These pieces are encoded into shapes that
+                are described above here.
+             */
             GT_FUNCTION
             kernel_configuration(array< halo_descriptor, 3 > const &halos) {
 
@@ -209,6 +229,12 @@ namespace gridtools {
         };
     } // namespace _impl
 
+    /** The following macro substitute the code to apply the boundary
+        function to the boundary portion identified by a particular
+        direction. The thread ids should be permuted since the shape
+        of the boundary portion may be transposed w.r.t. the kernel
+        configuration.
+     */
 #define RUN_BC_ON(x, y, z)                                                                               \
     if (predicate(direction< x, y, z >())) {                                                             \
         auto const &shape =                                                                              \
