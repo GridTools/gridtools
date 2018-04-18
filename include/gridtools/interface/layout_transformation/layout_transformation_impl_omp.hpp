@@ -75,10 +75,13 @@ namespace gridtools {
                 outer_dims[i] = a_dims[3 + i];
 
             for (auto &&outer : make_hypercube_view(outer_dims)) {
+                uint_t size_i = a_dims[0]; // because ICC 17 complains otherwise...
+                uint_t size_j = a_dims[1];
+                uint_t size_k = a_dims[2];
 #pragma omp parallel for collapse(3)
-                for (int i = 0; i < a_dims[0]; ++i)
-                    for (int j = 0; j < a_dims[1]; ++j)
-                        for (int k = 0; k < a_dims[2]; ++k) {
+                for (int i = 0; i < size_i; ++i)
+                    for (int j = 0; j < size_j; ++j)
+                        for (int k = 0; k < size_k; ++k) {
                             auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer));
                             dst[si_dst.index(index)] = src[si_src.index(index)];
                         }
