@@ -161,7 +161,7 @@ namespace gridtools {
             };
 
             template < uint_t N, class ArgStoragePairs >
-            auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs &src)
+            auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src)
                 GT_AUTO_RETURN(tuple_util::transform(convert_arg_storage_pair_f< N >{offset}, src));
 
             template < uint_t N >

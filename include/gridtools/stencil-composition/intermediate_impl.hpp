@@ -152,7 +152,8 @@ namespace gridtools {
             boost::optional< view_t > updated_view() {
                 if (m_view && check_consistency(m_data_storage, *m_view))
                     return boost::none;
-                m_data_storage.sync();
+                if (m_data_storage.device_needs_update())
+                    m_data_storage.sync();
                 m_view.emplace(typename Backend::make_view_f{}(m_data_storage));
                 return m_view;
             }
@@ -172,8 +173,10 @@ namespace gridtools {
         struct make_view_info_f {
             template < class Arg, class DataStorage >
             view_info_t< Arg, DataStorage > operator()(arg_storage_pair< Arg, DataStorage > const &src) const {
-                src.m_value.sync();
-                return boost::make_optional(typename Backend::make_view_f{}(src.m_value));
+                const auto &storage = src.m_value;
+                if (storage.device_needs_update())
+                    storage.sync();
+                return boost::make_optional(typename Backend::make_view_f{}(storage));
             }
             template < class Arg, class DataStorage >
             view_info_t< Arg, DataStorage > operator()(bound_arg_storage_pair< Arg, DataStorage > &src) const {
