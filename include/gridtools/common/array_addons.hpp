@@ -223,7 +223,7 @@ namespace gridtools {
         std::forward< Container >(a))));
 
     /**
-     *
+     * @brief join two tuple-like containers into an array.
      */
     template < typename ContainerA, typename ContainerB >
     GT_FUNCTION auto join_array(ContainerA &&a, ContainerB &&b) GT_AUTO_RETURN(
