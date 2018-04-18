@@ -41,31 +41,28 @@
 
 namespace gridtools {
     namespace impl {
-
-        /*
-         * @brief copy std::vector to (potentially bigger) gridtools::array and fill extra elements with 1
+        /**
+         * @brief copy std::vector to (potentially bigger) gridtools::array
          */
         template < size_t MaxDim >
-        gridtools::array< gridtools::uint_t, MaxDim > vector_to_dims_array(const std::vector< uint_t > &v) {
+        gridtools::array< gridtools::uint_t, MaxDim > vector_to_array(
+            const std::vector< uint_t > &v, gridtools::uint_t init_value) {
             assert(MaxDim >= v.size() && "array too small");
 
             gridtools::array< gridtools::uint_t, MaxDim > a;
-            std::fill(a.begin(), a.end(), 1);
+            std::fill(a.begin(), a.end(), init_value);
             std::copy(v.begin(), v.end(), a.begin());
             return a;
         }
 
-        /*
-         * @brief copy std::vector to (potentially bigger) gridtools::array and fill extra elements with 0
-         */
+        template < size_t MaxDim >
+        gridtools::array< gridtools::uint_t, MaxDim > vector_to_dims_array(const std::vector< uint_t > &v) {
+            return vector_to_array< MaxDim >(v, 1);
+        }
+
         template < size_t MaxDim >
         gridtools::array< gridtools::uint_t, MaxDim > vector_to_strides_array(const std::vector< uint_t > &v) {
-            assert(MaxDim >= v.size() && "array too small");
-
-            gridtools::array< gridtools::uint_t, MaxDim > a;
-            std::fill(a.begin(), a.end(), 0);
-            std::copy(v.begin(), v.end(), a.begin());
-            return a;
+            return vector_to_array< MaxDim >(v, 0);
         }
     }
 }
