@@ -191,7 +191,7 @@ namespace gridtools {
 
             template < class Intermediate, class Args >
             void invoke_run(Intermediate &intermediate, Args &&args) {
-                boost::fusion::invoke(run_f< Intermediate >{intermediate}, args);
+                boost::fusion::invoke(run_f< Intermediate >{intermediate}, std::forward< Args >(args));
             }
 
             struct sync_f {
@@ -280,8 +280,9 @@ namespace gridtools {
         notype run(arg_storage_pair< Args, DataStores > const &... args) {
             // split arguments to expadable and plain ard_storage_pairs
             auto arg_groups = split_args< _impl::expand_detail::is_expandable >(args...);
-            // concatenate expandable portion of arguments with the bound expandable ard_storage_pairs
-            auto expandable_args = std::tuple_cat(m_expandable_bound_arg_storage_pairs, arg_groups.first);
+            auto bound_expandable_arg_refs = tuple_util::transform(identity{}, m_expandable_bound_arg_storage_pairs);
+            // concatenate expandable portion of arguments with the refs to bound expandable ard_storage_pairs
+            auto expandable_args = std::tuple_cat(std::move(bound_expandable_arg_refs), std::move(arg_groups.first));
             const auto &plain_args = arg_groups.second;
             // extract size from the vectors within expandable args.
             // if vectors are not of the same length assert within `get_expandable_size` fails.
@@ -304,7 +305,7 @@ namespace gridtools {
         }
 
         void sync_bound_data_stores() const {
-            boost::fusion::for_each(m_expandable_bound_arg_storage_pairs, _impl::expand_detail::sync_f{});
+            tuple_util::for_each(_impl::expand_detail::sync_f{}, m_expandable_bound_arg_storage_pairs);
             m_intermediate.sync_bound_data_stores();
             m_intermediate_remainder.sync_bound_data_stores();
         }
