@@ -91,8 +91,8 @@ namespace gridtools {
     check_consistency(DataStore const &ds, DataView const &dv) {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_view< DecayedDV >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_view type"));
-        return ds.valid() && (advanced::get_raw_pointer_of(dv) == ds.get_storage_ptr()->get_cpu_ptr()) &&
-               (dv.m_storage_info && ds.get_storage_info_ptr().get());
+        return ds.valid() && advanced::get_raw_pointer_of(dv) == ds.get_storage_ptr()->get_cpu_ptr() &&
+               advanced::storage_info_raw_ptr(dv) && ds.get_storage_info_ptr().get();
     }
 
     /**

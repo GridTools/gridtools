@@ -206,7 +206,7 @@ namespace gridtools {
          * @brief clone all elements of the field to the device
          */
         void clone_to_device() const {
-            for (auto &e : this->m_field)
+            for (auto &e : m_field)
                 e.clone_to_device();
         }
 
@@ -214,7 +214,7 @@ namespace gridtools {
          * @brief clone all elements of the field from the device
          */
         void clone_from_device() const {
-            for (auto &e : this->m_field)
+            for (auto &e : m_field)
                 e.clone_from_device();
         }
 
@@ -222,15 +222,29 @@ namespace gridtools {
          * @brief synchronize all field elements
          */
         void sync() const {
-            for (auto &e : this->m_field)
+            for (auto &e : m_field)
                 e.sync();
+        }
+
+        bool device_needs_update() const {
+            for (auto &e : m_field)
+                if (e.device_needs_update())
+                    return true;
+            return false;
+        }
+
+        bool host_needs_update() const {
+            for (auto &e : m_field)
+                if (e.host_needs_update())
+                    return true;
+            return false;
         }
 
         /**
          * @brief reactivate all device read write views to all field elements
          */
         void reactivate_device_write_views() const {
-            for (auto &e : this->m_field)
+            for (auto &e : m_field)
                 e.reactivate_device_write_views();
         }
 
@@ -238,7 +252,7 @@ namespace gridtools {
          * @brief reactivate all host read write views to all field elements
          */
         void reactivate_host_write_views() const {
-            for (auto &e : this->m_field)
+            for (auto &e : m_field)
                 e.reactivate_host_write_views();
         }
     };

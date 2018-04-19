@@ -64,6 +64,8 @@ namespace gridtools {
     /** \ingroup storage
      * @{
      */
+    template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
+    struct data_view;
 
     namespace advanced {
         /** Function to access the protected data member of the views
@@ -77,8 +79,21 @@ namespace gridtools {
             \param i The index of the pointer in the arrays of raw pointers
         */
         template < typename DataView >
-        inline typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
+        typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i];
+        }
+
+        /**
+         *  Copy the raw pointers from the data_view or data_field_view to the destination.
+         *
+         *  Destination should be an array or should model STL container concept.
+         */
+        template < typename Src, typename Dst >
+        void copy_raw_pointers(Src const &src, Dst &dst) {
+            using std::copy;
+            using std::begin;
+            using std::end;
+            copy(begin(src.m_raw_ptrs), end(src.m_raw_ptrs), begin(dst));
         }
 
         /** Function to obtain the address of the first element of the view,
@@ -95,6 +110,10 @@ namespace gridtools {
         inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i] + dv.m_storage_info->get_initial_offset();
         }
+
+        template < typename DataStore, access_mode AccessMode >
+        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view< DataStore, AccessMode > const &);
+
     } // namespace advanced
 
     /**
@@ -103,7 +122,7 @@ namespace gridtools {
      * @tparam DataStore data store type
      * @tparam AccessMode access mode (default is read-write)
      */
-    template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
+    template < typename DataStore, access_mode AccessMode >
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
@@ -114,13 +133,14 @@ namespace gridtools {
         const static access_mode mode = AccessMode;
         const static uint_t num_of_storages = 1;
 
-      protected:
+      private:
         data_t *m_raw_ptrs[1];
 
-      public:
         state_machine_t *m_state_machine_ptr;
         storage_info_t const *m_storage_info;
         bool m_device_view;
+
+      public:
         /**
          * @brief data_view constructor
          */
@@ -143,7 +163,7 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        GT_FUNCTION storage_info_t const &storage_info() const {
+        storage_info_t const &storage_info() const {
             CHECK_MEMORY_SPACE(m_device_view);
             return *m_storage_info;
         }
@@ -280,6 +300,12 @@ namespace gridtools {
 
         template < typename T >
         friend typename T::data_t *advanced::get_initial_address_of(T const &, int);
+
+        template < typename Src, typename Dst >
+        friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
+
+        template < typename D, access_mode A >
+        friend typename D::storage_info_t const *advanced::storage_info_raw_ptr(data_view< D, A > const &);
     };
 
     template < typename T >
@@ -288,6 +314,12 @@ namespace gridtools {
     template < typename Storage, access_mode AccessMode >
     struct is_data_view< data_view< Storage, AccessMode > > : boost::mpl::true_ {};
 
+    namespace advanced {
+        template < typename DataStore, access_mode AccessMode >
+        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view< DataStore, AccessMode > const &src) {
+            return src.m_storage_info;
+        }
+    }
     /**
      * @}
      */

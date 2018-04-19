@@ -204,6 +204,21 @@ namespace gridtools {
             clone_to_device();
         }
 
+        data_store(data_store const &src, std::shared_ptr< StorageInfo > const &storage_info) : data_store(src) {
+            assert(valid());
+            assert(storage_info);
+            assert(*m_shared_storage_info == *storage_info);
+            m_shared_storage_info = storage_info;
+        }
+
+        data_store(data_store &&src, std::shared_ptr< StorageInfo > const &storage_info) noexcept
+            : data_store(std::move(src)) {
+            assert(valid());
+            assert(*storage_info);
+            assert(*m_shared_storage_info == *storage_info);
+            m_shared_storage_info = storage_info;
+        }
+
         /**
          * @brief Re-initialize the data of the data_store with the
          * given initializer.
@@ -323,7 +338,7 @@ namespace gridtools {
          * @brief retrieve a pointer to the underlying storage_info instance.
          * @return shared pointer to the underlying storage_info instance
          */
-        std::shared_ptr< storage_info_t const > get_storage_info_ptr() const { return m_shared_storage_info; }
+        std::shared_ptr< const storage_info_t > get_storage_info_ptr() const { return m_shared_storage_info; }
 
         /**
          * @brief check if underlying storage info and storage is valid.
