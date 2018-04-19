@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include <tuple>
-
 #include "../level.hpp"
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/mpl/has_key.hpp>
@@ -86,19 +84,19 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((meta::is_instantiation_of< std::tuple, MssComponents >::value), GT_INTERNAL_ERROR);
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                host_for_each< GT_META_CALL(meta::make_indices_for, MssComponents) >(mss_functor< MssComponents,
-                    Grid,
-                    LocalDomainListArray,
-                    BackendIds,
-                    ReductionData,
-                    execution_info_cuda >(local_domain_lists, grid, reduction_data, {}));
+                host_for_each< GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value) >(
+                    mss_functor< MssComponents,
+                        Grid,
+                        LocalDomainListArray,
+                        BackendIds,
+                        ReductionData,
+                        execution_info_cuda >(local_domain_lists, grid, reduction_data, {}));
             }
         };
     };
