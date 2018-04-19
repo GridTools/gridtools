@@ -62,21 +62,21 @@ namespace gridtools {
         /**
         * Start the stop watch
         */
-        GT_FUNCTION_HOST void start() { impl.start_impl(); }
+        GT_FUNCTION_HOST void start() { impl().start_impl(); }
 
         /**
         * Pause the stop watch
         */
         GT_FUNCTION_HOST void pause() {
-            m_total_time += impl.pause_impl();
-            ++count;
+            m_total_time += impl().pause_impl();
+            ++m_count;
         }
 
         /**
         * @return total elapsed time [s]
         */
         GT_FUNCTION_HOST double total_time() const {
-            std::count << "timer[0x" << this << "]: " << m_count;
+            std::cout << "timer[0x" << this << "]: " << m_count;
             return m_total_time;
         }
 
