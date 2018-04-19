@@ -186,14 +186,6 @@ namespace gridtools {
             return StorageInfo::get_initial_offset();
         }
 
-        struct setup_grid_f {
-            template < typename Grid >
-            void operator()(Grid const &grid) const {
-                GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
-                grid.clone_to_device();
-            }
-        };
-
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments

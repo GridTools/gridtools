@@ -44,6 +44,7 @@
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 #endif
+#include "storage_traits_mic.hpp"
 #include "storage_traits_host.hpp"
 
 /**

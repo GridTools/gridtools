@@ -233,8 +233,8 @@ namespace gridtools {
             bool operator()(MetaDataElem const *mde) const {
                 bool result = true;
 
-                // Here we need to use the at_ interface instead of
-                // the at, since at_ does not assert out-of-bound
+                // Here we need to use the at_unsafe interface instead of
+                // the at, since at_unsafe does not assert out-of-bound
                 // queries, but actually returns -1.
 
                 // TODO: This check may be not accurate since there is
@@ -253,15 +253,15 @@ namespace gridtools {
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                if (MetaDataElem::layout_t::template at_< GridTraits::dim_k_t::value >::value >= 0) {
+                if (MetaDataElem::layout_t::template at_unsafe< GridTraits::dim_k_t::value >() >= 0) {
                     result = result && (grid.k_max() + 1 <= mde->template dim< GridTraits::dim_k_t::value >());
                 }
 
-                if (MetaDataElem::layout_t::template at_< GridTraits::dim_j_t::value >::value >= 0) {
+                if (MetaDataElem::layout_t::template at_unsafe< GridTraits::dim_j_t::value >() >= 0) {
                     result = result && (grid.j_high_bound() + 1 <= mde->template dim< GridTraits::dim_j_t::value >());
                 }
 
-                if (MetaDataElem::layout_t::template at_< GridTraits::dim_i_t::value >::value >= 0) {
+                if (MetaDataElem::layout_t::template at_unsafe< GridTraits::dim_i_t::value >() >= 0) {
                     result = result && (grid.i_high_bound() + 1 <= mde->template dim< GridTraits::dim_i_t::value >());
                 }
 
@@ -429,8 +429,6 @@ namespace gridtools {
             // fill storage_wrapper_list
             boost::fusion::for_each(
                 m_storage_wrapper_list, _impl::initialize_storage_wrappers< view_list_fusion_t >(m_view_list));
-            // setup the computation for given backend (e.g., move grid to device)
-            typename Backend::setup_grid_f{}(m_grid);
             // instantiate mss_local_domains and wrapped local_domains with the right view_wrappers
             boost::fusion::for_each(m_mss_local_domain_list,
                 _impl::instantiate_mss_local_domain< Backend, storage_wrapper_fusion_list_t, DomainType, IsStateful >(

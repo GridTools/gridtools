@@ -36,98 +36,144 @@
 #pragma once
 
 #include <boost/mpl/eval_if.hpp>
+
+#include "../common/generic_metafunctions/accumulate.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 #include "../common/gt_assert.hpp"
 #include "position_offset_type.hpp"
 
 namespace gridtools {
 
+    /**
+     * This function computes the stride along the the given axis/coordinate.
+     *
+     * @tparam StorageInfo The storage info to be used.
+     * @tparam Coordinate The axis along which the stride should be computed.
+     * @tparam StridesCached Type of the strides array.
+     *
+     * @param strides Array of stride values.
+     *
+     * @return The stride along the given axis: 0 if the axis is masked, 1 if the axis is the contiguous one, run
+     * time value read from `strides` otherwise.
+     */
+    template < typename StorageInfo, int_t Coordinate, typename StridesCached >
+    GT_FUNCTION constexpr int_t stride(StridesCached const &RESTRICT strides) {
+        using layout_t = typename StorageInfo::layout_t;
+
+        /* get the maximum integer value in the layout map */
+        using layout_max_t = std::integral_constant< int, layout_t::max() >;
+
+        /* get the layout map value at the given coordinate */
+        using layout_val_t = std::integral_constant< int, layout_t::template at_unsafe< Coordinate >() >;
+
+        /* check if we are at a masked-out value (-> stride == 0) */
+        using is_masked_t = meta::bool_constant< layout_val_t::value == -1 >;
+        /* check if we are at the maximum value (-> stride == 1) */
+        using is_max_t = meta::bool_constant< layout_max_t::value == layout_val_t::value >;
+
+        /* return constants for masked and max coordinates, otherwise lookup stride */
+        return is_masked_t::value ? 0 : is_max_t::value ? 1 : strides[layout_val_t::value];
+    }
+
+    /**
+     * This function gets the accessor offset along the the given axis/coordinate.
+     *
+     * @tparam Coordinate The axis for which the offset should be returned.
+     * @tparam Accessor Type of the accessor.
+     *
+     * @param accessor Accessor for which the offsets should be returned.
+     *
+     * @return The offset stored in the given accessor for the given axis.
+     */
+    template < int_t Coordinate, typename Accessor >
+    GT_FUNCTION constexpr typename std::enable_if< !is_position_offset_type< Accessor >::value, int_t >::type
+    accessor_offset(Accessor const &accessor) {
+        return accessor.template get< Accessor::n_dimensions - 1 - Coordinate >();
+    }
+
+    template < int_t Coordinate, typename Accessor >
+    GT_FUNCTION constexpr typename std::enable_if< is_position_offset_type< Accessor >::value, int_t >::type
+    accessor_offset(Accessor const &accessor) {
+        return accessor.template get< Coordinate >();
+    }
+
     namespace _impl {
-        // TODO HV: I don't want to understand what is happening in this computation...
-        // Would be good if someone who understands this code could give it a proper name (and potentially refactor!)
 
-        // Case when AccessorOrPositionOffset is an accessor
-        template < typename AccessorOrPositionOffset, unsigned N, typename Enable = void >
-        struct compute_offset_t : boost::mpl::int_< ((AccessorOrPositionOffset::n_dimensions - 1) - N) > {};
-
-        // Case when AccessorOrPositionOffset is a position_offset
-        template < typename AccessorOrPositionOffset, unsigned N >
-        struct compute_offset_t< AccessorOrPositionOffset,
-            N,
-            typename std::enable_if< is_position_offset_type< AccessorOrPositionOffset >::value >::type >
-            : boost::mpl::int_< N > {};
-
-        template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
-        GT_FUNCTION constexpr
-            typename boost::enable_if_c< (N == (StorageInfo::layout_t::masked_length - 1)), int_t >::type
-            apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
-            typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
-            GRIDTOOLS_STATIC_ASSERT((val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length),
-                GT_INTERNAL_ERROR_MSG("invalid stride array access"));
-            typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
-            typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
-            typedef typename compute_offset_t< Accessor, N >::type offset_t;
-            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
-                   acc.template get< offset_t::value >();
+        /**
+         * This function computes the accessor-induces pointer offset (sum) for multiple axes.
+         *
+         * @tparam StorageInfo The storage info to be used.
+         * @tparam StridesCached Type of the strides array.
+         * @tparam Accessor Type of the accessor.
+         * @tparam Coordinates The axes along which the offsets should be accumulated.
+         *
+         * @param strides Array of stride values.
+         * @param accessor Accessor for which the offsets should be computed.
+         *
+         * @return The data offset computed for the given storage info and accessor for the given axes.
+         */
+        template < typename StorageInfo, typename StridesCached, typename Accessor, std::size_t... Coordinates >
+        GT_FUNCTION constexpr int_t compute_offset(StridesCached const &RESTRICT strides,
+            Accessor const &RESTRICT accessor,
+            gt_index_sequence< Coordinates... >) {
+            /* sum stride_x * offset_x + stride_y * offset_y + ... */
+            return accumulate(plus_functor(),
+                (stride< StorageInfo, Coordinates >(strides) * accessor_offset< Coordinates >(accessor))...);
         }
 
-        template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
-        GT_FUNCTION constexpr
-            typename boost::enable_if_c< (N < (StorageInfo::layout_t::masked_length - 1)), int_t >::type
-            apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
-            typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
-            GRIDTOOLS_STATIC_ASSERT((val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length),
-                GT_INTERNAL_ERROR_MSG("invalid stride array access"));
-            typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == Max::value) > is_max_t;
-            typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == -1) > is_masked_t;
-            typedef typename compute_offset_t< Accessor, N >::type offset_t;
-            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
-                       acc.template get< offset_t::value >() +
-                   apply_accessor< Max, StridesCached, Accessor, StorageInfo, N + 1 >(strides, acc);
-        }
-
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION typename boost::enable_if_c< (From == To), void >::type check_bounds_cache_offset_(Accessor acc) {
-            return;
-        }
-
-        /** helper function checking if cache storage is being accesses out of bounds */
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION typename boost::enable_if_c< (From < To), void >::type check_bounds_cache_offset_(Accessor acc) {
-            // check if accessin cache metastorage out of bounds
-            assert((acc.template get< Accessor::n_dimensions - 1 - From >() <= StorageInfo::template dim< From >()));
-        }
-
-        template < typename StorageInfo, typename Accessor >
-        GT_FUNCTION void check_bounds_cache_offset(Accessor acc) {
-            check_bounds_cache_offset_< 0, StorageInfo::layout_t::masked_length, StorageInfo >(acc);
-        }
-
-        /** helper function (base case) computing sum(offset*stride ...) for cached fields */
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_cache_offset_(Accessor acc) {
-            return 0;
-        }
-
-        /** helper function (step case) computing sum(offset*stride ...) for cached fields */
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_cache_offset_(Accessor acc) {
-            return StorageInfo::template stride< From >() * acc.template get< Accessor::n_dimensions - 1 - From >() +
-                   get_cache_offset_< From + 1, To, StorageInfo, Accessor >(acc);
-        }
-        /** helper function (step case) computing sum(offset*stride ...) for cached fields */
-        template < typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr int_t get_cache_offset(Accessor acc) {
-            return get_cache_offset_< 0, StorageInfo::layout_t::masked_length, StorageInfo >(acc);
+        /**
+         * This function computes the total accessor-induces pointer offset for multiple axes for a cache storage.
+         *
+         * @tparam StorageInfo The storage info to be used.
+         * @tparam Accessor Type of the accessor.
+         * @tparam Coordinates The axes along which the offsets should be accumulated.
+         *
+         * @param accessor Accessor for which the offsets should be computed.
+         *
+         * @return The data offset computed for the given storage info and accessor for the given axes.
+         */
+        template < typename StorageInfo, typename Accessor, std::size_t... Coordinates >
+        GT_FUNCTION constexpr int_t compute_offset_cache(
+            Accessor const &RESTRICT accessor, gt_index_sequence< Coordinates... >) {
+            return accumulate(plus_functor(),
+                (StorageInfo::template stride< Coordinates >() * accessor_offset< Coordinates >(accessor))...);
         }
     }
 
-    // pointer offset computation for uncached fields
+    /**
+     * This function computes the total accessor-induces pointer offset (sum) for all axes in the given storage info.
+     *
+     * @tparam StorageInfo The storage info to be used.
+     * @tparam StridesCached Type of the strides array.
+     * @tparam Accessor Type of the accessor.
+     *
+     * @param strides Array of stride values.
+     * @param accessor Accessor for which the offsets should be computed.
+     *
+     * @return The total data offset computed for the given storage info and accessor.
+     */
     template < typename StorageInfo, typename Accessor, typename StridesCached >
     GT_FUNCTION constexpr int_t compute_offset(
-        StridesCached const &RESTRICT strides_cached, Accessor const &RESTRICT acc) {
-        // get the max coordinate of given StorageInfo
-        typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-            typename StorageInfo::layout_t::static_layout_vector >::type >::type max_t;
-        return _impl::apply_accessor< max_t, StridesCached, Accessor, StorageInfo, 0 >(strides_cached, acc);
+        StridesCached const &RESTRICT strides, Accessor const &RESTRICT accessor) {
+        using sequence_t = make_gt_index_sequence< StorageInfo::layout_t::masked_length >;
+        return _impl::compute_offset< StorageInfo >(strides, accessor, sequence_t());
+    }
+
+    /**
+     * This function computes the total accessor-induces pointer offset (sum) for all axes in the given cache storage
+     * info.
+     *
+     * @tparam StorageInfo The storage info to be used.
+     * @tparam Accessor Type of the accessor.
+     *
+     * @param accessor Accessor for which the offsets should be computed.
+     *
+     * @return The total data offset computed for the given storage info and accessor.
+     */
+    template < typename StorageInfo, typename Accessor >
+    GT_FUNCTION constexpr int_t compute_offset_cache(Accessor const &accessor) {
+        using sequence_t = make_gt_index_sequence< StorageInfo::layout_t::masked_length >;
+        return _impl::compute_offset_cache< StorageInfo >(accessor, sequence_t());
     }
 }

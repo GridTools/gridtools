@@ -124,7 +124,7 @@ namespace copy_stencil {
                 for (uint_t i = 0; i < d1; ++i) {
                     for (uint_t j = 0; j < d2; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
-                            if ((in_v(i, j, k) != i + j + k) && (out_v(i, j, k) != i + j + k)) {
+                            if (in_v(i, j, k) != out_v(i, j, k)) { // TODO use verifier
                                 std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                           << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
                                 success = false;
@@ -141,7 +141,7 @@ namespace copy_stencil {
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
+                (execute< parallel >(),
                     gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
             copy->ready();
@@ -164,7 +164,7 @@ namespace copy_stencil {
             auto copy = gridtools::make_computation< backend_t >(domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+                (execute< parallel >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
             copy->ready();
 

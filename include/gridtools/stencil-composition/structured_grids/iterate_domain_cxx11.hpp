@@ -86,15 +86,6 @@ namespace gridtools {
     template < typename >
     struct iterate_domain;
 
-    namespace advanced {
-        template < typename IDomain >
-        inline typename iterate_domain< IDomain >::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(
-            iterate_domain< IDomain > &id) {
-            return id.data_pointer();
-        }
-
-    } // namespace advanced
-
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for
@@ -207,9 +198,6 @@ namespace gridtools {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
-        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< IterateDomainImpl >(
-            iterate_domain &);
-
       public:
         /**@brief constructor of the iterate_domain struct
 
@@ -320,6 +308,29 @@ namespace gridtools {
         template < typename Accessor, typename StoragePointer, bool DirectGMemAccess = false >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
+
+        /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
+         * if direct access to main memory (i.e. ignoring caches) is requested
+           \param real_storage_pointer base address
+           \tparam pointer_offset offset wrt to base address
+        */
+        template < typename ReturnType, typename Accesor, bool DirectGMemAccess, typename DataPointer >
+        GT_FUNCTION typename boost::enable_if_c< DirectGMemAccess, ReturnType >::type get_value_dispatch(
+            DataPointer *RESTRICT real_storage_pointer, const int pointer_offset) const {
+            return get_gmem_value< ReturnType >(real_storage_pointer, pointer_offset);
+        }
+
+        /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
+         * if direct access to main memory (i.e. ignoring caches) is not requested
+           \param real_storage_pointer base address
+           \tparam pointer_offset offset wrt to base address
+        */
+        template < typename ReturnType, typename Accessor, bool DirectGMemAccess, typename DataPointer >
+        GT_FUNCTION typename boost::enable_if_c< !DirectGMemAccess, ReturnType >::type get_value_dispatch(
+            DataPointer *RESTRICT real_storage_pointer, const int pointer_offset) const {
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl< ReturnType, Accessor, DataPointer * >(real_storage_pointer, pointer_offset);
+        }
 
         /** @brief method returning the data pointer of an accessor
             specialization for the accessor placeholders for standard storages
@@ -515,20 +526,6 @@ namespace gridtools {
 
             return get_value(accessor, get_data_pointer(accessor));
         }
-
-        /** @brief method called in the Do methods of the functors.
-
-            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
-           be polluted with casting
-            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
-           expression)*/
-        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg)
-            -> decltype(expressions::evaluation::value((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
-            return expressions::evaluation::value((*this), arg);
-        }
     };
 
     //    ################## IMPLEMENTATION ##############################
@@ -584,15 +581,7 @@ namespace gridtools {
             grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
-        if (DirectGMemAccess) {
-            return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
-        } else {
-            return static_cast< const IterateDomainImpl * >(this)
-                ->template get_value_impl<
-                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                    Accessor,
-                    data_t * >(real_storage_pointer, pointer_offset);
-        }
+        return get_value_dispatch< return_t, Accessor, DirectGMemAccess >(real_storage_pointer, pointer_offset);
     }
 
 } // namespace gridtools
