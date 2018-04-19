@@ -179,13 +179,3 @@ TEST(join_array, both_empty) {
 
     ASSERT_TYPE_EQ< gridtools::array< size_t, 0 >, decltype(result) >();
 }
-
-// TODO enable once our tuple is std-compliant
-// TEST(join_array, empty_tuples) {
-//    auto a = gridtools::make_tuple();
-//    auto b = gridtools::make_tuple();
-//
-//    auto result = join_array(a, b);
-//
-//    ASSERT_TYPE_EQ< gridtools::array< boost::mpl::void_, 0 >, decltype(result) >();
-//}

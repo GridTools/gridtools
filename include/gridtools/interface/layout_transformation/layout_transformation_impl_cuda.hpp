@@ -41,7 +41,6 @@
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/hypercube_iterator.hpp"
 #include "../../storage/storage-facility.hpp"
-#include "call_cuda_kernel.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
 
@@ -105,15 +104,13 @@ namespace gridtools {
                 (a_dims[2] + block_size_1d - 1) / block_size_1d);
             dim3 block_size(block_size_1d, block_size_1d, block_size_1d);
 
-            CALL_CUDA_KERNEL(transform_cuda_loop_kernel,
-                grid_size,
-                block_size,
-                dst,
+            transform_cuda_loop_kernel<<< grid_size, block_size >>>(dst,
                 src,
                 a_dims,
                 impl::vector_to_strides_array< GT_TRANSFORM_MAX_DIM >(dst_strides),
                 impl::vector_to_strides_array< GT_TRANSFORM_MAX_DIM >(src_strides),
                 outer_dims);
+
 #ifndef NDEBUG
             {
                 cudaDeviceSynchronize();
