@@ -90,7 +90,7 @@ namespace gridtools {
             // compute the timing
             float result;
             cudaEventElapsedTime(&result, m_start.get(), m_stop.get());
-            return static_cast< double >(result) * 0.001f; // convert ms to s
+            return result * 0.001; // convert ms to s
         }
     };
 }
