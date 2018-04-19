@@ -402,7 +402,7 @@ namespace gridtools {
         template < typename Domain, typename... Msses >
         intermediate(Domain &&domain, Grid const &grid, Msses &&... msses)
             : intermediate::computation(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
-              m_branch_selector(std::forward< Msses >(msses)...) {
+              m_branch_selector(std::make_tuple(std::forward< Msses >(msses)...)) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }
