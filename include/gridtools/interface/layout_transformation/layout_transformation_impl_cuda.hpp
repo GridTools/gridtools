@@ -77,8 +77,11 @@ namespace gridtools {
             // this can be optimized but it is not as bad as it looks as one of the memories is coalescing (assuming one
             // of the layouts is a suitable gpu layout...)
 
-            for (auto &&outer : make_hypercube_view(outer_dims)) {
-                auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer));
+            // TODO this range-based loop does not work on daint in release mode
+            // for (auto &&outer : make_hypercube_view(outer_dims)) {
+            auto &&hyper = make_hypercube_view(outer_dims);
+            for (auto &&outer = hyper.begin(); outer != hyper.end(); ++outer) {
+                auto index = join_array(make_array(i, j, k), convert_to_array< int >(*outer));
                 dst[si_dst.index(index)] = src[si_src.index(index)];
             }
         }
