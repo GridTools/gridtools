@@ -884,4 +884,3 @@ namespace gridtools {
 }
 
 #endif
-B
