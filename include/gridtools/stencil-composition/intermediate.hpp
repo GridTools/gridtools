@@ -35,9 +35,11 @@
 */
 #pragma once
 
+#include <tuple>
 #include <utility>
 
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/copy.hpp>
@@ -84,6 +86,7 @@
 #include "computation_grammar.hpp"
 #include "all_args_in_aggregator.hpp"
 #include "iterate_on_esfs.hpp"
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 
 /**
  * @file
@@ -371,7 +374,7 @@ namespace gridtools {
             IsStateful >::type mss_local_domains_t;
 
         // creates a fusion vector of local domains
-        typedef typename boost::fusion::result_of::as_vector< mss_local_domains_t >::type mss_local_domain_list_t;
+        using mss_local_domain_list_t = copy_into_variadic< mss_local_domains_t, std::tuple<> >;
 
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
