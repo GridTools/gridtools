@@ -40,7 +40,9 @@
 
 #include "common/generic_metafunctions/copy_into_set.hpp"
 #include "common/permute_to.hpp"
+#include "common/vector_traits.hpp"
 
+#include "aggregator_type.hpp"
 #include "mss_local_domain.hpp"
 #include "tile.hpp"
 

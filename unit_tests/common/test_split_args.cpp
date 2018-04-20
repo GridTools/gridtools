@@ -33,64 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include <memory>
-#include <string>
-#include <cuda_runtime.h>
+#include <common/split_args.hpp>
 
-#include "../timer.hpp"
+#include <tuple>
+#include <type_traits>
+#include <gtest/gtest.h>
 
 namespace gridtools {
 
-    /**
-    * @class timer_cuda
-    * CUDA implementation of the Timer interface
-    */
-    class timer_cuda : public timer< timer_cuda > // CRTP
-    {
-        struct event_deleter {
-            void operator()(cudaEvent_t event) const { cudaEventDestroy(event); }
-        };
-        using event_holder = std::unique_ptr< CUevent_st, event_deleter >;
+    template < class Testee, class FirstSink, class SecondSink >
+    void helper(Testee &&testee, FirstSink first_sink, SecondSink second_sink) {
+        first_sink(std::forward< Testee >(testee).first);
+        second_sink(std::forward< Testee >(testee).second);
+    }
 
-        static event_holder create_event() {
-            cudaEvent_t event;
-            cudaEventCreate(&event);
-            return event_holder{event};
-        }
+    TEST(raw_split_args, functional) {
+        int val = 1;
+        const int c_val = 2;
+        helper(raw_split_args< std::is_lvalue_reference >(42, c_val, 0., val, c_val),
+            [](std::tuple< int const &, int &, int const & > const &x) { EXPECT_EQ(std::make_tuple(2, 1, 2), x); },
+            [](std::tuple< int &&, double && > const &x) { EXPECT_EQ(std::make_tuple(42, 0.), x); });
+    }
 
-        event_holder m_start = create_event();
-        event_holder m_stop = create_event();
-
-      public:
-        timer_cuda(std::string name) : timer< timer_cuda >(name) {}
-
-        /**
-        * Reset counters
-        */
-        void set_impl(double) {}
-
-        /**
-        * Start the stop watch
-        */
-        void start_impl() {
-            // insert a start event
-            cudaEventRecord(m_start.get(), 0);
-        }
-
-        /**
-        * Pause the stop watch
-        */
-        double pause_impl() {
-            // insert stop event and wait for it
-            cudaEventRecord(m_stop.get(), 0);
-            cudaEventSynchronize(m_stop.get());
-
-            // compute the timing
-            float result;
-            cudaEventElapsedTime(&result, m_start.get(), m_stop.get());
-            return result * 0.001; // convert ms to s
-        }
-    };
+    TEST(split_args, functional) {
+        int ival = 1;
+        const double dval = 2;
+        helper(split_args< std::is_integral >(42, dval, 0., ival),
+            [](std::tuple< int &&, int & > const &x) { EXPECT_EQ(std::make_tuple(42, 1), x); },
+            [](std::tuple< const double &, double && > const &x) { EXPECT_EQ(std::make_tuple(2., 0.), x); });
+    }
 }
