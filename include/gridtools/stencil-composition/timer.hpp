@@ -37,6 +37,7 @@
 
 #include <sstream>
 #include <string>
+#include <utility>
 
 namespace gridtools {
 
@@ -47,39 +48,37 @@ namespace gridtools {
     template < typename TimerImpl >
     class timer {
       protected:
-        GT_FUNCTION_HOST timer(std::string name) {
-            m_name = name;
-            reset();
-        }
+        timer(std::string name) : m_name(std::move(name)) {}
 
       public:
         /**
         * Reset counters
         */
-        GT_FUNCTION_HOST void reset() { set(0.0); }
-
-        /**
-        * Reset counters
-        */
-        GT_FUNCTION_HOST void set(double time_ = 0.0) {
-            m_total_time = time_;
-            static_cast< TimerImpl * >(this)->set_impl(time_);
+        GT_FUNCTION_HOST void reset() {
+            m_total_time = 0;
+            m_count = 0;
         }
 
         /**
         * Start the stop watch
         */
-        GT_FUNCTION_HOST void start() { static_cast< TimerImpl * >(this)->start_impl(); }
+        GT_FUNCTION_HOST void start() { impl().start_impl(); }
 
         /**
         * Pause the stop watch
         */
-        GT_FUNCTION_HOST void pause() { m_total_time += static_cast< TimerImpl * >(this)->pause_impl(); }
+        GT_FUNCTION_HOST void pause() {
+            m_total_time += impl().pause_impl();
+            ++m_count;
+        }
 
         /**
         * @return total elapsed time [s]
         */
-        GT_FUNCTION_HOST double total_time() const { return m_total_time; }
+        GT_FUNCTION_HOST double total_time() const {
+            std::cout << "timer[0x" << this << "]: " << m_count;
+            return m_total_time;
+        }
 
         /**
         * @return total elapsed time [s] as string
@@ -94,7 +93,10 @@ namespace gridtools {
         }
 
       private:
+        TimerImpl &impl() { return *static_cast< TimerImpl * >(this); }
+
         std::string m_name;
-        double m_total_time;
+        double m_total_time = 0;
+        size_t m_count = 0;
     };
 }
