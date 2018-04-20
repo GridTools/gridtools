@@ -254,6 +254,9 @@ namespace gridtools {
         /// reminder.
         converted_intermediate< 1 > m_intermediate_remainder;
 
+        typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
+        performance_meter_t m_meter;
+
         template < class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs >
         intermediate_expand(Grid const &grid,
             std::pair< ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs > &&arg_refs,
@@ -265,7 +268,8 @@ namespace gridtools {
               m_intermediate(
                   grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)),
               m_intermediate_remainder(
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)) {}
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)),
+              m_meter("NoName") {}
 
       public:
         template < class BoundArgStoragePairsRefs >
@@ -288,6 +292,7 @@ namespace gridtools {
             // if vectors are not of the same length assert within `get_expandable_size` fails.
             size_t size = _impl::expand_detail::get_expandable_size(expandable_args);
             size_t offset = 0;
+            m_meter.start();
             for (; size - offset >= ExpandFactor; offset += ExpandFactor) {
                 // form the chunks from expandable_args with the given offset
                 auto converted_args =
@@ -301,6 +306,7 @@ namespace gridtools {
                 auto converted_args = _impl::expand_detail::convert_arg_storage_pairs< 1 >(offset, expandable_args);
                 _impl::expand_detail::invoke_run(m_intermediate_remainder, std::tuple_cat(plain_args, converted_args));
             }
+            m_meter.pause();
             return {};
         }
 
@@ -310,16 +316,10 @@ namespace gridtools {
             m_intermediate_remainder.sync_bound_data_stores();
         }
 
-        std::string print_meter() const {
-            assert(false);
-            return {};
-        }
+        std::string print_meter() const { return m_meter.to_string(); }
 
-        double get_meter() const { return m_intermediate.get_meter() + m_intermediate_remainder.get_meter(); }
+        double get_meter() const { return m_meter.total_time(); }
 
-        void reset_meter() {
-            m_intermediate.reset_meter();
-            m_intermediate_remainder.reset_meter();
-        }
+        void reset_meter() { m_meter.reset(); }
     };
 }
