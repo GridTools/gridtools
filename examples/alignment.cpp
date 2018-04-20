@@ -59,5 +59,6 @@ TEST(AlignedCopyStencil, Test) {
     uint_t y = Options::getInstance().m_size[1];
     uint_t z = Options::getInstance().m_size[2];
 
-    ASSERT_TRUE(aligned_copy_stencil::test(x, y, z));
+    //    ASSERT_TRUE(aligned_copy_stencil::test(x, y, z));
+    ASSERT_TRUE(aligned_copy_stencil::test_tmp(x, y, z));
 }
