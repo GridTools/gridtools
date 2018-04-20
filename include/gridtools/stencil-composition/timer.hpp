@@ -54,10 +54,7 @@ namespace gridtools {
         /**
         * Reset counters
         */
-        GT_FUNCTION_HOST void reset() {
-            m_total_time = 0;
-            m_count = 0;
-        }
+        GT_FUNCTION_HOST void reset() { m_total_time = 0; }
 
         /**
         * Start the stop watch
@@ -67,18 +64,12 @@ namespace gridtools {
         /**
         * Pause the stop watch
         */
-        GT_FUNCTION_HOST void pause() {
-            m_total_time += impl().pause_impl();
-            ++m_count;
-        }
+        GT_FUNCTION_HOST void pause() { m_total_time += impl().pause_impl(); }
 
         /**
         * @return total elapsed time [s]
         */
-        GT_FUNCTION_HOST double total_time() const {
-            std::cout << "timer[0x" << this << "]: " << m_count;
-            return m_total_time;
-        }
+        GT_FUNCTION_HOST double total_time() const { return m_total_time; }
 
         /**
         * @return total elapsed time [s] as string
@@ -97,6 +88,5 @@ namespace gridtools {
 
         std::string m_name;
         double m_total_time = 0;
-        size_t m_count = 0;
     };
 }

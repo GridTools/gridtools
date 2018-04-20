@@ -47,10 +47,10 @@ namespace adv_prepare_tracers {
     using namespace expressions;
 
     struct prepare_tracers {
-        using data = vector_accessor< 0, inout >;
-        using data_nnow = vector_accessor< 1, in >;
-        using rho = accessor< 2, in >;
-        typedef boost::mpl::vector< data, data_nnow, rho > arg_list;
+        using rho = accessor< 0, in >;
+        using data = vector_accessor< 1, inout >;
+        using data_nnow = vector_accessor< 2, in >;
+        typedef boost::mpl::vector< rho, data, data_nnow > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -102,7 +102,7 @@ namespace adv_prepare_tracers {
                 p_list_in{} = list_in_,
                 p_rho{} = rho,
                 make_multistage(enumtype::execute< enumtype::forward >(),
-                                              make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
+                                              make_stage< prepare_tracers >(p_rho(), p_list_out(), p_list_in())));
 
         comp_.run();
 
