@@ -74,9 +74,9 @@ namespace horizontal_diffusion {
 
       public:
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info_ijk(idim/* + 2 * halo_size*/, jdim /*+ 2 * halo_size*/, kdim /*+ 2 * halo_size*/),
-              m_storage_info_ij(idim /*+ 2 * halo_size*/, jdim /*+ 2 * halo_size*/, kdim /*+ 2 * halo_size*/),
-              m_storage_info_j(1, jdim /*+ 2 * halo_size*/, 1), m_storage_info_scalar(1, 1, 1),
+            : m_storage_info_ijk(idim + 2 * halo_size, jdim + 2 * halo_size, kdim + 2 * halo_size),
+              m_storage_info_ij(idim + 2 * halo_size, jdim + 2 * halo_size, kdim + 2 * halo_size),
+              m_storage_info_j(1, jdim + 2 * halo_size, 1), m_storage_info_scalar(1, 1, 1),
               in_(m_storage_info_ijk, "in"), crlato_(m_storage_info_j, "crlato"), crlatu_(m_storage_info_j, "crlatu"),
               crlat0_(m_storage_info_j, "crlat0"), crlat1_(m_storage_info_j, "crlat1"), out_(m_storage_info_ijk, "out"),
               out_ref_(m_storage_info_ijk, "out_ref"), coeff_(m_storage_info_ijk, "coeff"), halo_size_(halo_size),
@@ -133,11 +133,11 @@ namespace horizontal_diffusion {
         template < typename TStorage_type, typename TValue_type >
         void init_field_to_value(TStorage_type field, TValue_type value) {
             const uint_t dim0 =
-                (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_ /*+ 2 * halo_size_*/;
+                (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_ + 2 * halo_size_;
             const uint_t dim1 =
-                (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_ /*+ 2 * halo_size_*/;
+                (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_ + 2 * halo_size_;
             const uint_t dim2 =
-                (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_ /*+ 2 * halo_size_*/;
+                (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_ + 2 * halo_size_;
 
             auto v = make_host_view(field);
             for (uint_t k = 0; k < dim2; ++k) {
