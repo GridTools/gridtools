@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <iostream>
+
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/zip.hpp>
