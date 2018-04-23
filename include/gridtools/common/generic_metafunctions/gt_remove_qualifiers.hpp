@@ -35,6 +35,11 @@
 */
 #pragma once
 
+#include <boost/type_traits/remove_cv.hpp>
+#include <boost/type_traits/remove_pointer.hpp>
+#include <boost/type_traits/remove_reference.hpp>
+#include "../defs.hpp"
+
 namespace gridtools {
     /**
      * type trait that removes __restrict__ qualifier from a type
@@ -47,5 +52,27 @@ namespace gridtools {
     template < typename T >
     struct remove_restrict_reference< T & RESTRICT > {
         typedef T type;
+    };
+
+    /**
+     * @brief remove __restrict__ qualifier
+     */
+    template < typename T >
+    struct remove_restrict {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct remove_restrict< T RESTRICT > {
+        typedef T type;
+    };
+
+    /**
+     * @brief remove everything from type
+     */
+    template < typename T >
+    struct remove_qualifiers {
+        using type = typename boost::remove_cv< typename boost::remove_reference<
+            typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type;
     };
 }
