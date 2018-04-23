@@ -277,7 +277,7 @@ namespace gridtools {
             gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, ndims >::type >;
 
         GT_FUNCTION
-        constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
+        constexpr storage_info_interface(array< uint_t, ndims > dims, array< uint_t, ndims > strides)
             : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
                   dims)),
               m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
