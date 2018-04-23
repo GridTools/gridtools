@@ -152,16 +152,16 @@ TEST_F(kcachef, bpfilll_forward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    auto kcache_stencil =
-        make_computation< backend_t >(m_grid,
-            p_in() = m_in,
-            p_out() = m_out,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                          define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_in())),
-                                          make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
-                                              ,
-                                              p_out())));
+    auto kcache_stencil = make_computation< backend_t >(
+        m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 0 > >(p_in())),
+            make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
+                ,
+                p_out())));
 
     kcache_stencil.run();
 
@@ -194,16 +194,16 @@ TEST_F(kcachef, bpfilll_backward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    auto kcache_stencil =
-        make_computation< backend_t >(m_gridb,
-            p_in() = m_in,
-            p_out() = m_out,
-            make_multistage // mss_descriptor
-            (execute< backward >(),
-                                          define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_in())),
-                                          make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
-                                              ,
-                                              p_out())));
+    auto kcache_stencil = make_computation< backend_t >(
+        m_gridb,
+        p_in() = m_in,
+        p_out() = m_out,
+        make_multistage // mss_descriptor
+        (execute< backward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kfull_b, window< 0, 0 > >(p_in())),
+            make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
+                ,
+                p_out())));
 
     kcache_stencil.run();
     m_out.sync();
@@ -241,14 +241,14 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
     typedef arg< 0, storage_t > p_out;
     typedef arg< 1, storage_t > p_buff;
 
-    auto kcache_stencil =
-        make_computation< backend_t >(m_grid,
-            p_buff() = buff,
-            p_out() = m_out,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                          define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
-                                          make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
+    auto kcache_stencil = make_computation< backend_t >(
+        m_grid,
+        p_buff() = buff,
+        p_out() = m_out,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 1 > >(p_buff())),
+            make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil.run();
 
@@ -287,14 +287,14 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
     typedef arg< 0, storage_t > p_out;
     typedef arg< 1, storage_t > p_buff;
 
-    auto kcache_stencil =
-        make_computation< backend_t >(m_gridb,
-            p_buff() = buff,
-            p_out() = m_out,
-            make_multistage // mss_descriptor
-            (execute< backward >(),
-                                          define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
-                                          make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
+    auto kcache_stencil = make_computation< backend_t >(
+        m_gridb,
+        p_buff() = buff,
+        p_out() = m_out,
+        make_multistage // mss_descriptor
+        (execute< backward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kfull_b, window< -1, 0 > >(p_buff())),
+            make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil.run();
 

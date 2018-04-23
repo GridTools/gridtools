@@ -110,6 +110,7 @@ namespace gridtools {
                         0,
                         (ExecutionPolicy == enumtype::backward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
                     cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
+
                     return 0;
                 }
             };
@@ -145,7 +146,8 @@ namespace gridtools {
         }
 
         /**
-         * compute the maximum length of the section of the kcache that will be sync with main memory according to the
+         * compute the maximum length of the section of the kcache that will be sync with main memory
+         according to the
          * iteration policy
          */
         template < typename IterationPolicy, typename CacheStorage >
@@ -253,17 +255,19 @@ namespace gridtools {
                     "bpfill and epflush policies can not be used with a kparallel iteration strategy");
 
                 // compute the maximum offset of all levels that we need to prefill or final flush
-                constexpr uint_t koffset =
-                    compute_section_kcache_to_sync_with_mem< IterationPolicy, k_cache_storage_t >(CacheIOPolicy);
+                constexpr uint_t kwindow_size = kcache_t::kwindow_t::p_ - kcache_t::kwindow_t::m_ + 1;
 
                 // compute the sequence of all offsets that we need to prefill or final flush
-                using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int_t,
-                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ? koffset + 1 : koffset >::type >;
-                constexpr int_t additional_offset = (kcache_t::ccacheIOPolicy == cache_io_policy::flush ||
-                                                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush ||
-                                                        kcache_t::ccacheIOPolicy == cache_io_policy::fill_and_flush)
-                                                        ? (int_t)1
-                                                        : 0;
+                //                using seq = gridtools::apply_gt_integer_sequence< typename
+                //                gridtools::make_gt_integer_sequence< int_t,
+                //                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ? koffset + 1 : koffset
+                //                    >::type >;
+
+                using seq = gridtools::apply_gt_integer_sequence<
+                    typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;
+
+                constexpr int_t additional_offset = kcache_t::kwindow_t::m_;
+
                 using io_op_t =
                     typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy, additional_offset >::type;
 

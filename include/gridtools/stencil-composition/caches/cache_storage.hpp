@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/max.hpp>
+#include <boost/mpl/min.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
@@ -82,6 +84,18 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes< Tiles... >::value), GT_INTERNAL_ERROR);
 
+        template < typename Tile, typename KWindow >
+        struct get_kminus_bound {
+            using type = typename boost::mpl::min< typename boost::mpl::at_c< typename Tile::type, 2 >::type,
+                boost::mpl::integral_c< int, KWindow::m_ > >::type;
+        };
+
+        template < typename Tile, typename KWindow >
+        struct get_kplus_bound {
+            using type = typename boost::mpl::max< typename boost::mpl::at_c< typename Tile::type, 2 >::type,
+                boost::mpl::integral_c< int, KWindow::p_ > >::type;
+        };
+
       public:
         using cache_t = Cache;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
@@ -106,10 +120,14 @@ namespace gridtools {
 
         using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
         using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
-        using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
+        using kminus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
+            boost::mpl::at_c< typename minus_t::type, 2 >,
+            get_kminus_bound< minus_t, typename cache_t::kwindow_t > >::type;
         using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
         using jplus_t = typename boost::mpl::at_c< typename plus_t::type, 1 >::type;
-        using kplus_t = typename boost::mpl::at_c< typename plus_t::type, 2 >::type;
+        using kplus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
+            boost::mpl::at_c< typename minus_t::type, 2 >,
+            get_kplus_bound< plus_t, typename cache_t::kwindow_t > >::type;
 
         GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
                                                                          iplus_t::value == 0 && jplus_t::value == 0),

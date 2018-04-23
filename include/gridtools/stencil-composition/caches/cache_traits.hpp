@@ -51,8 +51,8 @@ namespace gridtools {
     template < typename T >
     struct is_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
-    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval, typename KWindow >
+    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval, KWindow > > : boost::mpl::true_ {};
 
     /**
      * @struct is_ij_cache
@@ -61,8 +61,8 @@ namespace gridtools {
     template < typename T >
     struct is_ij_cache : boost::mpl::false_ {};
 
-    template < typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
-    struct is_ij_cache< detail::cache_impl< IJ, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
+    template < typename Arg, cache_io_policy cacheIOPolicy, typename Interval, typename KWindow >
+    struct is_ij_cache< detail::cache_impl< IJ, Arg, cacheIOPolicy, Interval, KWindow > > : boost::mpl::true_ {};
 
     /**
      * @struct is_k_cache
@@ -71,8 +71,8 @@ namespace gridtools {
     template < typename T >
     struct is_k_cache : boost::mpl::false_ {};
 
-    template < typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
-    struct is_k_cache< detail::cache_impl< K, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
+    template < typename Arg, cache_io_policy cacheIOPolicy, typename Interval, typename KWindow >
+    struct is_k_cache< detail::cache_impl< K, Arg, cacheIOPolicy, Interval, KWindow > > : boost::mpl::true_ {};
 
     /**
      * @struct is_flushing_cache
@@ -81,12 +81,12 @@ namespace gridtools {
     template < typename T >
     struct is_flushing_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::flush, Interval > >
+    template < cache_type cacheType, typename Arg, typename Interval, typename KWindow >
+    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::flush, Interval, KWindow > >
         : boost::mpl::true_ {};
 
-    template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill_and_flush, Interval > >
+    template < cache_type cacheType, typename Arg, typename Interval, typename KWindow >
+    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill_and_flush, Interval, KWindow > >
         : boost::mpl::true_ {};
 
     /**
@@ -96,8 +96,8 @@ namespace gridtools {
     template < typename T >
     struct is_epflushing_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_epflushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::epflush, Interval > >
+    template < cache_type cacheType, typename Arg, typename Interval, typename KWindow >
+    struct is_epflushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::epflush, Interval, KWindow > >
         : boost::mpl::true_ {};
 
     /**
@@ -107,12 +107,12 @@ namespace gridtools {
     template < typename T >
     struct is_filling_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill, Interval > >
+    template < cache_type cacheType, typename Arg, typename Interval, typename KWindow >
+    struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill, Interval, KWindow > >
         : boost::mpl::true_ {};
 
-    template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill_and_flush, Interval > >
+    template < cache_type cacheType, typename Arg, typename Interval, typename KWindow >
+    struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill_and_flush, Interval, KWindow > >
         : boost::mpl::true_ {};
 
     /**
@@ -122,8 +122,8 @@ namespace gridtools {
     template < typename T >
     struct is_bpfilling_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_bpfilling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::bpfill, Interval > >
+    template < cache_type cacheType, typename Arg, typename Interval, typename KWindow >
+    struct is_bpfilling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::bpfill, Interval, KWindow > >
         : boost::mpl::true_ {};
 
     /**
@@ -133,8 +133,8 @@ namespace gridtools {
     template < typename T >
     struct cache_parameter;
 
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
-    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > {
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval, typename KWindow >
+    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval, KWindow > > {
         typedef Arg type;
     };
 
