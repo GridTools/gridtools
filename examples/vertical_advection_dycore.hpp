@@ -235,7 +235,9 @@ namespace vertical_advection_dycore {
 
             auto up_stencil = gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                    define_caches(cache< K, cache_io_policy::local, kfull >(p_acol()),
+                        cache< K, cache_io_policy::local, kfull >(p_bcol()),
+                        cache< K, cache_io_policy::flush, kfull >(p_ccol()),
                         cache< K, cache_io_policy::flush, kfull >(p_dcol()),
                         cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
                     gridtools::make_stage< u_forward_function< float_type > >(p_utens_stage(),
@@ -252,7 +254,7 @@ namespace vertical_advection_dycore {
 
             auto down_stencil = gridtools::make_multistage(
                 execute< backward >(),
-                define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                define_caches(cache< K, cache_io_policy::local, kfull >(p_data_col())),
                 gridtools::make_stage< u_backward_function< float_type > >(
                     p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
 
