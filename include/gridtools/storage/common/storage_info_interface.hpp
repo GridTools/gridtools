@@ -111,7 +111,7 @@ namespace gridtools {
         using layout_t = layout_map< LayoutArgs... >;
         using halo_t = halo< Halos... >;
         using alignment_t = Align;
-        static const int max_layout_v = max_value< layout_t >::value;
+        static const int max_layout_v = layout_t::max();
 
         GRIDTOOLS_STATIC_ASSERT((sizeof...(Halos) == layout_t::masked_length),
             GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
