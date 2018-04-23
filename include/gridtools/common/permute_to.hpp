@@ -55,10 +55,10 @@
 
 namespace gridtools {
     namespace impl_ {
-        template < typename Sec, typename T >
+        template < typename Seq, typename T >
         struct get_position {
-            using type = typename boost::mpl::distance< typename boost::mpl::begin< Sec >::type,
-                typename boost::mpl::find< Sec, T >::type >::type;
+            using type = typename boost::mpl::distance< typename boost::mpl::begin< Seq >::type,
+                typename boost::mpl::find< Seq, T >::type >::type;
         };
     }
 
@@ -67,7 +67,7 @@ namespace gridtools {
      *
      *  This utility is handy when we have all elements of the Res, but not in the right order.
      *
-     *  Requirments:
+     *  Requirements:
      *      - Res and Src should model fusion sequence;
      *      - Res type should have a ctor from a fusion sequence;
      *      - all types from the Res should present in the Src;

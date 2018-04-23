@@ -63,17 +63,6 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
 
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of CUDA we have to retrieve the GPU pointer.
-        */
-        struct extract_storage_info_ptr_f {
-            template < typename StorageInfo >
-            StorageInfo const *operator()(StorageInfo const *t) {
-                GRIDTOOLS_STATIC_ASSERT(is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR);
-                return t->get_gpu_ptr();
-            }
-        };
-
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
            instances.
@@ -185,14 +174,6 @@ namespace gridtools {
             StorageInfo const *sinfo) {
             return 0;
         }
-
-        struct setup_grid_f {
-            template < typename Grid >
-            void operator()(Grid const &grid) const {
-                GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
-                grid.clone_to_device();
-            }
-        };
 
         /**
          * @brief main execution of a mss.

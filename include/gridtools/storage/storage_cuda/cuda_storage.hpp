@@ -79,6 +79,9 @@ namespace gridtools {
         ownership m_ownership = ownership::Full;
 
       public:
+        cuda_storage(cuda_storage const &) = delete;
+        cuda_storage &operator=(cuda_storage const &) = delete;
+
         /*
          * @brief cuda_storage constructor. Just allocates enough memory on Host and Device.
          * @param size defines the size of the storage and the allocated space.

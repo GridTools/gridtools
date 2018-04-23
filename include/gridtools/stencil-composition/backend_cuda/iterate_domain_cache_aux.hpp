@@ -260,7 +260,8 @@ namespace gridtools {
                 using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int_t,
                     kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ? koffset + 1 : koffset >::type >;
                 constexpr int_t additional_offset = (kcache_t::ccacheIOPolicy == cache_io_policy::flush ||
-                                                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush)
+                                                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush ||
+                                                        kcache_t::ccacheIOPolicy == cache_io_policy::fill_and_flush)
                                                         ? (int_t)1
                                                         : 0;
                 using io_op_t =

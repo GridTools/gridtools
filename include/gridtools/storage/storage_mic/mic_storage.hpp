@@ -69,6 +69,8 @@ namespace gridtools {
         ownership m_ownership = ownership::Full;
 
       public:
+        mic_storage(mic_storage const &) = delete;
+        mic_storage &operator=(mic_storage const &) = delete;
         /*
          * @brief mic_storage constructor. Allocates data aligned to 2MB pages (to encourage the system to use
          * transparent huge pages) and adds an additional samll offset which changes for every allocation to reduce the

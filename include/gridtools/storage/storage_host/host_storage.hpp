@@ -74,6 +74,8 @@ namespace gridtools {
         ownership m_ownership = ownership::Full;
 
       public:
+        host_storage(host_storage const &) = delete;
+        host_storage &operator=(host_storage const &) = delete;
         /*
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.

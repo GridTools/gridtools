@@ -65,11 +65,6 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Host > {
 
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of Host backend we have to return the CPU pointer.
-        */
-        using extract_storage_info_ptr_f = identity;
-
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
         */
@@ -165,8 +160,6 @@ namespace gridtools {
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             return 0;
         }
-
-        using setup_grid_f = noop;
 
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
