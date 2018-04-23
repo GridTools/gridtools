@@ -99,22 +99,15 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     typedef arg< 0, storage_t > p_in;
 
-    typedef boost::mpl::vector< p_in > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in));
-
     auto kcache_stencil = gridtools::make_computation< backend_t >(
-        domain,
         m_grid,
+        p_in{} = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
             define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
             gridtools::make_stage< shift_acc_forward_fill_and_flush >(p_in())));
 
-    kcache_stencil->ready();
-
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -125,7 +118,6 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
-    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, fill_and_flush_backward) {
@@ -141,21 +133,14 @@ TEST_F(kcachef, fill_and_flush_backward) {
 
     typedef arg< 0, storage_t > p_in;
 
-    typedef boost::mpl::vector< p_in > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in));
-
     auto kcache_stencil = gridtools::make_computation< backend_t >(
-        domain,
         m_grid,
+        p_in{} = m_in,
         gridtools::make_multistage(execute< backward >(),
             define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
             gridtools::make_stage< shift_acc_backward_fill_and_flush >(p_in())));
 
-    kcache_stencil->ready();
-
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -166,7 +151,6 @@ TEST_F(kcachef, fill_and_flush_backward) {
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
-    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, fill_copy_forward) {
@@ -181,21 +165,14 @@ TEST_F(kcachef, fill_copy_forward) {
 
     typedef arg< 0, storage_t > p_in;
 
-    typedef boost::mpl::vector< p_in > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain((p_in() = m_in));
-
     auto kcache_stencil = gridtools::make_computation< backend_t >(
-        domain,
         m_grid,
+        p_in{} = m_in,
         gridtools::make_multistage(execute< forward >(),
             define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
             gridtools::make_stage< copy_fill >(p_in())));
 
-    kcache_stencil->ready();
-
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
@@ -206,5 +183,4 @@ TEST_F(kcachef, fill_copy_forward) {
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
-    kcache_stencil->finalize();
 }
