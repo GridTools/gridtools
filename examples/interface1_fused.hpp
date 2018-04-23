@@ -142,24 +142,20 @@ namespace horizontal_diffusion {
         typedef arg< 1, storage_type > p_in;
         typedef arg< 2, storage_type > p_out;
 
-        typedef boost::mpl::vector< p_coeff, p_in, p_out > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_coeff() = coeff));
-
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
         auto grid = make_grid(di, dj, d3);
 
         auto horizontal_diffusion = gridtools::make_computation< backend_t >(
-            domain,
             grid,
+            p_in() = in,
+            p_out() = out,
+            p_coeff() = coeff,
             gridtools::make_multistage(
                 execute< parallel >(), gridtools::make_stage< out_function >(p_out(), p_in(), p_coeff())));
 
-        horizontal_diffusion->ready();
-        horizontal_diffusion->steady();
-        horizontal_diffusion->run();
+        horizontal_diffusion.run();
 
         repository.out().sync();
 
@@ -178,8 +174,6 @@ namespace horizontal_diffusion {
 #ifdef BENCHMARK
         benchmarker::run(horizontal_diffusion, t_steps);
 #endif
-        horizontal_diffusion->finalize();
-
         return result;
     }
 

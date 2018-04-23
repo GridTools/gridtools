@@ -83,21 +83,12 @@ TEST(test_make_computation, positional_when_debug) {
 
     typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
     typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
-    meta_data_t sinfo(3, 3, 3);
-    storage_t a_storage(sinfo, 0);
 
     typedef arg< 0, storage_t > p_in;
-    typedef boost::mpl::vector< p_in > accessor_list_t;
 
-    /* canot use the assignment since with a single placeholder the wrong constructor is picked.
-       This is a TODO in aggregator_type.hpp */
-    aggregator_type< accessor_list_t > dm(a_storage);
-    auto test_computation = make_computation< backend_t >(dm,
-        positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
+    make_computation< backend_t >(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage // mss_descriptor
         (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
-
-    EXPECT_TRUE(true);
 }
 
 #ifdef __WAS_DEBUG

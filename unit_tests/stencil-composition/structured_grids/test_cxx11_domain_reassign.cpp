@@ -33,28 +33,26 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <boost/mpl/vector.hpp>
+#include <gtest/gtest.h>
 
-#include "../../../examples/Options.hpp"
-#include "test_cxx11_domain_reassign.hpp"
+#include <common/defs.hpp>
+#include <common/halo_descriptor.hpp>
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/arg.hpp>
+#include <stencil-composition/computation.hpp>
+#include <stencil-composition/grid.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/make_stage.hpp>
+#include <stencil-composition/make_stencils.hpp>
 #include <tools/verifier.hpp>
+#include "backend_select.hpp"
 
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::extent;
-using gridtools::arg;
-
-using namespace gridtools;
-using namespace enumtype;
-
-namespace domain_reassign {
-
+namespace gridtools {
     struct test_functor {
-
-        typedef accessor< 0, enumtype::in, extent<>, 3 > in;
-        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        using in = accessor< 0, enumtype::in, extent<>, 3 >;
+        using out = accessor< 1, enumtype::inout, extent<>, 3 >;
+        using arg_list = boost::mpl::vector< in, out >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -62,146 +60,53 @@ namespace domain_reassign {
         }
     };
 
-    gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t &in, storage_t &out) {
-        auto grid = make_grid(d1, d2, d3);
+    class fixture : public ::testing::Test {
+        using storage_info_t = backend_t::storage_traits_t::storage_info_t< 0, 3 >;
+        using storage_t = backend_t::storage_traits_t::data_store_t< gridtools::float_type, storage_info_t >;
+        using p_tmp = tmp_arg< 2, storage_t >;
 
-        aggregator_type< accessor_list > domain(in, out);
+        const uint_t m_d1 = 6, m_d2 = 6, m_d3 = 10;
+        const halo_descriptor m_di = {0, 0, 0, m_d1 - 1, m_d1}, m_dj = {0, 0, 0, m_d2 - 1, m_d2};
+        const grid< axis< 1 >::axis_interval_t > m_grid = make_grid(m_di, m_dj, m_d3);
+        const storage_info_t m_meta{m_d1, m_d2, m_d3};
 
-        m_stencil = make_computation< backend_t >(domain,
-            grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                                      make_stage< test_functor >(p_in(), p_tmp()),
-                                                      make_stage< test_functor >(p_tmp(), p_out())));
+      public:
+        using p_in = arg< 0, storage_t >;
+        using p_out = arg< 1, storage_t >;
 
-        m_stencil->ready();
-        m_stencil->steady();
-    }
+        computation< void, p_in, p_out > m_computation;
 
-    void gt_example::finalize() { m_stencil->finalize(); }
-    void gt_example::run(storage_t &in, storage_t &out) {
-        m_stencil->reassign(in, out);
-        m_stencil->run();
-    }
+        fixture()
+            : m_computation{make_computation< backend_t >(m_grid,
+                  make_multistage(enumtype::execute< enumtype::forward >(),
+                                                              make_stage< test_functor >(p_in{}, p_tmp{}),
+                                                              make_stage< test_functor >(p_tmp{}, p_out{})))} {}
 
-    void gt_example::run_plch(storage_t &in, storage_t &out) {
+        storage_t make_in(int n) const {
+            return {m_meta, [=](int i, int j, int k) { return i + j + k + n; }};
+        }
 
-        m_stencil->reassign((p_in() = in), (p_out() = out));
-        m_stencil->run();
-    }
+        storage_t make_out() const { return {m_meta, -1.}; }
 
-    void gt_example::run_on(storage_t &in, storage_t &out) { m_stencil->run(in, out); }
-
-    void gt_example::run_on_output(storage_t &out) { m_stencil->run(p_out() = out); }
-
-    void gt_example::run_on_plch(storage_t &in, storage_t &out) { m_stencil->run((p_in() = in), (p_out() = out)); }
-}
-
-using namespace domain_reassign;
-
-class ReassignDomain : public ::testing::Test {
-  protected:
-    const gridtools::uint_t m_d1, m_d2, m_d3;
-
-    gridtools::halo_descriptor m_di, m_dj;
-
-    gridtools::grid< axis< 1 >::axis_interval_t > m_grid;
-    storage_info_t m_meta;
-
-    storage_t m_in1, m_out1, m_in2, m_out2;
-    gt_example m_stex;
-    array< array< uint_t, 2 >, 3 > m_halos;
-    verifier m_verif;
-
-    ReassignDomain()
-        : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2},
-          m_grid(make_grid(m_di, m_dj, m_d3)), m_meta(m_d1, m_d2, m_d3),
-          m_in1(m_meta, [](int i, int j, int k) { return i + j + k + 3; }, "in"),
-          m_in2(m_meta, [](int i, int j, int k) { return i + j + k + 7; }, "in2"), m_out1(m_meta, -1., "out"),
-          m_out2(m_meta, -1., "out"), m_stex(m_d1, m_d2, m_d3, m_in1, m_out1), m_halos{{{0, 0}, {0, 0}, {0, 0}}},
+        bool verify(storage_t const &lhs, storage_t const &rhs) {
+            lhs.sync();
+            rhs.sync();
 #if FLOAT_PRECISION == 4
-          m_verif(1e-6)
+            const double precision = 1e-6;
 #else
-          m_verif(1e-10)
+            const double precision = 1e-10;
 #endif
-    {
-        sync();
+            return verifier(precision).verify(m_grid, lhs, rhs, {{{0, 0}, {0, 0}, {0, 0}}});
+        }
+    };
+
+    TEST_F(fixture, run) {
+        auto in = make_in(3);
+        auto out = make_out();
+        m_computation.run(p_in{} = in, p_out{} = out);
+        EXPECT_TRUE(verify(in, out));
+        in = make_in(7);
+        m_computation.run(p_in{} = in, p_out{} = out);
+        EXPECT_TRUE(verify(in, out));
     }
-
-    void finalize() { m_stex.finalize(); }
-
-    void sync() {
-        m_out1.sync();
-        m_out2.sync();
-        m_in1.sync();
-        m_in2.sync();
-    }
-
-    storage_t create_new_field(std::string name) { return storage_t(m_meta, -1, name); }
-};
-
-TEST_F(ReassignDomain, TestRun) {
-    m_stex.run(m_in1, m_out1);
-
-    sync();
-
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
-
-    m_stex.run(m_in2, m_out2);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
-    finalize();
-}
-
-TEST_F(ReassignDomain, TestRunPlchr) {
-    m_stex.run_plch(m_in1, m_out1);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
-
-    m_stex.run_plch(m_in2, m_out2);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
-    finalize();
-}
-
-TEST_F(ReassignDomain, TestRunOn) {
-    m_stex.run_on(m_in1, m_out1);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
-
-    m_stex.run_on(m_in2, m_out2);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
-    finalize();
-}
-
-TEST_F(ReassignDomain, TestRunOnPlchr) {
-    m_stex.run_on_plch(m_in1, m_out1);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
-
-    m_stex.run_on_plch(m_in2, m_out2);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
-    finalize();
-}
-
-TEST_F(ReassignDomain, TestRunOnOutput) {
-    m_stex.run_on_plch(m_in1, m_out1);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
-
-    m_stex.run_on_output(m_out2);
-
-    sync();
-    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out2, m_halos));
-    finalize();
 }

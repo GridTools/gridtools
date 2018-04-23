@@ -34,34 +34,33 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
-#include <type_traits>
-#include <utility>
+#include <common/split_args.hpp>
 
-#include <boost/fusion/include/filter_view.hpp>
-#include <boost/fusion/include/joint_view.hpp>
-#include <boost/fusion/include/zip_view.hpp>
+#include <tuple>
+#include <type_traits>
+#include <gtest/gtest.h>
 
 namespace gridtools {
 
-    /**
-     *  Here go generators for the fusion views that do the right C++11 perfect forwarding.
-     */
-
-    template < typename Lhs, typename Rhs >
-    boost::fusion::joint_view< typename std::remove_reference< Lhs >::type,
-        typename std::remove_reference< Rhs >::type >
-    make_joint_view(Lhs &&lhs, Rhs &&rhs) {
-        return {lhs, rhs};
+    template < class Testee, class FirstSink, class SecondSink >
+    void helper(Testee &&testee, FirstSink first_sink, SecondSink second_sink) {
+        first_sink(std::forward< Testee >(testee).first);
+        second_sink(std::forward< Testee >(testee).second);
     }
 
-    template < typename Pred, typename Sec >
-    static boost::fusion::filter_view< typename std::remove_reference< Sec >::type, Pred > make_filter_view(Sec &&sec) {
-        return {std::forward< Sec >(sec)};
-    };
+    TEST(raw_split_args, functional) {
+        int val = 1;
+        const int c_val = 2;
+        helper(raw_split_args< std::is_lvalue_reference >(42, c_val, 0., val, c_val),
+            [](std::tuple< int const &, int &, int const & > const &x) { EXPECT_EQ(std::make_tuple(2, 1, 2), x); },
+            [](std::tuple< int &&, double && > const &x) { EXPECT_EQ(std::make_tuple(42, 0.), x); });
+    }
 
-    template < typename Secs >
-    static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
-        return {std::forward< Secs >(secs)};
-    };
+    TEST(split_args, functional) {
+        int ival = 1;
+        const double dval = 2;
+        helper(split_args< std::is_integral >(42, dval, 0., ival),
+            [](std::tuple< int &&, int & > const &x) { EXPECT_EQ(std::make_tuple(42, 1), x); },
+            [](std::tuple< const double &, double && > const &x) { EXPECT_EQ(std::make_tuple(2., 0.), x); });
+    }
 }

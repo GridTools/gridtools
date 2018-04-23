@@ -42,6 +42,7 @@
 #include "../common/dimension.hpp"
 #include "../common/host_device.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
@@ -160,7 +161,7 @@ namespace gridtools {
 
         template < class... Ints,
             typename std::enable_if< sizeof...(Ints) <= Dim &&
-                                         meta::conjunction< std::is_convertible< Ints, int_t >... >::value,
+                                         conjunction< std::is_convertible< Ints, int_t >... >::value,
                 int >::type = 0 >
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
             : m_offsets({offsets...})

@@ -103,18 +103,6 @@ TEST(Laplace, test) {
     */
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    /**
-       - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that
-       are used, temporary and not
-       It must be noted that the only fields to be passed to the constructor are the non-temporary.
-       The order in which they have to be passed is the order in which they appear scanning the placeholders in order
-       (i.e. the order in the accessor_list?). \todo (I don't particularly like this).
-       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is
-       'clonable to gpu' must derive from the CRTP base class.
-    */
-    aggregator_type< accessor_list > domain(in, out);
 
     /**
        - Definition of the physical dimensions of the problem.
@@ -126,20 +114,18 @@ TEST(Laplace, test) {
 
     auto grid = make_grid(di, dj, d3);
 
-    auto laplace = make_computation< backend_t >(
-        domain, grid, make_multistage(execute< forward >(), make_stage< lap_function >(p_out(), p_in())));
-
-    laplace->ready();
-
-    laplace->steady();
+    auto laplace = make_computation< backend_t >(grid,
+        p_in() = in,
+        p_out() = out,
+        make_multistage(execute< forward >(), make_stage< lap_function >(p_out(), p_in())));
 
     /**
        Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the
        backend.
      */
-    laplace->run();
+    laplace.run();
 
-    laplace->finalize();
+    laplace.sync_bound_data_stores();
 
     storage_t ref(metadata_, -7.3);
 
@@ -163,7 +149,7 @@ TEST(Laplace, test) {
     bool result = verif.verify(grid, ref, out, halos);
 
 #ifdef BENCHMARK
-    std::cout << laplace->print_meter() << std::endl;
+    std::cout << laplace.print_meter() << std::endl;
 #endif
 
     ASSERT_TRUE(result);

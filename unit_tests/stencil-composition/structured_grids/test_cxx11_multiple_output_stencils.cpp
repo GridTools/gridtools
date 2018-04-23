@@ -87,9 +87,6 @@ TEST(multiple_outputs, compute_extents) {
     typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
     typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
-    meta_data_t meta_data_(10, 10, 10);
-    storage_t dummy(meta_data_, 0.);
-
     using T_sqr_s = tmp_arg< 0, storage_t >;
     using S_sqr_uv = tmp_arg< 1, storage_t >;
     using smag_u = tmp_arg< 2, storage_t >;
@@ -103,34 +100,14 @@ TEST(multiple_outputs, compute_extents) {
     using u_in = arg< 6, storage_t >;
     using v_in = arg< 7, storage_t >;
 
-    using arg_list = boost::mpl::vector<
-        // Temporaries
-        T_sqr_s,
-        S_sqr_uv,
-        smag_u,
-        smag_v,
-
-        // Output fields
-        u_out,
-        v_out,
-
-        // Input fields
-        u_in,
-        v_in >;
-
-    aggregator_type< arg_list > domain(dummy, dummy, dummy, dummy);
-
     halo_descriptor di{2, 2, 2, 7, 10};
     halo_descriptor dj{2, 2, 2, 7, 10};
     auto grid_ = make_grid(di, dj, 10);
 
-    auto computation = make_computation< backend_t >(
-        domain,
+    make_computation< backend_t >(
         grid_,
         make_multistage(execute< forward >(),
             make_stage< TensionShearFunction >(T_sqr_s(), S_sqr_uv(), u_in(), v_in()),
             make_stage< SmagCoeffFunction >(smag_u(), smag_v(), T_sqr_s(), S_sqr_uv()),
             make_stage< SmagUpdateFunction >(u_out(), v_out(), u_in(), v_in(), smag_u(), smag_v())));
-
-    EXPECT_TRUE(true);
 }
