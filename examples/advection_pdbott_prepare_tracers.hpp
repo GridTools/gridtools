@@ -95,35 +95,36 @@ namespace adv_prepare_tracers {
         typedef arg< 0, std::vector< storage_t > > p_list_out;
         typedef arg< 1, std::vector< storage_t > > p_list_in;
         typedef arg< 2, storage_t > p_rho;
-        typedef boost::mpl::vector< p_list_out, p_list_in, p_rho > args_t;
-
-        aggregator_type< args_t > domain_(list_out_, list_in_, rho);
         auto comp_ =
             make_computation< backend_t >(expand_factor< 2 >(),
-                domain_,
                 grid_,
+                p_list_out{} = list_out_,
+                p_list_in{} = list_in_,
+                p_rho{} = rho,
                 make_multistage(enumtype::execute< enumtype::forward >(),
                                               make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
+        comp_.run();
 
 #ifdef BENCHMARK
         benchmarker::run(comp_, t_steps);
 #endif
-        comp_->finalize();
+
+        if (!verify)
+            return true;
+
+        comp_.sync_bound_data_stores();
 
         verifier verif(1e-6);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        bool result = true;
 
         for (int_t l = 0; l < vec_size; ++l) {
             storage_t s_ref_(meta_data_, 0.);
             reference(list_in_[l], rho, s_ref_);
-            result = result && verif.verify(grid_, (list_out_[l]), s_ref_, halos);
+            if (!verif.verify(grid_, s_ref_, list_out_[l], halos))
+                return false;
         }
 
-        return result;
+        return true;
     }
 }

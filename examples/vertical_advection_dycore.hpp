@@ -214,34 +214,12 @@ namespace vertical_advection_dycore {
         typedef tmp_arg< 9, storage_type > p_dcol;
         typedef tmp_arg< 10, storage_type > p_data_col;
 
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_utens_stage,
-            p_u_stage,
-            p_wcon,
-            p_u_pos,
-            p_utens,
-            p_dtr_stage,
-            p_acol,
-            p_bcol,
-            p_ccol,
-            p_dcol,
-            p_data_col > placeholders_list;
-
-        gridtools::aggregator_type< placeholders_list > domain;
-
         halo_descriptor di, dj;
 
         gridtools::grid< axis_t::axis_interval_t > grid;
 
         vertical_advection_test(u_int d1, u_int d2, u_int d3)
-            : repository(d1, d2, d3, halo_size), domain(repository.utens_stage(),
-                                                     repository.u_stage(),
-                                                     repository.wcon(),
-                                                     repository.u_pos(),
-                                                     repository.utens(),
-                                                     repository.dtr_stage()),
-              di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
+            : repository(d1, d2, d3, halo_size), di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
               dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2}, grid(make_grid(di, dj, axis_t(d3))) {
             repository.init_fields();
 
@@ -278,13 +256,17 @@ namespace vertical_advection_dycore {
                 gridtools::make_stage< u_backward_function< float_type > >(
                     p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
 
-            auto vertical_advection = gridtools::make_computation< backend_t >(domain, grid, up_stencil, down_stencil);
+            auto vertical_advection = gridtools::make_computation< backend_t >(grid,
+                p_utens_stage{} = repository.utens_stage(),
+                p_u_stage{} = repository.u_stage(),
+                p_wcon{} = repository.wcon(),
+                p_u_pos{} = repository.u_pos(),
+                p_utens{} = repository.utens(),
+                p_dtr_stage{} = repository.dtr_stage(),
+                up_stencil,
+                down_stencil);
 
-            vertical_advection->ready();
-
-            vertical_advection->steady();
-
-            vertical_advection->run();
+            vertical_advection.run();
 
             repository.utens_stage().sync();
 
@@ -303,17 +285,19 @@ namespace vertical_advection_dycore {
 #ifdef BENCHMARK
             benchmarker::run(vertical_advection, t_steps);
 #endif
-
-            vertical_advection->finalize();
-
             return result;
         }
 
-        bool test_with_extents(uint_t t_steps, bool verify) {
+        bool test_with_extents(bool verify) {
 
             auto vertical_advection = gridtools::make_computation< backend_t >(
-                domain,
                 grid,
+                p_utens_stage{} = repository.utens_stage(),
+                p_u_stage{} = repository.u_stage(),
+                p_wcon{} = repository.wcon(),
+                p_u_pos{} = repository.u_pos(),
+                p_utens{} = repository.utens(),
+                p_dtr_stage{} = repository.dtr_stage(),
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
@@ -339,11 +323,7 @@ namespace vertical_advection_dycore {
                                                p_dcol(),
                                                p_data_col())));
 
-            vertical_advection->ready();
-
-            vertical_advection->steady();
-
-            vertical_advection->run();
+            vertical_advection.run();
 
             repository.utens_stage().sync();
 
@@ -359,9 +339,6 @@ namespace vertical_advection_dycore {
                     {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
-
-            vertical_advection->finalize();
-
             return result;
         }
     };

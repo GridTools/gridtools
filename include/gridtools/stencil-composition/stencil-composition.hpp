@@ -38,19 +38,21 @@
 /** \defgroup stencil-composition Stencil Composition
  */
 
-#include "../common/defs.hpp"
-#include "../common/host_device.hpp"
+/**
+ *  @file
+ *
+ *  Here are the headers that contain the definitions of the entitles that are designed to be used directly by user
+ *  for building stencil composition.
+ *  The stuff that is needed only for definitions of the stencil functions should not be included here.
+ */
+
+#include "backend.hpp"
+#include "computation.hpp"
 #include "esf.hpp"
-#include "intermediate_impl.hpp"
+#include "grid.hpp"
 #include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
-#include "../storage/storage-facility.hpp"
-#include "grid.hpp"
-#include "grid_traits.hpp"
-#include "computation.hpp"
 #include "storage_info_extender.hpp"
 
-#ifndef STRUCTURED_GRIDS
-#include "icosahedral_grids/grid.hpp"
-#endif
+#include "caches/define_caches.hpp"

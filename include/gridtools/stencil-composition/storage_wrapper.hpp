@@ -85,22 +85,6 @@ namespace gridtools {
         constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
         using data_ptrs_t = array< data_t *, num_of_storages >;
-
-        // assign the data ptrs to some other ptrs
-        template < typename T >
-        void assign(T &d) const {
-            using std::begin;
-            std::copy(this->m_data_ptrs.begin(), this->m_data_ptrs.end(), begin(d));
-        }
-
-        // tell me how I should initialize the ptr_t member called m_data_ptrs
-        void initialize(view_t v) {
-            for (unsigned i = 0; i < num_of_storages; ++i)
-                this->m_data_ptrs[i] = advanced::get_raw_pointer_of(v, i);
-        }
-
-        // data ptrs
-        data_ptrs_t m_data_ptrs;
     };
 
     /* Storage Wrapper metafunctions */
@@ -112,7 +96,7 @@ namespace gridtools {
     struct is_storage_wrapper< storage_wrapper< Arg, View, TileI, TileJ > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct temporary_info_from_storage_wrapper : boost::mpl::bool_< T::is_temporary > {};
+    struct temporary_info_from_storage_wrapper : is_tmp_arg< typename T::arg_t > {};
 
     template < typename T >
     struct arg_from_storage_wrapper {

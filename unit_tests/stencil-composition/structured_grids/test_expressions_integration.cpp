@@ -80,9 +80,6 @@ class test_expressions : public testing::Test {
     typedef arg< 0, data_store_t > p_val2;
     typedef arg< 1, data_store_t > p_val3;
     typedef arg< 2, data_store_t > p_out;
-    typedef boost::mpl::vector< p_val2, p_val3, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain;
 
     test_expressions()
         : storage_info_(d1, d2, d3), grid(make_grid(d1, d2, d3)),
@@ -92,15 +89,12 @@ class test_expressions : public testing::Test {
           verifier_(1e-12),
 #endif
           verifier_halos{{{0, 0}, {0, 0}, {0, 0}}}, val2(storage_info_, 2., "val2"), val3(storage_info_, 3., "val3"),
-          out(storage_info_, -555, "out"), reference(storage_info_, ::DEFAULT_VALUE, "reference"),
-          domain(val2, val3, out) {
+          out(storage_info_, -555, "out"), reference(storage_info_, ::DEFAULT_VALUE, "reference") {
     }
 
     template < typename Computation >
     void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.run(p_val2() = val2, p_val3() = val3, p_out() = out);
 #ifdef __CUDACC__
         out.sync();
 #endif
@@ -180,7 +174,6 @@ namespace {
 
 TEST_F(test_expressions, integration_test) {
     auto comp = gridtools::make_positional_computation< backend_t >(
-        domain,
         grid,
         gridtools::make_multistage(
             execute< forward >(), gridtools::make_stage<::test_functor >(p_val2(), p_val3(), p_out())));

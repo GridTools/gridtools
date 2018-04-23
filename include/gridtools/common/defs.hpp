@@ -137,6 +137,20 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+#if !defined(GT_BROKEN_TEMPLATE_ALIASES)
+#if defined(__CUDACC_VER_MAJOR__)
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
+#elif defined(__INTEL_COMPILER)
+#define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
+#elif defined(__clang__)
+#define GT_BROKEN_TEMPLATE_ALIASES 0
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
+#define GT_BROKEN_TEMPLATE_ALIASES (__GNUC__ * 10 + __GNUC_MINOR__ < 47)
+#else
+#define GT_BROKEN_TEMPLATE_ALIASES 1
+#endif
+#endif
+
 /**
  * @brief Main namespace containing all the provided libraries and
  * functionalities

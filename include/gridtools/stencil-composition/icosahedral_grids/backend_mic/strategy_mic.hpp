@@ -78,10 +78,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            using iter_range = meta::make_indices< boost::mpl::size< MssComponents >::value >;
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
+            static void run(
+                LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 gridtools::for_each< iter_range >(mss_functor< MssComponents,
@@ -151,10 +152,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            using iter_range = meta::make_indices< boost::mpl::size< MssComponents >::value >;
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
+            static void run(
+                LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
