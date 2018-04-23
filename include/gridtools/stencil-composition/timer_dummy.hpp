@@ -47,7 +47,6 @@ namespace gridtools {
     {
       public:
         GT_FUNCTION_HOST timer_dummy(std::string name) : timer< timer_dummy >(name) {}
-        GT_FUNCTION_HOST ~timer_dummy() {}
 
         /**
         * Reset counters

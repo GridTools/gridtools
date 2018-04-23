@@ -74,10 +74,7 @@ class call_proc_stress_types : public testing::Test {
     typedef arg< 1, data_store_out_t > p_out;
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
-    aggregator_type< accessor_list > domain;
-
-    call_proc_stress_types()
-        : grid(make_grid(1, 1, 1)), in(storage_info_t{1, 1, 1}), out(storage_info_t{1, 1, 1}), domain(in, out) {}
+    call_proc_stress_types() : grid(make_grid(1, 1, 1)), in(storage_info_t{1, 1, 1}), out(storage_info_t{1, 1, 1}) {}
 };
 
 namespace {
@@ -137,8 +134,9 @@ namespace {
 
 TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
     auto comp = gridtools::make_computation< backend_t >(
-        domain,
         grid,
+        p_in{} = in,
+        p_out{} = out,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< triple_nesting_with_type_switching_first_stage >(p_out(), p_in())));
 }

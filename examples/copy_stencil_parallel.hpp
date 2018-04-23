@@ -125,9 +125,6 @@ namespace copy_stencil {
         // especially the non-temporary ones, in the construction of the domain
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
         array< ushort_t, 2 > halo{1, 1};
 
@@ -169,40 +166,26 @@ namespace copy_stencil {
             {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
             d3);
 
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(in, out);
-
-        auto copy = gridtools::make_computation< backend_t >(domain,
-            grid,
+        auto copy = gridtools::make_computation< backend_t >(grid,
+            p_in{} = in,
+            p_out{} = out,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 #ifdef VERBOSE
         printf("computation instantiated\n");
 #endif
 
-        copy->ready();
-
-#ifdef VERBOSE
-        printf("computation ready\n");
-#endif
-
-        copy->steady();
-
 #ifdef VERBOSE
         printf("computation steady\n");
 #endif
 
-        copy->run();
+        copy.run();
 
 #ifdef VERBOSE
         printf("computation run\n");
 #endif
 
-        copy->finalize();
+        copy.sync_bound_data_stores();
 
 #ifdef VERBOSE
         printf("computation finalized\n");

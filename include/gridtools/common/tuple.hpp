@@ -40,6 +40,7 @@
  * In order to use with more complex types (non constexprable), a version returning by ref should be used instead
  */
 #pragma once
+#include "common/defs.hpp"
 #include "host_device.hpp"
 #include "generic_metafunctions/variadic_typedef.hpp"
 

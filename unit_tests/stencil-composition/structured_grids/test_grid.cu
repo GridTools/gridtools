@@ -35,28 +35,3 @@
 */
 
 #include "test_grid.cpp"
-
-namespace {
-    template < typename Axis >
-    __global__ void test_copied_grid_on_device(grid< Axis > *expect, grid< Axis > *actual, bool *result) {
-        *result = test_grid_eq(*expect, *actual);
-    }
-}
-
-TEST_F(test_grid_copy_ctor, copy_on_device) {
-    grid< axis > copy(grid_);
-
-    grid_.clone_to_device();
-    copy.clone_to_device();
-
-    bool result;
-    bool *resultDevice;
-    cudaMalloc(&resultDevice, sizeof(bool));
-
-    test_copied_grid_on_device<<< 1, 1 >>>(grid_.device_pointer(), copy.device_pointer(), resultDevice);
-
-    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
-
-    ASSERT_NE(grid_.device_pointer(), copy.device_pointer());
-    ASSERT_TRUE(result);
-}
