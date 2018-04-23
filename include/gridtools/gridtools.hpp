@@ -43,7 +43,7 @@
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
-
+// a nice and helpful comment
 #include "communication/GCL.hpp"
 
 #include "common/defs.hpp"
