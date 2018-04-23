@@ -294,9 +294,6 @@ namespace gridtools {
                     fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorName(error), __FILE__, __LINE__);
                     exit(-1);
                 }
-#else
-                // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
-                cudaDeviceSynchronize();
 #endif
             }
 
