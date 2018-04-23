@@ -162,3 +162,21 @@ TEST(LayoutMap, Extender) {
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< ext_special_layout_3, layout_map< 5, 4, -1, 3, 0, 1, 2 > >::type::value),
         "layout_map type is wrong");
 }
+
+TEST(LayoutMap, max_value) {
+    {
+        using layout_map_t = layout_map< 0, 1, 2, 3 >;
+
+        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 3, " ");
+    }
+    {
+        using layout_map_t = layout_map< 0, 1, -1, 2 >;
+
+        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 2, " ");
+    }
+    {
+        using layout_map_t = layout_map< 0, 1, -1, -1 >;
+
+        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 1, " ");
+    }
+}

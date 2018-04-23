@@ -74,21 +74,3 @@ TEST(layout_map_metafunctions, extend_layout_map) {
             (boost::is_same< extended_layout_map_t, layout_map< 6, 4, 3, 5, 0, 1, 2 > >::value), "Error");
     }
 }
-
-TEST(layout_map_metafunctions, max_value) {
-    {
-        using layout_map_t = layout_map< 0, 1, 2, 3 >;
-
-        GRIDTOOLS_STATIC_ASSERT(max_value<layout_map_t>::value==3, " ");
-    }
-    {
-        using layout_map_t = layout_map< 0, 1, -1, 2 >;
-
-        GRIDTOOLS_STATIC_ASSERT(max_value<layout_map_t>::value==2, " ");
-    }
-    {
-        using layout_map_t = layout_map< 0, 1, -1, -1 >;
-
-        GRIDTOOLS_STATIC_ASSERT(max_value<layout_map_t>::value==1, " ");
-    }
-}
