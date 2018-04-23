@@ -39,6 +39,7 @@
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "vector_accessor.hpp"
 #include "grid.hpp"
+#include "icosahedral_topology.hpp"
 #include "color.hpp"
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"

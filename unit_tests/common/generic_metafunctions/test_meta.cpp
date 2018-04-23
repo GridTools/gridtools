@@ -46,6 +46,12 @@ namespace gridtools {
     namespace meta {
         template < class... >
         struct f;
+#if GT_BROKEN_TEMPLATE_ALIASES
+        template < class... >
+        struct f {
+            using type = f;
+        };
+#endif
         template < class... >
         struct g;
 
@@ -58,8 +64,8 @@ namespace gridtools {
 
         // has_type
         static_assert(!has_type< int >{}, "");
-        static_assert(!has_type< f<> >{}, "");
-        static_assert(has_type< lazy< void > >{}, "");
+        static_assert(!has_type< g<> >{}, "");
+        static_assert(has_type< lazy::id< void > >{}, "");
         static_assert(has_type< std::is_void< int > >{}, "");
 
         // is_meta_class
@@ -67,7 +73,7 @@ namespace gridtools {
         static_assert(!is_meta_class< f< int > >{}, "");
         static_assert(!is_meta_class< std::is_void< int > >{}, "");
         static_assert(is_meta_class< always< int > >{}, "");
-        static_assert(is_meta_class< quote< f > >{}, "");
+        static_assert(is_meta_class< curry< f > >{}, "");
         static_assert(is_meta_class< ctor< f<> > >{}, "");
 
         // length
@@ -76,20 +82,18 @@ namespace gridtools {
         static_assert(length< std::pair< int, double > >::value == 2, "");
         static_assert(length< f< int, int, double > >::value == 3, "");
 
-        // compose
-        static_assert(std::is_same< compose< f, g >::apply< int, void >, f< g< int, void > > >{}, "");
-
         // ctor
-        static_assert(std::is_same< apply< ctor< f< double > >, int, void >, f< int, void > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(ctor< f< double > >::apply, (int, void)), f< int, void > >{}, "");
 
         // rename
-        static_assert(std::is_same< apply< rename< f >, g< int, double > >, f< int, double > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rename, (f, g< int, double >)), f< int, double > >{}, "");
 
         // transform
-        static_assert(std::is_same< apply< transform< f >, g<> >, g<> >{}, "");
-        static_assert(std::is_same< apply< transform< f >, g< int, void > >, g< f< int >, f< void > > >{}, "");
-        static_assert(std::is_same< apply< transform< f >, g< int, void >, g< int *, void * >, g< int **, void ** > >,
-                          g< f< int, int *, int ** >, f< void, void *, void ** > > >{},
+        static_assert(std::is_same< GT_META_CALL(transform, (f, g<>)), g<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(transform, (f, g< int, void >)), g< f< int >, f< void > > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(transform, (f, g< int, void >, g< int *, void * >, g< int **, void ** >)),
+                g< f< int, int *, int ** >, f< void, void *, void ** > > >{},
             "");
 
         // st_contains
@@ -98,35 +102,35 @@ namespace gridtools {
 
         // mp_find
         using map = f< g< int, void * >, g< void, double * >, g< float, double * > >;
-        static_assert(std::is_same< mp_find< map, int >, g< int, void * > >{}, "");
-        static_assert(std::is_same< mp_find< map, double >, void >{}, "");
+        static_assert(std::is_same< GT_META_CALL(mp_find, (map, int)), g< int, void * > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(mp_find, (map, double)), void >{}, "");
 
         // repeat
-        static_assert(std::is_same< repeat< 0, int >, list<> >{}, "");
-        static_assert(std::is_same< repeat< 3, int >, list< int, int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(repeat, (0, int)), list<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(repeat, (3, int)), list< int, int, int > >{}, "");
 
         // drop_front
-        static_assert(std::is_same< drop_front< 0, f< int, double > >, f< int, double > >{}, "");
-        static_assert(std::is_same< drop_front< 1, f< int, double > >, f< double > >{}, "");
-        static_assert(std::is_same< drop_front< 2, f< int, double > >, f<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(drop_front_c, (0, f< int, double >)), f< int, double > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(drop_front_c, (1, f< int, double >)), f< double > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(drop_front_c, (2, f< int, double >)), f<> >{}, "");
 
         // at
-        static_assert(std::is_same< at_c< f< int, double >, 0 >, int >{}, "");
-        static_assert(std::is_same< at_c< f< int, double >, 1 >, double >{}, "");
+        static_assert(std::is_same< GT_META_CALL(at_c, (f< int, double >, 0)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(at_c, (f< int, double >, 1)), double >{}, "");
 
         // conjunction
-        static_assert(conjunction<>{}, "");
-        static_assert(conjunction< std::true_type, std::true_type >{}, "");
-        static_assert(!conjunction< std::true_type, std::false_type >{}, "");
-        static_assert(!conjunction< std::false_type, std::true_type >{}, "");
-        static_assert(!conjunction< std::false_type, std::false_type >{}, "");
+        static_assert(conjunction_fast<>{}, "");
+        static_assert(conjunction_fast< std::true_type, std::true_type >{}, "");
+        static_assert(!conjunction_fast< std::true_type, std::false_type >{}, "");
+        static_assert(!conjunction_fast< std::false_type, std::true_type >{}, "");
+        static_assert(!conjunction_fast< std::false_type, std::false_type >{}, "");
 
         // disjunction
-        static_assert(!disjunction<>{}, "");
-        static_assert(disjunction< std::true_type, std::true_type >{}, "");
-        static_assert(disjunction< std::true_type, std::false_type >{}, "");
-        static_assert(disjunction< std::false_type, std::true_type >{}, "");
-        static_assert(!disjunction< std::false_type, std::false_type >{}, "");
+        static_assert(!disjunction_fast<>{}, "");
+        static_assert(disjunction_fast< std::true_type, std::true_type >{}, "");
+        static_assert(disjunction_fast< std::true_type, std::false_type >{}, "");
+        static_assert(disjunction_fast< std::false_type, std::true_type >{}, "");
+        static_assert(!disjunction_fast< std::false_type, std::false_type >{}, "");
 
         // st_position
         static_assert(st_position< f< int, double >, int >{} == 0, "");
@@ -134,58 +138,73 @@ namespace gridtools {
         static_assert(st_position< f< double, int >, void >{} == 2, "");
 
         // combine
-        static_assert(std::is_same< apply< combine< f >, g< int > >, int >{}, "");
-        static_assert(std::is_same< apply< combine< f >, repeat< 8, int > >,
+        static_assert(std::is_same< GT_META_CALL(combine, (f, g< int >)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (8, int)))),
                           f< f< f< int, int >, f< int, int > >, f< f< int, int >, f< int, int > > > >{},
+            "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, g< int, int >)), f< int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, g< int, int, int >)), f< int, f< int, int > > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (4, int)))),
+                          f< f< int, int >, f< int, int > > >{},
             "");
 
         // concat
-        static_assert(std::is_same< concat< g< int > >, g< int > >{}, "");
-        static_assert(std::is_same< concat< g< int >, f< void > >, g< int, void > >{}, "");
-        static_assert(
-            std::is_same< concat< g< int >, g< void, double >, g< void, int > >, g< int, void, double, void, int > >{},
+        static_assert(std::is_same< GT_META_CALL(concat, g< int >), g< int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(concat, (g< int >, f< void >)), g< int, void > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(concat, (g< int >, g< void, double >, g< void, int >)),
+                          g< int, void, double, void, int > >{},
             "");
 
+        // flatten
+        static_assert(std::is_same< GT_META_CALL(flatten, f< g< int > >), g< int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(flatten, (f< g< int >, f< bool > >)), g< int, bool > >{}, "");
+
         // filter
-        static_assert(std::is_same< apply< filter< std::is_pointer >, f<> >, f<> >{}, "");
-        static_assert(std::is_same< apply< filter< std::is_pointer >, f< void, int *, double, double ** > >,
+        static_assert(std::is_same< GT_META_CALL(filter, (std::is_pointer, f<>)), f<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(filter, (std::is_pointer, f< void, int *, double, double ** >)),
                           f< int *, double ** > >{},
             "");
 
         // all_of
-        static_assert(apply< all_of< is_list >, f< f<>, f< int > > >{}, "");
+        static_assert(all_of< is_list, f< f<>, f< int > > >{}, "");
 
         // dedup
-        static_assert(std::is_same< dedup< f<> >, f<> >{}, "");
-        static_assert(std::is_same< dedup< f< int > >, f< int > >{}, "");
-        static_assert(std::is_same< dedup< f< int, void > >, f< int, void > >{}, "");
-        static_assert(std::is_same< dedup< f< int, void, void, void, int, void > >, f< int, void > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(dedup, f<>), f<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(dedup, f< int >), f< int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(dedup, (f< int, void >)), f< int, void > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(dedup, (f< int, void, void, void, int, void >)), f< int, void > >{}, "");
 
         // zip
-        static_assert(std::is_same< zip< f< int >, f< void > >, f< list< int, void > > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(zip, (f< int >, f< void >)), f< list< int, void > > >{}, "");
         static_assert(
-            std::is_same< zip< f< int, int *, int ** >, f< void, void *, void ** >, f< char, char *, char ** > >,
+            std::is_same< GT_META_CALL(
+                              zip, (f< int, int *, int ** >, f< void, void *, void ** >, f< char, char *, char ** >)),
                 f< list< int, void, char >, list< int *, void *, char * >, list< int **, void **, char ** > > >{},
             "");
 
         // bind
-        static_assert(std::is_same< bind< f, _2, void, _1 >::apply< int, double >, f< double, void, int > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL((bind< f, _2, void, _1 >::apply), (int, double)), f< double, void, int > >{},
+            "");
 
         // is_instantiation_of
-        static_assert(is_instantiation_of< f >::apply< f<> >{}, "");
-        static_assert(is_instantiation_of< f >::apply< f< int, void > >{}, "");
-        static_assert(!is_instantiation_of< f >::apply< g<> >{}, "");
-        static_assert(!is_instantiation_of< f >::apply< int >{}, "");
+        static_assert(is_instantiation_of< f, f<> >{}, "");
+        static_assert(is_instantiation_of< f, f< int, void > >{}, "");
+        static_assert(!is_instantiation_of< f, g<> >{}, "");
+        static_assert(!is_instantiation_of< f, int >{}, "");
 
-        static_assert(
-            std::is_same< replace< f< int, double, int, double >, double, void >, f< int, void, int, void > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(replace, (f< int, double, int, double >, double, void)),
+                          f< int, void, int, void > >{},
+            "");
 
-        static_assert(std::is_same< mp_replace< f< g< int, int * >, g< double, double * > >, int, void >,
+        static_assert(std::is_same< GT_META_CALL(mp_replace, (f< g< int, int * >, g< double, double * > >, int, void)),
                           f< g< int, void >, g< double, double * > > >{},
             "");
 
-        static_assert(
-            std::is_same< replace_at_c< f< int, double, int, double >, 1, void >, f< int, void, int, double > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(replace_at_c, (f< int, double, int, double >, 1, void)),
+                          f< int, void, int, double > >{},
+            "");
 
         namespace nvcc_sizeof_workaround {
             template < class... >
@@ -216,6 +235,33 @@ namespace gridtools {
         static_assert(is_set_fast< f< int, void > >{}, "");
         static_assert(!is_set_fast< int >{}, "");
         //        static_assert(!is_set_fast< f< int, void, int > >{}, "");
+
+        // lfold
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g<>)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int >)), f< int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int >)), f< f< int, int >, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int >)), f< f< int, int >, int > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(lfold, (f, int, g< int, int, int >)), f< f< f< int, int >, int >, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int, int, int >)),
+                          f< f< f< f< int, int >, int >, int >, int > >{},
+            "");
+        static_assert(std::is_same< GT_META_CALL(lfold, (f, int, g< int, int, int, int, int >)),
+                          f< f< f< f< f< int, int >, int >, int >, int >, int > >{},
+            "");
+
+        // rfold
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g<>)), int >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int >)), f< int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int >)), f< int, f< int, int > > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int >)), f< int, f< int, f< int, int > > > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int, int >)),
+                          f< int, f< int, f< int, f< int, int > > > > >{},
+            "");
+        static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int, int, int >)),
+                          f< int, f< int, f< int, f< int, f< int, int > > > > > >{},
+            "");
     }
 }
 

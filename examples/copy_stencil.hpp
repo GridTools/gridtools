@@ -84,28 +84,12 @@ namespace copy_stencil {
 
         typedef arg< 0, data_store_t > p_in;
         typedef arg< 1, data_store_t > p_out;
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain;
 
         gridtools::grid< gridtools::axis< 1 >::axis_interval_t > grid;
         // gridtools::grid< axis > grid;
         copy_stencil_test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool m_verify)
-
             : d1(x), d2(y), d3(z), t_steps(t_steps), m_verify(m_verify), meta_data_(x, y, z),
               in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"), out(meta_data_, -1.0, "out"),
-              // construction of the domain. The domain is the physical domain of the problem, with all the physical
-              // fields
-              // that are used, temporary and not
-              // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-              // The order in which they have to be passed is the order in which they appear scanning the placeholders
-              // in
-              // order. (I don't particularly like this)
-              domain((p_in() = in), (p_out() = out)),
-              // Definition of the physical dimensions of the problem.
-              // The constructor takes the horizontal plane dimensions,
-              // while the vertical ones are set according the the axis property soon after
-              // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
               grid(halo_descriptor(d1),
                   halo_descriptor(d2),
                   _impl::intervals_to_indices(gridtools::axis< 1 >{d3}.interval_sizes()))
@@ -138,39 +122,29 @@ namespace copy_stencil {
 
         bool test_with_extents() {
             auto copy = gridtools::make_computation< backend_t >(
-                domain,
                 grid,
+                p_in() = in,
+                p_out() = out,
                 gridtools::make_multistage // mss_descriptor
                 (execute< parallel >(),
                     gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
-            copy->ready();
-
-            copy->steady();
-
-            copy->run();
+            copy.run();
 
             out.sync();
             in.sync();
 
-            bool success = verify();
-
-            copy->finalize();
-
-            return success;
+            return verify();
         }
 
         bool test() {
-            auto copy = gridtools::make_computation< backend_t >(domain,
-                grid,
+            auto copy = gridtools::make_computation< backend_t >(grid,
+                p_in() = in,
+                p_out() = out,
                 gridtools::make_multistage // mss_descriptor
                 (execute< parallel >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
-            copy->ready();
-
-            copy->steady();
-
-            copy->run();
+            copy.run();
 
             out.sync();
             in.sync();
@@ -180,8 +154,6 @@ namespace copy_stencil {
 #ifdef BENCHMARK
             benchmarker::run(copy, t_steps);
 #endif
-            copy->finalize();
-
             return success;
         }
     };

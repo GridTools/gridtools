@@ -34,34 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/map/map0.hpp>
-#include <boost/mpl/transform.hpp>
+#include <boost/mpl/logical.hpp>
+#include <boost/mpl/vector.hpp>
 
-#include "caches/cache_metafunctions.hpp"
-#include "caches/cache_traits.hpp"
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "esf.hpp"
-#include "functor_do_methods.hpp"
-#include "independent_esf.hpp"
-
-// #include "stencil-composition/sfinae.hpp"
+#include "caches/cache_traits.hpp"
 
 /**
 @file
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-    namespace _impl {
-
-        /**@brief Macro defining a sfinae metafunction
-
-           defines a metafunction has_extent_type, which returns true if its template argument
-           defines a type called extent_type. It also defines a get_extent_type metafunction, which
-           can be used to return the extent_type only when it is present, without giving compilation
-           errors in case it is not defined.
-         */
-        // HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
-    }
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = boost::mpl::vector0<> >
