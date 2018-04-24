@@ -46,13 +46,13 @@ namespace horizontal_diffusion {
     using gridtools::uint_t;
     using gridtools::int_t;
 
-    using storage_info_ijk_t = storage_tr::storage_info_align_t< 0, 3, gridtools::halo< 2, 2, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
+    using storage_info_ijk_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;
     using storage_info_ij_t =
-        storage_tr::special_storage_info_align_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 2, 2, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
+        storage_tr::special_storage_info_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 2, 2, 0 > >;
     using storage_info_j_t =
-        storage_tr::special_storage_info_align_t< 2, gridtools::selector< 0, 1, 0 >, gridtools::halo< 0, 0, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
+        storage_tr::special_storage_info_t< 2, gridtools::selector< 0, 1, 0 >, gridtools::halo< 0, 0, 0 > >;
     using storage_info_scalar_t =
-        storage_tr::special_storage_info_align_t< 3, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
+        storage_tr::special_storage_info_t< 3, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 > >;
 
     class repository {
       public:
@@ -74,11 +74,10 @@ namespace horizontal_diffusion {
 
       public:
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info_ijk(idim/* + 2 * halo_size*/, jdim /*+ 2 * halo_size*/, kdim /*+ 2 * halo_size*/),
-              m_storage_info_ij(idim /*+ 2 * halo_size*/, jdim /*+ 2 * halo_size*/, kdim /*+ 2 * halo_size*/),
-              m_storage_info_j(1, jdim /*+ 2 * halo_size*/, 1), m_storage_info_scalar(1, 1, 1),
-              in_(m_storage_info_ijk, "in"), crlato_(m_storage_info_j, "crlato"), crlatu_(m_storage_info_j, "crlatu"),
-              crlat0_(m_storage_info_j, "crlat0"), crlat1_(m_storage_info_j, "crlat1"), out_(m_storage_info_ijk, "out"),
+            : m_storage_info_ijk(idim, jdim, kdim), m_storage_info_ij(idim, jdim, kdim), m_storage_info_j(1, jdim, 1),
+              m_storage_info_scalar(1, 1, 1), in_(m_storage_info_ijk, "in"), crlato_(m_storage_info_j, "crlato"),
+              crlatu_(m_storage_info_j, "crlatu"), crlat0_(m_storage_info_j, "crlat0"),
+              crlat1_(m_storage_info_j, "crlat1"), out_(m_storage_info_ijk, "out"),
               out_ref_(m_storage_info_ijk, "out_ref"), coeff_(m_storage_info_ijk, "coeff"), halo_size_(halo_size),
               idim_(idim), jdim_(jdim), kdim_(kdim) {}
 
@@ -132,12 +131,9 @@ namespace horizontal_diffusion {
 
         template < typename TStorage_type, typename TValue_type >
         void init_field_to_value(TStorage_type field, TValue_type value) {
-            const uint_t dim0 =
-                (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_ /*+ 2 * halo_size_*/;
-            const uint_t dim1 =
-                (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_ /*+ 2 * halo_size_*/;
-            const uint_t dim2 =
-                (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_ /*+ 2 * halo_size_*/;
+            const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_;
+            const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_;
+            const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_;
 
             auto v = make_host_view(field);
             for (uint_t k = 0; k < dim2; ++k) {
