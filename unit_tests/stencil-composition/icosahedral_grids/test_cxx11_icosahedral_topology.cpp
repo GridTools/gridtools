@@ -82,11 +82,10 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));
         ASSERT_TRUE((ameta.dim< 2 >() == 6));
+        ASSERT_TRUE((ameta.dim< 3 >() == 7));
 #ifdef BACKEND_MIC
         // 3rd dimension is padded for MIC
-        ASSERT_TRUE((ameta.dim< 3 >() == 8));
-#else
-        ASSERT_TRUE((ameta.dim< 3 >() == 7));
+        ASSERT_EQ(ameta.total_length< 3 >(), 8);
 #endif
     }
     {
