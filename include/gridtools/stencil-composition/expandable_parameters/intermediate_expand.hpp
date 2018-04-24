@@ -135,23 +135,23 @@ namespace gridtools {
                 return 1;
             }
 
-            template < uint_t N >
-            struct convert_data_store_f {
+            template < class >
+            struct convert_data_store_f;
+
+            template < size_t... Is >
+            struct convert_data_store_f< gt_index_sequence< Is... > > {
                 size_t m_offset;
                 template < typename T >
-                data_store_field< T, N > operator()(const std::vector< T > &src) const {
+                data_store_field< T, sizeof...(Is) > operator()(const std::vector< T > &src) const {
                     assert(!src.empty());
-                    data_store_field< T, N > res = {*src[0].get_storage_info_ptr()};
-                    assert(src.size() >= m_offset + N);
-                    for (uint_t i = 0; i != N; ++i)
-                        res.set(0, i, src[m_offset + i]);
-                    return res;
+                    assert(src.size() >= m_offset + sizeof...(Is));
+                    return {src[m_offset + Is]...};
                 }
             };
 
             template < uint_t N >
             struct convert_arg_storage_pair_f {
-                convert_data_store_f< N > m_convert_data_store;
+                convert_data_store_f< make_gt_index_sequence< N > > m_convert_data_store;
                 template < typename Arg, typename DataStoreType >
                 arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
                     typename convert_data_store_type< N, DataStoreType >::type >

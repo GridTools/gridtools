@@ -91,6 +91,26 @@ namespace gridtools {
             : m_field(fill_array< DataStore, num_of_storages >(info)) {}
 
         /**
+         * @brief construct from existing data_stores
+         */
+        template < typename... DataStores >
+        data_store_field(DataStores... data_stores)
+            : m_field{data_stores...} {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(DataStores) == num_of_storages,
+                "Wrong number of data_stores passed to data_store_field constructor.");
+            GRIDTOOLS_STATIC_ASSERT(
+                (std::is_same< DataStore, typename std::common_type< DataStores... >::type >::value),
+                "Wrong number of data_stores passed to data_store_field constructor.");
+#ifndef NDEBUG
+// check that all storage_infos are same at runtime
+// TODO I get an internal compiler error with the following code (and some variations of it...)
+//            for (size_t i = 0; i < m_field.size(); ++i) {
+//                assert(equality_check(*(m_field[0].get_storage_info_ptr()), *(m_field[i].get_storage_info_ptr())));
+//            }
+#endif
+        }
+
+        /**
          * @brief method that is used to extract a data_store out of a data_store_field
          * @tparam Dim requested coordinate
          * @tparam Snapshot requested snapshot
