@@ -254,6 +254,8 @@ namespace gridtools {
         /// reminder.
         converted_intermediate< 1 > m_intermediate_remainder;
 
+        typename Backend::backend_traits_t::performance_meter_t m_meter;
+
         template < class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs >
         intermediate_expand(Grid const &grid,
             std::pair< ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs > &&arg_refs,
@@ -265,7 +267,8 @@ namespace gridtools {
               m_intermediate(
                   grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)),
               m_intermediate_remainder(
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)) {}
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)),
+              m_meter("NoName") {}
 
       public:
         template < class BoundArgStoragePairsRefs >
@@ -278,7 +281,8 @@ namespace gridtools {
 
         template < class... Args, class... DataStores >
         notype run(arg_storage_pair< Args, DataStores > const &... args) {
-            // split arguments to expadable and plain ard_storage_pairs
+            m_meter.start();
+            // split arguments to expandable and plain arg_storage_pairs
             auto arg_groups = split_args< _impl::expand_detail::is_expandable >(args...);
             auto bound_expandable_arg_refs = tuple_util::transform(identity{}, m_expandable_bound_arg_storage_pairs);
             // concatenate expandable portion of arguments with the refs to bound expandable ard_storage_pairs
@@ -301,6 +305,7 @@ namespace gridtools {
                 auto converted_args = _impl::expand_detail::convert_arg_storage_pairs< 1 >(offset, expandable_args);
                 _impl::expand_detail::invoke_run(m_intermediate_remainder, std::tuple_cat(plain_args, converted_args));
             }
+            m_meter.pause();
             return {};
         }
 
@@ -310,16 +315,10 @@ namespace gridtools {
             m_intermediate_remainder.sync_bound_data_stores();
         }
 
-        std::string print_meter() const {
-            assert(false);
-            return {};
-        }
+        std::string print_meter() const { return m_meter.to_string(); }
 
-        double get_meter() const { return m_intermediate.get_meter() + m_intermediate_remainder.get_meter(); }
+        double get_meter() const { return m_meter.total_time(); }
 
-        void reset_meter() {
-            m_intermediate.reset_meter();
-            m_intermediate_remainder.reset_meter();
-        }
+        void reset_meter() { m_meter.reset(); }
     };
 }
