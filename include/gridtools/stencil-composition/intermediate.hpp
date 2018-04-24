@@ -447,6 +447,8 @@ namespace gridtools {
         template < class... Args, class... DataStores >
         typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
             arg_storage_pair< Args, DataStores > const &... srcs) {
+            if (m_timer_enabled)
+                m_meter.start();
             GRIDTOOLS_STATIC_ASSERT((conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
                 "some placeholders are not used in mss descriptors");
             GRIDTOOLS_STATIC_ASSERT(
@@ -459,8 +461,6 @@ namespace gridtools {
             update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_tuple),
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));
             // now local domains are fully set up.
-            if (m_timer_enabled)
-                m_meter.start();
             // branch selector calls run_f functor on the right branch of mss condition tree.
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
             if (m_timer_enabled)
