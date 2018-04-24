@@ -39,11 +39,7 @@
 #include <gridtools.hpp>
 #include "common/halo_descriptor.hpp"
 
-#ifdef __CUDACC__
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
+#include <boundary-conditions/boundary.hpp>
 
 #include <boundary-conditions/zero.hpp>
 #include <boundary-conditions/value.hpp>
@@ -152,8 +148,8 @@ struct minus_predicate {
 
 bool basic() {
 
-    uint_t d1 = 5;
-    uint_t d2 = 5;
+    uint_t d1 = 4;
+    uint_t d2 = 3;
     uint_t d3 = 5;
 
     typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
@@ -170,12 +166,8 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
     in.sync();
-#ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    gridtools::boundary_apply_gpu< bc_basic >(halos, bc_basic()).apply(indv);
-#else
-    gridtools::boundary_apply< bc_basic >(halos, bc_basic()).apply(inv);
-#endif
+    gridtools::boundary< bc_basic, ARCH >(halos, bc_basic()).apply(in);
+
     in.sync();
 
     bool result = true;
