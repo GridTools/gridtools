@@ -346,7 +346,8 @@ namespace gridtools {
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;
 
-                constexpr int_t additional_offset = kcache_t::kwindow_t::m_;
+                constexpr int_t additional_offset = kcache_t::kwindow_t::m_ + ( (kcache_t::ccacheIOPolicy == cache_io_policy::bpfill) ? 0 : 
+                          ((IterationPolicy::value == enumtype::forward) ? -1 : 1));
 
                 using io_op_t =
                     typename io_operator_end< Idx, IterationPolicy::value, CacheIOPolicy, additional_offset >::type;
