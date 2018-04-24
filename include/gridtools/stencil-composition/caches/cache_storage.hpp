@@ -125,12 +125,12 @@ namespace gridtools {
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_extents_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_extents_t;
 
-        using minus_t = typename boost::mpl::if_< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            minus_extents_t,
-            typename min_enclosing_extent< minus_extents_t, typename cache_t::kwindow_t >::type >::type;
+        using minus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
+            boost::mpl::identity<minus_extents_t>,
+            min_enclosing_extent< minus_extents_t, typename cache_t::kwindow_t > >::type;
         using plus_t = typename boost::mpl::if_< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            plus_extents_t,
-            typename max_enclosing_extent< plus_extents_t, typename cache_t::kwindow_t >::type >::type;
+            boost::mpl::identity<plus_extents_t>,
+            max_enclosing_extent< plus_extents_t, typename cache_t::kwindow_t > >::type;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
         static constexpr int tiles_block = accumulate(multiplies(), Tiles...);
