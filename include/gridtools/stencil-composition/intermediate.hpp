@@ -406,10 +406,13 @@ namespace gridtools {
         //
         mss_local_domain_list_t m_mss_local_domain_list;
 
+        bool m_timer_enabled;
+
       public:
         intermediate(Grid const &grid,
             std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... > arg_storage_pairs,
-            std::tuple< MssDescriptors... > msses)
+            std::tuple< MssDescriptors... > msses,
+            bool timer_enabled = true)
             // grid just stored to the member
             : m_grid(grid),
               m_meter("NoName"),
@@ -423,7 +426,8 @@ namespace gridtools {
                   storage_wrapper_list_t,
                   tmp_arg_storage_pair_tuple_t >(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
-              m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
+              m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))),
+              m_timer_enabled(timer_enabled) {
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
@@ -455,10 +459,12 @@ namespace gridtools {
             update_local_domains(std::tuple_cat(make_view_infos(m_bound_arg_storage_pair_tuple),
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));
             // now local domains are fully set up.
-            m_meter.start();
+            if (m_timer_enabled)
+                m_meter.start();
             // branch selector calls run_f functor on the right branch of mss condition tree.
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
-            m_meter.pause();
+            if (m_timer_enabled)
+                m_meter.pause();
             return res;
         }
 

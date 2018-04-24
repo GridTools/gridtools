@@ -264,10 +264,12 @@ namespace gridtools {
             : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
               // plain arg_storage_pairs are bound to both intermediates;
               // msses descriptors got transformed and also got passed to intermediates.
-              m_intermediate(
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses)),
+              m_intermediate(grid,
+                  arg_refs.second,
+                  _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses),
+                  false),
               m_intermediate_remainder(
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses)),
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses), false),
               m_meter("NoName") {}
 
       public:
