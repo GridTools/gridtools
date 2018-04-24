@@ -80,6 +80,37 @@ namespace gridtools {
             };
         };
 
+        template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
+        struct flush_mem_accessor_end {
+            /**
+             * Apply struct of the functor
+             *
+             * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+             */
+            template < int_t Offset >
+            struct apply_t {
+                /**
+                 * @brief apply the functor
+                 * @param it_domain iterate domain
+                 * @param cache_st cache storage
+                 */
+                template < typename IterateDomain, typename CacheStorage >
+                GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
+                    typedef accessor< AccIndex::value,
+                        enumtype::inout,
+                        extent< 0,
+                                          0,
+                                          0,
+                                          0,
+                                          ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0),
+                                          ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset)) > > acc_t;
+                    constexpr acc_t acc_(0, 0, (Offset + InitialOffset));
+                    it_domain.get_gmem_value(acc_) = cache_st.at(acc_);
+                    return 0;
+                }
+            };
+        };
+
         /**
          * @struct fill_mem_accessor
          * functor that prefill a kcache (before starting the vertical iteration) with initial values from main memory
@@ -135,17 +166,19 @@ namespace gridtools {
 
                     typedef accessor< AccIndex::value,
                         enumtype::in,
-                        extent< 0, 0, 0, 0, ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0), ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset)) > > acc_t;
-                    constexpr acc_t acc_(0,
-                        0,
-                        (Offset + InitialOffset));
+                        extent< 0,
+                                          0,
+                                          0,
+                                          0,
+                                          ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0),
+                                          ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset)) > > acc_t;
+                    constexpr acc_t acc_(0, 0, (Offset + InitialOffset));
                     cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
 
                     return 0;
                 }
             };
         };
-
 
         template < typename AccIndex,
             enumtype::execution ExecutionPolicy,
@@ -176,9 +209,8 @@ namespace gridtools {
 
         template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
         struct io_operator_end< AccIndex, ExecutionPolicy, cache_io_policy::flush, InitialOffset > {
-            using type = flush_mem_accessor< AccIndex, ExecutionPolicy, InitialOffset >;
+            using type = flush_mem_accessor_end< AccIndex, ExecutionPolicy, InitialOffset >;
         };
-
 
         enum class cache_section { head, tail };
 
