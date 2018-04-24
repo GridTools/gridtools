@@ -111,7 +111,7 @@ namespace gridtools {
         using layout_t = layout_map< LayoutArgs... >;
         using halo_t = halo< Halos... >;
         using alignment_t = Align;
-        static const int max_layout_v = max_value< layout_t >::value;
+        static const int max_layout_v = layout_t::max();
 
         GRIDTOOLS_STATIC_ASSERT((sizeof...(Halos) == layout_t::masked_length),
             GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
@@ -191,14 +191,11 @@ namespace gridtools {
         using seq =
             gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, ndims >::type >;
 
-        // GT_FUNCTION
-        // constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
-        //     : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
-        //           dims)),
-        //       m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type
-        //       >(
-        //           strides)),
-        //       m_alignment(m_dims, m_strides) {}
+        GT_FUNCTION
+        constexpr storage_info_interface(array< uint_t, ndims > dims, array< uint_t, ndims > strides)
+            : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(dims))
+            , m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(strides))
+        {}
 
         /**
          * @brief storage info copy constructor.

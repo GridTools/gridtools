@@ -126,7 +126,7 @@ namespace aligned_copy_stencil {
 
         grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >()});
 
-        auto copy = gridtools::make_computation< backend_t >(grid,
+        auto copy = gridtools::make_positional_computation< backend_t >(grid,
             p_in() = in,
             p_out() = out,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));

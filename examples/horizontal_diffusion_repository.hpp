@@ -46,13 +46,13 @@ namespace horizontal_diffusion {
     using gridtools::uint_t;
     using gridtools::int_t;
 
-    using storage_info_ijk_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;
+    using storage_info_ijk_t = storage_tr::storage_info_align_t< 0, 3, gridtools::halo< 2, 2, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
     using storage_info_ij_t =
-        storage_tr::special_storage_info_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 2, 2, 0 > >;
+        storage_tr::special_storage_info_align_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 2, 2, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
     using storage_info_j_t =
-        storage_tr::special_storage_info_t< 2, gridtools::selector< 0, 1, 0 >, gridtools::halo< 0, 0, 0 > >;
+        storage_tr::special_storage_info_align_t< 2, gridtools::selector< 0, 1, 0 >, gridtools::halo< 0, 0, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
     using storage_info_scalar_t =
-        storage_tr::special_storage_info_t< 3, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 > >;
+        storage_tr::special_storage_info_align_t< 3, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 >, gridtools::alignment<256/sizeof(gridtools::float_type) > >;
 
     class repository {
       public:

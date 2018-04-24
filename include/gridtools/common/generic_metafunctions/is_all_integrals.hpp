@@ -44,16 +44,6 @@ namespace gridtools {
     template < typename... IntTypes >
     GT_META_DEFINE_ALIAS(is_all_integral, conjunction, std::is_integral< IntTypes >...);
 
-// <<<<<<< HEAD
-//     /* check if all given types are unsigned integral types */
-//     template < typename... IntTypes >
-//     using is_all_unsigned =
-//         meta::conjunction< meta::conjunction< std::is_integral< IntTypes >... >, std::is_unsigned< IntTypes >... >;
-
-//     /* check if all given types are integral types */
-// =======
-// >>>>>>> ethz/master
-     /* check if all given types are integral types */
     template < typename T >
     GT_META_DEFINE_ALIAS(is_integral_or_enum, bool_constant, std::is_integral< T >::value || std::is_enum< T >::value);
 
