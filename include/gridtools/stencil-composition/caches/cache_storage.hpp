@@ -37,6 +37,7 @@
 #include <boost/mpl/max.hpp>
 #include <boost/mpl/min.hpp>
 #include <boost/utility/enable_if.hpp>
+#include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/array.hpp"
@@ -96,10 +97,36 @@ namespace gridtools {
                 boost::mpl::integral_c< int, KWindow::p_ > >::type;
         };
 
+        template < typename Seq, typename KWindow >
+        struct min_enclosing_extent;
+
+        template < typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow >
+        struct min_enclosing_extent< variadic_to_vector< Arg0, Arg1, Arg2, Args... >, KWindow > {
+            using type = variadic_to_vector< Arg0,
+                Arg1,
+                typename boost::mpl::min< Arg2, static_int< KWindow::m_ > >::type,
+                Args... >;
+        };
+
+        template < typename Seq, typename KWindow >
+        struct max_enclosing_extent;
+
+        template < typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow >
+        struct max_enclosing_extent< variadic_to_vector< Arg0, Arg1, Arg2, Args... >, KWindow > {
+            using type = variadic_to_vector< Arg0,
+                Arg1,
+                typename boost::mpl::max< Arg2, static_int< KWindow::p_ > >::type,
+                Args... >;
+        };
+
       public:
         using cache_t = Cache;
-        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
-        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
+
+        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_extents_t;
+        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_extents_t;
+
+        using minus_t = typename min_enclosing_extent< minus_extents_t, typename cache_t::kwindow_t >::type;
+        using plus_t = typename max_enclosing_extent< plus_extents_t, typename cache_t::kwindow_t >::type;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
         static constexpr int tiles_block = accumulate(multiplies(), Tiles...);
@@ -120,14 +147,11 @@ namespace gridtools {
 
         using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
         using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
-        using kminus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            boost::mpl::at_c< typename minus_t::type, 2 >,
-            get_kminus_bound< minus_t, typename cache_t::kwindow_t > >::type;
+        using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
+
         using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
         using jplus_t = typename boost::mpl::at_c< typename plus_t::type, 1 >::type;
-        using kplus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            boost::mpl::at_c< typename minus_t::type, 2 >,
-            get_kplus_bound< plus_t, typename cache_t::kwindow_t > >::type;
+        using kplus_t = typename boost::mpl::at_c< typename plus_t::type, 2 >::type;
 
         GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
                                                                          iplus_t::value == 0 && jplus_t::value == 0),
