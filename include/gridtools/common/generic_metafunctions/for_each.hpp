@@ -49,12 +49,35 @@ namespace gridtools {
                 (void)(int[]){((void)fun(Ts{}), 0)...};
             }
         };
+
+        template < class List >
+        struct host_for_each_f;
+
+        template < template < class... > class L, class... Ts >
+        struct host_for_each_f< L< Ts... > > {
+            template < class Fun >
+            void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun(Ts{}), 0)...};
+            }
+        };
     }
 
     /// Calls fun(T{}) for each element of the type list List.
     template < class List, class Fun >
     GT_FUNCTION Fun for_each(Fun const &fun) {
         _impl::for_each_f< List >{}(fun);
+        return fun;
+    };
+
+    // TODO(anstaf): avoid copying the same thing with and without GT_FUNCTION.
+    //               Possible solution is boost preprocessor vertical repetition pattern
+    //               it should be for_each, host::for_each and device::for_each
+    //               for CUDA they will be different, for others all are aliases to host::for_each
+    //               The same pattern could be applied for all template functions that we use both in
+    //               device and host context.
+    template < class List, class Fun >
+    Fun host_for_each(Fun const &fun) {
+        _impl::host_for_each_f< List >{}(fun);
         return fun;
     };
 }

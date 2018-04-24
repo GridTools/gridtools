@@ -34,7 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/timer.hpp"
+
+#include <memory>
+#include <string>
+#include <cuda_runtime.h>
+
+#include "../timer.hpp"
 
 namespace gridtools {
 
@@ -44,47 +49,48 @@ namespace gridtools {
     */
     class timer_cuda : public timer< timer_cuda > // CRTP
     {
+        struct event_deleter {
+            void operator()(cudaEvent_t event) const { cudaEventDestroy(event); }
+        };
+        using event_holder = std::unique_ptr< CUevent_st, event_deleter >;
+
+        static event_holder create_event() {
+            cudaEvent_t event;
+            cudaEventCreate(&event);
+            return event_holder{event};
+        }
+
+        event_holder m_start = create_event();
+        event_holder m_stop = create_event();
+
       public:
-        GT_FUNCTION_HOST timer_cuda(std::string name) : timer< timer_cuda >(name) {
-            // create the CUDA events
-            cudaEventCreate(&start_);
-            cudaEventCreate(&stop_);
-        }
-        GT_FUNCTION_HOST ~timer_cuda() {
-            // free the CUDA events
-            cudaEventDestroy(start_);
-            cudaEventDestroy(stop_);
-        }
+        timer_cuda(std::string name) : timer< timer_cuda >(name) {}
 
         /**
         * Reset counters
         */
-        GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
+        void set_impl(double) {}
 
         /**
         * Start the stop watch
         */
-        GT_FUNCTION_HOST void start_impl() {
+        void start_impl() {
             // insert a start event
-            cudaEventRecord(start_, 0);
+            cudaEventRecord(m_start.get(), 0);
         }
 
         /**
         * Pause the stop watch
         */
-        GT_FUNCTION_HOST double pause_impl() {
+        double pause_impl() {
             // insert stop event and wait for it
-            cudaEventRecord(stop_, 0);
-            cudaEventSynchronize(stop_);
+            cudaEventRecord(m_stop.get(), 0);
+            cudaEventSynchronize(m_stop.get());
 
             // compute the timing
             float result;
-            cudaEventElapsedTime(&result, start_, stop_);
-            return static_cast< double >(result) * 0.001f; // convert ms to s
+            cudaEventElapsedTime(&result, m_start.get(), m_stop.get());
+            return result * 0.001; // convert ms to s
         }
-
-      private:
-        cudaEvent_t start_;
-        cudaEvent_t stop_;
     };
 }

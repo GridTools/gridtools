@@ -117,14 +117,6 @@ namespace aligned_copy_stencil {
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(in, out);
-
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -134,17 +126,16 @@ namespace aligned_copy_stencil {
 
         grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >()});
 
-        auto copy = gridtools::make_positional_computation< backend_t >(domain,
-            grid,
+        auto copy = gridtools::make_computation< backend_t >(grid,
+            p_in() = in,
+            p_out() = out,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
+        copy.run();
+        copy.sync_bound_data_stores();
 
 #ifdef BENCHMARK
-        std::cout << copy->print_meter() << std::endl;
+        std::cout << copy.print_meter() << std::endl;
 #endif
 
         // check view consistency

@@ -139,3 +139,43 @@ TEST(convert_to, from_pair) {
     ASSERT_EQ((double)val0, result[0]);
     ASSERT_EQ((double)val1, result[1]);
 }
+
+TEST(join_array, from_arrays) {
+    gridtools::array< size_t, 1 > a{1};
+    gridtools::array< size_t, 1 > b{2};
+
+    auto result = join_array(a, b);
+
+    ASSERT_TYPE_EQ< gridtools::array< size_t, 2 >, decltype(result) >();
+    ASSERT_EQ(a[0], result[0]);
+    ASSERT_EQ(b[0], result[1]);
+}
+
+TEST(join_array, first_empty) {
+    gridtools::array< size_t, 0 > a{};
+    gridtools::array< size_t, 1 > b{1};
+
+    auto result = join_array(a, b);
+
+    ASSERT_TYPE_EQ< gridtools::array< size_t, 1 >, decltype(result) >();
+    ASSERT_EQ(b[0], result[0]);
+}
+
+TEST(join_array, second_empty) {
+    gridtools::array< size_t, 1 > a{1};
+    gridtools::array< size_t, 0 > b{};
+
+    auto result = join_array(a, b);
+
+    ASSERT_TYPE_EQ< gridtools::array< size_t, 1 >, decltype(result) >();
+    ASSERT_EQ(a[0], result[0]);
+}
+
+TEST(join_array, both_empty) {
+    gridtools::array< size_t, 0 > a{};
+    gridtools::array< size_t, 0 > b{};
+
+    auto result = join_array(a, b);
+
+    ASSERT_TYPE_EQ< gridtools::array< size_t, 0 >, decltype(result) >();
+}

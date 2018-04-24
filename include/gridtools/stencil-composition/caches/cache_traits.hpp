@@ -85,6 +85,10 @@ namespace gridtools {
     struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::flush, Interval > >
         : boost::mpl::true_ {};
 
+    template < cache_type cacheType, typename Arg, typename Interval >
+    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill_and_flush, Interval > >
+        : boost::mpl::true_ {};
+
     /**
      * @struct is_epflushing_cache
      * metafunction determining if a type is an end-point flushing cache
@@ -105,6 +109,10 @@ namespace gridtools {
 
     template < cache_type cacheType, typename Arg, typename Interval >
     struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill, Interval > >
+        : boost::mpl::true_ {};
+
+    template < cache_type cacheType, typename Arg, typename Interval >
+    struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill_and_flush, Interval > >
         : boost::mpl::true_ {};
 
     /**
