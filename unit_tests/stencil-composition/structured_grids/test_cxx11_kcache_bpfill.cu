@@ -88,7 +88,7 @@ struct shift_acc_backward_bpfilll {
 
 struct self_update_forward_bpfilll {
 
-    typedef accessor< 0, inout, extent< 0, 0, 0, 0, -2, 1 > > in;
+    typedef accessor< 0, inout, extent< 0, 0, 0, 0, -2, 0 > > in;
     typedef inout_accessor< 1 > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
@@ -100,7 +100,6 @@ struct self_update_forward_bpfilll {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
-
         eval(out()) = eval(in());
     }
 
@@ -113,7 +112,7 @@ struct self_update_forward_bpfilll {
 
 struct self_update_backward_bpfilll {
 
-    typedef accessor< 0, inout, extent< 0, 0, 0, 0, -1, 2 > > in;
+    typedef accessor< 0, inout, extent< 0, 0, 0, 0, 0, 2 > > in;
     typedef inout_accessor< 1 > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
@@ -125,7 +124,6 @@ struct self_update_backward_bpfilll {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
-
         eval(out()) = eval(in());
     }
 
@@ -310,3 +308,4 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
+
