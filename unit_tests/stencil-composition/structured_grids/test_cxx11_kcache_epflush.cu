@@ -109,16 +109,16 @@ TEST_F(kcachef, epflush_forward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    auto kcache_stencil =
-        make_computation< backend_t >(m_grid,
-            p_out() = m_out,
-            p_in() = m_in,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                                          define_caches(cache< K, cache_io_policy::epflush, kfull >(p_out())),
-                                          make_stage< shift_acc_forward_epflush >(p_in() // esf_descriptor
-                                              ,
-                                              p_out())));
+    auto kcache_stencil = make_computation< backend_t >(
+        m_grid,
+        p_out() = m_out,
+        p_in() = m_in,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+            define_caches(cache< K, cache_io_policy::epflush, kfull, window< -1, 0 > >(p_out())),
+            make_stage< shift_acc_forward_epflush >(p_in() // esf_descriptor
+                ,
+                p_out())));
 
     kcache_stencil.run();
 
@@ -157,16 +157,16 @@ TEST_F(kcachef, epflush_backward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    auto kcache_stencil =
-        make_computation< backend_t >(m_gridb,
-            p_out() = m_out,
-            p_in() = m_in,
-            make_multistage // mss_descriptor
-            (execute< backward >(),
-                                          define_caches(cache< K, cache_io_policy::epflush, kfull_b >(p_out())),
-                                          make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
-                                              ,
-                                              p_out())));
+    auto kcache_stencil = make_computation< backend_t >(
+        m_gridb,
+        p_out() = m_out,
+        p_in() = m_in,
+        make_multistage // mss_descriptor
+        (execute< backward >(),
+            define_caches(cache< K, cache_io_policy::epflush, kfull_b, window< 0, 1 > >(p_out())),
+            make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
+                ,
+                p_out())));
 
     kcache_stencil.run();
 
