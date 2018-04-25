@@ -94,18 +94,27 @@ namespace gridtools {
          * @brief construct from existing data_stores
          */
         template < typename... DataStores,
-            typename std::enable_if< sizeof...(DataStores) == num_of_storages, int >::type = 0 >
-        data_store_field(DataStores... data_stores)
-            : m_field{data_stores...} {
-            GRIDTOOLS_STATIC_ASSERT((conjunction< std::is_convertible< DataStores, DataStore >... >{}),
-                "Not all data_stores are of the same type.");
-
-            // check that all storage_infos are same at runtime
-            for (size_t i = 1; i < m_field.size(); ++i) {
-                ASSERT_OR_THROW(*m_field[0].get_storage_info_ptr() == *m_field[i].get_storage_info_ptr(),
-                    "storage_infos don't match in data_store_field constructor");
-            }
+            typename std::enable_if<
+                sizeof...(DataStores) == num_of_storages &&
+                    std::is_same< DataStore,
+                        typename std::common_type< typename std::decay< DataStores >::type... >::type >::value,
+                int >::type = 0 >
+        data_store_field(DataStores &&... data_stores)
+            : m_field{std::forward< DataStores >(data_stores)...} {
+            // TODO remove this line: it is just to check the enabler in the example below.
+            GRIDTOOLS_STATIC_ASSERT(
+                (conjunction< std::is_same< typename std::decay< DataStores >::type, DataStore >... >::value), "wrong");
         }
+
+        // TODO why is the enabler not working? bug in CUDA or I am stupid?
+        //        template < typename... DataStores,
+        //            typename std::enable_if<
+        //                sizeof...(DataStores) == num_of_storages &&
+        //                    conjunction< std::is_same< typename std::decay< DataStores >::type, DataStore >...
+        //                    >::value,
+        //                int >::type = 0 >
+        //        data_store_field(DataStores &&... data_stores)
+        //            : m_field{std::forward< DataStores >(data_stores)...} {}
 
         /**
          * @brief method that is used to extract a data_store out of a data_store_field
