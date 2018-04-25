@@ -467,11 +467,20 @@ namespace gridtools {
             return res;
         }
 
-        std::string print_meter() const { return m_meter->to_string(); }
+        std::string print_meter() const {
+            assert(m_meter);
+            return m_meter->to_string();
+        }
 
-        double get_meter() const { return m_meter->total_time(); }
+        double get_meter() const {
+            assert(m_meter);
+            return m_meter->total_time();
+        }
 
-        void reset_meter() { m_meter->reset(); }
+        void reset_meter() {
+            assert(m_meter);
+            m_meter->reset();
+        }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
