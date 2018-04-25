@@ -83,7 +83,7 @@ namespace gridtools {
          */
         constexpr data_store_field() {}
         constexpr data_store_field(data_store_field const &) = default;
-        constexpr data_store_field(data_store_field &&) = default;
+        data_store_field(data_store_field &&) = default;
 
         /**
          * @brief data_store_field constructor
