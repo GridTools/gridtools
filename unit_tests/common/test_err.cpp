@@ -33,50 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include <assert.h>
-#include <stdexcept>
+#include "common/error.hpp"
+#include "gtest/gtest.h"
 
-#include "host_device.hpp"
-#include "defs.hpp"
+using namespace gridtools;
 
-namespace gridtools {
+TEST(err_or_return, true_condition) {
+    size_t return_val = 1;
+    bool true_condition = true;
 
-    /**
-     * @brief This struct is used to trigger runtime errors. The reason
-     * for having a struct is simply that this element can be used in
-     * constexpr functions while a simple call to e.g., std::runtime_error
-     * would not compile.
-     */
-    struct error {
+    ASSERT_EQ(return_val, error_or_return(true_condition, return_val, ""));
+}
 
-        template < typename T >
-        GT_FUNCTION static T get(char const *msg) {
-#ifdef __CUDA_ARCH__
-            assert(false);
-            return *((T volatile *)(0x0));
-#else
-            throw std::runtime_error(msg);
-#endif
-        }
+TEST(err_or_return, false_condition) {
+    size_t return_val = 1;
+    bool false_condition = false;
 
-        template < typename T = uint_t >
-        GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
-            return get< T >(msg);
-        }
-    };
+    ASSERT_ANY_THROW(error_or_return(false_condition, return_val, ""));
+}
 
-    /**
-     * @brief Helper struct used to throw an error if the condition is not met.
-     * Otherwise the provided result is returned. This method can be used in constexprs.
-     * @tparam T return type
-     * @param cond condition that should be true
-     * @param res result value
-     * @param msg error message if condition is not met
-     */
-    template < typename T >
-    GT_FUNCTION constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
-        return cond ? res : error::trigger< T >(msg);
-    }
+constexpr size_t call_error_or_return(bool condition, size_t return_val) {
+    return error_or_return(condition, return_val, "");
+}
+
+TEST(err_or_return, in_constexpr_context) {
+    const size_t return_val = 1;
+    const bool true_condition = true;
+
+    constexpr size_t result = call_error_or_return(true_condition, return_val);
+    ASSERT_EQ(return_val, result);
 }
