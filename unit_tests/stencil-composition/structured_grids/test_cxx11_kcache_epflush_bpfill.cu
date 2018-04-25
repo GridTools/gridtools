@@ -81,22 +81,29 @@ struct backward_fill {
 
 struct forward_fill {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 2 > > tmp;
-    typedef accessor< 1, inout, extent< 0, 0, 0, 0, 0, 2 > > out;
+    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, -2 > > tmp;
+    typedef accessor< 1, inout, extent< 0, 0, 0, 0, 0, -2 > > out;
 
     typedef boost::mpl::vector< tmp, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum_m2) {
-        eval(out()) = eval(tmp(0, 0, 1)) + eval(tmp(0, 0, 2));
+    GT_FUNCTION static void Do(Evaluation &eval, firsttwo) {}
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, midbody_first) {
+        eval(out()) = eval(tmp(0, 0, -1)) + eval(tmp(0, 0, -2));
     }
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
-        eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2));
+    GT_FUNCTION static void Do(Evaluation &eval, midbody_high) {
+        eval(out()) = eval(out(0, 0, -1)) + eval(out(0, 0, -2));
+    }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, lasttwo) {
+        eval(out()) = eval(out(0, 0, -1)) + eval(out(0, 0, -2));
     }
 };
 
-TEST_F(kcachef, epflush_and_bpfill) {
+TEST_F(kcachef, epflush_and_bpfill_forward_backward) {
 
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
@@ -125,6 +132,50 @@ TEST_F(kcachef, epflush_and_bpfill) {
         make_multistage(execute< backward >(),
             define_caches(cache< K, cache_io_policy::bpfill, fullminustwolast, window< 0, 2 > >(p_tmp())),
             make_stage< backward_fill >(p_tmp(), p_out())));
+
+    kcache_stencil.run();
+
+    m_out.sync();
+    m_out.reactivate_host_write_views();
+
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+}
+
+TEST_F(kcachef, epflush_and_bpfill_backward_forward) {
+
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            m_refv(i, j, 0) = -1;
+            m_refv(i, j, 1) = -1;
+            m_refv(i, j, 2) = m_inv(i, j, 1) + m_inv(i, j, 0);
+
+            for (int_t k = 3; k < m_d3 - 1; ++k) {
+                m_refv(i, j, k) = m_refv(i, j, k - 1) + m_refv(i, j, k - 2);
+            }
+        }
+    }
+
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
+    typedef tmp_arg< 2, storage_t > p_tmp;
+
+    auto kcache_stencil = make_positional_computation< backend_t >(
+        m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
+        make_multistage(execute< backward >(),
+            define_caches(cache< K, cache_io_policy::epflush, kfull, window< 0, 1 > >(p_tmp())),
+            make_stage< copy_flush >(p_in(), p_tmp())),
+        make_multistage(execute< forward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, fullminustwolast, window< -2, 0 > >(p_tmp())),
+            make_stage< forward_fill >(p_tmp(), p_out())));
 
     kcache_stencil.run();
 

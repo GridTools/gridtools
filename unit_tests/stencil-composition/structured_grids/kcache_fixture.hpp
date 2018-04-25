@@ -63,9 +63,12 @@ using kbody_highp1m1 = kbody_highp1::modify< 0, -1 >;
 using lasttwo = axis_t::get_interval< 2 >;
 using midbody = axis_t::get_interval< 1 >;
 using midbody_last = midbody::last_level;
+using midbody_first = midbody::first_level;
 using midbody_low = midbody::modify< 0, -1 >;
+using midbody_high = midbody::modify< 1, 0 >;
 using firsttwo = axis_t::get_interval< 0 >;
 using fullminustwolast = midbody::modify< -2, 0 >;
+using fullminustwofirst = midbody::modify< 0, 2 >;
 
 class kcachef : public ::testing::Test {
   protected:
