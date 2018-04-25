@@ -88,7 +88,7 @@ class kcachef : public ::testing::Test {
     kcachef()
         : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2},
           m_grid(make_grid(m_di, m_dj, axis_t(m_d3))), m_gridb(make_grid(m_di, m_dj, axis_b_t(m_d3 - 2u, 2u))),
-          m_meta(m_d1, m_d2, m_d3), m_in(m_meta, [](int i, int j, int k) { return i + j + k; }, "in"),
+          m_meta(m_d1, m_d2, m_d3), m_in(m_meta, [](int i, int j, int k) { return i + j + k + 1; }, "in"),
           m_out(m_meta, -1., "out"), m_ref(m_meta, -1., "ref"), m_inv(make_host_view(m_in)),
           m_outv(make_host_view(m_out)), m_refv(make_host_view(m_ref)) {
         init_fields();
