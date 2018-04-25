@@ -61,7 +61,11 @@ using kminimum_b = kfull_b::first_level;
 using kminimump1_b = kminimum_b::shift< 1 >;
 using kmaximum_b = kfull_b::last_level;
 using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 0, -1 >;
+using kmaximum2_b = axis_b_t::get_interval< 1 >;
+using kmaximum_m2_b = axis_b_t::get_interval< 0 >::last_level;
+
 using kbody_low_b = axis_b_t::get_interval< 0 >;
+using kbody_low_m1_b = axis_b_t::get_interval< 0 >::modify< 0, -1 >;
 using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
 
 class kcachef : public ::testing::Test {
@@ -76,6 +80,7 @@ class kcachef : public ::testing::Test {
 
     gridtools::grid< axis > m_grid;
     gridtools::grid< axis_b > m_gridb;
+
     storage_info_t m_meta;
     storage_t m_in, m_out, m_ref;
     gridtools::data_view< storage_t, gridtools::access_mode::ReadWrite > m_inv, m_outv, m_refv;
