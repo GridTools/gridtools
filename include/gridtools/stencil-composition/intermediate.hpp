@@ -53,6 +53,7 @@
 #include <boost/type_traits/remove_const.hpp>
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/max_element.hpp>
+#include <boost/optional/optional.hpp>
 
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
@@ -384,7 +385,7 @@ namespace gridtools {
 
         Grid m_grid;
 
-        performance_meter_t m_meter;
+        boost::optional< performance_meter_t > m_meter;
 
         /// branch_selector is responsible for choosing the right branch of in condition MSS tree.
         //
@@ -406,8 +407,6 @@ namespace gridtools {
         //
         mss_local_domain_list_t m_mss_local_domain_list;
 
-        bool m_timer_enabled;
-
       public:
         intermediate(Grid const &grid,
             std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... > arg_storage_pairs,
@@ -415,7 +414,6 @@ namespace gridtools {
             bool timer_enabled = true)
             // grid just stored to the member
             : m_grid(grid),
-              m_meter("NoName"),
               // pass mss descriptor condition trees to branch_selector that owns them and provides the interface to
               // a functor with a chosen condition branch
               m_branch_selector(std::move(msses)),
@@ -426,8 +424,9 @@ namespace gridtools {
                   storage_wrapper_list_t,
                   tmp_arg_storage_pair_tuple_t >(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
-              m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))),
-              m_timer_enabled(timer_enabled) {
+              m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
+            if (timer_enabled)
+                m_meter = performance_meter_t{"NoName"};
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
@@ -447,8 +446,8 @@ namespace gridtools {
         template < class... Args, class... DataStores >
         typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
             arg_storage_pair< Args, DataStores > const &... srcs) {
-            if (m_timer_enabled)
-                m_meter.start();
+            if (m_meter)
+                m_meter->start();
             GRIDTOOLS_STATIC_ASSERT((conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
                 "some placeholders are not used in mss descriptors");
             GRIDTOOLS_STATIC_ASSERT(
@@ -463,16 +462,16 @@ namespace gridtools {
             // now local domains are fully set up.
             // branch selector calls run_f functor on the right branch of mss condition tree.
             auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
-            if (m_timer_enabled)
-                m_meter.pause();
+            if (m_meter)
+                m_meter->pause();
             return res;
         }
 
-        std::string print_meter() const { return m_meter.to_string(); }
+        std::string print_meter() const { return m_meter->to_string(); }
 
-        double get_meter() const { return m_meter.total_time(); }
+        double get_meter() const { return m_meter->total_time(); }
 
-        void reset_meter() { m_meter.reset(); }
+        void reset_meter() { m_meter->reset(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
