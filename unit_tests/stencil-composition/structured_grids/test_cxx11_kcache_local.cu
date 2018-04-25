@@ -105,26 +105,26 @@ struct biside_large_kcache_backward {
     typedef boost::mpl::vector< in, out, buff > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(buff()) = eval(in());
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff());
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25;
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_lowp1_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_lowp1) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
 };
@@ -314,13 +314,8 @@ TEST_F(kcachef, biside_backward) {
     typedef arg< 1, storage_t > p_out;
     typedef tmp_arg< 2, storage_t > p_buff;
 
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-
     auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_gridb,
+        m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor

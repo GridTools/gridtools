@@ -72,16 +72,16 @@ struct shift_acc_backward_bpfilll {
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
         eval(out()) = eval(out(0, 0, 1));
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
         eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2));
     }
 };
@@ -118,17 +118,17 @@ struct self_update_backward_bpfilll {
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
         eval(out()) = eval(in());
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
         eval(in()) = eval(in(0, 0, 1)) + eval(in(0, 0, 2));
         eval(out()) = eval(in());
     }
@@ -154,12 +154,9 @@ TEST_F(kcachef, bpfilll_forward) {
         m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute< forward >(),
+        make_multistage(execute< forward >(),
             define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 0 > >(p_in())),
-            make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
-                ,
-                p_out())));
+            make_stage< shift_acc_forward_bpfilll >(p_in(), p_out())));
 
     kcache_stencil.run();
 
@@ -193,15 +190,12 @@ TEST_F(kcachef, bpfilll_backward) {
     typedef arg< 1, storage_t > p_out;
 
     auto kcache_stencil = make_computation< backend_t >(
-        m_gridb,
+        m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute< backward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kfull_b, window< 0, 0 > >(p_in())),
-            make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
-                ,
-                p_out())));
+        make_multistage(execute< backward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 0 > >(p_in())),
+            make_stage< shift_acc_backward_bpfilll >(p_in(), p_out())));
 
     kcache_stencil.run();
     m_out.sync();
@@ -243,8 +237,7 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
         m_grid,
         p_buff() = buff,
         p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute< forward >(),
+        make_multistage(execute< forward >(),
             define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 1 > >(p_buff())),
             make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
 
@@ -286,12 +279,11 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
     typedef arg< 1, storage_t > p_buff;
 
     auto kcache_stencil = make_computation< backend_t >(
-        m_gridb,
+        m_grid,
         p_buff() = buff,
         p_out() = m_out,
-        make_multistage // mss_descriptor
-        (execute< backward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kfull_b, window< -1, 0 > >(p_buff())),
+        make_multistage(execute< backward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< -1, 0 > >(p_buff())),
             make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil.run();
@@ -308,4 +300,3 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
-
