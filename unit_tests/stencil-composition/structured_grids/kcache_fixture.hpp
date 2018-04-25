@@ -49,7 +49,8 @@ using kminimump1 = kminimum::shift< 1 >;
 using kmaximum = kfull::last_level;
 using kmaximumm1 = kmaximum::shift< -1 >;
 using kmaximum2 = axis_t::get_interval< 2 >;
-using kmaximum_m2 = kmaximumm1::shift< -1 >;
+using kmaximum_m2 = axis_t::get_interval< 1 >::last_level;
+using kmaximum_m3 = kmaximum_m2::shift< -1 >;
 
 using kbody_high = kfull::modify< 1, 0 >;
 using kbody_highp1 = kbody_high::modify< 1, 0 >;
@@ -58,6 +59,13 @@ using kbody_low = kfull::modify< 0, -1 >;
 using kbody_low_m1 = kbody_low::modify< 0, -1 >;
 using kbody_lowp1 = kbody_low_m1::modify< 1, 0 >;
 using kbody_highp1m1 = kbody_highp1::modify< 0, -1 >;
+
+using lasttwo = axis_t::get_interval< 2 >;
+using midbody = axis_t::get_interval< 1 >;
+using midbody_last = midbody::last_level;
+using midbody_low = midbody::modify< 0, -1 >;
+using firsttwo = axis_t::get_interval< 0 >;
+using fullminustwolast = midbody::modify< 0, -2 >;
 
 class kcachef : public ::testing::Test {
   protected:
