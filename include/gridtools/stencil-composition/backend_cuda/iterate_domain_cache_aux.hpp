@@ -172,7 +172,6 @@ namespace gridtools {
                                           ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0),
                                           ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset)) > > acc_t;
                     constexpr acc_t acc_(0, 0, (Offset + InitialOffset));
-
                     cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
 
                     return 0;
@@ -352,19 +351,15 @@ namespace gridtools {
                 constexpr int_t kbase =
                     compute_section_kcache_base_to_sync_with_mem< IterationPolicy, k_cache_storage_t >(CacheIOPolicy);
 
-                using pp = typename boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
-                    boost::mpl::identity< static_int< koffset > >,
-                    window_get_size< typename kcache_t::kwindow_t > >::type;
-
                 // TODO use constexpr function
                 constexpr uint_t kwindow_size =
                     boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
                         boost::mpl::identity< static_int< koffset > >,
-                        window_get_size< typename kcache_t::kwindow_t > >::type::value;
+                        window_get_size< kcache_t::ccacheIOPolicy, typename kcache_t::kwindow_t > >::type::value;
 
                 constexpr int_t kwindow_min = boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
                     boost::mpl::identity< static_int< kbase > >,
-                    window_get_min< typename kcache_t::kwindow_t > >::type::value;
+                    window_get_min<  kcache_t::ccacheIOPolicy, IterationPolicy, typename kcache_t::kwindow_t > >::type::value;
 
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;

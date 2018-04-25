@@ -104,7 +104,7 @@ namespace gridtools {
         struct min_enclosing_extent< variadic_to_vector< Arg0, Arg1, Arg2, Args... >, KWindow > {
             using type = variadic_to_vector< Arg0,
                 Arg1,
-                typename boost::mpl::min< Arg2, static_int< KWindow::m_ > >::type,
+                typename boost::mpl::min< Arg2, static_int< KWindow::m_> >::type,
                 Args... >;
         };
 
@@ -169,7 +169,6 @@ namespace gridtools {
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
-        //        printk< plus_t > lp;
         typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, StorageWrapper >::type meta_t;
 
         GT_FUNCTION
