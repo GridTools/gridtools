@@ -70,6 +70,22 @@ namespace gridtools {
     template < int M, int P >
     struct is_window< window< M, P > > : boost::mpl::true_ {};
 
+    template < typename T >
+    struct window_get_size;
+
+    template < int M, int P >
+    struct window_get_size< window< M, P > > {
+        using type = static_int< P - M + 1 >;
+    };
+
+    template < typename T >
+    struct window_get_min;
+
+    template < int M, int P >
+    struct window_get_min< window< M, P > > {
+        using type = static_int< M >;
+    };
+
     namespace detail {
         /**
          * @struct cache_impl

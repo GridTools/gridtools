@@ -241,6 +241,17 @@ namespace gridtools {
                        : (uint_t)boost::mpl::at_c< typename CacheStorage::plus_t::type, 2 >::type::value;
         }
 
+        template < typename IterationPolicy, typename CacheStorage >
+        GT_FUNCTION constexpr int_t compute_section_kcache_base_to_sync_with_mem(cache_io_policy cache_io_policy_) {
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::at_c< typename CacheStorage::minus_t::type, 2 >::type::value <= 0 &&
+                                        boost::mpl::at_c< typename CacheStorage::plus_t::type, 2 >::type::value >= 0),
+                GT_INTERNAL_ERROR);
+
+            return (compute_kcache_front< IterationPolicy >(cache_io_policy_) == cache_section::tail)
+                       ? boost::mpl::at_c< typename CacheStorage::minus_t::type, 2 >::type::value
+                       : 0;
+        }
+
         /**
          * @struct io_cache_functor
          * functor that performs the io cache operations (fill and flush) from main memory into a kcache and viceversa
@@ -334,8 +345,26 @@ namespace gridtools {
                                                 kcache_t::ccacheIOPolicy != cache_io_policy::epflush)),
                     "bpfill and epflush policies can not be used with a kparallel iteration strategy");
 
+                constexpr uint_t koffset =
+                    compute_section_kcache_to_sync_with_mem< IterationPolicy, k_cache_storage_t >(CacheIOPolicy);
                 // compute the maximum offset of all levels that we need to prefill or final flush
-                constexpr uint_t kwindow_size = kcache_t::kwindow_t::p_ - kcache_t::kwindow_t::m_ + 1;
+
+                constexpr int_t kbase =
+                    compute_section_kcache_base_to_sync_with_mem< IterationPolicy, k_cache_storage_t >(CacheIOPolicy);
+
+                using pp = typename boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
+                    boost::mpl::identity< static_int< koffset > >,
+                    window_get_size< typename kcache_t::kwindow_t > >::type;
+
+                // TODO use constexpr function
+                constexpr uint_t kwindow_size =
+                    boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
+                        boost::mpl::identity< static_int< koffset > >,
+                        window_get_size< typename kcache_t::kwindow_t > >::type::value;
+
+                constexpr int_t kwindow_min = boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
+                    boost::mpl::identity< static_int< kbase > >,
+                    window_get_min< typename kcache_t::kwindow_t > >::type::value;
 
                 // compute the sequence of all offsets that we need to prefill or final flush
                 //                using seq = gridtools::apply_gt_integer_sequence< typename
@@ -346,8 +375,10 @@ namespace gridtools {
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;
 
-                constexpr int_t additional_offset = kcache_t::kwindow_t::m_ + ( (kcache_t::ccacheIOPolicy == cache_io_policy::bpfill) ? 0 : 
-                          ((IterationPolicy::value == enumtype::forward) ? -1 : 1));
+                constexpr int_t additional_offset =
+                    kwindow_min + ((kcache_t::ccacheIOPolicy == cache_io_policy::bpfill)
+                                          ? 0
+                                          : ((IterationPolicy::value == enumtype::forward) ? -1 : 1));
 
                 using io_op_t =
                     typename io_operator_end< Idx, IterationPolicy::value, CacheIOPolicy, additional_offset >::type;

@@ -126,10 +126,10 @@ namespace gridtools {
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_extents_t;
 
         using minus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            boost::mpl::identity<minus_extents_t>,
+            boost::mpl::identity< minus_extents_t >,
             min_enclosing_extent< minus_extents_t, typename cache_t::kwindow_t > >::type;
-        using plus_t = typename boost::mpl::if_< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            boost::mpl::identity<plus_extents_t>,
+        using plus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
+            boost::mpl::identity< plus_extents_t >,
             max_enclosing_extent< plus_extents_t, typename cache_t::kwindow_t > >::type;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
@@ -152,7 +152,6 @@ namespace gridtools {
         using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
         using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
         using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
-
         using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
         using jplus_t = typename boost::mpl::at_c< typename plus_t::type, 1 >::type;
         using kplus_t = typename boost::mpl::at_c< typename plus_t::type, 2 >::type;
@@ -170,6 +169,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
+        //        printk< plus_t > lp;
         typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, StorageWrapper >::type meta_t;
 
         GT_FUNCTION
