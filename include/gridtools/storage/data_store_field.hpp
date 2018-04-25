@@ -100,7 +100,7 @@ namespace gridtools {
         data_store_field(DataStores &&... data_stores)
             : m_field{std::forward< DataStores >(data_stores)...} {
             GRIDTOOLS_STATIC_ASSERT(
-                (conjunction< std::is_same< typename std::decay< DataStores >::type, DataStore >... >::value),
+                (conjunction< std::is_convertible< typename std::decay< DataStores >::type, DataStore >... >::value),
                 "At least one data_store does not match data_store_field::data_store_t.");
         }
 
