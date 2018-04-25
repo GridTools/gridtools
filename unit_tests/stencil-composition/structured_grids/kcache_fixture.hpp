@@ -49,7 +49,7 @@ using kminimump1 = kminimum::shift< 1 >;
 using kmaximum = kfull::last_level;
 using kmaximumm1 = kmaximum::shift< -1 >;
 using kmaximum2 = axis_t::get_interval< 2 >;
-using kmaximum_m2 = axis_t::get_interval< 1 >::last_level;
+using kmaximum_m2 = kmaximumm1::shift< -1 >;
 
 using kbody_high = kfull::modify< 1, 0 >;
 using kbody_highp1 = kbody_high::modify< 1, 0 >;

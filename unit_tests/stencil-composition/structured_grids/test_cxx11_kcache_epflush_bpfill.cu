@@ -62,9 +62,14 @@ struct backward_fill {
     typedef boost::mpl::vector< tmp, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum_m2) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(tmp(0, 0, 1)) + eval(tmp(0, 0, 2));
     }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
+        eval(out()) = eval(tmp(0, 0, 1)) + eval(tmp(0, 0, 2));
+    }
+
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
         eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2));
@@ -113,15 +118,10 @@ TEST_F(kcachef, epflush_and_bpfill) {
         make_multistage // mss_descriptor
         (execute< forward >(),
             define_caches(cache< K, cache_io_policy::epflush, kfull, window< -1, 0 > >(p_tmp())),
-            make_stage< copy_flush >(p_in() // esf_descriptor
-                ,
-                p_tmp())),
-        make_multistage // mss_descriptor
-        (execute< backward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kbody_low, window< 0, 2 > >(p_tmp())),
-            make_stage< backward_fill >(p_tmp() // esf_descriptor
-                ,
-                p_out())));
+            make_stage< copy_flush >(p_in(), p_tmp())),
+        make_multistage(execute< backward >(),
+            define_caches(cache< K, cache_io_policy::bpfill, kbody_low_m1, window< 0, 2 > >(p_tmp())),
+            make_stage< backward_fill >(p_tmp(), p_out())));
 
     kcache_stencil.run();
 
