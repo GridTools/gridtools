@@ -140,7 +140,6 @@ namespace gridtools {
                     constexpr acc_t acc_(0,
                         0,
                         (ExecutionPolicy == enumtype::backward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
-
                     cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
 
                     return 0;
@@ -173,6 +172,7 @@ namespace gridtools {
                                           ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0),
                                           ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset)) > > acc_t;
                     constexpr acc_t acc_(0, 0, (Offset + InitialOffset));
+
                     cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
 
                     return 0;
@@ -248,7 +248,7 @@ namespace gridtools {
                 GT_INTERNAL_ERROR);
 
             return (compute_kcache_front< IterationPolicy >(cache_io_policy_) == cache_section::tail)
-                       ? boost::mpl::at_c< typename CacheStorage::minus_t::type, 2 >::type::value
+                       ? boost::mpl::at_c< typename CacheStorage::minus_t::type, 2 >::type::value + 1
                        : 0;
         }
 
@@ -376,7 +376,7 @@ namespace gridtools {
                     typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;
 
                 constexpr int_t additional_offset =
-                    kwindow_min + ((kcache_t::ccacheIOPolicy == cache_io_policy::bpfill)
+                    kwindow_min + ((kcache_t::ccacheIOPolicy == cache_io_policy::bpfill || kcache_t::ccacheIOPolicy == cache_io_policy::fill)
                                           ? 0
                                           : ((IterationPolicy::value == enumtype::forward) ? -1 : 1));
 
