@@ -127,7 +127,7 @@ TEST_F(kcachef, epflush_and_bpfill_forward_backward) {
         p_out() = m_out,
         make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::epflush, kfull, window< -1, 0 > >(p_tmp())),
+            define_caches(cache< K, cache_io_policy::epflush, kfull, window< -2, 0 > >(p_tmp())),
             make_stage< copy_flush >(p_in(), p_tmp())),
         make_multistage(execute< backward >(),
             define_caches(cache< K, cache_io_policy::bpfill, fullminustwolast, window< 0, 2 > >(p_tmp())),
@@ -171,10 +171,10 @@ TEST_F(kcachef, epflush_and_bpfill_backward_forward) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage(execute< backward >(),
-            define_caches(cache< K, cache_io_policy::epflush, kfull, window< 0, 1 > >(p_tmp())),
+            define_caches(cache< K, cache_io_policy::epflush, kfull, window< 0, 2 > >(p_tmp())),
             make_stage< copy_flush >(p_in(), p_tmp())),
         make_multistage(execute< forward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, fullminustwolast, window< -2, 0 > >(p_tmp())),
+            define_caches(cache< K, cache_io_policy::bpfill, fullminustwofirst, window< -2, 0 > >(p_tmp())),
             make_stage< forward_fill >(p_tmp(), p_out())));
 
     kcache_stencil.run();
