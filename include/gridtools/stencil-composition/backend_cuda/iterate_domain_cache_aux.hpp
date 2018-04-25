@@ -366,17 +366,13 @@ namespace gridtools {
                     boost::mpl::identity< static_int< kbase > >,
                     window_get_min< typename kcache_t::kwindow_t > >::type::value;
 
-                // compute the sequence of all offsets that we need to prefill or final flush
-                //                using seq = gridtools::apply_gt_integer_sequence< typename
-                //                gridtools::make_gt_integer_sequence< int_t,
-                //                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ? koffset + 1 : koffset
-                //                    >::type >;
-
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;
 
+                // The flush operation happens after the slide, i.e. the grid point iterator is placed one grid point
+                // beyond the one we need to flush. We need to correct this offset
                 constexpr int_t additional_offset =
-                    kwindow_min + ((kcache_t::ccacheIOPolicy == cache_io_policy::bpfill || kcache_t::ccacheIOPolicy == cache_io_policy::fill)
+                    kwindow_min + ((CacheIOPolicy == cache_io_policy::fill)
                                           ? 0
                                           : ((IterationPolicy::value == enumtype::forward) ? -1 : 1));
 
