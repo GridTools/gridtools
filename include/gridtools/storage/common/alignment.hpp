@@ -54,6 +54,7 @@ namespace gridtools {
      */
     template < uint_t N >
     struct alignment {
+        GRIDTOOLS_STATIC_ASSERT(N>0, "Alignment value must be greater than 0");
         const static uint_t value = N;
 
         static constexpr uint_t get() { return value; }

@@ -91,9 +91,11 @@ namespace gridtools {
             : m_cpu_ptr(new data_t[size]), m_size{size} {
             // New will align addresses according to the size(data_t)
             data_t *allocated_ptr;
-            cudaError_t err = cudaMalloc(&allocated_ptr, (size + Align) * sizeof(data_t));
-            ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory in constructor.");
-
+            cudaError_t err = cudaMalloc(&allocated_ptr, (size + Align-1) * sizeof(data_t));
+            if (err != cudaSuccess) {
+                delete[] m_cpu_ptr;
+                throw std::runtime_error("failed to allocate GPU memory in constructor.");
+            }
             uint_t delta =
                 ((reinterpret_cast< std::uintptr_t >(allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
@@ -120,7 +122,9 @@ namespace gridtools {
                 m_cpu_ptr = external_ptr;
                 data_t *allocated_ptr;
                 cudaError_t err = cudaMalloc(&allocated_ptr, size * sizeof(data_t));
-                ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
+                if (err != cudaSuccess) {
+                    throw std::runtime_error("failed to allocate GPU memory in constructor.");
+                }
                 m_gpu_ptr = allocated_ptr;
                 m_offset = allocated_ptr - m_gpu_ptr;
                 m_state.m_dnu = true;
@@ -153,7 +157,7 @@ namespace gridtools {
                 delete[] m_cpu_ptr;
             if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr) {
                 cudaError_t err = cudaFree(m_gpu_ptr + m_offset);
-                ASSERT_OR_THROW((err == cudaSuccess), "failed to free GPU memory.");
+                assert(err == cudaSuccess);
             }
         }
 

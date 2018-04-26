@@ -79,7 +79,7 @@ namespace gridtools {
          */
         template < uint_t Align = 1 >
         mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
-            : m_allocated_ptr(new data_t[size + Align]), m_cpu_ptr(nullptr) {
+            : m_allocated_ptr(new data_t[size + Align-1]), m_cpu_ptr(nullptr) {
             // New will align addresses according to the size(data_t)
             uint_t delta =
                 ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
