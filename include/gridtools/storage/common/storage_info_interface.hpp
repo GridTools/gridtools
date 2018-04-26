@@ -363,7 +363,7 @@ namespace gridtools {
          * @return index
          */
         GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
-            return offsets * m_strides; // array_dot_product(offsets,m_strides);
+            return array_dot_product(offsets,m_strides);
         }
 
         GT_FUNCTION constexpr int first_index_of_inner_region() const {
