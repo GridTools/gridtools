@@ -97,6 +97,20 @@ namespace gridtools {
             static const int value = result::value;
         };
 
+        template < typename Functor >
+        struct _get_index_of_first_const {
+
+            typedef typename boost::mpl::find_if< typename Functor::arg_list,
+                is_accessor_readonly< typename boost::mpl::_ > >::type iter;
+
+            typedef typename boost::mpl::if_<
+                typename boost::is_same< iter, typename boost::mpl::end< typename Functor::arg_list >::type >::type,
+                boost::mpl::int_< -1 >,
+                typename iter::pos >::type result;
+
+            static const int value = result::value;
+        };
+
         /** Metafunction to check that there is only one
             written argument in the argument list of a stencil
             operator, so that it is legal to call it as a

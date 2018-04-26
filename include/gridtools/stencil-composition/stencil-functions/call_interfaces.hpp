@@ -88,20 +88,7 @@ namespace gridtools {
             ReturnType *RESTRICT m_result;
             accessors_list_t const m_accessors_list;
 
-            template < typename Accessor >
-            struct accessor_return_type {
-                using type = typename CallerAggregator::template accessor_return_type< Accessor >::type;
-            };
-
-            GT_FUNCTION
-            constexpr function_aggregator_offsets(
-                CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
-                : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
-
-          private:
-            template < typename Accessor >
-            using accessor_return_type_t = typename CallerAggregator::template accessor_return_type< Accessor >::type;
-
+          public:
             template < typename Accessor >
             using get_passed_argument_index =
                 static_uint< (Accessor::index_t::value < OutArg) ? Accessor::index_t::value
@@ -110,6 +97,9 @@ namespace gridtools {
             template < typename Accessor >
             using get_passed_argument_t =
                 typename boost::mpl::at_c< PassedArguments, get_passed_argument_index< Accessor >::value >::type;
+
+            template < typename Accessor >
+            using accessor_return_type_t = typename CallerAggregator::template accessor_return_type< Accessor >::type;
 
             template < typename Accessor >
             GT_FUNCTION constexpr get_passed_argument_t< Accessor > get_passed_argument() const {
@@ -121,6 +111,30 @@ namespace gridtools {
 
             template < typename Accessor >
             using is_out_arg = boost::mpl::bool_< Accessor::index_t::value == OutArg >;
+
+          public:
+            template < typename Accessor, typename Enable = void >
+            struct accessor_return_type;
+
+            template < typename Accessor >
+            struct accessor_return_type< Accessor,
+                typename std::enable_if< !(not passed_argument_is_accessor_t< Accessor >::value &&
+                                           not is_out_arg< Accessor >::value) >::type > {
+                using type =
+                    typename CallerAggregator::template accessor_return_type< get_passed_argument_t< Accessor > >::type;
+            };
+
+            template < typename Accessor >
+            struct accessor_return_type< Accessor,
+                typename std::enable_if< not passed_argument_is_accessor_t< Accessor >::value &&
+                                             not is_out_arg< Accessor >::value >::type > {
+                using type = get_passed_argument_t< Accessor >;
+            };
+
+            GT_FUNCTION
+            constexpr function_aggregator_offsets(
+                CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
+                : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
           public:
             /**
@@ -224,13 +238,20 @@ namespace gridtools {
            Obtain the result type of the function based on it's
            signature
          */
-        template < typename Eval, typename Funct >
+        //        template < typename Eval, typename Funct >
+        //        struct get_result_type {
+        //            typedef accessor< _impl::_get_index_of_first_const< Funct >::value > accessor_t;
+        //
+        //            typedef typename Eval::template accessor_return_type< accessor_t >::type r_type;
+        //
+        //            typedef typename remove_qualifiers< r_type >::type type;
+        //        };
+
+        // TODO case where FirstArgument is not an accessor
+        template < typename Eval, typename FirstArgument, typename... Rest >
         struct get_result_type {
-            typedef accessor< _impl::_get_index_of_first_non_const< Funct >::value > accessor_t;
-
-            typedef typename Eval::template accessor_return_type< accessor_t >::type r_type;
-
-            typedef typename std::decay< r_type >::type type;
+            typedef typename Eval::template accessor_return_type< FirstArgument >::type r_type;
+            typedef typename remove_qualifiers< r_type >::type type;
         };
 
       public:
@@ -240,7 +261,7 @@ namespace gridtools {
             at<..> statement.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
+        GT_FUNCTION static typename get_result_type< Evaluator, Args... >::type with(
             Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
@@ -250,7 +271,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
-            typedef typename get_result_type< Evaluator, Functor >::type result_type;
+            typedef typename get_result_type< Evaluator, Args... >::type result_type;
             typedef _impl::function_aggregator_offsets< Evaluator,
                 Offi,
                 Offj,
@@ -259,6 +280,7 @@ namespace gridtools {
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
+            //            typename result_type::bla tmp;
             result_type result;
 
             auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));

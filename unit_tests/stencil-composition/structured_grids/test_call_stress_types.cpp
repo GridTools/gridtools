@@ -96,16 +96,16 @@ namespace {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
             using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, out_type >{};
 
-            //            using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
-            //            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
-            //
-            //            using in2_type = typename remove_qualifiers< decltype(eval(in2{})) >::type;
-            //            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, in2_type >{};
-            //
-            //            using local_type = typename remove_qualifiers< decltype(eval(local{})) >::type;
-            //            (void)ASSERT_TYPE_EQ< special_type< local_tag >, local_type >{};
+            using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
+
+            using in2_type = typename remove_qualifiers< decltype(eval(in2{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, in2_type >{};
+
+            using local_type = typename remove_qualifiers< decltype(eval(local{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< local_tag >, local_type >{};
         }
     };
 
@@ -118,7 +118,7 @@ namespace {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
             using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, out_type >{}; // TODO this is my fix
 
             using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
             (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
@@ -130,7 +130,7 @@ namespace {
 
             auto result = call< triple_nesting_with_type_switching_third_stage >::with(eval, in2(), local, in1());
             using result_type = decltype(result);
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >,
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >,
                 result_type >{}; // this is how it is implemented, but not really what it should be, see PR #884
         }
     };
@@ -154,7 +154,7 @@ namespace {
 
             auto result = call< triple_nesting_with_type_switching_second_stage >::with(eval, in1(), in2());
             using result_type = decltype(result);
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >,
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >,
                 result_type >{}; // this is how it is implemented, but not really what it should be, see PR #884
         }
     };
