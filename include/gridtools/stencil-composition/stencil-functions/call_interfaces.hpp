@@ -40,6 +40,7 @@
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/mpl.hpp>
 
+#include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../accessor.hpp"
 #include "../functor_decorator.hpp"
