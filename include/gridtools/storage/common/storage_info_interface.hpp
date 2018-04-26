@@ -140,15 +140,15 @@ namespace gridtools {
             In addition when computing the size of the inner region, we need to
             remove the halos from the sizes.
          */
-        template < uint_t Idx, uint_t... Idxs, typename Array, typename Halo = zero_halo< ndims > >
+        template < uint_t... Idxs, typename Array, typename Halo = zero_halo< ndims > >
         GT_FUNCTION static constexpr uint_t multiply_if_layout(
-            gt_integer_sequence< uint_t, Idx, Idxs... >, Array const &array, Halo h = zero_halo< ndims >{}) {
-            return accumulate(multiplies(), ((layout_t::template at< Idx >() >= 0) ? array[Idx] - 2 * h.at(Idx) : 1));
+            gt_integer_sequence< uint_t, Idxs... >, Array const &array, Halo h = zero_halo< ndims >{}) {
+            return accumulate(multiplies(), ((layout_t::template at< Idxs >() >= 0) ? array[Idxs] - 2 * h.at(Idxs) : 1)...);
         }
 
         template < uint_t... Seq, typename... Ints >
         GT_FUNCTION constexpr int offset(gt_integer_sequence< uint_t, Seq... >, Ints... idx) const {
-            return accumulate(plus_functor(), 0, (idx * m_strides[Seq])...);
+            return accumulate(plus_functor(), (idx * m_strides[Seq])...);
         }
 
         template < int... Inds >

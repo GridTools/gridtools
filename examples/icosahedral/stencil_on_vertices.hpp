@@ -122,7 +122,7 @@ namespace sov {
         out_vertices.sync();
         in_vertices.sync();
 
-        bool result = false;
+        bool result = true;
         if (verify) {
             unstructured_grid ugrid(d1, d2, d3);
             for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
