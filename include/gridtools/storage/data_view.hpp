@@ -107,7 +107,7 @@ namespace gridtools {
             \param i The index of the pointer in the arrays of raw pointers
         */
         template < typename DataView >
-        inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
+        inline typename DataView::data_t *get_address_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i];
         }
 
@@ -299,7 +299,7 @@ namespace gridtools {
         friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
 
         template < typename T >
-        friend typename T::data_t *advanced::get_initial_address_of(T const &, int);
+        friend typename T::data_t *advanced::get_address_of(T const &, int);
 
         template < typename Src, typename Dst >
         friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);

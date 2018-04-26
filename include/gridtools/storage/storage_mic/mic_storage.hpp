@@ -123,7 +123,7 @@ namespace gridtools {
          */
         ~mic_storage() {
             if (m_ownership == ownership::Full && m_cpu_ptr) {
-                delete[] m_allocated_ptr;
+                free(m_allocated_ptr);
             }
         }
 

@@ -298,7 +298,8 @@ namespace gridtools {
         }
 
         /**
-         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
+         * @brief function to retrieve the size of a dimension including the halos (but not the padding) (e.g., I, J, or
+         * K).
          * @tparam Coord queried coordinate
          * @return size of dimension (unaligned, e.g. 10x10x10 storage with alignment<32> on I returns 10x10x10)
          */
@@ -309,7 +310,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
+         * @brief member function to retrieve the total size (dimensions, halos, padding).
          * @return total size
          */
         int padded_total_length() const {
@@ -318,7 +319,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
+         * @brief member function to retrieve the inner domain size + halo (dimensions, halos).
          * @return inner domain size + halo
          */
         int total_length() const {
@@ -327,7 +328,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
+         * @brief member function to retrieve the inner domain size (dimensions, no halos).
          * @return inner domain size
          */
         int length() const {

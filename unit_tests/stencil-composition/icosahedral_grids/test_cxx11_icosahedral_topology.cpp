@@ -91,7 +91,7 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.padded_length< 3 >(), 8);
 #endif
 #ifdef BACKEND_CUDA
-        // 3rd dimension is padded for MIC
+        // 3rd dimension is padded for CUDA
         ASSERT_EQ(ameta.padded_length< 0 >(), 4);
         ASSERT_EQ(ameta.padded_length< 1 >(), 3);
         ASSERT_EQ(ameta.padded_length< 2 >(), 6);
