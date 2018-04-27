@@ -19,7 +19,7 @@ def sbatch(command):
         #SBATCH --ntasks-per-core=4
         #SBATCH --ntasks-per-node=1
         #SBATCH --cpus-per-task=256
-        #SBATCH --time=00:02:00
+        #SBATCH --time=00:10:00
         #SBATCH --constraint=flat,quad
 
         srun numactl -m 1 {command}

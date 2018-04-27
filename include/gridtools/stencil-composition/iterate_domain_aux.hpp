@@ -48,14 +48,15 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/identity.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/modulus.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "expressions/expressions.hpp"
 #include "../common/array.hpp"
+#include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 #include "total_storages.hpp"
 #include "run_functor_arguments_fwd.hpp"
 #include "run_functor_arguments.hpp"
@@ -416,12 +417,12 @@ namespace gridtools {
             template < typename Coordinate >
             GT_FUNCTION
                 typename boost::enable_if_c< (Coordinate::value >= SInfo::layout_t::unmasked_length), void >::type
-                operator()(Coordinate) {}
+                operator()(Coordinate) const {}
 
             template < typename Coordinate >
             GT_FUNCTION
                 typename boost::enable_if_c< (Coordinate::value < SInfo::layout_t::unmasked_length), void >::type
-                operator()(Coordinate) {
+                operator()(Coordinate) const {
                 typedef typename SInfo::layout_t layout_map_t;
                 typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                     const SInfo * >::type::pos index_t;
@@ -451,8 +452,8 @@ namespace gridtools {
         template < typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< StorageInfo::layout_t::unmasked_length != 0, void >::type operator()(
             const StorageInfo *storage_info) const {
-            boost::mpl::for_each< boost::mpl::range_c< short_t, 0, StorageInfo::layout_t::unmasked_length - 1 > >(
-                assign< StorageInfo >(storage_info, m_strides_cached));
+            using range = GT_META_CALL(meta::make_indices, StorageInfo::layout_t::unmasked_length - 1);
+            gridtools::for_each< range >(assign< StorageInfo >(storage_info, m_strides_cached));
         }
     };
 

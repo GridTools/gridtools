@@ -58,7 +58,6 @@ namespace gridtools {
             return *((T volatile *)(0x0));
 #else
             throw std::runtime_error(msg);
-            assert(false);
 #endif
         }
 
