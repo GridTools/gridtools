@@ -65,7 +65,7 @@ namespace gridtools {
 
       private:
         data_t *m_allocated_ptr = nullptr;
-        data_t *m_cpu_ptr;
+        data_t *m_cpu_ptr = nullptr;
         ownership m_ownership = ownership::Full;
 
       public:
@@ -79,11 +79,11 @@ namespace gridtools {
          */
         template < uint_t Align = 1 >
         mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
-            : m_allocated_ptr(nullptr), m_cpu_ptr(nullptr) {
+        {
             // New will align addresses according to the size(data_t)
             static std::atomic< uint_t > s_data_offset(64);
             uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
-            uint_t data_type_offset;
+            uint_t data_type_offset = 0;
             uint_t next_data_offset;
             do {
                 data_type_offset = data_offset / sizeof(data_t);
@@ -93,7 +93,7 @@ namespace gridtools {
             } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
 
             if (posix_memalign(
-                               reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + (data_type_offset + Align) * sizeof(data_t))))
+                               reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + (data_type_offset + Align)) * sizeof(data_t)))
                 throw std::bad_alloc();
 
             uint_t delta =
@@ -133,7 +133,7 @@ namespace gridtools {
          * @brief mic_storage destructor.
          */
         ~mic_storage() {
-            if (m_ownership == ownership::Full && m_cpu_ptr) {
+            if (m_ownership == ownership::Full && m_allocated_ptr) {
                 free(m_allocated_ptr);
             }
         }
@@ -144,6 +144,7 @@ namespace gridtools {
         void swap_impl(mic_storage &other) {
             using std::swap;
             swap(m_cpu_ptr, other.m_cpu_ptr);
+            swap(m_allocated_ptr, other.m_allocated_ptr);
             swap(m_ownership, other.m_ownership);
         }
 
