@@ -83,6 +83,7 @@ namespace gridtools {
             // New will align addresses according to the size(data_t)
             static std::atomic< uint_t > s_data_offset(64);
             uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
+            uint_t data_type_offset;
             uint_t next_data_offset;
             do {
                 data_type_offset = data_offset / sizeof(data_t);
@@ -92,7 +93,7 @@ namespace gridtools {
             } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
 
             if (posix_memalign(
-                               reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + (data_type_offset + Alig) * sizeof(data_t)))
+                               reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + (data_type_offset + Align) * sizeof(data_t))))
                 throw std::bad_alloc();
 
             uint_t delta =
