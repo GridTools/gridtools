@@ -81,14 +81,24 @@ namespace gridtools {
         mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
             : m_allocated_ptr(nullptr), m_cpu_ptr(nullptr) {
             // New will align addresses according to the size(data_t)
+            static std::atomic< uint_t > s_data_offset(64);
+            uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
+            uint_t next_data_offset;
+            do {
+                data_type_offset = data_offset / sizeof(data_t);
+                next_data_offset = 2 * data_offset;
+                if (next_data_offset > 8192)
+                    next_data_offset = 64;
+            } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
+
             if (posix_memalign(
-                    reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + Align) * sizeof(data_t)))
+                               reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + (data_type_offset + Alig) * sizeof(data_t)))
                 throw std::bad_alloc();
 
             uint_t delta =
                 ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
-            m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
+            m_cpu_ptr = (delta == 0) ? m_allocated_ptr + data_type_offset : m_allocated_ptr + (data_type_offset + Align - delta);
         }
 
         /*
