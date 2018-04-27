@@ -62,7 +62,7 @@ void run() {
     using info = gt::cuda_storage_info< 0, Layout, gt::halo< h1, h2, h3 >, gt::alignment< a > >;
     using store = gt::storage_traits< gt::enumtype::Cuda >::data_store_t< ValueType, info >;
 
-    info i(1200, 1200, 12);
+    info i(23, 34, 12);
     store s(i);
 
     auto view = gt::make_device_view(s);

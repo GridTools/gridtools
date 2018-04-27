@@ -287,9 +287,10 @@ namespace gridtools {
         }
 
         /**
-         * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
+         * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
+         *
          * @tparam Coord queried coordinate
-         * @return size of dimension (aligned, e.g. 10x10x10 storage with alignment<32> on I returns 32x10x10)
+         * @return size of dimension (corresponding to total_length, thus including halos but not padding)
          */
         template < int Coord >
         int dim() const {
@@ -298,10 +299,10 @@ namespace gridtools {
         }
 
         /**
-         * @brief function to retrieve the size of a dimension including the halos (but not the padding) (e.g., I, J, or
-         * K).
+         * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
+         *
          * @tparam Coord queried coordinate
-         * @return size of dimension (unaligned, e.g. 10x10x10 storage with alignment<32> on I returns 10x10x10)
+         * @return size of dimension (including halos but not padding)
          */
         template < int Coord >
         int total_length() const {
