@@ -218,8 +218,7 @@ namespace {
 
             auto result = call< triple_nesting_with_type_switching_third_stage >::with(eval, in2(), local, in1());
             using result_type = decltype(result);
-            (void)ASSERT_TYPE_EQ< special_type< in2_tag >,
-                result_type >{}; // this is how it is implemented, but not really what it should be, see PR #884
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, result_type >{};
         }
     };
 
@@ -242,8 +241,7 @@ namespace {
 
             auto result = call< triple_nesting_with_type_switching_second_stage >::with(eval, in1(), in2());
             using result_type = decltype(result);
-            (void)ASSERT_TYPE_EQ< special_type< in1_tag >,
-                result_type >{}; // this is how it is implemented, but not really what it should be, see PR #884
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, result_type >{};
         }
     };
 }
@@ -283,8 +281,7 @@ namespace {
 
             auto result = call< triple_nesting_with_type_switching_third_stage >::with(eval, in2(), local, in1());
             using result_type = decltype(result);
-            (void)ASSERT_TYPE_EQ< special_type< in2_tag >,
-                result_type >{}; // this is how it is implemented, but not really what it should be, see PR #884
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, result_type >{};
         }
     };
 

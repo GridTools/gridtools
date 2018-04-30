@@ -90,7 +90,6 @@ namespace gridtools {
             ReturnType *RESTRICT m_result;
             accessors_list_t const m_accessors_list;
 
-          public:
             template < typename Accessor >
             using get_passed_argument_index =
                 static_uint< (Accessor::index_t::value < OutArg) ? Accessor::index_t::value
@@ -136,7 +135,6 @@ namespace gridtools {
                 CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
-          public:
             /**
              * @brief Accessor (of the callee) is a regular 3D in_accessor
              */
