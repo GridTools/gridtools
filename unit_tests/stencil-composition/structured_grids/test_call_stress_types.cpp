@@ -84,6 +84,92 @@ class call_stress_types : public testing::Test {
 };
 
 namespace {
+    struct forced_tag {};
+
+    struct simple_callee_with_forced_return_type {
+        typedef in_accessor< 0 > in;
+        typedef inout_accessor< 1 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< forced_tag >, out_type >{};
+
+            using in1_type = typename remove_qualifiers< decltype(eval(in{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
+        }
+    };
+
+    struct simple_caller_with_forced_return_type {
+        typedef in_accessor< 0 > in;
+        typedef inout_accessor< 1 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            auto result =
+                call< simple_callee_with_forced_return_type >::return_type< special_type< forced_tag > >::with(
+                    eval, in{});
+
+            using result_type = decltype(result);
+            (void)ASSERT_TYPE_EQ< special_type< forced_tag >, result_type >{};
+        }
+    };
+}
+
+TEST_F(call_stress_types, simple_force_return_type) {
+    auto comp = gridtools::make_computation< backend_t >(
+        grid,
+        p_in1{} = in1,
+        p_out{} = out,
+        gridtools::make_multistage(
+            execute< forward >(), gridtools::make_stage< simple_caller_with_forced_return_type >(p_in1(), p_out())));
+    comp.run();
+}
+
+namespace {
+    struct simple_callee_with_deduced_return_type {
+        typedef in_accessor< 0 > in;
+        typedef inout_accessor< 1 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, out_type >{};
+
+            using in1_type = typename remove_qualifiers< decltype(eval(in{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
+        }
+    };
+
+    struct simple_caller_with_deduced_return_type {
+        typedef in_accessor< 0 > in;
+        typedef inout_accessor< 1 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            auto result = call< simple_callee_with_deduced_return_type >::with(eval, in{});
+
+            using result_type = decltype(result);
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, result_type >{};
+        }
+    };
+}
+
+TEST_F(call_stress_types, simple_deduced_return_type) {
+    auto comp = gridtools::make_computation< backend_t >(
+        grid,
+        p_in1{} = in1,
+        p_out{} = out,
+        gridtools::make_multistage(
+            execute< forward >(), gridtools::make_stage< simple_caller_with_deduced_return_type >(p_in1(), p_out())));
+    comp.run();
+}
+
+namespace {
     struct local_tag {};
 
     struct triple_nesting_with_type_switching_third_stage {

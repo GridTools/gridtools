@@ -39,6 +39,7 @@
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/mpl/if.hpp>
 
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
@@ -59,11 +60,11 @@ namespace gridtools {
            the function can have offsets.
 
            function_aggregator_offsets has a single ReturnType which
-           corresponds to the output field of the called
-           stencil_operator. Such operator has a single output field,
+           corresponds to the type of the first argument in the call.
+           Such operator has a single output field,
            as checked by the call template.
 
-           \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
+           \tparam CallerAggregator The argument passed to the caller, also known as the Evaluator
            \tparam Offi Offset along the i-direction were the function is evaluated (these are modified by specifying
         call<...>::at<...>::... )
            \tparam Offj Offset along the j-direction were the function is evaluated
@@ -212,16 +213,22 @@ namespace gridtools {
 
     /** Main interface for calling stencil operators as functions.
 
-        Usage: call<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors...);
+        Usage: call<functor, region>::[return_type<>::][at<offseti, offsetj, offsetk>::]with(eval, accessors...);
 
         \tparam Functos The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not
        called and will result in compilation error. The user is responsible for calling the proper Do overload)
+        \tparam ReturnType Can be set or will be deduced from the first input argument
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
     */
-    template < typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0 >
+    template < typename Functor,
+        typename Region = void,
+        typename ReturnType = void,
+        int Offi = 0,
+        int Offj = 0,
+        int Offk = 0 >
     struct call {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value or std::is_void< Region >::value),
             "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
@@ -230,27 +237,35 @@ namespace gridtools {
         /** This alias is used to move the computation at a certain offset
          */
         template < int I, int J, int K >
-        using at = call< Functor, Region, I, J, K >;
+        using at = call< Functor, Region, ReturnType, I, J, K >;
+
+        /**
+         * @brief alias to set the return type, e.g.
+         */
+        template < typename ForcedReturnType >
+        using return_type = call< Functor, Region, ForcedReturnType, Offi, Offj, Offk >;
 
       private:
         /**
-           Obtain the result type of the function based on it's
-           signature
+         * @brief Deduce the return type of the function.
+         * The (arbitrary) convention is, that the return type is the type of the first argument passed to the function.
          */
-        //        template < typename Eval, typename Funct >
-        //        struct get_result_type {
-        //            typedef accessor< _impl::_get_index_of_first_const< Funct >::value > accessor_t;
-        //
-        //            typedef typename Eval::template accessor_return_type< accessor_t >::type r_type;
-        //
-        //            typedef typename remove_qualifiers< r_type >::type type;
-        //        };
+        template < typename Eval, typename FirstArgument >
+        struct deduce_result_type {
+            using r_type = typename boost::mpl::if_< typename is_accessor< FirstArgument >::type,
+                typename Eval::template accessor_return_type< FirstArgument >::type,
+                FirstArgument >::type;
+            using type = typename remove_qualifiers< r_type >::type;
+        };
 
-        // TODO case where FirstArgument is not an accessor
+        /**
+         * @brief Use forced return type (if not void) or deduce the return type.
+         */
         template < typename Eval, typename FirstArgument, typename... Rest >
         struct get_result_type {
-            typedef typename Eval::template accessor_return_type< FirstArgument >::type r_type;
-            typedef typename remove_qualifiers< r_type >::type type;
+            using type = typename boost::mpl::if_< std::is_void< ReturnType >,
+                typename deduce_result_type< Eval, FirstArgument >::type,
+                ReturnType >::type;
         };
 
       public:
@@ -279,7 +294,6 @@ namespace gridtools {
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
-            //            typename result_type::bla tmp;
             result_type result;
 
             auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
