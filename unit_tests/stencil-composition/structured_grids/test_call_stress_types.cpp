@@ -96,6 +96,7 @@ namespace {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
             using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
+            // the new convention is that the return type (here "out) is deduced from the first argument in the call
             (void)ASSERT_TYPE_EQ< special_type< in2_tag >, out_type >{};
 
             using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
@@ -118,7 +119,8 @@ namespace {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
             using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, out_type >{}; // TODO this is my fix
+            // the expected type differs here in "call" vs "call_proc"
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, out_type >{};
 
             using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
             (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
@@ -168,5 +170,68 @@ TEST_F(call_stress_types, triple_nesting_with_type_switching) {
         p_out{} = out,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< triple_nesting_with_type_switching_first_stage >(p_in1(), p_out(), p_in2())));
+    comp.run();
+}
+
+namespace {
+    struct triple_nesting_with_type_switching_and_call_proc_second_stage {
+        typedef in_accessor< 0 > in1;
+        typedef inout_accessor< 1 > out;
+        typedef in_accessor< 2 > in2;
+        typedef boost::mpl::vector< in1, out, in2 > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
+            // in contrast to the example where this is stage is called from "call" (not "call_proc")
+            // the type here is different!
+            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+
+            using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
+
+            using in2_type = typename remove_qualifiers< decltype(eval(in2{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, in2_type >{};
+
+            special_type< local_tag > local{};
+
+            auto result = call< triple_nesting_with_type_switching_third_stage >::with(eval, in2(), local, in1());
+            using result_type = decltype(result);
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >,
+                result_type >{}; // this is how it is implemented, but not really what it should be, see PR #884
+        }
+    };
+
+    struct triple_nesting_with_type_switching_and_call_proc_first_stage {
+        typedef in_accessor< 0 > in1;
+        typedef inout_accessor< 1 > out;
+        typedef in_accessor< 2 > in2;
+        typedef boost::mpl::vector< in1, out, in2 > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+
+            using in1_type = typename remove_qualifiers< decltype(eval(in1{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in1_tag >, in1_type >{};
+
+            using in2_type = typename remove_qualifiers< decltype(eval(in2{})) >::type;
+            (void)ASSERT_TYPE_EQ< special_type< in2_tag >, in2_type >{};
+
+            call_proc< triple_nesting_with_type_switching_and_call_proc_second_stage >::with(eval, in1(), out(), in2());
+        }
+    };
+}
+
+TEST_F(call_stress_types, triple_nesting_with_type_switching_and_call_proc) {
+    auto comp = gridtools::make_computation< backend_t >(
+        grid,
+        p_in1{} = in1,
+        p_in2{} = in2,
+        p_out{} = out,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< triple_nesting_with_type_switching_and_call_proc_first_stage >(
+                                       p_in1(), p_out(), p_in2())));
     comp.run();
 }
