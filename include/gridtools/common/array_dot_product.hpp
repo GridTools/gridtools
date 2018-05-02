@@ -60,8 +60,12 @@ namespace gridtools {
     /**
      * @brief dot product for gridtools::array (enabled for all arithmetic types)
      *
-     * \param First array
-     * \param Second Array
+     * @tparam T Element type of first array.
+     * @tparam U Element type of second array.
+     * @tparam D Array size.
+     *
+     * @param a First array.
+     * @param b Second array.
      *
      * \return Value corresponding to the first array value type
      */
