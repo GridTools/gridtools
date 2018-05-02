@@ -204,7 +204,7 @@ namespace gridtools {
             struct transform_elem_f {
                 template < class Fun, class... Tups >
                 auto operator()(Fun &&fun, Tups &&... tups) const
-                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups)...)));
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...));
             };
 
 #if GT_BROKEN_TEMPLATE_ALIASES
@@ -268,25 +268,16 @@ namespace gridtools {
                         m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
                 }
             };
-            template < class >
-            struct for_each_impl_f;
 
-            template < template < class T, T... > class L, class Int, Int... Is >
-            struct for_each_impl_f< L< Int, Is... > > {
-                template < class Fun, class... Tups >
-                void operator()(Fun &&fun, Tups &&... tups) const {
-                    void((int[]){(std::forward< Fun >(fun)(get< Is >(std::forward< Tups >(tups)...)), 0)...});
-                }
-            };
+            struct empty {};
 
             template < class Fun >
-            struct for_each_f {
+            struct for_each_adaptor_f {
                 Fun m_fun;
-
-                template < class Tup, class... Tups >
-                void operator()(Tup &&tup, Tups &&... tups) const {
-                    for_each_impl_f< make_gt_index_sequence< meta::length< decay_t< Tup > >::value > >{}(
-                        m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
+                template < class... Args >
+                empty operator()(Args &&... args) const {
+                    m_fun(std::forward< Args >(args)...);
+                    return {};
                 }
             };
 
@@ -420,12 +411,14 @@ namespace gridtools {
         ///
         template < class Fun, class Tup, class... Tups >
         void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
-            _impl::for_each_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...);
+            transform(_impl::for_each_adaptor_f< Fun >{std::forward< Fun >(fun)},
+                std::forward< Tup >(tup),
+                std::forward< Tups >(tups)...);
         }
 
         template < class Fun >
-        constexpr _impl::for_each_f< Fun > for_each(Fun fun) {
-            return {std::move(fun)};
+        constexpr _impl::transform_f< _impl::for_each_adaptor_f< Fun > > for_each(Fun fun) {
+            return {{std::move(fun)}};
         }
 
         inline constexpr _impl::flatten_f flatten() { return {}; }

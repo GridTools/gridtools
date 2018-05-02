@@ -123,6 +123,11 @@ namespace gridtools {
             EXPECT_EQ(res, std::make_tuple(44, 7.3));
         }
 
+        TEST(transform, multiple_inputs) {
+            EXPECT_EQ(std::make_tuple(11, 22),
+                transform([](int lhs, int rhs) { return lhs + rhs; }, std::make_tuple(1, 2), std::make_tuple(10, 20)));
+        }
+
         struct accumulate_f {
             double &m_acc;
             template < class T >
@@ -136,6 +141,12 @@ namespace gridtools {
             double acc = 0;
             for_each(accumulate_f{acc}, src);
             EXPECT_EQ(47.3, acc);
+        }
+
+        TEST(for_each, multiple_inputs) {
+            int acc = 0;
+            for_each([&](int lhs, int rhs) { acc += lhs + rhs; }, std::make_tuple(1, 2), std::make_tuple(10, 20));
+            EXPECT_EQ(33, acc);
         }
 
         TEST(flatten, functional) {
