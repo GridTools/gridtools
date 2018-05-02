@@ -52,7 +52,7 @@ namespace gridtools {
             m_size = m_strides[3] * dims[3];
         }
 
-        uint_t index(array< uint_t, 4 > coord) { return coord * m_strides; }
+        uint_t index(array< uint_t, 4 > coord) { return array_dot_product(coord, m_strides); }
 
         std::list< array< uint_t, 4 > > &at(const uint_t i, const uint_t c, const uint_t j, const uint_t k) {
             return at({i, c, j, k});
@@ -62,8 +62,8 @@ namespace gridtools {
             return m_neigh_indexes[index(coord)];
         }
 
-        void insert_neighbour(array< uint_t, 4 > const &coord, array< uint_t, 4 > neighbour) {
-            at(coord).push_back(neighbour);
+        void insert_neighbour(array< uint_t, 4 > const& coord, array< uint_t, 4 > neighbour) {
+            at(coord).push_back(std::move(neighbour));
         }
 
       private:
