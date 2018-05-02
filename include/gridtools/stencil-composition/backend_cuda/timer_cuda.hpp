@@ -52,12 +52,12 @@ namespace gridtools {
         struct event_deleter {
             void operator()(cudaEvent_t event) const { cudaEventDestroy(event); }
         };
-        using event_holder = std::shared_ptr< CUevent_st >;
+        using event_holder = std::unique_ptr< CUevent_st, event_deleter >;
 
         static event_holder create_event() {
             cudaEvent_t event;
             cudaEventCreate(&event);
-            return event_holder{event, event_deleter{}};
+            return event_holder{event};
         }
 
         event_holder m_start = create_event();
