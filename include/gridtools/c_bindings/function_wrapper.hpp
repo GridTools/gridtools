@@ -39,7 +39,7 @@
 
 #include <stdbool.h>
 
-#include <boost/any.hpp>
+#include "../common/any_moveable.hpp"
 
 #include "handle_impl.hpp"
 
@@ -121,7 +121,7 @@ namespace gridtools {
 
             template < class T >
             T convert_from_c(gt_handle *obj) {
-                return boost::any_cast< T >(obj->m_value);
+                return any_cast< T >(obj->m_value);
             }
 
             template < class T, class Impl >
