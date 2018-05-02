@@ -715,6 +715,7 @@ namespace gridtools {
          * @tparam Tup Tuple-like type.
          * @tparam Args Argument types to append.
          *
+         * @param tup Tuple-like object.
          * @param args Arguments to append.
          *
          * Example:
@@ -743,7 +744,7 @@ namespace gridtools {
          * @param fun Binary function object.
          * @param arg Either the initial state if three arguments are given or the tuple to fold if two arguments are
          * given.
-         * @tparam Args The tuple to fold (if three arguments are given).
+         * @param args The tuple to fold (if three arguments are given).
          *
          * Example:
          * @code
