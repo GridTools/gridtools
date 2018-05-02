@@ -33,35 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/array_dot_product.hpp"
 
-#include "./array.hpp"
-#include "./generic_metafunctions/gt_integer_sequence.hpp"
-#include "./generic_metafunctions/accumulate.hpp"
+using namespace gridtools;
 
-namespace gridtools {
-    namespace _impl {
-        template < typename T, typename U, size_t D, size_t... Is >
-        GT_FUNCTION constexpr auto dot_impl(
-            array< T, D > const &a, array< U, D > const &b, gt_integer_sequence< size_t, Is... >)
-            -> decltype(accumulate(plus_functor{}, (a[Is] * b[Is])...)) {
-            return accumulate(plus_functor{}, (a[Is] * b[Is])...);
-        }
-    }
+TEST(array_dot_product, test_dot_product) {
+    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
+    constexpr array< uint_t, 4 > b{1, 2, 3, 4};
 
-    /**
-     * @brief dot product for gridtools::array (enabled for all arithmetic types)
-     *
-     * \param First array
-     * \param Second Array
-     *
-     * \return Value corresponding to the first array value type
-     */
-    template < typename T,
-        typename U,
-        size_t D,
-        typename std::enable_if< std::is_arithmetic< T >::value and std::is_arithmetic< U >::value, T >::type = 0 >
-    GT_FUNCTION constexpr T array_dot_product(array< T, D > const &a, array< U, D > const &b) {
-        return _impl::dot_impl(a, b, typename make_gt_integer_sequence< size_t, D >::type{});
-    }
-} // namespace gridtools
+    static_assert(array_dot_product(a, b) == 1 + 2 * 2 + 3 * 3 + 4 * 4, " ");
+    ASSERT_EQ(array_dot_product(a, b), 1 + 2 * 2 + 3 * 3 + 4 * 4);
+
+}
