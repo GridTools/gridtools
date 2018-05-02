@@ -181,7 +181,6 @@ namespace gridtools {
         template < size_t I, class T >
         constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(get_f< I >{}(std::forward< T >(obj)));
 
-        /// @cond
         namespace _impl {
 
             template < class GeneratorList, class Res >
@@ -424,7 +423,6 @@ namespace gridtools {
                     get< 0 >(std::forward< Tup >(tup)), drop_front_f< 1 >{}(std::forward< Tup >(tup))));
             };
         }
-        /// @endcond
 
         /**
          * @brief Transforms each tuple element by a function.
