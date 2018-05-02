@@ -91,12 +91,10 @@ TEST_F(kcachef, flush_forward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-    aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
-
     auto kcache_stencil =
-        make_computation< backend_t >(domain,
-            m_grid,
+        make_computation< backend_t >(m_grid,
+            p_out() = m_out,
+            p_in() = m_in,
             make_multistage // mss_descriptor
             (execute< forward >(),
                                           define_caches(cache< K, cache_io_policy::flush, kfull >(p_out())),
@@ -104,11 +102,7 @@ TEST_F(kcachef, flush_forward) {
                                               ,
                                               p_out())));
 
-    kcache_stencil->ready();
-
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -121,8 +115,6 @@ TEST_F(kcachef, flush_forward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
-    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, flush_backward) {
@@ -141,12 +133,10 @@ TEST_F(kcachef, flush_backward) {
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
 
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-    aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
-
     auto kcache_stencil =
-        make_computation< backend_t >(domain,
-            m_grid,
+        make_computation< backend_t >(m_grid,
+            p_out() = m_out,
+            p_in() = m_in,
             make_multistage // mss_descriptor
             (execute< backward >(),
                                           define_caches(cache< K, cache_io_policy::flush, kfull >(p_out())),
@@ -154,11 +144,7 @@ TEST_F(kcachef, flush_backward) {
                                               ,
                                               p_out())));
 
-    kcache_stencil->ready();
-
-    kcache_stencil->steady();
-
-    kcache_stencil->run();
+    kcache_stencil.run();
 
     m_out.sync();
     m_out.reactivate_host_write_views();
@@ -171,6 +157,4 @@ TEST_F(kcachef, flush_backward) {
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
-
-    kcache_stencil->finalize();
 }

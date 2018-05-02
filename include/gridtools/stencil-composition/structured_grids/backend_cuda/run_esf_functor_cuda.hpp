@@ -82,7 +82,11 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        GT_FUNCTION_DEVICE void do_impl() const {
+        GT_FUNCTION void do_impl() const {
+// To remove a compilation error (calling __device__ from __host__ __device__) I had to add __host__ __device__
+// decorators. However this function is device only and contains device only functions, therefore we have to hide it
+// from host.
+#ifdef __CUDA_ARCH__
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
@@ -108,6 +112,7 @@ namespace gridtools {
             // synchronize threads if not independent esf
             if (!boost::mpl::at< typename EsfArguments::async_esf_map_t, functor_t >::type::value)
                 __syncthreads();
+#endif
         }
     };
 }

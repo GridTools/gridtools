@@ -272,7 +272,6 @@ namespace shallow_water {
         typedef tmp_arg< 1, sol_type > p_tmpy;
 
         typedef arg< 2, sol_type > p_sol;
-        typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
 
         //! [proc_grid_dims]
         array< int, 3 > dimensions{0, 0, 1};
@@ -343,15 +342,6 @@ namespace shallow_water {
         myfile.open(name.str().c_str());
 #endif
 #endif
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
-        //! [aggregator_type]
-        aggregator_type< accessor_list > domain((p_sol() = sol));
-        //! [aggregator_type]
-
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -363,19 +353,13 @@ namespace shallow_water {
 
         //! [computation]
         auto shallow_water_stencil = make_computation< backend_t >(
-            domain,
             grid,
+            p_sol() = sol,
             make_multistage // mss_descriptor
             (execute< forward >(),
                 make_independent(make_stage< flux_x >(p_tmpx(), p_sol()), make_stage< flux_y >(p_tmpy(), p_sol())),
                 make_stage< final_step >(p_tmpx(), p_tmpy(), p_sol())));
         //! [computation]
-
-        //! [setup]
-        shallow_water_stencil->ready();
-
-        shallow_water_stencil->steady();
-        //! [setup]
 
         // the following might be runtime value
         uint_t total_time = t;
@@ -385,13 +369,13 @@ namespace shallow_water {
             std::vector< float_type * > vec(3);
 
 #ifdef __CUDACC__
-            vec[0] = advanced::get_initial_address_of(make_device_view(sol.get< 0, 0 >()));
-            vec[1] = advanced::get_initial_address_of(make_device_view(sol.get< 1, 0 >()));
-            vec[2] = advanced::get_initial_address_of(make_device_view(sol.get< 2, 0 >()));
+            vec[0] = advanced::get_address_of(make_device_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_address_of(make_device_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_address_of(make_device_view(sol.get< 2, 0 >()));
 #else
-            vec[0] = advanced::get_initial_address_of(make_host_view(sol.get< 0, 0 >()));
-            vec[1] = advanced::get_initial_address_of(make_host_view(sol.get< 1, 0 >()));
-            vec[2] = advanced::get_initial_address_of(make_host_view(sol.get< 2, 0 >()));
+            vec[0] = advanced::get_address_of(make_host_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_address_of(make_host_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_address_of(make_host_view(sol.get< 2, 0 >()));
 #endif
 
 // he.pack(vec);
@@ -436,14 +420,14 @@ namespace shallow_water {
 #endif
 
             //! [run]
-            shallow_water_stencil->run();
+            shallow_water_stencil.run();
             //! [run]
         }
 
         //! [finalize]
         he.wait();
 
-        shallow_water_stencil->finalize();
+        shallow_water_stencil.sync_bound_data_stores();
 
         bool retval = true;
 //! [finalize]

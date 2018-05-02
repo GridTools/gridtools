@@ -90,7 +90,6 @@ int main() {
     out_handle = create_data_store(I, J, K, (float_type *)out);
     stencil = create_copy_stencil(in_handle, out_handle);
 
-    steady_stencil(stencil);
     run_stencil(stencil);
     sync_data_store(in_handle);
     sync_data_store(out_handle);

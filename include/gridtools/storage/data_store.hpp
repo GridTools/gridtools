@@ -104,7 +104,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (uint_t i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template total_length< sizeof...(Args) >(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
         }
@@ -126,7 +126,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (uint_t i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template total_length< sizeof...(Args) >(); ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
         }
@@ -170,8 +170,9 @@ namespace gridtools {
          * @param info storage_info instance
          * @param name Human readable name for the data_store
          */
-        constexpr data_store(StorageInfo const &info, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length())),
+        data_store(StorageInfo const &info, std::string const &name = "")
+            : m_shared_storage(new storage_t(
+                  info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -182,7 +183,10 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length(), initializer)),
+            : m_shared_storage(new storage_t(info.padded_total_length(),
+                  [initializer](int) { return initializer; },
+                  info.first_index_of_inner_region(),
+                  typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -196,12 +200,28 @@ namespace gridtools {
         data_store(StorageInfo const &info,
             typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
             std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length())),
+            : m_shared_storage(new storage_t(
+                  info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {
             // initialize the storage with the given lambda
             lambda_initializer(initializer, info, m_shared_storage->get_cpu_ptr());
             // synchronize contents
             clone_to_device();
+        }
+
+        data_store(data_store const &src, std::shared_ptr< StorageInfo > const &storage_info) : data_store(src) {
+            assert(valid());
+            assert(storage_info);
+            assert(*m_shared_storage_info == *storage_info);
+            m_shared_storage_info = storage_info;
+        }
+
+        data_store(data_store &&src, std::shared_ptr< StorageInfo > const &storage_info) noexcept
+            : data_store(std::move(src)) {
+            assert(valid());
+            assert(*storage_info);
+            assert(*m_shared_storage_info == *storage_info);
+            m_shared_storage_info = storage_info;
         }
 
         /**
@@ -253,7 +273,9 @@ namespace gridtools {
             ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
                 "This data store has already been allocated.");
             m_shared_storage_info = std::make_shared< storage_info_t >(info);
-            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length());
+            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length(),
+                m_shared_storage_info->first_index_of_inner_region(),
+                typename StorageInfo::alignment_t{});
         }
 
         /**
@@ -265,9 +287,10 @@ namespace gridtools {
         }
 
         /**
-         * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
+         * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
+         *
          * @tparam Coord queried coordinate
-         * @return size of dimension (aligned, e.g. 10x10x10 storage with alignment<32> on I returns 32x10x10)
+         * @return size of dimension (corresponding to total_length, thus including halos but not padding)
          */
         template < int Coord >
         int dim() const {
@@ -276,18 +299,19 @@ namespace gridtools {
         }
 
         /**
-         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
+         * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
+         *
          * @tparam Coord queried coordinate
-         * @return size of dimension (unaligned, e.g. 10x10x10 storage with alignment<32> on I returns 10x10x10)
+         * @return size of dimension (including halos but not padding)
          */
         template < int Coord >
-        int unaligned_dim() const {
+        int total_length() const {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template unaligned_dim< Coord >();
+            return m_shared_storage_info->template total_length< Coord >();
         }
 
         /**
-         * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
+         * @brief member function to retrieve the total size (dimensions, halos, padding).
          * @return total size
          */
         int padded_total_length() const {
@@ -296,7 +320,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
+         * @brief member function to retrieve the inner domain size + halo (dimensions, halos).
          * @return inner domain size + halo
          */
         int total_length() const {
@@ -305,7 +329,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
+         * @brief member function to retrieve the inner domain size (dimensions, no halos).
          * @return inner domain size
          */
         int length() const {
@@ -323,7 +347,7 @@ namespace gridtools {
          * @brief retrieve a pointer to the underlying storage_info instance.
          * @return shared pointer to the underlying storage_info instance
          */
-        std::shared_ptr< storage_info_t const > get_storage_info_ptr() const { return m_shared_storage_info; }
+        std::shared_ptr< storage_info_t > get_storage_info_ptr() const { return m_shared_storage_info; }
 
         /**
          * @brief check if underlying storage info and storage is valid.

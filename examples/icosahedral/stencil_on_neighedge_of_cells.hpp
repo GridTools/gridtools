@@ -104,26 +104,21 @@ namespace soneoc {
         typedef arg< 0, edge_storage_type, icosahedral_topology_t::edges > p_in_edges;
         typedef arg< 1, cell_storage_type, icosahedral_topology_t::cells > p_out_cells;
 
-        typedef boost::mpl::vector< p_in_edges, p_out_cells > accessor_list_edges_t;
-
-        gridtools::aggregator_type< accessor_list_edges_t > domain_edges(in_edges, out_cells);
-
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
         auto stencil_edges = gridtools::make_computation< backend_t >(
-            domain_edges,
             grid_,
+            p_in_edges() = in_edges,
+            p_out_cells() = out_cells,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_in_edges(), p_out_cells())));
 
-        stencil_edges->ready();
-        stencil_edges->steady();
-        stencil_edges->run();
+        stencil_edges.run();
 
         out_cells.sync();
         in_edges.sync();
@@ -158,7 +153,6 @@ namespace soneoc {
 #ifdef BENCHMARK
         benchmarker::run(stencil_edges, t_steps);
 #endif
-        stencil_edges->finalize();
         return result;
     }
 

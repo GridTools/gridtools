@@ -63,17 +63,6 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
 
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of CUDA we have to retrieve the GPU pointer.
-        */
-        struct extract_storage_info_ptr_f {
-            template < typename StorageInfo >
-            StorageInfo const *operator()(StorageInfo const *t) {
-                GRIDTOOLS_STATIC_ASSERT(is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR);
-                return t->get_gpu_ptr();
-            }
-        };
-
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
            instances.
@@ -172,7 +161,7 @@ namespace gridtools {
             const uint_t j = Arg::location_t::n_colors::value *
                              (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
             // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
-            return (int)StorageInfo::get_initial_offset() + i + j;
+            return i + j;
         }
 
         /**
@@ -183,7 +172,7 @@ namespace gridtools {
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
-            return StorageInfo::get_initial_offset();
+            return 0;
         }
 
         /**

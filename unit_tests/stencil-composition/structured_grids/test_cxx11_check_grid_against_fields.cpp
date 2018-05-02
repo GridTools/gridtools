@@ -34,15 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include "gtest/gtest.h"
+#include <stencil-composition/intermediate.hpp>
 
-namespace check_grid_bounds {
+#include <gtest/gtest.h>
 
-    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
+#include <common/defs.hpp>
+#include <common/halo_descriptor.hpp>
+#include <stencil-composition/grid_traits.hpp>
+#include <storage/common/halo.hpp>
+#include <storage/storage-facility.hpp>
 
-    /**
+namespace gridtools {
+
+    /*
        Testing the check of bounds for iteration spaces.
 
        The first three arguments are the sizes of the storages, the
@@ -57,67 +61,26 @@ namespace check_grid_bounds {
        fail. In this way we can test both cases, the failing and the
        successful.
      */
-    bool test(gridtools::uint_t x,
-        gridtools::uint_t y,
-        gridtools::uint_t z,
-        gridtools::uint_t gx,
-        gridtools::uint_t gy,
-        gridtools::uint_t gz,
-        bool expected) {
+    bool do_test(uint_t x, uint_t y, uint_t z, uint_t gx, uint_t gy, uint_t gz) {
 
-        using storage_info1_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;
-        using storage_info2_t = storage_tr::storage_info_t< 1, 3, gridtools::halo< 2, 2, 0 > >;
-        using storage_info3_t = storage_tr::storage_info_t< 2, 3, gridtools::halo< 2, 2, 0 > >;
+        using storage_info_t = storage_traits< enumtype::Host >::storage_info_t< 0, 3, halo< 2, 2, 0 > >;
 
-        using storage_type1 = storage_tr::data_store_t< double, storage_info1_t >;
-        using storage_type2 = storage_tr::data_store_t< int, storage_info2_t >;
-        using storage_type3 = storage_tr::data_store_t< float, storage_info3_t >;
-
-        // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
-        storage_info1_t si1(x + 3, y, z);
-        storage_info2_t si2(x, y + 2, z);
-        storage_info3_t si3(x, y, z + 1);
-
-        storage_type1 field1 = storage_type1(si1, double(), "field1");
-        storage_type2 field2 = storage_type2(si2, int(), "field2");
-        storage_type3 field3 = storage_type3(si3, float(), "field3");
-
-        typedef gridtools::arg< 0, storage_type1 > p_field1;
-        typedef gridtools::arg< 1, storage_type2 > p_field2;
-        typedef gridtools::arg< 2, storage_type3 > p_field3;
-
-        typedef boost::mpl::vector< p_field1, p_field2, p_field3 > accessor_list;
-
-        gridtools::aggregator_type< accessor_list > domain(
-            (p_field1() = field1), (p_field2() = field2), (p_field3() = field3));
-
-        gridtools::uint_t halo_size = 0;
-        gridtools::halo_descriptor di{halo_size, halo_size, halo_size, gx - halo_size - 1, gx};
-        gridtools::halo_descriptor dj{halo_size, halo_size, halo_size, gy - halo_size - 1, gy};
+        halo_descriptor di = {0, 0, 0, gx - 1, gx};
+        halo_descriptor dj = {0, 0, 0, gy - 1, gy};
 
         auto grid = make_grid(di, dj, gz);
+        auto testee = storage_info_fits_grid< grid_traits_from_id< enumtype::structured > >(grid);
 
-        using mdlist_t = boost::fusion::vector< storage_info1_t, storage_info2_t, storage_info3_t >;
-        mdlist_t mdlist(si1, si2, si3);
-
-        try {
-            gridtools::check_fields_sizes< gridtools::grid_traits_from_id< gridtools::enumtype::structured > >(
-                grid, domain);
-        } catch (std::runtime_error const &err) {
-            expected = !expected;
-        }
-
-        return expected;
+        return testee(storage_info_t{x + 3, y, z}) && testee(storage_info_t{x, y + 2, z}) &&
+               testee(storage_info_t{x, y, z + 1});
     }
-} // namespace check_grid_bounds
 
-// Tests that are assumed to pass, so that the last argument is `true`, which is them returned as is
-TEST(stencil_composition, check_grid_bounds1) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 5, 6, true)); }
-TEST(stencil_composition, check_grid_bounds2) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 5, 6, true)); }
+    // Tests that are assumed to pass
+    TEST(stencil_composition, check_grid_bounds1) { EXPECT_TRUE(do_test(4, 5, 6, 4, 5, 6)); }
 
-// Tests that are assumed to fail, so that the last argument is `false`, which is them returned flipped when exception
-// is catched
-TEST(stencil_composition, check_grid_bounds3) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 8, 5, 7, false)); }
-TEST(stencil_composition, check_grid_bounds4) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 5, 7, false)); }
-TEST(stencil_composition, check_grid_bounds5) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 12, 6, false)); }
-TEST(stencil_composition, check_grid_bounds6) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 9, 5, 6, false)); }
+    // Tests that are assumed to fail
+    TEST(stencil_composition, check_grid_bounds3) { EXPECT_FALSE(do_test(4, 5, 6, 8, 5, 7)); }
+    TEST(stencil_composition, check_grid_bounds4) { EXPECT_FALSE(do_test(4, 5, 6, 4, 5, 7)); }
+    TEST(stencil_composition, check_grid_bounds5) { EXPECT_FALSE(do_test(4, 5, 6, 4, 12, 6)); }
+    TEST(stencil_composition, check_grid_bounds6) { EXPECT_FALSE(do_test(4, 5, 6, 9, 5, 6)); }
+}

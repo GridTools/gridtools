@@ -63,18 +63,15 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
+vertical_advection_dycore::vertical_advection_test get_test() {
+    auto const &opts = Options::getInstance().m_size;
+    return {(uint_t)opts[0], (uint_t)opts[1], (uint_t)opts[2]};
+}
+
 TEST(vertical_advection_dycore, test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    auto va_test = vertical_advection_dycore::vertical_advection_test(x, y, z);
-    ASSERT_TRUE(va_test.test(t, verify));
-    va_test.reset();
-    ASSERT_TRUE(va_test.test_with_extents(t, verify));
+    auto const &opts = Options::getInstance();
+    uint_t steps = std::max(opts.m_size[3], 1);
+    bool verify = opts.m_verify;
+    EXPECT_TRUE(get_test().test(steps, verify));
+    EXPECT_TRUE(get_test().test_with_extents(verify));
 }

@@ -35,6 +35,10 @@
 */
 #pragma once
 
+#include <tuple>
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss.hpp"
@@ -75,9 +79,9 @@ namespace gridtools {
        Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute
        tight bounds on blocks to be used by backends
      */
-    template < typename... EsfDescr >
-    independent_esf< boost::mpl::vector< EsfDescr... > > make_independent(EsfDescr &&...) {
-        return independent_esf< boost::mpl::vector< EsfDescr... > >();
+    template < class... Esfs >
+    independent_esf< std::tuple< Esfs... > > make_independent(Esfs &&...) {
+        return {};
     }
 
 } // namespace gridtools

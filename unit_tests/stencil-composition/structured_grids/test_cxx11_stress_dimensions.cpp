@@ -254,8 +254,6 @@ namespace assembly {
         typedef arg< 3, storage_type > p_f;
         typedef arg< 4, storage_type > p_result;
 
-        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
-
         uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
         uint_t b1 = 2;
         uint_t b2 = 2;
@@ -293,7 +291,6 @@ namespace assembly {
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        aggregator_type< accessor_list > domain(phi, psi, jac, f, result);
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -304,16 +301,17 @@ namespace assembly {
         auto grid = make_grid(di, dj, d3 - 1);
 
         auto fe_comp =
-            make_computation< backend_t >(domain,
-                grid,
-                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
-                (execute< forward >(), //!\todo parameter used only for overloading purpose?
+            make_computation< backend_t >(grid,
+                p_phi() = phi,
+                p_psi() = psi,
+                p_jac() = jac,
+                p_f() = f,
+                p_result() = result,
+                make_multistage(execute< forward >(),
                                               make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
-        fe_comp->ready();
-        fe_comp->steady();
-        fe_comp->run();
-        fe_comp->finalize();
+        fe_comp.run();
+        fe_comp.sync_bound_data_stores();
 
         return do_verification< storage_local_quad_t, storage_global_quad_t >(d1, d2, d3, result, grid);
     }

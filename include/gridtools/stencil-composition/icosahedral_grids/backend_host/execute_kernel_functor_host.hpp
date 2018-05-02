@@ -47,19 +47,6 @@ namespace gridtools {
 
     namespace icgrid {
 
-        /**
-         * metafunction that fills the color argument of a run functor argument metadata type
-         * @tparam RunFunctorArguments the run functor arguments being filled with a particular color
-         * @tparam Index unsigned int type with color
-         */
-        template < typename RunFunctorArguments, typename Index >
-        struct colorize_run_functor_arguments {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-            using type = meta::replace< RunFunctorArguments,
-                typename RunFunctorArguments::color_t,
-                color_type< (uint_t)Index::value > >;
-        };
-
         template < typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent >
         struct color_execution_functor {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
@@ -96,8 +83,11 @@ namespace gridtools {
                     typename IterateDomain::grid_position_t memorized_position = m_it_domain.position();
 
                     // we fill the run_functor_arguments with the current color being processed
-                    typedef typename colorize_run_functor_arguments< RunFunctorArguments, Index >::type
-                        run_functor_arguments_t;
+                    using run_functor_arguments_t = GT_META_CALL(meta::replace,
+                        (RunFunctorArguments,
+                                                                     typename RunFunctorArguments::color_t,
+                                                                     color_type< (uint_t)Index::value >));
+
                     boost::mpl::for_each< loop_intervals_t >(
                         _impl::run_f_on_interval< execution_type_t, run_functor_arguments_t >(m_it_domain, m_grid));
                     m_it_domain.set_index(memorized_index);

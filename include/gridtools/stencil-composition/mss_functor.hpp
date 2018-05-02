@@ -132,13 +132,13 @@ namespace gridtools {
         };
 
       private:
-        MssLocalDomainArray &m_local_domain_lists;
+        MssLocalDomainArray const &m_local_domain_lists;
         const Grid &m_grid;
         ReductionData &m_reduction_data;
         const ExecutionInfo m_execution_info;
 
       public:
-        mss_functor(MssLocalDomainArray &local_domain_lists,
+        mss_functor(MssLocalDomainArray const &local_domain_lists,
             const Grid &grid,
             ReductionData &reduction_data,
             const ExecutionInfo &execution_info)

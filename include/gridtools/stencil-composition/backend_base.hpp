@@ -50,7 +50,6 @@
 #include "./backend_host/backend_host.hpp"
 
 #include "./accessor.hpp"
-#include "./aggregator_type.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
 #include "./mss_local_domain.hpp"
@@ -167,9 +166,6 @@ namespace gridtools {
 
         using make_view_f = typename backend_traits_t::make_view_f;
 
-        /// Method to extract a storage_info pointer.
-        using extract_storage_info_ptr_f = typename backend_traits_t::extract_storage_info_ptr_f;
-
         /**
             Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
            storage info)
@@ -198,7 +194,7 @@ namespace gridtools {
             typename MssLocalDomains,
             typename ReductionData > // List of local domain to be pbassed to functor at<i>
         static void
-        run(Grid const &grid, MssLocalDomains &mss_local_domain_list, ReductionData &reduction_data) {
+        run(Grid const &grid, MssLocalDomains const &mss_local_domain_list, ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomains, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);

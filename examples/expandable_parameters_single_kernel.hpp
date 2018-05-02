@@ -130,26 +130,17 @@ namespace test_expandable_parameters {
         typedef tmp_arg< 13, storage_t > p_3_tmp;
         typedef tmp_arg< 14, storage_t > p_4_tmp;
 
-        typedef boost::mpl::vector< p_0_out,
-            p_1_out,
-            p_2_out,
-            p_3_out,
-            p_4_out,
-            p_0_in,
-            p_1_in,
-            p_2_in,
-            p_3_in,
-            p_4_in,
-            p_0_tmp,
-            p_1_tmp,
-            p_2_tmp,
-            p_3_tmp,
-            p_4_tmp > args_t;
-
-        aggregator_type< args_t > domain_(
-            storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
-        auto comp_ = make_computation< backend_t >(domain_,
-            grid_,
+        auto comp_ = make_computation< backend_t >(grid_,
+            p_0_out{} = storage1,
+            p_1_out{} = storage2,
+            p_2_out{} = storage3,
+            p_3_out{} = storage4,
+            p_4_out{} = storage5,
+            p_0_in{} = storage10,
+            p_1_in{} = storage20,
+            p_2_in{} = storage30,
+            p_3_in{} = storage40,
+            p_4_in{} = storage50,
             make_multistage(enumtype::execute< enumtype::forward >(),
                                                        define_caches(cache< IJ, cache_io_policy::local >(
                                                            p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
@@ -174,10 +165,8 @@ namespace test_expandable_parameters {
                                                            p_3_tmp(),
                                                            p_4_tmp())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.run();
+        comp_.sync_bound_data_stores();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {

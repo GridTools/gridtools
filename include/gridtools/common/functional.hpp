@@ -37,6 +37,11 @@
 /**
 @file
 @brief Unstructured collection of small generic purpose functors and related helpers.
+
+   All functors here are supplied with the inner result or result_type to follow boost::result_of requirement
+   for the cases if BOOST_RESULT_OF_USE_DECLTYPE is not defined [It is so for nvcc8]. This makes those functors
+   usable in the context of boost::fuison high order functions.
+
 */
 
 #include <utility>
@@ -49,6 +54,7 @@ namespace gridtools {
     */
 
     /// Forward the args to constructor.
+    //
     template < typename T >
     struct ctor {
         template < typename... Args >
@@ -61,6 +67,8 @@ namespace gridtools {
 #endif
     };
 
+    /// Do nothing.
+    //
     struct noop {
         template < typename... Args >
         void operator()(Args &&...) const {}
@@ -70,6 +78,8 @@ namespace gridtools {
 #endif
     };
 
+    /// Perfectly forward the argument.
+    //
     struct identity {
         template < typename Arg >
         Arg operator()(Arg &&arg) const {
@@ -85,6 +95,24 @@ namespace gridtools {
         };
 #endif
     };
+
+    /// Copy the argument.
+    //
+    struct clone {
+        template < typename Arg >
+        Arg operator()(Arg const &arg) const {
+            return arg;
+        }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+        template < typename >
+        struct result;
+        template < typename Arg >
+        struct result< clone(Arg const &) > {
+            using type = Arg;
+        };
+#endif
+    };
+
     /** @} */
     /** @} */
 }

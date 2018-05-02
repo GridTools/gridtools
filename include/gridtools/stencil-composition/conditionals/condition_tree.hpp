@@ -64,24 +64,14 @@
 
 #pragma once
 
-#include <type_traits>
 #include <functional>
-
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/fold.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/push_back.hpp>
-
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/empty_sequence.hpp>
-#include <boost/mpl/joint_view.hpp>
-#include <boost/mpl/logical.hpp>
-#include <boost/mpl/single_view.hpp>
-#include <boost/mpl/vector.hpp>
+#include <tuple>
+#include <type_traits>
 
 #include "../../common/defs.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 
 #include "condition.hpp"
 
@@ -151,15 +141,13 @@ namespace gridtools {
 
             struct compose_leafs_f {
                 template < typename S, typename T >
-                auto operator()(S &&sec, T &&elem) const GT_AUTO_RETURN(boost::fusion::as_vector(
-                    boost::fusion::push_back(std::forward< S >(sec), std::forward< T >(elem))));
+                auto operator()(S &&seq, T &&elem) const GT_AUTO_RETURN(
+                    tuple_util::deep_copy(tuple_util::push_back(std::forward< S >(seq), std::forward< T >(elem))));
             };
 
-            template < typename... Trees >
-            auto make_tree_from_forest(Trees &&... trees)
-                GT_AUTO_RETURN(boost::fusion::fold(boost::fusion::make_vector(std::forward< Trees >(trees)...),
-                    boost::fusion::make_vector(),
-                    compose_trees_f< compose_leafs_f >{}));
+            template < typename Trees >
+            auto make_tree_from_forest(Trees &&trees) GT_AUTO_RETURN(
+                tuple_util::fold(compose_trees_f< compose_leafs_f >{}, std::tuple<>{}, std::forward< Trees >(trees)));
 
             template < typename TransformLeaf >
             struct transform_f {
@@ -228,31 +216,39 @@ namespace gridtools {
                 return {fun};
             }
 
-            template < typename T >
-            struct all_leaves_in_tree {
-                using type = boost::mpl::single_view< typename std::decay< T >::type >;
-            };
+#if GT_BROKEN_TEMPLATE_ALIASES
+            inline
+#endif
+                namespace lazy {
+                template < typename T >
+                struct all_leaves_in_tree {
+                    using type = std::tuple< decay_t< T > >;
+                };
 
-            template < typename Lhs, typename Rhs, typename Cond >
-            struct all_leaves_in_tree< condition< Lhs, Rhs, Cond > > {
-                using type = boost::mpl::joint_view< typename all_leaves_in_tree< Lhs >::type,
-                    typename all_leaves_in_tree< Rhs >::type >;
-            };
+                template < typename Lhs, typename Rhs, typename Cond >
+                struct all_leaves_in_tree< condition< Lhs, Rhs, Cond > >
+                    : meta::lazy::concat< typename all_leaves_in_tree< Lhs >::type,
+                          typename all_leaves_in_tree< Rhs >::type > {};
+            }
+#if !GT_BROKEN_TEMPLATE_ALIASES
+            template < class T >
+            using all_leaves_in_tree = typename lazy::all_leaves_in_tree< T >::type;
+#endif
 
             template < typename... Trees >
-            using all_leaves_in_forest_t = typename boost::mpl::fold< boost::mpl::vector< Trees... >,
-                boost::mpl::empty_sequence,
-                boost::mpl::joint_view< boost::mpl::_1, all_leaves_in_tree< std::decay< boost::mpl::_2 > > > >::type;
+            GT_META_DEFINE_ALIAS(all_leaves_in_forest,
+                meta::flatten,
+                (GT_META_CALL(meta::transform, (all_leaves_in_tree, std::tuple< Trees... >))));
         }
     }
 
-    /// Check that the object is a condition tree and al leafs satisfy the given predicate.
+    /// Check that the object is a condition tree and all leafs satisfy the given predicate.
     template < typename Leaf, template < typename > class Pred >
     struct is_condition_tree_of : Pred< Leaf > {};
 
     template < typename Lhs, typename Rhs, typename Condition, template < typename > class Pred >
     struct is_condition_tree_of< condition< Lhs, Rhs, Condition >, Pred >
-        : boost::mpl::and_< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
+        : conjunction< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
 
     /// Transforms the condition tree by applying to all leaves the given functor
     template < typename Tree, typename Fun >
@@ -274,17 +270,18 @@ namespace gridtools {
      */
     template < typename... Trees >
     class branch_selector {
-        using tree_t = decltype(_impl::condition_tree::make_tree_from_forest(std::declval< Trees >()...));
+        using tree_t = decltype(_impl::condition_tree::make_tree_from_forest(std::declval< std::tuple< Trees... > >()));
         tree_t m_tree;
 
       public:
-        /// MPL sequence, containing all leafs of al trees. I.e. the flat view for all trees.
-        using all_leaves_t = typename boost::mpl::copy< _impl::condition_tree::all_leaves_in_forest_t< Trees... >,
-            boost::mpl::back_inserter< boost::mpl::vector0<> > >::type;
+        /// An std  tuple containing all leaves of all trees. I.e. the flat view for all trees.
+        using all_leaves_t = GT_META_CALL(_impl::condition_tree::all_leaves_in_forest, Trees...);
 
-        branch_selector(Trees const &... trees) : m_tree(_impl::condition_tree::make_tree_from_forest(trees...)) {}
-        branch_selector(Trees &&... trees) noexcept
-            : m_tree(_impl::condition_tree::make_tree_from_forest(std::move(trees)...)) {}
+        template < class Seq >
+        branch_selector(Seq &&seq)
+            : m_tree(_impl::condition_tree::make_tree_from_forest(std::forward< Seq >(seq))) {
+            static_assert(meta::length< Seq >::value == sizeof...(Trees), "");
+        }
 
         /**
          *  Performs the evaluation of conditions in the trees;
@@ -326,16 +323,18 @@ namespace gridtools {
     template <>
     class branch_selector<> {
       public:
-        using all_leaves_t = boost::mpl::vector0<>;
+        using all_leaves_t = std::tuple<>;
+
+        branch_selector(std::tuple<> &&) {}
 
         template < typename Fun, typename... Args >
         auto apply(Fun &&fun, Args &&... args) const
-            GT_AUTO_RETURN((std::forward< Fun >(fun)(boost::fusion::make_vector(), std::forward< Args >(args)...)));
+            GT_AUTO_RETURN((std::forward< Fun >(fun)(std::tuple<>{}, std::forward< Args >(args)...)));
     };
 
     /// Generator for branch_selector
     template < typename... Trees >
-    branch_selector< typename std::decay< Trees >::type... > make_branch_selector(Trees &&... trees) {
-        return {std::forward< Trees >(trees)...};
+    branch_selector< decay_t< Trees >... > make_branch_selector(Trees &&... trees) {
+        return std::make_tuple(std::forward< Trees >(trees)...);
     };
 }

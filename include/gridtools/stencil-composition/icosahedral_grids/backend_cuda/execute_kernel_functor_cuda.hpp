@@ -275,7 +275,8 @@ namespace gridtools {
 
                 // re-create the run functor arguments, replacing the processing elements block size
                 // with the corresponding, recently computed, block size
-                using run_functor_arguments_cuda_t = meta::replace_at_c< RunFunctorArguments, 1, cuda_block_size_t >;
+                using run_functor_arguments_cuda_t =
+                    GT_META_CALL(meta::replace_at_c, (RunFunctorArguments, 1, cuda_block_size_t));
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
@@ -293,9 +294,6 @@ namespace gridtools {
                     fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorName(error), __FILE__, __LINE__);
                     exit(-1);
                 }
-#else
-                // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
-                cudaDeviceSynchronize();
 #endif
             }
 

@@ -45,6 +45,8 @@
 #include <boost/fusion/include/vector.hpp>
 #include "gtest/gtest.h"
 
+#include <common/defs.hpp>
+#include <stencil-composition/backend.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
@@ -71,17 +73,16 @@ typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, met
 typedef arg< 0, storage_t > p_in;
 typedef arg< 1, storage_buff_t > p_buff;
 typedef arg< 2, storage_t > p_out;
-typedef boost::mpl::vector< p_in, p_buff, p_out > accessor_list;
 
 typedef intermediate< 1,
     false,
     backend< Host, GRIDBACKEND, Naive >,
-    aggregator_type< accessor_list >,
     grid< axis< 1 >::axis_interval_t >,
-    decltype(make_multistage // mss_descriptor
-                          (execute< forward >(),
-                              make_stage< dummy_functor >(p_in(), p_buff()),
-                              make_stage< dummy_functor >(p_buff(), p_out()))) > intermediate_t;
+    std::tuple<>,
+    std::tuple< decltype(make_multistage // mss_descriptor
+        (execute< forward >(),
+            make_stage< dummy_functor >(p_in(), p_buff()),
+            make_stage< dummy_functor >(p_buff(), p_out()))) > > intermediate_t;
 
 typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 

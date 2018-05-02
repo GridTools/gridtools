@@ -215,4 +215,9 @@ namespace gridtools {
         }
 
     } // namespace _impl
+
+    template < typename Type, typename ArgsMap >
+    struct remap_accessor_type< _impl::wrap_reference< Type >, ArgsMap > {
+        using type = _impl::wrap_reference< Type >;
+    };
 } // namespace gridtools

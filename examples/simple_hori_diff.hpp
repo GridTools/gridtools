@@ -133,10 +133,6 @@ namespace shorizontal_diffusion {
         typedef arg< 4, j_storage_type > p_crlato;
         typedef arg< 5, j_storage_type > p_crlatu;
 
-        // An array of placeholders to be passed to the domain
-        typedef boost::mpl::vector< p_lap, p_coeff, p_in, p_out, p_crlato, p_crlatu > accessor_list;
-        gridtools::aggregator_type< accessor_list > domain(coeff, in, out, crlato, crlatu);
-
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -147,18 +143,19 @@ namespace shorizontal_diffusion {
         auto grid = make_grid(di, dj, d3);
 
         auto simple_hori_diff = gridtools::make_computation< backend_t >(
-            domain,
             grid,
+            p_coeff() = coeff,
+            p_in() = in,
+            p_out() = out,
+            p_crlato() = crlato,
+            p_crlatu() = crlatu,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 define_caches(cache< IJ, cache_io_policy::local >(p_lap())),
                 gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                 gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
-        simple_hori_diff->ready();
-        simple_hori_diff->steady();
-
-        simple_hori_diff->run();
+        simple_hori_diff.run();
 
         out.sync();
 
@@ -175,9 +172,6 @@ namespace shorizontal_diffusion {
 #ifdef BENCHMARK
         benchmarker::run(simple_hori_diff, t_steps);
 #endif
-
-        simple_hori_diff->finalize();
-
         return result; /// lapse_time.wall<5000000 &&
     }
 

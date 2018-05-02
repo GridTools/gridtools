@@ -46,8 +46,8 @@
 
 #include "gtest/gtest.h"
 
+#include <stencil-composition/backend.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/aggregator_type.hpp>
 
 using namespace gridtools;
 

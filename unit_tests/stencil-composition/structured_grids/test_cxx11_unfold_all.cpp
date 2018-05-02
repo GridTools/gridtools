@@ -59,15 +59,9 @@ TEST(unfold_all, test) {
 
     typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
     typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
-    meta_data_t meta_data_(3, 3, 3);
-    storage_t s0(meta_data_, 0.);
-    storage_t s1(meta_data_, 0.);
 
     typedef arg< 0, storage_t > p0;
     typedef arg< 1, storage_t > p1;
-
-    typedef boost::mpl::vector2< p0, p1 > arg_list;
-    aggregator_type< arg_list > domain(s0, s1);
 
     auto mss1 = make_multistage(
         enumtype::execute< enumtype::forward >(),
@@ -87,5 +81,5 @@ TEST(unfold_all, test) {
             make_stage< functor< 11 > >(p0(), p1()),
             make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
 
-    auto comp = make_computation< backend_t >(domain, grid, if_(predicate, mss1, mss2));
+    make_computation< backend_t >(grid, if_(predicate, mss1, mss2));
 }

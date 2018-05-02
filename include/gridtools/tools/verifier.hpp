@@ -37,7 +37,6 @@
 
 #include "common/hypercube_iterator.hpp"
 #include "common/array.hpp"
-#include "common/array_addons.hpp"
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"
 #include "storage/common/storage_info_rt.hpp"
