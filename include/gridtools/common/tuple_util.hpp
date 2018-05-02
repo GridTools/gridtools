@@ -622,11 +622,40 @@ namespace gridtools {
          * then invoked with `args` as arguments. The results of those calls are then passed to the constructor of
          * `Res`.
          *
-         * @tparam Generators A typelist of functors.
+         * @tparam Generators A typelist of functors. All functor types must be default-constructible and callable with
+         * arguments of type `Args`.
          * @tparam Res The type that should be constructed.
          * @tparam Args Argument types for the generator functors.
          *
          * @param args Arguments that will be passed to the generator functors.
+         *
+         * Example:
+         * @code
+         * // Generators that extract some information from the given arguments (a single std::string in this example)
+         * struct ptr_extractor {
+         *     const char* operator()(std::string const& s) const {
+         *         return s.data();
+         *     }
+         * };
+         *
+         * struct size_extractor {
+         *     std::size_t operator()(std::string const& s) const {
+         *         return s.size();
+         *     }
+         * };
+         *
+         * // We want to generate a pair of a pointer and size, that represents this string in a simple C-style manner
+         * std::string s = "Hello World!";
+         * // Target-type to construct
+         * using ptr_size_pair = std::pair< const char*, std::size_t >;
+         *
+         * // Typelist of generators
+         * using generators = std::tuple< ptr_extractor, size_extractor>;
+         *
+         * // Generate pair
+         * auto p = generate< generators, ptr_size_pair >(s);
+         * // p.first is now a pointer to the first character of s, p.second is the size of s
+         * @endcode
          */
         template < class Generators, class Res, class... Args >
         Res generate(Args &&... args) {
