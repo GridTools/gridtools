@@ -203,8 +203,16 @@ namespace gridtools {
             template < size_t I >
             struct transform_elem_f {
                 template < class Fun, class... Tups >
-                auto operator()(Fun &&fun, Tups &&... tups) const
-                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...));
+                // CAUTION!! CUDA8 barely understands this. If you just GT_AUTO_RETURN it goes nuts with mysterious
+                // error message; if you replace the inner result_of_t to typename std::result_of<...>::type it fails
+                // as well.
+                // Alternatively you can also write:
+                // auto operator()(Fun &&fun, Tups &&... tups) const
+                // -> typename std::result_of<Fun&&(decltype(get< I >(std::forward< Tups >(tups)))...)>::type
+                typename std::result_of< Fun && (result_of_t< get_f< I >(Tups &&) >...) >::type operator()(
+                    Fun &&fun, Tups &&... tups) const {
+                    return std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...);
+                }
             };
 
 #if GT_BROKEN_TEMPLATE_ALIASES
