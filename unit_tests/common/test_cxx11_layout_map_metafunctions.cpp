@@ -53,6 +53,7 @@ TEST(layout_map_metafunctions, filter_layout) {
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< filtered_layout_map_t, layout_map< 1, -1, -1, 0 > >::value), "Error");
     }
 }
+
 TEST(layout_map_metafunctions, extend_layout_map) {
     {
         using layout_map_t = layout_map< 0, 1, 2, 3 >;
