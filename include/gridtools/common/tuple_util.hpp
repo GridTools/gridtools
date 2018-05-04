@@ -221,7 +221,7 @@ namespace gridtools {
                 template < class Fun, class Tup1, class Tup2 >
                 auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(std::forward< Fun >(fun)(
                     get< I >(std::forward< Tup1 >(tup1)), get< I >(std::forward< Tup2 >(tup2))));
-                template < class Fun, class Tup1, class Tup2, class Tup2, class Tup3 >
+                template < class Fun, class Tup1, class Tup2, class Tup3 >
                 auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
                     GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup1 >(tup1)),
                         get< I >(std::forward< Tup2 >(tup2)),
