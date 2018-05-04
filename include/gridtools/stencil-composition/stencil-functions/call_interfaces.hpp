@@ -39,7 +39,7 @@
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/mpl.hpp>
-#include <boost/mpl/if.hpp>
+#include <type_traits>
 
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
@@ -139,9 +139,9 @@ namespace gridtools {
              * @brief Accessor (of the callee) is a regular 3D in_accessor
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< passed_argument_is_accessor_t< Accessor >::value &&
-                                                                   not is_out_arg< Accessor >::value &&
-                                                                   not is_global_accessor< Accessor >::value,
+            GT_FUNCTION constexpr typename std::enable_if< passed_argument_is_accessor_t< Accessor >::value &&
+                                                               not is_out_arg< Accessor >::value &&
+                                                               not is_global_accessor< Accessor >::value,
                 accessor_return_type_t< Accessor > >::type const
             operator()(Accessor const &accessor) const {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_t< Accessor > >::value),
@@ -156,8 +156,8 @@ namespace gridtools {
              * @brief If the passed type is not an accessor we assume it is a local variable which we just return.
             */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor_t< Accessor >::value &&
-                                                                   not is_out_arg< Accessor >::value,
+            GT_FUNCTION constexpr typename std::enable_if< not passed_argument_is_accessor_t< Accessor >::value &&
+                                                               not is_out_arg< Accessor >::value,
                 get_passed_argument_t< Accessor > >::type
             operator()(Accessor const &accessor) const {
                 return get_passed_argument< Accessor >();
@@ -167,11 +167,11 @@ namespace gridtools {
              * @brief Accessor is a global_accessor
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< passed_argument_is_accessor_t< Accessor >::value &&
-                                                                   not is_out_arg< Accessor >::value &&
-                                                                   is_global_accessor< Accessor >::value,
-                accessor_return_type_t< Accessor > >::type
-            operator()(Accessor const &) const {
+            GT_FUNCTION constexpr
+                typename std::enable_if< passed_argument_is_accessor_t< Accessor >::value &&
+                                             not is_out_arg< Accessor >::value && is_global_accessor< Accessor >::value,
+                    accessor_return_type_t< Accessor > >::type
+                operator()(Accessor const &) const {
                 GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_t< Accessor > >::value),
                     "In call: you are passing a normal accessor to a global_accessor");
                 return m_caller_aggregator(get_passed_argument< Accessor >());
@@ -181,7 +181,7 @@ namespace gridtools {
              * @brief Accessor is the (only!) OutArg, i.e. the return value
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< is_out_arg< Accessor >::value, ReturnType >::type &
+            GT_FUNCTION constexpr typename std::enable_if< is_out_arg< Accessor >::value, ReturnType >::type &
             operator()(Accessor const &) const {
                 return *m_result;
             }
@@ -250,7 +250,7 @@ namespace gridtools {
          */
         template < typename Eval, typename FirstArgument >
         struct deduce_result_type {
-            using r_type = typename boost::mpl::if_< typename is_accessor< FirstArgument >::type,
+            using r_type = typename std::conditional< is_accessor< FirstArgument >::value,
                 typename Eval::template accessor_return_type< FirstArgument >::type,
                 FirstArgument >::type;
             using type = typename remove_qualifiers< r_type >::type;
@@ -261,7 +261,7 @@ namespace gridtools {
          */
         template < typename Eval, typename FirstArgument, typename... Rest >
         struct get_result_type {
-            using type = typename boost::mpl::if_< std::is_void< ReturnType >,
+            using type = typename std::conditional< std::is_void< ReturnType >::value,
                 typename deduce_result_type< Eval, FirstArgument >::type,
                 ReturnType >::type;
         };
@@ -373,8 +373,8 @@ namespace gridtools {
              * (not a local variable)
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not is_global_accessor< Accessor >::value &&
-                                                                   passed_argument_is_accessor_t< Accessor >::value,
+            GT_FUNCTION constexpr typename std::enable_if< not is_global_accessor< Accessor >::value &&
+                                                               passed_argument_is_accessor_t< Accessor >::value,
                 accessor_return_type_t< Accessor > >::type
             operator()(Accessor const &accessor) const {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor< get_passed_argument_t< Accessor > >::value),
@@ -389,9 +389,9 @@ namespace gridtools {
              * @brief Accessor is a global_accessor and the passed Argument is an accessor (not a local variable)
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< is_global_accessor< Accessor >::value &&
+            GT_FUNCTION constexpr typename std::enable_if< is_global_accessor< Accessor >::value &&
 
-                                                                   passed_argument_is_accessor_t< Accessor >::value,
+                                                               passed_argument_is_accessor_t< Accessor >::value,
                 accessor_return_type_t< Accessor > >::type
             operator()(Accessor const &accessor) const {
                 GRIDTOOLS_STATIC_ASSERT((is_global_accessor< get_passed_argument_t< Accessor > >::value),
@@ -403,7 +403,7 @@ namespace gridtools {
              * @brief Passed argument is a local variable (not an accessor)
              */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor_t< Accessor >::value,
+            GT_FUNCTION constexpr typename std::enable_if< not passed_argument_is_accessor_t< Accessor >::value,
                 typename boost::remove_reference< typename boost::fusion::result_of::at_c< accessors_list_t,
                     Accessor::index_t::value >::type >::type::type >::type &
             operator()(Accessor const &) const {
