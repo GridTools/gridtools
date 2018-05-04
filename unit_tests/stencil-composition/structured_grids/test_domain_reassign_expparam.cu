@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_cycle_and_swap.cpp"
+#include "test_domain_reassign_expparam.cpp"

@@ -33,5 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
-#include "./test_cxx11_distributed_boundaries.cpp"
+#include "test_call_interfaces.cpp"

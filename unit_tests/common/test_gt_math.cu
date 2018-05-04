@@ -33,9 +33,42 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "test_cxx11_accumulate.hpp"
+#include "test_gt_math.cpp"
 
-TEST(accumulate, test_and) { ASSERT_TRUE(test_accumulate_and()); }
+#include "../cuda_test_helper.hpp"
 
-TEST(accumulate, test_or) { ASSERT_TRUE(test_accumulate_or()); }
+TEST(math_cuda, test_fabs) {
+    EXPECT_TRUE(test_fabs::Do());
+    EXPECT_TRUE(cuda_test< test_fabs >());
+}
+
+TEST(math_cuda, test_abs) {
+    EXPECT_TRUE(test_fabs::Do());
+    EXPECT_TRUE(cuda_test< test_fabs >());
+}
+
+TEST(math_cuda, test_log) {
+    EXPECT_TRUE(test_log< double >::Do(2.3, std::log(2.3)));
+    EXPECT_TRUE(test_log< float >::Do(2.3f, std::log(2.3f)));
+
+    EXPECT_TRUE(cuda_test< test_log< double > >(2.3, std::log(2.3)));
+    EXPECT_TRUE(cuda_test< test_log< float > >(2.3f, std::log(2.3f)));
+}
+
+TEST(math_cuda, test_exp) {
+
+    EXPECT_TRUE(test_exp< double >::Do(2.3, std::exp(2.3)));
+    EXPECT_TRUE(test_exp< float >::Do(2.3f, std::exp(2.3f)));
+
+    EXPECT_TRUE(cuda_test< test_exp< double > >(2.3, std::exp(2.3)));
+    EXPECT_TRUE(cuda_test< test_exp< float > >(2.3f, std::exp(2.3f)));
+}
+
+TEST(math_cuda, test_pow) {
+
+    EXPECT_TRUE(test_pow< double >::Do(2.3, std::pow(2.3, 2.3)));
+    EXPECT_TRUE(test_pow< float >::Do(2.3f, std::pow(2.3f, 2.3f)));
+
+    EXPECT_TRUE(cuda_test< test_pow< double > >(2.3, std::pow(2.3, 2.3)));
+    EXPECT_TRUE(cuda_test< test_pow< float > >(2.3f, std::pow(2.3f, 2.3f)));
+}
