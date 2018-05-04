@@ -76,14 +76,21 @@ namespace sov {
         constexpr uint_t halo_nc = 1;
         constexpr uint_t halo_mc = 1;
 
-        using vertex_storage_type =
-            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0> >;
+        using vertex_storage_type = typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices,
+            double,
+            halo< halo_nc, 0, halo_mc, 0 > >;
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0> >("in");
-        auto out_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0> >("out");
-        auto ref_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0> >("ref");
+        auto in_vertices =
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+                "in");
+        auto out_vertices =
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+                "out");
+        auto ref_vertices =
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+                "ref");
         auto inv = make_host_view(in_vertices);
         auto outv = make_host_view(out_vertices);
         auto refv = make_host_view(ref_vertices);
@@ -145,7 +152,7 @@ namespace sov {
             verifier ver(1e-10);
 #endif
 
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0,0}}};
+            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0, 0}}};
             result = ver.verify(grid_, ref_vertices, out_vertices, halos);
         }
 #ifdef BENCHMARK

@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <boost/any.hpp>
+#include "../common/any_moveable.hpp"
 
 struct gt_handle {
-    boost::any m_value;
+    gridtools::any_moveable m_value;
 };
