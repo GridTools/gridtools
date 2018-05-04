@@ -62,7 +62,10 @@ namespace gridtools {
         };
     }
 
-    /** For each type in Res find the element in src of the same type, place those elements in correct order and
+    /** \ingroup common
+     * \defgroup permute_to Permute
+     *
+     *  For each type in Res find the element in src of the same type, place those elements in correct order and
      *  construct the Res instance from them.
      *
      *  This utility is handy when we have all elements of the Res, but not in the right order.
@@ -78,6 +81,12 @@ namespace gridtools {
      *      what_we_need_t expected {'a', .1, 42};
      *      auto actual = permute_to<what_we_need_t>(what_we_have);
      *      EXPECT_EQ(actual, expected);
+     *
+     * \tparam Res The type of resulting sequence
+     * \tparam Res The type of input sequence
+     *
+     * \param src The input sequence
+     * \return The permuted sequence
      */
     template < typename Res, typename Src >
     Res permute_to(Src &&src) {

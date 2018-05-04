@@ -48,6 +48,11 @@
 #include "generic_metafunctions/sequence_unpacker.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup layout
+        @{
+    */
 
     /** \brief Compute the reverse of a layout. For instance the reverse of
         `layout_map<1,0,-1,2>` is `layout<1,2,-1,0>`
@@ -205,4 +210,7 @@ namespace gridtools {
 
     template < short_t D >
     using default_layout_map_t = typename default_layout_map< D >::type;
+
+    /** @} */
+    /** @} */
 }
