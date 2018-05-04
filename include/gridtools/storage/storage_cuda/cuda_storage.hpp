@@ -91,7 +91,7 @@ namespace gridtools {
             : m_cpu_ptr(new data_t[size]), m_size{size} {
             // New will align addresses according to the size(data_t)
             data_t *allocated_ptr;
-            cudaError_t err = cudaMalloc(&allocated_ptr, (size + Align-1) * sizeof(data_t));
+            cudaError_t err = cudaMalloc(&allocated_ptr, (size + Align - 1) * sizeof(data_t));
             if (err != cudaSuccess) {
                 delete[] m_cpu_ptr;
                 throw std::runtime_error("failed to allocate GPU memory in constructor.");
