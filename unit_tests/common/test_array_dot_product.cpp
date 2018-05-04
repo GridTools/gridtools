@@ -33,24 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/array_dot_product.hpp"
 
-#include <common/defs.hpp>
-#include <stencil-composition/backend.hpp>
+using namespace gridtools;
 
-#ifdef BACKEND_HOST
-constexpr auto ARCH = gridtools::enumtype::Host;
-#ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
-#else
-using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
-#endif
-#elif defined(BACKEND_MIC)
-constexpr auto ARCH = gridtools::enumtype::Mic;
-using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
-#elif defined(BACKEND_CUDA)
-constexpr auto ARCH = gridtools::enumtype::Cuda;
-using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
-#else
-#error "no backend selected"
-#endif
+TEST(array_dot_product, test_dot_product) {
+    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
+    constexpr array< uint_t, 4 > b{1, 2, 3, 4};
+
+    static_assert(array_dot_product(a, b) == 1 + 2 * 2 + 3 * 3 + 4 * 4, " ");
+    ASSERT_EQ(array_dot_product(a, b), 1 + 2 * 2 + 3 * 3 + 4 * 4);
+}
