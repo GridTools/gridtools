@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include <memory>
 #include <tuple>
 #include <utility>
 #include <memory>
@@ -426,7 +427,7 @@ namespace gridtools {
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
-                m_meter.reset(new performance_meter_t("NoName"));
+                m_meter.reset(new performance_meter_t{"NoName"});
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
