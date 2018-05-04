@@ -58,7 +58,7 @@
 #define ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
 #define ASSERT_OR_THROW(cond, msg) \
-    if (!cond)                     \
+    if (!(cond))                   \
     throw std::runtime_error(msg)
 #endif
 /** @} */
