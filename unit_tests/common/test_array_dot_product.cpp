@@ -45,5 +45,4 @@ TEST(array_dot_product, test_dot_product) {
 
     static_assert(array_dot_product(a, b) == 1 + 2 * 2 + 3 * 3 + 4 * 4, " ");
     ASSERT_EQ(array_dot_product(a, b), 1 + 2 * 2 + 3 * 3 + 4 * 4);
-
 }
