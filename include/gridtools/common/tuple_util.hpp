@@ -202,17 +202,35 @@ namespace gridtools {
 
             template < size_t I >
             struct transform_elem_f {
-                template < class Fun, class... Tups >
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
                 // CAUTION!! CUDA8 barely understands this. If you just GT_AUTO_RETURN it goes nuts with mysterious
                 // error message; if you replace the inner result_of_t to typename std::result_of<...>::type it fails
                 // as well.
                 // Alternatively you can also write:
                 // auto operator()(Fun &&fun, Tups &&... tups) const
                 // -> typename std::result_of<Fun&&(decltype(get< I >(std::forward< Tups >(tups)))...)>::type
+                template < class Fun, class... Tups >
                 typename std::result_of< Fun && (result_of_t< get_f< I >(Tups &&) >...) >::type operator()(
                     Fun &&fun, Tups &&... tups) const {
                     return std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...);
                 }
+#elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800
+                template < class Fun, class Tup >
+                auto operator()(Fun &&fun, Tup &&tups) const
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup >(tup))));
+                template < class Fun, class Tup1, class Tup2 >
+                auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(std::forward< Fun >(fun)(
+                    get< I >(std::forward< Tup1 >(tup1)), get< I >(std::forward< Tup2 >(tup2))));
+                template < class Fun, class Tup1, class Tup2, class Tup2, class Tup3 >
+                auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup1 >(tup1)),
+                        get< I >(std::forward< Tup2 >(tup2)),
+                        get< I >(std::forward< Tup3 >(tup3))));
+#else
+                template < class Fun, class... Tups >
+                auto operator()(Fun &&fun, Tups &&... tups) const
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...));
+#endif
             };
 
 #if GT_BROKEN_TEMPLATE_ALIASES
