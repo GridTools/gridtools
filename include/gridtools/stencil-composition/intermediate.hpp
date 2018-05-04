@@ -38,6 +38,7 @@
 #include <memory>
 #include <tuple>
 #include <utility>
+#include <memory>
 
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
