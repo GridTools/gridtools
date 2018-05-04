@@ -46,6 +46,14 @@
 
 namespace gridtools {
 
+    /** \defgroup common Common Shared Utilities
+        @{
+     */
+
+    /** \defgroup array Array
+        @{
+    */
+
     namespace impl_ {
         template < typename T, std::size_t N >
         struct array_traits {
@@ -63,6 +71,11 @@ namespace gridtools {
     template < typename T >
     struct is_array;
 
+    /** \brief A class equivalent to std::array but enabled for GridTools use
+
+        \tparam T Value type of the array
+        \tparam B Size of the array
+     */
     template < typename T, size_t D >
     class array {
         typedef array< T, D > type;
@@ -194,5 +207,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
         return std::move(get< I >(arr));
     }
+
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

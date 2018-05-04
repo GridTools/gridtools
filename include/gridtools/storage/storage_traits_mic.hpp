@@ -100,7 +100,6 @@ namespace gridtools {
             using type = mic_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo >;
         };
 
-
         template < uint_t Id, uint_t Dims, typename Halo, typename Align >
         struct select_storage_info_align {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");

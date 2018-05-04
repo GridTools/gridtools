@@ -148,8 +148,7 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
             const int thread = omp_get_thread_num();
             const int total_threads = omp_get_max_threads();
-            const int thread_offset =
-                (sinfo->padded_total_length()) * thread / total_threads;
+            const int thread_offset = (sinfo->padded_total_length()) * thread / total_threads;
             return thread_offset;
 #else
             using grid_traits_t = GridTraits;
