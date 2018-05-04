@@ -35,6 +35,12 @@
 */
 #pragma once
 
+/** \ingroup common
+    @{
+    \defgroup defs Common Definitions
+    @{
+*/
+
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
@@ -156,6 +162,10 @@ namespace gridtools {
  * functionalities
  */
 namespace gridtools {
+    /** \ingroup defs
+        @{
+    */
+
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
@@ -245,9 +255,14 @@ namespace gridtools {
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
 
+#ifdef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
+/* disable GT_AUTO_RETURN macro for doxygen as it creates many warnings */
+#define GT_AUTO_RETURN(expr)
+#else
 #define GT_AUTO_RETURN(expr)          \
     ->decltype(expr) { return expr; } \
     static_assert(1, "")
+#endif
 
 //################ Type aliases for GridTools ################
 
@@ -299,4 +314,9 @@ namespace gridtools {
     template < bool B >
     using static_bool = std::integral_constant< bool, B >;
 
+    /** @} */
+
 } // namespace gridtools
+
+/** @} */
+/** @} */

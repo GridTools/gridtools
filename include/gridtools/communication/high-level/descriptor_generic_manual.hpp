@@ -876,7 +876,9 @@ namespace gridtools {
             }
         }
 
+#ifndef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
 #include "./non_vect_interface.hpp"
+#endif
     };
 #endif // cudacc
 }

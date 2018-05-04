@@ -47,6 +47,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup layout Layout Map
+        @{
+    */
+
     namespace _impl {
         namespace _layout_map {
             /* helper meta functions */
@@ -131,4 +137,7 @@ namespace gridtools {
 
     template < int... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
+
+    /** @} */
+    /** @} */
 }

@@ -99,9 +99,18 @@ namespace gridtools {
      */
     namespace tuple_util {
 
+        /// @cond
         namespace traits {
 
-            /// std::tuple adaptation
+            /*
+             * Adaptation traits
+             *
+             * To enable the algorithms provided in this file for a tuple-like container, an implementation of do_get
+             * has to be defined here. Currently std::tuple and std::pair are fully supported. Limited support is also
+             * provided for std::array (limitation due to the different template parameters).
+             */
+
+            // std::tuple adaptation
             template < size_t I, class... Ts >
             constexpr typename std::tuple_element< I, std::tuple< Ts... > >::type &do_get(
                 std::integral_constant< size_t, I >, std::tuple< Ts... > &obj) noexcept {
@@ -118,7 +127,7 @@ namespace gridtools {
                 return std::get< I >(std::move(obj));
             }
 
-            /// std::array adaptation
+            // std::array adaptation
             template < size_t I, class T, size_t N >
             constexpr T &do_get(std::integral_constant< size_t, I >, std::array< T, N > &obj) noexcept {
                 return std::get< I >(obj);
@@ -132,7 +141,7 @@ namespace gridtools {
                 return std::get< I >(std::move(obj));
             }
 
-            /// std::pair adaptation
+            // std::pair adaptation
             template < size_t I, class T1, class T2 >
             constexpr typename std::tuple_element< I, std::pair< T1, T2 > >::type &do_get(
                 std::integral_constant< size_t, I >, std::pair< T1, T2 > &obj) noexcept {
@@ -156,9 +165,19 @@ namespace gridtools {
                     GT_AUTO_RETURN(do_get(std::integral_constant< size_t, I >{}, std::forward< T >(obj)));
             };
         }
+        /// @endcond
 
-        /// This is tuple element accessor. Like std::get, but extendable via defining do_get
         using traits::get_f;
+
+        /**
+         * @brief Tuple element accessor like std::get.
+         *
+         * @tparam I Element index.
+         * @tparam T Tuple-like type.
+         * @param obj Tuple-like object.
+         *
+         * Extensible via defining `do_get()`-functions which are searched via argument-dependent lookup.
+         */
         template < size_t I, class T >
         constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(get_f< I >{}(std::forward< T >(obj)));
 
@@ -422,19 +441,118 @@ namespace gridtools {
             };
         }
 
-        /// like boost::fusion::transform, but not lazy and can take any number of tuples as input.
-        ///  in case of multiple inputs all inputs have the same size obviously.
+        /**
+         * @brief Transforms each tuple element by a function.
+         *
+         * Transformations with functions with more than one argument are supported by passing multiple tuples of the
+         * same size.
+         *
+         * @tparam Fun Functor type.
+         * @tparam Tup Optional tuple-like type.
+         * @tparam Tups Optional Tuple-like types.
+         *
+         * @param fun Function that should be applied to all elements of the given tuple(s).
+         * @param tup First tuple-like object, serves as first arguments to `fun` if given.
+         * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
+         *
+         * Example code:
+         * @code
+         * #include <functional>
+         * using namespace std::placeholders;
+         *
+         * struct add {
+         *     template < class A, class B >
+         *     auto operator()(A a, B b) -> decltype(a + b) {
+         *         return a + b;
+         *     }
+         * };
+         *
+         * // Unary function, like boost::fusion::transform
+         * auto tup = std::make_tuple(1, 2, 3.5);
+         * auto fun = std::bind(add{}, 2, _1);
+         * auto res = transform(fun, tup);
+         * // res == {3, 4, 5.5}
+         *
+         * // Binary function
+         * auto tup2 = std::make_tuple(1.5, 3, 4.1);
+         * auto res2 = transform(add{}, tup, tup2);
+         * // res2 == {2.5, 5, 7.6}
+         * @endcode
+         */
         template < class Fun, class Tup, class... Tups >
         auto transform(Fun &&fun, Tup &&tup, Tups &&... tups) GT_AUTO_RETURN(_impl::transform_f< Fun >{
             std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...));
 
+        /**
+         * @brief Returns a functor that transforms each tuple element by a function.
+         *
+         * Composable version of `transform` that returns a functor which can be invoked with (one or multiple) tuples.
+         *
+         * @tparam Fun Functor type.
+         *
+         * @param fun Function that should be applied to all elements of the given tuple(s).
+         *
+         * Example code:
+         * @code
+         * struct add {
+         *     template < class A, class B >
+         *     auto operator()(A a, B b) -> decltype(a + b) {
+         *         return a + b;
+         *     }
+         * };
+         *
+         * // Composable usage with only a function argument
+         * auto addtuples = transform(add{});
+         * // addtuples takes now two tuples as arguments
+         * auto tup1 = std::make_tuple(1, 2, 3.5);
+         * auto tup2 = std::make_tuple(1.5, 3, 4.1);
+         * auto res = addtuples(tup1, tup2)
+         * // res == {2.5, 5, 7.6}
+         * @endcode
+         */
         template < class Fun >
         constexpr _impl::transform_f< Fun > transform(Fun fun) {
             return {std::move(fun)};
         }
 
-        /// like boost::fusion::for_each, but can take any number of tuples as input
-        ///
+        /**
+         * @brief Calls a function for each element in a tuple.
+         *
+         * Functions with more than one argument are supported by passing multiple tuples of the same size. If only a
+         * function but no tuples are passed, a composable functor is returned.
+         *
+         * @tparam Fun Functor type.
+         * @tparam Tup Optional tuple-like type.
+         * @tparam Tups Optional Tuple-like types.
+         *
+         * @param fun Function that should be called for each element of the given tuple(s).
+         * @param tup First tuple-like object, serves as first arguments to `fun` if given.
+         * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
+         *
+         * Example code:
+         * @code
+         * struct sum {
+         *     double& value;
+         *     template < class A >
+         *     void operator()(A a, bool mask = true) const {
+         *         if (mask)
+         *             value += a;
+         *     }
+         * };
+         *
+         * // Unary function, like boost::fusion::for_each
+         * auto tup = std::make_tuple(1, 2, 3.5);
+         * double sum_value = 0.0;
+         * for_each(sum{sum_value}, tup);
+         * // sum_value == 6.5
+         *
+         * // Binary function
+         * auto tup2 = std::make_tuple(false, true, true);
+         * sum_value = 0.0;
+         * for_each(sum{sum_value}, tup, tup2);
+         * // sum_value == 5.5
+         * @endcode
+         */
         template < class Fun, class Tup, class... Tups >
         void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
             transform(_impl::for_each_adaptor_f< Fun >{std::forward< Fun >(fun)},
@@ -442,58 +560,287 @@ namespace gridtools {
                 std::forward< Tups >(tups)...);
         }
 
+        /**
+         * @brief Returns a functor that calls a function for each element in a tuple.
+         *
+         * Composable version of `for_each` that returns a functor which can be invoked with (one or multiple) tuples.
+         *
+         * @tparam Fun Functor type.
+         *
+         * @param fun Function that should be called for each element of the given tuple(s).
+         *
+         * Example code:
+         * @code
+         * struct sum {
+         *     double& value;
+         *     template < class A >
+         *     void operator()(A a, bool mask = true) const {
+         *         if (mask)
+         *             value += a;
+         *     }
+         * };
+         *
+         * // Composable usage with only a function argument
+         * sum_value = 0.0;
+         * auto sumtuples = for_each(sum{sum_value});
+         * // sumtuples takes now two tuples as arguments
+         * auto tup1 = std::make_tuple(1, 2, 3.5);
+         * auto tup2 = std::make_tuple(false, true, true);
+         * auto res = sumtuples(tup1, tup2)
+         * // sum_value == 5.5
+         * @endcode
+         */
         template < class Fun >
         constexpr _impl::transform_f< _impl::for_each_adaptor_f< Fun > > for_each(Fun fun) {
             return {{std::move(fun)}};
         }
 
+        /**
+         * @brief Return a functor that flattens a tuple of tuples non-recursively into a single tuple.
+         *
+         * Flattens only the first two levels of nested tuples into a single level. Does not flatten further levels of
+         * nesting.
+         *
+         * Example:
+         * @code
+         * auto flattenfunc = flatten();
+         * auto tup1 = std::make_tuple(1, 2);
+         * auto tup2 = std::make_tuple(3, 4, 5);
+         * auto flat = flattenfunc(tup1, tup2);
+         * // flat == {1, 2, 3, 4, 5}
+         * @endcode
+         */
         inline constexpr _impl::flatten_f flatten() { return {}; }
 
-        /// Takes a tuple of tuples and concatenate the inner tuples into a one.
-        /// Note that it doesn't go recursive.
+        /**
+         * @brief Non-recursively flattens a tuple of tuples into a single tuple.
+         *
+         * Flattens only the first two levels of nested tuples into a single level. Does not flatten further levels of
+         * nesting.
+         *
+         * @tparam Tup Tuple-like type.
+         * @param tup Tuple-like object.
+         *
+         * Example:
+         * @code
+         * auto tup1 = std::make_tuple(1, 2);
+         * auto tup2 = std::make_tuple(3, 4, 5);
+         * auto flat = flatten(tup1, tup2);
+         * // flat == {1, 2, 3, 4, 5}
+         * @endcode
+         */
         template < class Tup >
         auto flatten(Tup &&tup) GT_AUTO_RETURN(flatten()(std::forward< Tup >(tup)));
 
-        /// Generators is a typelist of functors. Elements in Generators typelist are default constructed.
-        /// Then they are invoked with provided arguments each. The results are passed to the constructor of Res.
-        /// The created object is returned.
+        /**
+         * @brief Constructs an object from generator functors.
+         *
+         * `Generators` is a typelist of generator functors. Instances of those types are first default constructed,
+         * then invoked with `args` as arguments. The results of those calls are then passed to the constructor of
+         * `Res`.
+         *
+         * @tparam Generators A typelist of functors. All functor types must be default-constructible and callable with
+         * arguments of type `Args`.
+         * @tparam Res The type that should be constructed.
+         * @tparam Args Argument types for the generator functors.
+         *
+         * @param args Arguments that will be passed to the generator functors.
+         *
+         * Example:
+         * @code
+         * // Generators that extract some information from the given arguments (a single std::string in this example)
+         * struct ptr_extractor {
+         *     const char* operator()(std::string const& s) const {
+         *         return s.data();
+         *     }
+         * };
+         *
+         * struct size_extractor {
+         *     std::size_t operator()(std::string const& s) const {
+         *         return s.size();
+         *     }
+         * };
+         *
+         * // We want to generate a pair of a pointer and size, that represents this string in a simple C-style manner
+         * std::string s = "Hello World!";
+         * // Target-type to construct
+         * using ptr_size_pair = std::pair< const char*, std::size_t >;
+         *
+         * // Typelist of generators
+         * using generators = std::tuple< ptr_extractor, size_extractor>;
+         *
+         * // Generate pair
+         * auto p = generate< generators, ptr_size_pair >(s);
+         * // p.first is now a pointer to the first character of s, p.second is the size of s
+         * @endcode
+         */
         template < class Generators, class Res, class... Args >
         Res generate(Args &&... args) {
             return _impl::generate_f< Generators, Res >{}(std::forward< Args >(args)...);
         }
 
+        /**
+         * @brief Returns a functor that removes the first `N` elements from a tuple.
+         *
+         * @tparam N Number of elements to remove.
+         *
+         * Example:
+         * @code
+         * auto dropper = drop_front<2>();
+         * auto tup = std::make_tuple(1, 2, 3, 4);
+         * auto res = dropper(tup);
+         * // res == {3, 4}
+         * @endcode
+         */
         template < size_t N >
         constexpr _impl::drop_front_f< N > drop_front() {
             return {};
         }
 
+        /**
+         * @brief Removes the first `N` elements from a tuple.
+         *
+         * @tparam N Number of elements to remove.
+         * @tparam Tup Tuple-like type.
+         *
+         * @param tup Tuple to remove first `N` elements from.
+         *
+         * Example:
+         * @code
+         * auto tup = std::make_tuple(1, 2, 3, 4);
+         * auto res = drop_front<2>(tup);
+         * // res == {3, 4}
+         * @endcode
+         */
         template < size_t N, class Tup >
         auto drop_front(Tup &&tup) GT_AUTO_RETURN(drop_front< N >()(std::forward< Tup >(tup)));
 
+        /**
+         * @brief Returns a functor that appends elements to a tuple.
+         *
+         * Example:
+         * @code
+         * auto pusher = push_back();
+         * auto tup = std::make_tuple(1, 2);
+         * auto res = pusher(tup, 3, 4);
+         * // res = {1, 2, 3, 4}
+         * @endcode
+         */
         inline constexpr _impl::push_back_f push_back() { return {}; }
 
+        /**
+         * @brief Appends elements to a tuple.
+         *
+         * @tparam Tup Tuple-like type.
+         * @tparam Args Argument types to append.
+         *
+         * @param tup Tuple-like object.
+         * @param args Arguments to append.
+         *
+         * Example:
+         * @code
+         * auto tup = std::make_tuple(1, 2);
+         * auto res = push_back(tup, 3, 4);
+         * // res = {1, 2, 3, 4}
+         * @endcode
+         */
         template < class Tup, class... Args >
         auto push_back(Tup &&tup, Args &&... args)
             GT_AUTO_RETURN(push_back()(std::forward< Tup >(tup), std::forward< Args >(args)...));
 
-        /// Left fold.
-        /// If there are tree parameters, the first is a binary function to fold with,
-        /// second is an initial state, and the third is a tuple to fold.
-        /// In the case if there is only two parameters, the second parameter is a (non-empty) tuple to fold and
-        /// it it's first element acts as an initial state.
+        /**
+         * @brief Left fold on tuple-like objects.
+         *
+         * This function accepts either two or three arguments. If three arguments are given, the second is the initial
+         * state and the third a tuple-like object to fold. If only two arguments are given, the second is a tuple-like
+         * object where the first element acts as the initial state.
+         *
+         * @tparam Fun Binary function type.
+         * @tparam Arg Either the initial state if three arguments are given or the tuple to fold if two arguments are
+         * given.
+         * @tparam Args The tuple type to fold (if three arguments are given).
+         *
+         * @param fun Binary function object.
+         * @param arg Either the initial state if three arguments are given or the tuple to fold if two arguments are
+         * given.
+         * @param args The tuple to fold (if three arguments are given).
+         *
+         * Example:
+         * @code
+         * auto tup = std::make_tuple(1, 2, 3);
+         *
+         * // Three arguments
+         * auto res = fold(std::plus<int>{}, 0, tup);
+         * // res == 6
+         *
+         * // Two arguments
+         * auto res2 = fold(std::plus<int>{}, tup);
+         * // res2 == 6
+         * @endcode
+         */
         template < class Fun, class Arg, class... Args >
         auto fold(Fun &&fun, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
             _impl::fold_f< Fun >{std::forward< Fun >(fun)}(std::forward< Arg >(arg), std::forward< Args >(args)...));
 
+        /**
+         * @brief Returns a functor that performs a left fold on tuple-like objects.
+         *
+         * The returned functor accepts either one or two arguments. If two arguments are given, the first is the
+         * initial state and the second a tuple-like object to fold. If only one argument is given, the argument must be
+         * a tuple-like object where the first element acts as the initial state.
+         *
+         * @tparam Fun Binary function type.
+         * @param fun Binary function object.
+         *
+         * Example:
+         * @code
+         * auto tup = std::make_tuple(1, 2, 3);
+         * auto folder = fold(std::plus<int>{});
+         *
+         * // Three arguments
+         * auto res = folder(0, tup);
+         * // res == 6
+         *
+         * // Two arguments
+         * auto res2 = folder(tup);
+         * // res2 == 6
+         * @endcode
+         */
         template < class Fun >
         constexpr _impl::fold_f< Fun > fold(Fun fun) {
             return {std::move(fun)};
         }
 
+        /**
+         * @brief Returns a functor that replaces reference types by value types in a tuple
+         *
+         * Example:
+         * @code
+         * auto copyfun = deep_copy();
+         * int foo = 3;
+         * std::tuple<int&> tup(foo);
+         * auto tupcopy = copyfun(tup);
+         * ++foo;
+         * // tup == {4}, tupcopy == {3}
+         * @endcode
+         */
         inline constexpr _impl::transform_f< clone > deep_copy() { return {}; }
 
-        /// All the references within input are copied as values into output. Output type doesn't contain references.
-        ///
+        /**
+         * @brief Replaces reference types by value types in a tuple.
+         *
+         * @tparam Tup Tuple-like type.
+         * @param tup Tuple-like object, possibly containing references.
+         *
+         * Example:
+         * @code
+         * int foo = 3;
+         * std::tuple<int&> tup(foo);
+         * auto tupcopy = deep_copy(tup);
+         * ++foo;
+         * // tup == {4}, tupcopy == {3}
+         * @endcode
+         */
         template < class Tup >
         auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward< Tup >(tup)));
     }
