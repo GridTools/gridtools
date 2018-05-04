@@ -216,7 +216,7 @@ namespace gridtools {
                 }
 #elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800
                 template < class Fun, class Tup >
-                auto operator()(Fun &&fun, Tup &&tups) const
+                auto operator()(Fun &&fun, Tup &&tup) const
                     GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup >(tup))));
                 template < class Fun, class Tup1, class Tup2 >
                 auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(std::forward< Fun >(fun)(
