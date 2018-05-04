@@ -143,7 +143,8 @@ namespace gridtools {
         template < uint_t... Idxs, typename Array, typename Halo = zero_halo< ndims > >
         GT_FUNCTION static constexpr uint_t multiply_if_layout(
             gt_integer_sequence< uint_t, Idxs... >, Array const &array, Halo h = zero_halo< ndims >{}) {
-            return accumulate(multiplies(), ((layout_t::template at< Idxs >() >= 0) ? array[Idxs] - 2 * h.at(Idxs) : 1)...);
+            return accumulate(
+                multiplies(), ((layout_t::template at< Idxs >() >= 0) ? array[Idxs] - 2 * h.at(Idxs) : 1)...);
         }
 
         template < uint_t... Seq, typename... Ints >
@@ -363,7 +364,7 @@ namespace gridtools {
          * @return index
          */
         GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
-            return array_dot_product(offsets,m_strides);
+            return array_dot_product(offsets, m_strides);
         }
 
         GT_FUNCTION constexpr int first_index_of_inner_region() const {

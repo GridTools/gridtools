@@ -88,8 +88,8 @@ namespace gridtools {
         using data_store_field_t = data_store_field< data_store_t< ValueType, StorageInfo >, N... >;
 
         template < uint_t Id, uint_t Dims, typename Halo, typename Align >
-        using storage_info_align_t =
-            typename gridtools::storage_traits_from_id< T >::template select_storage_info_align< Id, Dims, Halo, Align >::type;
+        using storage_info_align_t = typename gridtools::storage_traits_from_id<
+            T >::template select_storage_info_align< Id, Dims, Halo, Align >::type;
 
         template < uint_t Id, typename LayoutMap, typename Halo, typename Align >
         using custom_layout_storage_info_align_t = typename gridtools::storage_traits_from_id<

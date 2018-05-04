@@ -78,8 +78,7 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          */
         template < uint_t Align = 1 >
-        mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
-        {
+        mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{}) {
             // New will align addresses according to the size(data_t)
             static std::atomic< uint_t > s_data_offset(64);
             uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
@@ -92,14 +91,16 @@ namespace gridtools {
                     next_data_offset = 64;
             } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
 
-            if (posix_memalign(
-                               reinterpret_cast< void ** >(&m_allocated_ptr), 2 * 1024 * 1024, (size + (data_type_offset + Align)) * sizeof(data_t)))
+            if (posix_memalign(reinterpret_cast< void ** >(&m_allocated_ptr),
+                    2 * 1024 * 1024,
+                    (size + (data_type_offset + Align)) * sizeof(data_t)))
                 throw std::bad_alloc();
 
             uint_t delta =
                 ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
-            m_cpu_ptr = (delta == 0) ? m_allocated_ptr + data_type_offset : m_allocated_ptr + (data_type_offset + Align - delta);
+            m_cpu_ptr = (delta == 0) ? m_allocated_ptr + data_type_offset
+                                     : m_allocated_ptr + (data_type_offset + Align - delta);
         }
 
         /*
