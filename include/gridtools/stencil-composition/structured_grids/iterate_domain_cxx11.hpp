@@ -312,7 +312,7 @@ namespace gridtools {
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
          * if direct access to main memory (i.e. ignoring caches) is requested
            \param real_storage_pointer base address
-           \tparam pointer_offset offset wrt to base address
+           \param pointer_offset offset wrt to base address
         */
         template < typename ReturnType, typename Accesor, bool DirectGMemAccess, typename DataPointer >
         GT_FUNCTION typename boost::enable_if_c< DirectGMemAccess, ReturnType >::type get_value_dispatch(
@@ -323,7 +323,7 @@ namespace gridtools {
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
          * if direct access to main memory (i.e. ignoring caches) is not requested
            \param real_storage_pointer base address
-           \tparam pointer_offset offset wrt to base address
+           \param pointer_offset offset wrt to base address
         */
         template < typename ReturnType, typename Accessor, bool DirectGMemAccess, typename DataPointer >
         GT_FUNCTION typename boost::enable_if_c< !DirectGMemAccess, ReturnType >::type get_value_dispatch(

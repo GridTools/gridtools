@@ -40,6 +40,14 @@
 #include "./generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
+    /** \addtogroup common
+        @{
+     */
+
+    /** \addtogroup array
+        @{
+    */
+
     namespace _impl {
         template < typename T, typename U, size_t D, size_t... Is >
         GT_FUNCTION constexpr auto dot_impl(
@@ -52,8 +60,12 @@ namespace gridtools {
     /**
      * @brief dot product for gridtools::array (enabled for all arithmetic types)
      *
-     * \param First array
-     * \param Second Array
+     * @tparam T Element type of first array.
+     * @tparam U Element type of second array.
+     * @tparam D Array size.
+     *
+     * @param a First array.
+     * @param b Second array.
      *
      * \return Value corresponding to the first array value type
      */
@@ -64,4 +76,8 @@ namespace gridtools {
     GT_FUNCTION constexpr T array_dot_product(array< T, D > const &a, array< U, D > const &b) {
         return _impl::dot_impl(a, b, typename make_gt_integer_sequence< size_t, D >::type{});
     }
+
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

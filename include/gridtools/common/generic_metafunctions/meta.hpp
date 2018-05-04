@@ -168,7 +168,7 @@ namespace gridtools {
      *
      *  Regularly, a function has also its lazy version, which is defined in the `lazy` nested namespace under the same
      *  name. Exceptions are functions that return:
-     *   - a struct with a nested `type` alias, which points to the struct itself;`
+     *   - a struct with a nested `type` alias, which points to the struct itself;
      *       ex: `list`
      *   - a struct derived from `std::intergral_constant`
      *       ex: `length`, `is_list`
@@ -186,13 +186,13 @@ namespace gridtools {
      *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
      *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility
      * only
-     *  using that two macros. Direct `#if GT_BROKEN_TEMPLATE_ALIASES`... could be necessary.
+     *  using that two macros. Direct <tt>\#if GT_BROKEN_TEMPLATE_ALIASES`</tt> could be necessary.
      *
      *  Syntax sugar: All high order functions being called with only functional arguments return partially applied
      * versions
      *  of themselves [which became plane functions].
      *  Example, where it could be useful is:
-     *  transform a list of lists:  `using out = meta::transform<meta::transform<fun>::apply, in>;`
+     *  transform a list of lists:  <tt>using out = meta::transform<meta::transform<fun>::apply, in>;</tt>
      *
      *  Guidelines for Using Meta in Compatible with Retarded Compilers Mode
      *  =====================================================================
@@ -219,15 +219,14 @@ namespace gridtools {
      *      defined smth. like `template <class T> using foo = lazy_foo<T>;` and you pass `foo` to the high order
      * function.
      *      in this case, you need to add retarded version (where `lazy_foo` would just named `foo`) under
-     *      `#if GT_BROKEN_TEMPLATE_ALIASES`;
-     *    - if it is still not your case, ask @anstaf.
+     *      <tt>\#if GT_BROKEN_TEMPLATE_ALIASES</tt>;
+     *    - if it is still not your case, ask \@anstaf.
      *
      *  TODO List
      *  =========
      *   - rename all "hybrid" functions to `*_c` together with adding regular version.
      *   - implement cartesian product
      *   - add numeric stuff like `plus`, `less` etc.
-     * *
      */
     namespace meta {
 
