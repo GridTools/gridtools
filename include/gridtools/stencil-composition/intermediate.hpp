@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include <memory>
 #include <tuple>
 #include <utility>
 
@@ -53,7 +54,6 @@
 #include <boost/type_traits/remove_const.hpp>
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/max_element.hpp>
-#include <boost/optional/optional.hpp>
 
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
@@ -385,7 +385,7 @@ namespace gridtools {
 
         Grid m_grid;
 
-        boost::optional< performance_meter_t > m_meter;
+        std::unique_ptr< performance_meter_t > m_meter;
 
         /// branch_selector is responsible for choosing the right branch of in condition MSS tree.
         //
@@ -426,7 +426,7 @@ namespace gridtools {
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
-                m_meter.emplace("NoName");
+                m_meter.reset(new performance_meter_t{"NoName"});
 
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
