@@ -39,19 +39,18 @@
 #include <stencil-composition/backend.hpp>
 
 #ifdef BACKEND_HOST
+constexpr auto ARCH = gridtools::enumtype::Host;
 #ifdef BACKEND_STRATEGY_NAIVE
-using backend_t =
-    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
 #else
-using backend_t =
-    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
 #endif
 #elif defined(BACKEND_MIC)
-using backend_t =
-    gridtools::backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+constexpr auto ARCH = gridtools::enumtype::Mic;
+using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
 #elif defined(BACKEND_CUDA)
-using backend_t =
-    gridtools::backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+constexpr auto ARCH = gridtools::enumtype::Cuda;
+using backend_t = gridtools::backend< ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
 #else
 #error "no backend selected"
 #endif

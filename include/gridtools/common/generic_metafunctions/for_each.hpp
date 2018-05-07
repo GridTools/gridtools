@@ -42,12 +42,19 @@ namespace gridtools {
         template < class List >
         struct for_each_f;
 
-        template < template < class... > class L, class... Ts >
-        struct for_each_f< L< Ts... > > {
+        template < template < class... > class L, class T, class... Ts >
+        struct for_each_f< L< T, Ts... > > {
             template < class Fun >
             GT_FUNCTION void operator()(Fun const &fun) const {
-                (void)(int[]){((void)fun(Ts{}), 0)...};
+                (void)(int[]){((void)fun(T{}), 0), ((void)fun(Ts{}), 0)...};
             }
+        };
+
+        // Specialization for empty loops as nvcc refuses to compile the normal version in device code
+        template < template < class... > class L >
+        struct for_each_f< L<> > {
+            template < class Fun >
+            GT_FUNCTION void operator()(Fun const &) const {}
         };
 
         template < class List >
@@ -62,6 +69,13 @@ namespace gridtools {
         };
     }
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup foreach For Each
+        @{
+    */
     /// Calls fun(T{}) for each element of the type list List.
     template < class List, class Fun >
     GT_FUNCTION Fun for_each(Fun const &fun) {
@@ -80,4 +94,8 @@ namespace gridtools {
         _impl::host_for_each_f< List >{}(fun);
         return fun;
     };
+
+    /** @} */
+    /** @} */
+    /** @} */
 }
