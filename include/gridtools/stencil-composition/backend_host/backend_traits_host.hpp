@@ -148,7 +148,7 @@ namespace gridtools {
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
             const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
-            return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
+            return stride_i * (i * blocksize + halo_i);
         }
 
         /**
@@ -158,7 +158,7 @@ namespace gridtools {
         */
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            return StorageInfo::get_initial_offset();
+            return 0;
         }
 
         /**

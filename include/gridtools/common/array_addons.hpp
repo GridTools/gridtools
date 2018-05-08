@@ -41,6 +41,14 @@
 #include <array>
 
 namespace gridtools {
+    /** \addtogroup common
+        @{
+     */
+
+    /** \addtogroup array
+        @{
+    */
+
     template < typename T, size_t D >
     std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
         s << " {  ";
@@ -231,7 +239,18 @@ namespace gridtools {
             make_gt_index_sequence< tuple_size< typename std::decay< ContainerB >::type >::value > >{}(
             std::forward< ContainerA >(a), std::forward< ContainerB >(b))));
 
+    /** @} */
+    /** @} */
+
 } // namespace gridtools
+
+/** \addtogroup common Common Shared Utilities
+    @{
+*/
+
+/** \addtogroup array
+    @{
+*/
 
 template < typename T, typename U, size_t D >
 bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
@@ -246,3 +265,6 @@ bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > c
     std::sort(b0.begin(), b0.end());
     return std::equal(a0.begin(), a0.end(), b0.begin());
 }
+
+/** @} */
+/** @} */

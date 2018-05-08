@@ -369,13 +369,13 @@ namespace shallow_water {
             std::vector< float_type * > vec(3);
 
 #ifdef __CUDACC__
-            vec[0] = advanced::get_initial_address_of(make_device_view(sol.get< 0, 0 >()));
-            vec[1] = advanced::get_initial_address_of(make_device_view(sol.get< 1, 0 >()));
-            vec[2] = advanced::get_initial_address_of(make_device_view(sol.get< 2, 0 >()));
+            vec[0] = advanced::get_address_of(make_device_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_address_of(make_device_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_address_of(make_device_view(sol.get< 2, 0 >()));
 #else
-            vec[0] = advanced::get_initial_address_of(make_host_view(sol.get< 0, 0 >()));
-            vec[1] = advanced::get_initial_address_of(make_host_view(sol.get< 1, 0 >()));
-            vec[2] = advanced::get_initial_address_of(make_host_view(sol.get< 2, 0 >()));
+            vec[0] = advanced::get_address_of(make_host_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_address_of(make_host_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_address_of(make_host_view(sol.get< 2, 0 >()));
 #endif
 
 // he.pack(vec);
