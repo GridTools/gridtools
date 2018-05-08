@@ -210,8 +210,8 @@ namespace copy_stencil {
         auto outv = make_host_view(out);
 #endif
         std::vector< float_type * > vec(2);
-        vec[0] = advanced::get_initial_address_of(inv);
-        vec[1] = advanced::get_initial_address_of(outv);
+        vec[0] = advanced::get_address_of(inv);
+        vec[1] = advanced::get_address_of(outv);
 
         he.pack(vec);
 

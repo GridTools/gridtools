@@ -41,7 +41,15 @@
 
 namespace gridtools {
 
-    /**@brief This meta-function takes two sequences (T, V) and merges them into one sequence.
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup mplutil
+        @{
+    */
+
+    /** @brief This meta-function takes two sequences (T, V) and merges them into one sequence.
      * @tparam T first sequence
      * @tparam V second sequence
      */
@@ -50,7 +58,7 @@ namespace gridtools {
         typedef typename boost::mpl::fold< T, V, boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
-    /**@brief This meta-function takes a sequence (T) that contains an arbitrary number of sub-sequences
+    /** @brief This meta-function takes a sequence (T) that contains an arbitrary number of sub-sequences
      * and creates a single vector that contains all elements of all the sub-sequences.
      * @tparam T sequence of sequences
      */
@@ -59,4 +67,7 @@ namespace gridtools {
         typedef
             typename boost::mpl::fold< T, boost::mpl::vector0<>, combine< boost::mpl::_2, boost::mpl::_1 > >::type type;
     };
+    /** @} */
+    /** @} */
+    /** @} */
 }

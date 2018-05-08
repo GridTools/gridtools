@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_gt_math.cpp"
+#include "test_gt_math.cpp"
 
 #include "../cuda_test_helper.hpp"
 

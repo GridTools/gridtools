@@ -82,6 +82,8 @@ namespace gridtools {
          * @brief data_store_field constructor
          */
         constexpr data_store_field() {}
+        constexpr data_store_field(data_store_field const &) = default;
+        data_store_field(data_store_field &&) = default;
 
         /**
          * @brief data_store_field constructor
@@ -89,6 +91,18 @@ namespace gridtools {
          */
         constexpr data_store_field(storage_info_t const &info)
             : m_field(fill_array< DataStore, num_of_storages >(info)) {}
+
+        /**
+         * @brief construct from existing data_stores
+         */
+        template < typename... DataStores,
+            typename std::enable_if< sizeof...(DataStores) == num_of_storages, int >::type = 0 >
+        data_store_field(DataStores &&... data_stores)
+            : m_field{std::forward< DataStores >(data_stores)...} {
+            GRIDTOOLS_STATIC_ASSERT(
+                (conjunction< std::is_convertible< typename std::decay< DataStores >::type, DataStore >... >::value),
+                "At least one data_store does not match data_store_field::data_store_t.");
+        }
 
         /**
          * @brief method that is used to extract a data_store out of a data_store_field

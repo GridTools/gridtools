@@ -33,11 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "test_cxx11_sequence_unpacker.hpp"
-
-TEST(sequence_unpacker, test_unpack) {
-    bool result = true;
-    test_sequence_unpacker(&result);
-    ASSERT_TRUE(result);
-}
+#include "test_cycle_and_swap.cpp"

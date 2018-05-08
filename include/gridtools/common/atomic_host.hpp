@@ -37,6 +37,12 @@
 #include <algorithm>
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup atomic
+        @{
+    */
+
     template < typename T >
     class atomic_host {
 
@@ -161,5 +167,7 @@ namespace gridtools {
     struct get_atomic_helper {
         typedef atomic_host< T > type;
     };
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

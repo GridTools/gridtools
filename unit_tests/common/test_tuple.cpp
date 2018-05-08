@@ -33,4 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_integer_sequence.cpp"
+#include "gtest/gtest.h"
+#include "test_tuple.hpp"
+
+TEST(tuple, test_tuple) {
+    bool result = true;
+    test_tuple_elements(&result);
+
+    ASSERT_TRUE(result);
+}

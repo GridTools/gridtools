@@ -42,6 +42,14 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup gtintegersequence GridTools Integer Sequence
+        @{
+    */
+
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
 
@@ -270,4 +278,8 @@ namespace gridtools {
             return Container{lambda(Indices, args_...)...};
         }
     };
+    /** @} */
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

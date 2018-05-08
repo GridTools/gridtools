@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 
-#include "test_cxx11_explode_array.hpp"
+#include "test_explode_array.hpp"
 
 TEST(explode_array, test_explode_static) { ASSERT_TRUE(test_explode_static()); }
 

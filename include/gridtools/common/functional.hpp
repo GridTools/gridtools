@@ -47,6 +47,12 @@
 #include <utility>
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup functional Functional
+        @{
+    */
+
     /// Forward the args to constructor.
     //
     template < typename T >
@@ -106,4 +112,7 @@ namespace gridtools {
         };
 #endif
     };
+
+    /** @} */
+    /** @} */
 }
