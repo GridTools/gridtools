@@ -49,6 +49,9 @@ namespace gridtools {
         namespace {
 
             struct a_struct;
+            struct array_descriptor_struct {
+                array_descriptor_struct(const gt_fortran_array_descriptor &) {}
+            };
             static_assert(std::is_same< wrapped_t< void (*)() >, void() >::value, "");
             static_assert(std::is_same< wrapped_t< int() >, int() >::value, "");
             static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >::value, "");
@@ -59,6 +62,11 @@ namespace gridtools {
             static_assert(std::is_same< wrapped_t< void(a_struct *) >, void(gt_handle *) >::value, "");
             static_assert(std::is_same< wrapped_t< void(a_struct &) >, void(gt_handle *) >::value, "");
             static_assert(std::is_same< wrapped_t< void(a_struct) >, void(gt_handle *) >::value, "");
+            static_assert(
+                std::is_same< wrapped_t< void(float(&)[1][2][3]) >, void(gt_fortran_array_descriptor *) >::value, "");
+            static_assert(std::is_same< wrapped_t< array_descriptor_struct(array_descriptor_struct) >,
+                              gt_handle *(gt_fortran_array_descriptor *) >::value,
+                "");
 
             template < class T >
             std::stack< T > create() {

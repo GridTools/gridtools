@@ -42,6 +42,7 @@
 #include "../common/any_moveable.hpp"
 
 #include "handle_impl.hpp"
+#include "fortran_array_view.hpp"
 
 namespace gridtools {
     namespace c_bindings {
@@ -82,9 +83,15 @@ namespace gridtools {
 
             template < class T >
             struct param_converted_to_c< T,
-                typename std::enable_if< std::is_class<
-                    typename std::remove_pointer< typename std::remove_reference< T >::type >::type >::value >::type > {
+                typename std::enable_if< std::is_class< typename std::remove_pointer<
+                                             typename std::remove_reference< T >::type >::type >::value &&
+                                             not is_fortran_array_view< T >::value >::type > {
                 using type = gt_handle *;
+            };
+
+            template < class T >
+            struct param_converted_to_c< T, typename std::enable_if< is_fortran_array_view< T >::value >::type > {
+                using type = gt_fortran_array_descriptor *;
             };
 
             template < class T, typename std::enable_if< std::is_arithmetic< T >::value, int >::type = 0 >
@@ -122,6 +129,10 @@ namespace gridtools {
             template < class T >
             T convert_from_c(gt_handle *obj) {
                 return any_cast< T >(obj->m_value);
+            }
+            template < class T >
+            T convert_from_c(gt_fortran_array_descriptor *obj) {
+                return make_fortran_array_view< T >(*obj);
             }
 
             template < class T, class Impl >
