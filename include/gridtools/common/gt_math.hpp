@@ -188,18 +188,14 @@ namespace gridtools {
 
         GT_FUNCTION auto fmod(double x, double y) -> decltype(::fmod(x, y)) { return ::fmod(x, y); }
 
-#ifndef __CUDA_ARCH__
-        GT_FUNCTION_HOST auto fmod(long double x, long double y) -> decltype(std::fmod(x, y)) {
-            return std::fmod(x, y);
-        }
+        template < typename ErrorTrigger = int >
+        GT_FUNCTION auto fmod(long double x, long double y) -> decltype(std::fmod(x, y)) {
+#ifdef __CUDA_ARCH__
+            GRIDTOOLS_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
 #else
-        // long double not supported in device code
-        template < typename ErrorTrigger = double >
-        GT_FUNCTION_DEVICE double fmod(long double, long double) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
-            return 0.;
-        }
+            return std::fmod(x, y);
 #endif
+        }
 #else
         using std::fmod;
 #endif
@@ -215,16 +211,15 @@ namespace gridtools {
         GT_FUNCTION auto trunc(Value val) -> decltype(::trunc((double)val)) {
             return ::trunc((double)val);
         }
-#ifndef __CUDA_ARCH__
-        GT_FUNCTION_HOST auto trunc(long double val) -> decltype(std::trunc(val)) { return std::trunc(val); }
+
+        template < typename ErrorTrigger = int >
+        GT_FUNCTION auto trunc(long double val) -> decltype(std::trunc(val)) {
+#ifdef __CUDA_ARCH__
+            GRIDTOOLS_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
 #else
-        // long double not supported in device code
-        template < typename ErrorTrigger = double >
-        GT_FUNCTION_DEVICE double trunc(long double val) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
-            return 0.;
-        }
+            return std::trunc(val);
 #endif
+        }
 #else
         using std::trunc;
 #endif
