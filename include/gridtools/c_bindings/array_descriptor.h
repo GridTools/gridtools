@@ -36,6 +36,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct gt_fortran_array_descriptor {
     int type;
     int rank;
@@ -43,3 +47,7 @@ struct gt_fortran_array_descriptor {
     void *data;
     // TODO: add support for strides, bounds end type gt_fortran_array_descriptor
 };
+
+#ifdef __cplusplus
+}
+#endif

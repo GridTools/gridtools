@@ -63,6 +63,12 @@ set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
 target_link_libraries(c_bindings_generator_main c_bindings_generator)
 
+add_library(array_descriptor src/c_bindings/array_descriptor.f90)
+add_executable(array_descriptor_test src/c_bindings/array_descriptor_test.f90)
+target_compile_options(array_descriptor PUBLIC "-Wall")
+target_include_directories(array_descriptor_test PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+target_link_libraries(array_descriptor_test array_descriptor)
+
 # ===============
 # examples and tests
 # ===============
