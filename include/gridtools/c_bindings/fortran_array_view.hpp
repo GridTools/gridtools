@@ -90,7 +90,9 @@ namespace gridtools {
             T >
         make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
             if (descriptor.rank != std::rank< remove_reference_t< T > >()) {
-                throw std::runtime_error("Rank does not match");
+                throw std::runtime_error("Rank does not match: fortran-rank (" + std::to_string(descriptor.rank) +
+                                         ") != c-rank (" + std::to_string(std::rank< remove_reference_t< T > >()) +
+                                         ")");
             }
             using indices = meta::make_indices< std::rank< remove_reference_t< T > >::value >;
             for_each< indices >(std::bind(

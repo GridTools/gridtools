@@ -71,14 +71,14 @@
  *   @param signature The signature that will be used to invoke `impl`.
  *   @param impl The functor that the generated function will delegate to.
  */
-#define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, signature, impl)                                                  \
-    static_assert(::boost::function_types::function_arity< signature >::value == n, "arity mismatch");              \
-    extern "C"                                                                                                      \
-        typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< signature > >::type name( \
-            BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, signature)) {                                       \
-        return ::gridtools::c_bindings::wrap< signature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));                   \
-    }                                                                                                               \
-    GT_ADD_GENERATED_DECLARATION(::gridtools::c_bindings::wrapped_t< signature >, name)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl)                                            \
+    static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");        \
+    extern "C"                                                                                                   \
+        typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type \
+            name##_impl(BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, cppsignature)) {                     \
+        return ::gridtools::c_bindings::wrap< cppsignature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));             \
+    }                                                                                                            \
+    GT_ADD_GENERATED_DECLARATION(cppsignature, name)
 
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
 #define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)

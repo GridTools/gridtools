@@ -47,6 +47,7 @@ struct gt_fortran_array_descriptor {
     void *data;
     // TODO: add support for strides, bounds end type gt_fortran_array_descriptor
 };
+typedef struct gt_fortran_array_descriptor gt_fortran_array_descriptor;
 
 #ifdef __cplusplus
 }

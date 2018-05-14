@@ -40,12 +40,13 @@ program main
     integer, parameter :: i = 9, j = 10, k = 11
     real(FLOAT_PRECISION), dimension(i, j, k) :: in, out
     type(c_ptr) in_handle, out_handle, stencil
+    integer(c_int), dimension(3, 3, 3) :: arr
 
     in = initial()
 
     in_handle = generic_create_data_store(i, j, k, in(:,1,1))
     out_handle = generic_create_data_store(i, j, k, out(:,1,1))
-    stencil = create_copy_stencil(in_handle, out_handle)
+    stencil = create_copy_stencil(in_handle, out_handle, arr)
 
     call run_stencil(stencil)
     call sync_data_store(in_handle)

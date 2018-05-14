@@ -42,7 +42,7 @@
 int main(int argc, const char *argv[]) {
     if (argc > 3) {
         std::ofstream dst(argv[2]);
-        gridtools::c_bindings::generate_fortran_interface(dst, argv[3]);
+        gridtools::c_bindings::generate_fortran_interface_with_indirection(dst, argv[3]);
     }
     if (argc > 1) {
         std::ofstream dst(argv[1]);

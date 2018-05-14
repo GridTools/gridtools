@@ -13,6 +13,7 @@ if (ENABLE_HOST)
 
     add_executable(fdriver fdriver.f90)
     target_link_libraries(fdriver implementation_fortran)
+    target_link_libraries(fdriver array_descriptor_f90)
 
     # On tave Intel Fortran is not working
     if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")

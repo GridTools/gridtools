@@ -73,14 +73,14 @@ namespace gridtools {
         }
 
         namespace _impl {
-            void declarations::add(char const *name, generator_t generator) {
-                bool ok = m_generators.emplace(name, std::move(generator)).second;
+            void declarations::add(char const *c_name, const char *fortran_name, generator_t generator) {
+                bool ok = m_generators.emplace(std::make_pair(c_name, fortran_name), std::move(generator)).second;
                 assert(ok);
             }
 
             std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
                 for (auto &&item : obj.m_generators)
-                    item.second(strm, item.first);
+                    item.second(strm, item.first.first, item.first.second);
                 return strm;
             }
 
@@ -111,6 +111,7 @@ namespace gridtools {
         void generate_c_interface(std::ostream &strm) {
             strm << "\n#pragma once\n\n";
             strm << "#include <c_bindings/handle.h>\n\n";
+            strm << "#include <c_bindings/array_descriptor.h>\n\n";
             strm << "#ifdef __cplusplus\n";
             strm << "extern \"C\" {\n";
             strm << "#endif\n\n";
@@ -124,9 +125,20 @@ namespace gridtools {
             strm << "\nmodule " << module_name << "\n";
             strm << "implicit none\n";
             strm << "  interface\n\n";
-            strm << _impl::get_declarations< _impl::fortran_traits >();
+            strm << _impl::get_declarations< _impl::fortran_cbindings_traits >();
             strm << "\n  end interface\n";
             strm << get_fortran_generics();
+            strm << "end\n";
+        }
+        void generate_fortran_interface_with_indirection(std::ostream &strm, std::string const &module_name) {
+            strm << "\nmodule " << module_name << "\n";
+            strm << "implicit none\n";
+            strm << "  interface\n\n";
+            strm << _impl::get_declarations< _impl::fortran_cbindings_traits >();
+            strm << "\n  end interface\n";
+            strm << get_fortran_generics();
+            strm << "contains\n";
+            strm << _impl::get_declarations< _impl::fortran_indirection_traits >();
             strm << "end\n";
         }
     }

@@ -48,6 +48,10 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/type_index.hpp>
 
+#include <common/generic_metafunctions/is_there_in_sequence_if.hpp>
+
+#include "function_wrapper.hpp"
+
 namespace gridtools {
     namespace c_bindings {
 
@@ -56,13 +60,20 @@ namespace gridtools {
             struct c_string_less {
                 bool operator()(char const *lhs, char const *rhs) const { return strcmp(lhs, rhs) < 0; }
             };
+            struct c_string_pair_less {
+                bool operator()(const std::pair< char const *, char const * > &lhs,
+                    const std::pair< char const *, char const * > &rhs) const {
+                    return c_string_less{}(lhs.first, rhs.first);
+                }
+            };
 
             class declarations {
-                using generator_t = std::function< void(std::ostream &, char const *) >;
-                std::map< char const *, generator_t, c_string_less > m_generators;
+                using generator_t = std::function< void(std::ostream &, char const *, char const *) >;
+                // TODO
+                std::map< std::pair< char const *, char const * >, generator_t, c_string_pair_less > m_generators;
 
               public:
-                void add(char const *name, generator_t generator);
+                void add(char const *c_name, const char *fortran_name, generator_t generator);
                 friend std::ostream &operator<<(std::ostream &strm, declarations const &obj);
             };
 
@@ -117,11 +128,12 @@ namespace gridtools {
                         std::placeholders::_1));
             };
 
-            template < class Signature >
+            template < class CppSignature >
             std::ostream &write_c_declaration(std::ostream &strm, char const *name) {
+                using CSignature = wrapped_t< CppSignature >;
                 namespace ft = boost::function_types;
-                strm << get_c_type_name< typename ft::result_type< Signature >::type >() << " " << name << "(";
-                for_each_param< Signature >(get_c_type_name_f{},
+                strm << get_c_type_name< typename ft::result_type< CSignature >::type >() << " " << name << "(";
+                for_each_param< CSignature >(get_c_type_name_f{},
                     [&](const std::string &type_name, int i) {
                         if (i)
                             strm << ", ";
@@ -206,76 +218,183 @@ namespace gridtools {
                 }
             };
 
+            enum class fortran_param_style { c_bindings, indirection };
+            struct dimensions_f {
+                template < class N >
+                void operator()(N, std::string &s) const {
+                    s += (N::value == 0 ? ":" : ",:");
+                }
+            };
+
+            template < fortran_param_style style >
             struct fortran_param_type_f {
-                template < class T,
-                    typename std::enable_if< !std::is_pointer< T >::value ||
-                                                 std::is_class< typename std::remove_pointer< T >::type >::value,
+
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if< style == fortran_param_style::c_bindings &&
+                                                 std::is_same< CType, gt_fortran_array_descriptor >::value,
                         int >::type = 0 >
                 std::string operator()() const {
-                    return fortran_type_name< T >() + ", value";
+                    return "type(gt_fortran_array_descriptor), value";
+                }
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if< style == fortran_param_style::indirection &&
+                                                 std::is_same< CType, gt_fortran_array_descriptor >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    using indices = meta::make_indices< fortran_array_view_rank< CppType >::value >;
+                    std::string dimensions = "dimension(";
+                    for_each< indices >(std::bind(dimensions_f{}, std::placeholders::_1, std::ref(dimensions)));
+                    dimensions += ")";
+                    return fortran_type_name< typename fortran_array_view_element_type< CppType >::type >() + ", " +
+                           dimensions;
                 }
 
-                template < class T,
-                    typename std::enable_if< std::is_pointer< T >::value &&
-                                                 std::is_arithmetic< typename std::remove_pointer< T >::type >::value,
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if<
+                        !std::is_same< CType, gt_fortran_array_descriptor >::value &&
+                            (!std::is_pointer< CType >::value ||
+                                std::is_class< typename std::remove_pointer< CType >::type >::value),
                         int >::type = 0 >
                 std::string operator()() const {
-                    return fortran_type_name< typename std::remove_pointer< T >::type >() + ", dimension(*)";
+                    return fortran_type_name< CType >() + ", value";
                 }
-                template < class T,
+
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
                     typename std::enable_if<
-                        std::is_pointer< T >::value &&
-                            !std::is_arithmetic< typename std::remove_pointer< T >::type >::value &&
-                            !std::is_class< typename std::remove_pointer< T >::type >::value,
+                        std::is_pointer< CType >::value &&
+                            std::is_arithmetic< typename std::remove_pointer< CType >::type >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    return fortran_type_name< typename std::remove_pointer< CType >::type >() + ", dimension(*)";
+                }
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if<
+                        std::is_pointer< CType >::value &&
+                            !std::is_arithmetic< typename std::remove_pointer< CType >::type >::value &&
+                            !std::is_class< typename std::remove_pointer< CType >::type >::value,
                         int >::type = 0 >
                 std::string operator()() const {
                     return "type(c_ptr)";
                 }
             };
 
-            template < class Signature >
-            std::ostream &write_fortran_declaration(std::ostream &strm, char const *name) {
+            template < class CppSignature >
+            std::ostream &write_fortran_cbindings_declaration(std::ostream &strm, char const *name) {
+                using CSignature = wrapped_t< CppSignature >;
                 namespace ft = boost::function_types;
-                strm << "    " << fortran_return_type< typename ft::result_type< Signature >::type >() << " " << name
+                constexpr bool has_array_descriptor =
+                    is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
+                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor > >::value;
+                strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " " << name
                      << "(";
-                for_each_param< Signature >(ignore_type_f{},
-                    [&](const std::string &type_name, int i) {
+                for_each_param< CSignature >(ignore_type_f{},
+                    [&](const std::string &, int i) {
                         if (i)
                             strm << ", ";
                         strm << "arg" << i;
                     });
                 strm << ") bind(c)\n      use iso_c_binding\n";
-                for_each_param< Signature >(fortran_param_type_f{},
+                if (has_array_descriptor) {
+                    strm << "      use array_descriptor\n";
+                }
+                for_each_param< CppSignature >(fortran_param_type_f< fortran_param_style::c_bindings >{},
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << " :: arg" << i << "\n";
                     });
                 return strm << "    end\n";
             }
 
-            struct c_traits {
-                template < class Signature >
-                static void generate_declaration(std::ostream &strm, char const *name) {
-                    write_c_declaration< Signature >(strm, name);
+            struct argument_wrapper_f {
+                template < class T,
+                    typename std::enable_if< std::is_same< T, gt_fortran_array_descriptor >::value, int >::type = 0 >
+                std::pair< std::string, std::string > operator()() const {
+                    return std::make_pair("create_array_descriptor(", ")");
+                }
+                template < class T,
+                    typename std::enable_if< !std::is_same< T, gt_fortran_array_descriptor >::value, int >::type = 0 >
+                std::pair< std::string, std::string > operator()() const {
+                    return std::make_pair("", "");
                 }
             };
+            template < class CppSignature >
+            std::ostream &write_fortran_indirection_declaration(
+                std::ostream &strm, char const *c_name, const char *fortran_name) {
+                using CSignature = wrapped_t< CppSignature >;
+                namespace ft = boost::function_types;
+                constexpr bool has_array_descriptor =
+                    is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
+                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor > >::value;
 
-            struct fortran_traits {
-                template < class Signature >
-                static void generate_declaration(std::ostream &strm, char const *name) {
-                    write_fortran_declaration< Signature >(strm, name);
+                strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " "
+                     << fortran_name << "(";
+                for_each_param< CSignature >(ignore_type_f{},
+                    [&](const std::string &, int i) {
+                        if (i)
+                            strm << ", ";
+                        strm << "arg" << i;
+                    });
+                strm << ") bind(c)\n      use iso_c_binding\n";
+                if (has_array_descriptor) {
+                    strm << "      use array_descriptor\n";
                 }
-            };
+                for_each_param< CppSignature >(fortran_param_type_f< fortran_param_style::indirection >{},
+                    [&](const std::string &type_name, int i) {
+                        strm << "      " << type_name << " :: arg" << i << "\n";
+                    });
+                if (std::is_void< typename ft::result_type< CSignature >::type >::value) {
+                    strm << "      call " << c_name << "(";
+                } else {
+                    strm << "      " << fortran_name << " = " << c_name << "(";
+                }
+                for_each_param< CSignature >(argument_wrapper_f{},
+                    [&](const std::pair< std::string, std::string > &arg_wrapper, int i) {
+                        if (i)
+                            strm << ", ";
+                        strm << arg_wrapper.first << "arg" << i << arg_wrapper.second;
+                    });
+                strm << ")\n";
 
-            template < class Traits, class Signature >
-            void add_declaration(char const *name) {
-                get_declarations< Traits >().add(name, Traits::template generate_declaration< Signature >);
+                return strm << "    end\n";
             }
 
-            template < class Signature >
+            struct c_traits {
+                template < class CppSignature >
+                static void generate_declaration(std::ostream &strm, char const *c_name, const char *) {
+                    write_c_declaration< CppSignature >(strm, c_name);
+                }
+            };
+
+            struct fortran_cbindings_traits {
+                template < class CppSignature >
+                static void generate_declaration(std::ostream &strm, char const *c_name, const char *) {
+                    write_fortran_cbindings_declaration< CppSignature >(strm, c_name);
+                }
+            };
+
+            struct fortran_indirection_traits {
+                template < class CppSignature >
+                static void generate_declaration(std::ostream &strm, char const *c_name, const char *fortran_name) {
+                    write_fortran_indirection_declaration< CppSignature >(strm, c_name, fortran_name);
+                }
+            };
+
+            template < class Traits, class CppSignature >
+            void add_declaration(const char *c_name, char const *fortran_name) {
+                get_declarations< Traits >().add(
+                    c_name, fortran_name, Traits::template generate_declaration< CppSignature >);
+            }
+
+            template < class CppSignature >
             struct registrar {
-                registrar(char const *name) {
-                    add_declaration< _impl::c_traits, Signature >(name);
-                    add_declaration< _impl::fortran_traits, Signature >(name);
+                registrar(char const *c_name, char const *fortran_name) {
+                    add_declaration< _impl::c_traits, CppSignature >(c_name, fortran_name);
+                    add_declaration< _impl::fortran_cbindings_traits, CppSignature >(c_name, fortran_name);
+                    add_declaration< _impl::fortran_indirection_traits, CppSignature >(c_name, fortran_name);
                 }
             };
 
@@ -289,6 +408,7 @@ namespace gridtools {
 
         /// Outputs the content of the Fortran module with the declarations added by GT_ADD_GENERATED_DECLARATION
         void generate_fortran_interface(std::ostream &strm, std::string const &module_name);
+        void generate_fortran_interface_with_indirection(std::ostream &strm, std::string const &module_name);
     }
 }
 
@@ -296,8 +416,9 @@ namespace gridtools {
  *  Registers the function that for declaration generations.
  *  Users should not this directly.
  */
-#define GT_ADD_GENERATED_DECLARATION(signature, name) \
-    static ::gridtools::c_bindings::_impl::registrar< signature > generated_declaration_registrar_##name(#name)
+#define GT_ADD_GENERATED_DECLARATION(cppsignature, name)                                                     \
+    static ::gridtools::c_bindings::_impl::registrar< cppsignature > generated_declaration_registrar_##name( \
+        BOOST_PP_STRINGIZE(BOOST_PP_CAT(name, _impl)), #name)
 
 #define GT_ADD_GENERIC_DECLARATION(generic_name, concrete_name)      \
     static ::gridtools::c_bindings::_impl::fortran_generic_registrar \
