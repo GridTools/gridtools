@@ -45,6 +45,8 @@ TEST(test_interval, modify) {
 
     ASSERT_TYPE_EQ< interval< level< 0, -2 >, level< 1, -1 > >, my_interval::modify< -1, 0 > >();
     ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 1, 1 > >, my_interval::modify< 1, 1 > >();
+    ASSERT_TYPE_EQ< interval< level< 0, -3 >, level< 1, -1 > >, my_interval::modify< -2, 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 0, 2 >, level< 1, 2 > >, my_interval::modify< 2, 2 > >();
 }
 
 TEST(test_interval, join) {
