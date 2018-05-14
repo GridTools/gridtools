@@ -106,5 +106,27 @@ namespace gridtools {
         make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
             return gt_make_fortran_array_view(&descriptor, static_cast< T * >(nullptr));
         }
+
+        template < class T, class = void >
+        struct fortran_array_view_element_type {
+            using type = typename T::gt_view_element_type;
+        };
+        template < class T >
+        struct fortran_array_view_element_type<
+            T,
+            enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
+                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
+            : std::remove_all_extents< remove_reference_t< T > > {};
+
+        template < class T, class = void >
+        struct fortran_array_view_rank {
+            using type = typename T::gt_view_rank;
+        };
+        template < class T >
+        struct fortran_array_view_rank<
+            T,
+            enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
+                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
+            : std::rank< remove_reference_t< T > > {};
     }
 }

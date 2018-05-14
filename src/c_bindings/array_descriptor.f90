@@ -155,7 +155,7 @@ contains
 
         descriptor%rank = 1
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
     subroutine fill_array_dimensions2(array, descriptor)
         type(*), dimension(:,:), target :: array
@@ -163,7 +163,7 @@ contains
 
         descriptor%rank = 2
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
     subroutine fill_array_dimensions3(array, descriptor)
         type(*), dimension(:,:,:), target :: array
@@ -171,7 +171,7 @@ contains
 
         descriptor%rank = 3
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
     subroutine fill_array_dimensions4(array, descriptor)
         type(*), dimension(:,:,:,:), target :: array
@@ -179,7 +179,7 @@ contains
 
         descriptor%rank = 4
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
     subroutine fill_array_dimensions5(array, descriptor)
         type(*), dimension(:,:,:,:,:), target :: array
@@ -187,7 +187,7 @@ contains
 
         descriptor%rank = 5
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
     subroutine fill_array_dimensions6(array, descriptor)
         type(*), dimension(:,:,:,:,:,:), target :: array
@@ -195,7 +195,7 @@ contains
 
         descriptor%rank = 6
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
     subroutine fill_array_dimensions7(array, descriptor)
         type(*), dimension(:,:,:,:,:,:,:), target :: array
@@ -203,7 +203,7 @@ contains
 
         descriptor%rank = 7
         descriptor%dims = reshape(shape(array), &
-        shape(descriptor%dims), (/0/))
+            shape(descriptor%dims), (/0/))
     end subroutine
 
     function create_array_descriptor1_1(array) result (descriptor)
