@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include "c_bindings/export.hpp"
 
 #include <functional>
@@ -85,6 +86,7 @@ namespace {
 #pragma once
 
 #include <c_bindings/handle.h>
+#include <c_bindings/array_descriptor.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -149,6 +151,7 @@ implicit none
   interface my_push
     procedure my_push0, my_push1, my_push2
   end interface
+contains
 end
 )?";
 

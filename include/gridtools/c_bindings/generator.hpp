@@ -259,8 +259,7 @@ namespace gridtools {
                     return "type(gt_fortran_array_descriptor), value";
                 }
 
-                template < class CppType,
-                    class CType = param_converted_to_c_t< CppType >,
+                template < class CType,
                     typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
                         0 >
                 std::string operator()() const {

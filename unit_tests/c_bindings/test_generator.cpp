@@ -41,17 +41,13 @@
 
 #include <gtest/gtest.h>
 
-namespace {
-    struct C {};
-}
-
 namespace gridtools {
     namespace c_bindings {
         namespace {
 
             GT_ADD_GENERATED_DECLARATION(void(), foo);
-            GT_ADD_GENERATED_DECLARATION(C(int, double const *, C), bar);
-            // GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
+            GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
+            GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
 
             GT_ADD_GENERIC_DECLARATION(foo, bar);
             GT_ADD_GENERIC_DECLARATION(foo, baz);
@@ -60,6 +56,7 @@ namespace gridtools {
 #pragma once
 
 #include <c_bindings/handle.h>
+#include <c_bindings/array_descriptor.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -103,6 +100,7 @@ implicit none
   interface foo
     procedure bar, baz
   end interface
+contains
 end
 )?";
 
