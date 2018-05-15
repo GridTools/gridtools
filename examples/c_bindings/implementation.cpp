@@ -92,12 +92,12 @@ namespace {
             p_in{} = in,
             p_out{} = out,
             make_multistage(execute< forward >(), make_stage< copy_functor >(p_in{}, p_out{}))));
-    GT_EXPORT_BINDING_3(create_copy_stencil, make_copy_stencil);
+    GT_EXPORT_BINDING_EX_3(create_copy_stencil, make_copy_stencil);
 
     using stencil_t = decltype(make_copy_stencil(
         std::declval< data_store_t >(), std::declval< data_store_t >(), std::declval< int(&)[3][3][3] >()));
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
+    GT_EXPORT_BINDING_WITH_SIGNATURE_EX_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
 
     void do_print_array(int(&array)[3][3][3]) {
         for (size_t i = 0; i < 3; ++i) {
@@ -106,5 +106,5 @@ namespace {
             }
         }
     };
-    GT_EXPORT_BINDING_1(print_array, do_print_array);
+    GT_EXPORT_BINDING_EX_1(print_array, do_print_array);
 }

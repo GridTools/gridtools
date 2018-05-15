@@ -128,15 +128,6 @@ namespace gridtools {
             strm << _impl::get_declarations< _impl::fortran_cbindings_traits >();
             strm << "\n  end interface\n";
             strm << get_fortran_generics();
-            strm << "end\n";
-        }
-        void generate_fortran_interface_with_indirection(std::ostream &strm, std::string const &module_name) {
-            strm << "\nmodule " << module_name << "\n";
-            strm << "implicit none\n";
-            strm << "  interface\n\n";
-            strm << _impl::get_declarations< _impl::fortran_cbindings_traits >();
-            strm << "\n  end interface\n";
-            strm << get_fortran_generics();
             strm << "contains\n";
             strm << _impl::get_declarations< _impl::fortran_indirection_traits >();
             strm << "end\n";

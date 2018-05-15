@@ -128,9 +128,8 @@ namespace gridtools {
                         std::placeholders::_1));
             };
 
-            template < class CppSignature >
+            template < class CSignature >
             std::ostream &write_c_declaration(std::ostream &strm, char const *name) {
-                using CSignature = wrapped_t< CppSignature >;
                 namespace ft = boost::function_types;
                 strm << get_c_type_name< typename ft::result_type< CSignature >::type >() << " " << name << "(";
                 for_each_param< CSignature >(get_c_type_name_f{},
@@ -225,23 +224,63 @@ namespace gridtools {
                     s += (N::value == 0 ? ":" : ",:");
                 }
             };
-
-            template < fortran_param_style style >
-            struct fortran_param_type_f {
-
-                template < class CppType,
-                    class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if< style == fortran_param_style::c_bindings &&
-                                                 std::is_same< CType, gt_fortran_array_descriptor >::value,
+            struct fortran_param_type_common_f {
+                template < class CType,
+                    typename std::enable_if<
+                        !std::is_same< CType, gt_fortran_array_descriptor >::value &&
+                            (!std::is_pointer< CType >::value ||
+                                std::is_class< typename std::remove_pointer< CType >::type >::value),
                         int >::type = 0 >
+                std::string operator()() const {
+                    return fortran_type_name< CType >() + ", value";
+                }
+
+                template < class CType,
+                    typename std::enable_if<
+                        std::is_pointer< CType >::value &&
+                            std::is_arithmetic< typename std::remove_pointer< CType >::type >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    return fortran_type_name< typename std::remove_pointer< CType >::type >() + ", dimension(*)";
+                }
+                template < class CType,
+                    typename std::enable_if<
+                        std::is_pointer< CType >::value &&
+                            !std::is_arithmetic< typename std::remove_pointer< CType >::type >::value &&
+                            !std::is_class< typename std::remove_pointer< CType >::type >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    return "type(c_ptr)";
+                }
+            };
+            template < fortran_param_style style >
+            struct fortran_param_type_f;
+
+            template <>
+            struct fortran_param_type_f< fortran_param_style::c_bindings > {
+
+                template < class CType,
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                        0 >
                 std::string operator()() const {
                     return "type(gt_fortran_array_descriptor), value";
                 }
+
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if< style == fortran_param_style::indirection &&
-                                                 std::is_same< CType, gt_fortran_array_descriptor >::value,
-                        int >::type = 0 >
+                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                        0 >
+                std::string operator()() const {
+                    return fortran_param_type_common_f{}.template operator()< CType >();
+                }
+            };
+            template <>
+            struct fortran_param_type_f< fortran_param_style::indirection > {
+
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                        0 >
                 std::string operator()() const {
                     using indices = meta::make_indices< fortran_array_view_rank< CppType >::value >;
                     std::string dimensions = "dimension(";
@@ -253,39 +292,15 @@ namespace gridtools {
 
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if<
-                        !std::is_same< CType, gt_fortran_array_descriptor >::value &&
-                            (!std::is_pointer< CType >::value ||
-                                std::is_class< typename std::remove_pointer< CType >::type >::value),
-                        int >::type = 0 >
+                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                        0 >
                 std::string operator()() const {
-                    return fortran_type_name< CType >() + ", value";
-                }
-
-                template < class CppType,
-                    class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if<
-                        std::is_pointer< CType >::value &&
-                            std::is_arithmetic< typename std::remove_pointer< CType >::type >::value,
-                        int >::type = 0 >
-                std::string operator()() const {
-                    return fortran_type_name< typename std::remove_pointer< CType >::type >() + ", dimension(*)";
-                }
-                template < class CppType,
-                    class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if<
-                        std::is_pointer< CType >::value &&
-                            !std::is_arithmetic< typename std::remove_pointer< CType >::type >::value &&
-                            !std::is_class< typename std::remove_pointer< CType >::type >::value,
-                        int >::type = 0 >
-                std::string operator()() const {
-                    return "type(c_ptr)";
+                    return fortran_param_type_common_f{}.template operator()< CType >();
                 }
             };
 
-            template < class CppSignature >
+            template < class CSignature >
             std::ostream &write_fortran_cbindings_declaration(std::ostream &strm, char const *name) {
-                using CSignature = wrapped_t< CppSignature >;
                 namespace ft = boost::function_types;
                 constexpr bool has_array_descriptor =
                     is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
@@ -302,7 +317,7 @@ namespace gridtools {
                 if (has_array_descriptor) {
                     strm << "      use array_descriptor\n";
                 }
-                for_each_param< CppSignature >(fortran_param_type_f< fortran_param_style::c_bindings >{},
+                for_each_param< CSignature >(fortran_param_type_f< fortran_param_style::c_bindings >{},
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << " :: arg" << i << "\n";
                     });
@@ -363,16 +378,16 @@ namespace gridtools {
             }
 
             struct c_traits {
-                template < class CppSignature >
+                template < class CSignature >
                 static void generate_declaration(std::ostream &strm, char const *c_name, const char *) {
-                    write_c_declaration< CppSignature >(strm, c_name);
+                    write_c_declaration< CSignature >(strm, c_name);
                 }
             };
 
             struct fortran_cbindings_traits {
-                template < class CppSignature >
+                template < class CSignature >
                 static void generate_declaration(std::ostream &strm, char const *c_name, const char *) {
-                    write_fortran_cbindings_declaration< CppSignature >(strm, c_name);
+                    write_fortran_cbindings_declaration< CSignature >(strm, c_name);
                 }
             };
 
@@ -389,11 +404,19 @@ namespace gridtools {
                     c_name, fortran_name, Traits::template generate_declaration< CppSignature >);
             }
 
+            template < class CSignature >
+            struct registrar_simple {
+                registrar_simple(char const *name) {
+                    add_declaration< _impl::c_traits, CSignature >(name, name);
+                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(name, name);
+                }
+            };
             template < class CppSignature >
-            struct registrar {
-                registrar(char const *c_name, char const *fortran_name) {
-                    add_declaration< _impl::c_traits, CppSignature >(c_name, fortran_name);
-                    add_declaration< _impl::fortran_cbindings_traits, CppSignature >(c_name, fortran_name);
+            struct registrar_extended {
+                registrar_extended(char const *c_name, char const *fortran_name) {
+                    using CSignature = wrapped_t< CppSignature >;
+                    add_declaration< _impl::c_traits, CSignature >(c_name, fortran_name);
+                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(c_name, fortran_name);
                     add_declaration< _impl::fortran_indirection_traits, CppSignature >(c_name, fortran_name);
                 }
             };
@@ -408,7 +431,6 @@ namespace gridtools {
 
         /// Outputs the content of the Fortran module with the declarations added by GT_ADD_GENERATED_DECLARATION
         void generate_fortran_interface(std::ostream &strm, std::string const &module_name);
-        void generate_fortran_interface_with_indirection(std::ostream &strm, std::string const &module_name);
     }
 }
 
@@ -416,8 +438,10 @@ namespace gridtools {
  *  Registers the function that for declaration generations.
  *  Users should not this directly.
  */
-#define GT_ADD_GENERATED_DECLARATION(cppsignature, name)                                                     \
-    static ::gridtools::c_bindings::_impl::registrar< cppsignature > generated_declaration_registrar_##name( \
+#define GT_ADD_GENERATED_DECLARATION(csignature, name) \
+    static ::gridtools::c_bindings::_impl::registrar_simple< csignature > generated_declaration_registrar_##name(#name)
+#define GT_ADD_GENERATED_DECLARATION_EX(cppsignature, name)                                                           \
+    static ::gridtools::c_bindings::_impl::registrar_extended< cppsignature > generated_declaration_registrar_##name( \
         BOOST_PP_STRINGIZE(BOOST_PP_CAT(name, _impl)), #name)
 
 #define GT_ADD_GENERIC_DECLARATION(generic_name, concrete_name)      \

@@ -71,17 +71,27 @@
  *   @param signature The signature that will be used to invoke `impl`.
  *   @param impl The functor that the generated function will delegate to.
  */
-#define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl)                                            \
+#define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl)                                                  \
+    static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");              \
+    extern "C"                                                                                                         \
+        typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type name( \
+            BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, cppsignature)) {                                       \
+        return ::gridtools::c_bindings::wrap< cppsignature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));                   \
+    }                                                                                                                  \
+    GT_ADD_GENERATED_DECLARATION(::gridtools::c_bindings::wrapped_t< cppsignature >, name)
+
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX(n, name, cppsignature, impl)                                         \
     static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");        \
     extern "C"                                                                                                   \
         typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type \
             name##_impl(BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, cppsignature)) {                     \
         return ::gridtools::c_bindings::wrap< cppsignature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));             \
     }                                                                                                            \
-    GT_ADD_GENERATED_DECLARATION(cppsignature, name)
+    GT_ADD_GENERATED_DECLARATION_EX(cppsignature, name)
 
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
 #define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)
+#define GT_EXPORT_BINDING_EX(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(n, name, decltype(impl), impl)
 
 #define GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(n, generic_name, concrete_name, impl) \
     GT_EXPORT_BINDING(n, concrete_name, impl);                                    \
@@ -112,6 +122,17 @@
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_8(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(8, name, s, i)
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_9(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(9, name, s, i)
 
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_0(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(0, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_1(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(1, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_2(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(2, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_3(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(3, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_4(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(4, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_5(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(5, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_6(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(6, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_7(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(7, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_8(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(8, name, s, i)
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX_9(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(9, name, s, i)
+
 /// GT_EXPORT_BINDING shortcuts for the given arity
 #define GT_EXPORT_BINDING_0(name, impl) GT_EXPORT_BINDING(0, name, impl)
 #define GT_EXPORT_BINDING_1(name, impl) GT_EXPORT_BINDING(1, name, impl)
@@ -123,3 +144,14 @@
 #define GT_EXPORT_BINDING_7(name, impl) GT_EXPORT_BINDING(7, name, impl)
 #define GT_EXPORT_BINDING_8(name, impl) GT_EXPORT_BINDING(8, name, impl)
 #define GT_EXPORT_BINDING_9(name, impl) GT_EXPORT_BINDING(9, name, impl)
+
+#define GT_EXPORT_BINDING_EX_0(name, impl) GT_EXPORT_BINDING_EX(0, name, impl)
+#define GT_EXPORT_BINDING_EX_1(name, impl) GT_EXPORT_BINDING_EX(1, name, impl)
+#define GT_EXPORT_BINDING_EX_2(name, impl) GT_EXPORT_BINDING_EX(2, name, impl)
+#define GT_EXPORT_BINDING_EX_3(name, impl) GT_EXPORT_BINDING_EX(3, name, impl)
+#define GT_EXPORT_BINDING_EX_4(name, impl) GT_EXPORT_BINDING_EX(4, name, impl)
+#define GT_EXPORT_BINDING_EX_5(name, impl) GT_EXPORT_BINDING_EX(5, name, impl)
+#define GT_EXPORT_BINDING_EX_6(name, impl) GT_EXPORT_BINDING_EX(6, name, impl)
+#define GT_EXPORT_BINDING_EX_7(name, impl) GT_EXPORT_BINDING_EX(7, name, impl)
+#define GT_EXPORT_BINDING_EX_8(name, impl) GT_EXPORT_BINDING_EX(8, name, impl)
+#define GT_EXPORT_BINDING_EX_9(name, impl) GT_EXPORT_BINDING_EX(9, name, impl)
