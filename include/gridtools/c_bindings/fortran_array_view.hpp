@@ -42,6 +42,7 @@
 
 #include "array_descriptor.h"
 
+#include <iostream>
 namespace gridtools {
     namespace c_bindings {
         namespace _impl {
@@ -98,7 +99,7 @@ namespace gridtools {
             for_each< indices >(std::bind(
                 _impl::check_extent_f< remove_reference_t< T > >{}, std::placeholders::_1, std::cref(descriptor)));
 
-            return reinterpret_cast< T >(descriptor.data);
+            return *reinterpret_cast< remove_reference_t< T > * >(descriptor.data);
         }
         template < class T >
         enable_if_t< std::is_same< decltype(gt_make_fortran_array_view(

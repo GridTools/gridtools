@@ -87,24 +87,37 @@ namespace {
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
-    auto make_copy_stencil(data_store_t const &in, data_store_t const &out, int(&)[3][3][3])
+    auto make_copy_stencil(data_store_t const &in, data_store_t const &out)
         GT_AUTO_RETURN(make_computation< backend_t >(make_grid(out),
             p_in{} = in,
             p_out{} = out,
             make_multistage(execute< forward >(), make_stage< copy_functor >(p_in{}, p_out{}))));
-    GT_EXPORT_BINDING_EX_3(create_copy_stencil, make_copy_stencil);
+    GT_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
 
-    using stencil_t = decltype(make_copy_stencil(
-        std::declval< data_store_t >(), std::declval< data_store_t >(), std::declval< int(&)[3][3][3] >()));
+    using stencil_t = decltype(make_copy_stencil(std::declval< data_store_t >(), std::declval< data_store_t >()));
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_EX_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
 
+    void do_fill_array(int(&array)[3][3][3]) {
+        for (size_t i = 0; i < 3; ++i) {
+            for (size_t j = 0; j < 3; ++j) {
+                for (size_t k = 0; k < 3; ++k) {
+                    array[i][j][k] = i + j + k;
+                }
+            }
+        }
+    };
+    GT_EXPORT_BINDING_EX_1(fill_array, do_fill_array);
     void do_print_array(int(&array)[3][3][3]) {
         for (size_t i = 0; i < 3; ++i) {
             for (size_t j = 0; j < 3; ++j) {
-                std::cout << i << " " << j << " = " << array[i][j] << std::endl;
+                for (size_t k = 0; k < 3; ++k) {
+                    std::cout << array[i][j][k] << " ";
+                }
             }
+            std::cout << "\n";
         }
+        std::cout.flush();
     };
     GT_EXPORT_BINDING_EX_1(print_array, do_print_array);
 }

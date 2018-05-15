@@ -73,14 +73,14 @@ namespace gridtools {
         }
 
         namespace _impl {
-            void declarations::add(char const *c_name, const char *fortran_name, generator_t generator) {
-                bool ok = m_generators.emplace(std::make_pair(c_name, fortran_name), std::move(generator)).second;
+            void declarations::add(char const *name, generator_t generator) {
+                bool ok = m_generators.emplace(name, std::move(generator)).second;
                 assert(ok);
             }
 
             std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
                 for (auto &&item : obj.m_generators)
-                    item.second(strm, item.first.first, item.first.second);
+                    item.second(strm, item.first);
                 return strm;
             }
 

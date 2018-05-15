@@ -60,20 +60,13 @@ namespace gridtools {
             struct c_string_less {
                 bool operator()(char const *lhs, char const *rhs) const { return strcmp(lhs, rhs) < 0; }
             };
-            struct c_string_pair_less {
-                bool operator()(const std::pair< char const *, char const * > &lhs,
-                    const std::pair< char const *, char const * > &rhs) const {
-                    return c_string_less{}(lhs.first, rhs.first);
-                }
-            };
 
             class declarations {
-                using generator_t = std::function< void(std::ostream &, char const *, char const *) >;
-                // TODO
-                std::map< std::pair< char const *, char const * >, generator_t, c_string_pair_less > m_generators;
+                using generator_t = std::function< void(std::ostream &, char const *) >;
+                std::map< char const *, generator_t, c_string_less > m_generators;
 
               public:
-                void add(char const *c_name, const char *fortran_name, generator_t generator);
+                void add(char const *name, generator_t generator);
                 friend std::ostream &operator<<(std::ostream &strm, declarations const &obj);
             };
 
@@ -379,14 +372,14 @@ namespace gridtools {
 
             struct c_traits {
                 template < class CSignature >
-                static void generate_declaration(std::ostream &strm, char const *c_name, const char *) {
+                static void generate_declaration(std::ostream &strm, char const *c_name) {
                     write_c_declaration< CSignature >(strm, c_name);
                 }
             };
 
             struct fortran_cbindings_traits {
                 template < class CSignature >
-                static void generate_declaration(std::ostream &strm, char const *c_name, const char *) {
+                static void generate_declaration(std::ostream &strm, char const *c_name) {
                     write_fortran_cbindings_declaration< CSignature >(strm, c_name);
                 }
             };
@@ -398,10 +391,12 @@ namespace gridtools {
                 }
             };
 
-            template < class Traits, class CppSignature >
-            void add_declaration(const char *c_name, char const *fortran_name) {
-                get_declarations< Traits >().add(
-                    c_name, fortran_name, Traits::template generate_declaration< CppSignature >);
+            template < class Traits, class Signature, class... Params >
+            void add_declaration(const char *name, Params &&... params) {
+                get_declarations< Traits >().add(name,
+                    std::bind(Traits::template generate_declaration< Signature >,
+                                                     std::placeholders::_1,
+                                                     std::forward< Params >(params)...));
             }
 
             template < class CSignature >
@@ -415,9 +410,9 @@ namespace gridtools {
             struct registrar_extended {
                 registrar_extended(char const *c_name, char const *fortran_name) {
                     using CSignature = wrapped_t< CppSignature >;
-                    add_declaration< _impl::c_traits, CSignature >(c_name, fortran_name);
-                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(c_name, fortran_name);
-                    add_declaration< _impl::fortran_indirection_traits, CppSignature >(c_name, fortran_name);
+                    add_declaration< _impl::c_traits, CSignature >(c_name, c_name);
+                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(c_name, c_name);
+                    add_declaration< _impl::fortran_indirection_traits, CppSignature >(c_name, c_name, fortran_name);
                 }
             };
 
