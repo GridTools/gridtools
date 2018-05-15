@@ -120,7 +120,8 @@ namespace {
         std::cout.flush();
     };
     GT_EXPORT_BINDING_EX_1(print_array, do_print_array);
-    void do_add_arrays(int(&array1)[3][3][3], int(&array2)[3][3][3], int k) {
+    template < typename T >
+    void do_add_arrays(T(&array1)[3][3][3], T(&array2)[3][3][3], T k) {
         for (size_t i = 0; i < 3; ++i) {
             for (size_t j = 0; j < 3; ++j) {
                 for (size_t k = 0; k < 3; ++k) {
@@ -129,5 +130,5 @@ namespace {
             }
         }
     };
-    GT_EXPORT_BINDING_EX_3(add_arrays, do_add_arrays);
+    GT_EXPORT_GENERIC_BINDING_EX(3, add_arrays, do_add_arrays, (double)(float)(int));
 }

@@ -93,21 +93,26 @@
 #define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)
 #define GT_EXPORT_BINDING_EX(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE_EX(n, name, decltype(impl), impl)
 
-#define GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(n, generic_name, concrete_name, impl) \
-    GT_EXPORT_BINDING(n, concrete_name, impl);                                    \
+#define GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(generatorsuffix, n, generic_name, concrete_name, impl) \
+    BOOST_PP_CAT(GT_EXPORT_BINDING, generatorsuffix)(n, concrete_name, impl);                      \
     GT_ADD_GENERIC_DECLARATION(generic_name, concrete_name)
 
-#define GT_EXPORT_GENERIC_BINDING_IMPL(n, name, suffix, impl) \
-    GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(n, name, BOOST_PP_CAT(name, suffix), impl)
+#define GT_EXPORT_GENERIC_BINDING_IMPL(generatorsuffix, n, name, suffix, impl) \
+    GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(generatorsuffix, n, name, BOOST_PP_CAT(name, suffix), impl)
 
 #define GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR(r, data, i, elem)    \
-    GT_EXPORT_GENERIC_BINDING_IMPL(BOOST_PP_TUPLE_ELEM(3, 0, data), \
-        BOOST_PP_TUPLE_ELEM(3, 1, data),                            \
+    GT_EXPORT_GENERIC_BINDING_IMPL(BOOST_PP_TUPLE_ELEM(4, 0, data), \
+        BOOST_PP_TUPLE_ELEM(4, 1, data),                            \
+        BOOST_PP_TUPLE_ELEM(4, 2, data),                            \
         i,                                                          \
-        BOOST_PP_TUPLE_ELEM(3, 2, data) < elem > );
+        BOOST_PP_TUPLE_ELEM(4, 3, data) < elem > );
 
-#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                     \
-    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (n, name, impl_template), template_params) \
+#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                       \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (, n, name, impl_template), template_params) \
+    static_assert(1, "")
+
+#define GT_EXPORT_GENERIC_BINDING_EX(n, name, impl_template, template_params)                                       \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (_EX, n, name, impl_template), template_params) \
     static_assert(1, "")
 
 /// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity
