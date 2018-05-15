@@ -99,7 +99,8 @@ namespace gridtools {
             virtual ReturnType run(arg_storage_pair_crefs_t const &) = 0;
             virtual void sync_bound_data_stores() = 0;
             virtual std::string print_meter() const = 0;
-            virtual double get_meter() const = 0;
+            virtual double get_time() const = 0;
+            virtual size_t get_count() const = 0;
             virtual void reset_meter() = 0;
         };
 
@@ -114,8 +115,9 @@ namespace gridtools {
             }
             void sync_bound_data_stores() override { m_obj.sync_bound_data_stores(); }
             std::string print_meter() const override { return m_obj.print_meter(); }
-            double get_meter() const override { return m_obj.get_meter(); }
-            void reset_meter() override { return m_obj.reset_meter(); }
+            double get_time() const override { return m_obj.get_time(); }
+            size_t get_count() const override { return m_obj.get_count(); }
+            void reset_meter() override { m_obj.reset_meter(); }
         };
 
         std::unique_ptr< iface > m_impl;
@@ -143,7 +145,9 @@ namespace gridtools {
 
         std::string print_meter() const { return m_impl->print_meter(); }
 
-        double get_meter() const { return m_impl->get_meter(); }
+        double get_time() const { return m_impl->get_time(); }
+
+        size_t get_count() const { return m_impl->get_count(); }
 
         void reset_meter() { m_impl->reset_meter(); }
     };
