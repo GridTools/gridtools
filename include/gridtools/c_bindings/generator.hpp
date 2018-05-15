@@ -316,16 +316,27 @@ namespace gridtools {
                 return strm << "    end\n";
             }
 
-            struct argument_wrapper_f {
-                template < class T,
-                    typename std::enable_if< std::is_same< T, gt_fortran_array_descriptor >::value, int >::type = 0 >
-                std::pair< std::string, std::string > operator()() const {
-                    return std::make_pair("create_array_descriptor(", ")");
+            struct cpp_type_descriptor_f {
+                struct R {
+                    bool is_fortran_array_descriptor;
+                    size_t rank;
+                    std::string type_name;
+                };
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                        0 >
+                R operator()() const {
+                    return {true,
+                        fortran_array_view_rank< CppType >::value,
+                        fortran_type_name< typename fortran_array_view_element_type< CppType >::type >()};
                 }
-                template < class T,
-                    typename std::enable_if< !std::is_same< T, gt_fortran_array_descriptor >::value, int >::type = 0 >
-                std::pair< std::string, std::string > operator()() const {
-                    return std::make_pair("", "");
+                template < class CppType,
+                    class CType = param_converted_to_c_t< CppType >,
+                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                        0 >
+                R operator()() const {
+                    return {false, 0, ""};
                 }
             };
             template < class CppSignature >
@@ -351,18 +362,44 @@ namespace gridtools {
                 }
                 for_each_param< CppSignature >(fortran_param_type_f< fortran_param_style::indirection >{},
                     [&](const std::string &type_name, int i) {
-                        strm << "      " << type_name << " :: arg" << i << "\n";
+                        strm << "      " << type_name << ", target :: arg" << i << "\n";
                     });
+
+                for_each_param< CppSignature >(cpp_type_descriptor_f{},
+                    [&](cpp_type_descriptor_f::R type_descriptor, int i) {
+                        if (type_descriptor.is_fortran_array_descriptor) {
+                            const auto desc_name = "descriptor" + std::to_string(i);
+                            strm << "      type(gt_fortran_array_descriptor) :: " + desc_name + "\n";
+                        }
+                    });
+                strm << "\n";
+
+                for_each_param< CppSignature >(cpp_type_descriptor_f{},
+                    [&](cpp_type_descriptor_f::R type_descriptor, int i) {
+                        if (type_descriptor.is_fortran_array_descriptor) {
+                            const auto var_name = "arg" + std::to_string(i);
+                            const auto desc_name = "descriptor" + std::to_string(i);
+                            strm << "      " << desc_name << "%rank = " << type_descriptor.rank << "\n"       //
+                                 << "      " << desc_name << "%dims = reshape(shape(" << var_name << "), &\n" //
+                                 << "        shape(" << desc_name << "%dims), (/0/))\n"                       //
+                                 << "      " << desc_name << "%data = c_loc(" << var_name << ")\n\n";
+                        }
+                    });
+
                 if (std::is_void< typename ft::result_type< CSignature >::type >::value) {
                     strm << "      call " << c_name << "(";
                 } else {
                     strm << "      " << fortran_name << " = " << c_name << "(";
                 }
-                for_each_param< CSignature >(argument_wrapper_f{},
-                    [&](const std::pair< std::string, std::string > &arg_wrapper, int i) {
+                for_each_param< CppSignature >(cpp_type_descriptor_f{},
+                    [&](cpp_type_descriptor_f::R type_descriptor, int i) {
                         if (i)
                             strm << ", ";
-                        strm << arg_wrapper.first << "arg" << i << arg_wrapper.second;
+                        if (type_descriptor.is_fortran_array_descriptor) {
+                            strm << "descriptor" << i;
+                        } else {
+                            strm << "arg" << i;
+                        }
                     });
                 strm << ")\n";
 

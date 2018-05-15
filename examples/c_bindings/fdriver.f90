@@ -40,12 +40,15 @@ program main
     integer, parameter :: i = 9, j = 10, k = 11
     real(FLOAT_PRECISION), dimension(i, j, k) :: in, out
     type(c_ptr) in_handle, out_handle, stencil
-    integer(c_int), dimension(3, 3, 3) :: arr
+    integer(c_int), dimension(3, 3, 3) :: arr1
+    integer(c_int), dimension(3, 3, 3) :: arr2
     integer(c_int) :: cnt
 
-    arr = reshape((/ (cnt, cnt = 1,27)/), shape(arr))
-    call print_array(arr)
-    call fill_array(arr)
+    arr1 = reshape((/ (cnt, cnt = 1,27)/), shape(arr1))
+    arr2 = reshape((/ (27 - cnt, cnt = 1,27)/), shape(arr2))
+    call fill_array(arr1)
+    call add_arrays(arr1, arr2, 12)
+    call print_array(arr1)
 
     in = initial()
 
