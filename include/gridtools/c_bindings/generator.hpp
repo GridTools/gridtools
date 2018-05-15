@@ -292,20 +292,24 @@ namespace gridtools {
             };
 
             template < class CSignature >
-            std::ostream &write_fortran_cbindings_declaration(std::ostream &strm, char const *name) {
+            std::ostream &write_fortran_cbindings_declaration(
+                std::ostream &strm, char const *c_name, char const *fortran_name) {
                 namespace ft = boost::function_types;
                 constexpr bool has_array_descriptor =
                     is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
                         std::is_same< boost::mpl::_, gt_fortran_array_descriptor > >::value;
-                strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " " << name
-                     << "(";
+                strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " "
+                     << fortran_name << "(";
                 for_each_param< CSignature >(ignore_type_f{},
                     [&](const std::string &, int i) {
                         if (i)
                             strm << ", ";
                         strm << "arg" << i;
                     });
-                strm << ") bind(c)\n      use iso_c_binding\n";
+                strm << ") &\n        bind(c";
+                if (strcmp(c_name, fortran_name) != 0)
+                    strm << ", name=\"" << c_name << "\"";
+                strm << ")\n      use iso_c_binding\n";
                 if (has_array_descriptor) {
                     strm << "      use array_descriptor\n";
                 }
@@ -341,7 +345,7 @@ namespace gridtools {
             };
             template < class CppSignature >
             std::ostream &write_fortran_indirection_declaration(
-                std::ostream &strm, char const *c_name, const char *fortran_name) {
+                std::ostream &strm, char const *fortran_cbindings_name, const char *fortran_name) {
                 using CSignature = wrapped_t< CppSignature >;
                 namespace ft = boost::function_types;
                 constexpr bool has_array_descriptor =
@@ -356,7 +360,7 @@ namespace gridtools {
                             strm << ", ";
                         strm << "arg" << i;
                     });
-                strm << ") bind(c)\n      use iso_c_binding\n";
+                strm << ")\n      use iso_c_binding\n";
                 if (has_array_descriptor) {
                     strm << "      use array_descriptor\n";
                 }
@@ -387,9 +391,9 @@ namespace gridtools {
                     });
 
                 if (std::is_void< typename ft::result_type< CSignature >::type >::value) {
-                    strm << "      call " << c_name << "(";
+                    strm << "      call " << fortran_cbindings_name << "(";
                 } else {
-                    strm << "      " << fortran_name << " = " << c_name << "(";
+                    strm << "      " << fortran_name << " = " << fortran_cbindings_name << "(";
                 }
                 for_each_param< CppSignature >(cpp_type_descriptor_f{},
                     [&](cpp_type_descriptor_f::R type_descriptor, int i) {
@@ -415,15 +419,16 @@ namespace gridtools {
 
             struct fortran_cbindings_traits {
                 template < class CSignature >
-                static void generate_declaration(std::ostream &strm, char const *c_name) {
-                    write_fortran_cbindings_declaration< CSignature >(strm, c_name);
+                static void generate_declaration(std::ostream &strm, char const *c_name, char const *fortran_name) {
+                    write_fortran_cbindings_declaration< CSignature >(strm, c_name, fortran_name);
                 }
             };
 
             struct fortran_indirection_traits {
                 template < class CppSignature >
-                static void generate_declaration(std::ostream &strm, char const *c_name, const char *fortran_name) {
-                    write_fortran_indirection_declaration< CppSignature >(strm, c_name, fortran_name);
+                static void generate_declaration(
+                    std::ostream &strm, char const *fortran_cbindings_name, const char *fortran_name) {
+                    write_fortran_indirection_declaration< CppSignature >(strm, fortran_cbindings_name, fortran_name);
                 }
             };
 
@@ -439,16 +444,18 @@ namespace gridtools {
             struct registrar_simple {
                 registrar_simple(char const *name) {
                     add_declaration< _impl::c_traits, CSignature >(name, name);
-                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(name, name);
+                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(name, name, name);
                 }
             };
             template < class CppSignature >
             struct registrar_extended {
-                registrar_extended(char const *c_name, char const *fortran_name) {
+                registrar_extended(char const *c_name, char const *fortran_cbindings_name, char const *fortran_name) {
                     using CSignature = wrapped_t< CppSignature >;
                     add_declaration< _impl::c_traits, CSignature >(c_name, c_name);
-                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(c_name, c_name);
-                    add_declaration< _impl::fortran_indirection_traits, CppSignature >(c_name, c_name, fortran_name);
+                    add_declaration< _impl::fortran_cbindings_traits, CSignature >(
+                        c_name, c_name, fortran_cbindings_name);
+                    add_declaration< _impl::fortran_indirection_traits, CppSignature >(
+                        c_name, fortran_cbindings_name, fortran_name);
                 }
             };
 
@@ -473,7 +480,7 @@ namespace gridtools {
     static ::gridtools::c_bindings::_impl::registrar_simple< csignature > generated_declaration_registrar_##name(#name)
 #define GT_ADD_GENERATED_DECLARATION_EX(cppsignature, name)                                                           \
     static ::gridtools::c_bindings::_impl::registrar_extended< cppsignature > generated_declaration_registrar_##name( \
-        BOOST_PP_STRINGIZE(BOOST_PP_CAT(name, _impl)), #name)
+        #name, BOOST_PP_STRINGIZE(BOOST_PP_CAT(name, _impl)), #name)
 
 #define GT_ADD_GENERIC_DECLARATION(generic_name, concrete_name)      \
     static ::gridtools::c_bindings::_impl::fortran_generic_registrar \

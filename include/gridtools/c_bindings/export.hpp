@@ -49,6 +49,14 @@
         typename boost::function_types::parameter_types<::gridtools::c_bindings::wrapped_t< signature > >::type, \
         i >::type param_##i
 
+#define GT_ADD_GENERATED_DEFINITION(n, name, cppsignature, impl)                                                       \
+    static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");              \
+    extern "C"                                                                                                         \
+        typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type name( \
+            BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, cppsignature)) {                                       \
+        return ::gridtools::c_bindings::wrap< cppsignature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));                   \
+    }
+
 /**
  *   Defines the function with the given name with the C linkage.
  *
@@ -71,22 +79,12 @@
  *   @param signature The signature that will be used to invoke `impl`.
  *   @param impl The functor that the generated function will delegate to.
  */
-#define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl)                                                  \
-    static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");              \
-    extern "C"                                                                                                         \
-        typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type name( \
-            BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, cppsignature)) {                                       \
-        return ::gridtools::c_bindings::wrap< cppsignature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));                   \
-    }                                                                                                                  \
+#define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl) \
+    GT_ADD_GENERATED_DEFINITION(n, name, cppsignature, impl)          \
     GT_ADD_GENERATED_DECLARATION(::gridtools::c_bindings::wrapped_t< cppsignature >, name)
 
-#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX(n, name, cppsignature, impl)                                         \
-    static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");        \
-    extern "C"                                                                                                   \
-        typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type \
-            name##_impl(BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, cppsignature)) {                     \
-        return ::gridtools::c_bindings::wrap< cppsignature >(impl)(BOOST_PP_ENUM_PARAMS(n, param_));             \
-    }                                                                                                            \
+#define GT_EXPORT_BINDING_WITH_SIGNATURE_EX(n, name, cppsignature, impl) \
+    GT_ADD_GENERATED_DEFINITION(n, name, cppsignature, impl)             \
     GT_ADD_GENERATED_DECLARATION_EX(cppsignature, name)
 
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
