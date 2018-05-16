@@ -91,32 +91,35 @@ namespace gridtools {
             static_assert(true == is_fortran_array_convertible< other::X >::value, "");
             static_assert(false == is_fortran_array_viewable< other::X & >::value, "");
             static_assert(false == is_fortran_array_viewable< other::X >::value, "");
+        }
+        template < typename T, std::size_t M, std::size_t N >
+        using array_2d = std::array< std::array< T, M >, N >;
+        template < typename T, std::size_t M, std::size_t N >
+        struct fortran_array_view_rank< array_2d< T, M, N > > : std::integral_constant< std::size_t, 2 > {};
+        template <>
+        template < typename T, std::size_t M, std::size_t N >
+        struct fortran_array_view_element_type< array_2d< T, M, N > > {
+            using type = T;
+        };
+        template < typename T, std::size_t M, std::size_t N >
+        array_2d< T, M, N > gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, array_2d< T, M, N > *) {
+            return array_2d< T, M, N >{};
+        }
+        namespace {
+            static_assert(false == is_fortran_array_convertible< array_2d< int, 4, 5 > & >::value, "");
+            static_assert(true == is_fortran_array_convertible< array_2d< int, 4, 5 > >::value, "");
+            static_assert(false == is_fortran_array_viewable< array_2d< int, 4, 5 > & >::value, "");
+            static_assert(true == is_fortran_array_viewable< array_2d< int, 4, 5 > >::value, "");
 
             struct E {
-                E(const gt_fortran_array_descriptor &) {}
-            };
-        }
-        template <>
-        struct fortran_array_view_rank< E > : std::integral_constant< std::size_t, 3 > {};
-        template <>
-        struct fortran_array_view_element_type< E > {
-            using type = int;
-        };
-        namespace {
-            static_assert(false == is_fortran_array_convertible< E & >::value, "");
-            static_assert(true == is_fortran_array_convertible< E >::value, "");
-            static_assert(false == is_fortran_array_viewable< E & >::value, "");
-            static_assert(true == is_fortran_array_viewable< E >::value, "");
-
-            struct F {
-                F(const gt_fortran_array_descriptor &data_) : data(data_) {}
+                E(const gt_fortran_array_descriptor &data_) : data(data_) {}
                 gt_fortran_array_descriptor data;
 
                 using gt_view_element_type = int;
                 using gt_view_rank = std::integral_constant< std::size_t, 3 >;
             };
-            static_assert(true == is_fortran_array_convertible< F >::value, "");
-            static_assert(true == is_fortran_array_viewable< F >::value, "");
+            static_assert(true == is_fortran_array_convertible< E >::value, "");
+            static_assert(true == is_fortran_array_viewable< E >::value, "");
 
             TEST(FortranArrayView, ToArray) {
                 float data[1][2][3][4];
