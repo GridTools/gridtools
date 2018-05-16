@@ -306,13 +306,14 @@ namespace gridtools {
                             strm << ", ";
                         strm << "arg" << i;
                     });
-                strm << ") &\n        bind(c";
-                if (strcmp(c_name, fortran_name) != 0)
-                    strm << ", name=\"" << c_name << "\"";
-                strm << ")\n      use iso_c_binding\n";
-                if (has_array_descriptor) {
+                strm << ")";
+                if (strcmp(c_name, fortran_name) == 0)
+                    strm << " bind(c)";
+                else
+                    strm << "&\n        bind(c, name=\"" << c_name << "\")";
+                strm << "\n      use iso_c_binding\n";
+                if (has_array_descriptor)
                     strm << "      use array_descriptor\n";
-                }
                 for_each_param< CSignature >(fortran_param_type_f< fortran_param_style::c_bindings >{},
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << " :: arg" << i << "\n";

@@ -51,6 +51,8 @@ namespace gridtools {
             struct a_struct;
             struct array_descriptor_struct {
                 array_descriptor_struct(const gt_fortran_array_descriptor &) {}
+                using gt_view_element_type = int;
+                using gt_view_rank = std::integral_constant< std::size_t, 3 >;
             };
             static_assert(std::is_same< wrapped_t< void (*)() >, void() >::value, "");
             static_assert(std::is_same< wrapped_t< int() >, int() >::value, "");

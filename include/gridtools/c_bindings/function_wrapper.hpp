@@ -85,12 +85,12 @@ namespace gridtools {
             struct param_converted_to_c< T,
                 typename std::enable_if< std::is_class< typename std::remove_pointer<
                                              typename std::remove_reference< T >::type >::type >::value &&
-                                             not is_fortran_array_view< T >::value >::type > {
+                                             not is_fortran_array_viewable< T >::value >::type > {
                 using type = gt_handle *;
             };
 
             template < class T >
-            struct param_converted_to_c< T, typename std::enable_if< is_fortran_array_view< T >::value >::type > {
+            struct param_converted_to_c< T, typename std::enable_if< is_fortran_array_viewable< T >::value >::type > {
                 using type = gt_fortran_array_descriptor;
             };
 

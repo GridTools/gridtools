@@ -42,7 +42,6 @@
 
 #include "array_descriptor.h"
 
-#include <iostream>
 namespace gridtools {
     namespace c_bindings {
         namespace _impl {
@@ -56,30 +55,73 @@ namespace gridtools {
             };
         }
 
+        template < class T >
+        struct is_valid_view_element_type : std::is_arithmetic< T > {};
+
+        template < class T, class = void >
+        struct fortran_array_view_element_type;
+        template < class T >
+        struct fortran_array_view_element_type< T, enable_if_t< (sizeof(typename T::gt_view_element_type) > 0) > > {
+            using type = typename T::gt_view_element_type;
+        };
+        template < class T >
+        struct fortran_array_view_element_type<
+            T,
+            enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
+                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
+            : std::remove_all_extents< remove_reference_t< T > > {};
+
+        template < class T, class = void >
+        struct fortran_array_view_rank;
+        template < class T >
+        struct fortran_array_view_rank< T, enable_if_t< (sizeof(decltype(T::gt_view_rank::value)) > 0) > >
+            : T::gt_view_rank {};
+        template < class T >
+        struct fortran_array_view_rank<
+            T,
+            enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
+                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
+            : std::rank< remove_reference_t< T > > {};
+
         template < class, class = void >
-        struct is_fortran_array_view : std::false_type {};
+        struct is_fortran_array_view_inspectable : std::false_type {};
+        template < class T >
+        struct is_fortran_array_view_inspectable<
+            T,
+            enable_if_t< (sizeof(decltype(fortran_array_view_rank< T >::value)) > 0) &&
+                         is_valid_view_element_type< typename fortran_array_view_element_type< T >::type >::value > >
+            : std::true_type {};
+
+        template < class, class = void >
+        struct is_fortran_array_convertible : std::false_type {};
 
         template < class T >
-        struct is_fortran_array_view< T,
-            enable_if_t< std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value ||
-                                          std::is_convertible< gt_fortran_array_descriptor, T >::value > >
+        struct is_fortran_array_convertible< T,
+            enable_if_t< !std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value &&
+                                                 std::is_convertible< gt_fortran_array_descriptor, T >::value > >
             : std::true_type {};
 
         template < class T >
-        struct is_fortran_array_view<
+        struct is_fortran_array_convertible<
             T,
             enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
                          std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
             : std::true_type {};
 
         template < class T >
-        struct is_fortran_array_view< T,
+        struct is_fortran_array_convertible< T,
             enable_if_t< std::is_same< decltype(gt_make_fortran_array_view(
                                            std::declval< gt_fortran_array_descriptor * >(), std::declval< T * >())),
                 T >::value > > : std::true_type {};
 
+        template < class T, class = void >
+        struct is_fortran_array_viewable : std::false_type {};
         template < class T >
-        enable_if_t< std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value ||
+        struct is_fortran_array_viewable< T, enable_if_t< is_fortran_array_convertible< T >::value > >
+            : is_fortran_array_view_inspectable< T > {};
+
+        template < class T >
+        enable_if_t< !std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value &&
                          std::is_convertible< gt_fortran_array_descriptor, T >::value,
             T >
         make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
@@ -109,27 +151,5 @@ namespace gridtools {
         make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
             return gt_make_fortran_array_view(&descriptor, static_cast< T * >(nullptr));
         }
-
-        template < class T, class = void >
-        struct fortran_array_view_element_type {
-            using type = typename T::gt_view_element_type;
-        };
-        template < class T >
-        struct fortran_array_view_element_type<
-            T,
-            enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
-                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
-            : std::remove_all_extents< remove_reference_t< T > > {};
-
-        template < class T, class = void >
-        struct fortran_array_view_rank {
-            using type = typename T::gt_view_rank;
-        };
-        template < class T >
-        struct fortran_array_view_rank<
-            T,
-            enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
-                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value > >
-            : std::rank< remove_reference_t< T > > {};
     }
 }
