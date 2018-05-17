@@ -478,7 +478,7 @@ namespace gridtools {
             return m_meter->total_time();
         }
 
-        double get_count() const {
+        size_t get_count() const {
             assert(m_meter);
             return m_meter->count();
         }

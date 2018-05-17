@@ -321,7 +321,7 @@ namespace gridtools {
 
         double get_time() const { return m_meter.total_time(); }
 
-        double get_count() const { return m_meter.count(); }
+        size_t get_count() const { return m_meter.count(); }
 
         void reset_meter() { m_meter.reset(); }
     };
