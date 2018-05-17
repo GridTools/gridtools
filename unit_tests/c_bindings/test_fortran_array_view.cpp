@@ -37,7 +37,6 @@
 #include <c_bindings/fortran_array_view.hpp>
 
 #include <gtest/gtest.h>
-
 namespace gridtools {
     namespace other {
         namespace {
@@ -46,6 +45,7 @@ namespace gridtools {
             };
 
             X gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, X *) { return X{*descriptor}; }
+            gt_fortran_array_descriptor get_fortran_view_meta(X *) { return {}; }
         }
     }
     namespace c_bindings {
@@ -56,9 +56,8 @@ namespace gridtools {
                        d1->data == d2->data;
             }
 
-            // TODO As long the "inspectable"-part is static, gt_fortran_array_descriptor is not viewable
-            static_assert(false == is_fortran_array_convertible< gt_fortran_array_descriptor >::value, "");
-            static_assert(false == is_fortran_array_convertible< gt_fortran_array_descriptor & >::value, "");
+            static_assert(false == is_fortran_array_viewable< gt_fortran_array_descriptor >::value, "");
+            static_assert(false == is_fortran_array_viewable< gt_fortran_array_descriptor & >::value, "");
 
             static_assert(false == is_fortran_array_viewable< gt_fortran_array_descriptor >::value, "");
             static_assert(false == is_fortran_array_viewable< gt_fortran_array_descriptor & >::value, "");
@@ -90,22 +89,33 @@ namespace gridtools {
             static_assert(false == is_fortran_array_convertible< other::X & >::value, "");
             static_assert(true == is_fortran_array_convertible< other::X >::value, "");
             static_assert(false == is_fortran_array_viewable< other::X & >::value, "");
-            static_assert(false == is_fortran_array_viewable< other::X >::value, "");
+            static_assert(true == is_fortran_array_viewable< other::X >::value, "");
+            static_assert(true == is_fortran_array_view_inspectable< other::X >::value, "");
         }
-        template < typename T, std::size_t M, std::size_t N >
-        using array_2d = std::array< std::array< T, M >, N >;
-        template < typename T, std::size_t M, std::size_t N >
-        struct fortran_array_view_rank< array_2d< T, M, N > > : std::integral_constant< std::size_t, 2 > {};
-        template <>
-        template < typename T, std::size_t M, std::size_t N >
-        struct fortran_array_view_element_type< array_2d< T, M, N > > {
-            using type = T;
-        };
-        template < typename T, std::size_t M, std::size_t N >
-        array_2d< T, M, N > gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, array_2d< T, M, N > *) {
-            return array_2d< T, M, N >{};
-        }
+    }
+}
+namespace {
+    template < class T, std::size_t M, std::size_t N >
+    using array_2d = std::array< std::array< T, M >, N >;
+    template < class >
+    struct is_2d_array : std::false_type {};
+    template < class T, std::size_t M, std::size_t N >
+    struct is_2d_array< array_2d< T, M, N > > : std::true_type {};
+}
+namespace std {
+    template < class T, std::size_t M, std::size_t N >
+    array_2d< T, M, N > gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, array_2d< T, M, N > *) {
+        return array_2d< T, M, N >{};
+    }
+    template < class T >
+    gridtools::enable_if_t< is_2d_array< T >::value, gt_fortran_array_descriptor > get_fortran_view_meta(T *) {
+        return {};
+    }
+}
+namespace gridtools {
+    namespace c_bindings {
         namespace {
+            static_assert(true == is_fortran_array_view_inspectable< array_2d< int, 4, 5 > >::value, "");
             static_assert(false == is_fortran_array_convertible< array_2d< int, 4, 5 > & >::value, "");
             static_assert(true == is_fortran_array_convertible< array_2d< int, 4, 5 > >::value, "");
             static_assert(false == is_fortran_array_viewable< array_2d< int, 4, 5 > & >::value, "");
@@ -119,11 +129,11 @@ namespace gridtools {
                 using gt_view_rank = std::integral_constant< std::size_t, 3 >;
             };
             static_assert(true == is_fortran_array_convertible< E >::value, "");
-            static_assert(true == is_fortran_array_viewable< E >::value, "");
+            static_assert(false == is_fortran_array_viewable< E >::value, "");
 
             TEST(FortranArrayView, ToArray) {
                 float data[1][2][3][4];
-                gt_fortran_array_descriptor descriptor{0, 4, {4, 3, 2, 1}, &data[0]};
+                gt_fortran_array_descriptor descriptor{gt_fk_Int, 4, {4, 3, 2, 1}, &data[0]};
 
                 auto &new_descriptor = make_fortran_array_view< float(&)[1][2][3][4] >(descriptor);
                 static_assert(std::is_same< decltype(new_descriptor), float(&)[1][2][3][4] >::value, "");
@@ -135,14 +145,14 @@ namespace gridtools {
             }
             TEST(FortranArrayView, ByConversion) {
                 float data[1][2][3][4];
-                gt_fortran_array_descriptor descriptor{0, 4, {4, 3, 2, 1}, &data[0]};
+                gt_fortran_array_descriptor descriptor{gt_fk_Int, 4, {4, 3, 2, 1}, &data[0]};
 
                 auto new_descriptor = make_fortran_array_view< D >(descriptor);
                 ASSERT_PRED2(IsSameArrayDescriptor, &new_descriptor.data, &descriptor);
             }
             TEST(FortranArrayView, ByFunction) {
                 float data[1][2][3][4];
-                gt_fortran_array_descriptor descriptor{0, 4, {4, 3, 2, 1}, &data[0]};
+                gt_fortran_array_descriptor descriptor{gt_fk_Int, 4, {4, 3, 2, 1}, &data[0]};
 
                 auto new_descriptor = make_fortran_array_view< other::X >(descriptor);
                 ASSERT_PRED2(IsSameArrayDescriptor, &new_descriptor.data, &descriptor);

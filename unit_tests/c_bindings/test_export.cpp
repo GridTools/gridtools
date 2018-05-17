@@ -71,6 +71,12 @@ namespace {
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_empty, bool(stack_t const &), std::mem_fn(&stack_t::empty));
 
+    template < class T >
+    void assign_impl(T(&obj)[2][2], T val) {
+        obj[0][0] = obj[0][1] = obj[1][0] = obj[1][1] = val;
+    }
+    GT_EXPORT_GENERIC_BINDING_EX(2, my_assign, assign_impl, (int)(double));
+
     TEST(export, smoke) {
         gt_handle *obj = my_create();
         EXPECT_TRUE(my_empty(obj));
@@ -92,6 +98,8 @@ namespace {
 extern "C" {
 #endif
 
+void my_assign0(gt_fortran_array_descriptor, int);
+void my_assign1(gt_fortran_array_descriptor, double);
 gt_handle* my_create();
 bool my_empty(gt_handle*);
 void my_pop(gt_handle*);
@@ -116,6 +124,20 @@ module my_module
 implicit none
   interface
 
+    subroutine my_assign0_impl(arg0, arg1) &
+        bind(c, name="my_assign0")
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor), value :: arg0
+      integer(c_int), value :: arg1
+    end
+    subroutine my_assign1_impl(arg0, arg1) &
+        bind(c, name="my_assign1")
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor), value :: arg0
+      real(c_double), value :: arg1
+    end
     type(c_ptr) function my_create() bind(c)
       use iso_c_binding
     end
@@ -148,10 +170,43 @@ implicit none
     end
 
   end interface
+  interface my_assign
+    procedure my_assign0, my_assign1
+  end interface
   interface my_push
     procedure my_push0, my_push1, my_push2
   end interface
 contains
+    subroutine my_assign0(arg0, arg1)
+      use iso_c_binding
+      use array_descriptor
+      integer(c_int), dimension(:,:), target :: arg0
+      integer(c_int), value, target :: arg1
+      type(gt_fortran_array_descriptor) :: descriptor0
+
+      descriptor0%rank = 2
+      descriptor0%type = 1
+      descriptor0%dims = reshape(shape(arg0), &
+        shape(descriptor0%dims), (/0/))
+      descriptor0%data = c_loc(arg0)
+
+      call my_assign0_impl(descriptor0, arg1)
+    end
+    subroutine my_assign1(arg0, arg1)
+      use iso_c_binding
+      use array_descriptor
+      real(c_double), dimension(:,:), target :: arg0
+      real(c_double), value, target :: arg1
+      type(gt_fortran_array_descriptor) :: descriptor0
+
+      descriptor0%rank = 2
+      descriptor0%type = 6
+      descriptor0%dims = reshape(shape(arg0), &
+        shape(descriptor0%dims), (/0/))
+      descriptor0%data = c_loc(arg0)
+
+      call my_assign1_impl(descriptor0, arg1)
+    end
 end
 )?";
 

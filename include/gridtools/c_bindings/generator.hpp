@@ -203,6 +203,29 @@ namespace gridtools {
                 return fortran_type_name< T >() + " function";
             }
 
+            static std::string fortran_array_element_type_name(gt_fortran_array_kind kind) {
+                switch (kind) {
+                case gt_fk_Bool:
+                    return fortran_type_name< bool >();
+                case gt_fk_Int:
+                    return fortran_type_name< int >();
+                case gt_fk_Short:
+                    return fortran_type_name< short >();
+                case gt_fk_Long:
+                    return fortran_type_name< long >();
+                case gt_fk_LongLong:
+                    return fortran_type_name< long long >();
+                case gt_fk_Float:
+                    return fortran_type_name< float >();
+                case gt_fk_Double:
+                    return fortran_type_name< double >();
+                case gt_fk_LongDouble:
+                    return fortran_type_name< long double >();
+                case gt_fk_SignedChar:
+                    return fortran_type_name< signed char >();
+                }
+            }
+
             struct ignore_type_f {
                 template < class T >
                 std::string operator()() const {
@@ -211,12 +234,6 @@ namespace gridtools {
             };
 
             enum class fortran_param_style { c_bindings, indirection };
-            struct dimensions_f {
-                template < class N >
-                void operator()(N, std::string &s) const {
-                    s += (N::value == 0 ? ":" : ",:");
-                }
-            };
             struct fortran_param_type_common_f {
                 template < class CType,
                     typename std::enable_if<
@@ -274,12 +291,15 @@ namespace gridtools {
                     typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
                         0 >
                 std::string operator()() const {
-                    using indices = meta::make_indices< fortran_array_view_rank< CppType >::value >;
+                    const auto meta = get_fortran_view_meta(static_cast< remove_reference_t< CppType > * >(nullptr));
                     std::string dimensions = "dimension(";
-                    for_each< indices >(std::bind(dimensions_f{}, std::placeholders::_1, std::ref(dimensions)));
+                    for (int i = 0; i < meta.rank; ++i) {
+                        if (i)
+                            dimensions += ",";
+                        dimensions += ":";
+                    }
                     dimensions += ")";
-                    return fortran_type_name< typename fortran_array_view_element_type< CppType >::type >() + ", " +
-                           dimensions;
+                    return fortran_array_element_type_name(meta.type) + ", " + dimensions;
                 }
 
                 template < class CppType,
@@ -291,6 +311,12 @@ namespace gridtools {
                 }
             };
 
+            /**
+             * @brief This function writes the `interface`-section of the fortran-code.
+             * @param strm Stream, where the output will be written to
+             * @param c_name The name of the function in the c-header
+             * @param fortran_name The name of the function in the c-bindings of the module.
+             */
             template < class CSignature >
             std::ostream &write_fortran_cbindings_declaration(
                 std::ostream &strm, char const *c_name, char const *fortran_name) {
@@ -310,7 +336,7 @@ namespace gridtools {
                 if (strcmp(c_name, fortran_name) == 0)
                     strm << " bind(c)";
                 else
-                    strm << "&\n        bind(c, name=\"" << c_name << "\")";
+                    strm << " &\n        bind(c, name=\"" << c_name << "\")";
                 strm << "\n      use iso_c_binding\n";
                 if (has_array_descriptor)
                     strm << "      use array_descriptor\n";
@@ -324,26 +350,31 @@ namespace gridtools {
             struct cpp_type_descriptor_f {
                 struct R {
                     bool is_fortran_array_descriptor;
-                    size_t rank;
-                    std::string type_name;
+                    int rank;
+                    gt_fortran_array_kind type_kind;
                 };
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
                     typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
                         0 >
                 R operator()() const {
-                    return {true,
-                        fortran_array_view_rank< CppType >::value,
-                        fortran_type_name< typename fortran_array_view_element_type< CppType >::type >()};
+                    const auto meta = get_fortran_view_meta(static_cast< remove_reference_t< CppType > * >(nullptr));
+                    return {true, meta.rank, meta.type};
                 }
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
                     typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
                         0 >
                 R operator()() const {
-                    return {false, 0, ""};
+                    return {false, 0, gt_fk_Bool};
                 }
             };
+            /**
+             * @brief This function writes the `contains`-section of the fortran-code.
+             * @param strm Stream, where the output will be written to
+             * @param fortran_cbindings_name The name of the function in the c-bindings-part of the module.
+             * @param fortran_name The name of the function in the fortran-part of the module.
+             */
             template < class CppSignature >
             std::ostream &write_fortran_indirection_declaration(
                 std::ostream &strm, char const *fortran_cbindings_name, const char *fortran_name) {
@@ -385,6 +416,7 @@ namespace gridtools {
                             const auto var_name = "arg" + std::to_string(i);
                             const auto desc_name = "descriptor" + std::to_string(i);
                             strm << "      " << desc_name << "%rank = " << type_descriptor.rank << "\n"       //
+                                 << "      " << desc_name << "%type = " << type_descriptor.type_kind << "\n"  //
                                  << "      " << desc_name << "%dims = reshape(shape(" << var_name << "), &\n" //
                                  << "        shape(" << desc_name << "%dims), (/0/))\n"                       //
                                  << "      " << desc_name << "%data = c_loc(" << var_name << ")\n\n";
