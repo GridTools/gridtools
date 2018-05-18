@@ -73,12 +73,12 @@ namespace gridtools {
         }
 
         namespace _impl {
-            void declarations::add(char const *name, generator_t generator) {
+            void entities::add(char const *name, generator_t generator) {
                 bool ok = m_generators.emplace(name, std::move(generator)).second;
                 assert(ok);
             }
 
-            std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
+            std::ostream &operator<<(std::ostream &strm, entities const &obj) {
                 for (auto &&item : obj.m_generators)
                     item.second(strm, item.first);
                 return strm;
@@ -115,7 +115,7 @@ namespace gridtools {
             strm << "#ifdef __cplusplus\n";
             strm << "extern \"C\" {\n";
             strm << "#endif\n\n";
-            strm << _impl::get_declarations< _impl::c_traits >();
+            strm << _impl::get_entities< _impl::c_bindings_traits >();
             strm << "\n#ifdef __cplusplus\n";
             strm << "}\n";
             strm << "#endif\n";
@@ -125,11 +125,11 @@ namespace gridtools {
             strm << "\nmodule " << module_name << "\n";
             strm << "implicit none\n";
             strm << "  interface\n\n";
-            strm << _impl::get_declarations< _impl::fortran_cbindings_traits >();
+            strm << _impl::get_entities< _impl::fortran_bindings_traits >();
             strm << "\n  end interface\n";
             strm << get_fortran_generics();
             strm << "contains\n";
-            strm << _impl::get_declarations< _impl::fortran_indirection_traits >();
+            strm << _impl::get_entities< _impl::fortran_wrapper_traits >();
             strm << "end\n";
         }
     }

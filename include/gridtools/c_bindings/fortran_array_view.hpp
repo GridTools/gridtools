@@ -90,6 +90,7 @@ namespace gridtools {
             struct fortran_array_element_kind_impl< signed char > {
                 static constexpr gt_fortran_array_kind value = gt_fortran_array_kind::gt_fk_SignedChar;
             };
+
             template < class, class = void >
             struct fortran_array_element_kind;
             template < class T >
@@ -103,58 +104,79 @@ namespace gridtools {
             };
         }
 
-        // TODO is_lvalue_reference
-        template < class T >
-        enable_if_t< /*std::is_lvalue_reference< T >::value && */ std::is_array< remove_reference_t< T > >::value &&
-                         std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value,
-            gt_fortran_array_descriptor >
-        get_fortran_view_meta(T *) {
-            gt_fortran_array_descriptor descriptor;
-            descriptor.type =
-                _impl::fortran_array_element_kind< remove_all_extents_t< remove_reference_t< T > > >::value;
-            descriptor.rank = std::rank< remove_reference_t< T > >::value;
+        namespace get_fortran_view_meta_impl {
+            template < class T >
+            enable_if_t< std::is_array< remove_reference_t< T > >::value &&
+                             std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value,
+                gt_fortran_array_descriptor >
+            get_fortran_view_meta(T *) {
+                gt_fortran_array_descriptor descriptor;
+                descriptor.type =
+                    _impl::fortran_array_element_kind< remove_all_extents_t< remove_reference_t< T > > >::value;
+                descriptor.rank = std::rank< remove_reference_t< T > >::value;
 
-            using indices = meta::make_indices< std::rank< remove_reference_t< T > >::value >;
-            for_each< indices >(std::bind(
-                _impl::fill_extent_f< remove_reference_t< T > >{}, std::placeholders::_1, std::ref(descriptor)));
+                using indices = meta::make_indices< std::rank< remove_reference_t< T > >::value >;
+                for_each< indices >(std::bind(
+                    _impl::fill_extent_f< remove_reference_t< T > >{}, std::placeholders::_1, std::ref(descriptor)));
 
-            return descriptor;
+                return descriptor;
+            }
+
+            template < class T >
+            enable_if_t< (T::gt_view_rank::value > 0) && std::is_arithmetic< typename T::gt_view_element_type >::value,
+                gt_fortran_array_descriptor >
+            get_fortran_view_meta(T *) {
+                gt_fortran_array_descriptor descriptor;
+                descriptor.type = _impl::fortran_array_element_kind< typename T::gt_view_element_type >::value;
+                descriptor.rank = T::gt_view_rank::value;
+
+                return descriptor;
+            }
         }
+        using get_fortran_view_meta_impl::get_fortran_view_meta;
         /**
-         * The concept of fortran_array_view_inspectable requires a function
+         * A type T is fortran_array_view_inspectable, one of the following conditions holds:
          *
-         * @code
-         * gt_fortran_array_descriptor get_fortran_view_meta(T*)
-         * @endcode
+         * - There exists a function
          *
-         * which returns the meta-data of the type `T`. The data-entry of the descriptor is uninitialized.
+         *   @code
+         *   gt_fortran_array_descriptor get_fortran_view_meta(T*)
+         *   @endcode
+         *
+         *   which returns the meta-data of the type `T`. type and rank must be set correctly.
+         *
+         * - T defines T::gt_view_element_type as the element types of the array and T::gt_view_rank is an integral
+         *   constant holding the rank of the type
+         *
+         * - T is a reference to a c-array.
          */
         template < class, class = void >
         struct is_fortran_array_view_inspectable : std::false_type {};
         template < class T >
         struct is_fortran_array_view_inspectable< T,
-            enable_if_t< std::is_same< decltype(get_fortran_view_meta(std::declval< remove_reference_t< T > * >())),
+            enable_if_t< std::is_same< decltype(get_fortran_view_meta(std::declval< add_pointer_t< T > >())),
                 gt_fortran_array_descriptor >::value > > : std::true_type {};
 
         /**
          * The concept of fortran_array_convertible requires that a fortran array described by a
          * gt_fortran_array_descriptor can be converted into T:
          *
-         * * T is fortran_array_convertible, if T is a reference to an array of a fortran-compatible type (arithmetic
+         * - T is fortran_array_convertible, if T is a reference to an array of a fortran-compatible type (arithmetic
          *   types).
-         * * T is fortran_array_convertible, if it is implicity convertible from a gt_fortran_array_descriptor
-         * * T is fortran_array_convertible, if there exists a function with the following signature:
+         * - T is fortran_array_convertible, if gt_fortran_array_descriptor is implicity convertible to T
+         * - T is fortran_array_convertible, if there exists a function with the following signature:
          *
          *   @code
          *   T gt_make_fortran_array_view(gt_fortran_array_descriptor*, T*)
          *   @endcode
+         * .
          */
         template < class, class = void >
         struct is_fortran_array_convertible : std::false_type {};
 
         template < class T >
         struct is_fortran_array_convertible< T,
-            enable_if_t< !std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value &&
+            enable_if_t< std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value ||
                                                  std::is_convertible< gt_fortran_array_descriptor, T >::value > >
             : std::true_type {};
 
@@ -172,13 +194,24 @@ namespace gridtools {
                 T >::value > > : std::true_type {};
 
         /**
-         * A type is fortran_array_viewable if it is both fortran_array_convertible and fortran_array_inspectable.
+         * @brief A type is fortran_array_bindable if it is fortran_array_convertible
+         *
+         * A fortran_array_bindable type will appear in the c-bindings as a gt_fortran_array_descriptor.
          */
-        template < class T, class = void >
-        struct is_fortran_array_viewable : std::false_type {};
         template < class T >
-        struct is_fortran_array_viewable< T, enable_if_t< is_fortran_array_convertible< T >::value > >
-            : is_fortran_array_view_inspectable< T > {};
+        struct is_fortran_array_bindable : is_fortran_array_convertible< T > {};
+        /**
+         * @brief A type is fortran_array_wrappable if it is both fortran_array_bindable and
+         * fortran_array_view_inspectable.
+         *
+         * If used with the wrapper-versions of the export-function, fortran_array_wrappable types can be created from a
+         * fortran array in the fortran bindings, whereas fortran_array_convertible-types that are not bindable will
+         * appear as gt_fortran_array_descriptors and must be filled manually.
+         */
+        template < class T >
+        struct is_fortran_array_wrappable
+            : std::integral_constant< bool,
+                  is_fortran_array_bindable< T >::value && is_fortran_array_view_inspectable< T >::value > {};
 
         template < class T >
         enable_if_t< !std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value &&
@@ -192,7 +225,7 @@ namespace gridtools {
                          std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value,
             T >
         make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
-            const auto cpp_meta = get_fortran_view_meta(static_cast< remove_reference_t< T > * >(nullptr));
+            const auto cpp_meta = get_fortran_view_meta((add_pointer_t< T >){nullptr});
             if (descriptor.type != cpp_meta.type) {
                 throw std::runtime_error("Types do not match: fortran-type (" + std::to_string(descriptor.type) +
                                          ") != c-type (" + std::to_string(cpp_meta.type) + ")");
@@ -214,7 +247,7 @@ namespace gridtools {
                          T >::value,
             T >
         make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
-            return gt_make_fortran_array_view(&descriptor, static_cast< T * >(nullptr));
+            return gt_make_fortran_array_view(&descriptor, (T *){nullptr});
         }
     }
 }

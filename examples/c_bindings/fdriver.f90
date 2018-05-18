@@ -48,7 +48,7 @@ program main
     arr2 = reshape((/ (27 - cnt, cnt = 1,27)/), shape(arr2))
     call fill_array(arr1)
     call add_arrays(arr1, arr2, 12)
-    call print_array(arr1)
+    call set_array(arr1, 10)
 
     in = initial()
 

@@ -107,19 +107,17 @@ namespace {
             }
         }
     };
-    GT_EXPORT_BINDING_EX_1(fill_array, do_fill_array);
-    void do_print_array(int(&array)[3][3][3]) {
+    GT_EXPORT_BINDING_WRAPPED_1(fill_array, do_fill_array);
+    void do_set_array(int(&array)[3][3][3], int v) {
         for (size_t i = 0; i < 3; ++i) {
             for (size_t j = 0; j < 3; ++j) {
                 for (size_t k = 0; k < 3; ++k) {
-                    std::cout << array[i][j][k] << " ";
+                    array[i][j][k] = v;
                 }
             }
-            std::cout << "\n";
         }
-        std::cout.flush();
     };
-    GT_EXPORT_BINDING_EX_1(print_array, do_print_array);
+    GT_EXPORT_BINDING_WRAPPED_2(set_array, do_set_array);
     template < typename T >
     void do_add_arrays(T(&array1)[3][3][3], T(&array2)[3][3][3], T k) {
         for (size_t i = 0; i < 3; ++i) {
@@ -130,5 +128,5 @@ namespace {
             }
         }
     };
-    GT_EXPORT_GENERIC_BINDING_EX(3, add_arrays, do_add_arrays, (double)(float)(int));
+    GT_EXPORT_GENERIC_BINDING_WRAPPED(3, add_arrays, do_add_arrays, (double)(float)(int));
 }
