@@ -237,7 +237,7 @@ namespace gridtools {
             struct fortran_param_type_common_f {
                 template < class CType,
                     typename std::enable_if<
-                        !std::is_same< CType, gt_fortran_array_descriptor >::value &&
+                        !std::is_same< CType, gt_fortran_array_descriptor * >::value &&
                             (!std::is_pointer< CType >::value ||
                                 std::is_class< typename std::remove_pointer< CType >::type >::value),
                         int >::type = 0 >
@@ -270,14 +270,14 @@ namespace gridtools {
             struct fortran_param_type_f< fortran_param_style::bindings > {
 
                 template < class CType,
-                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value, int >::type =
                         0 >
                 std::string operator()() const {
-                    return "type(gt_fortran_array_descriptor), value";
+                    return "type(gt_fortran_array_descriptor)";
                 }
 
                 template < class CType,
-                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value, int >::type =
+                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor * >::value, int >::type =
                         0 >
                 std::string operator()() const {
                     return fortran_param_type_common_f{}.template operator()< CType >();
@@ -288,7 +288,7 @@ namespace gridtools {
 
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value &&
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value &&
                                                  is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 std::string operator()() const {
@@ -305,7 +305,7 @@ namespace gridtools {
 
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value ||
+                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor * >::value ||
                                                  !is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 std::string operator()() const {
@@ -324,7 +324,7 @@ namespace gridtools {
                 namespace ft = boost::function_types;
                 constexpr bool has_array_descriptor =
                     is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
-                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor > >::value;
+                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor * > >::value;
                 strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " "
                      << fortran_name << "(";
                 for_each_param< CSignature >(ignore_type_f{},
@@ -356,7 +356,7 @@ namespace gridtools {
                 };
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor >::value &&
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value &&
                                                  is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 R operator()() const {
@@ -365,7 +365,7 @@ namespace gridtools {
                 }
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
-                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor >::value ||
+                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor * >::value ||
                                                  !is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 R operator()() const {
@@ -385,7 +385,7 @@ namespace gridtools {
                 namespace ft = boost::function_types;
                 constexpr bool has_array_descriptor =
                     is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
-                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor > >::value;
+                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor * > >::value;
 
                 strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " "
                      << fortran_name << "(";

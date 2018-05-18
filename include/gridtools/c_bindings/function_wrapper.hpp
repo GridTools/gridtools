@@ -91,7 +91,7 @@ namespace gridtools {
 
             template < class T >
             struct param_converted_to_c< T, typename std::enable_if< is_fortran_array_bindable< T >::value >::type > {
-                using type = gt_fortran_array_descriptor;
+                using type = gt_fortran_array_descriptor *;
             };
 
             template < class T, typename std::enable_if< std::is_arithmetic< T >::value, int >::type = 0 >
@@ -131,7 +131,7 @@ namespace gridtools {
                 return any_cast< T >(obj->m_value);
             }
             template < class T >
-            T convert_from_c(gt_fortran_array_descriptor obj) {
+            T convert_from_c(gt_fortran_array_descriptor *obj) {
                 return make_fortran_array_view< T >(obj);
             }
 

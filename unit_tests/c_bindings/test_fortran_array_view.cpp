@@ -95,18 +95,14 @@ namespace gridtools {
 namespace {
     template < class T, std::size_t M, std::size_t N >
     using array_2d = std::array< std::array< T, M >, N >;
-    template < class >
-    struct is_2d_array : std::false_type {};
-    template < class T, std::size_t M, std::size_t N >
-    struct is_2d_array< array_2d< T, M, N > > : std::true_type {};
 }
 namespace std {
     template < class T, std::size_t M, std::size_t N >
     array_2d< T, M, N > gt_make_fortran_array_view(gt_fortran_array_descriptor *descriptor, array_2d< T, M, N > *) {
         return array_2d< T, M, N >{};
     }
-    template < class T >
-    gridtools::enable_if_t< is_2d_array< T >::value, gt_fortran_array_descriptor > get_fortran_view_meta(T *) {
+    template < class T, std::size_t M, std::size_t N >
+    gt_fortran_array_descriptor get_fortran_view_meta(array_2d< T, M, N > *) {
         return {};
     }
 }
@@ -132,26 +128,26 @@ namespace gridtools {
                 float data[1][2][3][4];
                 gt_fortran_array_descriptor descriptor{gt_fk_Float, 4, {4, 3, 2, 1}, &data[0]};
 
-                auto &new_descriptor = make_fortran_array_view< float(&)[1][2][3][4] >(descriptor);
+                auto &new_descriptor = make_fortran_array_view< float(&)[1][2][3][4] >(&descriptor);
                 static_assert(std::is_same< decltype(new_descriptor), float(&)[1][2][3][4] >::value, "");
 
-                EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3][3] >(descriptor), std::runtime_error);
-                EXPECT_THROW(make_fortran_array_view< float(&)[2][2][3][4] >(descriptor), std::runtime_error);
-                EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3] >(descriptor), std::runtime_error);
-                EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3][4][5] >(descriptor), std::runtime_error);
+                EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3][3] >(&descriptor), std::runtime_error);
+                EXPECT_THROW(make_fortran_array_view< float(&)[2][2][3][4] >(&descriptor), std::runtime_error);
+                EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3] >(&descriptor), std::runtime_error);
+                EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3][4][5] >(&descriptor), std::runtime_error);
             }
             TEST(FortranArrayView, ByConversion) {
                 float data[1][2][3][4];
                 gt_fortran_array_descriptor descriptor{gt_fk_Float, 4, {4, 3, 2, 1}, &data[0]};
 
-                auto new_descriptor = make_fortran_array_view< D >(descriptor);
+                auto new_descriptor = make_fortran_array_view< D >(&descriptor);
                 ASSERT_PRED2(IsSameArrayDescriptor, &new_descriptor.data, &descriptor);
             }
             TEST(FortranArrayView, ByFunction) {
                 float data[1][2][3][4];
                 gt_fortran_array_descriptor descriptor{gt_fk_Float, 4, {4, 3, 2, 1}, &data[0]};
 
-                auto new_descriptor = make_fortran_array_view< other::X >(descriptor);
+                auto new_descriptor = make_fortran_array_view< other::X >(&descriptor);
                 ASSERT_PRED2(IsSameArrayDescriptor, &new_descriptor.data, &descriptor);
             }
         }

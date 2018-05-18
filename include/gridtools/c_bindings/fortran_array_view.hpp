@@ -217,37 +217,37 @@ namespace gridtools {
         enable_if_t< !std::is_same< decay_t< T >, gt_fortran_array_descriptor >::value &&
                          std::is_convertible< gt_fortran_array_descriptor, T >::value,
             T >
-        make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
-            return descriptor;
+        make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
+            return *descriptor;
         }
         template < class T >
         enable_if_t< std::is_lvalue_reference< T >::value && std::is_array< remove_reference_t< T > >::value &&
                          std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value,
             T >
-        make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
+        make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
             const auto cpp_meta = get_fortran_view_meta((add_pointer_t< T >){nullptr});
-            if (descriptor.type != cpp_meta.type) {
-                throw std::runtime_error("Types do not match: fortran-type (" + std::to_string(descriptor.type) +
+            if (descriptor->type != cpp_meta.type) {
+                throw std::runtime_error("Types do not match: fortran-type (" + std::to_string(descriptor->type) +
                                          ") != c-type (" + std::to_string(cpp_meta.type) + ")");
             }
-            if (descriptor.rank != cpp_meta.rank) {
-                throw std::runtime_error("Rank does not match: fortran-rank (" + std::to_string(descriptor.rank) +
+            if (descriptor->rank != cpp_meta.rank) {
+                throw std::runtime_error("Rank does not match: fortran-rank (" + std::to_string(descriptor->rank) +
                                          ") != c-rank (" + std::to_string(cpp_meta.rank) + ")");
             }
-            for (int i = 0; i < descriptor.rank; ++i) {
-                if (cpp_meta.dims[i] != descriptor.dims[descriptor.rank - i - 1])
+            for (int i = 0; i < descriptor->rank; ++i) {
+                if (cpp_meta.dims[i] != descriptor->dims[descriptor->rank - i - 1])
                     throw std::runtime_error("Extents do not match");
             }
 
-            return *reinterpret_cast< remove_reference_t< T > * >(descriptor.data);
+            return *reinterpret_cast< remove_reference_t< T > * >(descriptor->data);
         }
         template < class T >
         enable_if_t< std::is_same< decltype(gt_make_fortran_array_view(
                                        std::declval< gt_fortran_array_descriptor * >(), std::declval< T * >())),
                          T >::value,
             T >
-        make_fortran_array_view(gt_fortran_array_descriptor &descriptor) {
-            return gt_make_fortran_array_view(&descriptor, (T *){nullptr});
+        make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
+            return gt_make_fortran_array_view(descriptor, (T *){nullptr});
         }
     }
 }

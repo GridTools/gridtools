@@ -116,8 +116,8 @@ namespace {
 extern "C" {
 #endif
 
-void my_assign0(gt_fortran_array_descriptor, int);
-void my_assign1(gt_fortran_array_descriptor, double);
+void my_assign0(gt_fortran_array_descriptor*, int);
+void my_assign1(gt_fortran_array_descriptor*, double);
 gt_handle* my_create();
 bool my_empty(gt_handle*);
 void my_pop(gt_handle*);
@@ -125,8 +125,8 @@ void my_push0(gt_handle*, float);
 void my_push1(gt_handle*, int);
 void my_push2(gt_handle*, double);
 double my_top(gt_handle*);
-void test_c_bindings_and_wrapper_compatible_type_a(gt_fortran_array_descriptor, gt_fortran_array_descriptor);
-void test_c_bindings_and_wrapper_compatible_type_b(gt_fortran_array_descriptor, gt_fortran_array_descriptor);
+void test_c_bindings_and_wrapper_compatible_type_a(gt_fortran_array_descriptor*, gt_fortran_array_descriptor*);
+void test_c_bindings_and_wrapper_compatible_type_b(gt_fortran_array_descriptor*, gt_fortran_array_descriptor*);
 
 #ifdef __cplusplus
 }
