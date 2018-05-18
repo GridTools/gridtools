@@ -148,14 +148,14 @@ implicit none
         bind(c, name="my_assign0")
       use iso_c_binding
       use array_descriptor
-      type(gt_fortran_array_descriptor), value :: arg0
+      type(gt_fortran_array_descriptor) :: arg0
       integer(c_int), value :: arg1
     end
     subroutine my_assign1_impl(arg0, arg1) &
         bind(c, name="my_assign1")
       use iso_c_binding
       use array_descriptor
-      type(gt_fortran_array_descriptor), value :: arg0
+      type(gt_fortran_array_descriptor) :: arg0
       real(c_double), value :: arg1
     end
     type(c_ptr) function my_create() bind(c)
@@ -191,15 +191,15 @@ implicit none
     subroutine test_c_bindings_and_wrapper_compatible_type_a(arg0, arg1) bind(c)
       use iso_c_binding
       use array_descriptor
-      type(gt_fortran_array_descriptor), value :: arg0
-      type(gt_fortran_array_descriptor), value :: arg1
+      type(gt_fortran_array_descriptor) :: arg0
+      type(gt_fortran_array_descriptor) :: arg1
     end
     subroutine test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, arg1) &
         bind(c, name="test_c_bindings_and_wrapper_compatible_type_b")
       use iso_c_binding
       use array_descriptor
-      type(gt_fortran_array_descriptor), value :: arg0
-      type(gt_fortran_array_descriptor), value :: arg1
+      type(gt_fortran_array_descriptor) :: arg0
+      type(gt_fortran_array_descriptor) :: arg1
     end
 
   end interface
@@ -243,7 +243,7 @@ contains
     subroutine test_c_bindings_and_wrapper_compatible_type_b(arg0, arg1)
       use iso_c_binding
       use array_descriptor
-      type(gt_fortran_array_descriptor), value, target :: arg0
+      type(gt_fortran_array_descriptor), target :: arg0
       integer(c_int), dimension(:,:), target :: arg1
       type(gt_fortran_array_descriptor) :: descriptor1
 
