@@ -150,57 +150,57 @@ implicit none
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0
       integer(c_int), value :: arg1
-    end
+    end subroutine
     subroutine my_assign1_impl(arg0, arg1) &
         bind(c, name="my_assign1")
       use iso_c_binding
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0
       real(c_double), value :: arg1
-    end
+    end subroutine
     type(c_ptr) function my_create() bind(c)
       use iso_c_binding
-    end
+    end function
     logical(c_bool) function my_empty(arg0) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
-    end
+    end function
     subroutine my_pop(arg0) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
-    end
+    end subroutine
     subroutine my_push0(arg0, arg1) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
       real(c_float), value :: arg1
-    end
+    end subroutine
     subroutine my_push1(arg0, arg1) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
       integer(c_int), value :: arg1
-    end
+    end subroutine
     subroutine my_push2(arg0, arg1) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
       real(c_double), value :: arg1
-    end
+    end subroutine
     real(c_double) function my_top(arg0) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
-    end
+    end function
     subroutine test_c_bindings_and_wrapper_compatible_type_a(arg0, arg1) bind(c)
       use iso_c_binding
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0
       type(gt_fortran_array_descriptor) :: arg1
-    end
+    end subroutine
     subroutine test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, arg1) &
         bind(c, name="test_c_bindings_and_wrapper_compatible_type_b")
       use iso_c_binding
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0
       type(gt_fortran_array_descriptor) :: arg1
-    end
+    end subroutine
 
   end interface
   interface my_assign
@@ -221,10 +221,10 @@ contains
       descriptor0%type = 1
       descriptor0%dims = reshape(shape(arg0), &
         shape(descriptor0%dims), (/0/))
-      descriptor0%data = c_loc(arg0)
+      descriptor0%data = c_loc(arg0(lbound(arg0, 1),lbound(arg0, 2)))
 
       call my_assign0_impl(descriptor0, arg1)
-    end
+    end subroutine
     subroutine my_assign1(arg0, arg1)
       use iso_c_binding
       use array_descriptor
@@ -236,10 +236,10 @@ contains
       descriptor0%type = 6
       descriptor0%dims = reshape(shape(arg0), &
         shape(descriptor0%dims), (/0/))
-      descriptor0%data = c_loc(arg0)
+      descriptor0%data = c_loc(arg0(lbound(arg0, 1),lbound(arg0, 2)))
 
       call my_assign1_impl(descriptor0, arg1)
-    end
+    end subroutine
     subroutine test_c_bindings_and_wrapper_compatible_type_b(arg0, arg1)
       use iso_c_binding
       use array_descriptor
@@ -251,10 +251,10 @@ contains
       descriptor1%type = 1
       descriptor1%dims = reshape(shape(arg1), &
         shape(descriptor1%dims), (/0/))
-      descriptor1%data = c_loc(arg1)
+      descriptor1%data = c_loc(arg1(lbound(arg1, 1),lbound(arg1, 2)))
 
       call test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, descriptor1)
-    end
+    end subroutine
 end
 )?";
 

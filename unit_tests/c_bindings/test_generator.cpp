@@ -87,14 +87,14 @@ implicit none
       integer(c_int), value :: arg0
       real(c_double), dimension(*) :: arg1
       type(c_ptr), value :: arg2
-    end
+    end function
     subroutine baz(arg0) bind(c)
       use iso_c_binding
       type(c_ptr) :: arg0
-    end
+    end subroutine
     subroutine foo() bind(c)
       use iso_c_binding
-    end
+    end subroutine
 
   end interface
   interface foo
