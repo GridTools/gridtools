@@ -115,7 +115,7 @@ namespace gridtools {
                     _impl::fortran_array_element_kind< remove_all_extents_t< remove_reference_t< T > > >::value;
                 descriptor.rank = std::rank< remove_reference_t< T > >::value;
 
-                using indices = meta::make_indices< std::rank< remove_reference_t< T > >::value >;
+                using indices = GT_META_CALL(meta::make_indices, std::rank< remove_reference_t< T > >::value);
                 for_each< indices >(std::bind(
                     _impl::fill_extent_f< remove_reference_t< T > >{}, std::placeholders::_1, std::ref(descriptor)));
 
