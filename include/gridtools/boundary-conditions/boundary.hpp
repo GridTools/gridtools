@@ -42,7 +42,7 @@
 #include "../storage/storage_host/data_view_helpers.hpp"
 #include "./apply.hpp"
 
-#include "./boundary-conditions/predicate.hpp"
+#include "./predicate.hpp"
 
 /** \defgroup Boundary-Conditions Boundary Conditions
  */

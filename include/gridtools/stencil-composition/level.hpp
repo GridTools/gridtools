@@ -40,7 +40,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
-#include "common/defs.hpp"
+#include "../common/defs.hpp"
 
 namespace gridtools {
     // define the level offset limit

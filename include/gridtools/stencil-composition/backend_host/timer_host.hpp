@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "stencil-composition/timer.hpp"
-#include "common/defs.hpp"
+#include "../timer.hpp"
+#include "../../common/defs.hpp"
 
 namespace gridtools {
 

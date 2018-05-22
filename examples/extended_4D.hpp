@@ -37,7 +37,7 @@
 
 #include <boost/type_traits/conditional.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
 #include "extended_4D_verify.hpp"
 #include "backend_select.hpp"

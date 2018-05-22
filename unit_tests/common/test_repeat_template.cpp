@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <common/generic_metafunctions/repeat_template.hpp>
+#include <gridtools/common/generic_metafunctions/repeat_template.hpp>
 
 using namespace gridtools;
 

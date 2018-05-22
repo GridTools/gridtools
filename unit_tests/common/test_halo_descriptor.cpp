@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/halo_descriptor.hpp"
+#include "gridtools/common/defs.hpp"
+#include "gridtools/common/halo_descriptor.hpp"
 
 using namespace gridtools;
 

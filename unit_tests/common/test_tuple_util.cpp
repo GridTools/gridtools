@@ -38,11 +38,11 @@
 #include <tuple>
 #include <utility>
 
-#include <common/tuple_util.hpp>
+#include <gridtools/common/tuple_util.hpp>
 
 #include <gtest/gtest.h>
 
-#include <common/defs.hpp>
+#include <gridtools/common/defs.hpp>
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
 #define NO_CONSTEXPR

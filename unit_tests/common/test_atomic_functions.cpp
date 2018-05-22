@@ -36,8 +36,8 @@
 
 #include "gtest/gtest.h"
 #include <cstdlib>
-#include "common/defs.hpp"
-#include "common/atomic_functions.hpp"
+#include "gridtools/common/defs.hpp"
+#include "gridtools/common/atomic_functions.hpp"
 
 template < typename T >
 struct Verifier {

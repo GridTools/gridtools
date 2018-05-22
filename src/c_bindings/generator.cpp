@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "c_bindings/generator.hpp"
+#include "gridtools/c_bindings/generator.hpp"
 
 #include <cassert>
 

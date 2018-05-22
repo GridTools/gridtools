@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "communication/GCL.hpp"
+#include "gridtools/communication/GCL.hpp"
 
 #ifdef _GCL_GPU_
 #ifdef GCL_MULTI_STREAMS

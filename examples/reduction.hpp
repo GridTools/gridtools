@@ -35,11 +35,11 @@
 */
 #include "gtest/gtest.h"
 #include <boost/shared_ptr.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/reductions/reductions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/reductions/reductions.hpp>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
-#include "tools/verifier.hpp"
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 /**

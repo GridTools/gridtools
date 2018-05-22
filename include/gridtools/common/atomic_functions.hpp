@@ -38,9 +38,9 @@
 
 #include <cmath>
 #ifdef __CUDACC__
-#include "common/atomic_cuda.hpp"
+#include "./atomic_cuda.hpp"
 #else
-#include "common/atomic_host.hpp"
+#include "./atomic_host.hpp"
 #endif
 
 /**

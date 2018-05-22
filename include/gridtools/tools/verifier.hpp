@@ -35,12 +35,12 @@
 */
 #pragma once
 
-#include "common/hypercube_iterator.hpp"
-#include "common/array.hpp"
-#include "common/gt_math.hpp"
-#include "stencil-composition/grid_traits_fwd.hpp"
-#include "storage/common/storage_info_rt.hpp"
-#include "storage/storage-facility.hpp"
+#include "gridtools/common/hypercube_iterator.hpp"
+#include "gridtools/common/array.hpp"
+#include "gridtools/common/gt_math.hpp"
+#include "gridtools/stencil-composition/grid_traits_fwd.hpp"
+#include "gridtools/storage/common/storage_info_rt.hpp"
+#include "gridtools/storage/storage-facility.hpp"
 #include <iostream>
 
 namespace gridtools {

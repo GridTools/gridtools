@@ -35,7 +35,7 @@
 */
 
 #include <gtest/gtest.h>
-#include "common/boost_pp_generic_macros.hpp"
+#include "gridtools/common/boost_pp_generic_macros.hpp"
 
 TEST(double_parenthesis, check) {
 #define my_types (int, 2)(double, 3)
