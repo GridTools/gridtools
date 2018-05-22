@@ -48,7 +48,7 @@ namespace gridtools {
             template < class T >
             struct fill_extent_f {
                 template < class N >
-                void operator()(N, gt_fortran_array_descriptor &descriptor) const {
+                GT_FUNCTION_WARNING void operator()(N, gt_fortran_array_descriptor &descriptor) const {
                     descriptor.dims[N::value] = std::extent< T, N::value >::value;
                 }
             };
