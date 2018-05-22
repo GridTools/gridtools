@@ -450,17 +450,17 @@ namespace gridtools {
             uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);
             uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);
             uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
-            assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty");
             dim3 blocks(nbx, nby, nbz);
-            loop_kernel<<< blocks, threads >>>(boundary_function,
-                Direction(),
-                halo_descriptors[0].loop_low_bound_outside(Direction::I),
-                halo_descriptors[1].loop_low_bound_outside(Direction::J),
-                halo_descriptors[2].loop_low_bound_outside(Direction::K),
-                nx,
-                ny,
-                nz,
-                data_field_views...);
+            if (nx > 0 || ny > 0 || nz > 0)
+                loop_kernel<<< blocks, threads >>>(boundary_function,
+                    Direction(),
+                    halo_descriptors[0].loop_low_bound_outside(Direction::I),
+                    halo_descriptors[1].loop_low_bound_outside(Direction::J),
+                    halo_descriptors[2].loop_low_bound_outside(Direction::K),
+                    nx,
+                    ny,
+                    nz,
+                    data_field_views...);
             cudaDeviceSynchronize();
 #ifndef NDEBUG
             cudaError_t error = cudaGetLastError();
