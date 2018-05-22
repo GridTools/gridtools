@@ -194,13 +194,23 @@ namespace gridtools {
             }
 
             template < class T, typename std::enable_if< std::is_void< T >::value, int >::type = 0 >
-            std::string fortran_return_type() {
+            std::string fortran_function_specifier() {
                 return "subroutine";
             }
 
             template < class T, typename std::enable_if< !std::is_void< T >::value, int >::type = 0 >
+            std::string fortran_function_specifier() {
+                return "function";
+            }
+
+            template < class T, typename std::enable_if< std::is_void< T >::value, int >::type = 0 >
             std::string fortran_return_type() {
-                return fortran_type_name< T >() + " function";
+                return fortran_function_specifier< T >();
+            }
+
+            template < class T, typename std::enable_if< !std::is_void< T >::value, int >::type = 0 >
+            std::string fortran_return_type() {
+                return fortran_type_name< T >() + " " + fortran_function_specifier< T >();
             }
 
             static std::string fortran_array_element_type_name(gt_fortran_array_kind kind) {
@@ -345,7 +355,8 @@ namespace gridtools {
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << " :: arg" << i << "\n";
                     });
-                return strm << "    end\n";
+                return strm << "    end "
+                            << fortran_function_specifier< typename ft::result_type< CSignature >::type >() + "\n";
             }
 
             struct cpp_type_descriptor_f {
@@ -418,11 +429,18 @@ namespace gridtools {
                         if (type_descriptor.is_fortran_array_inspectable) {
                             const auto var_name = "arg" + std::to_string(i);
                             const auto desc_name = "descriptor" + std::to_string(i);
+                            std::string c_loc = "c_loc(" + var_name + "(";
+                            for (int i = 0; i < type_descriptor.rank; ++i) {
+                                if (i)
+                                    c_loc += ",";
+                                c_loc += "lbound(" + var_name + ", " + std::to_string(i + 1) + ")";
+                            }
+                            c_loc += "))";
                             strm << "      " << desc_name << "%rank = " << type_descriptor.rank << "\n"       //
                                  << "      " << desc_name << "%type = " << type_descriptor.type_kind << "\n"  //
                                  << "      " << desc_name << "%dims = reshape(shape(" << var_name << "), &\n" //
                                  << "        shape(" << desc_name << "%dims), (/0/))\n"                       //
-                                 << "      " << desc_name << "%data = c_loc(" << var_name << ")\n\n";
+                                 << "      " << desc_name << "%data = " << c_loc << "\n\n";
                         }
                     });
 
@@ -443,7 +461,8 @@ namespace gridtools {
                     });
                 strm << ")\n";
 
-                return strm << "    end\n";
+                return strm << "    end "
+                            << fortran_function_specifier< typename ft::result_type< CSignature >::type >() + "\n";
             }
 
             struct c_bindings_traits {
