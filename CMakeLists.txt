@@ -30,7 +30,7 @@ include (testing)
 # ===============
 # library header files
 # ===============
-include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/gridtools" )
+include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/" )
 
 # ===============
 # compile gcl:
