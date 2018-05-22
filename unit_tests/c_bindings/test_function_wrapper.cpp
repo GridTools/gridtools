@@ -77,8 +77,13 @@ namespace gridtools {
             }
 
             template < class T >
-            void push(std::stack< T > &obj, T val) {
+            void push_to_ref(std::stack< T > &obj, T val) {
                 obj.push(val);
+            }
+
+            template < class T >
+            void push_to_arr(std::stack< T > *obj, T val) {
+                obj->push(val);
             }
 
             template < class T >
@@ -99,12 +104,32 @@ namespace gridtools {
             TEST(wrap, smoke) {
                 gt_handle *obj = wrap(create< int >)();
                 EXPECT_TRUE(wrap(empty< int >)(obj));
-                wrap(push< int >)(obj, 42);
+                wrap(push_to_ref< int >)(obj, 42);
                 EXPECT_FALSE(wrap(empty< int >)(obj));
                 EXPECT_EQ(42, wrap(top< int >)(obj));
+                wrap(push_to_arr< int >)(obj, 43);
+                EXPECT_EQ(43, wrap(top< int >)(obj));
+                wrap(pop< int >)(obj);
                 wrap(pop< int >)(obj);
                 EXPECT_TRUE(wrap(empty< int >)(obj));
                 gt_release(obj);
+            }
+
+            std::unique_ptr< int > make_ptr() { return std::unique_ptr< int >{new int{3}}; }
+            std::unique_ptr< int > forward_ptr(std::unique_ptr< int > &&ptr) { return std::move(ptr); }
+            void set_ptr(std::unique_ptr< int > &ptr, int v) { *ptr = v; }
+            int get_ptr(std::unique_ptr< int > &ptr) { return *ptr; }
+            bool is_ptr_set(std::unique_ptr< int > &ptr) { return ptr.get(); }
+            TEST(wrap, return_values) {
+                gt_handle *obj = wrap(make_ptr)();
+                wrap(set_ptr)(obj, 3);
+                EXPECT_EQ(3, wrap(get_ptr)(obj));
+                gt_handle *obj2 = wrap(forward_ptr)(obj);
+                wrap(set_ptr)(obj2, 4);
+                EXPECT_EQ(4, wrap(get_ptr)(obj2));
+                EXPECT_FALSE(wrap(is_ptr_set)(obj));
+                gt_release(obj);
+                gt_release(obj2);
             }
 
             void inc(int &val) { ++val; }

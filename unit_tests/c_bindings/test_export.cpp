@@ -54,8 +54,8 @@ namespace {
     GT_EXPORT_BINDING_0(my_create, my_create_impl);
 
     template < class T >
-    void push_impl(std::stack< T > &obj, T val) {
-        obj.push(val);
+    void push_impl(std::stack< T > *obj, T val) {
+        obj->push(val);
     }
     GT_EXPORT_GENERIC_BINDING(2, my_push, push_impl, (float)(int)(double));
 
