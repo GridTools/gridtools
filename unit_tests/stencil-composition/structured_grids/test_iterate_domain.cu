@@ -36,10 +36,10 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 
-#include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 #include "cuda_test_helper.hpp"
-#include "common/host_device.hpp"
+#include "gridtools/common/host_device.hpp"
 
 struct cuda_test_example1 {
     static bool GT_FUNCTION Do() {

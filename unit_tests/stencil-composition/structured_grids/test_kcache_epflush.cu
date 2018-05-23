@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "stencil-composition/stencil-composition.hpp"
+#include "gridtools/stencil-composition/stencil-composition.hpp"
 #include "kcache_fixture.hpp"
-#include "tools/verifier.hpp"
+#include "gridtools/tools/verifier.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

@@ -38,7 +38,7 @@
 #include "../level.hpp"
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/mpl/has_key.hpp>
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"

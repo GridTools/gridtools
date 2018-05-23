@@ -36,11 +36,11 @@
 
 #include "gtest/gtest.h"
 #include "../../tools/triplet.hpp"
-#include <common/gt_assert.hpp>
-#include <storage/data_store.hpp>
-#include <storage/storage_cuda/data_view_helpers.hpp>
-#include <storage/storage_cuda/cuda_storage.hpp>
-#include <storage/storage_cuda/cuda_storage_info.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_cuda/data_view_helpers.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -151,7 +151,7 @@ TEST(DataViewTest, Simple) {
     EXPECT_TRUE(dvro.valid());
     EXPECT_TRUE(dv_tmp.valid());
 
-    // destroy a storage, this should also invalidate the views
+    // destroy a stoorage, this should also invalidate the views
     ds.reset();
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));
