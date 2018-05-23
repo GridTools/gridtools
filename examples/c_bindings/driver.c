@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 

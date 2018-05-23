@@ -54,7 +54,6 @@ namespace gridtools {
                 using gt_view_element_type = int;
                 using gt_view_rank = std::integral_constant< std::size_t, 3 >;
             };
-            gt_fortran_array_descriptor get_fortran_view_meta(array_descriptor_struct *) { return {}; }
             static_assert(std::is_same< wrapped_t< void (*)() >, void() >::value, "");
             static_assert(std::is_same< wrapped_t< int() >, int() >::value, "");
             static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >::value, "");
@@ -82,7 +81,7 @@ namespace gridtools {
             }
 
             template < class T >
-            void push_to_arr(std::stack< T > *obj, T val) {
+            void push_to_ptr(std::stack< T > *obj, T val) {
                 obj->push(val);
             }
 
@@ -107,7 +106,7 @@ namespace gridtools {
                 wrap(push_to_ref< int >)(obj, 42);
                 EXPECT_FALSE(wrap(empty< int >)(obj));
                 EXPECT_EQ(42, wrap(top< int >)(obj));
-                wrap(push_to_arr< int >)(obj, 43);
+                wrap(push_to_ptr< int >)(obj, 43);
                 EXPECT_EQ(43, wrap(top< int >)(obj));
                 wrap(pop< int >)(obj);
                 wrap(pop< int >)(obj);
