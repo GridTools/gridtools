@@ -319,7 +319,9 @@ namespace gridtools {
 
         std::string print_meter() const { return m_meter.to_string(); }
 
-        double get_meter() const { return m_meter.total_time(); }
+        double get_time() const { return m_meter.total_time(); }
+
+        size_t get_count() const { return m_meter.count(); }
 
         void reset_meter() { m_meter.reset(); }
     };
