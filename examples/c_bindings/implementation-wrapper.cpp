@@ -83,7 +83,7 @@ namespace gridtools {
     template < typename T, typename = enable_if_t< is_data_store< remove_const_t< T > >::value > >
     gt_fortran_array_descriptor get_fortran_view_meta(T *) {
         gt_fortran_array_descriptor descriptor;
-        descriptor.type = c_bindings::_impl::fortran_array_element_kind< typename T::data_t >::value;
+        descriptor.type = c_bindings::fortran_array_element_kind< typename T::data_t >::value;
         descriptor.rank = 3;
         return descriptor;
     }

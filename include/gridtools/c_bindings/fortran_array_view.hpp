@@ -82,16 +82,16 @@ namespace gridtools {
             template <>
             struct fortran_array_element_kind_impl< signed char >
                 : std::integral_constant< gt_fortran_array_kind, gt_fk_SignedChar > {};
-
-            template < class, class = void >
-            struct fortran_array_element_kind;
-            template < class T >
-            struct fortran_array_element_kind< T, enable_if_t< std::is_integral< T >::value > >
-                : fortran_array_element_kind_impl< typename std::make_signed< T >::type > {};
-            template < class T >
-            struct fortran_array_element_kind< T, enable_if_t< std::is_floating_point< T >::value > >
-                : fortran_array_element_kind_impl< T > {};
         }
+
+        template < class, class = void >
+        struct fortran_array_element_kind;
+        template < class T >
+        struct fortran_array_element_kind< T, enable_if_t< std::is_integral< T >::value > >
+            : _impl::fortran_array_element_kind_impl< typename std::make_signed< T >::type > {};
+        template < class T >
+        struct fortran_array_element_kind< T, enable_if_t< std::is_floating_point< T >::value > >
+            : _impl::fortran_array_element_kind_impl< T > {};
 
         namespace get_fortran_view_meta_impl {
             template < class T, class Arr = remove_reference_t< T > >
@@ -99,7 +99,7 @@ namespace gridtools {
                 gt_fortran_array_descriptor >
             get_fortran_view_meta(T *) {
                 gt_fortran_array_descriptor descriptor;
-                descriptor.type = _impl::fortran_array_element_kind< remove_all_extents_t< Arr > >::value;
+                descriptor.type = fortran_array_element_kind< remove_all_extents_t< Arr > >::value;
                 descriptor.rank = std::rank< Arr >::value;
 
                 using indices = GT_META_CALL(meta::make_indices, std::rank< Arr >::value);
@@ -114,7 +114,7 @@ namespace gridtools {
                 gt_fortran_array_descriptor >
             get_fortran_view_meta(T *) {
                 gt_fortran_array_descriptor descriptor;
-                descriptor.type = _impl::fortran_array_element_kind< typename T::gt_view_element_type >::value;
+                descriptor.type = fortran_array_element_kind< typename T::gt_view_element_type >::value;
                 descriptor.rank = T::gt_view_rank::value;
 
                 return descriptor;
