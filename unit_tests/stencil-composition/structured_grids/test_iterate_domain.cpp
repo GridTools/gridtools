@@ -35,10 +35,10 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
+#include "gridtools/common/defs.hpp"
+#include "gridtools/stencil-composition/backend.hpp"
+#include "gridtools/stencil-composition/stencil-composition.hpp"
+#include "gridtools/stencil-composition/structured_grids/accessor.hpp"
 #include "gtest/gtest.h"
 #include <iostream>
 

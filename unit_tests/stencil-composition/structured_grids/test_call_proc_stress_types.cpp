@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <common/generic_metafunctions/gt_remove_qualifiers.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/common/generic_metafunctions/gt_remove_qualifiers.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <test_helper.hpp>
 #include "backend_select.hpp"
 #include "gtest/gtest.h"

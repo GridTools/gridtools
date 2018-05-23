@@ -35,8 +35,8 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/variadic_typedef.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/common/generic_metafunctions/variadic_typedef.hpp>
 
 using namespace gridtools;
 

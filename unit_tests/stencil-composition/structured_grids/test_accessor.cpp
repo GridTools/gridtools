@@ -35,11 +35,11 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/defs.hpp>
-#include <stencil-composition/structured_grids/accessor.hpp>
-#include <stencil-composition/structured_grids/accessor_metafunctions.hpp>
-#include <stencil-composition/structured_grids/vector_accessor.hpp>
-#include <stencil-composition/global_accessor.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
+#include <gridtools/stencil-composition/structured_grids/vector_accessor.hpp>
+#include <gridtools/stencil-composition/global_accessor.hpp>
 
 using namespace gridtools;
 

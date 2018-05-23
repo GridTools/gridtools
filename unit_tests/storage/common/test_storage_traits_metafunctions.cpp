@@ -36,8 +36,8 @@
 
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <storage/common/storage_traits_metafunctions.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/common/storage_traits_metafunctions.hpp>
 
 using namespace gridtools;
 

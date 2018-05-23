@@ -36,7 +36,7 @@
 
 #include "gtest/gtest.h"
 #include "test_grid.hpp"
-#include "stencil-composition/axis.hpp"
+#include "gridtools/stencil-composition/axis.hpp"
 
 TEST(test_grid, k_total_length) {
     static const int_t offset_from = -2;

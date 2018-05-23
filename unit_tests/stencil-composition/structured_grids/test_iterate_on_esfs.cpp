@@ -34,18 +34,18 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <stencil-composition/iterate_on_esfs.hpp>
+#include <gridtools/stencil-composition/iterate_on_esfs.hpp>
 
 #include <type_traits>
 #include <boost/mpl/vector.hpp>
 
-#include <stencil-composition/accessor.hpp>
-#include <stencil-composition/arg.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/independent_esf.hpp>
-#include <stencil-composition/make_stage.hpp>
-#include <stencil-composition/make_stencils.hpp>
-#include <storage/storage-facility.hpp>
+#include <gridtools/stencil-composition/accessor.hpp>
+#include <gridtools/stencil-composition/arg.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/independent_esf.hpp>
+#include <gridtools/stencil-composition/make_stage.hpp>
+#include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
 #include "backend_select.hpp"
 #include "gtest/gtest.h"

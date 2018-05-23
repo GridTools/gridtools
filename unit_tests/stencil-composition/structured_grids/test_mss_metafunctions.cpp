@@ -35,10 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-// #include "stencil-composition/caches/cache_metafunctions.hpp"
-// #include "stencil-composition/caches/define_caches.hpp"
-// #include "stencil-composition/interval.hpp"
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;

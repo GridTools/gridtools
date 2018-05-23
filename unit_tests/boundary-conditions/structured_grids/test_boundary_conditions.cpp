@@ -36,14 +36,14 @@
 
 #include "gtest/gtest.h"
 
-#include <gridtools.hpp>
-#include "common/halo_descriptor.hpp"
+#include <gridtools/gridtools.hpp>
+#include "gridtools/common/halo_descriptor.hpp"
 
-#include <boundary-conditions/boundary.hpp>
+#include <gridtools/boundary-conditions/boundary.hpp>
 
-#include <boundary-conditions/zero.hpp>
-#include <boundary-conditions/value.hpp>
-#include <boundary-conditions/copy.hpp>
+#include <gridtools/boundary-conditions/zero.hpp>
+#include <gridtools/boundary-conditions/value.hpp>
+#include <gridtools/boundary-conditions/copy.hpp>
 
 using gridtools::direction;
 using gridtools::sign;
@@ -51,7 +51,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include "stencil-composition/stencil-composition.hpp"
+#include "gridtools/stencil-composition/stencil-composition.hpp"
 
 #include <stdlib.h>
 #include <stdio.h>

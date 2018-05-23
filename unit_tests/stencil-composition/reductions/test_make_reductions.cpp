@@ -40,17 +40,17 @@
  *      Author: carlosos
  */
 
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/make_stencils.hpp>
-#include <stencil-composition/reductions/reductions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/stencil-composition/reductions/reductions.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;

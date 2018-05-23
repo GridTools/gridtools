@@ -35,7 +35,7 @@
 */
 
 #include "gtest/gtest.h"
-#include "stencil-composition/axis.hpp"
+#include "gridtools/stencil-composition/axis.hpp"
 #include "../test_helper.hpp"
 
 using namespace gridtools;

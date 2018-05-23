@@ -38,8 +38,8 @@
 //(to test the case in which the 3rd dimension is not k)
 #define PEDANTIC_DISABLED
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 #include "backend_select.hpp"
 

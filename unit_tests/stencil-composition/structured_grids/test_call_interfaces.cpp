@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;
