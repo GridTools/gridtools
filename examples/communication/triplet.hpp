@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <common/generic_metafunctions/pack_get_elem.hpp>
+#include <gridtools/common/generic_metafunctions/pack_get_elem.hpp>
 
 #define USE_DOUBLE false
 
