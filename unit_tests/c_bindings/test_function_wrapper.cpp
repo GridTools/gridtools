@@ -140,16 +140,30 @@ namespace gridtools {
                 EXPECT_EQ(42, i);
             }
 
-            TEST(warp, lambda) {
+            TEST(wrap, lambda) {
                 EXPECT_EQ(42, wrap(+[] { return 42; })());
             }
 
-            TEST(warp, lambda2) {
+            TEST(wrap, lambda2) {
                 int val = 42;
                 auto testee = wrap< int() >([&] { return val; });
                 EXPECT_EQ(42, testee());
                 val = 1;
                 EXPECT_EQ(1, testee());
+            }
+
+            TEST(wrap, array_descriptor) {
+                int array[2][3] = {{1, 2, 3}, {4, 5, 6}};
+                gt_fortran_array_descriptor descriptor;
+                descriptor.data = array;
+                descriptor.type = gt_fk_Int;
+                descriptor.rank = 2;
+                descriptor.dims[0] = 3;
+                descriptor.dims[1] = 2;
+
+                auto get = wrap< int(int(&)[2][3], size_t, size_t) >(
+                    [](int(&array)[2][3], size_t i, size_t j) { return array[i][j]; });
+                EXPECT_EQ(array[0][0], get(&descriptor, 0, 0));
             }
         }
     }

@@ -66,9 +66,9 @@ namespace gridtools {
                 double *data_;
             };
 
-            template < size_t Dimension >
-            StaticHypercube< Dimension > gt_make_fortran_array_view(
-                gt_fortran_array_descriptor *descriptor, StaticHypercube< Dimension > *) {
+            template < size_t Rank >
+            StaticHypercube< Rank > gt_make_fortran_array_view(
+                gt_fortran_array_descriptor *descriptor, StaticHypercube< Rank > *) {
                 if (descriptor->type != gt_fk_Double) {
                     throw std::runtime_error("type does not match");
                 }
@@ -76,7 +76,7 @@ namespace gridtools {
                     if (descriptor->dims[i] != 2)
                         throw std::runtime_error("dimensions must be 2");
 
-                return StaticHypercube< Dimension >{reinterpret_cast< double * >(descriptor->data)};
+                return StaticHypercube< Rank >{reinterpret_cast< double * >(descriptor->data)};
             }
             template < size_t Rank >
             gt_fortran_array_descriptor get_fortran_view_meta(StaticHypercube< Rank > *) {
@@ -174,58 +174,93 @@ namespace gridtools {
             static_assert(!is_fortran_array_wrappable< NotBindableNotWrappableClass >::value, "");
             static_assert(!is_fortran_array_wrappable< NotBindableNotWrappableClass & >::value, "");
 
-            struct BindableClassWithConstructor {
-                BindableClassWithConstructor(const gt_fortran_array_descriptor &);
+            template < size_t Rank >
+            struct BindableStaticHypercubeWithConstructor {
+                BindableStaticHypercubeWithConstructor(const gt_fortran_array_descriptor &descriptor) {
+                    if (descriptor.type != gt_fk_Double) {
+                        throw std::runtime_error("type does not match");
+                    }
+                    for (int i = 0; i < descriptor.rank; ++i)
+                        if (descriptor.dims[i] != 2)
+                            throw std::runtime_error("dimensions must be 2");
+
+                    data_ = reinterpret_cast< double * >(descriptor.data);
+                }
+
+                double operator()(const std::array< size_t, Rank > &element) {
+                    size_t index = 0;
+                    for (size_t i = 0; i < Rank; ++i) {
+                        if (element[i] >= 2) {
+                            throw std::out_of_range("Index out of range");
+                        }
+                        index += (element[i] << (Rank - i - 1));
+                    }
+                    return data_[index];
+                }
+
+              private:
+                double *data_;
             };
-            static_assert(is_fortran_array_bindable< BindableClassWithConstructor >::value, "");
-            static_assert(!is_fortran_array_bindable< BindableClassWithConstructor & >::value, "");
-            static_assert(!is_fortran_array_wrappable< BindableClassWithConstructor >::value, "");
-            static_assert(!is_fortran_array_wrappable< BindableClassWithConstructor & >::value, "");
-
-            struct BindableClassWithFactoryFunction {};
-            BindableClassWithFactoryFunction gt_make_fortran_array_view(
-                gt_fortran_array_descriptor *, BindableClassWithFactoryFunction *) {
-                return {};
-            }
-            static_assert(is_fortran_array_bindable< BindableClassWithFactoryFunction >::value, "");
-            static_assert(!is_fortran_array_bindable< BindableClassWithFactoryFunction & >::value, "");
-            static_assert(!is_fortran_array_wrappable< BindableClassWithFactoryFunction >::value, "");
-            static_assert(!is_fortran_array_wrappable< BindableClassWithFactoryFunction & >::value, "");
-
-            struct WrappableClassWithMetaTypes {
-                WrappableClassWithMetaTypes(const gt_fortran_array_descriptor &);
-                using gt_view_element_type = double;
-                using gt_view_rank = std::integral_constant< size_t, 3 >;
-            };
-            static_assert(is_fortran_array_bindable< WrappableClassWithMetaTypes >::value, "");
-            static_assert(!is_fortran_array_bindable< WrappableClassWithMetaTypes & >::value, "");
-            static_assert(is_fortran_array_wrappable< WrappableClassWithMetaTypes >::value, "");
-            static_assert(!is_fortran_array_wrappable< WrappableClassWithMetaTypes & >::value, "");
-
-            struct WrappableClassWithMetaFunction {
-                WrappableClassWithMetaFunction(const gt_fortran_array_descriptor &);
-            };
-            gt_fortran_array_descriptor get_fortran_view_meta(WrappableClassWithMetaFunction *) { return {}; };
-            static_assert(is_fortran_array_bindable< WrappableClassWithMetaFunction >::value, "");
-            static_assert(!is_fortran_array_bindable< WrappableClassWithMetaFunction & >::value, "");
-            static_assert(is_fortran_array_wrappable< WrappableClassWithMetaFunction >::value, "");
-            static_assert(!is_fortran_array_wrappable< WrappableClassWithMetaFunction & >::value, "");
-
-            static_assert(!is_fortran_array_bindable< adltest::StaticHypercube< 3 > & >::value, "");
-            static_assert(is_fortran_array_bindable< adltest::StaticHypercube< 3 > >::value, "");
-            static_assert(!is_fortran_array_wrappable< adltest::StaticHypercube< 3 > & >::value, "");
-            static_assert(is_fortran_array_wrappable< adltest::StaticHypercube< 3 > >::value, "");
-            TEST(FortranArrayView, WrappableClassIsBindable) {
+            static_assert(is_fortran_array_bindable< BindableStaticHypercubeWithConstructor< 2 > >::value, "");
+            static_assert(!is_fortran_array_bindable< BindableStaticHypercubeWithConstructor< 2 > & >::value, "");
+            static_assert(!is_fortran_array_wrappable< BindableStaticHypercubeWithConstructor< 2 > >::value, "");
+            static_assert(!is_fortran_array_wrappable< BindableStaticHypercubeWithConstructor< 2 > & >::value, "");
+            TEST(FortranArrayView, BindableStaticHypercubeWithConstructorIsBindable) {
                 double data[2][2][2][2] = {
                     {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
 
-                auto array = make_fortran_array_view< adltest::StaticHypercube< 4 > >(&descriptor);
+                auto array = make_fortran_array_view< BindableStaticHypercubeWithConstructor< 4 > >(&descriptor);
                 EXPECT_EQ(array({0, 1, 0, 1}), 6.);
                 EXPECT_EQ(array({1, 0, 1, 0}), 11.);
             }
-            TEST(FortranArrayView, WrappableClassIsWrappable) {
-                auto meta = get_fortran_view_meta((adltest::StaticHypercube< 3 > *){nullptr});
+
+            template < size_t Rank >
+            struct WrappableStaticHypercubeWithMetaTypes {
+                WrappableStaticHypercubeWithMetaTypes(const gt_fortran_array_descriptor &descriptor) {
+                    if (descriptor.type != gt_fk_Double) {
+                        throw std::runtime_error("type does not match");
+                    }
+                    for (int i = 0; i < descriptor.rank; ++i)
+                        if (descriptor.dims[i] != 2)
+                            throw std::runtime_error("dimensions must be 2");
+
+                    data_ = reinterpret_cast< double * >(descriptor.data);
+                }
+
+                double operator()(const std::array< size_t, Rank > &element) {
+                    size_t index = 0;
+                    for (size_t i = 0; i < Rank; ++i) {
+                        if (element[i] >= 2) {
+                            throw std::out_of_range("Index out of range");
+                        }
+                        index += (element[i] << (Rank - i - 1));
+                    }
+                    return data_[index];
+                }
+
+                using gt_view_element_type = double;
+                using gt_view_rank = std::integral_constant< size_t, Rank >;
+
+              private:
+                double *data_;
+            };
+            static_assert(is_fortran_array_bindable< WrappableStaticHypercubeWithMetaTypes< 3 > >::value, "");
+            static_assert(!is_fortran_array_bindable< WrappableStaticHypercubeWithMetaTypes< 3 > & >::value, "");
+            static_assert(is_fortran_array_wrappable< WrappableStaticHypercubeWithMetaTypes< 3 > >::value, "");
+            static_assert(!is_fortran_array_wrappable< WrappableStaticHypercubeWithMetaTypes< 3 > & >::value, "");
+            TEST(FortranArrayView, WrappableStaticHypercubeWithMetaTypesIsBindable) {
+                double data[2][2][2][2] = {
+                    {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
+                gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
+
+                auto array = make_fortran_array_view< WrappableStaticHypercubeWithMetaTypes< 4 > >(&descriptor);
+                EXPECT_EQ(array({0, 1, 0, 1}), 6.);
+                EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+            }
+
+            TEST(FortranArrayView, WrappableStaticHypercubeWithMetaTypesIsWrappable) {
+                auto meta = get_fortran_view_meta((WrappableStaticHypercubeWithMetaTypes< 3 > *){nullptr});
                 EXPECT_EQ(meta.type, gt_fk_Double);
                 EXPECT_EQ(meta.rank, 3);
             }
@@ -234,7 +269,7 @@ namespace gridtools {
             static_assert(is_fortran_array_bindable< adltest::DynamicHypercube >::value, "");
             static_assert(!is_fortran_array_wrappable< adltest::DynamicHypercube & >::value, "");
             static_assert(!is_fortran_array_wrappable< adltest::DynamicHypercube >::value, "");
-            TEST(FortranArrayView, BindableClassIsBindable) {
+            TEST(FortranArrayView, BindableDynamicHypercubeWithFactoryFunctionIsBindable) {
                 double data[2][2][2][2] = {
                     {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
@@ -242,6 +277,25 @@ namespace gridtools {
                 auto array = make_fortran_array_view< adltest::DynamicHypercube >(&descriptor);
                 EXPECT_EQ(array({0, 1, 0, 1}), 6.);
                 EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+            }
+
+            static_assert(!is_fortran_array_bindable< adltest::StaticHypercube< 3 > & >::value, "");
+            static_assert(is_fortran_array_bindable< adltest::StaticHypercube< 3 > >::value, "");
+            static_assert(!is_fortran_array_wrappable< adltest::StaticHypercube< 3 > & >::value, "");
+            static_assert(is_fortran_array_wrappable< adltest::StaticHypercube< 3 > >::value, "");
+            TEST(FortranArrayView, WrappableStaticHypercubeWithMetaFunctionIsBindable) {
+                double data[2][2][2][2] = {
+                    {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
+                gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
+
+                auto array = make_fortran_array_view< adltest::StaticHypercube< 4 > >(&descriptor);
+                EXPECT_EQ(array({0, 1, 0, 1}), 6.);
+                EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+            }
+            TEST(FortranArrayView, WrappableStaticHypercubeWithMetaFunctionIsWrappable) {
+                auto meta = get_fortran_view_meta((adltest::StaticHypercube< 3 > *){nullptr});
+                EXPECT_EQ(meta.type, gt_fk_Double);
+                EXPECT_EQ(meta.rank, 3);
             }
         }
     }
