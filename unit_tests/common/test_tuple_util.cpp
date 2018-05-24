@@ -158,7 +158,6 @@ namespace gridtools {
         };
 
         TEST(for_each_in_cartesian_product, functional) {
-            auto src = std::make_tuple(42, 5.3);
             double acc = 0;
             for_each_in_cartesian_product(accumulate2_f{acc}, std::make_tuple(1, 2), std::make_tuple(10, 20));
             EXPECT_EQ(90, acc);
