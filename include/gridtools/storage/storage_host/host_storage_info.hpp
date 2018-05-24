@@ -80,7 +80,7 @@ namespace gridtools {
          * @param dims the dimensionality (e.g., 128x128x80)
          * @param strides the strides used to describe a layout of the data in memory
          */
-        constexpr host_storage_info(array< uint_t, ndims > dims, array< uint_t, ndims > strides)
+        constexpr host_storage_info(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides) {}
     };
 

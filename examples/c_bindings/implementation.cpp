@@ -97,36 +97,4 @@ namespace {
     using stencil_t = decltype(make_copy_stencil(std::declval< data_store_t >(), std::declval< data_store_t >()));
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_t &), std::mem_fn(&stencil_t::run<>));
-
-    void do_fill_array(int(&array)[3][3][3]) {
-        for (size_t i = 0; i < 3; ++i) {
-            for (size_t j = 0; j < 3; ++j) {
-                for (size_t k = 0; k < 3; ++k) {
-                    array[i][j][k] = i + j + k;
-                }
-            }
-        }
-    };
-    GT_EXPORT_BINDING_WRAPPED_1(fill_array, do_fill_array);
-    void do_set_array(int(&array)[3][3][3], int v) {
-        for (size_t i = 0; i < 3; ++i) {
-            for (size_t j = 0; j < 3; ++j) {
-                for (size_t k = 0; k < 3; ++k) {
-                    array[i][j][k] = v;
-                }
-            }
-        }
-    };
-    GT_EXPORT_BINDING_WRAPPED_2(set_array, do_set_array);
-    template < typename T >
-    void do_add_arrays(T(&array1)[3][3][3], T(&array2)[3][3][3], T k) {
-        for (size_t i = 0; i < 3; ++i) {
-            for (size_t j = 0; j < 3; ++j) {
-                for (size_t k = 0; k < 3; ++k) {
-                    array1[i][j][k] = array1[i][j][k] + array2[i][j][k] + k;
-                }
-            }
-        }
-    };
-    GT_EXPORT_GENERIC_BINDING_WRAPPED(3, add_arrays, do_add_arrays, (double)(float)(int));
 }

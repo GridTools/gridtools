@@ -102,7 +102,7 @@ namespace {
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
-    auto make_copy_stencil(data_store_t const in, data_store_t const out)
+    auto make_copy_stencil(data_store_t in, data_store_t out)
         GT_AUTO_RETURN(make_computation< backend_t >(make_grid(out),
             p_in{} = in,
             p_out{} = out,

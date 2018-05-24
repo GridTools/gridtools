@@ -106,6 +106,29 @@ namespace gridtools {
             char const fortran_kind_name< long double >::value[] = "c_long_double";
             template <>
             char const fortran_kind_name< signed char >::value[] = "c_signed_char";
+
+            std::string fortran_array_element_type_name(gt_fortran_array_kind kind) {
+                switch (kind) {
+                case gt_fk_Bool:
+                    return fortran_type_name< bool >();
+                case gt_fk_Int:
+                    return fortran_type_name< int >();
+                case gt_fk_Short:
+                    return fortran_type_name< short >();
+                case gt_fk_Long:
+                    return fortran_type_name< long >();
+                case gt_fk_LongLong:
+                    return fortran_type_name< long long >();
+                case gt_fk_Float:
+                    return fortran_type_name< float >();
+                case gt_fk_Double:
+                    return fortran_type_name< double >();
+                case gt_fk_LongDouble:
+                    return fortran_type_name< long double >();
+                case gt_fk_SignedChar:
+                    return fortran_type_name< signed char >();
+                }
+            }
         }
 
         void generate_c_interface(std::ostream &strm) {

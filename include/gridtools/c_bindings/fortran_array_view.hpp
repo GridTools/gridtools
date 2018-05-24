@@ -94,12 +94,12 @@ namespace gridtools {
             : _impl::fortran_array_element_kind_impl< T > {};
 
         namespace get_fortran_view_meta_impl {
-            template < class T, class Arr = remove_reference_t< T > >
-            enable_if_t< std::is_array< Arr >::value && std::is_arithmetic< remove_all_extents_t< Arr > >::value,
+            template < class T, class Arr = remove_reference_t< T >, class ElementType = remove_all_extents_t< Arr > >
+            enable_if_t< std::is_array< Arr >::value && std::is_arithmetic< ElementType >::value,
                 gt_fortran_array_descriptor >
             get_fortran_view_meta(T *) {
                 gt_fortran_array_descriptor descriptor;
-                descriptor.type = fortran_array_element_kind< remove_all_extents_t< Arr > >::value;
+                descriptor.type = fortran_array_element_kind< ElementType >::value;
                 descriptor.rank = std::rank< Arr >::value;
 
                 using indices = GT_META_CALL(meta::make_indices, std::rank< Arr >::value);
@@ -212,7 +212,7 @@ namespace gridtools {
                          std::is_arithmetic< remove_all_extents_t< remove_reference_t< T > > >::value,
             T >
         make_fortran_array_view(gt_fortran_array_descriptor *descriptor) {
-            const auto cpp_meta = get_fortran_view_meta((add_pointer_t< T >){nullptr});
+            static gt_fortran_array_descriptor cpp_meta = get_fortran_view_meta((add_pointer_t< T >){nullptr});
             if (descriptor->type != cpp_meta.type) {
                 throw std::runtime_error("Types do not match: fortran-type (" + std::to_string(descriptor->type) +
                                          ") != c-type (" + std::to_string(cpp_meta.type) + ")");

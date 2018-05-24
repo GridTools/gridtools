@@ -48,6 +48,7 @@ namespace gridtools {
             GT_ADD_GENERATED_DECLARATION(void(), foo);
             GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
             GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
+            GT_ADD_GENERATED_DECLARATION_WRAPPED(void(int, int(&)[1][2][3]), qux);
 
             GT_ADD_GENERIC_DECLARATION(foo, bar);
             GT_ADD_GENERIC_DECLARATION(foo, baz);
@@ -65,6 +66,7 @@ extern "C" {
 gt_handle* bar(int, double*, gt_handle*);
 void baz(int****);
 void foo();
+void qux(int, gt_fortran_array_descriptor*);
 
 #ifdef __cplusplus
 }
@@ -95,12 +97,34 @@ implicit none
     subroutine foo() bind(c)
       use iso_c_binding
     end subroutine
+    subroutine qux_impl(arg0, arg1) &
+        bind(c, name="qux")
+      use iso_c_binding
+      use array_descriptor
+      integer(c_int), value :: arg0
+      type(gt_fortran_array_descriptor) :: arg1
+    end subroutine
 
   end interface
   interface foo
     procedure bar, baz
   end interface
 contains
+    subroutine qux(arg0, arg1)
+      use iso_c_binding
+      use array_descriptor
+      integer(c_int), value, target :: arg0
+      integer(c_int), dimension(:,:,:), target :: arg1
+      type(gt_fortran_array_descriptor) :: descriptor1
+
+      descriptor1%rank = 3
+      descriptor1%type = 1
+      descriptor1%dims = reshape(shape(arg1), &
+        shape(descriptor1%dims), (/0/))
+      descriptor1%data = c_loc(arg1(lbound(arg1, 1),lbound(arg1, 2),lbound(arg1, 3)))
+
+      call qux_impl(arg0, descriptor1)
+    end subroutine
 end
 )?";
 

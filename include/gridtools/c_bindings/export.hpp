@@ -49,7 +49,7 @@
         typename boost::function_types::parameter_types<::gridtools::c_bindings::wrapped_t< signature > >::type, \
         i >::type param_##i
 
-#define GT_ADD_GENERATED_DEFINITION(n, name, cppsignature, impl)                                                       \
+#define GT_ADD_GENERATED_DEFINITION_IMPL(n, name, cppsignature, impl)                                                  \
     static_assert(::boost::function_types::function_arity< cppsignature >::value == n, "arity mismatch");              \
     extern "C"                                                                                                         \
         typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< cppsignature > >::type name( \
@@ -82,7 +82,7 @@
  *   @param impl The functor that the generated function will delegate to.
  */
 #define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl) \
-    GT_ADD_GENERATED_DEFINITION(n, name, cppsignature, impl)          \
+    GT_ADD_GENERATED_DEFINITION_IMPL(n, name, cppsignature, impl)     \
     GT_ADD_GENERATED_DECLARATION(::gridtools::c_bindings::wrapped_t< cppsignature >, name)
 
 /**
@@ -114,7 +114,7 @@
  *   @param impl The functor that the generated function will delegate to.
  */
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED(n, name, cppsignature, impl) \
-    GT_ADD_GENERATED_DEFINITION(n, name, cppsignature, impl)                  \
+    GT_ADD_GENERATED_DEFINITION_IMPL(n, name, cppsignature, impl)             \
     GT_ADD_GENERATED_DECLARATION_WRAPPED(cppsignature, name)
 
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.

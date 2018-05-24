@@ -47,6 +47,7 @@
 #include <boost/function_types/parameter_types.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/type_index.hpp>
+#include <boost/optional.hpp>
 
 #include <common/generic_metafunctions/is_there_in_sequence_if.hpp>
 
@@ -213,28 +214,7 @@ namespace gridtools {
                 return fortran_type_name< T >() + " " + fortran_function_specifier< T >();
             }
 
-            static std::string fortran_array_element_type_name(gt_fortran_array_kind kind) {
-                switch (kind) {
-                case gt_fk_Bool:
-                    return fortran_type_name< bool >();
-                case gt_fk_Int:
-                    return fortran_type_name< int >();
-                case gt_fk_Short:
-                    return fortran_type_name< short >();
-                case gt_fk_Long:
-                    return fortran_type_name< long >();
-                case gt_fk_LongLong:
-                    return fortran_type_name< long long >();
-                case gt_fk_Float:
-                    return fortran_type_name< float >();
-                case gt_fk_Double:
-                    return fortran_type_name< double >();
-                case gt_fk_LongDouble:
-                    return fortran_type_name< long double >();
-                case gt_fk_SignedChar:
-                    return fortran_type_name< signed char >();
-                }
-            }
+            std::string fortran_array_element_type_name(gt_fortran_array_kind kind);
 
             struct ignore_type_f {
                 template < class T >
@@ -274,10 +254,7 @@ namespace gridtools {
                 }
             };
 
-            template < fortran_param_style style >
-            struct fortran_param_type_f;
-            template <>
-            struct fortran_param_type_f< fortran_param_style::bindings > {
+            struct fortran_param_type_from_c_f {
 
                 template < class CType,
                     typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value, int >::type =
@@ -293,8 +270,7 @@ namespace gridtools {
                     return fortran_param_type_common_f{}.template operator()< CType >();
                 }
             };
-            template <>
-            struct fortran_param_type_f< fortran_param_style::wrapper > {
+            struct fortran_param_type_from_cpp_f {
 
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
@@ -302,7 +278,8 @@ namespace gridtools {
                                                  is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 std::string operator()() const {
-                    const auto meta = get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
+                    static gt_fortran_array_descriptor meta =
+                        get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
                     std::string dimensions = "dimension(";
                     for (int i = 0; i < meta.rank; ++i) {
                         if (i)
@@ -319,7 +296,7 @@ namespace gridtools {
                                                  !is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 std::string operator()() const {
-                    return fortran_param_type_f< fortran_param_style::bindings >{}.template operator()< CType >();
+                    return fortran_param_type_from_c_f{}.template operator()< CType >();
                 }
             };
 
@@ -351,7 +328,7 @@ namespace gridtools {
                 strm << "\n      use iso_c_binding\n";
                 if (has_array_descriptor)
                     strm << "      use array_descriptor\n";
-                for_each_param< CSignature >(fortran_param_type_f< fortran_param_style::bindings >{},
+                for_each_param< CSignature >(fortran_param_type_from_c_f{},
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << " :: arg" << i << "\n";
                     });
@@ -360,27 +337,22 @@ namespace gridtools {
             }
 
             struct cpp_type_descriptor_f {
-                struct R {
-                    bool is_fortran_array_inspectable;
-                    int rank;
-                    gt_fortran_array_kind type_kind;
-                };
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
                     typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value &&
                                                  is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
-                R operator()() const {
-                    const auto meta = get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
-                    return {true, meta.rank, meta.type};
+                boost::optional< gt_fortran_array_descriptor > operator()() const {
+                    static auto meta = get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
+                    return meta;
                 }
                 template < class CppType,
                     class CType = param_converted_to_c_t< CppType >,
                     typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor * >::value ||
                                                  !is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
-                R operator()() const {
-                    return {false, 0, gt_fk_Bool};
+                boost::optional< gt_fortran_array_descriptor > operator()() const {
+                    return boost::none;
                 }
             };
             /**
@@ -410,14 +382,14 @@ namespace gridtools {
                 if (has_array_descriptor) {
                     strm << "      use array_descriptor\n";
                 }
-                for_each_param< CppSignature >(fortran_param_type_f< fortran_param_style::wrapper >{},
+                for_each_param< CppSignature >(fortran_param_type_from_cpp_f{},
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << ", target :: arg" << i << "\n";
                     });
 
                 for_each_param< CppSignature >(cpp_type_descriptor_f{},
-                    [&](cpp_type_descriptor_f::R type_descriptor, int i) {
-                        if (type_descriptor.is_fortran_array_inspectable) {
+                    [&](const boost::optional< gt_fortran_array_descriptor > &meta, int i) {
+                        if (meta) {
                             const auto desc_name = "descriptor" + std::to_string(i);
                             strm << "      type(gt_fortran_array_descriptor) :: " + desc_name + "\n";
                         }
@@ -425,19 +397,19 @@ namespace gridtools {
                 strm << "\n";
 
                 for_each_param< CppSignature >(cpp_type_descriptor_f{},
-                    [&](cpp_type_descriptor_f::R type_descriptor, int i) {
-                        if (type_descriptor.is_fortran_array_inspectable) {
+                    [&](const boost::optional< gt_fortran_array_descriptor > &meta, int i) {
+                        if (meta) {
                             const auto var_name = "arg" + std::to_string(i);
                             const auto desc_name = "descriptor" + std::to_string(i);
                             std::string c_loc = "c_loc(" + var_name + "(";
-                            for (int i = 0; i < type_descriptor.rank; ++i) {
+                            for (int i = 0; i < meta->rank; ++i) {
                                 if (i)
                                     c_loc += ",";
                                 c_loc += "lbound(" + var_name + ", " + std::to_string(i + 1) + ")";
                             }
                             c_loc += "))";
-                            strm << "      " << desc_name << "%rank = " << type_descriptor.rank << "\n"       //
-                                 << "      " << desc_name << "%type = " << type_descriptor.type_kind << "\n"  //
+                            strm << "      " << desc_name << "%rank = " << meta->rank << "\n"                 //
+                                 << "      " << desc_name << "%type = " << meta->type << "\n"                 //
                                  << "      " << desc_name << "%dims = reshape(shape(" << var_name << "), &\n" //
                                  << "        shape(" << desc_name << "%dims), (/0/))\n"                       //
                                  << "      " << desc_name << "%data = " << c_loc << "\n\n";
@@ -450,10 +422,10 @@ namespace gridtools {
                     strm << "      " << fortran_name << " = " << fortran_cbindings_name << "(";
                 }
                 for_each_param< CppSignature >(cpp_type_descriptor_f{},
-                    [&](cpp_type_descriptor_f::R type_descriptor, int i) {
+                    [&](const boost::optional< gt_fortran_array_descriptor > &meta, int i) {
                         if (i)
                             strm << ", ";
-                        if (type_descriptor.is_fortran_array_inspectable) {
+                        if (meta) {
                             strm << "descriptor" << i;
                         } else {
                             strm << "arg" << i;
