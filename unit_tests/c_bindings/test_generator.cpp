@@ -55,7 +55,7 @@ namespace gridtools {
             const char expected_c_interface[] = R"?(
 #pragma once
 
-#include <c_bindings/handle.h>
+#include <gridtools/c_bindings/handle.h>
 
 #ifdef __cplusplus
 extern "C" {
