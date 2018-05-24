@@ -133,11 +133,8 @@ namespace gridtools {
      *    - meta::list<int> : is not a template
      *
      *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling
-     * without
-     *  prefix [This is not always the case at a moment. ]
-     *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high
-     * order
-     *  functions.
+     *  without prefix. Disadvantage of having such a hybrid signature, that those functions can not be passed as
+     *  arguments to high order functions.
      *
      *  Meta Class
      *  ----------
@@ -185,12 +182,10 @@ namespace gridtools {
      *
      *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
      *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility
-     * only
-     *  using that two macros. Direct <tt>\#if GT_BROKEN_TEMPLATE_ALIASES`</tt> could be necessary.
+     *  only using that two macros. Direct <tt>\#if GT_BROKEN_TEMPLATE_ALIASES`</tt> could be necessary.
      *
      *  Syntax sugar: All high order functions being called with only functional arguments return partially applied
-     * versions
-     *  of themselves [which became plane functions].
+     *  versions of themselves [which became plane functions].
      *  Example, where it could be useful is:
      *  transform a list of lists:  <tt>using out = meta::transform<meta::transform<fun>::apply, in>;</tt>
      *
