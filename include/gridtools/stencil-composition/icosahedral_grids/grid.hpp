@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/grid_base.hpp"
-#include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
+#include "gridtools/stencil-composition/grid_base.hpp"
+#include "gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
 
 namespace gridtools {
 
