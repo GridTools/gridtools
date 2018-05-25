@@ -37,11 +37,20 @@
 #include <c_bindings/fortran_array_view.hpp>
 
 #include <gtest/gtest.h>
-namespace {
-    bool operator==(gt_fortran_array_descriptor d1, gt_fortran_array_descriptor d2) {
-        return d1.type == d2.type && d1.rank == d2.rank &&
-               std::equal(std::begin(d1.dims), &d1.dims[d1.rank], std::begin(d2.dims)) && d1.data == d2.data;
+
+bool operator==(const gt_fortran_array_descriptor &d1, const gt_fortran_array_descriptor &d2) {
+    return d1.type == d2.type && d1.rank == d2.rank &&
+           std::equal(std::begin(d1.dims), &d1.dims[d1.rank], std::begin(d2.dims)) && d1.data == d2.data;
+}
+bool operator!=(const gt_fortran_array_descriptor &d1, const gt_fortran_array_descriptor &d2) { return !(d1 == d2); }
+std::ostream &operator<<(std::ostream &strm, const gt_fortran_array_descriptor &d) {
+    strm << "Type: " << d.type << ", Dimensions: [";
+    for (size_t i = 0; i < d.rank; ++i) {
+        if (i)
+            strm << ", ";
+        strm << d.dims[i];
     }
+    strm << "], Data: " << d.data;
 }
 
 namespace gridtools {
@@ -134,7 +143,7 @@ namespace gridtools {
                 gt_fortran_array_descriptor descriptor{gt_fk_Float, 4, {4, 3, 2, 1}, &data[0]};
 
                 auto new_descriptor = make_fortran_array_view< gt_fortran_array_descriptor >(&descriptor);
-                ASSERT_TRUE(new_descriptor == descriptor);
+                EXPECT_EQ(new_descriptor, descriptor);
             }
 
             static_assert(is_fortran_array_bindable< int(&)[1][2][3] >::value, "");
@@ -147,9 +156,9 @@ namespace gridtools {
                 float data[1][2][3][4];
                 gt_fortran_array_descriptor descriptor{gt_fk_Float, 4, {4, 3, 2, 1}, &data[0]};
 
-                auto &array = make_fortran_array_view< float(&)[1][2][3][4] >(&descriptor);
+                auto &view = make_fortran_array_view< float(&)[1][2][3][4] >(&descriptor);
                 static_assert(std::is_same< decltype(array), float(&)[1][2][3][4] >::value, "");
-                EXPECT_EQ(array, descriptor.data);
+                EXPECT_EQ(view, descriptor.data);
 
                 EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3][3] >(&descriptor), std::runtime_error);
                 EXPECT_THROW(make_fortran_array_view< float(&)[2][2][3][4] >(&descriptor), std::runtime_error);
@@ -210,9 +219,10 @@ namespace gridtools {
                     {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
 
-                auto array = make_fortran_array_view< BindableStaticHypercubeWithConstructor< 4 > >(&descriptor);
-                EXPECT_EQ(array({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+                BindableStaticHypercubeWithConstructor< 4 > view =
+                    make_fortran_array_view< BindableStaticHypercubeWithConstructor< 4 > >(&descriptor);
+                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
+                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
             }
 
             template < size_t Rank >
@@ -254,9 +264,10 @@ namespace gridtools {
                     {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
 
-                auto array = make_fortran_array_view< WrappableStaticHypercubeWithMetaTypes< 4 > >(&descriptor);
-                EXPECT_EQ(array({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+                WrappableStaticHypercubeWithMetaTypes< 4 > view =
+                    make_fortran_array_view< WrappableStaticHypercubeWithMetaTypes< 4 > >(&descriptor);
+                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
+                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
             }
 
             TEST(FortranArrayView, WrappableStaticHypercubeWithMetaTypesIsWrappable) {
@@ -274,9 +285,9 @@ namespace gridtools {
                     {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
 
-                auto array = make_fortran_array_view< adltest::DynamicHypercube >(&descriptor);
-                EXPECT_EQ(array({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+                adltest::DynamicHypercube view = make_fortran_array_view< adltest::DynamicHypercube >(&descriptor);
+                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
+                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
             }
 
             static_assert(!is_fortran_array_bindable< adltest::StaticHypercube< 3 > & >::value, "");
@@ -288,12 +299,13 @@ namespace gridtools {
                     {{{1., 2.}, {3., 4.}}, {{5., 6.}, {7., 8.}}}, {{{9., 10.}, {11., 12.}}, {{13., 14.}, {15., 16.}}}};
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
 
-                auto array = make_fortran_array_view< adltest::StaticHypercube< 4 > >(&descriptor);
-                EXPECT_EQ(array({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(array({1, 0, 1, 0}), 11.);
+                adltest::StaticHypercube< 4 > view =
+                    make_fortran_array_view< adltest::StaticHypercube< 4 > >(&descriptor);
+                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
+                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
             }
             TEST(FortranArrayView, WrappableStaticHypercubeWithMetaFunctionIsWrappable) {
-                auto meta = get_fortran_view_meta((adltest::StaticHypercube< 3 > *){nullptr});
+                gt_fortran_array_descriptor meta = get_fortran_view_meta((adltest::StaticHypercube< 3 > *){nullptr});
                 EXPECT_EQ(meta.type, gt_fk_Double);
                 EXPECT_EQ(meta.rank, 3);
             }

@@ -223,8 +223,15 @@ namespace gridtools {
                 }
             };
 
-            enum class fortran_param_style { bindings, wrapper };
-            struct fortran_param_type_common_f {
+            struct fortran_param_type_from_c_f {
+
+                template < class CType,
+                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value, int >::type =
+                        0 >
+                std::string operator()() const {
+                    return "type(gt_fortran_array_descriptor)";
+                }
+
                 template < class CType,
                     typename std::enable_if<
                         !std::is_same< CType, gt_fortran_array_descriptor * >::value &&
@@ -253,23 +260,6 @@ namespace gridtools {
                     return "type(c_ptr)";
                 }
             };
-
-            struct fortran_param_type_from_c_f {
-
-                template < class CType,
-                    typename std::enable_if< std::is_same< CType, gt_fortran_array_descriptor * >::value, int >::type =
-                        0 >
-                std::string operator()() const {
-                    return "type(gt_fortran_array_descriptor)";
-                }
-
-                template < class CType,
-                    typename std::enable_if< !std::is_same< CType, gt_fortran_array_descriptor * >::value, int >::type =
-                        0 >
-                std::string operator()() const {
-                    return fortran_param_type_common_f{}.template operator()< CType >();
-                }
-            };
             struct fortran_param_type_from_cpp_f {
 
                 template < class CppType,
@@ -278,7 +268,7 @@ namespace gridtools {
                                                  is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 std::string operator()() const {
-                    static gt_fortran_array_descriptor meta =
+                    static const gt_fortran_array_descriptor meta =
                         get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
                     std::string dimensions = "dimension(";
                     for (int i = 0; i < meta.rank; ++i) {
@@ -343,7 +333,8 @@ namespace gridtools {
                                                  is_fortran_array_wrappable< CppType >::value,
                         int >::type = 0 >
                 boost::optional< gt_fortran_array_descriptor > operator()() const {
-                    static auto meta = get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
+                    static const gt_fortran_array_descriptor meta =
+                        get_fortran_view_meta((add_pointer_t< CppType >){nullptr});
                     return meta;
                 }
                 template < class CppType,
