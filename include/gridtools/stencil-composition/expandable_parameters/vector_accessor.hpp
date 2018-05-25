@@ -38,5 +38,5 @@
 #ifdef STRUCTURED_GRIDS
 #include "../structured_grids/vector_accessor.hpp"
 #else
-#include "..//icosahedral_grids/vector_accessor.hpp"
+#include "../icosahedral_grids/vector_accessor.hpp"
 #endif

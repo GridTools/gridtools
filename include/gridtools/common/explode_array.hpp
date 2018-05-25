@@ -36,8 +36,8 @@
 
 // Extracted from Andrei Alexandrescu @GoingNative2013
 #pragma once
-#include "gridtools/common/array.hpp"
-#include "gridtools/common/tuple.hpp"
+#include "./array.hpp"
+#include "./tuple.hpp"
 
 namespace gridtools {
     /** \ingroup common

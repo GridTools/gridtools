@@ -35,10 +35,10 @@
 */
 #pragma once
 
-#include "gridtools/stencil-composition/iterate_domain.hpp"
-#include "gridtools/stencil-composition/iterate_domain_fwd.hpp"
-#include "gridtools/stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "gridtools/stencil-composition/iterate_domain_metafunctions.hpp"
+#include "../../iterate_domain.hpp"
+#include "../../iterate_domain_fwd.hpp"
+#include "../../iterate_domain_impl_metafunctions.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
 
 namespace gridtools {
     /**
