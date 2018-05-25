@@ -52,8 +52,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "gridtools/common/defs.hpp"
-#include "gridtools/common/gpu_clone.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gpu_clone.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

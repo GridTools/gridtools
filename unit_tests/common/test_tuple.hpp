@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "gridtools/common/defs.hpp"
-#include "gridtools/common/tuple.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/tuple.hpp>
 
 GT_FUNCTION
 void test_tuple_elements(bool *result) {

@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gridtools/common/generic_metafunctions/gt_integer_sequence.hpp"
+#include <gridtools/common/generic_metafunctions/gt_integer_sequence.hpp>
 
 #include <type_traits>
 #include "gtest/gtest.h"
 #include <boost/type_traits/is_same.hpp>
-#include "gridtools/common/array.hpp"
-#include "gridtools/common/generic_metafunctions/variadic_typedef.hpp"
+#include <gridtools/common/array.hpp>
+#include <gridtools/common/generic_metafunctions/variadic_typedef.hpp>
 
 template < int Idx >
 struct get_component {

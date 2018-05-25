@@ -37,7 +37,7 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/gridtools.hpp>
-#include "gridtools/common/halo_descriptor.hpp"
+#include <gridtools/common/halo_descriptor.hpp>
 
 #include <gridtools/boundary-conditions/boundary.hpp>
 
@@ -51,7 +51,7 @@ using gridtools::minus_;
 using gridtools::zero_;
 using gridtools::plus_;
 
-#include "gridtools/stencil-composition/stencil-composition.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include <stdlib.h>
 #include <stdio.h>

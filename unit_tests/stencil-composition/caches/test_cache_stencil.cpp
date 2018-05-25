@@ -38,10 +38,10 @@
 
 #include "gtest/gtest.h"
 
-#include "gridtools/common/defs.hpp"
-#include "gridtools/stencil-composition/stencil-composition.hpp"
-#include "gridtools/stencil-composition/make_computation.hpp"
-#include "gridtools/tools/verifier.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 constexpr int halo_size = 1;

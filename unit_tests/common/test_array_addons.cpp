@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "test_helper.hpp"
-#include "gridtools/common/array_addons.hpp"
-#include "gridtools/common/defs.hpp"
-#include "gridtools/common/array.hpp"
-#include "gridtools/common/tuple.hpp"
-#include "gridtools/common/pair.hpp"
+#include <gridtools/common/array_addons.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/array.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/pair.hpp>
 #include "gtest/gtest.h"
 #include <cstddef>
 

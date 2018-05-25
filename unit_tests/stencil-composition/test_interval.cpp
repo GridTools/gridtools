@@ -35,7 +35,7 @@
 */
 
 #include "gtest/gtest.h"
-#include "gridtools/stencil-composition/interval.hpp"
+#include <gridtools/stencil-composition/interval.hpp>
 #include "../test_helper.hpp"
 
 using namespace gridtools;

@@ -35,9 +35,9 @@
 */
 
 #include "gtest/gtest.h"
-#include "gridtools/common/defs.hpp"
-#include "gridtools/common/host_device.hpp"
-#include "gridtools/common/generic_metafunctions/copy_into_set.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/host_device.hpp>
+#include <gridtools/common/generic_metafunctions/copy_into_set.hpp>
 #include "boost/mpl/vector.hpp"
 #include "boost/mpl/set.hpp"
 #include "boost/mpl/contains.hpp"

@@ -35,8 +35,8 @@
 */
 
 #include <gtest/gtest.h>
-#include "gridtools/common/array.hpp"
-#include "gridtools/interface/layout_transformation/layout_transformation.hpp"
+#include <gridtools/common/array.hpp>
+#include <gridtools/interface/layout_transformation/layout_transformation.hpp>
 
 using namespace gridtools;
 

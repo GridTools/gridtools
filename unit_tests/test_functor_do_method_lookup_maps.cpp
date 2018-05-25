@@ -41,11 +41,11 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <iostream>
-#include "gridtools/common/host_device.hpp"
-#include "gridtools/stencil-composition/interval.hpp"
-#include "gridtools/stencil-composition/loopintervals.hpp"
-#include "gridtools/stencil-composition/functor_do_methods.hpp"
-#include "gridtools/stencil-composition/functor_do_method_lookup_maps.hpp"
+#include <gridtools/common/host_device.hpp>
+#include <gridtools/stencil-composition/interval.hpp>
+#include <gridtools/stencil-composition/loopintervals.hpp>
+#include <gridtools/stencil-composition/functor_do_methods.hpp>
+#include <gridtools/stencil-composition/functor_do_method_lookup_maps.hpp>
 
 using namespace gridtools;
 

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gridtools/stencil-composition/structured_grids/grid.hpp"
+#include <gridtools/stencil-composition/structured_grids/grid.hpp>
 
 using namespace gridtools;
 

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "gridtools/common/generic_metafunctions/sequence_unpacker.hpp"
+#include <gridtools/common/generic_metafunctions/sequence_unpacker.hpp>
 
 using namespace gridtools;
 

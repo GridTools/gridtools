@@ -52,9 +52,9 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include "gridtools/stencil-composition/backend.hpp"
-#include "gridtools/stencil-composition/make_computation.hpp"
-#include "gridtools/stencil-composition/make_stencils.hpp"
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/stencil-composition/make_stencils.hpp>
 #include "backend_select.hpp"
 
 namespace positional_when_debug_test {

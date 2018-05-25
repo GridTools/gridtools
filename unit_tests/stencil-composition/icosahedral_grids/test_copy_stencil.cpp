@@ -36,7 +36,7 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include "gridtools/tools/verifier.hpp"
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;
