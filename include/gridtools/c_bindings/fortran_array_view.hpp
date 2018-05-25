@@ -102,7 +102,7 @@ namespace gridtools {
                 descriptor.type = fortran_array_element_kind< ElementType >::value;
                 descriptor.rank = std::rank< Arr >::value;
 
-                using indices = GT_META_CALL(meta::make_indices, std::rank< Arr >::value);
+                using indices = GT_META_CALL(meta::make_indices, std::rank< Arr >);
                 host_for_each< indices >(
                     std::bind(_impl::fill_extent_f< Arr >{}, std::placeholders::_1, std::ref(descriptor)));
 
