@@ -111,7 +111,7 @@ namespace gridtools {
         // make sure the second interval starts where the first ends
         // (check the index values are continuous and both indexes are associated to the same splitter)
         BOOST_STATIC_CONSTANT(bool,
-            value = ((DoMethod1ToIndex::value + 1 == DoMethod2FromIndex::value) &&
+            value = ((_impl::add_offset(DoMethod1ToIndex::value, 1) == DoMethod2FromIndex::value) &&
                      (index_to_level< DoMethod1ToIndex >::type::Splitter::value ==
                          index_to_level< DoMethod2FromIndex >::type::Splitter::value)));
         typedef boost::mpl::integral_c< bool, value > type;
