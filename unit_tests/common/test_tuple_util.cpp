@@ -149,6 +149,20 @@ namespace gridtools {
             EXPECT_EQ(33, acc);
         }
 
+        struct accumulate2_f {
+            double &m_acc;
+            template < class T, class U >
+            void operator()(T lhs, U rhs) const {
+                m_acc += lhs * rhs;
+            }
+        };
+
+        TEST(for_each_in_cartesian_product, functional) {
+            double acc = 0;
+            for_each_in_cartesian_product(accumulate2_f{acc}, std::make_tuple(1, 2), std::make_tuple(10, 20));
+            EXPECT_EQ(90, acc);
+        }
+
         TEST(flatten, functional) {
             EXPECT_EQ(
                 flatten(std::make_tuple(std::make_tuple(1, 2), std::make_tuple(3, 4))), std::make_tuple(1, 2, 3, 4));

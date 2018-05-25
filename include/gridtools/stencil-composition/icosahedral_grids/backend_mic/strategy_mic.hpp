@@ -78,7 +78,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(
@@ -152,7 +152,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(

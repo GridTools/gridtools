@@ -189,38 +189,26 @@ namespace gridtools {
             typename boost::mpl::has_key< typename LocalDomain::data_ptr_fusion_map, Arg >::type;
 
         // set pointers from the given view info to the local domain
-        template < class LocalDomain >
         struct set_view_to_local_domain_f {
-            LocalDomain &m_local_domain;
 
             // if the arg belongs to the local domain we set pointers
-            template < class Arg, class OptView >
+            template < class Arg, class OptView, class LocalDomain >
             enable_if_t< local_domain_has_arg< LocalDomain, Arg >::value > operator()(
-                boost::fusion::pair< Arg, OptView > const &info) const {
+                boost::fusion::pair< Arg, OptView > const &info, LocalDomain &local_domain) const {
                 if (!info.second)
                     return;
                 auto const &view = *info.second;
                 namespace f = boost::fusion;
                 // here we set data pointers
-                advanced::copy_raw_pointers(view, f::at_key< Arg >(m_local_domain.m_local_data_ptrs));
+                advanced::copy_raw_pointers(view, f::at_key< Arg >(local_domain.m_local_data_ptrs));
                 // here we set meta data pointers
                 auto const *storage_info = advanced::storage_info_raw_ptr(view);
-                *f::find< decltype(storage_info) >(m_local_domain.m_local_storage_info_ptrs) = storage_info;
+                *f::find< decltype(storage_info) >(local_domain.m_local_storage_info_ptrs) = storage_info;
             }
             // do nothing if arg is not in this local domain
-            template < class Arg, class OptView >
+            template < class Arg, class OptView, class LocalDomain >
             enable_if_t< !local_domain_has_arg< LocalDomain, Arg >::value > operator()(
-                boost::fusion::pair< Arg, OptView > const &info) const {}
-        };
-
-        template < class ViewInfos >
-        struct update_local_domain_f {
-            ViewInfos const &m_view_infos;
-
-            template < class LocalDomain >
-            void operator()(LocalDomain &local_domain) const {
-                tuple_util::for_each(set_view_to_local_domain_f< LocalDomain >{local_domain}, m_view_infos);
-            }
+                boost::fusion::pair< Arg, OptView > const &, LocalDomain &) const {}
         };
 
         struct get_local_domain_list_f {
@@ -234,9 +222,9 @@ namespace gridtools {
             // here we produce from mss_local_domains a flat tuple of references to local_domain;
             auto &&local_domains =
                 tuple_util::flatten(tuple_util::transform(get_local_domain_list_f{}, mss_local_domains));
-            // and for each possible local_domain/view_info pair call set_view_to_local_domain_f functor
-            // TODO(anstaf): add for_each_cartesian_product to tuple_util and use it here.
-            tuple_util::for_each(update_local_domain_f< ViewInfos >{view_infos}, std::move(local_domains));
+            // and for each possible view_info/local_doain pair call set_view_to_local_domain_f functor
+            tuple_util::for_each_in_cartesian_product(
+                set_view_to_local_domain_f{}, view_infos, std::move(local_domains));
         }
 
         template < class MaxExtent, class Backend, class StorageWrapperList >
