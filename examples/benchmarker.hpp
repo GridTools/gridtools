@@ -57,17 +57,7 @@ namespace gridtools {
                 stencil.run();
             }
 
-            double time = stencil.get_meter();
-            std::ostringstream out;
-            if (time < 0)
-                out << "\t[s]\t"
-                    << "NoName"
-                    << "NO_TIMES_AVAILABLE";
-            else
-                out << "NoName"
-                    << "\t[s]\t" << time;
-
-            std::cout << out.str() << std::endl;
+            std::cout << stencil.print_meter() << std::endl;
         }
     };
 }

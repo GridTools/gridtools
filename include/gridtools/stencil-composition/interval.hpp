@@ -51,8 +51,10 @@
 namespace gridtools {
 
     namespace _impl {
+        constexpr int_t sign(int_t value) { return (int_t(0) < value) - (value < int_t(0)); }
+
         constexpr int_t add_offset(int_t offset, int_t value) {
-            return (offset + value == 0) ? (offset + 2 * value) : (offset + value);
+            return (sign(offset + value) != sign(offset)) ? (offset + value + sign(value)) : (offset + value);
         }
     }
 

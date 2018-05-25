@@ -158,3 +158,15 @@ TEST(math, test_pow) {
     EXPECT_TRUE(test_pow< double >::Do(2.3, std::pow(2.3, 2.3)));
     EXPECT_TRUE(test_pow< float >::Do(2.3f, std::pow(2.3f, 2.3f)));
 }
+
+TEST(math, test_fmod) {
+    EXPECT_FLOAT_EQ(math::fmod(3.7f, 1.2f), std::fmod(3.7f, 1.2f));
+    EXPECT_DOUBLE_EQ(math::fmod(3.7, 1.2), std::fmod(3.7, 1.2));
+    EXPECT_DOUBLE_EQ(math::fmod(3.7l, 1.2l), std::fmod(3.7l, 1.2l));
+}
+
+TEST(math, test_trunc) {
+    EXPECT_FLOAT_EQ(math::trunc(3.7f), std::trunc(3.7f));
+    EXPECT_DOUBLE_EQ(math::trunc(3.7), std::trunc(3.7));
+    EXPECT_DOUBLE_EQ(math::trunc(3.7l), std::trunc(3.7l));
+}

@@ -89,12 +89,12 @@ namespace gridtools {
      *  TODO list
      *  =========
      *  - extend concept to be applied to std::array's
-     *  - add for_each_in_cartesian_product
      *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
      *  - supply all functions here with `GT_FUNCTION` variants.
      *  - add apply (generic version of std::apply)
      *  - add push_front
      *  - add for_each_index
+     *  - add filter
      *
      */
     namespace tuple_util {
@@ -221,9 +221,35 @@ namespace gridtools {
 
             template < size_t I >
             struct transform_elem_f {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+                // CAUTION!! CUDA8 barely understands this. If you just GT_AUTO_RETURN it goes nuts with mysterious
+                // error message; if you replace the inner result_of_t to typename std::result_of<...>::type it fails
+                // as well.
+                // Alternatively you can also write:
+                // auto operator()(Fun &&fun, Tups &&... tups) const
+                // -> typename std::result_of<Fun&&(decltype(get< I >(std::forward< Tups >(tups)))...)>::type
+                template < class Fun, class... Tups >
+                typename std::result_of< Fun && (result_of_t< get_f< I >(Tups &&) >...) >::type operator()(
+                    Fun &&fun, Tups &&... tups) const {
+                    return std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...);
+                }
+#elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800
+                template < class Fun, class Tup >
+                auto operator()(Fun &&fun, Tup &&tup) const
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup >(tup))));
+                template < class Fun, class Tup1, class Tup2 >
+                auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(std::forward< Fun >(fun)(
+                    get< I >(std::forward< Tup1 >(tup1)), get< I >(std::forward< Tup2 >(tup2))));
+                template < class Fun, class Tup1, class Tup2, class Tup3 >
+                auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup1 >(tup1)),
+                        get< I >(std::forward< Tup2 >(tup2)),
+                        get< I >(std::forward< Tup3 >(tup3))));
+#else
                 template < class Fun, class... Tups >
                 auto operator()(Fun &&fun, Tups &&... tups) const
-                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups)...)));
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...));
+#endif
             };
 
 #if GT_BROKEN_TEMPLATE_ALIASES
@@ -282,30 +308,55 @@ namespace gridtools {
                 Res operator()(Tup &&tup, Tups &&... tups) const {
                     constexpr auto length = meta::length< decay_t< Tup > >::value;
                     using generators = GT_META_CALL(
-                        meta::transform, (get_transform_generator, GT_META_CALL(meta::make_indices, length)));
+                        meta::transform, (get_transform_generator, GT_META_CALL(meta::make_indices_c, length)));
                     return generate_f< generators, Res >{}(
                         m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
                 }
             };
-            template < class >
-            struct for_each_impl_f;
 
-            template < template < class T, T... > class L, class Int, Int... Is >
-            struct for_each_impl_f< L< Int, Is... > > {
+            struct empty {};
+
+            template < class Fun >
+            struct for_each_adaptor_f {
+                Fun m_fun;
+                template < class... Args >
+                empty operator()(Args &&... args) const {
+                    m_fun(std::forward< Args >(args)...);
+                    return {};
+                }
+            };
+
+            template < class Indices >
+            struct apply_to_elements_f;
+
+            template < template < class... > class L, class... Is >
+            struct apply_to_elements_f< L< Is... > > {
+                template < class Fun, class... Tups >
+                auto operator()(Fun &&fun, Tups &&... tups) const
+                    GT_AUTO_RETURN(std::forward< Fun >(fun)(get< Is::value >(std::forward< Tups >(tups))...));
+            };
+
+            template < class >
+            struct for_each_in_cartesian_product_impl_f;
+
+            template < template < class... > class Outer, class... Inners >
+            struct for_each_in_cartesian_product_impl_f< Outer< Inners... > > {
                 template < class Fun, class... Tups >
                 void operator()(Fun &&fun, Tups &&... tups) const {
-                    void((int[]){(std::forward< Fun >(fun)(get< Is >(std::forward< Tups >(tups)...)), 0)...});
+                    void((int[]){
+                        (apply_to_elements_f< Inners >{}(std::forward< Fun >(fun), std::forward< Tups >(tups)...),
+                            0)...});
                 }
             };
 
             template < class Fun >
-            struct for_each_f {
+            struct for_each_in_cartesian_product_f {
                 Fun m_fun;
-
-                template < class Tup, class... Tups >
-                void operator()(Tup &&tup, Tups &&... tups) const {
-                    for_each_impl_f< make_gt_index_sequence< meta::length< decay_t< Tup > >::value > >{}(
-                        m_fun, std::forward< Tup >(tup), std::forward< Tups >(tups)...);
+                template < class... Tups >
+                void operator()(Tups &&... tups) const {
+                    for_each_in_cartesian_product_impl_f< GT_META_CALL(
+                        meta::cartesian_product, (GT_META_CALL(meta::make_indices_for, decay_t< Tups >)...)) >{}(
+                        m_fun, std::forward< Tups >(tups)...);
                 }
             };
 
@@ -364,7 +415,7 @@ namespace gridtools {
                     using generators =
                         GT_META_CALL(meta::transform,
                             (get_drop_front_generator,
-                                         GT_META_CALL(meta::make_indices, meta::length< Accessors >::value - N)));
+                                         GT_META_CALL(meta::make_indices_c, meta::length< Accessors >::value - N)));
                     return generate_f< generators, Res >{}(std::forward< Tup >(tup));
                 }
             };
@@ -538,7 +589,9 @@ namespace gridtools {
          */
         template < class Fun, class Tup, class... Tups >
         void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
-            _impl::for_each_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tup >(tup), std::forward< Tups >(tups)...);
+            transform(_impl::for_each_adaptor_f< Fun >{std::forward< Fun >(fun)},
+                std::forward< Tup >(tup),
+                std::forward< Tups >(tups)...);
         }
 
         /**
@@ -572,7 +625,48 @@ namespace gridtools {
          * @endcode
          */
         template < class Fun >
-        constexpr _impl::for_each_f< Fun > for_each(Fun fun) {
+        constexpr _impl::transform_f< _impl::for_each_adaptor_f< Fun > > for_each(Fun fun) {
+            return {{std::move(fun)}};
+        }
+
+        /**
+         * @brief Calls a function for each element in a cartesian product of the given tuples.
+         *
+         * If only a function but no tuples are passed, a composable functor is returned.
+         *
+         * @tparam Fun Functor type.
+         * @tparam Tup Optional tuple-like type.
+         * @tparam Tups Optional Tuple-like types.
+         *
+         * @param fun Function that should be called for each element in a cartesian product of the given tuples.
+         * @param tup First tuple-like object, serves as first arguments to `fun` if given.
+         * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
+         *
+         * Example code:
+         * @code
+         * struct sum {
+         *     double& value;
+         *     template < class A, class B >
+         *     void operator()(A a, B b) const {
+         *         if (mask)
+         *             value += a * b;
+         *     }
+         * };
+         *
+         * // Binary function
+         * sum_value = 0.;
+         * for_each(sum{sum_value}, std::make_tuple(1, 2, 3), std::make_tuple(1, 10));
+         * // sum_value == 66.
+         * @endcode
+         */
+        template < class Fun, class Tup, class... Tups >
+        void for_each_in_cartesian_product(Fun &&fun, Tup &&tup, Tups &&... tups) {
+            _impl::for_each_in_cartesian_product_f< Fun >{std::forward< Fun >(fun)}(
+                std::forward< Tup >(tup), std::forward< Tups >(tups)...);
+        }
+
+        template < class Fun >
+        constexpr _impl::for_each_in_cartesian_product_f< Fun > for_each_in_cartesian_product(Fun fun) {
             return {std::move(fun)};
         }
 
