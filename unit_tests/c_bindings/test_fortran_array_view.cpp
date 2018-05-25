@@ -60,7 +60,7 @@ namespace gridtools {
             struct StaticHypercube {
                 StaticHypercube(double *data) : data_(data) {}
 
-                double operator()(const std::array< size_t, Rank > &element) {
+                double operator()(const std::array< size_t, Rank > &element) const {
                     size_t index = 0;
                     for (size_t i = 0; i < Rank; ++i) {
                         if (element[i] >= 2) {
@@ -101,7 +101,7 @@ namespace gridtools {
             struct DynamicHypercube {
                 DynamicHypercube(double *data, size_t rank) : data_(data), rank_(rank) {}
 
-                double operator()(const std::vector< size_t > &element) {
+                double operator()(const std::vector< size_t > &element) const {
                     if (element.size() != rank_) {
                         throw std::out_of_range("Rank out of range");
                     }
@@ -196,7 +196,7 @@ namespace gridtools {
                     data_ = reinterpret_cast< double * >(descriptor.data);
                 }
 
-                double operator()(const std::array< size_t, Rank > &element) {
+                double operator()(const std::array< size_t, Rank > &element) const {
                     size_t index = 0;
                     for (size_t i = 0; i < Rank; ++i) {
                         if (element[i] >= 2) {
@@ -238,7 +238,7 @@ namespace gridtools {
                     data_ = reinterpret_cast< double * >(descriptor.data);
                 }
 
-                double operator()(const std::array< size_t, Rank > &element) {
+                double operator()(const std::array< size_t, Rank > &element) const {
                     size_t index = 0;
                     for (size_t i = 0; i < Rank; ++i) {
                         if (element[i] >= 2) {
