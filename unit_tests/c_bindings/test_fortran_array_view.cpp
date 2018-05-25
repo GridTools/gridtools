@@ -157,7 +157,7 @@ namespace gridtools {
                 gt_fortran_array_descriptor descriptor{gt_fk_Float, 4, {4, 3, 2, 1}, &data[0]};
 
                 auto &view = make_fortran_array_view< float(&)[1][2][3][4] >(&descriptor);
-                static_assert(std::is_same< decltype(array), float(&)[1][2][3][4] >::value, "");
+                static_assert(std::is_same< decltype(view), float(&)[1][2][3][4] >::value, "");
                 EXPECT_EQ(view, descriptor.data);
 
                 EXPECT_THROW(make_fortran_array_view< float(&)[1][2][3][3] >(&descriptor), std::runtime_error);
