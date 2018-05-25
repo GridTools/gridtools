@@ -51,6 +51,7 @@ std::ostream &operator<<(std::ostream &strm, const gt_fortran_array_descriptor &
         strm << d.dims[i];
     }
     strm << "], Data: " << d.data;
+    return strm;
 }
 
 namespace gridtools {
