@@ -290,6 +290,11 @@ namespace gridtools {
                 }
             };
 
+            template < typename CSignature >
+            struct has_array_descriptor
+                : is_there_in_sequence_if< typename boost::function_types::parameter_types< CSignature >::type,
+                      std::is_same< boost::mpl::_, gt_fortran_array_descriptor * > > {};
+
             /**
              * @brief This function writes the `interface`-section of the fortran-code.
              * @param strm Stream, where the output will be written to
@@ -299,9 +304,6 @@ namespace gridtools {
             template < class CSignature >
             std::ostream &write_fortran_binding(std::ostream &strm, char const *c_name, char const *fortran_name) {
                 namespace ft = boost::function_types;
-                constexpr bool has_array_descriptor =
-                    is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
-                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor * > >::value;
                 strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " "
                      << fortran_name << "(";
                 for_each_param< CSignature >(ignore_type_f{},
@@ -316,7 +318,7 @@ namespace gridtools {
                 else
                     strm << " &\n        bind(c, name=\"" << c_name << "\")";
                 strm << "\n      use iso_c_binding\n";
-                if (has_array_descriptor)
+                if (has_array_descriptor< CSignature >::value)
                     strm << "      use array_descriptor\n";
                 for_each_param< CSignature >(fortran_param_type_from_c_f{},
                     [&](const std::string &type_name, int i) {
@@ -357,9 +359,6 @@ namespace gridtools {
                 std::ostream &strm, char const *fortran_cbindings_name, const char *fortran_name) {
                 using CSignature = wrapped_t< CppSignature >;
                 namespace ft = boost::function_types;
-                constexpr bool has_array_descriptor =
-                    is_there_in_sequence_if< typename ft::parameter_types< CSignature >::type,
-                        std::is_same< boost::mpl::_, gt_fortran_array_descriptor * > >::value;
 
                 strm << "    " << fortran_return_type< typename ft::result_type< CSignature >::type >() << " "
                      << fortran_name << "(";
@@ -370,7 +369,7 @@ namespace gridtools {
                         strm << "arg" << i;
                     });
                 strm << ")\n      use iso_c_binding\n";
-                if (has_array_descriptor) {
+                if (has_array_descriptor< CSignature >::value) {
                     strm << "      use array_descriptor\n";
                 }
                 for_each_param< CppSignature >(fortran_param_type_from_cpp_f{},
