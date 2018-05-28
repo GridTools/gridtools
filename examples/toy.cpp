@@ -283,6 +283,8 @@ template < class... Funs, class... Outs, class... Args >
 class intermediate_f< spec::stages< spec::stage< Funs, Outs, Args >... > > {
     using stages_t = spec::stages< spec::stage< Funs, Outs, Args >... >;
 
+    GRIDTOOLS_STATIC_ASSERT(sizeof...(Funs), "Invalid stencil composition spec.");
+
     grid_t m_grid;
     std::vector< tmp_storage > m_tmp_storages;
 
