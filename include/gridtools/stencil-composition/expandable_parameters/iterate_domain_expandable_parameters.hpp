@@ -85,25 +85,18 @@ namespace gridtools {
         using super::operator();
 
         /**
-       @brief set the offset in the storage_list and forward to the base class
-
-       when the vector_accessor is passed to the iterate_domain we know we are accessing an
-       expandable parameters list. Accepts rvalue arguments (accessors constructed in-place)
-
-       \param arg the vector accessor
-     */
-        // rvalue
+         * @brief Set the offset in the storage_list and forward to the base class.
+         *
+         * When the vector_accessor is passed to the iterate_domain we know we are accessing an expandable parameters
+         * list. Accepts rvalue arguments (accessors constructed in-place).
+         *
+         * @param arg The vector accessor.
+         */
         template < uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size >
-        GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
-            accessor< ACC_ID, Intent, Extent, Size > >::type
+        GT_FUNCTION typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
         operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {
-            typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
-                return_t;
-            // check that if the storage is written the accessor is inout
-
             accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
             tmp_.template set< 0 >(ID);
-
             return super::operator()(tmp_);
         }
 
