@@ -15,10 +15,10 @@
 #include <gtest/gtest.h>
 
 #include <common/defs.hpp>
-#include <common/functional.hpp>
 #include <common/tuple_util.hpp>
 #include <common/generic_metafunctions/for_each.hpp>
 #include <common/generic_metafunctions/meta.hpp>
+#include <common/generic_metafunctions/type_traits.hpp>
 
 using namespace gridtools;
 
@@ -36,7 +36,7 @@ using namespace gridtools;
  *   StencilComposition - a pure generic functor that takes Evaluator as a first parameter. Other parameters represent
  *   inputs of the StencilComposition. StencilComposition defines the way how the composition of stencils is expressed
  *   via composition of functions. The actual invocation of the composition (like `a(x, b(x, y))`) should be never
- *   written dirtectly but delegated to evaluator (like `eval(a, eval(b, x, y))`)
+ *   written directly but delegated to evaluator (like `eval(a, eval(b, x, y))`)
  */
 
 struct lap_f {
@@ -117,7 +117,9 @@ shifted_f< Impl, ptrdiff_2d_t > shift(Impl const &impl, ptrdiff_t x, ptrdiff_t y
 
 template < class Container >
 size_t size(Container const &container) {
-    return std::end(container) - std::begin(container);
+    using std::begin;
+    using std::end;
+    return end(container) - begin(container);
 }
 
 /*
@@ -237,17 +239,14 @@ struct accessor_maker_f {
         return {acc, m_offset};
     }
 
-    shifted_f< Output, ptrdiff_2d_t & > operator()(spec::out) const { return bind_offset(m_output); }
+    auto operator()(spec::out) const GT_AUTO_RETURN(bind_offset(m_output));
 
-    template < size_t I, class Input = GT_META_CALL(meta::at_c, (meta::list< Inputs... >, I)) >
-    shifted_f< Input, ptrdiff_2d_t & > operator()(spec::in< I >) const {
-        return bind_offset(std::get< I >(m_inputs));
-    }
+    template < size_t I >
+    auto operator()(spec::in< I >) const GT_AUTO_RETURN(bind_offset(std::get< I >(m_inputs)));
 
-    template < size_t I, class Tmp = shifted_f< adapt_f< tmp_storage >, ptrdiff_2d_t > >
-    shifted_f< Tmp, ptrdiff_2d_t & > operator()(spec::tmp< I >) const {
-        return bind_offset(shift(adapt(m_tmp_storages[I]), -m_grid.x.begin, -m_grid.y.begin));
-    }
+    template < size_t I >
+    auto operator()(spec::tmp< I >) const
+        GT_AUTO_RETURN(bind_offset(shift(adapt(m_tmp_storages[I]), -m_grid.x.begin, -m_grid.y.begin)));
 };
 
 template < class Output, class... Inputs >
