@@ -462,13 +462,30 @@ struct input_f {
 input_f make_input(size_t x, size_t y) { return {x, y}; }
 
 namespace static_tests {
+
+    using meta_detail::call_graph;
+    using meta::list;
     using namespace spec;
 
-    using expected_stages = stages< //
-        stage< lap_f, tmp< 0 >, args< in< 0 > > >,
-        stage< flx_f, tmp< 1 >, args< in< 0 >, tmp< 0 > > >,
-        stage< fly_f, tmp< 2 >, args< in< 0 >, tmp< 0 > > >,
-        stage< out_f, out, args< in< 0 >, tmp< 1 >, tmp< 2 >, in< 1 > > > >;
+    using expected_call_graph = list<                                       //
+        out_f,                                                              //
+        args< in< 0 >,                                                      //
+            list< flx_f, args< in< 0 >, list< lap_f, args< in< 0 > > > > >, //
+            list< fly_f, args< in< 0 >, list< lap_f, args< in< 0 > > > > >, //
+            in< 1 >                                                         //
+            >                                                               //
+        >;                                                                  //
+
+    using actual_call_graph = GT_META_CALL(call_graph, (2, diffusion_f));
+
+    static_assert(std::is_same< actual_call_graph, expected_call_graph >{}, "");
+
+    using expected_stages = stages<                                       //
+        stage< lap_f, tmp< 0 >, args< in< 0 > > >,                        //
+        stage< flx_f, tmp< 1 >, args< in< 0 >, tmp< 0 > > >,              //
+        stage< fly_f, tmp< 2 >, args< in< 0 >, tmp< 0 > > >,              //
+        stage< out_f, out, args< in< 0 >, tmp< 1 >, tmp< 2 >, in< 1 > > > //
+        >;                                                                //
 
     using actual_stages = GT_META_CALL(stage_specs, (2, diffusion_f));
 
