@@ -34,37 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
+#include "storage/storage-facility.hpp"
+#include "interface/repository/repository.hpp"
 
-#include "../../common/defs.hpp"
-#include "../../common/cuda_is_ptr.hpp"
-#include "layout_transformation_config.hpp"
-#include "layout_transformation_helper.hpp"
-#include "layout_transformation_impl_cuda.hpp"
-#include "layout_transformation_impl_omp.hpp"
+using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 0, 3 >;
+using IJKDataStore =
+    typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
+        IJKStorageInfo >;
+using IJStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 1, 2 >;
+using IJDataStore =
+    typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
+        IJStorageInfo >;
 
-#include <vector>
-
-namespace gridtools {
-    namespace impl {
-        inline bool both_gpu_ptrs(void *ptr1, void *ptr2) { return is_gpu_ptr(ptr1) && is_gpu_ptr(ptr2); }
-        inline bool both_not_gpu_ptrs(void *ptr1, void *ptr2) { return !is_gpu_ptr(ptr1) && !is_gpu_ptr(ptr2); }
-    }
-
-    namespace interface {
-        template < typename DataType >
-        void transform(DataType *dst,
-            DataType *src,
-            const std::vector< uint_t > &dims,
-            const std::vector< uint_t > &dst_strides,
-            const std::vector< uint_t > &src_strides) {
-            if (impl::both_gpu_ptrs(dst, src))
-                impl::transform_cuda_loop(dst, src, dims, dst_strides, src_strides);
-            else if (impl::both_not_gpu_ptrs(dst, src))
-                impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
-            else
-                throw std::runtime_error("transform(): source and destination pointers need to be from the same memory "
-                                         "space (both host or both gpu pointers)");
-        }
-    }
-}
+#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))
+#define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)
+GRIDTOOLS_MAKE_REPOSITORY(exported_repository, MY_FIELDTYPES, MY_FIELDS)
+#undef MY_FIELDTYPES
+#undef MY_FIELDS

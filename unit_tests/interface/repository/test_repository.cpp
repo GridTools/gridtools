@@ -39,6 +39,7 @@
 
 #include "storage/storage-facility.hpp"
 #include "interface/repository/repository.hpp"
+#include "exported_repository.hpp"
 
 using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 0, 3 >;
 using IJKDataStore =
@@ -187,4 +188,10 @@ TEST(repository_with_custom_getter_prefix, constructor) {
     ASSERT_EQ(Ni, repo.get_v().dim< 0 >());
     ASSERT_EQ(Nj, repo.get_v().dim< 1 >());
     ASSERT_EQ(Nk, repo.get_v().dim< 2 >());
+}
+
+extern "C" bool call_repository(); // implemented in test_repository.f90
+TEST(repository_with_custom_getter_prefix, fortran_bindings) {
+    // the test for this code is in exported_repository.cpp
+    call_repository();
 }
