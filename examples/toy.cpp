@@ -506,6 +506,6 @@ TEST(toy, diffusion) {
     testee.run(output, input, coeff);
 
     for (size_t i = 0; i < size.x; ++i)
-        for (size_t j; j < size.y; ++j)
-            EXPECT_THAT(output(i, j), testing::NanSensitiveDoubleEq(expected(i, j)));
+        for (size_t j = 0; j < size.y; ++j)
+            EXPECT_THAT(output(i, j), testing::NanSensitiveDoubleEq(expected(i, j))) << " (" << i << ", " << j << ")";
 }
