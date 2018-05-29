@@ -39,6 +39,12 @@
 #include "host_device.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup pair Simple Pair
+        @{
+    */
+
     /**
        @brief simple wrapper for a pair of types
      */
@@ -146,6 +152,8 @@ namespace gridtools {
     constexpr GT_FUNCTION pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
         return pair< T1, T2 >(t1_, t2_);
     }
+    /** @} */
+    /** @} */
 
     template < typename T >
     struct tuple_size;

@@ -56,7 +56,7 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Naive strategy
+       @brief specialization for the \ref gridtools::enumtype::Naive strategy
     */
     template <>
     struct strategy_from_id_mic< enumtype::Naive > {
@@ -78,7 +78,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(
@@ -129,7 +129,7 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref gridtools::_impl::Block strategy
+       @brief specialization for the \ref gridtools::enumtype::Block strategy
        The loops over i and j are split according to the values of BI and BJ
     */
     template <>
@@ -152,7 +152,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(

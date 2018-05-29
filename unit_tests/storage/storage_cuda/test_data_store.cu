@@ -53,12 +53,26 @@ __global__ void mul2(double *s) {
 
 template < typename StorageInfo >
 __global__ void check_vals(double *s, StorageInfo const *si) {
-    for (uint_t i = 0; i < 128; ++i)
-        for (uint_t j = 0; j < 128; ++j)
-            for (uint_t k = 0; k < 80; ++k) {
+    for (uint_t i = 0; i < si->template total_length< 0 >(); ++i)
+        for (uint_t j = 0; j < si->template total_length< 1 >(); ++j)
+            for (uint_t k = 0; k < si->template total_length< 2 >(); ++k) {
                 int x = si->index(i, j, k);
                 if (s[x] > 3.141499 && s[x] < 3.141501) {
                     s[x] = 1.0;
+                } else {
+                    s[x] = 0.0;
+                }
+            }
+}
+
+template < typename StorageInfo >
+__global__ void check_vals_lambda(double *s, StorageInfo const *si) {
+    for (uint_t i = 0; i < si->template total_length< 0 >(); ++i)
+        for (uint_t j = 0; j < si->template total_length< 1 >(); ++j)
+            for (uint_t k = 0; k < si->template total_length< 2 >(); ++k) {
+                int x = si->index(i, j, k);
+                if (s[x] == i + j + k) {
+                    s[x] = i + j + k + 1.0;
                 } else {
                     s[x] = 0.0;
                 }
@@ -75,44 +89,30 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 0 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 1 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_dim< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_dim< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_dim< 2 >() == 3, "dimension check failed.");
+
     GRIDTOOLS_STATIC_ASSERT(csi.stride< 0 >() == 1, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.stride< 1 >() == 3, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.stride< 2 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.unaligned_stride< 2 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.get_initial_offset() == 0, "init. offset check failed");
 
     GRIDTOOLS_STATIC_ASSERT(csih.dim< 0 >() == 7, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.dim< 1 >() == 5, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_dim< 2 >() == 3, "dimension check failed.");
+
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 0 >() == 1, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 1 >() == 7, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride< 2 >() == 35, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_stride< 1 >() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.unaligned_stride< 2 >() == 35, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.get_initial_offset() == 0, "init. offset check failed");
 
-    EXPECT_EQ(csiha.dim< 0 >(), 16);
+    EXPECT_EQ(csiha.dim< 0 >(), 7);
     EXPECT_EQ(csiha.dim< 1 >(), 5);
     EXPECT_EQ(csiha.dim< 2 >(), 3);
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_dim< 2 >() == 3, "dimension check failed.");
+
+    EXPECT_EQ(csiha.padded_length< 0 >(), 16);
+    EXPECT_EQ(csiha.padded_length< 1 >(), 5);
+    EXPECT_EQ(csiha.padded_length< 2 >(), 3);
+
     EXPECT_EQ(csiha.stride< 0 >(), 1);
     EXPECT_EQ(csiha.stride< 1 >(), 16);
-    EXPECT_EQ(csiha.stride< 2 >(), 80);
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_stride< 1 >() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.unaligned_stride< 2 >() == 35, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csiha.get_initial_offset() == 14, "init. offset check failed");
+    EXPECT_EQ(csiha.stride< 2 >(), 16 * 5);
 
     // create unallocated data_store
     data_store_t ds;
@@ -193,23 +193,25 @@ TEST(DataStoreTest, States) {
 }
 
 TEST(DataStoreTest, Initializer) {
-    storage_info_t si(128, 128, 80);
+    storage_info_t si(12, 12, 8);
     data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
     check_vals<<< 1, 1 >>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
     ds.clone_from_device();
-    for (uint_t i = 0; i < 128; ++i)
-        for (uint_t j = 0; j < 128; ++j)
-            for (uint_t k = 0; k < 80; ++k)
+    for (uint_t i = 0; i < 12; ++i)
+        for (uint_t j = 0; j < 12; ++j)
+            for (uint_t k = 0; k < 8; ++k)
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 1.0);
 }
 
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
     data_store< cuda_storage< double >, storage_info_t > ds(si, [](int i, int j, int k) { return i + j + k; });
+    check_vals_lambda<<< 1, 1 >>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    ds.clone_from_device();
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 11; ++j)
             for (uint_t k = 0; k < 12; ++k)
-                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), (i + j + k));
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), (i + j + k + 1.0));
 }
 
 TEST(DataStoreTest, Naming) {

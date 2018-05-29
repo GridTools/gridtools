@@ -41,6 +41,13 @@
 #include "../defs.hpp"
 
 namespace gridtools {
+
+    /** \ingroup common
+        @{
+        \defgroup fixes External Library Fixes
+        @{
+    */
+
     /**
      * type trait that removes __restrict__ qualifier from a type
      */
@@ -75,4 +82,6 @@ namespace gridtools {
         using type = typename boost::remove_cv< typename boost::remove_reference<
             typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type;
     };
+    /** @} */
+    /** @} */
 }

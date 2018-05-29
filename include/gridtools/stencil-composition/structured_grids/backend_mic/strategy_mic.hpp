@@ -76,7 +76,7 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     * @brief Specialization for the \ref gridtools::_impl::Block strategy.
+     * @brief Specialization for the \ref gridtools::enumtype::Block strategy.
      */
     template <>
     struct strategy_from_id_mic< enumtype::Block > {
@@ -98,7 +98,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
@@ -139,7 +139,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,

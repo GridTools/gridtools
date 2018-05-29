@@ -452,7 +452,7 @@ namespace gridtools {
         template < typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< StorageInfo::layout_t::unmasked_length != 0, void >::type operator()(
             const StorageInfo *storage_info) const {
-            using range = GT_META_CALL(meta::make_indices, StorageInfo::layout_t::unmasked_length - 1);
+            using range = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
             gridtools::for_each< range >(assign< StorageInfo >(storage_info, m_strides_cached));
         }
     };
@@ -474,8 +474,8 @@ namespace gridtools {
         int_t ptr_offset = BackendTraits::template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
         T *base_address = ptr - ptr_offset;
         // assert that the distance between the base address and the requested address is not exceeding the limits
-        int_t dist_to_first = (ptr + offset) - (base_address + sinfo->total_begin());
-        int_t dist_to_last = (ptr + offset) - (base_address + sinfo->total_end());
+        int_t dist_to_first = (ptr + offset) - (base_address);
+        int_t dist_to_last = (ptr + offset) - (base_address + sinfo->padded_total_length());
         return (dist_to_last <= 0) && (dist_to_first >= 0);
     }
 

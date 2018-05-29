@@ -41,6 +41,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup layout
+        @{
+    */
+
     /**
      *  @brief A class that is used as a selector when selecting which dimensions should be masked.
      *  E.g., Lets say we want to have a 3-dimensional storage but second dimension should be masked
@@ -57,4 +63,6 @@ namespace gridtools {
 
     template < bool... Bitmask >
     struct is_selector< selector< Bitmask... > > : boost::mpl::true_ {};
+    /** @} */
+    /** @} */
 }

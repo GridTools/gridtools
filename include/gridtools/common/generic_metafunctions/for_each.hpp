@@ -69,6 +69,13 @@ namespace gridtools {
         };
     }
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup foreach For Each
+        @{
+    */
     /// Calls fun(T{}) for each element of the type list List.
     template < class List, class Fun >
     GT_FUNCTION Fun for_each(Fun const &fun) {
@@ -87,4 +94,8 @@ namespace gridtools {
         _impl::host_for_each_f< List >{}(fun);
         return fun;
     };
+
+    /** @} */
+    /** @} */
+    /** @} */
 }

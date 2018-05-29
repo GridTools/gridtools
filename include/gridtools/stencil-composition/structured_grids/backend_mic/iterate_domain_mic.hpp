@@ -124,7 +124,7 @@ namespace gridtools {
 
         /**
          * @brief metafunction that computes the return type of all operator() of an accessor.
-         * If the temaplate argument is not an accessor ::type is mpl::void_.
+         * If the temaplate argument is not an accessor `type` is mpl::void_.
          */
         template < typename Accessor >
         struct accessor_return_type {
@@ -220,7 +220,7 @@ namespace gridtools {
         /** @brief Returns the current data index at offset (0, 0, 0) per meta storage. */
         GT_FUNCTION array_index_t index() const {
             array_index_t index_array;
-            gridtools::for_each< GT_META_CALL(meta::make_indices, N_META_STORAGES) >(index_getter(*this, index_array));
+            for_each< GT_META_CALL(meta::make_indices_c, N_META_STORAGES) >(index_getter(*this, index_array));
             return index_array;
         }
 
@@ -336,10 +336,10 @@ namespace gridtools {
          * Specialization for the generic accessors placeholders with arguments.
         */
         template < typename Acc, typename... Args >
-        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
+        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
                 std::cref(**boost::fusion::at< typename Acc::index_t >(local_domain.m_local_data_ptrs).second.data()),
-                accessor.get_arguments()));
+                accessor.get_arguments())) /** @endcond */;
 
         /**
          * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor

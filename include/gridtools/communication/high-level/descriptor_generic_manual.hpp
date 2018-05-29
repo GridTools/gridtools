@@ -554,7 +554,7 @@ namespace gridtools {
             cudaError_t err;
             err = cudaMalloc((&d_send_buffer), _impl::static_pow3< DIMS >::value * sizeof(DataType *));
             if (err != cudaSuccess) {
-                printf("Error creating buffer table on device. Size: %d\n",
+                printf("Error creating buffer table on device. Size: %lu\n",
                     _impl::static_pow3< DIMS >::value * sizeof(DataType *));
             }
 
@@ -563,13 +563,13 @@ namespace gridtools {
                 _impl::static_pow3< DIMS >::value * sizeof(DataType *),
                 cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
-                printf("Error transferring buffer table to device. Size: %d\n",
+                printf("Error transferring buffer table to device. Size: %lu\n",
                     _impl::static_pow3< DIMS >::value * sizeof(DataType *));
             }
 
             err = cudaMalloc((&d_recv_buffer), _impl::static_pow3< DIMS >::value * sizeof(DataType *));
             if (err != cudaSuccess) {
-                printf("Error creating buffer table (recv) on device. Size: %d\n",
+                printf("Error creating buffer table (recv) on device. Size: %lu\n",
                     _impl::static_pow3< DIMS >::value * sizeof(DataType *));
             }
 
@@ -578,7 +578,7 @@ namespace gridtools {
                 _impl::static_pow3< DIMS >::value * sizeof(DataType *),
                 cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
-                printf("Error transferring buffer table (recv) to device. Size: %d\n",
+                printf("Error transferring buffer table (recv) to device. Size: %lu\n",
                     _impl::static_pow3< DIMS >::value * sizeof(DataType *));
             }
         }
@@ -876,7 +876,9 @@ namespace gridtools {
             }
         }
 
+#ifndef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
 #include "./non_vect_interface.hpp"
+#endif
     };
 #endif // cudacc
 }
