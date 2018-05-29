@@ -227,7 +227,7 @@ template < class Container >
 size_t size(Container const &container) {
     using std::begin;
     using std::end;
-    return std::end(container) - begin(container);
+    return end(container) - begin(container);
 }
 
 template < class Container >
