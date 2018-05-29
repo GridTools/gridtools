@@ -282,8 +282,7 @@
  * @param data_stores_seq BOOST_PP sequence of tuples of the form (DataStoreType, VariableName)
  *
  * Main macro is GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
- * user-code
- * look nicer (no double parenthesis)
+ * user-code look nicer (no double parenthesis)
  */
 #define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(name, data_stores_seq) \
     GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_stores_seq))
