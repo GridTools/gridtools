@@ -3,7 +3,7 @@
 #include "exported_repository.hpp"
 
 #define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)(JKDataStore, jkfield)
-GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(exported_repository, MY_FIELDS)
+GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(exported_repository, exported, MY_FIELDS)
 #undef MY_FIELDS
 
 namespace {

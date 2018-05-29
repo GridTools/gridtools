@@ -15,9 +15,9 @@ function call_repository() bind (c, name="call_repository") &
     jkfield = reshape( (/ (I, I = 0, 4*5) /), shape(jkfield), (/ 0 /) )
 
     repository_handle = make_exported_repository(3, 4, 5)
-    call set_exported_repository_ijkfield(repository_handle, ijkfield)
-    call set_exported_repository_ijfield(repository_handle, ijfield)
-    call set_exported_repository_jkfield(repository_handle, jkfield)
+    call set_exported_ijkfield(repository_handle, ijkfield)
+    call set_exported_ijfield(repository_handle, ijfield)
+    call set_exported_jkfield(repository_handle, jkfield)
     ret = verify_exported_repository(repository_handle)
 
 end function

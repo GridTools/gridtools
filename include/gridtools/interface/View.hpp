@@ -32,7 +32,9 @@ namespace gridtools {
             for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {
                 if (Layout::at(c_dim) >= 0) {
                     if (descriptor.dims[fortran_dim] != result.dims[c_dim])
-                        throw std::runtime_error("dimensions do not match");
+                        throw std::runtime_error("dimensions do not match (descriptor [" +
+                                                 std::to_string(descriptor.dims[fortran_dim]) + "] != data_store [" +
+                                                 std::to_string(result.dims[c_dim]) + "])");
                     ++fortran_dim;
                 }
             }
