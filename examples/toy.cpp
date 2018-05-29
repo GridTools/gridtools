@@ -151,8 +151,6 @@ shifted_f< Accessor, ptrdiff_2d_t > shift(Accessor const &accessor, ptrdiff_t x,
     return {accessor, {x, y}};
 }
 
-/////////// Implementation of the Nested Call ////////////////////
-
 template < class Stencil, class Indices, class... Accessors >
 struct result_accessor_impl_f;
 
@@ -250,8 +248,8 @@ static double ignored;
 
 // Models (Output)Accessor
 template < class Container >
-struct adapt_f {
-    adapt_f(Container &container) : m_container(container), m_size{size_2d(container)} {}
+struct adapted_f {
+    adapted_f(Container &container) : m_container(container), m_size{size_2d(container)} {}
     double operator()(size_t i = 0, size_t j = 0) const {
         using std::begin;
         return i < m_size.x && j < m_size.y ? *(begin(*(begin(m_container) + i)) + j) : NAN;
@@ -265,7 +263,7 @@ struct adapt_f {
 };
 
 template < class Container >
-adapt_f< Container > adapt(Container &container) {
+adapted_f< Container > adapt(Container &container) {
     return {container};
 }
 
@@ -399,10 +397,10 @@ struct run_stencil_f {
 };
 
 template < class >
-class intermediate_f;
+class intermediate;
 
 template < class... Stencils, class... Outs, class... Args >
-class intermediate_f< spec::stages< spec::stage< Stencils, Outs, Args >... > > {
+class intermediate< spec::stages< spec::stage< Stencils, Outs, Args >... > > {
     using stages_t = spec::stages< spec::stage< Stencils, Outs, Args >... >;
 
     GRIDTOOLS_STATIC_ASSERT(sizeof...(Stencils), "Invalid stencil composition spec.");
@@ -411,7 +409,7 @@ class intermediate_f< spec::stages< spec::stage< Stencils, Outs, Args >... > > {
     std::vector< tmp_storage > m_tmp_storages;
 
   public:
-    intermediate_f(grid_t const &grid) : m_grid(grid) {
+    intermediate(grid_t const &grid) : m_grid(grid) {
         for (size_t i = 0; i != sizeof...(Stencils)-1; ++i)
             m_tmp_storages.emplace_back(size_2d(grid));
     }
@@ -522,7 +520,7 @@ using meta_detail::call_graph;
 using meta_detail::stage_specs;
 
 template < size_t Arity, class Composition, class Stages = GT_META_CALL(stage_specs, (Arity, Composition)) >
-intermediate_f< Stages > make_computation(grid_t const &grid, Composition const &) {
+intermediate< Stages > make_computation(grid_t const &grid, Composition const &) {
     return {grid};
 }
 
