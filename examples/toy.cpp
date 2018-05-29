@@ -26,7 +26,7 @@ using namespace gridtools;
 
 /*
  * Concepts:
- *   Accessor - a pure functor that has a signatures compatible with `double(ptrdiff_t = 0, ptrdiff_t = 0)`
+ *   Accessor - a pure functor that has a signature compatible with `double(ptrdiff_t = 0, ptrdiff_t = 0)`
  *
  *   Stencil - a pure generic functor that takes accessors and returns double: `double(Accessor const&...)`
  *
@@ -88,6 +88,25 @@ struct diffusion_f {
  *  Concept of 2D(Type) : has x and y members of type Type
  */
 
+// Traits for 2D
+template < class, class = void >
+struct is_2d : std::false_type {};
+
+template < class T >
+struct is_2d< T,
+    enable_if_t< std::is_same< decltype(std::declval< T >().x), decltype(std::declval< T >().y) >::value > >
+    : std::true_type {};
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+template < class T >
+struct remove_2d {
+    using type = decltype(std::declval< T >().x);
+};
+#else
+template < class T >
+using remove_2d = decltype(std::declval< T >().x);
+#endif
+
 // Models 2D
 template < class T >
 struct _2d {
@@ -97,6 +116,8 @@ struct _2d {
 
 using size_2d_t = _2d< size_t >;
 using ptrdiff_2d_t = _2d< ptrdiff_t >;
+
+static_assert(is_2d< size_2d_t >{}, "");
 
 struct range {
     ptrdiff_t begin;
@@ -110,9 +131,14 @@ size_2d_t size_2d(grid_t const &grid) {
 }
 
 // models Accessor
-// decayed Offset should model 2D of smth. converitble to ptrdiff_t
 template < class Accessor, class Offset >
 struct shifted_f {
+
+    // decayed Offset should model 2D of smth. convertible to ptrdiff_t
+    GRIDTOOLS_STATIC_ASSERT(is_2d< decay_t< Offset > >{}, GT_INTERNAL_ERROR);
+    GRIDTOOLS_STATIC_ASSERT(
+        (std::is_convertible< GT_META_CALL(remove_2d, decay_t< Offset >), ptrdiff_t >{}), GT_INTERNAL_ERROR);
+
     Accessor m_accessor;
     Offset m_offset;
 
