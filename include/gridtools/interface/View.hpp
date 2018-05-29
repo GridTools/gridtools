@@ -59,7 +59,8 @@ namespace gridtools {
       public:
         View(const gt_fortran_array_descriptor &descriptor) : descriptor_(descriptor) {
             if (descriptor_.rank != gt_view_rank::value)
-                throw std::runtime_error("rank does not match");
+                throw std::runtime_error("rank does not match (descriptor-rank [" + std::to_string(descriptor_.rank) +
+                                         "] != datastore-rank [" + std::to_string(gt_view_rank::value) + "]");
         }
 
         View(const View &) = delete;
@@ -73,9 +74,9 @@ namespace gridtools {
       private:
         gt_fortran_array_descriptor descriptor_;
     };
-    template < class DataStore, class >
+    template < class DataStore, class = enable_if_t< is_data_store< remove_const_t< DataStore > >::value > >
     void transform(View< DataStore > &dest, const DataStore &src) {
-        if (!dest.descriptor_.data)
+        if (!dest.descriptor().data)
             throw std::runtime_error("no array to assign to");
 
         auto view_info = impl::get_view_info(src, dest.descriptor());
