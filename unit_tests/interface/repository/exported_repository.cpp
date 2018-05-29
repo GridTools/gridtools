@@ -2,15 +2,13 @@
 
 #include "exported_repository.hpp"
 
-#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))
-#define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)
+#define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)(JKDataStore, jkfield)
 GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(exported_repository, MY_FIELDS)
-#undef MY_FIELDTYPES
 #undef MY_FIELDS
 
 namespace {
     exported_repository make_exported_repository_impl(int Ni, int Nj, int Nk) {
-        return exported_repository(IJKStorageInfo(Ni, Nj, Nk), IJStorageInfo(Ni, Nj));
+        return exported_repository(IJKStorageInfo(Ni, Nj, Nk), IJStorageInfo(Ni, Nj, Nk), JKStorageInfo(Ni, Nj, Nk));
     }
     GT_EXPORT_BINDING_3(make_exported_repository, make_exported_repository_impl);
     bool verify_exported_repository_impl(exported_repository &repository) {
@@ -31,7 +29,16 @@ namespace {
         i = 0;
         for (int y = 0; y < ij_field.dim< 1 >(); ++y) {
             for (int x = 0; x < ij_field.dim< 0 >(); ++x) {
-                EXPECT_EQ(ij_view(x, y), i++);
+                EXPECT_EQ(ij_view(x, y, 0), i++);
+            }
+        }
+
+        auto jk_field = repository.jkfield();
+        auto jk_view = make_host_view(jk_field);
+        i = 0;
+        for (int z = 0; z < jk_field.dim< 2 >(); ++z) {
+            for (int y = 0; y < jk_field.dim< 1 >(); ++y) {
+                EXPECT_EQ(jk_view(0, y, z), i++);
             }
         }
     }

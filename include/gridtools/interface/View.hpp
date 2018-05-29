@@ -50,17 +50,11 @@ namespace gridtools {
             return result;
         }
     }
+
     template < class DataStore,
         class StorageInfo = typename DataStore::storage_info_t,
         class Layout = typename DataStore::storage_info_t::layout_t,
         class = enable_if_t< is_data_store< remove_const_t< DataStore > >::value > >
-    class View;
-    template < class DataStore, class = enable_if_t< is_data_store< remove_const_t< DataStore > >::value > >
-    void transform(View< DataStore > &dest, const DataStore &src);
-    template < class DataStore, class = enable_if_t< is_data_store< remove_const_t< DataStore > >::value > >
-    void transform(DataStore &dest, const View< DataStore > &src);
-
-    template < class DataStore, class StorageInfo, class Layout, class >
     class View {
       public:
         View(const gt_fortran_array_descriptor &descriptor) : descriptor_(descriptor) {
@@ -74,8 +68,7 @@ namespace gridtools {
         using gt_view_rank = std::integral_constant< size_t, Layout::unmasked_length >;
         using gt_view_element_type = typename DataStore::data_t;
 
-        friend void transform<>(View< DataStore > &dest, const DataStore &src);
-        friend void transform<>(DataStore &dest, const View< DataStore > &src);
+        const gt_fortran_array_descriptor &descriptor() const { return descriptor_; }
 
       private:
         gt_fortran_array_descriptor descriptor_;
@@ -85,7 +78,7 @@ namespace gridtools {
         if (!dest.descriptor_.data)
             throw std::runtime_error("no array to assign to");
 
-        auto view_info = impl::get_view_info(src, dest.descriptor_);
+        auto view_info = impl::get_view_info(src, dest.descriptor());
 
         interface::transform(view_info.fortran_pointer,
             view_info.cpp_pointer,
@@ -95,7 +88,7 @@ namespace gridtools {
     }
     template < class DataStore, class = enable_if_t< is_data_store< remove_const_t< DataStore > >::value > >
     void transform(DataStore &dest, const View< DataStore > &src) {
-        auto view_info = impl::get_view_info(dest, src.descriptor_);
+        auto view_info = impl::get_view_info(dest, src.descriptor());
 
         interface::transform(view_info.cpp_pointer,
             view_info.fortran_pointer,

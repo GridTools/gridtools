@@ -45,10 +45,6 @@ using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::
 using IJKDataStore =
     typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
         IJKStorageInfo >;
-using IJStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 1, 2 >;
-using IJDataStore =
-    typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
-        IJStorageInfo >;
 
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
@@ -59,7 +55,7 @@ GRIDTOOLS_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
 class simple_repository : public ::testing::Test {
   public:
     my_repository repo;
-    simple_repository() : repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22)) {}
+    simple_repository() : repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22, 33)) {}
 };
 
 TEST_F(simple_repository, access_fields) {
@@ -109,7 +105,7 @@ GRIDTOOLS_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDS
 
 TEST(two_repository, test) {
-    my_repository repo1(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+    my_repository repo1(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22, 33));
     my_repository2 repo2(IJKStorageInfo(22, 33, 44));
 
     ASSERT_EQ(3, repo1.data_stores().size());
@@ -122,7 +118,7 @@ class my_extended_repo : public my_repository {
 };
 
 TEST(extended_repo, inherited_functions) {
-    my_extended_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+    my_extended_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22, 33));
 
     ASSERT_EQ(10, repo.u().dim< 0 >());
 }
@@ -137,7 +133,8 @@ using IKDataStore =
     typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
         IKStorageInfo >;
 
-#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
+#define MY_FIELDTYPES \
+    (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
 #define MY_FIELDS (IJKDataStore, u)(IJDataStore, crlat)(IJKWDataStore, w)(IKDataStore, ikfield)
 GRIDTOOLS_MAKE_REPOSITORY(my_repository3, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
