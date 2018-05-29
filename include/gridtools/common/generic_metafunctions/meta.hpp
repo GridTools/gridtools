@@ -133,11 +133,8 @@ namespace gridtools {
      *    - meta::list<int> : is not a template
      *
      *  In the library some functions have integers as arguments. Usually they have `_c` suffix and have the sibling
-     * without
-     *  prefix [This is not always the case at a moment. ]
-     *  Disadvantage of having such a hybrid signature, that those functions can not be passed as arguments to high
-     * order
-     *  functions.
+     *  without prefix. Disadvantage of having such a hybrid signature, that those functions can not be passed as
+     *  arguments to high order functions.
      *
      *  Meta Class
      *  ----------
@@ -185,12 +182,10 @@ namespace gridtools {
      *
      *  `GT_META_CALL` and `GT_META_DEFINE_ALIAS` macros are defined to help keep the user code independent on that
      *  interface difference. Unfortunately in general case, it is not always possible to maintain that compatibility
-     * only
-     *  using that two macros. Direct <tt>\#if GT_BROKEN_TEMPLATE_ALIASES`</tt> could be necessary.
+     *  only using that two macros. Direct <tt>\#if GT_BROKEN_TEMPLATE_ALIASES`</tt> could be necessary.
      *
      *  Syntax sugar: All high order functions being called with only functional arguments return partially applied
-     * versions
-     *  of themselves [which became plane functions].
+     *  versions of themselves [which became plane functions].
      *  Example, where it could be useful is:
      *  transform a list of lists:  <tt>using out = meta::transform<meta::transform<fun>::apply, in>;</tt>
      *
@@ -224,8 +219,6 @@ namespace gridtools {
      *
      *  TODO List
      *  =========
-     *   - rename all "hybrid" functions to `*_c` together with adding regular version.
-     *   - implement cartesian product
      *   - add numeric stuff like `plus`, `less` etc.
      */
     namespace meta {
@@ -360,9 +353,9 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
 
             /// some forward declarations is needed here for technical reason.
-            template < class, class... >
+            template < class... >
             struct concat;
-            template < class, class... >
+            template < class... >
             struct push_back;
 
             template < template < class... > class, class... >
@@ -396,10 +389,10 @@ namespace gridtools {
         // 'direct' versions of lazy functions
         template < class Cond, class Lhs, class Rhs >
         using if_ = typename lazy::if_< Cond, Lhs, Rhs >::type;
-        template < class List, class... Lists >
-        using concat = typename lazy::concat< List, Lists... >::type;
-        template < class List, class... Ts >
-        using push_back = typename lazy::push_back< List, Ts... >::type;
+        template < class... Lists >
+        using concat = typename lazy::concat< Lists... >::type;
+        template < class... Ts >
+        using push_back = typename lazy::push_back< Ts... >::type;
 
         template < template < class... > class F, class... Args >
         using rename = typename lazy::rename< F, Args... >::type;
@@ -489,13 +482,16 @@ namespace gridtools {
              *  Make a list of integral constants of indices from 0 to N
              */
             template < size_t N >
-            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, make_gt_index_sequence< N >);
+            GT_META_DEFINE_ALIAS(make_indices_c, iseq_to_list, make_gt_index_sequence< N >);
+
+            template < class N >
+            GT_META_DEFINE_ALIAS(make_indices, make_indices_c, N::value);
 
             /**
              *  Make a list of integral constants of indices from 0 to length< List >
              */
             template < class List >
-            GT_META_DEFINE_ALIAS(make_indices_for, make_indices, length< List >::value);
+            GT_META_DEFINE_ALIAS(make_indices_for, make_indices, length< List >);
 
 // internals
 #if GT_BROKEN_TEMPLATE_ALIASES
@@ -529,10 +525,10 @@ namespace gridtools {
              *  Complexity is amortized O(1).
              */
             template < class N, class List >
-            GT_META_DEFINE_ALIAS(drop_front, drop_front_impl, (typename make_indices< N::value >::type, List));
+            GT_META_DEFINE_ALIAS(drop_front, drop_front_impl, (typename make_indices< N >::type, List));
 
             template < size_t N, class List >
-            GT_META_DEFINE_ALIAS(drop_front_c, drop_front_impl, (typename make_indices< N >::type, List));
+            GT_META_DEFINE_ALIAS(drop_front_c, drop_front_impl, (typename make_indices_c< N >::type, List));
 
             /**
              *   Applies binary function to the elements of the list.
@@ -624,15 +620,13 @@ namespace gridtools {
                 using type = decltype(select(std::declval< inherit_impl< id< Ts >... > >()));
             };
 
-            template < class, class... >
+            template < class... >
             struct push_front;
             template < template < class... > class L, class... Us, class... Ts >
             struct push_front< L< Us... >, Ts... > {
                 using type = L< Ts..., Us... >;
             };
 
-            template < class, class... >
-            struct push_back;
             template < template < class... > class L, class... Us, class... Ts >
             struct push_back< L< Us... >, Ts... > {
                 using type = L< Us..., Ts... >;
@@ -769,6 +763,8 @@ namespace gridtools {
             /**
              *  Concatenate lists
              */
+            template <>
+            struct concat<> : list<> {};
             template < template < class... > class L, class... Ts >
             struct concat< L< Ts... > > {
                 using type = L< Ts... >;
@@ -862,9 +858,13 @@ namespace gridtools {
             /**
              *  Produce a list of N identical elements
              */
-            template < size_t N, class T >
+            template < class N, class T >
             GT_META_DEFINE_ALIAS(
                 repeat, transform, (meta::always< T >::template apply, typename make_indices< N >::type));
+
+            template < size_t N, class T >
+            GT_META_DEFINE_ALIAS(
+                repeat_c, transform, (meta::always< T >::template apply, typename make_indices_c< N >::type));
 
 /**
  *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
@@ -889,7 +889,7 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(conjunction_fast,
                 std::is_same,
                 (list< std::integral_constant< bool, Ts::value >... >,
-                                     typename repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type >::type));
+                                     typename repeat_c< GT_SIZEOF_3_DOTS(Ts), std::true_type >::type));
 
             template < class... Ts >
             GT_META_DEFINE_ALIAS(disjunction_fast, negation, conjunction_fast< negation< Ts >... >);
@@ -1013,6 +1013,23 @@ namespace gridtools {
 
             template < size_t I, class... Params >
             struct replace_placeholders_impl< placeholder< I >, Params... > : at_c< list< Params... >, I > {};
+
+            template < class L >
+            struct cartesian_product_step_impl_impl {
+                template < class T >
+                GT_META_DEFINE_ALIAS(apply,
+                    meta::transform,
+                    (curry< meta::push_back, T >::template apply, typename rename< list, L >::type));
+            };
+
+            template < class S, class L >
+            GT_META_DEFINE_ALIAS(cartesian_product_step_impl,
+                meta::rename,
+                (meta::concat, typename transform< cartesian_product_step_impl_impl< L >::template apply, S >::type));
+
+            template < class... Lists >
+            GT_META_DEFINE_ALIAS(
+                cartesian_product, lfold, (cartesian_product_step_impl, list< list<> >, list< Lists... >));
         }
 
         /**
@@ -1067,8 +1084,10 @@ namespace gridtools {
         template < class List, class N >
         using at = typename lazy::at< List, N >::type;
 
-        template < size_t N >
+        template < class N >
         using make_indices = typename lazy::make_indices< N >::type;
+        template < size_t N >
+        using make_indices_c = typename lazy::make_indices_c< N >::type;
         template < class List >
         using make_indices_for = typename lazy::make_indices_for< List >::type;
         template < size_t N, class List >
@@ -1081,8 +1100,10 @@ namespace gridtools {
         using dedup = typename lazy::dedup< List >::type;
         template < class List, size_t N >
         using at_c = typename lazy::at_c< List, N >::type;
-        template < size_t N, class T >
+        template < class N, class T >
         using repeat = typename lazy::repeat< N, T >::type;
+        template < size_t N, class T >
+        using repeat_c = typename lazy::repeat_c< N, T >::type;
         template < template < class... > class Pred, template < class... > class F, class List >
         using selective_transform = typename lazy::selective_transform< Pred, F, List >::type;
         template < class List, class Old, class New >
@@ -1093,6 +1114,8 @@ namespace gridtools {
         using replace_at = typename lazy::replace_at< List, N, New >::type;
         template < class List, size_t N, class New >
         using replace_at_c = typename lazy::replace_at_c< List, N, New >::type;
+        template < class... Lists >
+        using cartesian_product = typename lazy::cartesian_product< Lists... >::type;
 #endif
     }
     /** @} */

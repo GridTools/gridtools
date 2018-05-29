@@ -21,7 +21,7 @@ macro(add_bindings_library)
     target_include_directories(${ARGV0}_c INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 
     add_library(${ARGV0}_fortran ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.f90)
-    target_link_libraries(${ARGV0}_fortran ${ARGV0} c_bindings_handle_fortran)
+    target_link_libraries(${ARGV0}_fortran ${ARGV0} c_bindings_handle_fortran array_descriptor)
     add_dependencies(${ARGV0}_fortran ${ARGV0}_declarations)
     target_include_directories(${ARGV0}_fortran INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 
