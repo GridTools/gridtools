@@ -203,12 +203,12 @@
 #endif
 #define GTREPO_get_binding_name(fortran_name, member_name) \
     BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(set_, fortran_name), _), member_name)
-#define GTREPO_make_binding_helper(repo_name, fortran_name, member_name, type)              \
-    void BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl)(           \
-        repo_name & repo, gridtools::View< type > view) {                                   \
-        gridtools::transform(repo.BOOST_PP_CAT(GTREPO_GETTER_PREFIX, member_name)(), view); \
-    }                                                                                       \
-    GT_EXPORT_BINDING_WRAPPED_2(GTREPO_get_binding_name(fortran_name, member_name),         \
+#define GTREPO_make_binding_helper(repo_name, fortran_name, member_name, type)      \
+    void BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl)(   \
+        repo_name & repo, gridtools::View< type > view) {                           \
+        transform(repo.BOOST_PP_CAT(GTREPO_GETTER_PREFIX, member_name)(), view);    \
+    }                                                                               \
+    GT_EXPORT_BINDING_WRAPPED_2(GTREPO_get_binding_name(fortran_name, member_name), \
         BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl));
 
 #define GTREPO_make_binding(r, data, tuple)                     \

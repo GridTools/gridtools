@@ -70,7 +70,7 @@ TEST(View, TransformViewIntoDataStore) {
                 fortranArray[z][y][x] = i;
 
     // transform view into dataStore
-    gridtools::transform(dataStore, fortranArrayView);
+    transform(dataStore, fortranArrayView);
 
     i = 0;
     for (size_t z = 0; z < zSize; ++z)
@@ -104,7 +104,7 @@ TEST(View, TransformDataStoreIntoView) {
                 dataStoreView(x, y, z) = i;
 
     // transform dataStore into fortranArrayView
-    gridtools::transform(fortranArrayView, dataStore);
+    transform(fortranArrayView, dataStore);
 
     i = 0;
     for (size_t z = 0; z < zSize; ++z)
