@@ -152,8 +152,8 @@ namespace gridtools {
 
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
-            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
+            const uint_t pes_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t pes_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
 
             constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
             constexpr int diff_between_blocks = ((storage_info_t::alignment_t::value > 1)
@@ -162,12 +162,11 @@ namespace gridtools {
                                                            storage_info_t::alignment_t::value
                                                      : full_block_size);
             constexpr int padding = diff_between_blocks - full_block_size;
-            const int inner_domain_size =
-                threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
+            const int inner_domain_size = pes_i * full_block_size - 2 * MaxExtent::value + (pes_i - 1) * padding;
 
             // create and return the storage info instance
             return storage_info_t(
-                inner_domain_size + 2 * halo_i, (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * threads_j, k_size);
+                inner_domain_size + 2 * halo_i, (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * pes_j, k_size);
         }
     };
 }
