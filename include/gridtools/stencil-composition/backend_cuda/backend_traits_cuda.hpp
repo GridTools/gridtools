@@ -147,10 +147,11 @@ namespace gridtools {
             constexpr int halo_j = StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >();
             // calculate the blocksize in I and J direction
 
-            // TODO they should be using RunFunctorArguments::cuda_block_size_t
-            // TODO all halo_j should be replaced by the proper extent for minus and/or plus dimension
+            // TODO (HV) they should be using RunFunctorArguments::cuda_block_size_t?
+            // TODO (HV) all halo_j should be replaced by the proper extent for minus and/or plus dimension
             constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j = 2 * halo_j + PEBlockSize::j_size_t::value; // maybe the 2 * halo_j makes sense?
+            constexpr int block_size_j =
+                2 * halo_j + PEBlockSize::j_size_t::value; // TODO (HV) maybe the 2 * halo_j is needed today?
 
             // protect against div. by 0 and compute the distance between two blocks
             constexpr int diff_between_blocks =
@@ -163,7 +164,7 @@ namespace gridtools {
             const uint_t i = processing_element_i() * diff_between_blocks + halo_i;
             const uint_t j_size = sinfo->stride< grid_traits_t::dim_j_t::value >();
             const uint_t j_index =
-                (processing_element_j() * block_size_j + gridDim.y - halo_j); // maybe or with some +halo...
+                (processing_element_j() * block_size_j + gridDim.y - halo_j); // TODO (HV): maybe or with some +halo...
 
             return i + j_index * j_size;
         }
