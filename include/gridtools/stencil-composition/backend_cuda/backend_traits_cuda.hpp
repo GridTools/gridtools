@@ -162,11 +162,11 @@ namespace gridtools {
 
             // compute offset in I and J
             const uint_t i = processing_element_i() * diff_between_blocks + halo_i;
-            const uint_t j_size = sinfo->stride< grid_traits_t::dim_j_t::value >();
+            const uint_t i_size = sinfo->stride< grid_traits_t::dim_i_t::value >();
             const uint_t j_index =
                 (processing_element_j() * block_size_j + gridDim.y - halo_j); // TODO (HV): maybe or with some +halo...
 
-            return i + j_index * j_size;
+            return i + j_index * i_size;
         }
 
         /**
