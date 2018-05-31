@@ -151,7 +151,7 @@ TEST(DataViewTest, Simple) {
     EXPECT_TRUE(dvro.valid());
     EXPECT_TRUE(dv_tmp.valid());
 
-    // destroy a stoorage, this should also invalidate the views
+    // destroy a storage, this should also invalidate the views
     ds.reset();
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));
