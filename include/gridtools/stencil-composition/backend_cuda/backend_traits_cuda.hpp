@@ -146,8 +146,12 @@ namespace gridtools {
             constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
             constexpr int halo_j = StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >();
             // calculate the blocksize in I and J direction
+
+            // TODO (HV) they should be using RunFunctorArguments::cuda_block_size_t?
+            // TODO (HV) all halo_j should be replaced by the proper extent for minus and/or plus dimension
             constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j = 2 * halo_j + PEBlockSize::j_size_t::value;
+            constexpr int block_size_j =
+                2 * halo_j + PEBlockSize::j_size_t::value; // TODO (HV) maybe the 2 * halo_j is needed today?
 
             // protect against div. by 0 and compute the distance between two blocks
             constexpr int diff_between_blocks =
@@ -158,10 +162,11 @@ namespace gridtools {
 
             // compute offset in I and J
             const uint_t i = processing_element_i() * diff_between_blocks + halo_i;
-            const uint_t j = Arg::location_t::n_colors::value *
-                             (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
-            // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
-            return i + j;
+            const uint_t i_size = sinfo->stride< grid_traits_t::dim_i_t::value >();
+            const uint_t j_index =
+                (processing_element_j() * block_size_j + gridDim.y - halo_j); // TODO (HV): maybe or with some +halo...
+
+            return i + j_index * i_size;
         }
 
         /**
