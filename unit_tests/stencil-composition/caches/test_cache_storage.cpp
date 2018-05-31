@@ -61,7 +61,7 @@ namespace test_multidimensional_caches {
         typedef typename cache_storage_t::meta_t m_t;
 
         static constexpr m_t m_;
-#if !defined(__INTEL_COMPILER) || (__INTEL_COMPILER < 1800)
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER < 1800 || __INTEL_COMPILER >= 1900
         // ICC 18 shows a strange bug here
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 10, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 7, "error");
@@ -130,7 +130,7 @@ namespace test_multidimensional_caches {
 
         static constexpr m_t m_;
 
-#if !defined(__INTEL_COMPILER) || (__INTEL_COMPILER < 1800)
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER < 1800 || __INTEL_COMPILER >= 1900
         // ICC 18 shows a strange bug here
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 1, "error");

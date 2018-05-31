@@ -77,7 +77,7 @@ bool test_alternative2() {
     constexpr dimension< 3 > k;
 
     constexpr dimension< 4 > t;
-#if defined(__INTEL_COMPILER) && __INTEL_COMPILER >= 1800
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER >= 1800 && __INTEL_COMPILER < 1900
     return true;
 #else
     constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
