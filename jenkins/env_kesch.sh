@@ -29,3 +29,5 @@ export USE_MPI_COMPILER=ON
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
+export MAKE_THREADS=8
+export SRUN_BUILD_COMMAND="srun -p pp-short -n 6 --time=00:30:00"
