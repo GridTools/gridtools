@@ -229,7 +229,7 @@ TEST(StorageInfo, Simple) {
         EXPECT_EQ((si.index(1, 0, 2)), 5);
     }
 
-#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER < 1800 || __INTEL_COMPILER >= 1900
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 can not handle this
     // storage info has to be constexpr capable
     constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
