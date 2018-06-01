@@ -48,7 +48,7 @@ TEST(DataViewTest, Simple) {
     typedef host_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
     typedef data_store< host_storage< double >, storage_info_t > data_store_t;
     // create and allocate a data_store
-    constexpr storage_info_t si(3, 5, 7);
+    storage_info_t si(3, 5, 7);
     data_store_t ds;
     ds.allocate(si);
     // create a rw view and fill with some data
@@ -89,7 +89,7 @@ TEST(DataViewTest, Simple) {
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(0, 0, 1), 60);
     // check if the user protections are working
-    GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 1, "constexpr index method call failed");
+    EXPECT_EQ(si.index(1, 0, 0), 1);
 
     std::cout << "Execute death tests.\n";
 
