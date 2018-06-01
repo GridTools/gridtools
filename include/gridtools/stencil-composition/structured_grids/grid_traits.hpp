@@ -69,7 +69,7 @@ namespace gridtools {
         template < uint_t I, class DataStore >
         struct make_tmp_data_store_f< arg< I, DataStore, enumtype::default_location_type, true > > {
             template < class Size3D >
-            DataStore operator()(Size3D const size) const {
+            DataStore operator()(Size3D const &size) const {
                 return {typename DataStore::storage_info_t{size[0], size[1], size[2]}};
             }
         };
