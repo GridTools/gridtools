@@ -63,6 +63,17 @@ namespace gridtools {
         typedef static_uint< 1 > dim_j_t;
         typedef static_uint< 2 > dim_k_t;
 
+        template < class >
+        struct make_tmp_data_store_f;
+
+        template < uint_t I, class DataStore >
+        struct make_tmp_data_store_f< arg< I, DataStore, enumtype::default_location_type, true > > {
+            template < class Size3D >
+            DataStore operator()(Size3D const size) const {
+                return {typename DataStore::storage_info_t{size[0], size[1], size[2]}};
+            }
+        };
+
         struct select_mss_compute_extent_sizes {
             template < typename PlaceholdersMap, typename Mss >
             struct apply {
@@ -79,95 +90,5 @@ namespace gridtools {
         struct with_arch {
             typedef strgrid::grid_traits_arch< BackendId > type;
         };
-
-        // get a temporary storage for Host Naive
-        template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive &&
-                                                Backend::s_backend_id == enumtype::Host),
-            typename StorageWrapper::storage_info_t >::type
-        instantiate_storage_info(Grid const &grid) {
-            // get all the params (size in i,j,k and number of threads in i,j)
-            typedef typename StorageWrapper::storage_info_t storage_info_t;
-            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
-            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
-
-            const uint_t i_size = grid.direction_i().total_length();
-            const uint_t j_size = grid.direction_j().total_length();
-            const uint_t k_size = (grid.k_max() + 1);
-            return storage_info_t(i_size, j_size, k_size);
-        }
-
-        // get a temporary storage for Host Block
-        template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
-                                                Backend::s_backend_id == enumtype::Host),
-            typename StorageWrapper::storage_info_t >::type
-        instantiate_storage_info(Grid const &grid) {
-            typedef typename StorageWrapper::storage_info_t storage_info_t;
-
-            // get all the params (size in i,j,k and number of threads in i,j)
-            const uint_t k_size = (grid.k_max() + 1);
-            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
-            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
-            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
-
-            // create and return the storage info instance
-            return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i,
-                (StorageWrapper::tileJ_t::s_tile)*threads_j + 2 * halo_j,
-                k_size);
-        }
-
-        // get a temporary storage for Mic Block
-        template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
-                                                Backend::s_backend_id == enumtype::Mic),
-            typename StorageWrapper::storage_info_t >::type
-        instantiate_storage_info(Grid const &grid) {
-            typedef typename StorageWrapper::storage_info_t storage_info_t;
-
-            // get all the params (size in i,j,k and number of threads)
-            const uint_t k_size = grid.k_total_length();
-            constexpr int_t i_halo = storage_info_t::halo_t::template at< dim_i_t::value >();
-            constexpr int_t j_halo = storage_info_t::halo_t::template at< dim_j_t::value >();
-            const int_t threads = omp_get_max_threads();
-
-            execinfo_mic exinfo(grid);
-
-            constexpr int_t alignment = storage_info_t::alignment_t::value;
-            int_t i_padded_size = ((exinfo.i_block_size() + 2 * i_halo + alignment - 1) / alignment) * alignment;
-
-            return storage_info_t(i_padded_size, (exinfo.j_block_size() + 2 * j_halo) * threads, k_size);
-        }
-
-        // get a temporary storage for Cuda
-        template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
-                                                Backend::s_backend_id == enumtype::Cuda),
-            typename StorageWrapper::storage_info_t >::type
-        instantiate_storage_info(Grid const &grid) {
-            typedef typename StorageWrapper::storage_info_t storage_info_t;
-            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
-            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
-
-            // get all the params (size in i,j,k and number of threads in i,j)
-            const uint_t k_size = (grid.k_max() + 1);
-            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
-
-            constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
-            constexpr int diff_between_blocks = ((storage_info_t::alignment_t::value > 1)
-                                                     ? _impl::static_ceil(static_cast< float >(full_block_size) /
-                                                                          storage_info_t::alignment_t::value) *
-                                                           storage_info_t::alignment_t::value
-                                                     : full_block_size);
-            constexpr int padding = diff_between_blocks - full_block_size;
-            const int inner_domain_size =
-                threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
-
-            // create and return the storage info instance
-            return storage_info_t(
-                inner_domain_size + 2 * halo_i, (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * threads_j, k_size);
-        }
     };
 }
