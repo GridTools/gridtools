@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/fortran_array_view.hpp>
+#include <gridtools/c_bindings/fortran_array_view.hpp>
 
 #include <gtest/gtest.h>
 

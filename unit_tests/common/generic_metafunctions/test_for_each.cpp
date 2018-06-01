@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/generic_metafunctions/for_each.hpp>
 
 #include <type_traits>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <common/host_device.hpp>
+#include <gridtools/common/host_device.hpp>
 
 namespace gridtools {
 

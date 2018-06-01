@@ -34,15 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <stencil-composition/intermediate.hpp>
+#include <gridtools/stencil-composition/intermediate.hpp>
 
 #include <gtest/gtest.h>
 
-#include <common/defs.hpp>
-#include <common/halo_descriptor.hpp>
-#include <stencil-composition/grid_traits.hpp>
-#include <storage/common/halo.hpp>
-#include <storage/storage-facility.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/stencil-composition/grid_traits.hpp>
+#include <gridtools/storage/common/halo.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
 namespace gridtools {
 

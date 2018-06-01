@@ -39,7 +39,7 @@
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
 
-#include "common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss.hpp"
 #include "conditionals/if_.hpp"

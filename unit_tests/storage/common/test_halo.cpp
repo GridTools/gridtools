@@ -36,8 +36,8 @@
 
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <storage/common/halo.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/common/halo.hpp>
 
 using namespace gridtools;
 

@@ -36,9 +36,9 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/accessor_fwd.hpp"
+#include "./structured_grids/accessor_fwd.hpp"
 #else
-#include "stencil-composition/icosahedral_grids/accessor_fwd.hpp"
+#include "./icosahedral_grids/accessor_fwd.hpp"
 #endif
 
 namespace gridtools {

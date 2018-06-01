@@ -35,8 +35,8 @@
 */
 
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/offset_computation.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/offset_computation.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;

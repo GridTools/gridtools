@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <stencil-composition/extent_metafunctions.hpp>
+#include <gridtools/stencil-composition/extent_metafunctions.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

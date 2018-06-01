@@ -37,8 +37,8 @@
 #include <gtest/gtest.h>
 #include <boost/variant/apply_visitor.hpp>
 
-#include "storage/storage-facility.hpp"
-#include "interface/repository/repository.hpp"
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/interface/repository/repository.hpp>
 
 using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 0, 3 >;
 using IJKDataStore =

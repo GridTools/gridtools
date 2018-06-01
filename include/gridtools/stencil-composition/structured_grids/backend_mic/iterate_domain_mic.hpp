@@ -43,15 +43,15 @@
 
 #include <boost/fusion/functional/invocation/invoke.hpp>
 
-#include "common/gt_assert.hpp"
-#include "common/generic_metafunctions/for_each.hpp"
-#include "common/generic_metafunctions/meta.hpp"
-#include "stencil-composition/iterate_domain_fwd.hpp"
-#include "stencil-composition/iterate_domain_aux.hpp"
-#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_metafunctions.hpp"
-#include "stencil-composition/reductions/iterate_domain_reduction.hpp"
-#include "stencil-composition/offset_computation.hpp"
+#include "../../../common/gt_assert.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
+#include "../../iterate_domain_fwd.hpp"
+#include "../../iterate_domain_aux.hpp"
+#include "../../iterate_domain_impl_metafunctions.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
+#include "../../reductions/iterate_domain_reduction.hpp"
+#include "../../offset_computation.hpp"
 
 namespace gridtools {
 

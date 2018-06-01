@@ -27,7 +27,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/generic_metafunctions/copy_into_variadic.hpp>
+#include <gridtools/common/generic_metafunctions/copy_into_variadic.hpp>
 
 #include <type_traits>
 

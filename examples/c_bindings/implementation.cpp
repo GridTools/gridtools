@@ -40,9 +40,9 @@
 
 #include <boost/mpl/vector.hpp>
 
-#include <c_bindings/export.hpp>
+#include <gridtools/c_bindings/export.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include "backend_select.hpp"
 

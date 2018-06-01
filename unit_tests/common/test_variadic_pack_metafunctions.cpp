@@ -35,8 +35,8 @@
 */
 
 #include "gtest/gtest.h"
-#include <common/variadic_pack_metafunctions.hpp>
-#include <common/defs.hpp>
+#include <gridtools/common/variadic_pack_metafunctions.hpp>
+#include <gridtools/common/defs.hpp>
 
 TEST(VariadicPackMetafunctions, GetIndexOfElementInVariadicPack) {
     GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 1, 1, 2, 3, 4) == 0),

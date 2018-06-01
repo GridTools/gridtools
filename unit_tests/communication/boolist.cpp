@@ -41,8 +41,8 @@
 #define __device__
 #endif
 
-#include <common/boollist.hpp>
-#include <common/layout_map.hpp>
+#include <gridtools/common/boollist.hpp>
+#include <gridtools/common/layout_map.hpp>
 #include <iostream>
 #include <stdlib.h>
 #include "gtest/gtest.h"

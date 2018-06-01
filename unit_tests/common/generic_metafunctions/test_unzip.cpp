@@ -38,9 +38,9 @@
 
 #include <tuple>
 
-#include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/unzip.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/common/generic_metafunctions/unzip.hpp>
 
 using namespace gridtools;
 

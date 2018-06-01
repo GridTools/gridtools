@@ -36,11 +36,11 @@
 
 #include "gtest/gtest.h"
 
-#include <storage/data_store.hpp>
-#include <common/gt_assert.hpp>
-#include <common/variadic_pack_metafunctions.hpp>
-#include <storage/storage_cuda/cuda_storage.hpp>
-#include <storage/storage_cuda/cuda_storage_info.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/common/variadic_pack_metafunctions.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 

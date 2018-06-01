@@ -35,19 +35,19 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <communication/low-level/proc_grids_3D.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
 
-#include <boundary-conditions/boundary.hpp>
+#include <gridtools/boundary-conditions/boundary.hpp>
 
-#include <communication/halo_exchange.hpp>
+#include <gridtools/communication/halo_exchange.hpp>
 
 #include <iostream>
 #include <fstream>
 
-#include <tools/mpi_unit_test_driver/check_flags.hpp>
-#include <tools/mpi_unit_test_driver/mpi_listener.hpp>
-#include <tools/mpi_unit_test_driver/device_binding.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/mpi_listener.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 #include "backend_select.hpp"
 
