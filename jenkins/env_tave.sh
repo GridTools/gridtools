@@ -31,6 +31,15 @@ if [[ ${COMPILER} == "gcc" ]]; then
   esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "icc" ]]; then
+  case ${VERSION} in
+    "18")
+      module swap intel/18.0.2.199
+      ;;
+    "17")
+      module swap intel/17.0.4.196
+    *)
+      module swap intel/18.0.2.199
+    
   module load PrgEnv-intel
   export HOST_COMPILER=`which icpc`
 else
