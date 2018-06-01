@@ -77,7 +77,7 @@ namespace gridtools {
         //     the coordinate system contains all the intervals specified for the solutions)
         // * there is exactly one Do method per functor matching the specified interval
         GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< DoMethods >::value == 1,
-                                "Did not find do method for a give interval from level");
+                                "Did not find do method for a given interval from level");
 
         // define the do method
         typedef typename boost::mpl::back< DoMethods >::type DoMethod;
