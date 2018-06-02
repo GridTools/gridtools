@@ -33,23 +33,23 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <tools/mpi_unit_test_driver/check_flags.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <mpi.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.hpp>
+#include <gridtools/communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <storage/storage-facility.hpp>
-#include <common/boollist.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/common/boollist.hpp>
 #include <sys/time.h>
 
 #include "gtest/gtest.h"
 
 #include "triplet.hpp"
 
-#include <tools/mpi_unit_test_driver/device_binding.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 namespace halo_exchange_3D_all_2 {
     int pid;

@@ -41,7 +41,7 @@
 
 #include "./backend_traits_fwd.hpp"
 #include "./run_functor_arguments.hpp"
-#include "gridtools.hpp"
+#include "../gridtools.hpp"
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"

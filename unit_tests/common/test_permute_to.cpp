@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/permute_to.hpp>
+#include <gridtools/common/permute_to.hpp>
 
 #include <utility>
 

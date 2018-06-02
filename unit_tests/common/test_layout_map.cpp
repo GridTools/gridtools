@@ -36,9 +36,9 @@
 
 #include "gtest/gtest.h"
 
-#include <common/layout_map.hpp>
-#include <common/layout_map_metafunctions.hpp>
-#include <common/gt_assert.hpp>
+#include <gridtools/common/layout_map.hpp>
+#include <gridtools/common/layout_map_metafunctions.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 #include "../test_helper.hpp"
 using namespace gridtools;

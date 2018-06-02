@@ -37,8 +37,8 @@
 
 #include <functional>
 #include <boost/proto/traits.hpp>
-#include "common/defs.hpp"
-#include "common/host_device.hpp"
+#include "../defs.hpp"
+#include "../host_device.hpp"
 
 namespace gridtools {
 

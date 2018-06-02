@@ -40,9 +40,9 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <common/gt_assert.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/caches/define_caches.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/caches/define_caches.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;

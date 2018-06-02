@@ -36,11 +36,11 @@
 
 #include "gtest/gtest.h"
 #include "../../tools/triplet.hpp"
-#include <common/gt_assert.hpp>
-#include <storage/data_store.hpp>
-#include <storage/storage_cuda/data_view_helpers.hpp>
-#include <storage/storage_cuda/cuda_storage.hpp>
-#include <storage/storage_cuda/cuda_storage_info.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_cuda/data_view_helpers.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 

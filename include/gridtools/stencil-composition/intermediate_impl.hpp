@@ -41,13 +41,13 @@
 #include <boost/fusion/include/count.hpp>
 #include <boost/optional.hpp>
 
-#include "common/generic_metafunctions/copy_into_set.hpp"
-#include "common/functional.hpp"
-#include "common/vector_traits.hpp"
-#include "common/tuple_util.hpp"
+#include "../common/generic_metafunctions/copy_into_set.hpp"
+#include "../common/functional.hpp"
+#include "../common/vector_traits.hpp"
+#include "../common/tuple_util.hpp"
 
-#include "mss_local_domain.hpp"
-#include "tile.hpp"
+#include "./mss_local_domain.hpp"
+#include "./tile.hpp"
 
 namespace gridtools {
     namespace _impl {

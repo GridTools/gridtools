@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools.hpp>
-#include <tools/mpi_unit_test_driver/check_flags.hpp>
+#include <gridtools/gridtools.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include "gtest/gtest.h"
 #include "shallow_water_enhanced.hpp"
 

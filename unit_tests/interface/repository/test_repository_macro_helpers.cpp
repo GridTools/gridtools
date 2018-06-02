@@ -35,7 +35,7 @@
 */
 
 #include <gtest/gtest.h>
-#include "interface/repository/repository_macro_helpers.hpp"
+#include <gridtools/interface/repository/repository_macro_helpers.hpp>
 
 TEST(repository_macros, max_in_tuple) {
 #define my_tuple (0, 1, 4)

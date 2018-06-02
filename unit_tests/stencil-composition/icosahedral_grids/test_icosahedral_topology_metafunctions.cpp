@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <stencil-composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp>
 
 using namespace gridtools;
 

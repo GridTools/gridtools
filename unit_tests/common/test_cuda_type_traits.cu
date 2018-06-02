@@ -35,8 +35,8 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/defs.hpp>
-#include <common/cuda_type_traits.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/cuda_type_traits.hpp>
 
 TEST(texture_type_traits, int_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int >::value); }
 

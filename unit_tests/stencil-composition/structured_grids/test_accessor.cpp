@@ -35,11 +35,11 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/defs.hpp>
-#include <stencil-composition/structured_grids/accessor.hpp>
-#include <stencil-composition/structured_grids/accessor_metafunctions.hpp>
-#include <stencil-composition/structured_grids/vector_accessor.hpp>
-#include <stencil-composition/global_accessor.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
+#include <gridtools/stencil-composition/structured_grids/vector_accessor.hpp>
+#include <gridtools/stencil-composition/global_accessor.hpp>
 
 using namespace gridtools;
 
@@ -77,11 +77,16 @@ bool test_alternative2() {
     constexpr dimension< 3 > k;
 
     constexpr dimension< 4 > t;
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
+    // ICC 18 shows some strange bug here
     constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
 
     GRIDTOOLS_STATIC_ASSERT(first.get< 3 - 0 >() == -5, "ERROR");
     return first.get< 3 - 0 >() == -5 && first.get< 3 - 1 >() == 0 && first.get< 3 - 2 >() == 8 &&
            first.get< 3 - 3 >() == 2;
+#else
+    return true;
+#endif
 }
 
 /** @brief interface with aliases defined at compile-time
