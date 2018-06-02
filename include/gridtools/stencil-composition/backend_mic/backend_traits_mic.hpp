@@ -183,16 +183,10 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
 #ifdef STRUCTURED_GRIDS
-                using grid_traits_t = grid_traits_from_id< backend_ids_t::s_grid_type_id >;
-                using arch_grid_traits_t =
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type;
-                using kernel_functor_executor_t =
-                    typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type;
-
-                kernel_functor_executor_t(local_domain, grid, reduction_data)(execution_info);
+                strgrid::execute_kernel_functor_mic< RunFunctorArgs >(local_domain, grid, reduction_data)(
+                    execution_info);
 #else
-                // each strategy executes a different high level loop for a mss
-                strategy_from_id_mic< backend_ids_t::s_strategy_id >::template mss_loop< RunFunctorArgs >::template run(
+                strategy_from_id_mic< enumtype::Block >::template mss_loop< RunFunctorArgs >::template run(
                     local_domain, grid, reduction_data, execution_info);
 #endif
             }

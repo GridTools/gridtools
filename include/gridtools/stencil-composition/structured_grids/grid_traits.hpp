@@ -74,18 +74,6 @@ namespace gridtools {
             }
         };
 
-        struct select_mss_compute_extent_sizes {
-            template < typename PlaceholdersMap, typename Mss >
-            struct apply {
-                typedef typename compute_extents_of< PlaceholdersMap >::template for_mss< Mss >::type type;
-            };
-        };
-
-        template < typename Placeholders >
-        struct select_init_map_of_extents {
-            typedef typename init_map_of_extents< Placeholders >::type type;
-        };
-
         template < enumtype::platform BackendId >
         struct with_arch {
             typedef strgrid::grid_traits_arch< BackendId > type;

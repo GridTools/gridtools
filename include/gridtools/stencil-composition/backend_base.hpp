@@ -133,12 +133,6 @@ namespace gridtools {
         static constexpr enumtype::platform s_backend_id = BackendId;
         static constexpr enumtype::grid_type s_grid_type_id = GridId;
 
-        /** types of the functions used to compute the thread grid information
-            for allocating the temporary storages and such
-        */
-        typedef uint_t (*query_i_threads_f)(uint_t);
-        typedef uint_t (*query_j_threads_f)(uint_t);
-
         /**
             Method to retrieve a global parameter
          */

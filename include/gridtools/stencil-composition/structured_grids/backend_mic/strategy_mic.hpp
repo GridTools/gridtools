@@ -49,9 +49,6 @@ namespace gridtools {
     template < enumtype::strategy >
     struct strategy_from_id_mic;
 
-    template <>
-    struct strategy_from_id_mic< enumtype::Naive > {};
-
     namespace _impl {
 
         /**
