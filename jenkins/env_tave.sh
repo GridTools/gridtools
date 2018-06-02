@@ -31,6 +31,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
   esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "icc" ]]; then
+  module load PrgEnv-intel
   case ${VERSION} in
     "18")
       module swap intel/18.0.2.199
@@ -39,8 +40,6 @@ elif [[ ${COMPILER} == "icc" ]]; then
       module swap intel/17.0.4.196
     *)
       module swap intel/18.0.2.199
-    
-  module load PrgEnv-intel
   export HOST_COMPILER=`which icpc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
