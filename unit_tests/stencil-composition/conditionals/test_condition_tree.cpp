@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <stencil-composition/conditionals/condition_tree.hpp>
+#include <gridtools/stencil-composition/conditionals/condition_tree.hpp>
 
 #include <array>
 #include <functional>
@@ -42,10 +42,10 @@
 
 #include <gtest/gtest.h>
 
-#include <common/functional.hpp>
-#include <common/tuple_util.hpp>
+#include <gridtools/common/functional.hpp>
+#include <gridtools/common/tuple_util.hpp>
 
-#include <stencil-composition/conditionals/condition.hpp>
+#include <gridtools/stencil-composition/conditionals/condition.hpp>
 
 namespace gridtools {
     namespace {

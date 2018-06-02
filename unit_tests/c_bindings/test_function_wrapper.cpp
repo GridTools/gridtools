@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/function_wrapper.hpp>
+#include <gridtools/c_bindings/function_wrapper.hpp>
 
 #include <type_traits>
 #include <stack>
@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 
-#include <c_bindings/handle.h>
+#include <gridtools/c_bindings/handle.h>
 
 namespace gridtools {
     namespace c_bindings {

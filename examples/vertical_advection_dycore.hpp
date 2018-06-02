@@ -34,13 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 
 #include "benchmarker.hpp"
 #include "defs.hpp"
 #include "vertical_advection_repository.hpp"
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field

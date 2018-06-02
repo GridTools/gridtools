@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/generic_metafunctions/mpl_vector_flatten.hpp"
-#include "common/generic_metafunctions/variadic_to_vector.hpp"
-#include "stencil-composition/caches/cache.hpp"
+#include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "./cache.hpp"
 
 namespace gridtools {
 

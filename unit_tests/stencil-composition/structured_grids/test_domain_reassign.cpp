@@ -36,16 +36,16 @@
 #include <boost/mpl/vector.hpp>
 #include <gtest/gtest.h>
 
-#include <common/defs.hpp>
-#include <common/halo_descriptor.hpp>
-#include <stencil-composition/accessor.hpp>
-#include <stencil-composition/arg.hpp>
-#include <stencil-composition/computation.hpp>
-#include <stencil-composition/grid.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <stencil-composition/make_stage.hpp>
-#include <stencil-composition/make_stencils.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/stencil-composition/accessor.hpp>
+#include <gridtools/stencil-composition/arg.hpp>
+#include <gridtools/stencil-composition/computation.hpp>
+#include <gridtools/stencil-composition/grid.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/stencil-composition/make_stage.hpp>
+#include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 namespace gridtools {

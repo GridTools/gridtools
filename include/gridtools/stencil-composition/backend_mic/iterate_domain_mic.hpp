@@ -36,9 +36,9 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp"
+#include "../structured_grids/backend_mic/iterate_domain_mic.hpp"
 #else
-#include "stencil-composition/icosahedral_grids/backend_mic/iterate_domain_mic.hpp"
+#include "..//icosahedral_grids/backend_mic/iterate_domain_mic.hpp"
 #endif
 
 #include "../iterate_domain_fwd.hpp"

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "c_bindings/export.hpp"
+#include <gridtools/c_bindings/export.hpp>
 
 #include <functional>
 #include <sstream>
@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 
-#include "c_bindings/handle.h"
+#include <gridtools/c_bindings/handle.h>
 
 namespace {
 
@@ -109,8 +109,8 @@ namespace {
     const char expected_c_interface[] = R"?(
 #pragma once
 
-#include <c_bindings/handle.h>
-#include <c_bindings/array_descriptor.h>
+#include <gridtools/c_bindings/handle.h>
+#include <gridtools/c_bindings/array_descriptor.h>
 
 #ifdef __cplusplus
 extern "C" {

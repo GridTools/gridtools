@@ -36,8 +36,8 @@
 
 #include "gtest/gtest.h"
 
-#include <storage/storage_host/host_storage.hpp>
-#include <common/gt_assert.hpp>
+#include <gridtools/storage/storage_host/host_storage.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 TEST(StorageHostTest, Simple) {
     // create two storages

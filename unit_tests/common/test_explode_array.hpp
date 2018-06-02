@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <common/explode_array.hpp>
-#include <common/tuple.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/common/explode_array.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 #if !defined(__CUDACC__) || (CUDA_VERSION_MAJOR >= 7 && CUDA_VERSION_MINOR >= 5)
 class PackChecker {

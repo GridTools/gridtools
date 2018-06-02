@@ -36,14 +36,14 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "common/defs.hpp"
-#include "stencil-composition/empty_extent.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "stencil-composition/caches/extract_extent_caches.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/empty_extent.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/caches/cache_metafunctions.hpp>
+#include <gridtools/stencil-composition/interval.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
+#include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

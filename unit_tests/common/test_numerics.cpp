@@ -37,7 +37,7 @@
 #include <cmath>
 
 #include "gtest/gtest.h"
-#include <common/numerics.hpp>
+#include <gridtools/common/numerics.hpp>
 
 using namespace gridtools;
 

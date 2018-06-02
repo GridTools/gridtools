@@ -36,7 +36,7 @@
 #pragma once
 #include <boost/make_shared.hpp>
 #include "../esf.hpp"
-#include "common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
 

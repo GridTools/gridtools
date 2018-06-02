@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/gridtools.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "gtest/gtest.h"
 #include "backend_select.hpp"
 

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/generic_metafunctions/meta.hpp>
+#include <gridtools/common/generic_metafunctions/meta.hpp>
 
 #include <tuple>
 #include <type_traits>

@@ -49,7 +49,7 @@
 #include <boost/type_index.hpp>
 #include <boost/optional.hpp>
 
-#include <common/generic_metafunctions/is_there_in_sequence_if.hpp>
+#include "../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 #include "function_wrapper.hpp"
 

@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include "stencil-composition/backend_base.hpp"
+#include "../backend_base.hpp"
 
 namespace gridtools {
 

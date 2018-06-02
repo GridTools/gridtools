@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <stencil-composition/computation.hpp>
+#include <gridtools/stencil-composition/computation.hpp>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
 #include <gtest/gtest.h>
 #include <boost/any.hpp>
-#include <stencil-composition/arg.hpp>
+#include <gridtools/stencil-composition/arg.hpp>
 #include "backend_select.hpp"
 
 namespace gridtools {

@@ -38,9 +38,9 @@
 #include "backend_select.hpp"
 #include "benchmarker.hpp"
 #include "horizontal_diffusion_repository.hpp"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 using gridtools::level;
 using gridtools::accessor;

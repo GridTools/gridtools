@@ -39,10 +39,10 @@
 #include "../../backend_traits_fwd.hpp"
 #include "../../mss_functor.hpp"
 #include "../../tile.hpp"
-#include "execute_kernel_functor_mic.hpp"
-#include "execinfo_mic.hpp"
-#include "common/generic_metafunctions/for_each.hpp"
-#include "common/generic_metafunctions/meta.hpp"
+#include "./execute_kernel_functor_mic.hpp"
+#include "./execinfo_mic.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 

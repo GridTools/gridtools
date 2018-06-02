@@ -36,9 +36,9 @@
 
 #pragma once
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 
 #include <boost/fusion/include/make_vector.hpp>
 

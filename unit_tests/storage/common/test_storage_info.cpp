@@ -36,8 +36,8 @@
 
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <storage/common/storage_info_interface.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/common/storage_info_interface.hpp>
 
 using namespace gridtools;
 
@@ -229,6 +229,8 @@ TEST(StorageInfo, Simple) {
         EXPECT_EQ((si.index(1, 0, 2)), 5);
     }
 
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
+    // ICC 18 can not handle this
     // storage info has to be constexpr capable
     constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
     GRIDTOOLS_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
@@ -241,6 +243,7 @@ TEST(StorageInfo, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
+#endif
 
     // test wiht different dims
     storage_info_interface< 0, layout_map< 1, 2, 3, 0 > > x(5, 7, 8, 2);

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "common/pair.hpp"
+#include <gridtools/common/pair.hpp>
 #include "gtest/gtest.h"
 #include <type_traits>
 

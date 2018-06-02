@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "common/defs.hpp"
-#include "common/gt_math.hpp"
-#include "tools/verifier.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gt_math.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "gtest/gtest.h"
 using namespace gridtools;
 
