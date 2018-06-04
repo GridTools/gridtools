@@ -36,9 +36,9 @@
 
 #include <gtest/gtest.h>
 
-#include "interface/fortran_array_adapter.hpp"
-#include "c_bindings/fortran_array_view.hpp"
-#include "storage/storage-facility.hpp"
+#include <gridtools/interface/fortran_array_adapter.hpp>
+#include <gridtools/c_bindings/fortran_array_view.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
 using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 0, 3 >;
 using IJKDataStore =

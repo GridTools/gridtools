@@ -38,7 +38,7 @@
 #include <boost/variant/apply_visitor.hpp>
 
 #include <gridtools/storage/storage-facility.hpp>
-#include <interface/repository/repository.hpp>
+#include <gridtools/interface/repository/repository.hpp>
 #include "exported_repository.hpp"
 
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./interface/layout_transformation/layout_transformation.hpp"
+#include "./layout_transformation/layout_transformation.hpp"
 #include "../c_bindings/fortran_array_view.hpp"
 #include "../storage/common/storage_info_rt.hpp"
 

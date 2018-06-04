@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "storage/storage-facility.hpp"
-#include "interface/repository/repository.hpp"
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/interface/repository/repository.hpp>
 
 using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 0, 3 >;
 using IJKDataStore =
