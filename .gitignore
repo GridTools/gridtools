@@ -28,7 +28,6 @@ __pycache__
 !cmake
 !docs
 !examples
-!experimental
 !include
 !jenkins
 !pyutils
