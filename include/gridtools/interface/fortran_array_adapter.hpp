@@ -25,18 +25,18 @@ namespace gridtools {
         using gt_view_element_type = typename DataStore::data_t;
 
         friend void transform(DataStore &dest, const fortran_array_adapter &src) {
-            transformer{const_cast< fortran_array_adapter & >(src), dest}.from_array();
+            adapter{const_cast< fortran_array_adapter & >(src), dest}.from_array();
         }
         friend void transform(fortran_array_adapter &dest, const DataStore &src) {
-            transformer{dest, const_cast< DataStore & >(src)}.to_array();
+            adapter{dest, const_cast< DataStore & >(src)}.to_array();
         }
 
       private:
-        class transformer {
+        class adapter {
             using ElementType = typename DataStore::data_t;
 
           public:
-            transformer(fortran_array_adapter &view, DataStore &data_store) {
+            adapter(fortran_array_adapter &view, DataStore &data_store) {
 
                 storage_info_rt si = make_storage_info_rt(*data_store.get_storage_info_ptr());
                 m_dims = si.dims();

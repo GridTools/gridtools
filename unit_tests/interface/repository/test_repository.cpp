@@ -41,11 +41,6 @@
 #include "interface/repository/repository.hpp"
 #include "exported_repository.hpp"
 
-using IJKStorageInfo = typename gridtools::storage_traits< gridtools::enumtype::Host >::storage_info_t< 0, 3 >;
-using IJKDataStore =
-    typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
-        IJKStorageInfo >;
-
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
 GRIDTOOLS_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
