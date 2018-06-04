@@ -39,8 +39,8 @@
 #include "../../execution_policy.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
-#include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
+#include "../../backend_host/iterate_domain_host.hpp"
+#include "../../icosahedral_grids/esf_metafunctions.hpp"
 #include <boost/utility/enable_if.hpp>
 
 namespace gridtools {

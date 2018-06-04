@@ -36,8 +36,8 @@
 
 #include "gtest/gtest.h"
 
-#include "stencil-composition/level.hpp"
-#include "stencil-composition/level_metafunctions.hpp"
+#include <gridtools/stencil-composition/level.hpp>
+#include <gridtools/stencil-composition/level_metafunctions.hpp>
 
 using namespace gridtools;
 

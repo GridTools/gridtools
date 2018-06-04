@@ -40,14 +40,14 @@
  *      Author: carlosos
  */
 
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include "gtest/gtest.h"
 
-#include <common/defs.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

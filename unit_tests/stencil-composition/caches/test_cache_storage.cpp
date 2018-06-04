@@ -35,8 +35,8 @@
 */
 
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/offset_computation.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/offset_computation.hpp>
 #include "backend_select.hpp"
 
 using namespace gridtools;
@@ -61,11 +61,14 @@ namespace test_multidimensional_caches {
         typedef typename cache_storage_t::meta_t m_t;
 
         static constexpr m_t m_;
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
+        // ICC 18 shows a strange bug here
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 10, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 7, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 2 >() == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 3, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 2, "error");
+#endif
 
         GRIDTOOLS_STATIC_ASSERT(
             (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(1, 0, 0, 0, 0, 0)) == 1), "error");
@@ -127,11 +130,14 @@ namespace test_multidimensional_caches {
 
         static constexpr m_t m_;
 
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
+        // ICC 18 shows a strange bug here
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 2 >() == 6, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 4, "error");
+#endif
 
         GRIDTOOLS_STATIC_ASSERT(
             (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, -3, 0, 0, 0)) == -3), "error");

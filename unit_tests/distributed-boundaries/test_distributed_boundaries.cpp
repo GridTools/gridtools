@@ -37,13 +37,13 @@
 #include <iomanip>
 #include <mpi.h>
 #include "gtest/gtest.h"
-#include <tools/mpi_unit_test_driver/device_binding.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
-#include <distributed-boundaries/comm_traits.hpp>
-#include <distributed-boundaries/distributed_boundaries.hpp>
+#include <gridtools/distributed-boundaries/comm_traits.hpp>
+#include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
 
-#include <boundary-conditions/value.hpp>
-#include <boundary-conditions/copy.hpp>
+#include <gridtools/boundary-conditions/value.hpp>
+#include <gridtools/boundary-conditions/copy.hpp>
 
 #include "backend_select.hpp"
 

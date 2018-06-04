@@ -38,9 +38,9 @@
 #include <stdlib.h>
 #include <fstream>
 
-#include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/gridtools.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "Options.hpp"
 #include "backend_select.hpp"
 

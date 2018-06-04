@@ -41,11 +41,6 @@
     @{
 */
 
-#if !defined(FUSION_MAX_VECTOR_SIZE)
-#define FUSION_MAX_VECTOR_SIZE 20
-#define FUSION_MAX_MAP_SIZE 20
-#endif
-
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/map.hpp>

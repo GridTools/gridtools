@@ -36,8 +36,8 @@
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <boost/mpl/vector/vector10.hpp>
-#include "common/defs.hpp"
-#include <common/generic_metafunctions/replace.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/generic_metafunctions/replace.hpp>
 
 using namespace gridtools;
 

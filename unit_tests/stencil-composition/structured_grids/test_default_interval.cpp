@@ -35,8 +35,8 @@
 */
 
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 
 using namespace gridtools;
 struct func {

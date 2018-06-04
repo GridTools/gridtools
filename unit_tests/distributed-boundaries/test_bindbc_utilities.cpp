@@ -35,11 +35,11 @@
 */
 
 #include "gtest/gtest.h"
-#include <distributed-boundaries/bound_bc.hpp>
-#include <storage/data_store.hpp>
-#include <storage/storage_host/host_storage.hpp>
-#include <storage/storage_host/host_storage_info.hpp>
-#include <boundary-conditions/zero.hpp>
+#include <gridtools/distributed-boundaries/bound_bc.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_host/host_storage.hpp>
+#include <gridtools/storage/storage_host/host_storage_info.hpp>
+#include <gridtools/boundary-conditions/zero.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;

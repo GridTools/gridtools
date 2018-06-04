@@ -39,8 +39,8 @@
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits.hpp>
 
-#include <storage/storage-facility.hpp>
-#include <common/gt_assert.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 #include "backend_select.hpp"
 

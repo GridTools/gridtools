@@ -36,9 +36,9 @@
 #define PEDANTIC_DISABLED
 
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <storage/storage-facility.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 
 #include "backend_select.hpp"
 

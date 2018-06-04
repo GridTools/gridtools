@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/shorten.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/common/generic_metafunctions/shorten.hpp>
 
 using namespace gridtools;
 

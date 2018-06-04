@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 #define GT_SINGLE_KERNEL_BC
-#include <boundary-conditions/apply_gpu.hpp>
+#include <gridtools/boundary-conditions/apply_gpu.hpp>
 
 namespace gt = gridtools;
 

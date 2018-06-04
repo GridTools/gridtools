@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools.hpp>
-#include <common/defs.hpp>
+#include <gridtools/gridtools.hpp>
+#include <gridtools/common/defs.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-functions/call_interfaces.hpp>
-#include <stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
+#include <gridtools/stencil-composition/stencil-functions/call_interfaces.hpp>
+#include <gridtools/stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
 #include <type_traits>
 #include <tuple>
 

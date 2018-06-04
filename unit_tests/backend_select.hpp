@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <common/defs.hpp>
-#include <stencil-composition/backend.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
 
 #ifdef BACKEND_HOST
 constexpr auto ARCH = gridtools::enumtype::Host;

@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include "backend_select.hpp"
 

@@ -36,7 +36,7 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/backend_mic/strategy_mic.hpp"
+#include "../structured_grids/backend_mic/strategy_mic.hpp"
 #else
-#include "stencil-composition/icosahedral_grids/backend_mic/strategy_mic.hpp"
+#include "../icosahedral_grids/backend_mic/strategy_mic.hpp"
 #endif

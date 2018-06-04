@@ -36,7 +36,7 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/common/storage_interface.hpp"
+#include <gridtools/storage/common/storage_interface.hpp>
 
 using namespace gridtools;
 
