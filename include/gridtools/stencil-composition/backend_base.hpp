@@ -149,6 +149,7 @@ namespace gridtools {
             typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
             typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
             make_host_view(ds)(0) = t;
+            ds.sync();
             return ds;
         }
 
