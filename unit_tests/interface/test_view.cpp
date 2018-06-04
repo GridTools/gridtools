@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 
-#include "interface/View.hpp"
+#include "interface/fortran_array_adapter.hpp"
 #include "c_bindings/fortran_array_view.hpp"
 #include "storage/storage-facility.hpp"
 
@@ -45,70 +45,70 @@ using IJKDataStore =
     typename gridtools::storage_traits< gridtools::enumtype::Host >::data_store_t< gridtools::float_type,
         IJKStorageInfo >;
 
-TEST(View, TransformViewIntoDataStore) {
-    constexpr size_t xSize = 6;
-    constexpr size_t ySize = 5;
-    constexpr size_t zSize = 4;
-    double fortranArray[zSize][ySize][xSize];
+TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
+    constexpr size_t x_size = 6;
+    constexpr size_t y_size = 5;
+    constexpr size_t z_size = 4;
+    double fortran_array[z_size][y_size][x_size];
 
     gt_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
-    descriptor.dims[0] = xSize;
-    descriptor.dims[1] = ySize;
-    descriptor.dims[2] = zSize;
+    descriptor.dims[0] = x_size;
+    descriptor.dims[1] = y_size;
+    descriptor.dims[2] = z_size;
     descriptor.type = gt_fk_Double;
-    descriptor.data = fortranArray;
+    descriptor.data = fortran_array;
 
-    gridtools::View< IJKDataStore > fortranArrayView{descriptor};
-    IJKDataStore dataStore{IJKStorageInfo{xSize, ySize, zSize}};
-    auto dataStoreView = make_host_view(dataStore);
+    gridtools::fortran_array_adapter< IJKDataStore > fortran_array_adapter{descriptor};
+    IJKDataStore data_store{IJKStorageInfo{x_size, y_size, z_size}};
+    auto data_store_view = make_host_view(data_store);
 
     int i = 0;
-    for (size_t z = 0; z < zSize; ++z)
-        for (size_t y = 0; y < ySize; ++y)
-            for (size_t x = 0; x < xSize; ++x, ++i)
-                fortranArray[z][y][x] = i;
+    for (size_t z = 0; z < z_size; ++z)
+        for (size_t y = 0; y < y_size; ++y)
+            for (size_t x = 0; x < x_size; ++x, ++i)
+                fortran_array[z][y][x] = i;
 
-    // transform view into dataStore
-    transform(dataStore, fortranArrayView);
+    // transform adapter into data_store
+    transform(data_store, fortran_array_adapter);
 
     i = 0;
-    for (size_t z = 0; z < zSize; ++z)
-        for (size_t y = 0; y < ySize; ++y)
-            for (size_t x = 0; x < xSize; ++x, ++i)
-                EXPECT_EQ(dataStoreView(x, y, z), i);
+    for (size_t z = 0; z < z_size; ++z)
+        for (size_t y = 0; y < y_size; ++y)
+            for (size_t x = 0; x < x_size; ++x, ++i)
+                EXPECT_EQ(data_store_view(x, y, z), i);
 }
 
-TEST(View, TransformDataStoreIntoView) {
-    constexpr size_t xSize = 6;
-    constexpr size_t ySize = 5;
-    constexpr size_t zSize = 4;
-    double fortranArray[zSize][ySize][xSize];
+TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
+    constexpr size_t x_size = 6;
+    constexpr size_t y_size = 5;
+    constexpr size_t z_size = 4;
+    double fortran_array[z_size][y_size][x_size];
 
     gt_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
-    descriptor.dims[0] = xSize;
-    descriptor.dims[1] = ySize;
-    descriptor.dims[2] = zSize;
+    descriptor.dims[0] = x_size;
+    descriptor.dims[1] = y_size;
+    descriptor.dims[2] = z_size;
     descriptor.type = gt_fk_Double;
-    descriptor.data = fortranArray;
+    descriptor.data = fortran_array;
 
-    gridtools::View< IJKDataStore > fortranArrayView{descriptor};
-    IJKDataStore dataStore{IJKStorageInfo{xSize, ySize, zSize}};
-    auto dataStoreView = make_host_view(dataStore);
+    gridtools::fortran_array_adapter< IJKDataStore > fortran_array_adapter{descriptor};
+    IJKDataStore data_store{IJKStorageInfo{x_size, y_size, z_size}};
+    auto data_store_view = make_host_view(data_store);
 
     int i = 0;
-    for (size_t z = 0; z < zSize; ++z)
-        for (size_t y = 0; y < ySize; ++y)
-            for (size_t x = 0; x < xSize; ++x, ++i)
-                dataStoreView(x, y, z) = i;
+    for (size_t z = 0; z < z_size; ++z)
+        for (size_t y = 0; y < y_size; ++y)
+            for (size_t x = 0; x < x_size; ++x, ++i)
+                data_store_view(x, y, z) = i;
 
-    // transform dataStore into fortranArrayView
-    transform(fortranArrayView, dataStore);
+    // transform data_store into adapter
+    transform(fortran_array_adapter, data_store);
 
     i = 0;
-    for (size_t z = 0; z < zSize; ++z)
-        for (size_t y = 0; y < ySize; ++y)
-            for (size_t x = 0; x < xSize; ++x, ++i)
-                EXPECT_EQ(fortranArray[z][y][x], i);
+    for (size_t z = 0; z < z_size; ++z)
+        for (size_t y = 0; y < y_size; ++y)
+            for (size_t x = 0; x < x_size; ++x, ++i)
+                EXPECT_EQ(fortran_array[z][y][x], i);
 }

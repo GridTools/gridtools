@@ -51,7 +51,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/contains.hpp>
 #include "repository_macro_helpers.hpp"
-#include "../View.hpp"
+#include "../fortran_array_adapter.hpp"
 #include "../../c_bindings/export.hpp"
 
 #ifndef GT_PARSE_PREPROCESSOR
@@ -207,7 +207,7 @@
     BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(set_, fortran_name), _), member_name)
 #define GTREPO_make_binding_helper(repo_name, fortran_name, member_name, type)      \
     void BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl)(   \
-        repo_name & repo, gridtools::View< type > view) {                           \
+        repo_name & repo, gridtools::fortran_array_adapter< type > view) {          \
         transform(repo.BOOST_PP_CAT(GTREPO_GETTER_PREFIX, member_name)(), view);    \
     }                                                                               \
     GT_EXPORT_BINDING_WRAPPED_2(GTREPO_get_binding_name(fortran_name, member_name), \
