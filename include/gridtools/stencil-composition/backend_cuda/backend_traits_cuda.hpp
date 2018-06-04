@@ -146,6 +146,7 @@ namespace gridtools {
 
             template < class Grid >
             std::array< uint_t, 3 > operator()(Grid const &grid) const {
+                // TODO(anstaf): there is a bug here. k_size should be set to grid.total_length()
                 auto k_size = grid.k_max() + 1;
                 auto threads_i = n_i_pes(grid.i_high_bound() - grid.i_low_bound());
                 auto threads_j = n_j_pes(grid.j_high_bound() - grid.j_low_bound());
