@@ -11,7 +11,7 @@ namespace {
         return exported_repository(IJKStorageInfo(Ni, Nj, Nk), IJStorageInfo(Ni, Nj, Nk), JKStorageInfo(Ni, Nj, Nk));
     }
     GT_EXPORT_BINDING_3(make_exported_repository, make_exported_repository_impl);
-    bool verify_exported_repository_impl(exported_repository &repository) {
+    void verify_exported_repository_impl(exported_repository &repository) {
         auto ijk_field = repository.ijkfield();
         auto ijk_view = make_host_view(ijk_field);
 

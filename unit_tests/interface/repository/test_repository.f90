@@ -23,6 +23,6 @@ function call_repository() bind (c, name="call_repository") &
     call set_exported_ijkfield(repository_handle, ijkfield)
     call set_exported_ijfield(repository_handle, ijfield)
     call set_exported_jkfield(repository_handle, jkfield)
-    ret = verify_exported_repository(repository_handle)
+    call verify_exported_repository(repository_handle)
 
 end function
