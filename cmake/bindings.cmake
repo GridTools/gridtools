@@ -1,13 +1,19 @@
 macro(add_bindings_library)
     add_library(${ARGV})
-    target_link_libraries(${ARGV0} c_bindings_generator c_bindings_handle)
+    target_link_libraries(${ARGV0}
+        ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_generator.a
+        ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_handle.a)
     add_custom_command(OUTPUT ${ARGV0}_empty.cpp COMMAND touch ${ARGV0}_empty.cpp)
-    add_executable(${ARGV0}_decl_generator ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}_empty.cpp)
+    add_executable(${ARGV0}_decl_generator
+        ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}_empty.cpp)
     if (${APPLE})
-        target_link_libraries(${ARGV0}_decl_generator -Wl,-force_load ${ARGV0} c_bindings_generator_main)
+        target_link_libraries(${ARGV0}_decl_generator
+            -Wl,-force_load ${ARGV0}
+            ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_generator_main.a)
     else()
-        target_link_libraries(${ARGV0}_decl_generator -Wl,--whole-archive ${ARGV0} -Wl,--no-whole-archive
-                c_bindings_generator_main)
+        target_link_libraries(${ARGV0}_decl_generator 
+            -Wl,--whole-archive ${ARGV0}
+            -Wl,--no-whole-archive ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_generator_main.a)
     endif()
     add_custom_command(OUTPUT ${ARGV0}.h ${ARGV0}.f90
             COMMAND ${ARGV0}_decl_generator ${ARGV0}.h ${ARGV0}.f90 ${ARGV0}
@@ -21,7 +27,9 @@ macro(add_bindings_library)
     target_include_directories(${ARGV0}_c INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 
     add_library(${ARGV0}_fortran ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.f90)
-    target_link_libraries(${ARGV0}_fortran ${ARGV0} c_bindings_handle_fortran array_descriptor)
+    target_link_libraries(${ARGV0}_fortran ${ARGV0}
+        ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_handle_fortran.a
+        ${GRIDTOOLS_LIBRARIES_DIR}/libarray_descriptor.a)
     add_dependencies(${ARGV0}_fortran ${ARGV0}_declarations)
     target_include_directories(${ARGV0}_fortran INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 
