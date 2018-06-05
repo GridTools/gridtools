@@ -8,7 +8,7 @@ else()
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
 
-  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers )
+  list( APPEND SRCFILES interface1 interface1_fused simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers )
   list( APPEND X86_SRCFILES reduction)
 
   list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel data_store_field_test)
@@ -67,6 +67,46 @@ else()
         target_compile_definitions(shallow_water_enhanced_host PUBLIC ${HOST_BACKEND_DEFINE})
     endif()
   endif(ENABLE_HOST)
+
+  if(ENABLE_MIC)
+    foreach(srcfile IN LISTS SRCFILES X86_SRCFILES)
+      add_executable(${srcfile}_mic   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
+      target_link_libraries(${srcfile}_mic ${exe_LIBS} gtest_main)
+      target_compile_definitions(${srcfile}_mic PUBLIC ${MIC_BACKEND_DEFINE})
+
+      gridtools_add_test( tests.${srcfile}_mic ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_mic" "12 33 61")
+      gridtools_add_test( tests.${srcfile}_mic ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_mic" "23 11 43")
+    endforeach(srcfile)
+
+    add_executable(vanilla_laplacian_mic  vanilla_laplacian.cpp)
+    set_target_properties(vanilla_laplacian_mic PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    target_link_libraries(vanilla_laplacian_mic ${exe_LIBS} )
+    target_compile_definitions(vanilla_laplacian_mic PUBLIC ${MIC_BACKEND_DEFINE})
+
+    foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS )
+        string(TOLOWER ${variation} var_suffix)
+        add_executable(interface1_functions_mic_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
+        set_target_properties(interface1_functions_mic_${var_suffix} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -DFUNCTIONS_${variation}")
+        target_link_libraries(interface1_functions_mic_${var_suffix} ${exe_LIBS} gtest_main)
+        target_compile_definitions(interface1_functions_mic_${var_suffix} PUBLIC ${MIC_BACKEND_DEFINE})
+        gridtools_add_test( tests.interface1_functions_mic_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_mic_${var_suffix}" "23 11 43")
+        gridtools_add_test( tests.interface1_functions_mic_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_mic_${var_suffix}" "23 11 23")
+    endforeach(variation)
+
+    if( GCL_MPI )
+        set(ccflags " ${MIC_SPECIFIC_OPTIONS}" )
+        set(ldflags " ")
+
+        add_custom_mpi_mic_test(copy_stencil_parallel_mic ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
+
+        ## The next executable is not made into a test since it does not validate.
+        ## The numerics need to be fixed (this is a task to be undertaken in the future)
+        add_executable(shallow_water_enhanced_mic  shallow_water_enhanced.cpp)
+        target_link_libraries(shallow_water_enhanced_mic ${exe_LIBS} gtest_main)
+        set_target_properties(shallow_water_enhanced_mic PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+        target_compile_definitions(shallow_water_enhanced_mic PUBLIC ${MIC_BACKEND_DEFINE})
+    endif()
+  endif(ENABLE_MIC)
 
   add_subdirectory( c_bindings )
 

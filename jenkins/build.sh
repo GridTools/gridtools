@@ -25,7 +25,9 @@ function help {
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
    echo "-c      disable CPU communication tests          "
+   echo "-k      build only the given Makefile targets    "
    echo "-o      compile only (not tests are run)         "
+   echo "-p      enable performance testing               "
    exit 1
 }
 
@@ -35,8 +37,9 @@ ABSOLUTEPATH_SCRIPT=${INITPATH}/${BASEPATH_SCRIPT#$INITPATH}
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
+PERFORMANCE_TESTING="OFF"
 
-while getopts "hb:t:f:l:zmsidvq:x:inco" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:incok:p" opt; do
     case "$opt" in
     h|\?)
         help
@@ -70,7 +73,11 @@ while getopts "hb:t:f:l:zmsidvq:x:inco" opt; do
         ;;
     c) DISABLE_CPU_MPI_TESTS="ON"
         ;;
+    k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
+        ;;
     o) COMPILE_ONLY="ON"
+        ;;
+    p) PERFORMANCE_TESTING="ON"
         ;;
     esac
 done
@@ -110,14 +117,17 @@ mkdir -p build;
 cd build;
 
 if [ "x$TARGET" == "xgpu" ]; then
-    ENABLE_HOST=ON
+    ENABLE_HOST=OFF
     ENABLE_CUDA=ON
+    ENABLE_MIC=OFF
 else
     ENABLE_HOST=ON
     ENABLE_CUDA=OFF
+    ENABLE_MIC=ON
 fi
 echo "ENABLE_CUDA=$ENABLE_CUDA"
 echo "ENABLE_HOST=$ENABLE_HOST"
+echo "ENABLE_MIC=$ENABLE_MIC"
 
 if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
@@ -175,6 +185,7 @@ cmake \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DENABLE_HOST:BOOL=$ENABLE_HOST \
 -DENABLE_CUDA:BOOL=$ENABLE_CUDA \
+-DENABLE_MIC:BOOL=$ENABLE_MIC \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
@@ -189,6 +200,7 @@ cmake \
 -DVERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DDISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
+-DENABLE_PYUTILS=$PERFORMANCE_TESTING \
 ../
 
 echo "cmake \
@@ -196,7 +208,9 @@ echo "cmake \
 -DCUDA_ARCH:STRING=$CUDA_ARCH \
 -DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DUSE_GPU:BOOL=$USE_GPU \
+-DENABLE_HOST:BOOL=$ENABLE_HOST \
+-DENABLE_CUDA:BOOL=$ENABLE_CUDA \
+-DENABLE_MIC:BOOL=$ENABLE_MIC \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER=${HOST_COMPILER} \
@@ -211,6 +225,7 @@ echo "cmake \
 -DVERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DDISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
+-DENABLE_PYUTILS=$PERFORMANCE_TESTING \
 ../
 "
 
@@ -232,7 +247,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
-      ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}  >& ${log_file};
+      ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} ${MAKE_TARGETS} >& ${log_file};
 
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
@@ -250,7 +265,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
         cat ${log_file};
     fi
 else
-    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
+    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS} ${MAKE_TARGETS}
     error_code=$?
 fi
 

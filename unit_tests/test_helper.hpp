@@ -35,6 +35,7 @@
 */
 
 #pragma once
+#include <type_traits>
 
 /**
  * Compare 2 types for equality. Will produce a readable error message (hopefully).

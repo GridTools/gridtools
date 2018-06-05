@@ -1,0 +1,23 @@
+# -*- coding: utf-8 -*-
+
+
+# CMake build type
+build_type = '@PERFTEST_BUILD_TYPE@'
+
+# CMake source dir
+source_dir = '@CMAKE_SOURCE_DIR@'
+
+# CMake binary dir
+binary_dir = '@CMAKE_BINARY_DIR@'
+
+# Compiler
+compiler = '@PERFTEST_COMPILER@'
+
+# Floating point precision
+precision = '@PERFTEST_PRECISION@'
+
+# Grid type
+grid = '@PERFTEST_GRID@'
+
+# Compiled backends
+backend = '@PERFTEST_BACKEND@'

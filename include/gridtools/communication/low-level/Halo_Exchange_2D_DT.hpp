@@ -153,10 +153,6 @@ namespace gridtools {
 
        he.exchange();
        \endcode
-
-
-       A running example can be found in the included example. \example Halo_Exchange_test.cpp \example
-     Halo_Exchange_test_2.cpp
      */
     template < typename PROC_GRID, int ALIGN = 1 >
     class Halo_Exchange_2D_DT {

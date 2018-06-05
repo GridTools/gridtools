@@ -86,6 +86,6 @@ TEST(test_grid, make_grid_makes_splitters_and_values) {
     ASSERT_EQ(3, grid_.value_list.size());
 
     ASSERT_EQ(0, grid_.value_list[0]);
-    ASSERT_EQ(interval1_size - 1, grid_.value_list[1]);
-    ASSERT_EQ(interval1_size + interval2_size - 1, grid_.value_list[2]);
+    ASSERT_EQ(interval1_size, grid_.value_list[1]);
+    ASSERT_EQ(interval1_size + interval2_size, grid_.value_list[2]);
 }

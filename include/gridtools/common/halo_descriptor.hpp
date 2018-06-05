@@ -45,6 +45,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup halo_descriptor Halo Descriptor
+        @{
+    */
+
     /** \class halo_descriptor
         Given a dimension it is described like this:
         \code
@@ -104,23 +110,6 @@ namespace gridtools {
             ASSERT_OR_THROW(
                 (m_plus <= m_total_length - m_end - 1), "Invalid halo_descriptor: end of compute domain inside halo.");
             ASSERT_OR_THROW((m_begin >= m_minus), "Invalid halo_descriptor: begin of compute domain inside halo.");
-        }
-
-        GT_FUNCTION halo_descriptor &operator=(halo_descriptor const &hh) {
-            m_minus = hh.minus();
-            m_plus = hh.plus();
-            m_begin = hh.begin();
-            m_end = hh.end();
-            m_total_length = hh.total_length();
-            return *this;
-        }
-
-        GT_FUNCTION halo_descriptor(halo_descriptor const &hh) {
-            m_minus = hh.minus();
-            m_plus = hh.plus();
-            m_begin = hh.begin();
-            m_end = hh.end();
-            m_total_length = hh.total_length();
         }
 
         /**
@@ -268,4 +257,8 @@ namespace gridtools {
         return s << "hd(" << hd.minus() << ", " << hd.plus() << ", " << hd.begin() << ", " << hd.end() << ", "
                  << hd.total_length() << ")";
     }
+
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

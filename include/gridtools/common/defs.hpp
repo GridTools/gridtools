@@ -35,6 +35,12 @@
 */
 #pragma once
 
+/** \ingroup common
+    @{
+    \defgroup defs Common Definitions
+    @{
+*/
+
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
@@ -137,11 +143,29 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+#if !defined(GT_BROKEN_TEMPLATE_ALIASES)
+#if defined(__CUDACC_VER_MAJOR__)
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
+#elif defined(__INTEL_COMPILER)
+#define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
+#elif defined(__clang__)
+#define GT_BROKEN_TEMPLATE_ALIASES 0
+#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
+#define GT_BROKEN_TEMPLATE_ALIASES (__GNUC__ * 10 + __GNUC_MINOR__ < 47)
+#else
+#define GT_BROKEN_TEMPLATE_ALIASES 1
+#endif
+#endif
+
 /**
  * @brief Main namespace containing all the provided libraries and
  * functionalities
  */
 namespace gridtools {
+    /** \ingroup defs
+        @{
+    */
+
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
@@ -151,7 +175,7 @@ namespace gridtools {
  */
 /** enum specifying the type of backend we use */
 #ifndef PLATFORM_GUARD
-        enum platform { Cuda, Host };
+        enum platform { Cuda, Host, Mic };
 #endif
 
         enum strategy { Naive, Block };
@@ -213,50 +237,6 @@ namespace gridtools {
 #define GRIDBACKEND icosahedral
 #endif
 
-    template < typename Arg >
-    struct is_enum_type : public boost::mpl::and_< typename boost::mpl::not_< boost::is_arithmetic< Arg > >::type,
-                              typename boost::is_convertible< Arg, const int >::type >::type {};
-
-    template < typename Arg1, typename Arg2 >
-    struct any_enum_type : public boost::mpl::or_< is_enum_type< Arg1 >, is_enum_type< Arg2 > >::type {};
-
-    template < typename T >
-    struct is_backend_enum : boost::mpl::false_ {};
-
-    /** checking that no arithmetic operation is performed on enum types*/
-    template <>
-    struct is_backend_enum< enumtype::platform > : boost::mpl::true_ {};
-
-    struct error_no_operator_overload {};
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
-    template < typename ArgType1,
-        typename ArgType2,
-        typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {
-        return {};
-    }
-
     template < typename T >
     struct is_execution_engine : boost::mpl::false_ {};
 
@@ -275,9 +255,14 @@ namespace gridtools {
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
 
+#ifdef GT_DOXYGEN_SHOULD_EXCLUDE_THIS
+/* disable GT_AUTO_RETURN macro for doxygen as it creates many warnings */
+#define GT_AUTO_RETURN(expr)
+#else
 #define GT_AUTO_RETURN(expr)          \
     ->decltype(expr) { return expr; } \
     static_assert(1, "")
+#endif
 
 //################ Type aliases for GridTools ################
 
@@ -329,4 +314,9 @@ namespace gridtools {
     template < bool B >
     using static_bool = std::integral_constant< bool, B >;
 
+    /** @} */
+
 } // namespace gridtools
+
+/** @} */
+/** @} */

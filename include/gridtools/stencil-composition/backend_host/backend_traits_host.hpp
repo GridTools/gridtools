@@ -40,7 +40,7 @@
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
-#include "empty_iterate_domain_cache.hpp"
+#include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_host.hpp"
 #include "run_esf_functor_host.hpp"
 #include "strategy_host.hpp"
@@ -64,11 +64,6 @@ namespace gridtools {
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
     struct backend_traits_from_id< enumtype::Host > {
-
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of Host backend we have to return the CPU pointer.
-        */
-        using extract_storage_info_ptr_f = identity;
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
@@ -153,7 +148,7 @@ namespace gridtools {
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
             const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
-            return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
+            return stride_i * (i * blocksize + halo_i);
         }
 
         /**
@@ -163,10 +158,8 @@ namespace gridtools {
         */
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            return StorageInfo::get_initial_offset();
+            return 0;
         }
-
-        using setup_grid_f = noop;
 
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block

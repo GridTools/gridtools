@@ -44,6 +44,7 @@
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 #endif
+#include "storage_traits_mic.hpp"
 #include "storage_traits_host.hpp"
 
 /**
@@ -85,6 +86,18 @@ namespace gridtools {
 
         template < typename ValueType, typename StorageInfo, uint_t... N >
         using data_store_field_t = data_store_field< data_store_t< ValueType, StorageInfo >, N... >;
+
+        template < uint_t Id, uint_t Dims, typename Halo, typename Align >
+        using storage_info_align_t = typename gridtools::storage_traits_from_id<
+            T >::template select_storage_info_align< Id, Dims, Halo, Align >::type;
+
+        template < uint_t Id, typename LayoutMap, typename Halo, typename Align >
+        using custom_layout_storage_info_align_t = typename gridtools::storage_traits_from_id<
+            T >::template select_custom_layout_storage_info_align< Id, LayoutMap, Halo, Align >::type;
+
+        template < uint_t Id, typename Selector, typename Halo, typename Align >
+        using special_storage_info_align_t = typename gridtools::storage_traits_from_id<
+            T >::template select_special_storage_info_align< Id, Selector, Halo, Align >::type;
     };
 
     /**

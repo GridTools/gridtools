@@ -45,7 +45,6 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
 
-#include "aggregator_type.hpp"
 #include "backend_traits_fwd.hpp"
 #include "local_domain.hpp"
 #include "local_domain_metafunctions.hpp"
@@ -81,6 +80,10 @@ namespace gridtools {
 
     template < enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful >
     struct mss_local_domain {
+
+        // This is to make cuda8 happy.
+        mss_local_domain() = default;
+
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
 
         /**

@@ -102,24 +102,19 @@ namespace ico_operators {
             typedef arg< 2, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
             typedef arg< 3, edges_of_vertices_storage_type, enumtype::vertices > p_edge_orientation;
 
-            typedef boost::mpl::vector< p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation >
-                accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(
-                dual_area_reciprocal, dual_edge_length, curl_weights, edge_orientation);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_dual_area_reciprocal{} = dual_area_reciprocal,
+                p_dual_edge_length{} = dual_edge_length,
+                p_curl_weights{} = curl_weights,
+                p_edge_orientation{} = edge_orientation,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< curl_prep_functor,
                         icosahedral_topology_t,
                         icosahedral_topology_t::vertices >(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
+            stencil_.run();
 
             dual_area_reciprocal.sync();
             dual_edge_length.sync();
@@ -132,22 +127,18 @@ namespace ico_operators {
             typedef arg< 1, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
             typedef arg< 2, vertex_storage_type, enumtype::vertices > p_out_vertices;
 
-            typedef boost::mpl::vector< p_in_edges, p_curl_weights, p_out_vertices > accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(in_edges, curl_weights, out_vertices);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_curl_weights{} = curl_weights,
+                p_out_vertices{} = out_vertices,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< curl_functor_weights,
                         icosahedral_topology_t,
                         icosahedral_topology_t::vertices >(p_in_edges(), p_curl_weights(), p_out_vertices())));
 
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
+            stencil_.run();
 
             in_edges.sync();
             curl_weights.sync();
@@ -173,15 +164,12 @@ namespace ico_operators {
             typedef arg< 2, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
             typedef arg< 3, vertex_storage_type, enumtype::vertices > p_out_vertices;
 
-            typedef boost::mpl::vector< p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices >
-                accessor_list_t;
-
-            gridtools::aggregator_type< accessor_list_t > domain(
-                in_edges, dual_area_reciprocal, dual_edge_length, out_vertices);
-
             auto stencil_ = gridtools::make_computation< backend_t >(
-                domain,
                 grid_,
+                p_in_edges{} = in_edges,
+                p_dual_area_reciprocal{} = dual_area_reciprocal,
+                p_dual_edge_length{} = dual_edge_length,
+                p_out_vertices{} = out_vertices,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< curl_functor_flow_convention,
@@ -189,9 +177,7 @@ namespace ico_operators {
                         icosahedral_topology_t::vertices >(
                         p_in_edges(), p_dual_area_reciprocal(), p_dual_edge_length(), p_out_vertices())));
 
-            stencil_->ready();
-            stencil_->steady();
-            stencil_->run();
+            stencil_.run();
 
             in_edges.sync();
             dual_area_reciprocal.sync();

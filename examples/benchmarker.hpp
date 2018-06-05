@@ -35,30 +35,29 @@
 */
 #pragma once
 #include <memory>
-#include "stencil-composition/stencil.hpp"
 #include "cache_flusher.hpp"
 #include "defs.hpp"
-#include "stencil-composition/stencil.hpp"
 
 namespace gridtools {
 
     struct benchmarker {
 
-        static void run(std::shared_ptr< gridtools::stencil< notype > > stencil, uint_t tsteps) {
+        template < class Stencil >
+        static void run(Stencil &stencil, uint_t tsteps) {
             cache_flusher flusher(cache_flusher_size);
             // we run a first time the stencil, since if there is data allocation before by other codes, the first run
             // of the stencil
             // is very slow (we dont know why). The flusher should make sure we flush the cache
-            stencil->run();
+            stencil.run();
             flusher.flush();
 
-            stencil->reset_meter();
+            stencil.reset_meter();
             for (uint_t t = 0; t < tsteps; ++t) {
                 flusher.flush();
-                stencil->run();
+                stencil.run();
             }
 
-            double time = stencil->get_meter();
+            double time = stencil.get_meter();
             std::ostringstream out;
             if (time < 0)
                 out << "\t[s]\t"

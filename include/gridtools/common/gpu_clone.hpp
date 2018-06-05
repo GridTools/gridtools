@@ -43,6 +43,12 @@
 
 namespace gridtools {
 
+/** \ingroup common
+    @{
+    \defgroup gpuclone Gpu Cloning
+    @{
+*/
+
 #if defined(_USE_GPU_) || defined(__CUDACC__)
 
     /**
@@ -163,4 +169,6 @@ namespace gridtools {
         gpu_object_ptr = NULL;
     }
 #endif
+    /** @} */
+    /** @} */
 } // namespace gridtools

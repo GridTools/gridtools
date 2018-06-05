@@ -48,14 +48,15 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/identity.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/modulus.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "expressions/expressions.hpp"
 #include "../common/array.hpp"
+#include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 #include "total_storages.hpp"
 #include "run_functor_arguments_fwd.hpp"
 #include "run_functor_arguments.hpp"
@@ -71,16 +72,6 @@
 */
 
 namespace gridtools {
-
-    namespace {
-        template < class InputIt, class OutputIt >
-        GT_FUNCTION OutputIt copy_ptrs(InputIt first, InputIt last, OutputIt d_first, const int offset = 0) {
-            while (first != last) {
-                *d_first++ = (*first++) + offset;
-            }
-            return d_first;
-        }
-    }
 
     /* data structure that can be used to store the data pointers of a given list of storages */
     template < typename StorageWrapperList, int I = boost::mpl::size< StorageWrapperList >::value - 1 >
@@ -255,17 +246,16 @@ namespace gridtools {
                 (index_t::value < ArrayIndex::size()), "Accessing an index out of bound in fusion tuple");
 
             // get the max coordinate of given StorageInfo
-            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-                typename StorageInfo::layout_t::static_layout_vector >::type >::type max_t;
+            constexpr int layout_max = StorageInfo::layout_t::max();
 
             // get the position
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (pos >= 0) {
                 auto stride =
-                    (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
-                                                                    // uint_t cast to avoid a warning (maybe this is
-                                                     // compile time evaluated even if pos < 0)
-                                                     m_strides_cached.template get< index_t::value >()[(uint_t)pos]);
+                    (layout_max < 0) ? 0 : ((pos == layout_max) ? 1 :
+                                                                // uint_t cast to avoid a warning (maybe this is
+                                                   // compile time evaluated even if pos < 0)
+                                                   m_strides_cached.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * m_increment);
             }
         }
@@ -322,8 +312,7 @@ namespace gridtools {
             typedef
                 typename boost::mpl::at< typename LocalDomain::storage_info_tmp_info_t, StorageInfo >::type tmp_info_t;
             // get the max coordinate of given StorageInfo
-            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-                typename StorageInfo::layout_t::static_layout_vector >::type >::type max_t;
+            constexpr int layout_max = StorageInfo::layout_t::max();
 
             constexpr int_t i_pos = GridTraits::dim_i_t::value;
             constexpr int_t j_pos = GridTraits::dim_j_t::value;
@@ -340,10 +329,10 @@ namespace gridtools {
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (Coordinate < StorageInfo::layout_t::masked_length && pos >= 0) {
                 int_t stride =
-                    (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
-                                                                    // uint_t cast to avoid a warning (maybe this is
-                                                     // compile time evaluated even if pos < 0)
-                                                     m_strides.template get< index_t::value >()[(uint_t)pos]);
+                    (layout_max < 0) ? 0 : ((pos == layout_max) ? 1 :
+                                                                // uint_t cast to avoid a warning (maybe this is
+                                                   // compile time evaluated even if pos < 0)
+                                                   m_strides.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * (initial_pos - additional_offset));
             }
         }
@@ -428,12 +417,12 @@ namespace gridtools {
             template < typename Coordinate >
             GT_FUNCTION
                 typename boost::enable_if_c< (Coordinate::value >= SInfo::layout_t::unmasked_length), void >::type
-                operator()(Coordinate) {}
+                operator()(Coordinate) const {}
 
             template < typename Coordinate >
             GT_FUNCTION
                 typename boost::enable_if_c< (Coordinate::value < SInfo::layout_t::unmasked_length), void >::type
-                operator()(Coordinate) {
+                operator()(Coordinate) const {
                 typedef typename SInfo::layout_t layout_map_t;
                 typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                     const SInfo * >::type::pos index_t;
@@ -463,8 +452,8 @@ namespace gridtools {
         template < typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< StorageInfo::layout_t::unmasked_length != 0, void >::type operator()(
             const StorageInfo *storage_info) const {
-            boost::mpl::for_each< boost::mpl::range_c< short_t, 0, StorageInfo::layout_t::unmasked_length - 1 > >(
-                assign< StorageInfo >(storage_info, m_strides_cached));
+            using range = GT_META_CALL(meta::make_indices, StorageInfo::layout_t::unmasked_length - 1);
+            gridtools::for_each< range >(assign< StorageInfo >(storage_info, m_strides_cached));
         }
     };
 
@@ -485,8 +474,8 @@ namespace gridtools {
         int_t ptr_offset = BackendTraits::template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
         T *base_address = ptr - ptr_offset;
         // assert that the distance between the base address and the requested address is not exceeding the limits
-        int_t dist_to_first = (ptr + offset) - (base_address + sinfo->total_begin());
-        int_t dist_to_last = (ptr + offset) - (base_address + sinfo->total_end());
+        int_t dist_to_first = (ptr + offset) - (base_address);
+        int_t dist_to_last = (ptr + offset) - (base_address + sinfo->padded_total_length());
         return (dist_to_last <= 0) && (dist_to_first >= 0);
     }
 

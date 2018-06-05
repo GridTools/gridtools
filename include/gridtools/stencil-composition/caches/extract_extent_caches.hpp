@@ -44,14 +44,13 @@ namespace gridtools {
         // update the entry associated to a cache within the map with a new extent.
         // if the key exist we compute and insert the enclosing extent, otherwise we just
         // insert the extent into a new entry of the map of <cache, extent>
-        template < typename ExtentsMap_, typename Extent, typename Cache, typename BackendIds >
+        template < typename ExtentsMap_, typename Extent, typename Cache >
         struct update_extent_map {
             GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::if_< boost::mpl::has_key< ExtentsMap_, Cache >,
                 typename boost::mpl::at< ExtentsMap_, Cache >::type,
-                typename grid_traits_from_id< BackendIds::s_grid_type_id >::null_extent_t >::type default_extent_t;
+                extent<> >::type default_extent_t;
 
             typedef typename boost::mpl::insert<
                 typename boost::mpl::erase_key< ExtentsMap_, Cache >::type,
@@ -69,8 +68,8 @@ namespace gridtools {
     struct ijfy_extent;
 
     // nullify any extent that is not ij
-    template < int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus, int_t... Rest >
-    struct ijfy_extent< extent< IMinus, IPlus, JMinus, JPlus, KMinus, KPlus, Rest... > > {
+    template < int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus >
+    struct ijfy_extent< extent< IMinus, IPlus, JMinus, JPlus, KMinus, KPlus > > {
         using type = extent< IMinus, IPlus, JMinus, JPlus, 0, 0 >;
     };
 
@@ -88,7 +87,6 @@ namespace gridtools {
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
         typedef typename IterateDomainArguments::extent_sizes_t extents_t;
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
-        typedef typename IterateDomainArguments::backend_ids_t backend_ids_t;
 
         // metafunction to extract the extent of an ESF where an Arg is used.
         // If Arg is not used by the ESF, a null extent is returned, otherwise
@@ -99,7 +97,7 @@ namespace gridtools {
 
             using extent_t = typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, Arg >,
                 typename boost::mpl::at< extents_t, ESFIdx >::type,
-                typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type;
+                extent<> >::type;
             using type = typename ijfy_extent< extent_t >::type;
         };
 
@@ -127,7 +125,7 @@ namespace gridtools {
 
                 typedef typename boost::mpl::if_<
                     boost::mpl::contains< typename esf_t::args_t, typename cache_parameter< Cache >::type >,
-                    typename impl::update_extent_map< ExtentsMap_, extent_t, Cache, backend_ids_t >::type,
+                    typename impl::update_extent_map< ExtentsMap_, extent_t, Cache >::type,
                     ExtentsMap_ >::type type;
             };
 
@@ -156,7 +154,6 @@ namespace gridtools {
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
         typedef typename IterateDomainArguments::extent_sizes_t extents_t;
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
-        typedef typename IterateDomainArguments::backend_ids_t backend_ids_t;
 
         // insert the extent associated to a Cache into the map of <cache, extent>
         template < typename ExtentsMap, typename Cache >
@@ -176,14 +173,14 @@ namespace gridtools {
 
                 typedef typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, cache_arg_t >,
                     typename boost::mpl::at< typename esf_t::args_with_extents, cache_arg_t >::type,
-                    typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type extent_t;
+                    extent<> >::type extent_t;
 
                 GRIDTOOLS_STATIC_ASSERT((extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
                                             extent_t::jminus::value == 0 && extent_t::jplus::value == 0),
                     "Error: K Caches can not have ij extent values");
 
                 typedef typename boost::mpl::if_< boost::mpl::contains< typename esf_t::args_t, cache_arg_t >,
-                    typename impl::update_extent_map< ExtentsMap_, extent_t, Cache, backend_ids_t >::type,
+                    typename impl::update_extent_map< ExtentsMap_, extent_t, Cache >::type,
                     ExtentsMap_ >::type type;
             };
 

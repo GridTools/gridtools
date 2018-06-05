@@ -52,13 +52,8 @@ namespace test_expandable_parameters {
 
     struct functor_exp {
 
-#ifdef REASSIGN_DOMAIN
-        typedef accessor< 0, enumtype::inout > parameters_out;
-        typedef accessor< 1, enumtype::in > parameters_in;
-#else
         typedef vector_accessor< 0, enumtype::inout > parameters_out;
         typedef vector_accessor< 1, enumtype::in > parameters_in;
-#endif
 
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 
@@ -96,22 +91,17 @@ namespace test_expandable_parameters {
         typedef arg< 1, std::vector< storage_t > > p_list_in;
         typedef tmp_arg< 2, std::vector< storage_t > > p_list_tmp;
 
-        typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
-
-        aggregator_type< args_t > domain_(list_out_, list_in_);
-
         auto comp_ = make_computation< backend_t >(expand_factor< 2 >(),
-            domain_,
             grid_,
+            p_list_out{} = list_out_,
+            p_list_in{} = list_in_,
             make_multistage(enumtype::execute< enumtype::forward >(),
                                                        define_caches(cache< IJ, cache_io_policy::local >(p_list_tmp())),
                                                        make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                        make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 
-        comp_->ready();
-        comp_->steady();
-        comp_->run();
-        comp_->finalize();
+        comp_.run();
+        comp_.sync_bound_data_stores();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {

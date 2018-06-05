@@ -54,7 +54,7 @@ namespace gridtools {
         int_t JPlus = 0,
         int_t KMinus = 0,
         int_t KPlus = 0,
-        int_t... Rest >
+        int_t... >
     struct extent {
         typedef static_int< IMinus > iminus;
         typedef static_int< IPlus > iplus;
@@ -94,8 +94,8 @@ namespace gridtools {
     /**
      * Metafunction to check if a type is a extent - Specialization yielding true
      */
-    template < int_t I, int_t J, int_t K, int_t L, int_t M, int_t N >
-    struct is_extent< extent< I, J, K, L, M, N > > : boost::true_type {};
+    template < int_t... Is >
+    struct is_extent< extent< Is... > > : boost::true_type {};
 
     /**
      * Metafunction to check if a type is a extent - Specialization yielding true

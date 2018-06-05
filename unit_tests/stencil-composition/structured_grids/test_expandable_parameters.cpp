@@ -130,9 +130,6 @@ class expandable_parameters : public testing::Test {
 
     typedef arg< 0, std::vector< data_store_t > > p_in;
     typedef arg< 1, std::vector< data_store_t > > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-    aggregator_type< accessor_list > domain;
 
     expandable_parameters()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
@@ -143,26 +140,23 @@ class expandable_parameters : public testing::Test {
           verifier_(1e-12),
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
-          in_1(meta_, 1., "in_1"),                //
-          in_2(meta_, 2., "in_2"),                //
-          in_3(meta_, 3., "in_3"),                //
-          in_4(meta_, 4., "in_4"),                //
-          in_5(meta_, 5., "in_5"),                //
-          out_1(meta_, -1., "out_1"),             //
-          out_2(meta_, -2., "out_2"),             //
-          out_3(meta_, -3., "out_3"),             //
-          out_4(meta_, -4., "out_4"),             //
-          out_5(meta_, -5., "out_5"),             //
-          in{in_1, in_2, in_3, in_4, in_5},       //
-          out{out_1, out_2, out_3, out_4, out_5}, //
-          domain(in, out) {
+          in_1(meta_, 1., "in_1"),          //
+          in_2(meta_, 2., "in_2"),          //
+          in_3(meta_, 3., "in_3"),          //
+          in_4(meta_, 4., "in_4"),          //
+          in_5(meta_, 5., "in_5"),          //
+          out_1(meta_, -1., "out_1"),       //
+          out_2(meta_, -2., "out_2"),       //
+          out_3(meta_, -3., "out_3"),       //
+          out_4(meta_, -4., "out_4"),       //
+          out_5(meta_, -5., "out_5"),       //
+          in{in_1, in_2, in_3, in_4, in_5}, //
+          out{out_1, out_2, out_3, out_4, out_5} {
     }
 
     template < typename Computation >
     void execute_computation(Computation &comp) {
-        comp->ready();
-        comp->steady();
-        comp->run();
+        comp.run(p_in() = in, p_out() = out);
         out_1.sync();
         out_2.sync();
         out_3.sync();
@@ -173,7 +167,6 @@ class expandable_parameters : public testing::Test {
 
 TEST_F(expandable_parameters, copy) {
     auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
-        domain,
         grid,
         gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_out(), p_in())));
 
@@ -190,7 +183,6 @@ TEST_F(expandable_parameters, copy) {
 TEST_F(expandable_parameters, copy_with_expression) {
     auto comp = gridtools::make_computation< backend_t >(
         expand_factor< 2 >(),
-        domain,
         grid,
         gridtools::make_multistage(
             execute< forward >(), gridtools::make_stage< copy_functor_with_expression >(p_out(), p_in())));
@@ -207,7 +199,6 @@ TEST_F(expandable_parameters, copy_with_expression) {
 TEST_F(expandable_parameters, call_proc_copy) {
     auto comp =
         gridtools::make_computation< backend_t >(expand_factor< 2 >(),
-            domain,
             grid,
             gridtools::make_multistage(execute< forward >(),
                                                      gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
@@ -223,7 +214,6 @@ TEST_F(expandable_parameters, call_proc_copy) {
 
 TEST_F(expandable_parameters, call_copy) {
     auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
-        domain,
         grid,
         gridtools::make_multistage(execute< forward >(), gridtools::make_stage< call_copy_functor >(p_out(), p_in())));
 

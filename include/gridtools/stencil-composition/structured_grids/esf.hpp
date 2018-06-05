@@ -36,9 +36,10 @@
 #pragma once
 
 #include <boost/type_traits/is_const.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/transform.hpp>
 
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../aggregator_type.hpp"
 #include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
 #include "../expandable_parameters/vector_accessor.hpp"

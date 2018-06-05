@@ -89,18 +89,14 @@ namespace gridtools {
         using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extent, Number >;
     };
 
-    template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
-    struct remap_accessor_type< Expression< Arguments... >,
-        ArgsMap,
-        typename boost::enable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
-        // Expression is an expression of accessors (e.g. expr_sum<T1, T2>,
-        // where T1 and T2 are two accessors).
+    template < class ArgsMap, class Op, class... Args >
+    struct remap_accessor_type< expr< Op, Args... >, ArgsMap > {
         // Here we traverse the expression AST down to the leaves, and we assert if
         // the leaves are not accessor types.
 
         // recursively remapping the template arguments,
         // until the specialization above stops the recursion
-        typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
+        using type = expr< Op, typename remap_accessor_type< Args, ArgsMap >::type... >;
     };
 
     template < typename T, typename ArgsMap >
@@ -111,10 +107,4 @@ namespace gridtools {
         typedef T type;
     };
 
-    template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, int Number >
-    struct remap_accessor_type< Expression< Accessor, Number >, ArgsMap > {
-        // Specialization done to catch also the "pow" expression, for which a template argument is an
-        // integer (the exponent)
-        typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
-    };
 } // namespace gridtools

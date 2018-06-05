@@ -38,6 +38,12 @@
 @file
 @brief definition of macros for host/GPU
 */
+/** \ingroup common
+    @{
+    \defgroup hostdevice Host-Device Macros
+    @{
+*/
+
 #ifdef _USE_GPU_
 #include <cuda_runtime.h>
 #endif
@@ -79,3 +85,5 @@
 #define GT_KERNEL
 #endif
 #endif
+/** @} */
+/** @} */

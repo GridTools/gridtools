@@ -43,7 +43,7 @@
 #include "../iterate_domain_metafunctions.hpp"
 #include "../accessor.hpp"
 #include "../iterate_domain_fwd.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../position_offset_type.hpp"
 
 namespace gridtools {
@@ -323,9 +323,9 @@ namespace gridtools {
                 typename Reduction,
                 typename EsfLocationType,
                 typename... Accessors,
-                typename std::enable_if< !std::is_same< LocationTypeT, EsfLocationType >::value &&
-                                             meta::conjunction< is_accessor< Accessors >... >::value,
-                    int >::type = 0 >
+                enable_if_t< !std::is_same< LocationTypeT, EsfLocationType >::value &&
+                                 conjunction< is_accessor< Accessors >... >::value,
+                    int > = 0 >
             GT_FUNCTION ValueType evaluate(EsfLocationType,
                 on_neighbors_impl< ValueType, SrcColor, LocationTypeT, Reduction, Accessors... > onneighbors) const {
 

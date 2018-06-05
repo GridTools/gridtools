@@ -66,10 +66,9 @@ struct iterate_domain_mock {
     }
 
     // copy of the iterate_domain for expr
-    template < typename Expression, typename std::enable_if< is_expr< Expression >::value, int >::type = 0 >
-    GT_FUNCTION auto operator()(Expression const &arg) -> decltype(expressions::evaluation::value((*this), arg)) {
-        return expressions::evaluation::value((*this), arg);
-    }
+    template < class Op, class... Args >
+    GT_FUNCTION auto operator()(expr< Op, Args... > const &arg) const
+        GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
 };
 
 namespace gridtools {
@@ -134,7 +133,7 @@ TEST(test_expressions, expr_plus_by_ctor) {
     accessor_mock< double > a{1};
     accessor_mock< double > b{2};
 
-    expr_plus< accessor_mock< double >, accessor_mock< double > > add(a, b);
+    auto add = make_expr(plus_f{}, a, b);
 
     iterate_domain_mock iterate;
 

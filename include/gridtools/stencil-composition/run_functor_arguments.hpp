@@ -168,7 +168,7 @@ namespace gridtools {
         typedef ExtentSizes extent_sizes_t;
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         typedef typename boost::mpl::fold< extent_sizes_t,
-            typename grid_traits_t::null_extent_t,
+            extent<>,
             enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
@@ -192,6 +192,13 @@ namespace gridtools {
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
         typedef Color color_t;
+
+        // This calculates the size of the block that is passed to CUDA device.
+        // The calculation is tightly coupled with the algorithm we process halos in CUDA.
+        // For detail description, please se comments in structured_grids/backend_cuda/execute_kernel_functor_cuda.hpp
+        typedef block_size< physical_domain_block_size_t::i_size_t::value,
+            physical_domain_block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value +
+                !!max_extent_t::iminus::value + !!max_extent_t::iplus::value > cuda_block_size_t;
     };
 
     template < typename T >

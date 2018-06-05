@@ -44,7 +44,8 @@
 
 namespace gridtools {
     // define the level offset limit
-    const short_t cLevelOffsetLimit = 3;
+    const short_t cLevelOffsetLimit = 4; // set to 4 because of the kcache tests
+
     /**
      * @struct Level
      * Structure defining an axis position relative to a splitter

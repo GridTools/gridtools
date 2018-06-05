@@ -186,8 +186,10 @@
 /*
  * @brief creates a boost::variant with implicit conversion to its types (if the compiler supports it)
  */
-#if ((defined(__GNUC__) && (__GNUC__ >= 5)) || \
-     (defined(__clang__) && (((__clang_major__ == 3) && (__clang_minor__ >= 9)) || (__clang_major__ > 4))))
+#if defined(__GNUC__) && (__GNUC__ >= 5) ||                                      \
+    defined(__clang__) && !defined(__APPLE_CC__) &&                              \
+        (__clang_major__ == 3 && __clang_minor__ >= 9 || __clang_major__ > 4) || \
+    defined(__clang__) && defined(__APPLE_CC__) && __APPLE_CC__ > 8000
 // this choice of host compilers implies CUDA >= 8
 #define GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 #endif

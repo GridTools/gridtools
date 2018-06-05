@@ -73,17 +73,24 @@ namespace sov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using vertex_storage_type =
-            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices, double >;
+        constexpr uint_t halo_nc = 1;
+        constexpr uint_t halo_mc = 1;
 
-        const uint_t halo_nc = 1;
-        const uint_t halo_mc = 1;
-        const uint_t halo_k = 0;
+        using vertex_storage_type = typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices,
+            double,
+            halo< halo_nc, 0, halo_mc, 0 > >;
+
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("in");
-        auto out_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("out");
-        auto ref_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("ref");
+        auto in_vertices =
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+                "in");
+        auto out_vertices =
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+                "out");
+        auto ref_vertices =
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+                "ref");
         auto inv = make_host_view(in_vertices);
         auto outv = make_host_view(out_vertices);
         auto refv = make_host_view(ref_vertices);
@@ -103,26 +110,21 @@ namespace sov {
         typedef arg< 0, vertex_storage_type, enumtype::vertices > p_in_vertices;
         typedef arg< 1, vertex_storage_type, enumtype::vertices > p_out_vertices;
 
-        typedef boost::mpl::vector< p_in_vertices, p_out_vertices > accessor_list_t;
-
-        gridtools::aggregator_type< accessor_list_t > domain(in_vertices, out_vertices);
-
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
-            domain,
             grid_,
+            p_in_vertices() = in_vertices,
+            p_out_vertices() = out_vertices,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
                 gridtools::make_stage< test_on_vertices_functor,
                     icosahedral_topology_t,
                     icosahedral_topology_t::vertices >(p_in_vertices(), p_out_vertices())));
-        stencil_->ready();
-        stencil_->steady();
-        stencil_->run();
+        stencil_.run();
 
         out_vertices.sync();
         in_vertices.sync();
@@ -150,13 +152,12 @@ namespace sov {
             verifier ver(1e-10);
 #endif
 
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-            bool result = ver.verify(grid_, ref_vertices, out_vertices, halos);
+            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0, 0}}};
+            result = ver.verify(grid_, ref_vertices, out_vertices, halos);
         }
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif
-        stencil_->finalize();
         return result;
     }
 

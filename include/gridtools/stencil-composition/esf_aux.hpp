@@ -34,7 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "./arg.hpp"
+#include <boost/mpl/range_c.hpp>
+
+#include "arg.hpp"
 #include "accessor_fwd.hpp"
 
 namespace gridtools {

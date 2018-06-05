@@ -117,14 +117,18 @@ int main(int argc, char *argv[]) {
     boost::mpl::for_each< boost::mpl::range_c< int, 0, 20 > >(PrintLevel());
     std::cout << "Done!" << std::endl;
 
+    const int has_do_functor0_index_expected = 2 * cLevelOffsetLimit * 3 - 1 + cLevelOffsetLimit;
+
     // // check has_do_simple on a few examples
     BOOST_STATIC_ASSERT((has_do< Functor0,
         make_interval< level_to_index< level< 3, -1 > >::type,
                                      level_to_index< level< 3, -1 > >::type >::type >::value));
     BOOST_STATIC_ASSERT((has_do< Functor0, level< 3, -1 > >::value));
     BOOST_STATIC_ASSERT((!has_do< Functor0, level< 3, -2 > >::value));
-    BOOST_STATIC_ASSERT((has_do< Functor0, index_to_level< static_int< 20 > >::type >::value));
-    BOOST_STATIC_ASSERT((!has_do< Functor0, index_to_level< static_int< 21 > >::type >::value));
+    BOOST_STATIC_ASSERT(
+        (has_do< Functor0, index_to_level< static_int< has_do_functor0_index_expected > >::type >::value));
+    BOOST_STATIC_ASSERT(
+        (!has_do< Functor0, index_to_level< static_int< has_do_functor0_index_expected + 1 > >::type >::value));
     // typedef index_to_level<static_int<20> >::type sss; // used these lines to find out the level index
     // typedef sss::ciao ciccio;                          // by trial and error
     BOOST_STATIC_ASSERT((!has_do< Functor0,

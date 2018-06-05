@@ -36,8 +36,10 @@
 
 #pragma once
 
-#include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/vector_c.hpp>
 
 #include "layout_map.hpp"
 #include "selector.hpp"
@@ -46,27 +48,25 @@
 #include "generic_metafunctions/sequence_unpacker.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup layout
+        @{
+    */
 
+    /** \brief Compute the reverse of a layout. For instance the reverse of
+        `layout_map<1,0,-1,2>` is `layout<1,2,-1,0>`
+
+        \tparam LayoutMap The layout map to process
+    */
     template < typename LayoutMap >
     struct reverse_map;
 
+    /// \private
     template < short_t... Is >
     struct reverse_map< layout_map< Is... > > {
-        template < short_t I, short_t Max >
-        struct new_value {
-            static const short_t value = (Max - I) > Max ? I : Max - I;
-        };
-
-        template < typename Current, typename Next >
-        struct get_max {
-            using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
-        };
-
-        using max = typename boost::mpl::fold< typename layout_map< Is... >::static_layout_vector,
-            boost::mpl::int_< -1 >,
-            get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
-
-        typedef layout_map< new_value< Is, max::value >::value... > type;
+        static constexpr int max = layout_map< Is... >::max();
+        using type = layout_map< (Is < 0 ? Is : max - Is)... >;
     };
 
     template < typename DATALO, typename PROCLO >
@@ -77,8 +77,8 @@ namespace gridtools {
         typedef layout_map< I1, I2 > L1;
         typedef layout_map< P1, P2 > L2;
 
-        static const short_t N1 = boost::mpl::at_c< typename L1::static_layout_vector, P1 >::type::value;
-        static const short_t N2 = boost::mpl::at_c< typename L1::static_layout_vector, P2 >::type::value;
+        static constexpr short_t N1 = L1::template at< P1 >();
+        static constexpr short_t N2 = L1::template at< P2 >();
 
         typedef layout_map< N1, N2 > type;
     };
@@ -88,34 +88,11 @@ namespace gridtools {
         typedef layout_map< I1, I2, I3 > L1;
         typedef layout_map< P1, P2, P3 > L2;
 
-        static const short_t N1 = boost::mpl::at_c< typename L1::static_layout_vector, P1 >::type::value;
-        static const short_t N2 = boost::mpl::at_c< typename L1::static_layout_vector, P2 >::type::value;
-        static const short_t N3 = boost::mpl::at_c< typename L1::static_layout_vector, P3 >::type::value;
+        static constexpr short_t N1 = L1::template at< P1 >();
+        static constexpr short_t N2 = L1::template at< P2 >();
+        static constexpr short_t N3 = L1::template at< P3 >();
 
         typedef layout_map< N1, N2, N3 > type;
-    };
-
-    template < short_t D >
-    struct default_layout_map;
-
-    template <>
-    struct default_layout_map< 1 > {
-        typedef layout_map< 0 > type;
-    };
-
-    template <>
-    struct default_layout_map< 2 > {
-        typedef layout_map< 0, 1 > type;
-    };
-
-    template <>
-    struct default_layout_map< 3 > {
-        typedef layout_map< 0, 1, 2 > type;
-    };
-
-    template <>
-    struct default_layout_map< 4 > {
-        typedef layout_map< 0, 1, 2, 3 > type;
     };
 
     /*
@@ -194,27 +171,46 @@ namespace gridtools {
         };
     }
 
-    template < typename LayoutMap, ushort_t NExtraDim >
+    enum class InsertLocation { pre, post };
+
+    template < typename LayoutMap, ushort_t NExtraDim, InsertLocation Location = InsertLocation::post >
     struct extend_layout_map;
 
     /*
      * metafunction to extend a layout_map with certain number of dimensions.
-     * Example of use: extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
+     * Example of use:
+     * a) extend_layout_map< layout_map<0, 1, 3, 2>, 3> == layout_map<3, 4, 6, 5, 0, 1, 2>
+     * b) extend_layout_map< layout_map<0, 1, 3, 2>, 3, InsertLocation::pre> == layout_map<0, 1, 2, 3, 4, 6, 5>
      */
-    template < ushort_t NExtraDim, int_t... Args >
-    struct extend_layout_map< layout_map< Args... >, NExtraDim > {
+    template < ushort_t NExtraDim, int_t... Args, InsertLocation Location >
+    struct extend_layout_map< layout_map< Args... >, NExtraDim, Location > {
 
-        template < typename T, int_t... InitialInts >
+        template < InsertLocation Loc, typename T, int_t... InitialInts >
         struct build_ext_layout;
 
         // build an extended layout
         template < int_t... Indices, int_t... InitialIndices >
-        struct build_ext_layout< gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
+        struct build_ext_layout< InsertLocation::post, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
             typedef layout_map< InitialIndices..., Indices... > type;
+        };
+        template < int_t... Indices, int_t... InitialIndices >
+        struct build_ext_layout< InsertLocation::pre, gt_integer_sequence< int_t, Indices... >, InitialIndices... > {
+            typedef layout_map< Indices..., InitialIndices... > type;
         };
 
         using seq = typename make_gt_integer_sequence< int_t, NExtraDim >::type;
 
-        typedef typename build_ext_layout< seq, impl::inc_< Args, NExtraDim >::value... >::type type;
+        typedef typename build_ext_layout< Location, seq, impl::inc_< Args, NExtraDim >::value... >::type type;
     };
+
+    template < short_t D >
+    struct default_layout_map {
+        using type = typename extend_layout_map< layout_map<>, D, InsertLocation::pre >::type;
+    };
+
+    template < short_t D >
+    using default_layout_map_t = typename default_layout_map< D >::type;
+
+    /** @} */
+    /** @} */
 }

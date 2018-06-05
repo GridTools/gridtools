@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../../common/tuple.hpp"
 
 namespace gridtools {

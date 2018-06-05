@@ -34,7 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <tuple>
 #include <boost/mpl/zip_view.hpp>
+
+#include <boost/fusion/include/std_tuple.hpp>
+
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
 
 #include "local_domain.hpp"
 
@@ -154,7 +159,7 @@ namespace gridtools {
             merge_local_domain_sequence< LocalDomainSequence, MssComponents, IsStateful >,
             boost::mpl::identity< LocalDomainSequence > >::type fused_mss_local_domains_t;
 
-        typedef typename boost::fusion::result_of::as_vector< fused_mss_local_domains_t >::type type;
+        using type = copy_into_variadic< fused_mss_local_domains_t, std::tuple<> >;
     };
 
     /**
