@@ -236,15 +236,20 @@ namespace gridtools {
                     boost::mpl::map0<>,
                     boost::mpl::insert< boost::mpl::_1,
                         boost::mpl::pair< arg_from_storage_wrapper< boost::mpl::_2 >, boost::mpl::_2 > > > >::type;
+            using backend_traits_t = typename Backend::backend_traits_t;
+            using grid_traits_t = typename Backend::grid_traits_t;
+            static constexpr enumtype::strategy s_strategy_id = Backend::s_strategy_id;
+
             template < class ArgStoragePair >
             struct generator {
                 template < class Grid >
                 ArgStoragePair operator()(Grid const &grid) const {
                     using arg_t = typename ArgStoragePair::arg_t;
-                    using data_store_t = typename ArgStoragePair::data_store_t;
                     using storage_wrapper_t = typename boost::mpl::at< tmp_storage_wrappers_t, arg_t >::type;
-                    return data_store_t{
-                        Backend::template instantiate_storage_info< MaxExtent, storage_wrapper_t >(grid)};
+                    auto get_size = typename backend_traits_t::
+                        template tmp_storage_size_f< MaxExtent, storage_wrapper_t, grid_traits_t, s_strategy_id >{};
+                    auto make_data_store = typename grid_traits_t::template make_tmp_data_store_f< arg_t >{};
+                    return make_data_store(get_size(grid));
                 }
             };
             template < class T >

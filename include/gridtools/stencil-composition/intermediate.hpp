@@ -292,7 +292,6 @@ namespace gridtools {
         using return_type = decltype(std::declval< branch_selector_t >().apply(_impl::dummy_run_f{}));
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
-        typedef typename Backend::grid_traits_t grid_traits_t;
 
         using placeholders_t = GT_META_CALL(extract_placeholders, all_mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
@@ -338,7 +337,7 @@ namespace gridtools {
         // extent information to the user.
         using extent_map_t =
             typename boost::mpl::eval_if< typename need_to_compute_extents< all_mss_descriptors_t >::type,
-                placeholder_to_extent_map< all_mss_descriptors_t, grid_traits_t, placeholders_t >,
+                placeholder_to_extent_map< all_mss_descriptors_t, placeholders_t >,
                 boost::mpl::void_ >::type;
 
       private:
