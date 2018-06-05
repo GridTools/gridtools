@@ -193,6 +193,7 @@ namespace gridtools {
         static_assert(is_instantiation_of< f, f< int, void > >{}, "");
         static_assert(!is_instantiation_of< f, g<> >{}, "");
         static_assert(!is_instantiation_of< f, int >{}, "");
+        static_assert(is_instantiation_of< f >::apply< f< int, void > >{}, "");
 
         static_assert(std::is_same< GT_META_CALL(replace, (f< int, double, int, double >, double, void)),
                           f< int, void, int, void > >{},

@@ -130,6 +130,32 @@ namespace gridtools {
             }
         };
 
+        // get a temporary storage size
+        template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
+        struct tmp_storage_size_f {
+            using storage_info_t = typename StorageWrapper::storage_info_t;
+            using halo_t = typename storage_info_t::halo_t;
+            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
+            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
+            static constexpr uint_t full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
+            static constexpr uint_t alignment = storage_info_t::alignment_t::value;
+            static constexpr uint_t diff_between_blocks =
+                alignment > 1 ? _impl::static_ceil(static_cast< float >(full_block_size) / alignment) * alignment
+                              : full_block_size;
+            static constexpr uint_t padding = diff_between_blocks - full_block_size;
+
+            template < class Grid >
+            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+                // TODO(anstaf): there is a bug here. k_size should be set to grid.total_length()
+                auto k_size = grid.k_max() + 1;
+                auto threads_i = n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+                auto threads_j = n_j_pes(grid.j_high_bound() - grid.j_low_bound());
+                auto inner_domain_size = threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
+                return {
+                    inner_domain_size + 2 * halo_i, (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * threads_j, k_size};
+            }
+        };
+
         /**
            Static method in order to calculate the field offset. In the iterate domain we store one pointer per
            storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
@@ -193,8 +219,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-                typedef
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+                typedef typename grid_traits_t::template with_arch< enumtype::Cuda >::type arch_grid_traits_t;
 
                 typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
                     kernel_functor_executor_t;

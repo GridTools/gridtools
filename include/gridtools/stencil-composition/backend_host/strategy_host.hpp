@@ -108,8 +108,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-                typedef
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+                typedef typename grid_traits_t::template with_arch< enumtype::Host >::type arch_grid_traits_t;
 
                 // getting the architecture and grid dependent traits
                 typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
@@ -198,8 +197,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-                typedef
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+                typedef typename grid_traits_t::template with_arch< enumtype::Host >::type arch_grid_traits_t;
 
                 typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
                     kernel_functor_executor_t;
