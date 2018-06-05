@@ -4,9 +4,14 @@ function call_repository() bind (c, name="call_repository") &
     use repository
 
     type(c_ptr) :: repository_handle
-    real(c_double), dimension(3, 4, 5) :: ijkfield
-    real(c_double), dimension(3, 4) :: ijfield
-    real(c_double), dimension(4, 5) :: jkfield
+#if FLOAT_PRECISION == 4
+    integer, parameter :: wp = c_float
+#else
+    integer, parameter :: wp = c_double
+#endif
+    real(kind=wp), dimension(3, 4, 5) :: ijkfield
+    real(kind=wp), dimension(3, 4) :: ijfield
+    real(kind=wp), dimension(4, 5) :: jkfield
 
     logical(c_bool) :: ret
 
