@@ -49,14 +49,14 @@ TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;
     constexpr size_t y_size = 5;
     constexpr size_t z_size = 4;
-    double fortran_array[z_size][y_size][x_size];
+    gridtools::float_type fortran_array[z_size][y_size][x_size];
 
     gt_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
     descriptor.dims[0] = x_size;
     descriptor.dims[1] = y_size;
     descriptor.dims[2] = z_size;
-    descriptor.type = gt_fk_Double;
+    descriptor.type = std::is_same< gridtools::float_type, float >::value ? gt_fk_Float : gt_fk_Double;
     descriptor.data = fortran_array;
 
     gridtools::fortran_array_adapter< IJKDataStore > fortran_array_adapter{descriptor};
@@ -83,14 +83,14 @@ TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
     constexpr size_t x_size = 6;
     constexpr size_t y_size = 5;
     constexpr size_t z_size = 4;
-    double fortran_array[z_size][y_size][x_size];
+    gridtools::float_type fortran_array[z_size][y_size][x_size];
 
     gt_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
     descriptor.dims[0] = x_size;
     descriptor.dims[1] = y_size;
     descriptor.dims[2] = z_size;
-    descriptor.type = gt_fk_Double;
+    descriptor.type = std::is_same< gridtools::float_type, float >::value ? gt_fk_Float : gt_fk_Double;
     descriptor.data = fortran_array;
 
     gridtools::fortran_array_adapter< IJKDataStore > fortran_array_adapter{descriptor};
