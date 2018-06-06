@@ -1,5 +1,5 @@
-function call_repository() bind (c, name="call_repository") &
-        result(ret)
+subroutine call_repository() bind (c, name="call_repository")
+
     use iso_c_binding
     use repository
 
@@ -25,4 +25,4 @@ function call_repository() bind (c, name="call_repository") &
     call set_exported_jkfield(repository_handle, jkfield)
     call verify_exported_repository(repository_handle)
 
-end function
+end subroutine

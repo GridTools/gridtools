@@ -182,7 +182,7 @@ TEST(repository_with_custom_getter_prefix, constructor) {
     ASSERT_EQ(Nk, repo.get_v().dim< 2 >());
 }
 
-extern "C" bool call_repository(); // implemented in test_repository.f90
+extern "C" void call_repository(); // implemented in test_repository.f90
 TEST(repository_with_custom_getter_prefix, fortran_bindings) {
     // the test for this code is in exported_repository.cpp
     call_repository();
