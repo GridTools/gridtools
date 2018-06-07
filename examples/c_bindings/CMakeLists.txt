@@ -1,5 +1,3 @@
-include(bindings)
-
 if (ENABLE_HOST)
     add_bindings_library(implementation implementation.cpp)
     add_bindings_library(implementation_wrapper implementation-wrapper.cpp)
