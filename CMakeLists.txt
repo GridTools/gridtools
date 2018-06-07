@@ -26,6 +26,7 @@ endif()
 include (flags)
 include (definitions)
 include (testing)
+include (bindings)
 
 # ===============
 # library header files
