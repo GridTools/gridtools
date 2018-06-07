@@ -51,6 +51,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/contains.hpp>
 #include "repository_macro_helpers.hpp"
+#include "../fortran_array_adapter.hpp"
+#include "../../c_bindings/export.hpp"
 
 #ifndef GT_PARSE_PREPROCESSOR
 #include <unordered_map>
@@ -201,6 +203,21 @@
 #define GTREPO_make_variant(name, data_store_types_seq) \
     using name = boost::variant< GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, data_store_types_seq) >;
 #endif
+#define GTREPO_get_binding_name(fortran_name, member_name) \
+    BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(set_, fortran_name), _), member_name)
+#define GTREPO_make_binding_helper(repo_name, fortran_name, member_name, type)      \
+    void BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl)(   \
+        repo_name & repo, gridtools::fortran_array_adapter< type > view) {          \
+        transform(repo.BOOST_PP_CAT(GTREPO_GETTER_PREFIX, member_name)(), view);    \
+    }                                                                               \
+    GT_EXPORT_BINDING_WRAPPED_2(GTREPO_get_binding_name(fortran_name, member_name), \
+        BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl));
+
+#define GTREPO_make_binding(r, data, tuple)                     \
+    GTREPO_make_binding_helper(BOOST_PP_TUPLE_ELEM(2, 0, data), \
+        BOOST_PP_TUPLE_ELEM(2, 1, data),                        \
+        GTREPO_data_stores_get_member_name(tuple),              \
+        GTREPO_data_store_types_get_typename(tuple))
 
 /*
  * @brief main macro to generate a repository
@@ -230,13 +247,20 @@
         GTREPO_make_ctor_dims_if_has_dims(                                                                             \
             name, data_store_types_seq, data_stores_seq)                         /* generate ctor with dimensions */   \
             name(const name &) = delete;                                         /* non-copyable */                    \
-        name(name &&) = delete;                                                  /* non-movable */                     \
+        name(name &&) = default;                                                 /* movable */                         \
         BOOST_PP_SEQ_FOR_EACH(GTREPO_make_data_store_getter, ~, data_stores_seq) /* getter for each data_store */      \
         auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; } /* getter for data_store map */  \
         const std::unordered_map< std::string, BOOST_PP_CAT(name, _variant) > &data_stores() const {                   \
             return data_store_map_;                                                                                    \
         } /* const getter for data_store map */                                                                        \
     };
+
+/*
+ * @brief main macro to generate the fortran bindings for a repository
+ * @see GRIDTOOLS_MAKE_REPOSITORY
+ */
+#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, data_stores_seq) \
+    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_binding, (name, fortran_name), data_stores_seq)
 
 /*
  * @brief entry for the user
@@ -260,3 +284,20 @@
 #define GRIDTOOLS_MAKE_REPOSITORY(name, data_store_types_seq, data_stores_seq) \
     GRIDTOOLS_MAKE_REPOSITORY_helper(                                          \
         name, GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_store_types_seq), GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_stores_seq))
+
+/*
+ * @brief Creates the fortran bindings for the repository. Must be called from a cpp file.
+ * @param name class name for the repository
+ * @param fortran_name name that will be used to identify the repository in the fortran binding
+ * @param data_stores_seq BOOST_PP sequence of tuples of the form (DataStoreType, VariableName)
+ *
+ * Main macro is GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
+ * user-code look nicer (no double parenthesis)
+ *
+ * Suppose you have a repository with name = "CRep", fortran_name = "FRep" and datastores named "u" and "v". This will
+ * generate the following fortran bindings:
+ *     set_FRep_u(repo, arr) sets CRep.u()
+ *     set_FRep_v(repo, arr) sets CRep.v()
+ */
+#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(name, fortran_name, data_stores_seq) \
+    GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_stores_seq))

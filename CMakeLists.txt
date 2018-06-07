@@ -26,6 +26,7 @@ endif()
 include (flags)
 include (definitions)
 include (testing)
+include (bindings)
 
 # ===============
 # library header files
@@ -50,10 +51,12 @@ set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FL
 set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 
 enable_language (Fortran)
+set(CMAKE_FORTRAN_MODOUT_FLAG ON)
+set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
 
 add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
 target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
-target_include_directories(c_bindings_handle_fortran INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_library(c_bindings_generator src/c_bindings/generator.cpp)
 set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
@@ -100,7 +103,18 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
 
 install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
-install(TARGETS "gcl" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
+install(TARGETS
+        gcl
+        c_bindings_generator
+        c_bindings_handle
+        c_bindings_handle_fortran
+        c_bindings_generator_main
+        array_descriptor
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
+install(FILES
+    "${PROJECT_BINARY_DIR}/mod/gt_handle.mod"
+    "${PROJECT_BINARY_DIR}/mod/array_descriptor.mod"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
 # Install the export set for use with the install-tree
 install(EXPORT GridTools DESTINATION
     "${PROJECT_BINARY_DIR}/cmake" COMPONENT dev)
