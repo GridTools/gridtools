@@ -83,8 +83,6 @@ if(ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
-set(GRIDTOOLS_LIBRARIES_DIR "${CMAKE_BINARY_DIR}" CACHE INTERNAL "library dir for build folder")
-
 # Add all targets to the build-tree export set
 export(TARGETS gcl
   FILE "${PROJECT_BINARY_DIR}/cmake/GridToolsTargets.cmake")
