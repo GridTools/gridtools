@@ -133,8 +133,8 @@ namespace gridtools {
 
         void generate_c_interface(std::ostream &strm) {
             strm << "\n#pragma once\n\n";
-            strm << "#include <gridtools/c_bindings/handle.h>\n";
-            strm << "#include <gridtools/c_bindings/array_descriptor.h>\n\n";
+            strm << "#include <gridtools/c_bindings/array_descriptor.h>\n";
+            strm << "#include <gridtools/c_bindings/handle.h>\n\n";
             strm << "#ifdef __cplusplus\n";
             strm << "extern \"C\" {\n";
             strm << "#endif\n\n";
