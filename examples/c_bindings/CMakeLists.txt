@@ -7,7 +7,7 @@ if (ENABLE_HOST)
     add_executable(driver driver.c)
     target_link_libraries(driver implementation_c)
 
-    list (APPEND CMAKE_Fortran_FLAGS "-cpp")
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 
     add_executable(fdriver fdriver.f90)
     target_link_libraries(fdriver implementation_fortran)
