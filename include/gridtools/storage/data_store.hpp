@@ -225,19 +225,6 @@ namespace gridtools {
         }
 
         /**
-         * @brief Re-initialize the data of the data_store with the
-         * given initializer.
-         *
-         * Indices of the data_sore element to be initialized are
-         * passed to the initializer if it is a lambda/functor
-         *
-         * @param initializer Either a value or a lambda/functor to perfrom initialization
-         */
-        void re_initialize(typename appropriate_function_t< data_t, StorageInfo >::type const &initializer) {
-            lambda_initializer(initializer, *m_shared_storage_info, m_shared_storage->get_cpu_ptr());
-        }
-
-        /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
          * Either the host or the device pointer is external. This means the storage does not own
          * both sides. This is used when external data sources are used (e.g., Fortran or Python).

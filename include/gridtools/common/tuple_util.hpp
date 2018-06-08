@@ -233,7 +233,8 @@ namespace gridtools {
                     Fun &&fun, Tups &&... tups) const {
                     return std::forward< Fun >(fun)(get< I >(std::forward< Tups >(tups))...);
                 }
-#elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800
+#elif(defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
+    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 10)
                 template < class Fun, class Tup >
                 auto operator()(Fun &&fun, Tup &&tup) const
                     GT_AUTO_RETURN(std::forward< Fun >(fun)(get< I >(std::forward< Tup >(tup))));
