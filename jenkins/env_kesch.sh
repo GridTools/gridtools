@@ -25,7 +25,6 @@ export JOB_ENV_COMMON="export CUDA_AUTO_BOOST=0;export GCLOCK=875; export LD_PRE
 export JOB_ENV="${JOB_ENV_COMMON}; export G2G=1"
 export MPI_HOST_JOB_ENV=""
 export MPI_CUDA_JOB_ENV="${JOB_ENV_COMMON}; export G2G=2; export MV2_USE_GPUDIRECT=0; export MV2_USE_RDMA_FAST_PATH=0"
-export USE_MPI_COMPILER=ON
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
