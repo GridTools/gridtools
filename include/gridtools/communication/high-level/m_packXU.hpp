@@ -149,7 +149,7 @@ void m_packXU(array_t const &d_data_array,
 
         // the actual kernel launch
         // clang-format off
-      m_packXUKernel< <<blocks, threads, 0, XU_stream> >>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, ny, nz, i);
+      m_packXUKernel<<<blocks, threads, 0, XU_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, ny, nz, i);
 // clang-format on
 #ifdef CUDAMSG
         int err = cudaGetLastError();

@@ -173,7 +173,7 @@ void m_unpackZL_generic(
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_unpackZLKernel_generic< <<blocks, threads, 0, ZL_stream> >>
+        m_unpackZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
         (fields[i].ptr,
          (d_msgbufTab_r),
          wrap_argument(d_msgsize_r+27*i),

@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+//clang-format off
 #if !BOOST_PP_IS_ITERATING
 
 #ifndef _NON_VECT_INTERFACE_H_
@@ -43,13 +44,11 @@
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/type_traits/remove_reference.hpp>
-
 #define BOOST_PP_ITERATION_PARAMS_1 \
-    (3, (1, GCL_MAX_FIELDS, <gridtools / communication / high - level / non_vect_interface.hpp>))
+    (3, (1, GCL_MAX_FIELDS, "gridtools/communication/high-level/non_vect_interface.hpp"))
 #include BOOST_PP_ITERATE()
 
 #endif
-
 #else
 
 #define n_o_i BOOST_PP_ITERATION()
@@ -372,3 +371,5 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
 #undef PREFIX_SEND
 
 #endif
+
+//clang-format on

@@ -160,7 +160,7 @@ void m_unpackYL_generic(
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_unpackYLKernel_generic< <<blocks, threads, 0, YL_stream> >>
+        m_unpackYLKernel_generic<<<blocks, threads, 0, YL_stream>>>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
          wrap_argument(d_msgsize_r+27*i),
