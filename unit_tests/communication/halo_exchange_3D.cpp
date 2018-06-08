@@ -33,24 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <mpi.h>
 #include "gtest/gtest.h"
-#include <iostream>
-#include <gridtools/communication/low-level/proc_grids_3D.hpp>
-#include <gridtools/communication/low-level/Halo_Exchange_3D.hpp>
-#include <stdio.h>
 #include <gridtools/common/boollist.hpp>
+#include <gridtools/communication/low-level/Halo_Exchange_3D.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
+#include <iostream>
+#include <mpi.h>
+#include <stdio.h>
 
 struct T3 {}; // MPI CYCLIC
 struct T4 {}; // MPI not CYCLIC
 
-template < typename T >
+template <typename T>
 struct pgrid;
 
 template <>
-struct pgrid< T3 > {
+struct pgrid<T3> {
 
-    typedef gridtools::MPI_3D_process_grid_t< 3 > grid_type;
+    typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
     static grid_type instantiate(MPI_Comm comm) {
         int pid;
@@ -67,14 +67,14 @@ struct pgrid< T3 > {
 
         MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
-        return grid_type(gridtools::boollist< 3 >(true, true, true), CartComm);
+        return grid_type(gridtools::boollist<3>(true, true, true), CartComm);
     }
 };
 
 template <>
-struct pgrid< T4 > {
+struct pgrid<T4> {
 
-    typedef gridtools::MPI_3D_process_grid_t< 3 > grid_type;
+    typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
     static grid_type instantiate(MPI_Comm comm) {
         int pid;
@@ -91,7 +91,7 @@ struct pgrid< T4 > {
 
         MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
-        return grid_type(gridtools::boollist< 3 >(false, false, false), CartComm);
+        return grid_type(gridtools::boollist<3>(false, false, false), CartComm);
     }
 };
 
@@ -158,11 +158,11 @@ TEST(Communication, Halo_Exchange_3D) {
     int iminusjpluskplus_r = -1;
     int iplusjpluskplus_r = -1;
 
-    typedef pgrid< T3 > test_type;
+    typedef pgrid<T3> test_type;
 
     test_type::grid_type pg = test_type::instantiate(MPI_COMM_WORLD);
 
-    gridtools::Halo_Exchange_3D< test_type::grid_type > he(pg);
+    gridtools::Halo_Exchange_3D<test_type::grid_type> he(pg);
 
     // std::cout << "@" << gridtools::PID << "@ SEND " << &iminus << " - " << &iplus << " - " << &jminus << " - " <<
     // &jplus
@@ -182,67 +182,67 @@ TEST(Communication, Halo_Exchange_3D) {
     //           "
     //           << &iminusjpluskplus_r << " - " << &iplusjpluskplus_r << std::endl;
 
-    he.register_send_to_buffer< -1, -1, -1 >(&iminusjminuskminus, sizeof(int));
-    he.register_send_to_buffer< -1, 1, -1 >(&iminusjpluskminus, sizeof(int));
-    he.register_send_to_buffer< 1, -1, -1 >(&iplusjminuskminus, sizeof(int));
-    he.register_send_to_buffer< 1, 1, -1 >(&iplusjpluskminus, sizeof(int));
-    he.register_send_to_buffer< -1, -1, 1 >(&iminusjminuskplus, sizeof(int));
-    he.register_send_to_buffer< -1, 1, 1 >(&iminusjpluskplus, sizeof(int));
-    he.register_send_to_buffer< 1, -1, 1 >(&iplusjminuskplus, sizeof(int));
-    he.register_send_to_buffer< 1, 1, 1 >(&iplusjpluskplus, sizeof(int));
+    he.register_send_to_buffer<-1, -1, -1>(&iminusjminuskminus, sizeof(int));
+    he.register_send_to_buffer<-1, 1, -1>(&iminusjpluskminus, sizeof(int));
+    he.register_send_to_buffer<1, -1, -1>(&iplusjminuskminus, sizeof(int));
+    he.register_send_to_buffer<1, 1, -1>(&iplusjpluskminus, sizeof(int));
+    he.register_send_to_buffer<-1, -1, 1>(&iminusjminuskplus, sizeof(int));
+    he.register_send_to_buffer<-1, 1, 1>(&iminusjpluskplus, sizeof(int));
+    he.register_send_to_buffer<1, -1, 1>(&iplusjminuskplus, sizeof(int));
+    he.register_send_to_buffer<1, 1, 1>(&iplusjpluskplus, sizeof(int));
 
-    he.register_send_to_buffer< -1, -1, 0 >(&iminusjminus, sizeof(int));
-    he.register_send_to_buffer< -1, 1, 0 >(&iminusjplus, sizeof(int));
-    he.register_send_to_buffer< 1, -1, 0 >(&iplusjminus, sizeof(int));
-    he.register_send_to_buffer< 1, 1, 0 >(&iplusjplus, sizeof(int));
+    he.register_send_to_buffer<-1, -1, 0>(&iminusjminus, sizeof(int));
+    he.register_send_to_buffer<-1, 1, 0>(&iminusjplus, sizeof(int));
+    he.register_send_to_buffer<1, -1, 0>(&iplusjminus, sizeof(int));
+    he.register_send_to_buffer<1, 1, 0>(&iplusjplus, sizeof(int));
 
-    he.register_send_to_buffer< -1, 0, -1 >(&iminuskminus, sizeof(int));
-    he.register_send_to_buffer< -1, 0, 1 >(&iminuskplus, sizeof(int));
-    he.register_send_to_buffer< 1, 0, -1 >(&ipluskminus, sizeof(int));
-    he.register_send_to_buffer< 1, 0, 1 >(&ipluskplus, sizeof(int));
+    he.register_send_to_buffer<-1, 0, -1>(&iminuskminus, sizeof(int));
+    he.register_send_to_buffer<-1, 0, 1>(&iminuskplus, sizeof(int));
+    he.register_send_to_buffer<1, 0, -1>(&ipluskminus, sizeof(int));
+    he.register_send_to_buffer<1, 0, 1>(&ipluskplus, sizeof(int));
 
-    he.register_send_to_buffer< 0, -1, -1 >(&jminuskminus, sizeof(int));
-    he.register_send_to_buffer< 0, -1, 1 >(&jminuskplus, sizeof(int));
-    he.register_send_to_buffer< 0, 1, -1 >(&jpluskminus, sizeof(int));
-    he.register_send_to_buffer< 0, 1, 1 >(&jpluskplus, sizeof(int));
+    he.register_send_to_buffer<0, -1, -1>(&jminuskminus, sizeof(int));
+    he.register_send_to_buffer<0, -1, 1>(&jminuskplus, sizeof(int));
+    he.register_send_to_buffer<0, 1, -1>(&jpluskminus, sizeof(int));
+    he.register_send_to_buffer<0, 1, 1>(&jpluskplus, sizeof(int));
 
-    he.register_send_to_buffer< -1, 0, 0 >(&iminus, sizeof(int));
-    he.register_send_to_buffer< 1, 0, 0 >(&iplus, sizeof(int));
-    he.register_send_to_buffer< 0, -1, 0 >(&jminus, sizeof(int));
-    he.register_send_to_buffer< 0, 1, 0 >(&jplus, sizeof(int));
-    he.register_send_to_buffer< 0, 0, -1 >(&kminus, sizeof(int));
-    he.register_send_to_buffer< 0, 0, 1 >(&kplus, sizeof(int));
+    he.register_send_to_buffer<-1, 0, 0>(&iminus, sizeof(int));
+    he.register_send_to_buffer<1, 0, 0>(&iplus, sizeof(int));
+    he.register_send_to_buffer<0, -1, 0>(&jminus, sizeof(int));
+    he.register_send_to_buffer<0, 1, 0>(&jplus, sizeof(int));
+    he.register_send_to_buffer<0, 0, -1>(&kminus, sizeof(int));
+    he.register_send_to_buffer<0, 0, 1>(&kplus, sizeof(int));
 
-    he.register_receive_from_buffer< -1, -1, -1 >(&iminusjminuskminus_r, sizeof(int));
-    he.register_receive_from_buffer< -1, 1, -1 >(&iminusjpluskminus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, -1, -1 >(&iplusjminuskminus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, 1, -1 >(&iplusjpluskminus_r, sizeof(int));
-    he.register_receive_from_buffer< -1, -1, 1 >(&iminusjminuskplus_r, sizeof(int));
-    he.register_receive_from_buffer< -1, 1, 1 >(&iminusjpluskplus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, -1, 1 >(&iplusjminuskplus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, 1, 1 >(&iplusjpluskplus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, -1, -1>(&iminusjminuskminus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, 1, -1>(&iminusjpluskminus_r, sizeof(int));
+    he.register_receive_from_buffer<1, -1, -1>(&iplusjminuskminus_r, sizeof(int));
+    he.register_receive_from_buffer<1, 1, -1>(&iplusjpluskminus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, -1, 1>(&iminusjminuskplus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, 1, 1>(&iminusjpluskplus_r, sizeof(int));
+    he.register_receive_from_buffer<1, -1, 1>(&iplusjminuskplus_r, sizeof(int));
+    he.register_receive_from_buffer<1, 1, 1>(&iplusjpluskplus_r, sizeof(int));
 
-    he.register_receive_from_buffer< -1, -1, 0 >(&iminusjminus_r, sizeof(int));
-    he.register_receive_from_buffer< -1, 1, 0 >(&iminusjplus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, -1, 0 >(&iplusjminus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, 1, 0 >(&iplusjplus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, -1, 0>(&iminusjminus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, 1, 0>(&iminusjplus_r, sizeof(int));
+    he.register_receive_from_buffer<1, -1, 0>(&iplusjminus_r, sizeof(int));
+    he.register_receive_from_buffer<1, 1, 0>(&iplusjplus_r, sizeof(int));
 
-    he.register_receive_from_buffer< -1, 0, -1 >(&iminuskminus_r, sizeof(int));
-    he.register_receive_from_buffer< -1, 0, 1 >(&iminuskplus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, 0, -1 >(&ipluskminus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, 0, 1 >(&ipluskplus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, 0, -1>(&iminuskminus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, 0, 1>(&iminuskplus_r, sizeof(int));
+    he.register_receive_from_buffer<1, 0, -1>(&ipluskminus_r, sizeof(int));
+    he.register_receive_from_buffer<1, 0, 1>(&ipluskplus_r, sizeof(int));
 
-    he.register_receive_from_buffer< 0, -1, -1 >(&jminuskminus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, -1, 1 >(&jminuskplus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, 1, -1 >(&jpluskminus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, 1, 1 >(&jpluskplus_r, sizeof(int));
+    he.register_receive_from_buffer<0, -1, -1>(&jminuskminus_r, sizeof(int));
+    he.register_receive_from_buffer<0, -1, 1>(&jminuskplus_r, sizeof(int));
+    he.register_receive_from_buffer<0, 1, -1>(&jpluskminus_r, sizeof(int));
+    he.register_receive_from_buffer<0, 1, 1>(&jpluskplus_r, sizeof(int));
 
-    he.register_receive_from_buffer< -1, 0, 0 >(&iminus_r, sizeof(int));
-    he.register_receive_from_buffer< 1, 0, 0 >(&iplus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, -1, 0 >(&jminus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, 1, 0 >(&jplus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, 0, -1 >(&kminus_r, sizeof(int));
-    he.register_receive_from_buffer< 0, 0, 1 >(&kplus_r, sizeof(int));
+    he.register_receive_from_buffer<-1, 0, 0>(&iminus_r, sizeof(int));
+    he.register_receive_from_buffer<1, 0, 0>(&iplus_r, sizeof(int));
+    he.register_receive_from_buffer<0, -1, 0>(&jminus_r, sizeof(int));
+    he.register_receive_from_buffer<0, 1, 0>(&jplus_r, sizeof(int));
+    he.register_receive_from_buffer<0, 0, -1>(&kminus_r, sizeof(int));
+    he.register_receive_from_buffer<0, 0, 1>(&kplus_r, sizeof(int));
 
     iminus = gridtools::PID;
     iplus = gridtools::PID;

@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "stencil_manual_fold.hpp"
 #include "../Options.hpp"
+#include "gtest/gtest.h"
 
 int main(int argc, char **argv) {
 

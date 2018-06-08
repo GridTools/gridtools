@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 /**
    @file
    Metafunctions used in the cache_storage class
@@ -45,17 +45,17 @@ namespace gridtools {
 
     namespace _impl {
 
-        template < typename Layout, typename LocationType, unsigned D1, unsigned D2, unsigned... Rest >
+        template <typename Layout, typename LocationType, unsigned D1, unsigned D2, unsigned... Rest>
         struct get_meta_storage {
-            typedef meta_storage_cache< Layout, D1, LocationType::n_colors::value, D2, Rest... > type;
+            typedef meta_storage_cache<Layout, D1, LocationType::n_colors::value, D2, Rest...> type;
         };
 
-        template < typename Layout, unsigned D1, unsigned D2, unsigned... Rest >
-        struct get_meta_storage< Layout, enumtype::default_location_type, D1, D2, Rest... > {
-            typedef meta_storage_cache< Layout, D1, D2, Rest... > type;
+        template <typename Layout, unsigned D1, unsigned D2, unsigned... Rest>
+        struct get_meta_storage<Layout, enumtype::default_location_type, D1, D2, Rest...> {
+            typedef meta_storage_cache<Layout, D1, D2, Rest...> type;
         };
 
-        template < typename Layout, typename Plus, typename Minus, typename Tiles, typename StorageWrapper >
+        template <typename Layout, typename Plus, typename Minus, typename Tiles, typename StorageWrapper>
         struct compute_meta_storage;
 
         /**
@@ -68,7 +68,7 @@ namespace gridtools {
            The extents and block size are used to compute the dimension of the cache storage, which is
            all we need.
          */
-        template < typename Layout,
+        template <typename Layout,
             typename P1,
             typename P2,
             typename... Plus,
@@ -78,38 +78,38 @@ namespace gridtools {
             typename T1,
             typename T2,
             typename... Tiles,
-            typename StorageWrapper >
-        struct compute_meta_storage< Layout,
-            variadic_to_vector< P1, P2, Plus... >,
-            variadic_to_vector< M1, M2, Minus... >,
-            variadic_to_vector< T1, T2, Tiles... >,
-            StorageWrapper > {
+            typename StorageWrapper>
+        struct compute_meta_storage<Layout,
+            variadic_to_vector<P1, P2, Plus...>,
+            variadic_to_vector<M1, M2, Minus...>,
+            variadic_to_vector<T1, T2, Tiles...>,
+            StorageWrapper> {
             typedef typename StorageWrapper::arg_t::location_t location_t;
             static constexpr unsigned d1 = P1::value - M1::value + T1::value;
             static constexpr unsigned d2 = P2::value - M2::value + T2::value;
-            typedef typename get_meta_storage< Layout,
+            typedef typename get_meta_storage<Layout,
                 location_t,
                 d1,
                 d2,
-                ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)... >::type type;
+                ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)...>::type type;
         };
 
-        template < typename T >
+        template <typename T>
         struct generate_layout_map;
 
         /** Automatically generates the layout map for the cache storage. By default
            i and j have the smallest stride. The largest stride is in the field dimension. This reduces bank conflicts.
          */
-        template < uint_t... Id >
-        struct generate_layout_map< gt_integer_sequence< uint_t, Id... > > {
-            static constexpr int_t s = sizeof...(Id)-1;
+        template <uint_t... Id>
+        struct generate_layout_map<gt_integer_sequence<uint_t, Id...>> {
+            static constexpr int_t s = sizeof...(Id) - 1;
 
-            template < uint_t... D >
+            template <uint_t... D>
             struct get_layout {
-                typedef layout_map< D... > type;
+                typedef layout_map<D...> type;
             };
 
-            typedef typename get_layout< (s - Id)... >::type type;
+            typedef typename get_layout<(s - Id)...>::type type;
         };
 
     } // namespace _impl

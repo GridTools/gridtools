@@ -35,4 +35,4 @@
 */
 #pragma once
 
-namespace gridtools {} // namespace
+namespace gridtools {} // namespace gridtools

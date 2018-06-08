@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-template < typename value_type >
+template <typename value_type>
 __global__ void m_unpackYLKernel(value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab_r,
     const int *d_msgsize_r,
@@ -108,7 +108,7 @@ __global__ void m_unpackYLKernel(value_type *__restrict__ d_data,
     // message buffer table.
 }
 
-template < typename array_t, typename value_type >
+template <typename array_t, typename value_type>
 void m_unpackYL(array_t const &d_data_array,
     value_type **d_msgbufTab_r,
     int d_msgsize_r[27],
@@ -160,7 +160,7 @@ void m_unpackYL(array_t const &d_data_array,
 
         // the actual kernel launch
         // clang-format off
-      m_unpackYLKernel<<<blocks, threads, 0, YL_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, nz,
+      m_unpackYLKernel< <<blocks, threads, 0, YL_stream> >>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, nz,
                                                           (halo[0].begin()-halo[0].minus())
                                                           + (halo[1].begin()-halo[1].minus())*halo[0].total_length()
                                                           + (halo[2].begin())*halo[0].total_length() *halo[1].total_length(), i);
@@ -193,13 +193,13 @@ void m_unpackYL(array_t const &d_data_array,
 #endif
 }
 
-template < typename Blocks,
+template <typename Blocks,
     typename Threads,
     typename Bytes,
     typename Pointer,
     typename MsgbufTab,
     typename Msgsize,
-    typename Halo >
+    typename Halo>
 int call_kernel_YL_u(Blocks blocks,
     Threads threads,
     Bytes b,
@@ -211,7 +211,7 @@ int call_kernel_YL_u(Blocks blocks,
     int ny,
     int tranlation_const,
     int i) {
-    m_unpackYLKernel<<< blocks, threads, b, YL_stream >>>(
+    m_unpackYLKernel<<<blocks, threads, b, YL_stream>>>(
         d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
 
 #ifdef CUDAMSG
@@ -225,13 +225,13 @@ int call_kernel_YL_u(Blocks blocks,
     return 0;
 }
 
-template < typename value_type, typename datas, unsigned int... Ids >
+template <typename value_type, typename datas, unsigned int... Ids>
 void m_unpackYL_variadic(value_type **d_msgbufTab_r,
     int d_msgsize_r[27],
     const gridtools::halo_descriptor halo[3],
     const gridtools::halo_descriptor halo_d[3],
     const datas &d_datas,
-    gridtools::gt_integer_sequence< unsigned int, Ids... >) {
+    gridtools::gt_integer_sequence<unsigned int, Ids...>) {
     // threads per block. Should be at least one warp in x, could be wider in y
     const int ntx = 32;
     const int nty = 1;
@@ -271,11 +271,11 @@ void m_unpackYL_variadic(value_type **d_msgbufTab_r,
     cudaEventRecord(start, 0);
 #endif
 
-    const int niter = std::tuple_size< datas >::value;
+    const int niter = std::tuple_size<datas>::value;
     int nothing[niter] = {call_kernel_YL_u(blocks,
         threads,
         0,
-        static_cast< value_type * >(std::get< Ids >(d_datas)),
+        static_cast<value_type *>(std::get<Ids>(d_datas)),
         d_msgbufTab_r,
         d_msgsize_r,
         halo_d,

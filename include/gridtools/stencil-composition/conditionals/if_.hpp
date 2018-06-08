@@ -36,9 +36,9 @@
 #pragma once
 #include <functional>
 
+#include "../computation_grammar.hpp"
 #include "condition.hpp"
 #include "condition_tree.hpp"
-#include "../computation_grammar.hpp"
 /**@file*/
 
 namespace gridtools {
@@ -66,12 +66,12 @@ namespace gridtools {
     @endverbatim
     Multiple if_ statements can coexist in the same computation, and they can be arbitrarily nested
     */
-    template < typename Mss1, typename Mss2, typename Condition >
-    condition< Mss1, Mss2, Condition > if_(Condition cond, Mss1 const &mss1_, Mss2 const &mss2_) {
-        GRIDTOOLS_STATIC_ASSERT((std::is_convertible< Condition, std::function< bool() > >::value),
+    template <typename Mss1, typename Mss2, typename Condition>
+    condition<Mss1, Mss2, Condition> if_(Condition cond, Mss1 const &mss1_, Mss2 const &mss2_) {
+        GRIDTOOLS_STATIC_ASSERT((std::is_convertible<Condition, std::function<bool()>>::value),
             "Condition should be nullary boolean functor.");
-        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of< Mss1, is_computation_token >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of< Mss2, is_computation_token >::value), GT_INTERNAL_ERROR);
-        return condition< Mss1, Mss2, Condition >{cond, mss1_, mss2_};
+        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of<Mss1, is_computation_token>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of<Mss2, is_computation_token>::value), GT_INTERNAL_ERROR);
+        return condition<Mss1, Mss2, Condition>{cond, mss1_, mss2_};
     }
 } // namespace gridtools

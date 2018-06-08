@@ -36,11 +36,11 @@
 #include "../../common/halo_descriptor.hpp"
 #include "wrap_argument.hpp"
 
-template < typename value_type >
+template <typename value_type>
 __global__ void m_packZLKernel_generic(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
     const wrap_argument d_msgsize,
-    const gridtools::array< gridtools::halo_descriptor, 3 > halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
     int const nx,
     int const ny,
     int const field_index) {
@@ -146,7 +146,7 @@ __global__ void m_packZLKernel_generic(const value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t > //, typename T1, typename T2, template <typename> class T3>
+template <typename array_t> //, typename T1, typename T2, template <typename> class T3>
 void m_packZL_generic(
     array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, const int *d_msgsize)
 //                      const gridtools::field_on_the_fly<T1,T2,T3> * halo_d)
@@ -198,7 +198,7 @@ void m_packZL_generic(
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
+        m_packZLKernel_generic< <<blocks, threads, 0, ZL_stream> >>
         (fields[i].ptr,
          (d_msgbufTab),
          wrap_argument(d_msgsize+27*i),

@@ -39,26 +39,26 @@
 #include <boost/mpl/vector.hpp>
 #include <gtest/gtest.h>
 
+#include "backend_select.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
+#include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
+#include <gridtools/stencil-composition/expandable_parameters/vector_accessor.hpp>
 #include <gridtools/stencil-composition/grid.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
-#include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
-#include <gridtools/stencil-composition/expandable_parameters/vector_accessor.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "backend_select.hpp"
 
 namespace gridtools {
     struct test_functor {
-        using in = vector_accessor< 0, enumtype::in, extent<> >;
-        using out = vector_accessor< 1, enumtype::inout, extent<> >;
-        using arg_list = boost::mpl::vector< in, out >;
+        using in = vector_accessor<0, enumtype::in, extent<>>;
+        using out = vector_accessor<1, enumtype::inout, extent<>>;
+        using arg_list = boost::mpl::vector<in, out>;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
@@ -66,33 +66,33 @@ namespace gridtools {
 
     class fixture : public ::testing::Test {
       public:
-        using storage_info_t = backend_t::storage_traits_t::storage_info_t< 0, 3 >;
-        using storage_t = backend_t::storage_traits_t::data_store_t< gridtools::float_type, storage_info_t >;
-        using p_tmp = tmp_arg< 2, std::vector< storage_t > >;
+        using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3>;
+        using storage_t = backend_t::storage_traits_t::data_store_t<gridtools::float_type, storage_info_t>;
+        using p_tmp = tmp_arg<2, std::vector<storage_t>>;
 
         const uint_t m_d1 = 6, m_d2 = 6, m_d3 = 10;
         const halo_descriptor m_di = {0, 0, 0, m_d1 - 1, m_d1}, m_dj = {0, 0, 0, m_d2 - 1, m_d2};
-        const grid< axis< 1 >::axis_interval_t > m_grid = make_grid(m_di, m_dj, m_d3);
+        const grid<axis<1>::axis_interval_t> m_grid = make_grid(m_di, m_dj, m_d3);
         const storage_info_t m_meta{m_d1, m_d2, m_d3};
 
       public:
-        using p_in = arg< 0, std::vector< storage_t > >;
-        using p_out = arg< 1, std::vector< storage_t > >;
+        using p_in = arg<0, std::vector<storage_t>>;
+        using p_out = arg<1, std::vector<storage_t>>;
 
-        computation< void, p_in, p_out > m_computation;
+        computation<void, p_in, p_out> m_computation;
 
         fixture()
-            : m_computation{make_computation< backend_t >(expand_factor< 2 >{},
+            : m_computation{make_computation<backend_t>(expand_factor<2>{},
                   m_grid,
-                  make_multistage(enumtype::execute< enumtype::forward >(),
-                                                              make_stage< test_functor >(p_in{}, p_tmp{}),
-                                                              make_stage< test_functor >(p_tmp{}, p_out{})))} {}
+                  make_multistage(enumtype::execute<enumtype::forward>(),
+                      make_stage<test_functor>(p_in{}, p_tmp{}),
+                      make_stage<test_functor>(p_tmp{}, p_out{})))} {}
 
-        std::vector< storage_t > make_in(int n) const {
+        std::vector<storage_t> make_in(int n) const {
             return {3, {m_meta, [=](int i, int j, int k) { return i + j + k + n; }}};
         }
 
-        std::vector< storage_t > make_out() const { return {3, {m_meta, -1.}}; }
+        std::vector<storage_t> make_out() const { return {3, {m_meta, -1.}}; }
 
         bool verify(storage_t const &lhs, storage_t const &rhs) {
             lhs.sync();
@@ -105,10 +105,10 @@ namespace gridtools {
             return verifier(precision).verify(m_grid, lhs, rhs, {{{0, 0}, {0, 0}, {0, 0}}});
         }
 
-        std::vector< bool > verify(std::vector< storage_t > const &lhs, std::vector< storage_t > const &rhs) {
+        std::vector<bool> verify(std::vector<storage_t> const &lhs, std::vector<storage_t> const &rhs) {
             assert(lhs.size() == rhs.size());
             size_t n = lhs.size();
-            std::vector< bool > res(n);
+            std::vector<bool> res(n);
             for (size_t i = 0; i != n; ++i)
                 res[i] = verify(lhs[i], rhs[i]);
             return res;
@@ -127,4 +127,4 @@ namespace gridtools {
         for (bool res : verify(in, out))
             EXPECT_TRUE(res);
     }
-}
+} // namespace gridtools

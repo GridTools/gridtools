@@ -60,16 +60,16 @@ namespace gridtools {
      * @param ds data store
      * @return a host view to the given data store.
      */
-    template < access_mode AccessMode = access_mode::ReadWrite,
+    template <access_mode AccessMode = access_mode::ReadWrite,
         typename CudaDataStore,
-        typename DecayedCDS = typename boost::decay< CudaDataStore >::type >
-    typename boost::enable_if< boost::mpl::and_< is_cuda_storage< typename DecayedCDS::storage_t >,
-                                   is_cuda_storage_info< typename DecayedCDS::storage_info_t >,
-                                   is_data_store< DecayedCDS > >,
-        data_view< DecayedCDS, AccessMode > >::type
+        typename DecayedCDS = typename boost::decay<CudaDataStore>::type>
+    typename boost::enable_if<boost::mpl::and_<is_cuda_storage<typename DecayedCDS::storage_t>,
+                                  is_cuda_storage_info<typename DecayedCDS::storage_info_t>,
+                                  is_data_store<DecayedCDS>>,
+        data_view<DecayedCDS, AccessMode>>::type
     make_host_view(CudaDataStore const &ds) {
         if (!ds.valid())
-            return data_view< DecayedCDS, AccessMode >();
+            return data_view<DecayedCDS, AccessMode>();
 
         if (AccessMode != access_mode::ReadOnly) {
             ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu,
@@ -78,7 +78,7 @@ namespace gridtools {
                 "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
         }
-        return data_view< DecayedCDS, AccessMode >(ds.get_storage_ptr()->get_cpu_ptr(),
+        return data_view<DecayedCDS, AccessMode>(ds.get_storage_ptr()->get_cpu_ptr(),
             ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
@@ -90,16 +90,16 @@ namespace gridtools {
      * @param ds data store
      * @return a device view to the given data store.
      */
-    template < access_mode AccessMode = access_mode::ReadWrite,
+    template <access_mode AccessMode = access_mode::ReadWrite,
         typename CudaDataStore,
-        typename DecayedCDS = typename boost::decay< CudaDataStore >::type >
-    typename boost::enable_if< boost::mpl::and_< is_cuda_storage< typename DecayedCDS::storage_t >,
-                                   is_cuda_storage_info< typename DecayedCDS::storage_info_t >,
-                                   is_data_store< DecayedCDS > >,
-        data_view< DecayedCDS, AccessMode > >::type
+        typename DecayedCDS = typename boost::decay<CudaDataStore>::type>
+    typename boost::enable_if<boost::mpl::and_<is_cuda_storage<typename DecayedCDS::storage_t>,
+                                  is_cuda_storage_info<typename DecayedCDS::storage_info_t>,
+                                  is_data_store<DecayedCDS>>,
+        data_view<DecayedCDS, AccessMode>>::type
     make_device_view(CudaDataStore const &ds) {
         if (!ds.valid())
-            return data_view< DecayedCDS, AccessMode >();
+            return data_view<DecayedCDS, AccessMode>();
 
         if (AccessMode != access_mode::ReadOnly) {
             ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu,
@@ -108,7 +108,7 @@ namespace gridtools {
                 "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
         }
-        return data_view< DecayedCDS, AccessMode >(ds.get_storage_ptr()->get_gpu_ptr(),
+        return data_view<DecayedCDS, AccessMode>(ds.get_storage_ptr()->get_gpu_ptr(),
             ds.get_storage_info_ptr()->get_gpu_ptr(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             true);
@@ -120,16 +120,16 @@ namespace gridtools {
      * @param v data view
      * @return true if the given view is in a valid state and can be used safely.
      */
-    template < typename DataStore,
+    template <typename DataStore,
         typename DataView,
-        typename DecayedDS = typename boost::decay< DataStore >::type,
-        typename DecayedDV = typename boost::decay< DataView >::type >
-    typename boost::enable_if< boost::mpl::and_< is_cuda_storage< typename DecayedDS::storage_t >,
-                                   is_cuda_storage_info< typename DecayedDS::storage_info_t >,
-                                   is_data_store< DecayedDS > >,
-        bool >::type
+        typename DecayedDS = typename boost::decay<DataStore>::type,
+        typename DecayedDV = typename boost::decay<DataView>::type>
+    typename boost::enable_if<boost::mpl::and_<is_cuda_storage<typename DecayedDS::storage_t>,
+                                  is_cuda_storage_info<typename DecayedDS::storage_info_t>,
+                                  is_data_store<DecayedDS>>,
+        bool>::type
     check_consistency(DataStore const &d, DataView const &v) {
-        GRIDTOOLS_STATIC_ASSERT(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
+        GRIDTOOLS_STATIC_ASSERT(is_data_view<DecayedDV>::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;
@@ -153,4 +153,4 @@ namespace gridtools {
     /**
      * @}
      */
-}
+} // namespace gridtools

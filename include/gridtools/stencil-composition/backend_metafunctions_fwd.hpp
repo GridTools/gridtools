@@ -36,11 +36,11 @@
 #pragma once
 
 namespace gridtools {
-    template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyType >
+    template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyType>
     struct backend;
 
     // traits for backend
-    template < typename T >
+    template <typename T>
     struct is_backend : boost::mpl::false_ {};
 
-} // gridtools
+} // namespace gridtools

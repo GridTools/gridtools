@@ -51,22 +51,22 @@ namespace test_cycle_and_swap {
     using namespace enumtype;
 
     struct functor {
-        typedef inout_accessor< 0, extent<>, 5 > p_i;
-        typedef boost::mpl::vector< p_i > arg_list;
-        template < typename Evaluation >
+        typedef inout_accessor<0, extent<>, 5> p_i;
+        typedef boost::mpl::vector<p_i> arg_list;
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_i()) += eval(p_i());
         }
     };
 
-    constexpr dimension< 1 > i;
+    constexpr dimension<1> i;
 
     struct functor_avg {
-        typedef inout_accessor< 0, extent<>, 5 > p_data;
-        typedef dimension< 5 > time;
+        typedef inout_accessor<0, extent<>, 5> p_data;
+        typedef dimension<5> time;
 
-        typedef boost::mpl::vector< p_data > arg_list;
-        template < typename Evaluation >
+        typedef boost::mpl::vector<p_data> arg_list;
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
@@ -74,31 +74,31 @@ namespace test_cycle_and_swap {
 
     bool test_2D() {
 
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 1 > >
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::special_storage_info_t<0, selector<1, 1, 1>>
             storage_info_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<uint_t, storage_info_t, 2>
             data_store_field_t;
 
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
         auto iv = make_field_host_view(i_data);
-        iv.get< 0, 0 >()(0, 0, 0) = 0;
-        iv.get< 0, 1 >()(0, 0, 0) = 1;
+        iv.get<0, 0>()(0, 0, 0) = 0;
+        iv.get<0, 1>()(0, 0, 0) = 1;
 
         auto grid = make_grid((uint_t)1, (uint_t)1, (uint_t)1);
 
-        typedef arg< 0, data_store_field_t > p_i_data;
+        typedef arg<0, data_store_field_t> p_i_data;
 
-        auto comp = gridtools::make_computation< backend_t >(
-            grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation<backend_t>(
+            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor>(p_i_data())));
 
         comp.run(p_i_data() = i_data);
         i_data.sync();
-        swap< 0, 0 >::with< 0, 1 >(i_data);
+        swap<0, 0>::with<0, 1>(i_data);
         comp.run(p_i_data() = i_data);
         i_data.sync();
         iv = make_field_host_view(i_data);
-        return (iv.get< 0, 0 >()(0, 0, 0) == 2 && iv.get< 0, 1 >()(0, 0, 0) == 0);
+        return (iv.get<0, 0>()(0, 0, 0) == 2 && iv.get<0, 1>()(0, 0, 0) == 0);
     }
     bool test_3D() {
 
@@ -106,8 +106,8 @@ namespace test_cycle_and_swap {
         const uint_t d2 = 9;
         const uint_t d3 = 7;
 
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 2 >
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<uint_t, storage_info_t, 2>
             data_store_field_t;
 
         storage_info_t meta_(d1, d2, d3);
@@ -118,16 +118,16 @@ namespace test_cycle_and_swap {
         for (int i = 0; i < d1; ++i) {
             for (int j = 0; j < d2; ++j) {
                 for (int k = 0; k < d3; ++k) {
-                    iv.get< 0, 0 >()(i, j, k) = 0;
-                    iv.get< 0, 1 >()(i, j, k) = 0;
-                    rv.get< 0, 0 >()(i, j, k) = 0;
-                    rv.get< 0, 1 >()(i, j, k) = 0;
+                    iv.get<0, 0>()(i, j, k) = 0;
+                    iv.get<0, 1>()(i, j, k) = 0;
+                    rv.get<0, 0>()(i, j, k) = 0;
+                    rv.get<0, 1>()(i, j, k) = 0;
                 }
             }
         }
 
-        iv.get< 0, 0 >()(0, 0, 0) = 0.;
-        iv.get< 0, 1 >()(0, 0, 0) = 1.;
+        iv.get<0, 0>()(0, 0, 0) = 0.;
+        iv.get<0, 1>()(0, 0, 0) = 1.;
 
         const uint_t halo_size = 1;
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
@@ -135,16 +135,16 @@ namespace test_cycle_and_swap {
 
         auto grid = make_grid(di, dj, d3);
 
-        typedef arg< 0, data_store_field_t > p_i_data;
+        typedef arg<0, data_store_field_t> p_i_data;
 
-        auto comp = gridtools::make_computation< backend_t >(
-            grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
+        auto comp = gridtools::make_computation<backend_t>(
+            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor_avg>(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    iv.get< 0, 0 >()(i, j, k) = i + j * 10 + k * 100;
+                    iv.get<0, 0>()(i, j, k) = i + j * 10 + k * 100;
                 }
             }
         }
@@ -154,20 +154,20 @@ namespace test_cycle_and_swap {
         for (uint_t k = 0; k < d3; ++k) {
             for (uint_t i = halo_size; i < d1 - halo_size; ++i) {
                 for (uint_t j = halo_size; j < d2 - halo_size; ++j) {
-                    rv.get< 0, 0 >()(i, j, k) =
-                        (iv.get< 0, 0 >()(i + 1, j, k) + iv.get< 0, 0 >()(i - 1, j, k)) * (float_t)0.5;
+                    rv.get<0, 0>()(i, j, k) =
+                        (iv.get<0, 0>()(i + 1, j, k) + iv.get<0, 0>()(i - 1, j, k)) * (float_t)0.5;
                 }
             }
             for (uint_t i = halo_size + 1; i < d1 - halo_size - 1; ++i) {
                 for (uint_t j = halo_size + 1; j < d2 - halo_size - 1; ++j) {
-                    rv.get< 0, 1 >()(i, j, k) =
-                        (rv.get< 0, 0 >()(i + 1, j, k) + rv.get< 0, 0 >()(i - 1, j, k)) * (float_t)0.5;
+                    rv.get<0, 1>()(i, j, k) =
+                        (rv.get<0, 0>()(i + 1, j, k) + rv.get<0, 0>()(i - 1, j, k)) * (float_t)0.5;
                 }
             }
         }
         comp.run(p_i_data() = i_data);
         i_data.sync();
-        swap< 0, 0 >::with< 0, 1 >(i_data);
+        swap<0, 0>::with<0, 1>(i_data);
 
         // note that the second run will do wrong computations at the first line of the 2D domain of the coordinates,
         // because the first line of
@@ -181,30 +181,30 @@ namespace test_cycle_and_swap {
 #else
         verifier verif(1e-12);
 #endif
-        array< array< uint_t, 2 >, 3 > halos{
+        array<array<uint_t, 2>, 3> halos{
             {{halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}}};
-        bool res = verif.verify(grid, reference.get< 0, 0 >(), i_data.get< 0, 0 >(), halos);
-        res &= verif.verify(grid, reference.get< 0, 1 >(), i_data.get< 0, 1 >(), halos);
+        bool res = verif.verify(grid, reference.get<0, 0>(), i_data.get<0, 0>(), halos);
+        res &= verif.verify(grid, reference.get<0, 1>(), i_data.get<0, 1>(), halos);
         return res;
     }
 
     bool test_cycle() {
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits<
-            backend_t::s_backend_id >::data_store_field_t< uint_t, storage_info_t, 3, 3, 4 > data_store_field_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<uint_t, storage_info_t, 3, 3, 4>
+            data_store_field_t;
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
         auto iv = make_field_host_view(i_data);
-        iv.get< 0, 0 >()(0, 0, 0) = 0;
-        iv.get< 0, 1 >()(0, 0, 0) = 1;
-        iv.get< 0, 2 >()(0, 0, 0) = 2;
-        iv.get< 1, 0 >()(0, 0, 0) = 10;
-        iv.get< 1, 1 >()(0, 0, 0) = 11;
-        iv.get< 1, 2 >()(0, 0, 0) = 12;
-        iv.get< 2, 0 >()(0, 0, 0) = 20;
-        iv.get< 2, 1 >()(0, 0, 0) = 21;
-        iv.get< 2, 2 >()(0, 0, 0) = 22;
-        iv.get< 2, 3 >()(0, 0, 0) = 23;
+        iv.get<0, 0>()(0, 0, 0) = 0;
+        iv.get<0, 1>()(0, 0, 0) = 1;
+        iv.get<0, 2>()(0, 0, 0) = 2;
+        iv.get<1, 0>()(0, 0, 0) = 10;
+        iv.get<1, 1>()(0, 0, 0) = 11;
+        iv.get<1, 2>()(0, 0, 0) = 12;
+        iv.get<2, 0>()(0, 0, 0) = 20;
+        iv.get<2, 1>()(0, 0, 0) = 21;
+        iv.get<2, 2>()(0, 0, 0) = 22;
+        iv.get<2, 3>()(0, 0, 0) = 23;
 
         const uint_t halo_size = 0;
         halo_descriptor di{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
@@ -212,24 +212,24 @@ namespace test_cycle_and_swap {
 
         auto grid = make_grid(di, dj, (uint_t)1);
 
-        typedef arg< 0, data_store_field_t > p_i_data;
+        typedef arg<0, data_store_field_t> p_i_data;
 
-        auto comp = gridtools::make_computation< backend_t >(
-            grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation<backend_t>(
+            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor>(p_i_data())));
 
         comp.run(p_i_data() = i_data);
         i_data.sync();
-        cycle< 0 >::by< 1 >(i_data);
-        cycle_all::by< 1 >(i_data);
+        cycle<0>::by<1>(i_data);
+        cycle_all::by<1>(i_data);
         comp.run(p_i_data() = i_data);
         i_data.sync();
 
         // renew the view, because it is not valid anymore
         iv = make_field_host_view(i_data);
-        return (iv.get< 0, 0 >()(0, 0, 0) == 2 && iv.get< 0, 1 >()(0, 0, 0) == 2 && iv.get< 0, 2 >()(0, 0, 0) == 0 &&
-                iv.get< 1, 0 >()(0, 0, 0) == 12 && iv.get< 1, 1 >()(0, 0, 0) == 10 && iv.get< 1, 2 >()(0, 0, 0) == 11 &&
-                iv.get< 2, 0 >()(0, 0, 0) == 23 && iv.get< 2, 1 >()(0, 0, 0) == 20 && iv.get< 2, 2 >()(0, 0, 0) == 21 &&
-                iv.get< 2, 3 >()(0, 0, 0) == 22);
+        return (iv.get<0, 0>()(0, 0, 0) == 2 && iv.get<0, 1>()(0, 0, 0) == 2 && iv.get<0, 2>()(0, 0, 0) == 0 &&
+                iv.get<1, 0>()(0, 0, 0) == 12 && iv.get<1, 1>()(0, 0, 0) == 10 && iv.get<1, 2>()(0, 0, 0) == 11 &&
+                iv.get<2, 0>()(0, 0, 0) == 23 && iv.get<2, 1>()(0, 0, 0) == 20 && iv.get<2, 2>()(0, 0, 0) == 21 &&
+                iv.get<2, 3>()(0, 0, 0) == 22);
     }
 
 } // namespace test_cycle_and_swap

@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gtest/gtest.h>
 #include <gridtools/common/cuda_is_ptr.hpp>
+#include <gtest/gtest.h>
 
 TEST(test_is_gpu_ptr, host_ptr_is_no_cuda_ptr) {
     double *ptr = new double;

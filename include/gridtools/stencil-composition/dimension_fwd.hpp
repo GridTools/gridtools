@@ -37,9 +37,9 @@
 
 namespace gridtools {
 
-    template < ushort_t >
+    template <ushort_t>
     struct dimension;
 
-    template < typename T >
+    template <typename T>
     struct is_dimension;
-}
+} // namespace gridtools

@@ -37,8 +37,8 @@
 
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/storage/storage-facility.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
 #include "backend_select.hpp"
 
@@ -46,8 +46,8 @@ using namespace gridtools;
 using namespace enumtype;
 
 using storage_traits_t = typename backend_t::storage_traits_t;
-using storage_info_t = storage_traits_t::storage_info_t< 0, 3 >;
-using data_store_t = storage_traits_t::data_store_t< float_type, storage_info_t >;
+using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
+using data_store_t = storage_traits_t::data_store_t<float_type, storage_info_t>;
 
 struct boundary {
 
@@ -61,63 +61,63 @@ struct boundary {
 };
 
 struct functor1 {
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
-    typedef global_accessor< 1 > bd;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef global_accessor<1> bd;
 
-    typedef boost::mpl::vector< sol, bd > arg_list;
+    typedef boost::mpl::vector<sol, bd> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
         eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
     }
 };
 
 struct functor2 {
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
-    typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 > > in;
-    typedef global_accessor< 2 > bd;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>> in;
+    typedef global_accessor<2> bd;
 
-    typedef boost::mpl::vector< sol, in, bd > arg_list;
+    typedef boost::mpl::vector<sol, in, bd> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
         eval(sol()) += eval(in()) + eval(bd()).int_value;
     }
 };
 
 struct functor_with_procedure_call {
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
-    typedef global_accessor< 1 > bd;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef global_accessor<1> bd;
 
-    typedef boost::mpl::vector< sol, bd > arg_list;
+    typedef boost::mpl::vector<sol, bd> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        call_proc< functor1 >::with(eval, sol(), bd());
+        call_proc<functor1>::with(eval, sol(), bd());
     }
 };
 
 struct functor1_with_assignment {
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
-    typedef global_accessor< 1 > bd;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef global_accessor<1> bd;
 
-    typedef boost::mpl::vector< sol, bd > arg_list;
+    typedef boost::mpl::vector<sol, bd> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
         eval(sol()) = eval(bd()).value() + eval(bd()).int_value;
     }
 };
 
 struct functor_with_function_call {
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
-    typedef global_accessor< 1 > bd;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef global_accessor<1> bd;
 
-    typedef boost::mpl::vector< sol, bd > arg_list;
+    typedef boost::mpl::vector<sol, bd> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        eval(sol()) = call< functor1_with_assignment >::return_type< double >::with(eval, bd());
+        eval(sol()) = call<functor1_with_assignment>::return_type<double>::with(eval, bd());
     }
 };
 
@@ -135,21 +135,21 @@ class global_accessor_single_stage : public ::testing::Test {
     boundary bd;
     decltype(backend_t::make_global_parameter(bd)) bd_;
 
-    using p_sol = arg< 0, data_store_t >;
-    using p_bd = arg< 1, decltype(bd_) >;
+    using p_sol = arg<0, data_store_t>;
+    using p_bd = arg<1, decltype(bd_)>;
 
     halo_descriptor di;
     halo_descriptor dj;
 
-    grid< axis< 1 >::axis_interval_t > coords_bc;
+    grid<axis<1>::axis_interval_t> coords_bc;
 };
 
 TEST_F(global_accessor_single_stage, boundary_conditions) {
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = make_computation< backend_t >(coords_bc,
+    auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute< forward >(), make_stage< functor1 >(p_sol(), p_bd())));
+        make_multistage(execute<forward>(), make_stage<functor1>(p_sol(), p_bd())));
 
     bc_eval.run();
     // fetch data and check
@@ -207,10 +207,10 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
 }
 
 TEST_F(global_accessor_single_stage, with_procedure_call) {
-    auto bc_eval = make_computation< backend_t >(coords_bc,
+    auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute< forward >(), make_stage< functor_with_procedure_call >(p_sol(), p_bd())));
+        make_multistage(execute<forward>(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
 
     bc_eval.run();
 
@@ -231,10 +231,10 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
 }
 
 TEST_F(global_accessor_single_stage, with_function_call) {
-    auto bc_eval = make_computation< backend_t >(coords_bc,
+    auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute< forward >(), make_stage< functor_with_function_call >(p_sol(), p_bd())));
+        make_multistage(execute<forward>(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
 
     bc_eval.run();
 
@@ -270,18 +270,17 @@ TEST(test_global_accessor, multiple_stages) {
     halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
     auto coords_bc = make_grid(di, dj, 2);
 
-    typedef arg< 0, data_store_t > p_sol;
-    typedef arg< 1, data_store_t > p_tmp;
-    typedef arg< 2, decltype(bd_) > p_bd;
+    typedef arg<0, data_store_t> p_sol;
+    typedef arg<1, data_store_t> p_tmp;
+    typedef arg<2, decltype(bd_)> p_bd;
 
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = make_computation< backend_t >(coords_bc,
+    auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_tmp() = tmp_,
         p_bd() = bd_,
-        make_multistage(execute< forward >(),
-                                                     make_stage< functor1 >(p_tmp(), p_bd()),
-                                                     make_stage< functor2 >(p_sol(), p_tmp(), p_bd())));
+        make_multistage(
+            execute<forward>(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
 
     bc_eval.run();
     // fetch data and check

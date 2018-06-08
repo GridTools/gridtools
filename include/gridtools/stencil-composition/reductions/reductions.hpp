@@ -40,5 +40,5 @@
 
 #include "make_reduction.hpp"
 
-#include "../make_computation.hpp"
 #include "../../common/binops.hpp"
+#include "../make_computation.hpp"

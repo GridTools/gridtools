@@ -49,13 +49,13 @@ namespace gridtools {
         */
 
         struct times_f {
-            template < class Lhs, class Rhs >
+            template <class Lhs, class Rhs>
             GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs *rhs);
         };
 
-        template < class Lhs, class Rhs >
+        template <class Lhs, class Rhs>
         GT_FUNCTION constexpr auto operator*(Lhs lhs, Rhs rhs)GT_AUTO_RETURN(make_expr(times_f{}, lhs, rhs));
         /** @} */
         /** @} */
-    }
-}
+    } // namespace expressions
+} // namespace gridtools

@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "../../functor_decorator.hpp"
 #include "../../run_esf_functor.hpp"
 #include "../iterate_domain_remapper.hpp"
-#include "../../functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -46,11 +46,11 @@ namespace gridtools {
      * @tparam RunFunctorArguments run functor arguments
      * @tparam Interval interval where the functor gets executed
      */
-    template < typename RunFunctorArguments, typename Interval >
-    struct run_esf_functor_mic : public run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > // CRTP
+    template <typename RunFunctorArguments, typename Interval>
+    struct run_esf_functor_mic : public run_esf_functor<run_esf_functor_mic<RunFunctorArguments, Interval>> // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-        typedef run_esf_functor< run_esf_functor_mic< RunFunctorArguments, Interval > > super;
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+        typedef run_esf_functor<run_esf_functor_mic<RunFunctorArguments, Interval>> super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         typedef typename super::run_functor_arguments_t run_functor_arguments_t;
@@ -58,12 +58,12 @@ namespace gridtools {
         GT_FUNCTION
         explicit run_esf_functor_mic(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
 
-        template < typename EsfArguments >
+        template <typename EsfArguments>
         struct color_esf_match {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::or_< typename boost::is_same< typename RunFunctorArguments::color_t,
-                                                  typename EsfArguments::esf_t::color_t >::type,
-                typename boost::is_same< nocolor, typename EsfArguments::esf_t::color_t >::type >::type type;
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
+            typedef typename boost::mpl::or_<typename boost::is_same<typename RunFunctorArguments::color_t,
+                                                 typename EsfArguments::esf_t::color_t>::type,
+                typename boost::is_same<nocolor, typename EsfArguments::esf_t::color_t>::type>::type type;
         };
 
         /*
@@ -72,16 +72,16 @@ namespace gridtools {
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void do_impl(
-            typename boost::enable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
-            call_user_functor< IntervalType, EsfArguments >();
+            typename boost::enable_if<typename color_esf_match<EsfArguments>::type, int>::type = 0) const {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
+            call_user_functor<IntervalType, EsfArguments>();
         }
 
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void do_impl(
-            typename boost::disable_if< typename color_esf_match< EsfArguments >::type, int >::type = 0) const {}
+            typename boost::disable_if<typename color_esf_match<EsfArguments>::type, int>::type = 0) const {}
 
       private:
         /*
@@ -90,30 +90,31 @@ namespace gridtools {
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void call_user_functor(
-            typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
+            typename boost::disable_if<typename EsfArguments::is_reduction_t, int>::type = 0) const {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
 
             typedef typename EsfArguments::functor_t original_functor_t;
             typedef typename EsfArguments::esf_t esf_t;
-            typedef typename esf_t::template esf_function< run_functor_arguments_t::color_t::color_t::value >
+            typedef typename esf_t::template esf_function<run_functor_arguments_t::color_t::color_t::value>
                 colored_functor_t;
 
-            typedef functor_decorator< typename original_functor_t::id,
+            typedef functor_decorator<typename original_functor_t::id,
                 colored_functor_t,
                 typename original_functor_t::repeat_t,
-                IntervalType > functor_t;
+                IntervalType>
+                functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
 
-            typedef typename get_trivial_iterate_domain_remapper< iterate_domain_t,
+            typedef typename get_trivial_iterate_domain_remapper<iterate_domain_t,
                 typename EsfArguments::esf_t,
-                typename run_functor_arguments_t::color_t >::type iterate_domain_remapper_t;
+                typename run_functor_arguments_t::color_t>::type iterate_domain_remapper_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
 
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+            _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
                 call_do_method(iterate_domain_remapper);
         }
 
@@ -123,11 +124,11 @@ namespace gridtools {
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void call_user_functor(
-            typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
+            typename boost::enable_if<typename EsfArguments::is_reduction_t, int>::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (EsfArguments::is_reduction_t::value), "Reductions not supported at the moment for icosahedral grids");
         }
     };
-}
+} // namespace gridtools
