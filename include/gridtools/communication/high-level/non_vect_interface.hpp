@@ -33,7 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-//clang-format off
 #if !BOOST_PP_IS_ITERATING
 
 #ifndef _NON_VECT_INTERFACE_H_
@@ -371,5 +370,3 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
 #undef PREFIX_SEND
 
 #endif
-
-//clang-format on

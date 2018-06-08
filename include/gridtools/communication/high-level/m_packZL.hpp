@@ -35,6 +35,7 @@
 */
 
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../../common/halo_descriptor.hpp"
 
 template <typename value_type>
 __global__ void m_packZLKernel(const value_type *__restrict__ d_data,
