@@ -186,7 +186,7 @@ namespace gpu_clone_test {
         a2.update_gpu_copy();
 
         // clang-format off
-        mul2< <<1,1> >>(a1.gpu_object_ptr);
+        mul2<<<1,1>>>(a1.gpu_object_ptr);
         // clang-format on
         a1.clone_from_device();
 
@@ -215,7 +215,7 @@ namespace gpu_clone_test {
 
         b1.clone_to_device();
         // clang-format off
-        minus1< <<1,1> >>(b1.gpu_object_ptr);
+        minus1<<<1,1>>>(b1.gpu_object_ptr);
         // clang-format on
         b1.clone_from_device();
 

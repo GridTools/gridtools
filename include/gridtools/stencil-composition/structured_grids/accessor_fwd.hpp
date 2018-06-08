@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../../common/defs.hpp"
 #include "../accessor_fwd.hpp"
 
 namespace gridtools {

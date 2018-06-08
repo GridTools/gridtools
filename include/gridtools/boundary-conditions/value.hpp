@@ -36,6 +36,8 @@
 #pragma once
 
 namespace gridtools {
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
 
     /** \ingroup Boundary-Conditions
      * @{

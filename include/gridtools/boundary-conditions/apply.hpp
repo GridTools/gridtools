@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../common/defs.hpp"
+#include "../common/halo_descriptor.hpp"
 #include "direction.hpp"
 #include "predicate.hpp"
 #include <boost/preprocessor/arithmetic/inc.hpp>

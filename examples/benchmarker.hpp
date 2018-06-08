@@ -34,8 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <gridtools/common/defs.hpp>
+
 #include "cache_flusher.hpp"
 #include "defs.hpp"
+#include <iostream>
 #include <memory>
 
 namespace gridtools {

@@ -42,6 +42,7 @@
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "arg_metafunctions.hpp"
 #include "expressions/expressions.hpp"
+#include "local_domain.hpp"
 #include "offset_computation.hpp"
 #include "run_functor_arguments.hpp"
 #include "run_functor_arguments_fwd.hpp"

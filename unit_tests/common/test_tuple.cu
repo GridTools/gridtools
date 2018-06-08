@@ -44,7 +44,7 @@ TEST(tuple, test_elements) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    test_tuple_kernel< <<1,1> >>(resultDevice);
+    test_tuple_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);

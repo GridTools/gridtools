@@ -51,7 +51,7 @@ TEST(explode_array, test_explode_static) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    explode_static_kernel< <<1,1> >>(resultDevice);
+    explode_static_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -64,7 +64,7 @@ TEST(explode_array, test_explode_with_object) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    explode_with_object_kernel< <<1,1> >>(resultDevice);
+    explode_with_object_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -77,7 +77,7 @@ TEST(explode_array, test_explode_with_tuple) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    explode_with_tuple_kernel< <<1,1> >>(resultDevice);
+    explode_with_tuple_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -90,7 +90,7 @@ TEST(explode_array, test_explode_with_tuple_with_object) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    explode_with_tuple_with_object_kernel< <<1,1> >>(resultDevice);
+    explode_with_tuple_with_object_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);

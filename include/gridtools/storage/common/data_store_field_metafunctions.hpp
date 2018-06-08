@@ -39,6 +39,8 @@
 #include <array>
 #include <type_traits>
 
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/push_back.hpp>
