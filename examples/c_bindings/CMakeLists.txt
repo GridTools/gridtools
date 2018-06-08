@@ -17,9 +17,7 @@ if (ENABLE_HOST)
     add_executable(fdriver_wrapper fdriver-wrapper.f90)
     target_link_libraries(fdriver_wrapper implementation_wrapper_fortran)
 
-    # On tave Intel Fortran is not working
-    if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-        set_target_properties(fdriver PROPERTIES EXCLUDE_FROM_ALL 1)
-        set_target_properties(fdriver_wrapper PROPERTIES EXCLUDE_FROM_ALL 1)
-    endif()
+    set_target_properties(fdriver PROPERTIES EXCLUDE_FROM_ALL 1)
+    set_target_properties(fdriver_wrapper PROPERTIES EXCLUDE_FROM_ALL 1)
+    set_target_properties(fdriver PROPERTIES LINKER_LANGUAGE Fortran)
 endif(ENABLE_HOST)

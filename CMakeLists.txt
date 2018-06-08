@@ -1,6 +1,8 @@
 cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
 
+enable_language (CXX Fortran)
+
 if( GRIDTOOLS_MODULES )
 # To be completed!
   
@@ -50,7 +52,6 @@ set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FL
 
 set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 
-enable_language (Fortran)
 set(CMAKE_FORTRAN_MODOUT_FLAG ON)
 set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
 
