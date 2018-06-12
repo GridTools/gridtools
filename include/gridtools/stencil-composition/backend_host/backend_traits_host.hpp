@@ -80,18 +80,6 @@ namespace gridtools {
             typedef _impl_host::run_functor_host< Arguments > run_functor_t;
         };
 
-        /** This is the function used by the specific backend
-         *  that determines the i coordinate of a processing element.
-         *  In the case of the host, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_i() {
-#ifdef _OPENMP
-            return omp_get_thread_num();
-#else
-            return 0;
-#endif
-        }
-
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
             GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
@@ -114,7 +102,7 @@ namespace gridtools {
             std::array< uint_t, 3 > operator()(Grid const &grid) const {
                 auto i_size = grid.direction_i().total_length();
                 auto j_size = grid.direction_j().total_length();
-                auto k_size = grid.k_max() + 1;
+                auto k_size = grid.k_total_length();
                 return {i_size, j_size, k_size};
             }
         };
@@ -131,41 +119,36 @@ namespace gridtools {
                 auto threads = omp_get_max_threads();
                 auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
                 auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
-                auto k_size = grid.k_max() + 1;
+                auto k_size = grid.k_total_length;
                 return {i_size, j_size, k_size};
             }
         };
 
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage. In addition to this each OpenMP thread stores an integer that indicates the offset of this
-           pointer. For temporaries we use an oversized storage in order to have private halo
-           regions for each thread. This method calculates the offset for temporaries and takes the private halo and
-           alignment information into account.
-        */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            typedef GridTraits grid_traits_t;
-            // get the thread ID
-            const uint_t i = processing_element_i();
-            // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            // compute the blocksize
-            constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
-            // return the field offset
-            const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
-            return stride_i * (i * blocksize + halo_i);
-        }
+        template < uint_t Coordinate,
+            class LocalDomain,
+            class PEBlockSize,
+            class GridTraits,
+            class StorageInfo,
+            class = void >
+        struct tmp_storage_block_offset_multiplier : std::integral_constant< int_t, 0 > {};
 
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
-           the offset of this pointer. This function computes the field offset for non temporary storages.
-        */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            return 0;
-        }
+        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
+        struct tmp_storage_block_offset_multiplier< Coordinate,
+            LocalDomain,
+            PEBlockSize,
+            StorageInfo,
+            GridTraits,
+            enable_if_t< Coordinate == GridTraits::dim_i_t::value > >
+            : std::integral_constant< int_t, 2 * StorageInfo::halo_t::template at< Coordinate >() > {};
+
+        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
+        struct tmp_storage_block_offset_multiplier< Coordinate,
+            LocalDomain,
+            PEBlockSize,
+            GridTraits,
+            StorageInfo,
+            enable_if_t< Coordinate == GridTraits::dim_j_t::value > >
+            : std::integral_constant< int_t, -PEBlockSize::j_size_t::value > {};
 
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block

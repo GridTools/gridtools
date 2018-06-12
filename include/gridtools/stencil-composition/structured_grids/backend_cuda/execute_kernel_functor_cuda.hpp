@@ -49,7 +49,7 @@ namespace gridtools {
 
         template < int VBoundary >
         struct padded_boundary
-            : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
+            : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : VBoundary <= 2 ? 2 : VBoundary <= 4 ? 4 : 8 > {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
@@ -122,12 +122,12 @@ namespace gridtools {
              *
              */
             // jboundary_limit determines the number of warps required to execute (b,d,f)
-            const int jboundary_limit =
+            static constexpr auto jboundary_limit =
                 block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value;
             // iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
-            const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value < 0 ? 1 : 0);
+            static constexpr auto iminus_limit = jboundary_limit + (max_extent_t::iminus::value < 0 ? 1 : 0);
             // iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
-            const int iplus_limit = iminus_limit + (max_extent_t::iplus::value > 0 ? 1 : 0);
+            static constexpr auto iplus_limit = iminus_limit + (max_extent_t::iplus::value > 0 ? 1 : 0);
 
             // The kernel allocate enough warps to execute all halos of all ESFs.
             // The max_extent_t is the enclosing extent of all the ESFs
@@ -148,11 +148,13 @@ namespace gridtools {
                 iblock = threadIdx.x;
                 jblock = (int)threadIdx.y + max_extent_t::jminus::value;
             } else if (threadIdx.y < iminus_limit) {
-                const int padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
+                static constexpr auto padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
-                           padded_boundary_ <=
-                       enumtype::vector_width);
+                GRIDTOOLS_STATIC_ASSERT(
+                    (block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
+                            padded_boundary_ <=
+                        enumtype::vector_width,
+                    GT_INTERNAL_ERROR);
 
                 i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
                 j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
@@ -160,11 +162,13 @@ namespace gridtools {
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
-                const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
+                static constexpr auto padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
-                           padded_boundary_ <=
-                       enumtype::vector_width);
+                GRIDTOOLS_STATIC_ASSERT(
+                    (block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
+                            padded_boundary_ <=
+                        enumtype::vector_width,
+                    GT_INTERNAL_ERROR);
 
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
                     block_size_t::i_size_t::value;

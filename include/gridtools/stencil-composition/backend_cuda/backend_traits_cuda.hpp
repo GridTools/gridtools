@@ -79,40 +79,6 @@ namespace gridtools {
             typedef _impl_cuda::run_functor_cuda< Arguments > run_functor_t;
         };
 
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of processing elements in the i-direction (i.e. cuda blocks
-            in the CUDA backend), in a 2D grid of threads.
-        */
-        static uint_t n_i_pes(const uint_t i_size) {
-            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
-            return (i_size + block_size_t::i_size_t::value) / block_size_t::i_size_t::value;
-        }
-
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of processing elements in the j-direction (i.e. cuda blocks
-            in the CUDA backend), in a 2D grid of threads.
-        */
-        static uint_t n_j_pes(const uint_t j_size) {
-            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
-            return (j_size + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
-        }
-
-        /** This is the function used by the specific backend
-         *  that determines the i coordinate of a processing element.
-         *  In the case of CUDA, a processing element is equivalent to a CUDA block
-         */
-        GT_FUNCTION
-        static uint_t processing_element_i() { return blockIdx.x; }
-
-        /** This is the function used by the specific backend
-         *  that determines the j coordinate of a processing element.
-         *  In the case of CUDA, a processing element is equivalent to a CUDA block
-         */
-        GT_FUNCTION
-        static uint_t processing_element_j() { return blockIdx.y; }
-
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
@@ -130,6 +96,17 @@ namespace gridtools {
             }
         };
 
+        template < class StorageInfo,
+            size_t alignment = StorageInfo::alignment_t::value ? StorageInfo::alignment_t::value : 1 >
+        static constexpr size_t align(size_t x) {
+            return (x + alignment - 1) / alignment * alignment;
+        }
+
+        template < class MaxExtent, class StorageInfo >
+        static constexpr uint_t i_block_extra() {
+            return align< StorageInfo >(2 * MaxExtent::value);
+        }
+
         // get a temporary storage size
         template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
         struct tmp_storage_size_f {
@@ -137,69 +114,56 @@ namespace gridtools {
             using halo_t = typename storage_info_t::halo_t;
             static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
             static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
-            static constexpr uint_t full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
-            static constexpr uint_t alignment = storage_info_t::alignment_t::value;
-            static constexpr uint_t diff_between_blocks =
-                alignment > 1 ? _impl::static_ceil(static_cast< float >(full_block_size) / alignment) * alignment
-                              : full_block_size;
-            static constexpr uint_t padding = diff_between_blocks - full_block_size;
+            static constexpr uint_t full_block_i_size =
+                align< storage_info_t >(block_size::i_size_t::value + 2 * MaxExtent::value);
+            static constexpr uint_t full_block_j_size = block_size::j_size_t::value + 2 * halo_j;
+            static constexpr uint
+
+                static constexpr uint_t diff_between_blocks =
+                    (block_size::i_size_t::value + 2 * MaxExtent::value + align - 1) / align * align;
+            //                _impl::static_ceil(static_cast< float >(full_block_size) / align) * align;
+            static constexpr uint_t padding =
+                align + (2 * MaxExtent::value + align - 1) / align * align - 2 * MaxExtent::value;
 
             template < class Grid >
             std::array< uint_t, 3 > operator()(Grid const &grid) const {
                 // TODO(anstaf): there is a bug here. k_size should be set to grid.total_length()
-                auto k_size = grid.k_max() + 1;
-                auto threads_i = n_i_pes(grid.i_high_bound() - grid.i_low_bound());
-                auto threads_j = n_j_pes(grid.j_high_bound() - grid.j_low_bound());
-                auto inner_domain_size = threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
-                return {
-                    inner_domain_size + 2 * halo_i, (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * threads_j, k_size};
+                auto k_size = grid.k_total_length();
+                auto num_blocks_i = (grid.i_high_bound() - grid.i_low_bound() + block_size::i_size_t::value) /
+                                    block_size::i_size_t::value;
+                auto num_blocks_j = (grid.j_high_bound() - grid.j_low_bound() + block_size::j_size_t::value) /
+                                    block_size::j_size_t::value;
+                auto inner_domain_size =
+                    num_blocks_i * full_block_size - 2 * MaxExtent::value + (num_blocks_i - 1) * padding;
+                return {full_block_i_size * num_blocks_i, full_block_j_size * num_blocks_j, k_size};
             }
         };
 
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
-           the offset of this pointer. For temporaries we use an oversized storage in order to have private halo
-           regions for each block. This method calculates the offset for temporaries and takes the private halo and
-           alignment information into account.
-        */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
-            StorageInfo const *sinfo) {
-            typedef GridTraits grid_traits_t;
-            typedef typename LocalDomain::max_i_extent_t max_i_t;
-            // halo in I and J direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            constexpr int halo_j = StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >();
-            // calculate the blocksize in I and J direction
-            constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j = 2 * halo_j + PEBlockSize::j_size_t::value;
+        template < uint_t Coordinate,
+            class LocalDomain,
+            class PEBlockSize,
+            class GridTraits,
+            class StorageInfo,
+            class = void >
+        struct tmp_storage_block_offset_multiplier : std::integral_constant< int_t, 0 > {};
 
-            // protect against div. by 0 and compute the distance between two blocks
-            constexpr int diff_between_blocks =
-                ((StorageInfo::alignment_t::value > 1)
-                        ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
-                              StorageInfo::alignment_t::value
-                        : block_size_i);
+        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
+        struct tmp_storage_block_offset_multiplier< Coordinate,
+            LocalDomain,
+            PEBlockSize,
+            GridTraits,
+            StorageInfo,
+            enable_if_t< Coordinate == GridTraits::dim_i_t::value > >
+            : std::integral_constant< int_t, i_block_extra< typename LocalDomain::max_i_extent_t, StorageInfo >() > {};
 
-            // compute offset in I and J
-            const uint_t i = processing_element_i() * diff_between_blocks + halo_i;
-            const uint_t j = Arg::location_t::n_colors::value *
-                             (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
-            // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
-            return i + j;
-        }
-
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
-           the offset of this pointer. This function computes the field offset for non temporary storages.
-        */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
-            StorageInfo const *sinfo) {
-            return 0;
-        }
+        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
+        struct tmp_storage_block_offset_multiplier< Coordinate,
+            LocalDomain,
+            PEBlockSize,
+            StorageInfo,
+            GridTraits,
+            enable_if_t< Coordinate == GridTraits::dim_j_t::value > >
+            : std::integral_constant< int_t, 2 * StorageInfo::halo_t::template at< Coordinate >() > {};
 
         /**
          * @brief main execution of a mss.
