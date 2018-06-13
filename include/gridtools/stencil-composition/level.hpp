@@ -44,7 +44,7 @@
 
 namespace gridtools {
     // define the level offset limit
-    const short_t cLevelOffsetLimit = 4; // set to 4 because of the kcache tests
+    const short_t cLevelOffsetLimit = 5; // set to 5 because of the kcache tests
 
     /**
      * @struct Level
