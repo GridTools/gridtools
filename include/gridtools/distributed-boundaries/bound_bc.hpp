@@ -117,7 +117,7 @@ namespace gridtools {
                     typename std::tuple_element< IDs, AllTuple >::type /*>::type*/ >::value >::type{})...);
         }
 
-        std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< std::size_t >) { return {}; }
+        inline std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< std::size_t >) { return {}; }
 
         /** \internal
             Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
