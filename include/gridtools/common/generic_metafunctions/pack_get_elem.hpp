@@ -74,7 +74,15 @@ namespace gridtools {
             }
         };
     } // namespace impl
-      /*
+
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup variadic
+        @{
+    */
+    /*
        * metafunction to retrieve a certain element of a variadic pack
        * Example of use:
        * pack_get_elem<2>::apply(3,4,7) == 7
@@ -82,4 +90,7 @@ namespace gridtools {
     template < int_t Idx >
     struct pack_get_elem
         : boost::mpl::if_c< (Idx < 0), impl::pack_get_elem_null< Idx >, impl::pack_get_elem_elem< Idx > >::type {};
+    /** @} */
+    /** @} */
+    /** @} */
 }

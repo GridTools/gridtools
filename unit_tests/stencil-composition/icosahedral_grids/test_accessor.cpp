@@ -35,11 +35,11 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/defs.hpp>
-#include <stencil-composition/icosahedral_grids/accessor.hpp>
-#include <stencil-composition/icosahedral_grids/accessor_metafunctions.hpp>
-#include <stencil-composition/icosahedral_grids/vector_accessor.hpp>
-#include <stencil-composition/global_accessor.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/icosahedral_grids/accessor.hpp>
+#include <gridtools/stencil-composition/icosahedral_grids/accessor_metafunctions.hpp>
+#include <gridtools/stencil-composition/icosahedral_grids/vector_accessor.hpp>
+#include <gridtools/stencil-composition/global_accessor.hpp>
 
 TEST(accessor, is_accessor) {
     using namespace gridtools;

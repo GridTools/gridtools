@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <stencil-composition/computation.hpp>
+#include <gridtools/stencil-composition/computation.hpp>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
 #include <gtest/gtest.h>
 #include <boost/any.hpp>
-#include <stencil-composition/arg.hpp>
+#include <gridtools/stencil-composition/arg.hpp>
 #include "backend_select.hpp"
 
 namespace gridtools {
@@ -76,7 +76,8 @@ namespace gridtools {
                 strm << (m_synced ? "synced" : "not synced") << ":" << m_count;
                 return strm.str();
             }
-            size_t get_meter() const { return m_count; }
+            size_t get_count() const { return m_count; }
+            double get_time() const { return 0.; /* unused */ }
         };
 
         TEST(computation, default_ctor) {
@@ -88,15 +89,15 @@ namespace gridtools {
             computation< result > testee = my_computation{};
             static_assert(std::is_same< decltype(testee.run()), result >{}, "");
             EXPECT_EQ(testee.print_meter(), "synced:0");
-            EXPECT_EQ(testee.get_meter(), 0);
+            EXPECT_EQ(testee.get_count(), 0);
             testee.run();
             testee.run();
             EXPECT_EQ(testee.print_meter(), "not synced:2");
-            EXPECT_EQ(testee.get_meter(), 2);
+            EXPECT_EQ(testee.get_count(), 2);
             testee.sync_bound_data_stores();
             EXPECT_EQ(testee.print_meter(), "synced:2");
             testee.reset_meter();
-            EXPECT_EQ(testee.get_meter(), 0);
+            EXPECT_EQ(testee.get_count(), 0);
             EXPECT_EQ(testee.print_meter(), "synced:0");
             // expect compilation failures:
             // testee.run(1);
@@ -123,7 +124,7 @@ namespace gridtools {
             };
             computation< void > testee;
             testee = make();
-            EXPECT_EQ(testee.get_meter(), 1);
+            EXPECT_EQ(testee.get_count(), 1);
         }
 
         TEST(computation, one_arg) {
@@ -152,7 +153,7 @@ namespace gridtools {
             tmp.run(a{} = data(), b{} = data());
             computation< void, b, a > testee = std::move(tmp);
             testee.run(a{} = data(), b{} = data());
-            EXPECT_EQ(testee.get_meter(), 2);
+            EXPECT_EQ(testee.get_count(), 2);
         }
 
         TEST(computation, convertible_returns) {
@@ -162,7 +163,7 @@ namespace gridtools {
             tmp_testee.run();
             computation< void > testee = std::move(tmp_testee);
             testee.run();
-            EXPECT_EQ(testee.get_meter(), 3);
+            EXPECT_EQ(testee.get_count(), 3);
         }
     }
 }

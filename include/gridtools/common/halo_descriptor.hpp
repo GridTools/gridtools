@@ -45,6 +45,12 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \defgroup halo_descriptor Halo Descriptor
+        @{
+    */
+
     /** \class halo_descriptor
         Given a dimension it is described like this:
         \code
@@ -251,4 +257,8 @@ namespace gridtools {
         return s << "hd(" << hd.minus() << ", " << hd.plus() << ", " << hd.begin() << ", " << hd.end() << ", "
                  << hd.total_length() << ")";
     }
+
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

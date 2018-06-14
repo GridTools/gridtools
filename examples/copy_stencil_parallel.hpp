@@ -35,19 +35,19 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <communication/low-level/proc_grids_3D.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
 
-#include <boundary-conditions/boundary.hpp>
+#include <gridtools/boundary-conditions/boundary.hpp>
 
-#include <communication/halo_exchange.hpp>
+#include <gridtools/communication/halo_exchange.hpp>
 
 #include <iostream>
 #include <fstream>
 
-#include <tools/mpi_unit_test_driver/check_flags.hpp>
-#include <tools/mpi_unit_test_driver/mpi_listener.hpp>
-#include <tools/mpi_unit_test_driver/device_binding.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/mpi_listener.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 #include "backend_select.hpp"
 
@@ -210,8 +210,8 @@ namespace copy_stencil {
         auto outv = make_host_view(out);
 #endif
         std::vector< float_type * > vec(2);
-        vec[0] = advanced::get_initial_address_of(inv);
-        vec[1] = advanced::get_initial_address_of(outv);
+        vec[0] = advanced::get_address_of(inv);
+        vec[1] = advanced::get_address_of(outv);
 
         he.pack(vec);
 

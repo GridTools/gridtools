@@ -159,11 +159,11 @@ endif()
 ## mpi ##
 if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
-  if( USE_MPI_COMPILER )
-    find_package(MPI REQUIRED)
-    include_directories( "${MPI_CXX_INCLUDE_PATH}" )
-    set( exe_LIBS  ${MPI_CXX_LIBRARIES} ${exe_LIBS} )
+  find_package(MPI REQUIRED)
+  if ( MPI_CXX_INCLUDE_PATH )
+      include_directories( "${MPI_CXX_INCLUDE_PATH}" )
   endif()
+  list(APPEND exe_LIBS ${MPI_CXX_LIBRARIES})
 endif()
 
 # add a target to generate API documentation with Doxygen

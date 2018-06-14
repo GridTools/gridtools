@@ -36,10 +36,10 @@
 
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <storage/data_store.hpp>
-#include <storage/storage_host/host_storage.hpp>
-#include <storage/storage_host/host_storage_info.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_host/host_storage.hpp>
+#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -48,51 +48,56 @@ typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 > > storage_i
 typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 >, alignment< 16 > > storage_info_halo_aligned_t;
 
 TEST(DataStoreTest, Simple) {
-    constexpr storage_info_t si(3, 3, 3);
-    constexpr storage_info_halo_t si_halo(7, 5, 3);
-    constexpr storage_info_halo_aligned_t si_halo_al(7, 5, 3);
+    storage_info_t si(3, 3, 3);
+    storage_info_halo_t si_halo(7, 5, 3);
+    storage_info_halo_aligned_t si_halo_al(7, 5, 3);
     // check sizes, strides, and alignment
-    GRIDTOOLS_STATIC_ASSERT(si.template dim< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template dim< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_dim< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_dim< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template stride< 0 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_stride< 0 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.get_initial_offset() == 0, "init. offset check failed");
+    ASSERT_EQ(si.template dim< 0 >(), 3);
+    ASSERT_EQ(si.template dim< 1 >(), 3);
+    ASSERT_EQ(si.template dim< 2 >(), 3);
+    ASSERT_EQ(si.template padded_length< 0 >(), 3);
+    ASSERT_EQ(si.template padded_length< 1 >(), 3);
+    ASSERT_EQ(si.template padded_length< 2 >(), 3);
+    ASSERT_EQ(si.template total_length< 0 >(), 3);
+    ASSERT_EQ(si.template total_length< 1 >(), 3);
+    ASSERT_EQ(si.template total_length< 2 >(), 3);
+    ASSERT_EQ(si.template length< 0 >(), 3);
+    ASSERT_EQ(si.template length< 1 >(), 3);
+    ASSERT_EQ(si.template length< 2 >(), 3);
+    ASSERT_EQ(si.template stride< 0 >(), 9);
+    ASSERT_EQ(si.template stride< 1 >(), 3);
+    ASSERT_EQ(si.template stride< 2 >(), 1);
 
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 0 >() == 15, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_stride< 0 >() == 15, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.get_initial_offset() == 0, "init. offset check failed");
+    ASSERT_EQ(si_halo.template dim< 0 >(), 7);
+    ASSERT_EQ(si_halo.template dim< 1 >(), 5);
+    ASSERT_EQ(si_halo.template dim< 2 >(), 3);
+    ASSERT_EQ(si_halo.template padded_length< 0 >(), 7);
+    ASSERT_EQ(si_halo.template padded_length< 1 >(), 5);
+    ASSERT_EQ(si_halo.template padded_length< 2 >(), 3);
+    ASSERT_EQ(si_halo.template total_length< 0 >(), 7);
+    ASSERT_EQ(si_halo.template total_length< 1 >(), 5);
+    ASSERT_EQ(si_halo.template total_length< 2 >(), 3);
+    ASSERT_EQ(si_halo.template length< 0 >(), 3);
+    ASSERT_EQ(si_halo.template length< 1 >(), 3);
+    ASSERT_EQ(si_halo.template length< 2 >(), 3);
+    ASSERT_EQ(si_halo.template stride< 0 >(), 15);
+    ASSERT_EQ(si_halo.template stride< 1 >(), 3);
+    ASSERT_EQ(si_halo.template stride< 2 >(), 1);
 
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 2 >() == 16, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 0 >() == 80, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 1 >() == 16, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_stride< 0 >() == 15, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.get_initial_offset() == 0, "init. offset check failed");
+    ASSERT_EQ(si_halo_al.template dim< 0 >(), 7);
+    ASSERT_EQ(si_halo_al.template dim< 1 >(), 5);
+    ASSERT_EQ(si_halo_al.template padded_length< 0 >(), 7);
+    ASSERT_EQ(si_halo_al.template padded_length< 1 >(), 5);
+    ASSERT_EQ(si_halo_al.template padded_length< 2 >(), 16);
+    ASSERT_EQ(si_halo_al.template total_length< 0 >(), 7);
+    ASSERT_EQ(si_halo.template total_length< 1 >(), 5);
+    ASSERT_EQ(si_halo.template total_length< 2 >(), 3);
+    ASSERT_EQ(si_halo.template length< 0 >(), 3);
+    ASSERT_EQ(si_halo.template length< 1 >(), 3);
+    ASSERT_EQ(si_halo.template length< 2 >(), 3);
+    ASSERT_EQ(si_halo_al.template stride< 0 >(), 80);
+    ASSERT_EQ(si_halo_al.template stride< 1 >(), 16);
+    ASSERT_EQ(si_halo_al.template stride< 2 >(), 1);
 
     // create unallocated data_store
     data_store< host_storage< double >, storage_info_t > ds;

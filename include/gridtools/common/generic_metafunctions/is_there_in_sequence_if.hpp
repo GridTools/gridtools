@@ -42,6 +42,13 @@
 
 namespace gridtools {
 
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \ingroup mplutil
+        @{
+    */
     /**
      * @struct is_there_in_sequence_if
      * return true if the predicate returns true when applied, for at least one of the elements in the Sequence
@@ -50,4 +57,7 @@ namespace gridtools {
     struct is_there_in_sequence_if : boost::mpl::fold< boost::mpl::transform_view< Sequence, Pred >,
                                          std::false_type,
                                          boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type {};
+    /** @} */
+    /** @} */
+    /** @} */
 }

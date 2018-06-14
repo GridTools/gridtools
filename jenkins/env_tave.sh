@@ -32,6 +32,16 @@ if [[ ${COMPILER} == "gcc" ]]; then
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
+  case ${VERSION} in
+    "18")
+      module swap intel/18.0.2.199
+      ;;
+    "17")
+      module swap intel/17.0.4.196
+      ;;
+    *)
+      module swap intel/18.0.2.199
+  esac
   export HOST_COMPILER=`which icpc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
@@ -48,6 +58,5 @@ export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
-export USE_MPI_COMPILER=OFF
 export MAKE_THREADS=16
 

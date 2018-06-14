@@ -38,15 +38,23 @@
 
 #include <cmath>
 #ifdef __CUDACC__
-#include "common/atomic_cuda.hpp"
+#include "./atomic_cuda.hpp"
 #else
-#include "common/atomic_host.hpp"
+#include "./atomic_host.hpp"
 #endif
 
 /**
 * Namespace providing a set of atomic functions working for all backends
 */
 namespace gridtools {
+    /** \ingroup common
+        @{
+     */
+
+    /** \defgroup atomic Atomic Functions
+        @{
+    */
+
     /**
     * Function computing an atomic addition
     * @param var reference to variable where the addition is performed
@@ -101,4 +109,7 @@ namespace gridtools {
     GT_FUNCTION T atomic_max(T &var, const T val) {
         return get_atomic_helper< T >::type::atomic_max(var, val);
     }
+
+    /** @} */
+    /** @} */
 }

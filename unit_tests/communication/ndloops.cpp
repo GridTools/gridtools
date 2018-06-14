@@ -42,8 +42,8 @@
 #endif
 
 #include <iostream>
-#include <common/ndloops.hpp>
-#include <common/array.hpp>
+#include <gridtools/common/ndloops.hpp>
+#include <gridtools/common/array.hpp>
 #include <sys/time.h>
 #include "gtest/gtest.h"
 

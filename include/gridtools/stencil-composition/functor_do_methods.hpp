@@ -76,9 +76,8 @@ namespace gridtools {
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
         //     the coordinate system contains all the intervals specified for the solutions)
         // * there is exactly one Do method per functor matching the specified interval
-        BOOST_MPL_ASSERT_MSG((boost::mpl::size< DoMethods >::value == 1),
-            DID_NOT_FIND_DO_METHOD_FOR_A_GIVEN_INTERVAL_FROM_LEVEL,
-            (TFromIndex, DoMethods));
+        GRIDTOOLS_STATIC_ASSERT(
+            boost::mpl::size< DoMethods >::value == 1, "Did not find do method for a given interval from level");
 
         // define the do method
         typedef typename boost::mpl::back< DoMethods >::type DoMethod;
@@ -89,10 +88,10 @@ namespace gridtools {
 
         // check the do method from and to level offsets do not max out the level offset limits
         // (otherwise we cannot guarantee a correct loop level computation afterwards)
-        BOOST_MPL_ASSERT_MSG((-cLevelOffsetLimit < FromOffset::value && FromOffset::value < cLevelOffsetLimit &&
-                                 -cLevelOffsetLimit < ToOffset::value && ToOffset::value < cLevelOffsetLimit),
-            DO_METHOD_DEFINITION_REACHES_LEVEL_OFFSET_LIMIT,
-            (TFunctor, DoMethod));
+        GRIDTOOLS_STATIC_ASSERT(-cLevelOffsetLimit < FromOffset::value && FromOffset::value < cLevelOffsetLimit,
+            "Do method definition reaches level offset limit, you might want to increase cLevelOffsetLimit");
+        GRIDTOOLS_STATIC_ASSERT(-cLevelOffsetLimit < ToOffset::value && ToOffset::value < cLevelOffsetLimit,
+            "Do method definition reaches level offset limit, you might want to increase cLevelOffsetLimit");
 
         // return the do method pair holding the from and to indexes of the Do method
         typedef DoMethod type;
@@ -111,7 +110,7 @@ namespace gridtools {
         // make sure the second interval starts where the first ends
         // (check the index values are continuous and both indexes are associated to the same splitter)
         BOOST_STATIC_CONSTANT(bool,
-            value = ((DoMethod1ToIndex::value + 1 == DoMethod2FromIndex::value) &&
+            value = ((_impl::add_offset(DoMethod1ToIndex::value, 1) == DoMethod2FromIndex::value) &&
                      (index_to_level< DoMethod1ToIndex >::type::Splitter::value ==
                          index_to_level< DoMethod2FromIndex >::type::Splitter::value)));
         typedef boost::mpl::integral_c< bool, value > type;

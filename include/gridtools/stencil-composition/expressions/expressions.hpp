@@ -35,28 +35,34 @@
 */
 #pragma once
 
-#include "common/defs.hpp"
-#include "common/dimension.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/dimension.hpp"
 
 /**@file
    @brief Expression templates definition.
    The expression templates are a method to parse at compile time the mathematical expression given
    by the user, recognizing the structure and building a syntax tree by recursively nesting
-   templates.*/
+   templates.
+*/
 
-#include "expr_pow.hpp"
-#include "expr_plus.hpp"
-#include "expr_minus.hpp"
-#include "expr_times.hpp"
-#include "expr_divide.hpp"
+#include "./expr_pow.hpp"
+#include "./expr_plus.hpp"
+#include "./expr_minus.hpp"
+#include "./expr_times.hpp"
+#include "./expr_divide.hpp"
 
 namespace gridtools {
 
     /** \ingroup stencil-composition
-        \section expressions
         @{
     */
 
+    /** \defgroup expressions Expressions
+        @{
+    */
+
+    /** Namespace containing all the compomnents to enable using expressions in stencil operators
+     */
     namespace expressions {
 
         /** Expressions defining the interface for specifiyng a given offset for a specified dimension in plus-direction
@@ -81,6 +87,7 @@ namespace gridtools {
         }
     }
 
+    /** @} */
     /** @} */
 
 } // namespace gridtools

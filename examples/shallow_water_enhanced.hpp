@@ -38,14 +38,14 @@
 // [includes]
 #include <iostream>
 #include <fstream>
-#include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <storage/storage-facility.hpp>
+#include <gridtools/gridtools.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
-#include <communication/halo_exchange.hpp>
+#include <gridtools/communication/halo_exchange.hpp>
 #include "backend_select.hpp"
 
-#include <tools/verifier.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 // [includes]
 
@@ -369,13 +369,13 @@ namespace shallow_water {
             std::vector< float_type * > vec(3);
 
 #ifdef __CUDACC__
-            vec[0] = advanced::get_initial_address_of(make_device_view(sol.get< 0, 0 >()));
-            vec[1] = advanced::get_initial_address_of(make_device_view(sol.get< 1, 0 >()));
-            vec[2] = advanced::get_initial_address_of(make_device_view(sol.get< 2, 0 >()));
+            vec[0] = advanced::get_address_of(make_device_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_address_of(make_device_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_address_of(make_device_view(sol.get< 2, 0 >()));
 #else
-            vec[0] = advanced::get_initial_address_of(make_host_view(sol.get< 0, 0 >()));
-            vec[1] = advanced::get_initial_address_of(make_host_view(sol.get< 1, 0 >()));
-            vec[2] = advanced::get_initial_address_of(make_host_view(sol.get< 2, 0 >()));
+            vec[0] = advanced::get_address_of(make_host_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_address_of(make_host_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_address_of(make_host_view(sol.get< 2, 0 >()));
 #endif
 
 // he.pack(vec);

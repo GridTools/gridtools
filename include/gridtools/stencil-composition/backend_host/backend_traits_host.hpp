@@ -80,26 +80,6 @@ namespace gridtools {
             typedef _impl_host::run_functor_host< Arguments > run_functor_t;
         };
 
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of threads in the i-direction, in a 2D
-            grid of threads.
-        */
-        static uint_t n_i_pes(uint_t = 0) {
-#ifdef _OPENMP
-            return omp_get_max_threads();
-#else
-            return 1;
-#endif
-        }
-
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of threads in the j-direction, in a 2D
-            grid of threads.
-        */
-        static uint_t n_j_pes(uint_t = 0) { return 1; }
-
         /** This is the function used by the specific backend
          *  that determines the i coordinate of a processing element.
          *  In the case of the host, a processing element is equivalent to an OpenMP core
@@ -112,12 +92,6 @@ namespace gridtools {
 #endif
         }
 
-        /** This is the function used by the specific backend
-         *  that determines the j coordinate of a processing element.
-         *  In the case of the host, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_j() { return 0; }
-
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
             GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
@@ -127,6 +101,38 @@ namespace gridtools {
                 static void
                 assign(Left &l, Right const &r) {
                 l = (Left)r;
+            }
+        };
+
+        template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
+        struct tmp_storage_size_f;
+
+        // get a temporary storage size
+        template < class MaxExtent, class StorageWrapper, class GridTraits >
+        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Naive > {
+            template < class Grid >
+            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+                auto i_size = grid.direction_i().total_length();
+                auto j_size = grid.direction_j().total_length();
+                auto k_size = grid.k_max() + 1;
+                return {i_size, j_size, k_size};
+            }
+        };
+
+        template < class MaxExtent, class StorageWrapper, class GridTraits >
+        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Block > {
+            using storage_info_t = typename StorageWrapper::storage_info_t;
+            using halo_t = typename storage_info_t::halo_t;
+            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
+            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
+
+            template < class Grid >
+            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+                auto threads = omp_get_max_threads();
+                auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
+                auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
+                auto k_size = grid.k_max() + 1;
+                return {i_size, j_size, k_size};
             }
         };
 
@@ -148,7 +154,7 @@ namespace gridtools {
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
             const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
-            return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
+            return stride_i * (i * blocksize + halo_i);
         }
 
         /**
@@ -158,7 +164,7 @@ namespace gridtools {
         */
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            return StorageInfo::get_initial_offset();
+            return 0;
         }
 
         /**

@@ -36,11 +36,11 @@
 
 #include "gtest/gtest.h"
 #include "../../tools/triplet.hpp"
-#include <common/gt_assert.hpp>
-#include <storage/data_store.hpp>
-#include <storage/storage_cuda/data_view_helpers.hpp>
-#include <storage/storage_cuda/cuda_storage.hpp>
-#include <storage/storage_cuda/cuda_storage_info.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_cuda/data_view_helpers.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -194,7 +194,7 @@ TEST(DataViewTest, Looping) {
 
 TEST(DataViewTest, CheckMemorySpace) {
     typedef cuda_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
-    storage_info_t si(2, 2, 2);
+    storage_info_t si(2 + 2 * 1, 2 + 2 * 3, 2 + 2 * 3);
 
     typedef data_store< cuda_storage< int >, storage_info_t > data_store_t;
 

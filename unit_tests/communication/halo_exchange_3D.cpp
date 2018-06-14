@@ -36,10 +36,10 @@
 #include <mpi.h>
 #include "gtest/gtest.h"
 #include <iostream>
-#include <communication/low-level/proc_grids_3D.hpp>
-#include <communication/low-level/Halo_Exchange_3D.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
+#include <gridtools/communication/low-level/Halo_Exchange_3D.hpp>
 #include <stdio.h>
-#include <common/boollist.hpp>
+#include <gridtools/common/boollist.hpp>
 
 struct T3 {}; // MPI CYCLIC
 struct T4 {}; // MPI not CYCLIC

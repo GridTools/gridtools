@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
-#include <storage/storage-facility.hpp>
+#include <gridtools/gridtools.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 #include "backend_select.hpp"
 
 namespace horizontal_diffusion {

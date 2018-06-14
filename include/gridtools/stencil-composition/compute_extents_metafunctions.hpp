@@ -126,7 +126,7 @@ namespace gridtools {
         /**
            The for_mss takes the current MSS that needs to be analyzed.
 
-           the ::type is the final map obtained by updating the one provided in
+           the `type` is the final map obtained by updating the one provided in
            compute_extents_of
 
            \tparam MssDescriptor The mulstistage computation to be processed
@@ -351,29 +351,24 @@ namespace gridtools {
         grid_traits in.
 
         \tparam MssDescriptorArray The meta-array of MSSes
-        \tparam GridTraits The traits of the grids
         \tparam Placeholders The placeholders used in the computation
      */
 
-    template < typename MssDescriptors, typename GridTraits, typename Placeholders >
+    template < typename MssDescriptors, typename Placeholders >
     struct placeholder_to_extent_map {
       private:
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id< GridTraits >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), GT_INTERNAL_ERROR);
 
-        using mss_compute_extent_sizes_t = typename GridTraits::select_mss_compute_extent_sizes;
-        using initial_map_of_placeholders_t =
-            typename GridTraits::template select_init_map_of_extents< Placeholders >::type;
         // This is where the data-dependence analysis happens
-        template < typename CurrentMap, typename Mss >
-        using update_extent_map = typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >;
+        template < typename PlaceholdersMap, typename Mss >
+        struct update_extent_map : compute_extents_of< PlaceholdersMap >::template for_mss< Mss > {};
 
       public:
         // we need to iterate over the multistage computations in the computation and
         // update the map accordingly.
         using type = typename boost::mpl::fold< MssDescriptors,
-            initial_map_of_placeholders_t,
+            typename init_map_of_extents< Placeholders >::type,
             update_extent_map< boost::mpl::_1, boost::mpl::_2 > >::type;
     };
 

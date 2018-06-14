@@ -36,6 +36,12 @@
 #pragma once
 #include <stdexcept>
 
+/** \ingroup common
+    @{
+    \defgroup assert Assertion
+    @{
+*/
+
 #ifdef __CUDACC__
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
 // we take the cuda assert for arch greater than 2.x
@@ -52,6 +58,8 @@
 #define ASSERT_OR_THROW(cond, msg) assert(cond)
 #else
 #define ASSERT_OR_THROW(cond, msg) \
-    if (!cond)                     \
+    if (!(cond))                   \
     throw std::runtime_error(msg)
 #endif
+/** @} */
+/** @} */

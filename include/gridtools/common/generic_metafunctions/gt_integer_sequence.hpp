@@ -37,10 +37,18 @@
 
 #include <functional>
 #include <boost/proto/traits.hpp>
-#include "common/defs.hpp"
-#include "common/host_device.hpp"
+#include "../defs.hpp"
+#include "../host_device.hpp"
 
 namespace gridtools {
+
+    /** \ingroup common
+        @{
+        \ingroup allmeta
+        @{
+        \defgroup gtintegersequence GridTools Integer Sequence
+        @{
+    */
 
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
@@ -270,4 +278,8 @@ namespace gridtools {
             return Container{lambda(Indices, args_...)...};
         }
     };
+    /** @} */
+    /** @} */
+    /** @} */
+
 } // namespace gridtools

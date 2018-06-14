@@ -44,11 +44,11 @@
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
-#include "stencil-composition/backend_mic/iterate_domain_mic.hpp"
-#include "stencil-composition/iterate_domain.hpp"
-#include "common/generic_metafunctions/for_each.hpp"
-#include "common/generic_metafunctions/meta.hpp"
-#include "execinfo_mic.hpp"
+#include "./iterate_domain_mic.hpp"
+#include "../../iterate_domain.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
+#include "./execinfo_mic.hpp"
 
 namespace gridtools {
 
@@ -349,7 +349,7 @@ namespace gridtools {
             GT_FUNCTION void operator()(const Interval &) const {
                 using extent_t = typename RunFunctorArguments::max_extent_t;
                 using functor_list_t = typename RunFunctorArguments::functor_list_t;
-                using range_t = GT_META_CALL(meta::make_indices, boost::mpl::size< functor_list_t >::value);
+                using range_t = GT_META_CALL(meta::make_indices, boost::mpl::size< functor_list_t >);
                 using inner_functor_t = inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kserial_mic >;
 
                 const int_t i_first = extent_t::iminus::value;
@@ -397,7 +397,7 @@ namespace gridtools {
             template < typename Interval >
             GT_FUNCTION void operator()(const Interval &) const {
                 using functor_list_t = typename RunFunctorArguments::functor_list_t;
-                using range_t = GT_META_CALL(meta::make_indices, boost::mpl::size< functor_list_t >::value);
+                using range_t = GT_META_CALL(meta::make_indices, boost::mpl::size< functor_list_t >);
                 using inner_functor_t = inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kserial_mic >;
 
                 gridtools::for_each< range_t >(inner_functor_t(m_it_domain, m_grid, m_execution_info));
@@ -439,7 +439,7 @@ namespace gridtools {
 
                 if (k_first <= m_execution_info.k && m_execution_info.k <= k_last) {
                     using functor_list_t = typename RunFunctorArguments::functor_list_t;
-                    using range_t = GT_META_CALL(meta::make_indices, boost::mpl::size< functor_list_t >::value);
+                    using range_t = GT_META_CALL(meta::make_indices, boost::mpl::size< functor_list_t >);
                     using inner_functor_t =
                         inner_functor_mic< RunFunctorArguments, Interval, execinfo_block_kparallel_mic >;
 

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/generic_metafunctions/meta.hpp>
+#include <gridtools/common/generic_metafunctions/meta.hpp>
 
 #include <tuple>
 #include <type_traits>
@@ -106,8 +106,8 @@ namespace gridtools {
         static_assert(std::is_same< GT_META_CALL(mp_find, (map, double)), void >{}, "");
 
         // repeat
-        static_assert(std::is_same< GT_META_CALL(repeat, (0, int)), list<> >{}, "");
-        static_assert(std::is_same< GT_META_CALL(repeat, (3, int)), list< int, int, int > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(repeat_c, (0, int)), list<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(repeat_c, (3, int)), list< int, int, int > >{}, "");
 
         // drop_front
         static_assert(std::is_same< GT_META_CALL(drop_front_c, (0, f< int, double >)), f< int, double > >{}, "");
@@ -139,12 +139,12 @@ namespace gridtools {
 
         // combine
         static_assert(std::is_same< GT_META_CALL(combine, (f, g< int >)), int >{}, "");
-        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (8, int)))),
+        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat_c, (8, int)))),
                           f< f< f< int, int >, f< int, int > >, f< f< int, int >, f< int, int > > > >{},
             "");
         static_assert(std::is_same< GT_META_CALL(combine, (f, g< int, int >)), f< int, int > >{}, "");
         static_assert(std::is_same< GT_META_CALL(combine, (f, g< int, int, int >)), f< int, f< int, int > > >{}, "");
-        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat, (4, int)))),
+        static_assert(std::is_same< GT_META_CALL(combine, (f, GT_META_CALL(repeat_c, (4, int)))),
                           f< f< int, int >, f< int, int > > >{},
             "");
 
@@ -193,6 +193,7 @@ namespace gridtools {
         static_assert(is_instantiation_of< f, f< int, void > >{}, "");
         static_assert(!is_instantiation_of< f, g<> >{}, "");
         static_assert(!is_instantiation_of< f, int >{}, "");
+        static_assert(is_instantiation_of< f >::apply< f< int, void > >{}, "");
 
         static_assert(std::is_same< GT_META_CALL(replace, (f< int, double, int, double >, double, void)),
                           f< int, void, int, void > >{},
@@ -261,6 +262,26 @@ namespace gridtools {
             "");
         static_assert(std::is_same< GT_META_CALL(rfold, (f, int, g< int, int, int, int, int >)),
                           f< int, f< int, f< int, f< int, f< int, int > > > > > >{},
+            "");
+
+        static_assert(std::is_same< GT_META_CALL(cartesian_product, ()), list< list<> > >{}, "");
+        static_assert(std::is_same< GT_META_CALL(cartesian_product, (f<>)), list<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(cartesian_product, (f< int >)), list< list< int > > >{}, "");
+        static_assert(
+            std::is_same< GT_META_CALL(cartesian_product, (f< int, double >)), list< list< int >, list< double > > >{},
+            "");
+        static_assert(std::is_same< GT_META_CALL(cartesian_product, (f< int, double >, g< void >)),
+                          list< list< int, void >, list< double, void > > >{},
+            "");
+        static_assert(
+            std::is_same< GT_META_CALL(cartesian_product, (f< int, double >, g< int *, double * >)),
+                list< list< int, int * >, list< int, double * >, list< double, int * >, list< double, double * > > >{},
+            "");
+        static_assert(
+            std::is_same< GT_META_CALL(cartesian_product, (f< int, double >, g<>, f< void >)), list<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(cartesian_product, (f<>, g< int, double >)), list<> >{}, "");
+        static_assert(std::is_same< GT_META_CALL(cartesian_product, (f< int >, g< double >, list< void >)),
+                          list< list< int, double, void > > >{},
             "");
     }
 }

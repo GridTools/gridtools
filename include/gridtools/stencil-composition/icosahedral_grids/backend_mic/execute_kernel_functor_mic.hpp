@@ -39,8 +39,8 @@
 #include "../../execution_policy.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
-#include "stencil-composition/backend_mic/iterate_domain_mic.hpp"
-#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
+#include "../../backend_mic/iterate_domain_mic.hpp"
+#include "../..//icosahedral_grids/esf_metafunctions.hpp"
 #include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
@@ -128,7 +128,6 @@ namespace gridtools {
 
             /**
             @brief core of the kernel execution
-            @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
             */
             explicit execute_kernel_functor_mic(const local_domain_t &local_domain,
                 const grid_t &grid,

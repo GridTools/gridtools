@@ -36,10 +36,15 @@
 
 // Extracted from Andrei Alexandrescu @GoingNative2013
 #pragma once
-#include "common/array.hpp"
-#include "common/tuple.hpp"
+#include "./array.hpp"
+#include "./tuple.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \ingroup array
+        @{
+    */
 
     template < unsigned K, class R, class F, class Array >
     struct Expander;
@@ -167,4 +172,6 @@ namespace gridtools {
         return Expander_inj< tuple_size< Array >::value, ReturnType, Fn, ExtraData, const Array & >::expand(
             extra_data, a);
     }
+    /** @} */
+    /** @} */
 }

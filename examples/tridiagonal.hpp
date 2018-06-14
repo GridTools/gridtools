@@ -35,13 +35,13 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/interval.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 #include "backend_select.hpp"
 
@@ -146,8 +146,8 @@ namespace tridiagonal {
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
         if (d3 != 6)
-            std::cout << "WARNING: This test is only working with 6 k levels,"
-                         "to guarantee that result can be validated to 1"
+            std::cout << "This test is only working with 6 k levels,"
+                         "to guarantee that result can be validated to 1: Setting it to 6"
                       << std::endl;
         d3 = 6;
 

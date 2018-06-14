@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "common/defs.hpp"
+#include "../../../common/defs.hpp"
 
 namespace gridtools {
 

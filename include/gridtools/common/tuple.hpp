@@ -40,11 +40,16 @@
  * In order to use with more complex types (non constexprable), a version returning by ref should be used instead
  */
 #pragma once
-#include "common/defs.hpp"
-#include "host_device.hpp"
-#include "generic_metafunctions/variadic_typedef.hpp"
+#include "./defs.hpp"
+#include "./host_device.hpp"
+#include "./generic_metafunctions/variadic_typedef.hpp"
 
 namespace gridtools {
+    /** \ingroup common
+        @{
+        \defgroup tuple Tuple Implementation
+        @{
+    */
 
     namespace _impl {
         template < ushort_t Idx, typename VariadicArgs, typename First, typename Super >
@@ -134,5 +139,7 @@ namespace gridtools {
 
     template < typename... Elements >
     class tuple_size< tuple< Elements... > > : public gridtools::static_size_t< sizeof...(Elements) > {};
+    /** @} */
+    /** @} */
 
 } // namespace gridtools

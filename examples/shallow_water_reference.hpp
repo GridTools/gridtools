@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 
 /**
    @file

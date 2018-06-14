@@ -107,8 +107,8 @@ namespace gridtools {
             \param i The index of the pointer in the arrays of raw pointers
         */
         template < typename DataView >
-        inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
-            return dv.m_raw_ptrs[i] + dv.m_storage_info->get_initial_offset();
+        inline typename DataView::data_t *get_address_of(DataView const &dv, int i = 0) {
+            return dv.m_raw_ptrs[i];
         }
 
         template < typename DataStore, access_mode AccessMode >
@@ -179,6 +179,20 @@ namespace gridtools {
          */
         GT_FUNCTION
         data_t const *data() const { return m_raw_ptrs[0]; }
+
+        /**
+         * @return pointer to the first position
+         */
+        GT_FUNCTION
+        data_t *ptr_to_first_position() { return &operator()(gridtools::array< int, storage_info_t::ndims >{{}}); }
+
+        /**
+         * return pointer to the first position
+         */
+        GT_FUNCTION
+        data_t const *ptr_to_first_position() const {
+            return &operator()(gridtools::array< int, storage_info_t::ndims >{{}});
+        }
 
         /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.
@@ -299,7 +313,7 @@ namespace gridtools {
         friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
 
         template < typename T >
-        friend typename T::data_t *advanced::get_initial_address_of(T const &, int);
+        friend typename T::data_t *advanced::get_address_of(T const &, int);
 
         template < typename Src, typename Dst >
         friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);

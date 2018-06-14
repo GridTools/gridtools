@@ -39,7 +39,7 @@
 #include "../../common/array.hpp"
 #include <vector>
 #include "../../common/make_array.hpp"
-#include <common/gt_assert.hpp>
+#include "../../common/gt_assert.hpp"
 
 #include "../../common/boollist.hpp"
 #include "../../common/ndloops.hpp"

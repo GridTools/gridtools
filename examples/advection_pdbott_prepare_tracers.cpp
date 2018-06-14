@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include "Options.hpp"
-#include "common/defs.hpp"
+#include <gridtools/common/defs.hpp>
 #include "advection_pdbott_prepare_tracers.hpp"
 
 int main(int argc, char **argv) {

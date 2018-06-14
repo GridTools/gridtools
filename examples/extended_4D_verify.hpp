@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <tools/verifier.hpp>
-#include <common/defs.hpp>
+#include <gridtools/tools/verifier.hpp>
+#include <gridtools/common/defs.hpp>
 
 using namespace gridtools;
 

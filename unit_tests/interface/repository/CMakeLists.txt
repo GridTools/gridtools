@@ -62,3 +62,16 @@ endif()
 fetch_host_tests(.)
 fetch_gpu_tests(.)
 
+add_bindings_library(repository exported_repository.cpp)
+target_link_libraries(repository gtest)
+
+add_library(repository_fortran_lib test_repository.f90)
+target_compile_options(repository_fortran_lib PRIVATE "-cpp")
+target_include_directories(repository_fortran_lib PRIVATE ${CMAKE_BINARY_DIR})
+target_link_libraries(repository_fortran_lib array_descriptor repository_fortran)
+
+if (ENABLE_HOST)
+    target_link_libraries(test_repository_host repository_fortran_lib)
+elseif (ENABLE_CUDA)
+    target_link_libraries(test_repository_cuda repository_fortran_lib)
+endif()

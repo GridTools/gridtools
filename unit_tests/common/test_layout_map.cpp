@@ -36,9 +36,9 @@
 
 #include "gtest/gtest.h"
 
-#include <common/layout_map.hpp>
-#include <common/layout_map_metafunctions.hpp>
-#include <common/gt_assert.hpp>
+#include <gridtools/common/layout_map.hpp>
+#include <gridtools/common/layout_map_metafunctions.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 #include "../test_helper.hpp"
 using namespace gridtools;
@@ -167,4 +167,22 @@ TEST(LayoutMap, Extender) {
 
     typedef typename extend_layout_map< special_layout, 2, InsertLocation::pre >::type ext_special_layout_post_2;
     ASSERT_TYPE_EQ< layout_map< 0, 1, 4, 3, -1, 2 >, ext_special_layout_post_2 >();
+}
+
+TEST(LayoutMap, max_value) {
+    {
+        using layout_map_t = layout_map< 0, 1, 2, 3 >;
+
+        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 3, " ");
+    }
+    {
+        using layout_map_t = layout_map< 0, 1, -1, 2 >;
+
+        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 2, " ");
+    }
+    {
+        using layout_map_t = layout_map< 0, 1, -1, -1 >;
+
+        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 1, " ");
+    }
 }

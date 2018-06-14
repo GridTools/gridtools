@@ -42,7 +42,7 @@
 #include "../low-level/Halo_Exchange_3D.hpp"
 #include "../../common/make_array.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
-#include <common/gt_assert.hpp>
+#include "../../common/gt_assert.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
 
 #include "../../common/boollist.hpp"
