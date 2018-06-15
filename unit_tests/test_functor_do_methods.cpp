@@ -36,9 +36,9 @@
 #include <iostream>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/for_each.hpp>
-#include "stencil-composition/level.hpp"
-#include "stencil-composition/interval.hpp"
-#include "stencil-composition/functor_do_methods.hpp"
+#include <gridtools/stencil-composition/level.hpp>
+#include <gridtools/stencil-composition/interval.hpp>
+#include <gridtools/stencil-composition/functor_do_methods.hpp>
 
 using namespace gridtools;
 

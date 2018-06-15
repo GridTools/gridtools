@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/split_args.hpp>
+#include <gridtools/common/split_args.hpp>
 
 #include <tuple>
 #include <type_traits>

@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/defs.hpp"
-#include "iterate_domain.hpp"
-#include "iterate_domain_metafunctions.hpp"
+#include "../common/defs.hpp"
+#include "./iterate_domain.hpp"
+#include "./iterate_domain_metafunctions.hpp"
 
 namespace gridtools {
     namespace _impl {

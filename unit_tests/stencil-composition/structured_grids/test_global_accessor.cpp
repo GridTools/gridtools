@@ -36,9 +36,9 @@
 #define PEDANTIC_DISABLED
 
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <storage/storage-facility.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 
 #include "backend_select.hpp"
 
@@ -117,7 +117,7 @@ struct functor_with_function_call {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval) {
-        eval(sol()) = call< functor1_with_assignment >::with(eval, bd());
+        eval(sol()) = call< functor1_with_assignment >::return_type< double >::with(eval, bd());
     }
 };
 

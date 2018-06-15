@@ -36,7 +36,7 @@
 #pragma once
 
 #include "backend_select.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "gtest/gtest.h"
 
 using axis_t = gridtools::axis< 3, 1 >;

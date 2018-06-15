@@ -47,8 +47,8 @@
 
 namespace gridtools {
     namespace impl {
-        bool both_gpu_ptrs(void *ptr1, void *ptr2) { return is_gpu_ptr(ptr1) && is_gpu_ptr(ptr2); }
-        bool both_not_gpu_ptrs(void *ptr1, void *ptr2) { return !is_gpu_ptr(ptr1) && !is_gpu_ptr(ptr2); }
+        inline bool both_gpu_ptrs(void *ptr1, void *ptr2) { return is_gpu_ptr(ptr1) && is_gpu_ptr(ptr2); }
+        inline bool both_not_gpu_ptrs(void *ptr1, void *ptr2) { return !is_gpu_ptr(ptr1) && !is_gpu_ptr(ptr2); }
     }
 
     namespace interface {

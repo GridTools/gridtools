@@ -36,13 +36,13 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
-#include "stencil-composition/structured_grids/accessor_mixed.hpp"
+#include "./structured_grids/accessor_metafunctions.hpp"
+#include "./structured_grids/accessor.hpp"
+#include "./structured_grids/accessor_mixed.hpp"
 #else
-#include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/icosahedral_grids/accessor.hpp"
+#include "./icosahedral_grids/accessor_metafunctions.hpp"
+#include "./icosahedral_grids/accessor.hpp"
 #endif
 
-#include "stencil-composition/global_accessor_metafunctions.hpp"
-#include "stencil-composition/global_accessor.hpp"
+#include "./global_accessor_metafunctions.hpp"
+#include "./global_accessor.hpp"

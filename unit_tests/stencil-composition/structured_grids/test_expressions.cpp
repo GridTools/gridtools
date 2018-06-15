@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include "../../cuda_gtest_plugin.hpp"
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace gridtools::enumtype;

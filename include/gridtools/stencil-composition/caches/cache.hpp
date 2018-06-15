@@ -47,14 +47,14 @@
 #include <boost/preprocessor.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-#include <common/defs.hpp>
-#include <common/generic_metafunctions/mpl_vector_flatten.hpp>
-#include <common/generic_metafunctions/variadic_to_vector.hpp>
-#include <common/gt_assert.hpp>
-#include <stencil-composition/accessor.hpp>
-#include <stencil-composition/caches/cache_definitions.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/location_type.hpp>
+#include "../../common/defs.hpp"
+#include "../../common/gt_assert.hpp"
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
+#include "./cache_definitions.hpp"
+#include "../accessor.hpp"
+#include "../interval.hpp"
+#include "../location_type.hpp"
 
 namespace gridtools {
 

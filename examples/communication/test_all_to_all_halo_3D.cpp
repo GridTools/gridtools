@@ -33,17 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <communication/low-level/proc_grids_3D.hpp>
-#include <communication/all_to_all_halo.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
+#include <gridtools/communication/all_to_all_halo.hpp>
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <common/array.hpp>
-#include <common/boollist.hpp>
-#include <storage/storage-facility.hpp>
+#include <gridtools/common/array.hpp>
+#include <gridtools/common/boollist.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 #include "gtest/gtest.h"
-#include <tools/mpi_unit_test_driver/device_binding.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 /*
   If GT_TEST_ENABLE_OUTPUT macro is defined then output is produced in

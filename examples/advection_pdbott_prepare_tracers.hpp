@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 #include "benchmarker.hpp"
 

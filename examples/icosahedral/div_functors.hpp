@@ -35,8 +35,8 @@
 */
 
 #pragma once
-#include <common/defs.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "backend_select.hpp"
 #include "operator_defs.hpp"
 

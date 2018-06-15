@@ -35,9 +35,9 @@
 */
 #include <iostream>
 #include <gtest/gtest.h>
-#include <storage/storage-facility.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/storage_info_extender.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/storage_info_extender.hpp>
 
 namespace gt = gridtools;
 

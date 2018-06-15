@@ -39,18 +39,15 @@
 #include "../../backend_traits_fwd.hpp"
 #include "../../mss_functor.hpp"
 #include "../../tile.hpp"
-#include "execute_kernel_functor_mic.hpp"
-#include "execinfo_mic.hpp"
-#include "common/generic_metafunctions/for_each.hpp"
-#include "common/generic_metafunctions/meta.hpp"
+#include "./execute_kernel_functor_mic.hpp"
+#include "./execinfo_mic.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
     template < enumtype::strategy >
     struct strategy_from_id_mic;
-
-    template <>
-    struct strategy_from_id_mic< enumtype::Naive > {};
 
     namespace _impl {
 
@@ -98,7 +95,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
@@ -139,7 +136,7 @@ namespace gridtools {
             template < typename LocalDomainListArray, typename Grid >
             GT_FUNCTION static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value);
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
                 using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,

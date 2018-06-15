@@ -38,7 +38,7 @@
 #include "../level.hpp"
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/mpl/has_key.hpp>
-#include <gridtools.hpp>
+#include "../../gridtools.hpp"
 
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
@@ -46,7 +46,7 @@
 #include "../../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "execute_kernel_functor_cuda.hpp"
+#include "./execute_kernel_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -90,7 +90,7 @@ namespace gridtools {
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                host_for_each< GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >::value) >(
+                host_for_each< GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >)>(
                     mss_functor< MssComponents,
                         Grid,
                         LocalDomainListArray,

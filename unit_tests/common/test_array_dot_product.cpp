@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/array_dot_product.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/array_dot_product.hpp>
 
 using namespace gridtools;
 

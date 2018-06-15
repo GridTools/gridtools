@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/any_moveable.hpp>
+#include <gridtools/common/any_moveable.hpp>
 
 #include <memory>
 #include <gtest/gtest.h>

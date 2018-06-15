@@ -181,6 +181,20 @@ namespace gridtools {
         data_t const *data() const { return m_raw_ptrs[0]; }
 
         /**
+         * @return pointer to the first position
+         */
+        GT_FUNCTION
+        data_t *ptr_to_first_position() { return &operator()(gridtools::array< int, storage_info_t::ndims >{{}}); }
+
+        /**
+         * return pointer to the first position
+         */
+        GT_FUNCTION
+        data_t const *ptr_to_first_position() const {
+            return &operator()(gridtools::array< int, storage_info_t::ndims >{{}});
+        }
+
+        /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.
          * @param c given indices
          * @return reference to the queried value

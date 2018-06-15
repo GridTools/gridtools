@@ -37,7 +37,7 @@
 
 #include <cstdint>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "backend_select.hpp"
 #include "benchmarker.hpp"
 

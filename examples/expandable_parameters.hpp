@@ -41,8 +41,8 @@
 #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 namespace test_expandable_parameters {

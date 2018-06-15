@@ -59,11 +59,6 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Mic > {
 
-        /** This is the function used to extract a pointer out of a given storage info.
-            In the case of Host backend we have to return the CPU pointer.
-        */
-        using extract_storage_info_ptr_f = identity;
-
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
         */
@@ -74,55 +69,9 @@ namespace gridtools {
             auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of threads in the i-direction, in a 2D
-            grid of threads.
-        */
-        static uint_t n_i_pes(uint_t = 0) {
-#ifdef STRUCTURED_GRIDS
-            /* This function is not used in the MIC backend for structured grids. */
-            assert(false);
+#ifndef STRUCTURED_GRIDS
+        static uint_t processing_element_i() { return omp_get_thread_num(); }
 #endif
-            return omp_get_max_threads();
-        }
-
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of threads in the j-direction, in a 2D
-            grid of threads.
-        */
-        static uint_t n_j_pes(uint_t = 0) {
-#ifdef STRUCTURED_GRIDS
-            /* This function is not used in the MIC backend for structured grids. */
-            assert(false);
-#endif
-            return 1;
-        }
-
-        /** This is the function used by the specific backend
-         *  that determines the i coordinate of a processing element.
-         *  In the case of the host, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_i() {
-#ifdef STRUCTURED_GRIDS
-            /* This function is not used in the MIC backend for structured grids. */
-            assert(false);
-#endif
-            return omp_get_thread_num();
-        }
-
-        /** This is the function used by the specific backend
-         *  that determines the j coordinate of a processing element.
-         *  In the case of the host, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_j() {
-#ifdef STRUCTURED_GRIDS
-            /* This function is not used in the MIC backend for structured grids. */
-            assert(false);
-#endif
-            return 0;
-        }
 
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
@@ -136,6 +85,46 @@ namespace gridtools {
             }
         };
 
+        template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
+        struct tmp_storage_size_f;
+
+#ifdef STRUCTURED_GRIDS
+        template < class MaxExtent, class StorageWrapper, class GridTraits >
+        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Block > {
+            using storage_info_t = typename StorageWrapper::storage_info_t;
+            using halo_t = typename storage_info_t::halo_t;
+            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
+            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
+            static constexpr uint_t alignment = storage_info_t::alignment_t::value;
+
+            template < class Grid >
+            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+                execinfo_mic exinfo(grid);
+                auto threads = omp_get_max_threads();
+                auto i_size = ((exinfo.i_block_size() + 2 * halo_i + alignment - 1) / alignment) * alignment;
+                auto j_size = (exinfo.j_block_size() + 2 * halo_j) * threads;
+                auto k_size = grid.k_total_length();
+                return {i_size, j_size, k_size};
+            }
+        };
+#else
+        template < class MaxExtent, class StorageWrapper, class GridTraits >
+        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Block > {
+            using storage_info_t = typename StorageWrapper::storage_info_t;
+            using halo_t = typename storage_info_t::halo_t;
+            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
+            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
+
+            template < class Grid >
+            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+                auto threads = omp_get_max_threads();
+                auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
+                auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
+                auto k_size = grid.k_max() + 1;
+                return {i_size, j_size, k_size};
+            }
+        };
+#endif
         /**
            Static method in order to calculate the field offset. In the iterate domain we store one pointer per
            storage. In addition to this each OpenMP thread stores an integer that indicates the offset of this
@@ -194,16 +183,10 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
 #ifdef STRUCTURED_GRIDS
-                using grid_traits_t = grid_traits_from_id< backend_ids_t::s_grid_type_id >;
-                using arch_grid_traits_t =
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type;
-                using kernel_functor_executor_t =
-                    typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type;
-
-                kernel_functor_executor_t(local_domain, grid, reduction_data)(execution_info);
+                strgrid::execute_kernel_functor_mic< RunFunctorArgs >(local_domain, grid, reduction_data)(
+                    execution_info);
 #else
-                // each strategy executes a different high level loop for a mss
-                strategy_from_id_mic< backend_ids_t::s_strategy_id >::template mss_loop< RunFunctorArgs >::template run(
+                strategy_from_id_mic< enumtype::Block >::template mss_loop< RunFunctorArgs >::template run(
                     local_domain, grid, reduction_data, execution_info);
 #endif
             }

@@ -41,7 +41,7 @@
 
 #include "./backend_traits_fwd.hpp"
 #include "./run_functor_arguments.hpp"
-#include "gridtools.hpp"
+#include "../gridtools.hpp"
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"
@@ -129,15 +129,9 @@ namespace gridtools {
         typedef storage_traits< BackendId > storage_traits_t;
         typedef typename backend_traits_t::template select_strategy< backend_ids_t >::type strategy_traits_t;
 
-        static const enumtype::strategy s_strategy_id = StrategyId;
-        static const enumtype::platform s_backend_id = BackendId;
-        static const enumtype::grid_type s_grid_type_id = GridId;
-
-        /** types of the functions used to compute the thread grid information
-            for allocating the temporary storages and such
-        */
-        typedef uint_t (*query_i_threads_f)(uint_t);
-        typedef uint_t (*query_j_threads_f)(uint_t);
+        static constexpr enumtype::strategy s_strategy_id = StrategyId;
+        static constexpr enumtype::platform s_backend_id = BackendId;
+        static constexpr enumtype::grid_type s_grid_type_id = GridId;
 
         /**
             Method to retrieve a global parameter
@@ -149,6 +143,7 @@ namespace gridtools {
             typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
             typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
             make_host_view(ds)(0) = t;
+            ds.sync();
             return ds;
         }
 
@@ -165,18 +160,6 @@ namespace gridtools {
         }
 
         using make_view_f = typename backend_traits_t::make_view_f;
-
-        /**
-            Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
-           storage info)
-         */
-        template < typename MaxExtent, typename StorageWrapper, typename Grid >
-        static typename StorageWrapper::storage_info_t instantiate_storage_info(Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_storage_info< typename StorageWrapper::storage_info_t >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), GT_INTERNAL_ERROR);
-            return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
-        }
 
         using block_size_t = typename backend_traits_t::template get_block_size< StrategyId >::type;
 
@@ -203,21 +186,6 @@ namespace gridtools {
             strategy_traits_t::template fused_mss_loop< MssComponents, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);
         }
-
-        /** Initial interface
-
-            Threads are oganized in a 2D grid. These two functions
-            n_i_pes and n_j_pes retrieve the
-            information about how to compute those sizes.
-
-            The information needed by those functions are the sizes of the
-            domains (especially if the GPU is used)
-
-            n_i_pes()(size): number of threads on the first dimension of the thread grid
-            n_j_pes()(size): number of threads on the second dimension of the thread grid
-        */
-        static constexpr query_i_threads_f n_i_pes = &backend_traits_t::n_i_pes;
-        static constexpr query_j_threads_f n_j_pes = &backend_traits_t::n_j_pes;
     };
 
 } // namespace gridtools

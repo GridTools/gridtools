@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "c_bindings/export.hpp"
+#include <gridtools/c_bindings/export.hpp>
 
 #include <functional>
 #include <sstream>
@@ -42,7 +42,7 @@
 
 #include <gtest/gtest.h>
 
-#include "c_bindings/handle.h"
+#include <gridtools/c_bindings/handle.h>
 
 namespace {
 
@@ -54,8 +54,8 @@ namespace {
     GT_EXPORT_BINDING_0(my_create, my_create_impl);
 
     template < class T >
-    void push_impl(std::stack< T > &obj, T val) {
-        obj.push(val);
+    void push_impl(std::stack< T > *obj, T val) {
+        obj->push(val);
     }
     GT_EXPORT_GENERIC_BINDING(2, my_push, push_impl, (float)(int)(double));
 
@@ -71,6 +71,30 @@ namespace {
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_empty, bool(stack_t const &), std::mem_fn(&stack_t::empty));
 
+    template < class T >
+    void assign_impl(T(&obj)[2][2], T val) {
+        obj[0][0] = obj[0][1] = obj[1][0] = obj[1][1] = val;
+    }
+    GT_EXPORT_GENERIC_BINDING_WRAPPED(2, my_assign, assign_impl, (int)(double));
+
+    struct c_bindings_compatible_type {
+        c_bindings_compatible_type(const gt_fortran_array_descriptor &) {}
+    };
+    struct wrapper_compatible_type {
+        wrapper_compatible_type(const gt_fortran_array_descriptor &) {}
+    };
+    gt_fortran_array_descriptor get_fortran_view_meta(wrapper_compatible_type *) {
+        gt_fortran_array_descriptor d;
+        d.rank = 2;
+        d.type = gt_fk_Int;
+        return d;
+    }
+    void test_c_bindings_and_wrapper_compatible_type_impl(c_bindings_compatible_type, wrapper_compatible_type) {}
+    GT_EXPORT_BINDING_2(
+        test_c_bindings_and_wrapper_compatible_type_a, test_c_bindings_and_wrapper_compatible_type_impl);
+    GT_EXPORT_BINDING_WRAPPED_2(
+        test_c_bindings_and_wrapper_compatible_type_b, test_c_bindings_and_wrapper_compatible_type_impl);
+
     TEST(export, smoke) {
         gt_handle *obj = my_create();
         EXPECT_TRUE(my_empty(obj));
@@ -85,12 +109,15 @@ namespace {
     const char expected_c_interface[] = R"?(
 #pragma once
 
-#include <c_bindings/handle.h>
+#include <gridtools/c_bindings/handle.h>
+#include <gridtools/c_bindings/array_descriptor.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+void my_assign0(gt_fortran_array_descriptor*, int);
+void my_assign1(gt_fortran_array_descriptor*, double);
 gt_handle* my_create();
 bool my_empty(gt_handle*);
 void my_pop(gt_handle*);
@@ -98,6 +125,8 @@ void my_push0(gt_handle*, float);
 void my_push1(gt_handle*, int);
 void my_push2(gt_handle*, double);
 double my_top(gt_handle*);
+void test_c_bindings_and_wrapper_compatible_type_a(gt_fortran_array_descriptor*, gt_fortran_array_descriptor*);
+void test_c_bindings_and_wrapper_compatible_type_b(gt_fortran_array_descriptor*, gt_fortran_array_descriptor*);
 
 #ifdef __cplusplus
 }
@@ -115,41 +144,117 @@ module my_module
 implicit none
   interface
 
+    subroutine my_assign0_impl(arg0, arg1) &
+        bind(c, name="my_assign0")
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor) :: arg0
+      integer(c_int), value :: arg1
+    end subroutine
+    subroutine my_assign1_impl(arg0, arg1) &
+        bind(c, name="my_assign1")
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor) :: arg0
+      real(c_double), value :: arg1
+    end subroutine
     type(c_ptr) function my_create() bind(c)
       use iso_c_binding
-    end
+    end function
     logical(c_bool) function my_empty(arg0) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
-    end
+    end function
     subroutine my_pop(arg0) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
-    end
+    end subroutine
     subroutine my_push0(arg0, arg1) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
       real(c_float), value :: arg1
-    end
+    end subroutine
     subroutine my_push1(arg0, arg1) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
       integer(c_int), value :: arg1
-    end
+    end subroutine
     subroutine my_push2(arg0, arg1) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
       real(c_double), value :: arg1
-    end
+    end subroutine
     real(c_double) function my_top(arg0) bind(c)
       use iso_c_binding
       type(c_ptr), value :: arg0
-    end
+    end function
+    subroutine test_c_bindings_and_wrapper_compatible_type_a(arg0, arg1) bind(c)
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor) :: arg0
+      type(gt_fortran_array_descriptor) :: arg1
+    end subroutine
+    subroutine test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, arg1) &
+        bind(c, name="test_c_bindings_and_wrapper_compatible_type_b")
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor) :: arg0
+      type(gt_fortran_array_descriptor) :: arg1
+    end subroutine
 
+  end interface
+  interface my_assign
+    procedure my_assign0, my_assign1
   end interface
   interface my_push
     procedure my_push0, my_push1, my_push2
   end interface
+contains
+    subroutine my_assign0(arg0, arg1)
+      use iso_c_binding
+      use array_descriptor
+      integer(c_int), dimension(:,:), target :: arg0
+      integer(c_int), value, target :: arg1
+      type(gt_fortran_array_descriptor) :: descriptor0
+
+      descriptor0%rank = 2
+      descriptor0%type = 1
+      descriptor0%dims = reshape(shape(arg0), &
+        shape(descriptor0%dims), (/0/))
+      descriptor0%data = c_loc(arg0(lbound(arg0, 1),lbound(arg0, 2)))
+
+      call my_assign0_impl(descriptor0, arg1)
+    end subroutine
+    subroutine my_assign1(arg0, arg1)
+      use iso_c_binding
+      use array_descriptor
+      real(c_double), dimension(:,:), target :: arg0
+      real(c_double), value, target :: arg1
+      type(gt_fortran_array_descriptor) :: descriptor0
+
+      descriptor0%rank = 2
+      descriptor0%type = 6
+      descriptor0%dims = reshape(shape(arg0), &
+        shape(descriptor0%dims), (/0/))
+      descriptor0%data = c_loc(arg0(lbound(arg0, 1),lbound(arg0, 2)))
+
+      call my_assign1_impl(descriptor0, arg1)
+    end subroutine
+    subroutine test_c_bindings_and_wrapper_compatible_type_b(arg0, arg1)
+      use iso_c_binding
+      use array_descriptor
+      type(gt_fortran_array_descriptor), target :: arg0
+      integer(c_int), dimension(:,:), target :: arg1
+      type(gt_fortran_array_descriptor) :: descriptor1
+
+      descriptor1%rank = 2
+      descriptor1%type = 1
+      descriptor1%dims = reshape(shape(arg1), &
+        shape(descriptor1%dims), (/0/))
+      descriptor1%data = c_loc(arg1(lbound(arg1, 1),lbound(arg1, 2)))
+
+      call test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, descriptor1)
+    end subroutine
 end
 )?";
 

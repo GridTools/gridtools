@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 #include "backend_select.hpp"
 
 namespace test_copy_stencil_icosahedral {

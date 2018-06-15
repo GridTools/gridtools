@@ -46,10 +46,11 @@ namespace gridtools {
      * Defines an axis_interval_t which is the former user-defined axis type and a full_interval which spans the whole
      * axis.
      * @param NIntervals Number of intervals the axis should support
-     * @param ExtraOffsetsBeyondFullInterval Special case when access of k-values beyond the full_interval (i.e. the
-     * last splitter value) are needed. (Note that the default interval will span the whole axis_interval_t.)
+     * @param ExtraOffsetsAroundFullInterval Special case when access of k-values around the full_interval (i.e. after
+     * the last or before the first splitter value) are needed. (Note that the default interval will span the whole
+     * axis_interval_t.)
      */
-    template < size_t NIntervals, int_t ExtraOffsetsBeyondFullInterval = 0 >
+    template < size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0 >
     class axis {
       private:
         template < size_t... IntervalIDs >
@@ -63,9 +64,8 @@ namespace gridtools {
         };
 
       public:
-        static const uint_t max_offsets_ = cLevelOffsetLimit;
-
-        using axis_interval_t = interval< level< 0, 1 >, level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >;
+        using axis_interval_t = interval< level< 0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval) >,
+            level< NIntervals, _impl::add_offset(1, ExtraOffsetsAroundFullInterval) > >;
 
         using full_interval = interval< level< 0, 1 >, level< NIntervals, -1 > >;
 

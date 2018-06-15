@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "common/defs.hpp"
-#include "common/dimension.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/dimension.hpp"
 
 /**@file
    @brief Expression templates definition.
@@ -45,11 +45,11 @@
    templates.
 */
 
-#include "expr_pow.hpp"
-#include "expr_plus.hpp"
-#include "expr_minus.hpp"
-#include "expr_times.hpp"
-#include "expr_divide.hpp"
+#include "./expr_pow.hpp"
+#include "./expr_plus.hpp"
+#include "./expr_minus.hpp"
+#include "./expr_times.hpp"
+#include "./expr_divide.hpp"
 
 namespace gridtools {
 

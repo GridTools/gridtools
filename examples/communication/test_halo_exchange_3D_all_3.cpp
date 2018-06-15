@@ -38,11 +38,11 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <communication/halo_exchange.hpp>
+#include <gridtools/communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <storage/storage-facility.hpp>
-#include <common/boollist.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/common/boollist.hpp>
 #include <sys/time.h>
 
 #define B_ADD 1
@@ -50,7 +50,7 @@
 
 #include "triplet.hpp"
 
-#include <tools/mpi_unit_test_driver/device_binding.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 namespace halo_exchange_3D_all_3 {
     int pid;
