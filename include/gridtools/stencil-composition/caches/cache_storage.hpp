@@ -34,8 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/max.hpp>
-#include <boost/mpl/min.hpp>
+#include <boost/mpl/min_max.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
@@ -104,7 +103,7 @@ namespace gridtools {
         struct min_enclosing_extent< variadic_to_vector< Arg0, Arg1, Arg2, Args... >, KWindow > {
             using type = variadic_to_vector< Arg0,
                 Arg1,
-                typename boost::mpl::min< Arg2, static_int< KWindow::m_> >::type,
+                typename boost::mpl::min< Arg2, static_int< KWindow::m_ > >::type,
                 Args... >;
         };
 
