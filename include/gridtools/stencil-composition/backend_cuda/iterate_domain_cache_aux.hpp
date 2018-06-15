@@ -240,6 +240,11 @@ namespace gridtools {
                        : (uint_t)boost::mpl::at_c< typename CacheStorage::plus_t::type, 2 >::type::value;
         }
 
+        /**
+          * computes the base of the window of the kcache that needs to be synchronized to main memory.
+          * Depending on the loop direction we will need to synchronize either the head or the tail of the kcache,
+          * therefore the base of the window will be either kminus (tail) or 0 (head).
+          */
         template < typename IterationPolicy, typename CacheStorage >
         GT_FUNCTION constexpr int_t compute_section_kcache_base_to_sync_with_mem(cache_io_policy cache_io_policy_) {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::at_c< typename CacheStorage::minus_t::type, 2 >::type::value <= 0 &&
@@ -359,7 +364,8 @@ namespace gridtools {
 
                 constexpr int_t kwindow_min = boost::mpl::eval_if< boost::mpl::is_void_< typename kcache_t::kwindow_t >,
                     boost::mpl::identity< static_int< kbase > >,
-                    window_get_min<  kcache_t::ccacheIOPolicy, IterationPolicy, typename kcache_t::kwindow_t > >::type::value;
+                    window_get_min< kcache_t::ccacheIOPolicy, IterationPolicy, typename kcache_t::kwindow_t > >::type::
+                    value;
 
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, kwindow_size >::type >;
