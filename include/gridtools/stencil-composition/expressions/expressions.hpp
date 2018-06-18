@@ -45,11 +45,11 @@
    templates.
 */
 
-#include "./expr_pow.hpp"
-#include "./expr_plus.hpp"
-#include "./expr_minus.hpp"
-#include "./expr_times.hpp"
 #include "./expr_divide.hpp"
+#include "./expr_minus.hpp"
+#include "./expr_plus.hpp"
+#include "./expr_pow.hpp"
+#include "./expr_times.hpp"
 
 namespace gridtools {
 
@@ -70,9 +70,9 @@ namespace gridtools {
            \param d1 Coordinate id
            \param offset: the offset to be applied in the Coordinate direction
         */
-        template < ushort_t Coordinate >
-        GT_FUNCTION constexpr dimension< Coordinate > operator+(dimension< Coordinate > d1, int const &offset) {
-            return dimension< Coordinate >(offset);
+        template <ushort_t Coordinate>
+        GT_FUNCTION constexpr dimension<Coordinate> operator+(dimension<Coordinate> d1, int const &offset) {
+            return dimension<Coordinate>(offset);
         }
 
         /** Expressions defining the interface for specifiyng a given offset for a specified dimension in
@@ -81,11 +81,11 @@ namespace gridtools {
            \param d1 Coordinate id
            \param offset: the offset to be applied in the Coordinate direction
         */
-        template < ushort_t Coordinate >
-        GT_FUNCTION constexpr dimension< Coordinate > operator-(dimension< Coordinate > d1, int const &offset) {
-            return dimension< Coordinate >(-offset);
+        template <ushort_t Coordinate>
+        GT_FUNCTION constexpr dimension<Coordinate> operator-(dimension<Coordinate> d1, int const &offset) {
+            return dimension<Coordinate>(-offset);
         }
-    }
+    } // namespace expressions
 
     /** @} */
     /** @} */

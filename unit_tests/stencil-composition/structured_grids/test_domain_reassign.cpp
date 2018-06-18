@@ -36,6 +36,7 @@
 #include <boost/mpl/vector.hpp>
 #include <gtest/gtest.h>
 
+#include "backend_select.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/stencil-composition/accessor.hpp>
@@ -46,41 +47,40 @@
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "backend_select.hpp"
 
 namespace gridtools {
     struct test_functor {
-        using in = accessor< 0, enumtype::in, extent<>, 3 >;
-        using out = accessor< 1, enumtype::inout, extent<>, 3 >;
-        using arg_list = boost::mpl::vector< in, out >;
+        using in = accessor<0, enumtype::in, extent<>, 3>;
+        using out = accessor<1, enumtype::inout, extent<>, 3>;
+        using arg_list = boost::mpl::vector<in, out>;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
 
     class fixture : public ::testing::Test {
-        using storage_info_t = backend_t::storage_traits_t::storage_info_t< 0, 3 >;
-        using storage_t = backend_t::storage_traits_t::data_store_t< gridtools::float_type, storage_info_t >;
-        using p_tmp = tmp_arg< 2, storage_t >;
+        using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3>;
+        using storage_t = backend_t::storage_traits_t::data_store_t<gridtools::float_type, storage_info_t>;
+        using p_tmp = tmp_arg<2, storage_t>;
 
         const uint_t m_d1 = 6, m_d2 = 6, m_d3 = 10;
         const halo_descriptor m_di = {0, 0, 0, m_d1 - 1, m_d1}, m_dj = {0, 0, 0, m_d2 - 1, m_d2};
-        const grid< axis< 1 >::axis_interval_t > m_grid = make_grid(m_di, m_dj, m_d3);
+        const grid<axis<1>::axis_interval_t> m_grid = make_grid(m_di, m_dj, m_d3);
         const storage_info_t m_meta{m_d1, m_d2, m_d3};
 
       public:
-        using p_in = arg< 0, storage_t >;
-        using p_out = arg< 1, storage_t >;
+        using p_in = arg<0, storage_t>;
+        using p_out = arg<1, storage_t>;
 
-        computation< void, p_in, p_out > m_computation;
+        computation<void, p_in, p_out> m_computation;
 
         fixture()
-            : m_computation{make_computation< backend_t >(m_grid,
-                  make_multistage(enumtype::execute< enumtype::forward >(),
-                                                              make_stage< test_functor >(p_in{}, p_tmp{}),
-                                                              make_stage< test_functor >(p_tmp{}, p_out{})))} {}
+            : m_computation{make_computation<backend_t>(m_grid,
+                  make_multistage(enumtype::execute<enumtype::forward>(),
+                      make_stage<test_functor>(p_in{}, p_tmp{}),
+                      make_stage<test_functor>(p_tmp{}, p_out{})))} {}
 
         storage_t make_in(int n) const {
             return {m_meta, [=](int i, int j, int k) { return i + j + k + n; }};
@@ -109,4 +109,4 @@ namespace gridtools {
         m_computation.run(p_in{} = in, p_out{} = out);
         EXPECT_TRUE(verify(in, out));
     }
-}
+} // namespace gridtools

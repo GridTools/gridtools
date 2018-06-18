@@ -46,15 +46,15 @@
 
 namespace {
 
-    using stack_t = std::stack< double >;
+    using stack_t = std::stack<double>;
 
     // Various flavours to create exported functions.
 
     stack_t my_create_impl() { return stack_t{}; }
     GT_EXPORT_BINDING_0(my_create, my_create_impl);
 
-    template < class T >
-    void push_impl(std::stack< T > *obj, T val) {
+    template <class T>
+    void push_impl(std::stack<T> *obj, T val) {
         obj->push(val);
     }
     GT_EXPORT_GENERIC_BINDING(2, my_push, push_impl, (float)(int)(double));
@@ -62,8 +62,8 @@ namespace {
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_pop, void(stack_t &), [](stack_t &obj) { obj.pop(); });
 
     struct top_impl {
-        template < class T >
-        T operator()(std::stack< T > const &container) const {
+        template <class T>
+        T operator()(std::stack<T> const &container) const {
             return container.top();
         }
     };
@@ -71,8 +71,8 @@ namespace {
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_empty, bool(stack_t const &), std::mem_fn(&stack_t::empty));
 
-    template < class T >
-    void assign_impl(T(&obj)[2][2], T val) {
+    template <class T>
+    void assign_impl(T (&obj)[2][2], T val) {
         obj[0][0] = obj[0][1] = obj[1][0] = obj[1][1] = val;
     }
     GT_EXPORT_GENERIC_BINDING_WRAPPED(2, my_assign, assign_impl, (int)(double));
@@ -109,8 +109,8 @@ namespace {
     const char expected_c_interface[] = R"?(
 #pragma once
 
-#include <gridtools/c_bindings/handle.h>
 #include <gridtools/c_bindings/array_descriptor.h>
+#include <gridtools/c_bindings/handle.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -263,4 +263,4 @@ end
         gridtools::c_bindings::generate_fortran_interface(strm, "my_module");
         EXPECT_EQ(strm.str(), expected_fortran_interface);
     }
-}
+} // namespace

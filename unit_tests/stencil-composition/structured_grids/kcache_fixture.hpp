@@ -36,55 +36,55 @@
 #pragma once
 
 #include "backend_select.hpp"
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "gtest/gtest.h"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-using axis_t = gridtools::axis< 3, 1 >;
+using axis_t = gridtools::axis<3, 1>;
 using axis = axis_t::axis_interval_t;
 
 using kfull = axis_t::full_interval;
-using kbody = kfull::modify< 1, -1 >;
+using kbody = kfull::modify<1, -1>;
 using kminimum = kfull::first_level;
-using kminimump1 = kminimum::shift< 1 >;
+using kminimump1 = kminimum::shift<1>;
 using kmaximum = kfull::last_level;
-using kmaximumm1 = kmaximum::shift< -1 >;
-using kmaximum2 = axis_t::get_interval< 2 >;
-using kmaximum_m2 = axis_t::get_interval< 1 >::last_level;
-using kmaximum_m3 = kmaximum_m2::shift< -1 >;
+using kmaximumm1 = kmaximum::shift<-1>;
+using kmaximum2 = axis_t::get_interval<2>;
+using kmaximum_m2 = axis_t::get_interval<1>::last_level;
+using kmaximum_m3 = kmaximum_m2::shift<-1>;
 
-using kbody_high = kfull::modify< 1, 0 >;
-using kbody_highp1 = kbody_high::modify< 1, 0 >;
+using kbody_high = kfull::modify<1, 0>;
+using kbody_highp1 = kbody_high::modify<1, 0>;
 
-using kbody_low = kfull::modify< 0, -1 >;
-using kbody_low_m1 = kbody_low::modify< 0, -1 >;
-using kbody_lowp1 = kbody_low_m1::modify< 1, 0 >;
-using kbody_highp1m1 = kbody_highp1::modify< 0, -1 >;
+using kbody_low = kfull::modify<0, -1>;
+using kbody_low_m1 = kbody_low::modify<0, -1>;
+using kbody_lowp1 = kbody_low_m1::modify<1, 0>;
+using kbody_highp1m1 = kbody_highp1::modify<0, -1>;
 
-using lasttwo = axis_t::get_interval< 2 >;
-using midbody = axis_t::get_interval< 1 >;
+using lasttwo = axis_t::get_interval<2>;
+using midbody = axis_t::get_interval<1>;
 using midbody_last = midbody::last_level;
 using midbody_first = midbody::first_level;
-using midbody_low = midbody::modify< 0, -1 >;
-using midbody_high = midbody::modify< 1, 0 >;
-using firsttwo = axis_t::get_interval< 0 >;
-using fullminustwolast = midbody::modify< -2, 0 >;
-using fullminustwofirst = midbody::modify< 0, 2 >;
+using midbody_low = midbody::modify<0, -1>;
+using midbody_high = midbody::modify<1, 0>;
+using firsttwo = axis_t::get_interval<0>;
+using fullminustwolast = midbody::modify<-2, 0>;
+using fullminustwofirst = midbody::modify<0, 2>;
 
 class kcachef : public ::testing::Test {
   protected:
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< gridtools::float_type, storage_info_t >
+    typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<gridtools::float_type, storage_info_t>
         storage_t;
 
     const gridtools::uint_t m_d1, m_d2, m_d3;
 
     gridtools::halo_descriptor m_di, m_dj;
 
-    gridtools::grid< axis > m_grid;
+    gridtools::grid<axis> m_grid;
 
     storage_info_t m_meta;
     storage_t m_in, m_out, m_ref;
-    gridtools::data_view< storage_t, gridtools::access_mode::ReadWrite > m_inv, m_outv, m_refv;
+    gridtools::data_view<storage_t, gridtools::access_mode::ReadWrite> m_inv, m_outv, m_refv;
 
     kcachef()
         : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2},

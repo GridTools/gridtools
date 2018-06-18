@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "defs.hpp"
 #include "../gridtools.hpp"
+#include "defs.hpp"
 
 /*@file
 @brief  The following class describes a boolean list of length N.
@@ -61,13 +61,13 @@ namespace gridtools {
        \endcode
        See \link Concepts \endlink, \link proc_grid_2D_concept \endlink, \link proc_grid_3D_concept \endlink
      */
-    template < ushort_t I >
+    template <ushort_t I>
     struct boollist {
         static const ushort_t m_size = I;
 
       private:
         // const
-        array< bool, I > m_value;
+        array<bool, I> m_value;
 
       public:
         GT_FUNCTION
@@ -76,7 +76,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr bool const &value(ushort_t const &id) const { return m_value[id]; }
         GT_FUNCTION
-        constexpr array< bool, I > const &value() const { return m_value; }
+        constexpr array<bool, I> const &value() const { return m_value; }
 
         GT_FUNCTION
         boollist(bool v0) : m_value{v0} {}
@@ -96,27 +96,27 @@ namespace gridtools {
                 arr[i] = m_value[i];
         }
 
-        template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
-            typename boost::enable_if_c< LayoutMap::masked_length == 1 >::type *a = 0) const {
-            return boollist< LayoutMap::masked_length >(m_value[LayoutMap::template find< 0 >()]);
+        template <typename LayoutMap>
+        GT_FUNCTION boollist<LayoutMap::masked_length> permute(
+            typename boost::enable_if_c<LayoutMap::masked_length == 1>::type *a = 0) const {
+            return boollist<LayoutMap::masked_length>(m_value[LayoutMap::template find<0>()]);
         }
 
-        template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
-            typename boost::enable_if_c< LayoutMap::masked_length == 2 >::type *a = 0) const {
-            return boollist< LayoutMap::masked_length >(
-                m_value[LayoutMap::template find< 0 >()], m_value[LayoutMap::template find< 1 >()]);
+        template <typename LayoutMap>
+        GT_FUNCTION boollist<LayoutMap::masked_length> permute(
+            typename boost::enable_if_c<LayoutMap::masked_length == 2>::type *a = 0) const {
+            return boollist<LayoutMap::masked_length>(
+                m_value[LayoutMap::template find<0>()], m_value[LayoutMap::template find<1>()]);
         }
 
-        template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
-            typename boost::enable_if_c< LayoutMap::masked_length == 3 >::type *a = 0) const {
-            return boollist< LayoutMap::masked_length >(m_value[LayoutMap::template find< 0 >()],
-                m_value[LayoutMap::template find< 1 >()],
-                m_value[LayoutMap::template find< 2 >()]);
+        template <typename LayoutMap>
+        GT_FUNCTION boollist<LayoutMap::masked_length> permute(
+            typename boost::enable_if_c<LayoutMap::masked_length == 3>::type *a = 0) const {
+            return boollist<LayoutMap::masked_length>(m_value[LayoutMap::template find<0>()],
+                m_value[LayoutMap::template find<1>()],
+                m_value[LayoutMap::template find<2>()]);
         }
     };
     /** @} */
     /** @} */
-}
+} // namespace gridtools

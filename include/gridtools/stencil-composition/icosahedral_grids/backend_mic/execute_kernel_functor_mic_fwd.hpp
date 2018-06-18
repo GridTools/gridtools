@@ -37,7 +37,7 @@
 
 namespace gridtools {
     namespace icgrid {
-        template < typename RunFunctorArguments >
+        template <typename RunFunctorArguments>
         struct execute_kernel_functor_mic;
     }
-}
+} // namespace gridtools

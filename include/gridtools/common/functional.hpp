@@ -55,11 +55,11 @@ namespace gridtools {
 
     /// Forward the args to constructor.
     //
-    template < typename T >
+    template <typename T>
     struct ctor {
-        template < typename... Args >
+        template <typename... Args>
         T operator()(Args &&... args) const {
-            return {std::forward< Args >(args)...};
+            return {std::forward<Args>(args)...};
         }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
@@ -70,7 +70,7 @@ namespace gridtools {
     /// Do nothing.
     //
     struct noop {
-        template < typename... Args >
+        template <typename... Args>
         void operator()(Args &&...) const {}
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
@@ -81,16 +81,16 @@ namespace gridtools {
     /// Perfectly forward the argument.
     //
     struct identity {
-        template < typename Arg >
+        template <typename Arg>
         Arg operator()(Arg &&arg) const {
             return arg;
         }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
-        template < typename >
+        template <typename>
         struct result;
-        template < typename Arg >
-        struct result< identity(Arg &&) > {
+        template <typename Arg>
+        struct result<identity(Arg &&)> {
             using type = Arg;
         };
 #endif
@@ -99,15 +99,15 @@ namespace gridtools {
     /// Copy the argument.
     //
     struct clone {
-        template < typename Arg >
+        template <typename Arg>
         Arg operator()(Arg const &arg) const {
             return arg;
         }
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
-        template < typename >
+        template <typename>
         struct result;
-        template < typename Arg >
-        struct result< clone(Arg const &) > {
+        template <typename Arg>
+        struct result<clone(Arg const &)> {
             using type = Arg;
         };
 #endif
@@ -115,4 +115,4 @@ namespace gridtools {
 
     /** @} */
     /** @} */
-}
+} // namespace gridtools

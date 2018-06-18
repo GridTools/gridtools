@@ -39,35 +39,35 @@
 
 namespace gridtools {
     namespace _impl {
-        template < class List >
+        template <class List>
         struct for_each_f;
 
-        template < template < class... > class L, class T, class... Ts >
-        struct for_each_f< L< T, Ts... > > {
-            template < class Fun >
+        template <template <class...> class L, class T, class... Ts>
+        struct for_each_f<L<T, Ts...>> {
+            template <class Fun>
             GT_FUNCTION void operator()(Fun const &fun) const {
                 (void)(int[]){((void)fun(T{}), 0), ((void)fun(Ts{}), 0)...};
             }
         };
 
         // Specialization for empty loops as nvcc refuses to compile the normal version in device code
-        template < template < class... > class L >
-        struct for_each_f< L<> > {
-            template < class Fun >
+        template <template <class...> class L>
+        struct for_each_f<L<>> {
+            template <class Fun>
             GT_FUNCTION void operator()(Fun const &) const {}
         };
 
-        template < class List >
+        template <class List>
         struct host_for_each_f;
 
-        template < template < class... > class L, class... Ts >
-        struct host_for_each_f< L< Ts... > > {
-            template < class Fun >
+        template <template <class...> class L, class... Ts>
+        struct host_for_each_f<L<Ts...>> {
+            template <class Fun>
             void operator()(Fun const &fun) const {
                 (void)(int[]){((void)fun(Ts{}), 0)...};
             }
         };
-    }
+    } // namespace _impl
 
     /** \ingroup common
         @{
@@ -77,9 +77,9 @@ namespace gridtools {
         @{
     */
     /// Calls fun(T{}) for each element of the type list List.
-    template < class List, class Fun >
+    template <class List, class Fun>
     GT_FUNCTION Fun for_each(Fun const &fun) {
-        _impl::for_each_f< List >{}(fun);
+        _impl::for_each_f<List>{}(fun);
         return fun;
     };
 
@@ -89,13 +89,13 @@ namespace gridtools {
     //               for CUDA they will be different, for others all are aliases to host::for_each
     //               The same pattern could be applied for all template functions that we use both in
     //               device and host context.
-    template < class List, class Fun >
+    template <class List, class Fun>
     Fun host_for_each(Fun const &fun) {
-        _impl::host_for_each_f< List >{}(fun);
+        _impl::host_for_each_f<List>{}(fun);
         return fun;
     };
 
     /** @} */
     /** @} */
     /** @} */
-}
+} // namespace gridtools

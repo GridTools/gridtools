@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <mpi.h>
 #include <cstdio>
+#include <mpi.h>
 #include <ostream>
 #include <stdexcept>
 
@@ -87,9 +87,9 @@ class mpi_listener : public testing::EmptyTestEventListener {
     /// and forwarding the results to file and/or stdout.
     ///
     /// TODO : it might be an idea to use a resizeable buffer
-    template < typename... Args >
+    template <typename... Args>
     void printf_helper(const char *s, Args &&... args) {
-        snprintf(buffer_, sizeof(buffer_), s, std::forward< Args >(args)...);
+        snprintf(buffer_, sizeof(buffer_), s, std::forward<Args>(args)...);
         print(buffer_);
     }
 

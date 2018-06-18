@@ -33,15 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "div_functors.hpp"
+#include "operator_defs.hpp"
+#include "operators_repository.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "operators_repository.hpp"
-#include "benchmarker.hpp"
-#include "operator_defs.hpp"
-#include "div_functors.hpp"
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -63,7 +63,7 @@ namespace ico_operators {
         const uint_t halo_mc = repo.halo_mc;
         const uint_t halo_k = repo.halo_k;
 
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
+        typedef gridtools::layout_map<2, 1, 0> layout_t;
 
         using edge_storage_type = repository::edge_storage_type;
         using cell_storage_type = repository::cell_storage_type;
@@ -88,7 +88,7 @@ namespace ico_operators {
         verifier ver(1e-9);
 #endif
 
-        array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+        array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
 
         auto &in_edges = repo.u();
         auto &cell_area_reciprocal = repo.cell_area_reciprocal();
@@ -96,18 +96,18 @@ namespace ico_operators {
         auto &edge_length = repo.edge_length();
         auto &ref_cells = repo.div_u_ref();
         auto out_cells =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, typename repository::halo_t >(
+            icosahedral_grid.make_storage<icosahedral_topology_t::cells, float_type, typename repository::halo_t>(
                 "out");
 
-        auto div_weights = icosahedral_grid.make_storage< icosahedral_topology_t::cells,
+        auto div_weights = icosahedral_grid.make_storage<icosahedral_topology_t::cells,
             float_type,
             typename repository::halo_5d_t,
-            selector< 1, 1, 1, 1, 1 > >("weights", 3);
+            selector<1, 1, 1, 1, 1>>("weights", 3);
 
-        auto l_over_A = icosahedral_grid.make_storage< icosahedral_topology_t::edges,
+        auto l_over_A = icosahedral_grid.make_storage<icosahedral_topology_t::edges,
             float_type,
             typename repository::halo_5d_t,
-            selector< 1, 1, 1, 1, 1 > >("l_over_A", 2);
+            selector<1, 1, 1, 1, 1>>("l_over_A", 2);
         typedef decltype(out_cells) out_cells_storage;
         typedef decltype(l_over_A) l_over_A_storage;
 
@@ -116,40 +116,38 @@ namespace ico_operators {
         l_over_A = l_over_A_storage(*l_over_A.get_storage_info_ptr(), 0.0);
 
         {
-            typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
-            typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type, enumtype::cells > p_orientation_of_normal;
-            typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
+            typedef arg<0, edge_2d_storage_type, enumtype::edges> p_edge_length;
+            typedef arg<1, cell_2d_storage_type, enumtype::cells> p_cell_area_reciprocal;
+            typedef arg<2, edges_of_cells_storage_type, enumtype::cells> p_orientation_of_normal;
+            typedef arg<3, cells_4d_storage_type, enumtype::cells> p_div_weights;
 
-            auto stencil_prep = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_prep = gridtools::make_computation<backend_t>(grid_,
                 p_edge_length{} = edge_length,
                 p_cell_area_reciprocal{} = cell_area_reciprocal,
                 p_orientation_of_normal{} = orientation_of_normal,
                 p_div_weights{} = div_weights,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                (execute<forward>(),
+                    gridtools::make_stage<div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_edge_length(), p_cell_area_reciprocal(), p_orientation_of_normal(), p_div_weights())));
             stencil_prep.run();
             stencil_prep.sync_bound_data_stores();
         }
 
         {
-            typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
-            typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 2, edges_4d_storage_type, enumtype::edges > p_l_over_A;
+            typedef arg<0, edge_2d_storage_type, enumtype::edges> p_edge_length;
+            typedef arg<1, cell_2d_storage_type, enumtype::cells> p_cell_area_reciprocal;
+            typedef arg<2, edges_4d_storage_type, enumtype::edges> p_l_over_A;
 
-            auto stencil_prep_on_edges = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_prep_on_edges = gridtools::make_computation<backend_t>(grid_,
                 p_edge_length{} = edge_length,
                 p_cell_area_reciprocal{} = cell_area_reciprocal,
                 p_l_over_A{} = l_over_A,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< div_prep_functor_on_edges,
+                (execute<forward>(),
+                    gridtools::make_stage<div_prep_functor_on_edges,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::edges >(p_edge_length(), p_cell_area_reciprocal(), p_l_over_A())));
+                        icosahedral_topology_t::edges>(p_edge_length(), p_cell_area_reciprocal(), p_l_over_A())));
             stencil_prep_on_edges.run();
             stencil_prep_on_edges.sync_bound_data_stores();
         }
@@ -160,18 +158,17 @@ namespace ico_operators {
          */
 
         {
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-            typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
-            typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
+            typedef arg<1, cells_4d_storage_type, enumtype::cells> p_div_weights;
+            typedef arg<2, cell_storage_type, enumtype::cells> p_out_cells;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_div_weights{} = div_weights,
                 p_out_cells{} = out_cells,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< div_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                (execute<forward>(),
+                    gridtools::make_stage<div_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_in_edges(), p_div_weights(), p_out_cells())));
             stencil_.run();
 
@@ -190,20 +187,19 @@ namespace ico_operators {
          * stencil of div reduction into scalar
          */
         {
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-            typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
-            typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
+            typedef arg<1, cells_4d_storage_type, enumtype::cells> p_div_weights;
+            typedef arg<2, cell_storage_type, enumtype::cells> p_out_cells;
 
-            auto stencil_reduction_into_scalar = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_reduction_into_scalar = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_div_weights{} = div_weights,
                 p_out_cells{} = out_cells,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< div_functor_reduction_into_scalar,
+                (execute<forward>(),
+                    gridtools::make_stage<div_functor_reduction_into_scalar,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::cells >(p_in_edges(), p_div_weights(), p_out_cells())));
+                        icosahedral_topology_t::cells>(p_in_edges(), p_div_weights(), p_out_cells())));
             stencil_reduction_into_scalar.run();
 
             in_edges.sync();
@@ -265,22 +261,21 @@ namespace ico_operators {
          * stencil of div flow convention
          */
         {
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
-            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
+            typedef arg<1, edge_2d_storage_type, enumtype::edges> p_edge_length;
+            typedef arg<2, cell_2d_storage_type, enumtype::cells> p_cell_area_reciprocal;
+            typedef arg<3, cell_storage_type, enumtype::cells> p_out_cells;
 
-            auto stencil_flow_convention = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_flow_convention = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_edge_length{} = edge_length,
                 p_cell_area_reciprocal{} = cell_area_reciprocal,
                 p_out_cells{} = out_cells,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< div_functor_flow_convention_connectivity,
+                (execute<forward>(),
+                    gridtools::make_stage<div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::cells >(
+                        icosahedral_topology_t::cells>(
                         p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_out_cells())));
             stencil_flow_convention.run();
 
@@ -387,4 +382,4 @@ namespace ico_operators {
         //        }
         return result;
     }
-}
+} // namespace ico_operators

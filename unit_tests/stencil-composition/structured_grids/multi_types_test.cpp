@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "backend_select.hpp"
+#include "gtest/gtest.h"
 #include <gridtools/gridtools.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "gtest/gtest.h"
-#include "backend_select.hpp"
 
 #ifdef __CUDACC__
 #ifdef FUNCTIONS_CALL
@@ -59,17 +59,17 @@
 #endif
 
 namespace multi_types_test {
-    using gridtools::level;
     using gridtools::accessor;
-    using gridtools::extent;
     using gridtools::arg;
+    using gridtools::extent;
+    using gridtools::level;
 
     using namespace gridtools;
     using namespace enumtype;
     using namespace expressions;
 
-    using axis_t = axis< 1 >;
-    using region = axis< 1 >::full_interval;
+    using axis_t = axis<1>;
+    using region = axis<1>::full_interval;
 
     struct type4;
 
@@ -120,47 +120,41 @@ namespace multi_types_test {
 
     GT_FUNCTION
     type4 operator+(type4 const &a, type1 const &b) {
-        return type4(
-            a.x + static_cast< double >(b.i), a.y + static_cast< double >(b.j), a.z + static_cast< double >(b.k));
+        return type4(a.x + static_cast<double>(b.i), a.y + static_cast<double>(b.j), a.z + static_cast<double>(b.k));
     }
 
     GT_FUNCTION
     type4 operator-(type4 const &a, type1 const &b) {
-        return type4(
-            a.x - static_cast< double >(b.i), a.y - static_cast< double >(b.j), a.z - static_cast< double >(b.k));
+        return type4(a.x - static_cast<double>(b.i), a.y - static_cast<double>(b.j), a.z - static_cast<double>(b.k));
     }
 
     GT_FUNCTION
     type4 operator+(type1 const &a, type4 const &b) {
-        return type4(
-            a.i + static_cast< double >(b.x), a.j + static_cast< double >(b.y), a.k + static_cast< double >(b.z));
+        return type4(a.i + static_cast<double>(b.x), a.j + static_cast<double>(b.y), a.k + static_cast<double>(b.z));
     }
 
     GT_FUNCTION
     type4 operator-(type1 const &a, type4 const &b) {
-        return type4(
-            a.i - static_cast< double >(b.x), a.j - static_cast< double >(b.y), a.k - static_cast< double >(b.z));
+        return type4(a.i - static_cast<double>(b.x), a.j - static_cast<double>(b.y), a.k - static_cast<double>(b.z));
     }
 
     GT_FUNCTION
     type4 operator+(type1 const &a, type1 const &b) {
-        return type4(
-            a.i + static_cast< double >(b.i), a.j + static_cast< double >(b.j), a.k + static_cast< double >(b.k));
+        return type4(a.i + static_cast<double>(b.i), a.j + static_cast<double>(b.j), a.k + static_cast<double>(b.k));
     }
 
     GT_FUNCTION
     type4 operator-(type1 const &a, type1 const &b) {
-        return type4(
-            a.i - static_cast< double >(b.i), a.j - static_cast< double >(b.j), a.k - static_cast< double >(b.k));
+        return type4(a.i - static_cast<double>(b.i), a.j - static_cast<double>(b.j), a.k - static_cast<double>(b.k));
     }
 
     struct function0 {
-        typedef accessor< 0, enumtype::in > in;
-        typedef accessor< 1, enumtype::inout > out;
+        typedef accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
 
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()).i = eval(in()).i + 1;
             eval(out()).j = eval(in()).j + 1;
@@ -169,19 +163,19 @@ namespace multi_types_test {
     };
 
     struct function1 {
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in > in;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in> in;
 
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef boost::mpl::vector<out, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
 #ifdef FUNCTIONS_PROCEDURES
             type1 result;
-            call_proc< function0, region >::with(eval, in(), result);
-            call_proc< function0, region >::with(eval, in(), result);
+            call_proc<function0, region>::with(eval, in(), result);
+            call_proc<function0, region>::with(eval, in(), result);
 #else
-            auto result = call< function0, region >::with(eval, in());
+            auto result = call<function0, region>::with(eval, in());
 #endif
             eval(out()) = result;
         }
@@ -189,13 +183,13 @@ namespace multi_types_test {
 
     struct function2 {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in > in;
-        typedef accessor< 2, enumtype::in > temp;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in> in;
+        typedef accessor<2, enumtype::in> temp;
 
-        typedef boost::mpl::vector< out, in, temp > arg_list;
+        typedef boost::mpl::vector<out, in, temp> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) + eval(in());
         }
@@ -203,13 +197,13 @@ namespace multi_types_test {
 
     struct function3 {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in > temp;
-        typedef accessor< 2, enumtype::in > in;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in> temp;
+        typedef accessor<2, enumtype::in> in;
 
-        typedef boost::mpl::vector< out, temp, in > arg_list;
+        typedef boost::mpl::vector<out, temp, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) - eval(in());
         }
@@ -229,15 +223,12 @@ namespace multi_types_test {
         uint_t d3 = z;
         uint_t halo_size = 0;
 
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info1_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 1, 3 > storage_info2_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 2, 3 > storage_info3_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< type1, storage_info1_t >
-            data_store1_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< type2, storage_info2_t >
-            data_store2_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< type3, storage_info3_t >
-            data_store3_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info1_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<1, 3> storage_info2_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<2, 3> storage_info3_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<type1, storage_info1_t> data_store1_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<type2, storage_info2_t> data_store2_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<type3, storage_info3_t> data_store3_t;
 
         // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
         storage_info1_t si1(x, y, z);
@@ -248,29 +239,28 @@ namespace multi_types_test {
         data_store2_t field2 = data_store2_t(si2, type2());
         data_store3_t field3 = data_store3_t(si3, type3());
 
-        typedef tmp_arg< 3, data_store1_t > p_temp;
-        typedef arg< 0, data_store1_t > p_field1;
-        typedef arg< 1, data_store2_t > p_field2;
-        typedef arg< 2, data_store3_t > p_field3;
+        typedef tmp_arg<3, data_store1_t> p_temp;
+        typedef arg<0, data_store1_t> p_field1;
+        typedef arg<1, data_store2_t> p_field2;
+        typedef arg<2, data_store3_t> p_field3;
 
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
         auto grid = make_grid(di, dj, axis_t(d3));
 
-        auto test_computation = gridtools::make_computation< backend_t >(
-            grid,
+        auto test_computation = gridtools::make_computation<backend_t>(grid,
             p_field1() = field1,
             p_field2() = field2,
             p_field3() = field3,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< function1 >(p_temp(), p_field1()),
-                gridtools::make_stage< function2 >(p_field2(), p_field1(), p_temp())),
+            (execute<forward>(),
+                gridtools::make_stage<function1>(p_temp(), p_field1()),
+                gridtools::make_stage<function2>(p_field2(), p_field1(), p_temp())),
             gridtools::make_multistage // mss_descriptor
-            (execute< backward >(),
-                gridtools::make_stage< function1 >(p_temp(), p_field1()),
-                gridtools::make_stage< function3 >(p_field3(), p_temp(), p_field1())));
+            (execute<backward>(),
+                gridtools::make_stage<function1>(p_temp(), p_field1()),
+                gridtools::make_stage<function3>(p_field3(), p_temp(), p_field1())));
 
         test_computation.run();
 
@@ -288,7 +278,7 @@ namespace multi_types_test {
             for (int j = 0; j < y; ++j) {
                 for (int k = 0; k < z; ++k) {
                     double xy =
-                        static_cast< double >(2 * f1v(i, j, k).i + 1) + static_cast< double >(2 * f1v(i, j, k).j + 1);
+                        static_cast<double>(2 * f1v(i, j, k).i + 1) + static_cast<double>(2 * f1v(i, j, k).j + 1);
                     double yz = 2;
                     if (f2v(i, j, k).xy != xy) {
                         result = false;

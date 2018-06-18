@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "kcache_fixture.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include "kcache_fixture.hpp"
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
@@ -43,22 +43,22 @@ using namespace enumtype;
 
 struct shift_acc_forward_bpfilll {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, -2, 0 > > in;
-    typedef accessor< 1, inout, extent<> > out;
+    typedef accessor<0, in, extent<0, 0, 0, 0, -2, 0>> in;
+    typedef accessor<1, inout, extent<>> out;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector<in, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(out()) = eval(in());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
         eval(out()) = eval(out(0, 0, -1));
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1) {
         eval(out()) = eval(out(0, 0, -1)) + eval(out(0, 0, -2));
     }
@@ -66,21 +66,21 @@ struct shift_acc_forward_bpfilll {
 
 struct shift_acc_backward_bpfilll {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 2 > > in;
-    typedef accessor< 1, inout, extent<> > out;
+    typedef accessor<0, in, extent<0, 0, 0, 0, 0, 2>> in;
+    typedef accessor<1, inout, extent<>> out;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector<in, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
         eval(out()) = eval(out(0, 0, 1));
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
         eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2));
     }
@@ -88,22 +88,22 @@ struct shift_acc_backward_bpfilll {
 
 struct self_update_forward_bpfilll {
 
-    typedef accessor< 0, inout, extent< 0, 0, 0, 0, -2, 0 > > in;
-    typedef inout_accessor< 1 > out;
+    typedef accessor<0, inout, extent<0, 0, 0, 0, -2, 0>> in;
+    typedef inout_accessor<1> out;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector<in, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(out()) = eval(in());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
         eval(out()) = eval(in());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1) {
         eval(in()) = eval(in(0, 0, -1)) + eval(in(0, 0, -2));
         eval(out()) = eval(in());
@@ -112,22 +112,22 @@ struct self_update_forward_bpfilll {
 
 struct self_update_backward_bpfilll {
 
-    typedef accessor< 0, inout, extent< 0, 0, 0, 0, 0, 2 > > in;
-    typedef inout_accessor< 1 > out;
+    typedef accessor<0, inout, extent<0, 0, 0, 0, 0, 2>> in;
+    typedef inout_accessor<1> out;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector<in, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
         eval(out()) = eval(in());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
         eval(in()) = eval(in(0, 0, 1)) + eval(in(0, 0, 2));
         eval(out()) = eval(in());
@@ -147,16 +147,15 @@ TEST_F(kcachef, bpfilll_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        make_multistage(execute< forward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 0 > >(p_in())),
-            make_stage< shift_acc_forward_bpfilll >(p_in(), p_out())));
+        make_multistage(execute<forward>(),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<0, 0>>(p_in())),
+            make_stage<shift_acc_forward_bpfilll>(p_in(), p_out())));
 
     kcache_stencil.run();
 
@@ -168,7 +167,7 @@ TEST_F(kcachef, bpfilll_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -186,16 +185,15 @@ TEST_F(kcachef, bpfilll_backward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        make_multistage(execute< backward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 0 > >(p_in())),
-            make_stage< shift_acc_backward_bpfilll >(p_in(), p_out())));
+        make_multistage(execute<backward>(),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<0, 0>>(p_in())),
+            make_stage<shift_acc_backward_bpfilll>(p_in(), p_out())));
 
     kcache_stencil.run();
     m_out.sync();
@@ -206,7 +204,7 @@ TEST_F(kcachef, bpfilll_backward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -230,16 +228,15 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_out;
-    typedef arg< 1, storage_t > p_buff;
+    typedef arg<0, storage_t> p_out;
+    typedef arg<1, storage_t> p_buff;
 
-    auto kcache_stencil = make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_buff() = buff,
         p_out() = m_out,
-        make_multistage(execute< forward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< 0, 1 > >(p_buff())),
-            make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
+        make_multistage(execute<forward>(),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<0, 1>>(p_buff())),
+            make_stage<self_update_forward_bpfilll>(p_buff(), p_out())));
 
     kcache_stencil.run();
 
@@ -251,7 +248,7 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -275,16 +272,15 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_out;
-    typedef arg< 1, storage_t > p_buff;
+    typedef arg<0, storage_t> p_out;
+    typedef arg<1, storage_t> p_buff;
 
-    auto kcache_stencil = make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_buff() = buff,
         p_out() = m_out,
-        make_multistage(execute< backward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, kfull, window< -1, 0 > >(p_buff())),
-            make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
+        make_multistage(execute<backward>(),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<-1, 0>>(p_buff())),
+            make_stage<self_update_backward_bpfilll>(p_buff(), p_out())));
 
     kcache_stencil.run();
 
@@ -296,7 +292,7 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }

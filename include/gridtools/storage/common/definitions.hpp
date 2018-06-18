@@ -50,4 +50,4 @@ namespace gridtools {
     /**
      * @}
      */
-}
+} // namespace gridtools

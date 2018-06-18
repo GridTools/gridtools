@@ -35,39 +35,40 @@
 */
 #pragma once
 
-#include "global_accessor_fwd.hpp"
 #include "accessor_metafunctions.hpp"
 #include "global_accessor.hpp"
+#include "global_accessor_fwd.hpp"
 
 namespace gridtools {
-    template < typename Type >
+    template <typename Type>
     struct is_global_accessor : boost::false_type {};
 
-    template < uint_t I >
-    struct is_global_accessor< global_accessor< I > > : boost::true_type {};
+    template <uint_t I>
+    struct is_global_accessor<global_accessor<I>> : boost::true_type {};
 
-    template < typename Global, typename... Args >
-    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+    template <typename Global, typename... Args>
+    struct is_global_accessor<global_accessor_with_arguments<Global, Args...>> : boost::true_type {};
 
-    template < typename T >
+    template <typename T>
     struct is_global_accessor_with_arguments : boost::false_type {};
 
-    template < typename Global, typename... Args >
-    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+    template <typename Global, typename... Args>
+    struct is_global_accessor_with_arguments<global_accessor_with_arguments<Global, Args...>> : boost::true_type {};
 
-    template < uint_t I >
-    struct is_accessor< global_accessor< I > > : boost::true_type {};
+    template <uint_t I>
+    struct is_accessor<global_accessor<I>> : boost::true_type {};
 
-    template < ushort_t ID, typename ArgsMap >
-    struct remap_accessor_type< global_accessor< ID >, ArgsMap > {
-        typedef global_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >() > type;
+    template <ushort_t ID, typename ArgsMap>
+    struct remap_accessor_type<global_accessor<ID>, ArgsMap> {
+        typedef global_accessor<_impl::get_remap_accessor_id<ID, ArgsMap>()> type;
     };
 
-    template < typename GlobalAcc, typename ArgsMap, typename... Args >
-    struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
+    template <typename GlobalAcc, typename ArgsMap, typename... Args>
+    struct remap_accessor_type<global_accessor_with_arguments<GlobalAcc, Args...>, ArgsMap> {
         typedef global_accessor_with_arguments<
-            global_accessor< _impl::get_remap_accessor_id< GlobalAcc::index_t::value, ArgsMap >() >,
-            Args... > type;
+            global_accessor<_impl::get_remap_accessor_id<GlobalAcc::index_t::value, ArgsMap>()>,
+            Args...>
+            type;
     };
 
 } // namespace gridtools

@@ -35,16 +35,16 @@
 */
 #pragma once
 
-#include <tuple>
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
+#include <tuple>
 
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "mss_metafunctions.hpp"
-#include "mss.hpp"
-#include "conditionals/if_.hpp"
 #include "conditionals/case_.hpp"
+#include "conditionals/if_.hpp"
 #include "conditionals/switch_.hpp"
+#include "mss.hpp"
+#include "mss_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -56,13 +56,13 @@ namespace gridtools {
 
        Use this function to create a multi-stage stencil computation
      */
-    template < typename ExecutionEngine, typename... MssParameters >
-    mss_descriptor< ExecutionEngine,
-        typename extract_mss_esfs< typename variadic_to_vector< MssParameters... >::type >::type,
-        typename extract_mss_caches< typename variadic_to_vector< MssParameters... >::type >::type >
+    template <typename ExecutionEngine, typename... MssParameters>
+    mss_descriptor<ExecutionEngine,
+        typename extract_mss_esfs<typename variadic_to_vector<MssParameters...>::type>::type,
+        typename extract_mss_caches<typename variadic_to_vector<MssParameters...>::type>::type>
     make_multistage(ExecutionEngine && /**/, MssParameters...) {
 
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine< ExecutionEngine >::value),
+        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
             "The first argument passed to make_mss must be the execution engine (e.g. execute<forward>(), "
             "execute<backward>(), execute<parallel>()");
 
@@ -79,8 +79,8 @@ namespace gridtools {
        Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute
        tight bounds on blocks to be used by backends
      */
-    template < class... Esfs >
-    independent_esf< std::tuple< Esfs... > > make_independent(Esfs &&...) {
+    template <class... Esfs>
+    independent_esf<std::tuple<Esfs...>> make_independent(Esfs &&...) {
         return {};
     }
 

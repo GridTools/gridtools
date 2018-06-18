@@ -36,33 +36,33 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/global_accessor.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
 #include <gridtools/stencil-composition/structured_grids/vector_accessor.hpp>
-#include <gridtools/stencil-composition/global_accessor.hpp>
 
 using namespace gridtools;
 
 /** @brief simple interface
  */
 bool test_trivial() {
-    accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(3, 2, -1);
-    return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
+    return first.get<2>() == 3 && first.get<1>() == 2 && first.get<0>() == -1;
 }
 
 bool test_array() {
-    constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
-    GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
-    return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
+    GRIDTOOLS_STATIC_ASSERT((first.get<2>() == 3 && first.get<1>() == 2 && first.get<0>() == -1), "ERROR");
+    return first.get<2>() == 3 && first.get<1>() == 2 && first.get<0>() == -1;
 }
 
 /** @brief interface with out-of-order optional arguments
  */
 bool test_alternative1() {
-    accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 6 > first(dimension< 6 >(-6), dimension< 4 >(12));
+    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
 
-    return first.get< 5 - 0 >() == 0 && first.get< 5 - 1 >() == 0 && first.get< 5 - 2 >() == 0 &&
-           first.get< 5 - 3 >() == 12 && first.get< 5 - 4 >() == 0 && first.get< 5 - 5 >() == -6;
+    return first.get<5 - 0>() == 0 && first.get<5 - 1>() == 0 && first.get<5 - 2>() == 0 && first.get<5 - 3>() == 12 &&
+           first.get<5 - 4>() == 0 && first.get<5 - 5>() == -6;
 }
 
 /** @brief interface with out-of-order optional arguments, represented as matlab indices
@@ -72,18 +72,17 @@ using namespace expressions;
 
 bool test_alternative2() {
 
-    constexpr dimension< 1 > i;
-    constexpr dimension< 2 > j;
-    constexpr dimension< 3 > k;
+    constexpr dimension<1> i;
+    constexpr dimension<2> j;
+    constexpr dimension<3> k;
 
-    constexpr dimension< 4 > t;
+    constexpr dimension<4> t;
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
-    constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
+    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
 
-    GRIDTOOLS_STATIC_ASSERT(first.get< 3 - 0 >() == -5, "ERROR");
-    return first.get< 3 - 0 >() == -5 && first.get< 3 - 1 >() == 0 && first.get< 3 - 2 >() == 8 &&
-           first.get< 3 - 3 >() == 2;
+    GRIDTOOLS_STATIC_ASSERT(first.get<3 - 0>() == -5, "ERROR");
+    return first.get<3 - 0>() == -5 && first.get<3 - 1>() == 0 && first.get<3 - 2>() == 8 && first.get<3 - 3>() == 2;
 #else
     return true;
 #endif
@@ -97,51 +96,51 @@ bool test_alternative2() {
 bool test_static_alias() {
 
     // mixing compile time and runtime values
-    using t = dimension< 15 >;
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
-    using alias_t = alias< arg_t, t, dimension< 1 >, dimension< 7 > >::set< -3, 4, 2 >;
+    using t = dimension<15>;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 15> arg_t;
+    using alias_t = alias<arg_t, t, dimension<1>, dimension<7>>::set<-3, 4, 2>;
 
-    alias_t first(dimension< 8 >(23), dimension< 3 >(-5));
+    alias_t first(dimension<8>(23), dimension<3>(-5));
 
-    return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
-           first.get< 14 - 7 >() == 23 && first.get< 14 - 2 >() == -5;
+    return first.get<14 - 6>() == 2 && first.get<14 - 0>() == 4 && first.get<14 - 14>() == -3 &&
+           first.get<14 - 7>() == 23 && first.get<14 - 2>() == -5;
 }
 
 TEST(accessor, is_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 6, enumtype::inout, extent< 3, 4, 4, 5 > > >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 2, enumtype::in > >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor< int >::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor< double & >::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor< double const & >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3, 4, 4, 5>>>::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2, enumtype::in>>::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double &>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const &>::value) == false, "");
 }
 
 TEST(accessor, is_accessor_readonly) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< in_accessor< 0 > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< vector_accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0 > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< inout_accessor< 0 > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< accessor< 0, enumtype::inout > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< vector_accessor< 0, enumtype::inout > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<in_accessor<0>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<vector_accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<global_accessor<0>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<inout_accessor<0>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<accessor<0, enumtype::inout>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<vector_accessor<0, enumtype::inout>>::value), "");
     // TODO test accessor_mixed
 }
 
 TEST(accessor, is_grid_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor< accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor< vector_accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_grid_accessor< global_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor<accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor<vector_accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_grid_accessor<global_accessor<0>>::value), "");
 }
 
 TEST(accessor, is_regular_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_regular_accessor< accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor< vector_accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor< global_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_regular_accessor<accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor<vector_accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor<global_accessor<0>>::value), "");
 }
 
 TEST(accessor, is_vector_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_vector_accessor< vector_accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor< accessor< 0, enumtype::in > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor< global_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_vector_accessor<vector_accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor<accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor<global_accessor<0>>::value), "");
 }
 
 TEST(accessor, copy_const) {

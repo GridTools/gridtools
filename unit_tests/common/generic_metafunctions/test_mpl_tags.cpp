@@ -34,32 +34,29 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gtest/gtest.h>
-#include <gridtools/common/defs.hpp>
-#include <boost/mpl/comparison.hpp>
 #include <boost/mpl/arithmetic.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <gridtools/common/defs.hpp>
 #include <gridtools/common/generic_metafunctions/mpl_tags.hpp>
+#include <gtest/gtest.h>
 
 TEST(integralconstant, comparison) {
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::greater< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value), "");
+        (boost::mpl::greater<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value), "");
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::less< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value), "");
+        (boost::mpl::less<std::integral_constant<int, 4>, std::integral_constant<int, 5>>::type::value), "");
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::greater_equal< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value),
-        "");
+        (boost::mpl::greater_equal<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value), "");
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::less_equal< std::integral_constant< int, 4 >, std::integral_constant< int, 5 > >::type::value),
-        "");
+        (boost::mpl::less_equal<std::integral_constant<int, 4>, std::integral_constant<int, 5>>::type::value), "");
 }
 
 TEST(integralconstant, arithmetic) {
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::plus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 9), "");
+        (boost::mpl::plus<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value == 9), "");
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::minus< std::integral_constant< int, 5 >, std::integral_constant< int, 4 > >::type::value == 1),
-        "");
+        (boost::mpl::minus<std::integral_constant<int, 5>, std::integral_constant<int, 4>>::type::value == 1), "");
 }

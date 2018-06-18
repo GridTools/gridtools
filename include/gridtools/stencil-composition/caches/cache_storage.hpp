@@ -34,32 +34,31 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/min_max.hpp>
-#include <boost/utility/enable_if.hpp>
+#include "../../common/array.hpp"
+#include "../../common/generic_metafunctions/accumulate.hpp"
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
-#include "../offset_computation.hpp"
-#include "cache_traits.hpp"
 #include "../iteration_policy_fwd.hpp"
-
-#include "meta_storage_cache.hpp"
+#include "../offset_computation.hpp"
 #include "cache_storage_metafunctions.hpp"
+#include "cache_traits.hpp"
+#include "meta_storage_cache.hpp"
+#include <boost/mpl/min_max.hpp>
+#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 
     namespace _impl {
-        template < uint_t TileI, uint_t TileJ, uint_t... Tiles >
+        template <uint_t TileI, uint_t TileJ, uint_t... Tiles>
         struct check_cache_tile_sizes {
             GRIDTOOLS_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
             static constexpr bool value = (accumulate(multiplies(), Tiles...) == 1);
         };
-    }
+    } // namespace _impl
 
     /**
      * @struct cache_storage
@@ -76,65 +75,61 @@ namespace gridtools {
      * @tparam Extent extent at which the cache is used (used also to determine the size of storage)
      * @tparam StorageWrapper storage wrapper containing the storage of the arg being cached
      */
-    template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >
+    template <typename Cache, typename BlockSize, typename Extent, typename StorageWrapper>
     struct cache_storage;
 
-    template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
-    struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
-        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes< Tiles... >::value), GT_INTERNAL_ERROR);
+    template <typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper>
+    struct cache_storage<Cache, block_size<Tiles...>, extent<ExtentBounds...>, StorageWrapper> {
+        GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes<Tiles...>::value), GT_INTERNAL_ERROR);
 
-        template < typename Tile, typename KWindow >
+        template <typename Tile, typename KWindow>
         struct get_kminus_bound {
-            using type = typename boost::mpl::min< typename boost::mpl::at_c< typename Tile::type, 2 >::type,
-                boost::mpl::integral_c< int, KWindow::m_ > >::type;
+            using type = typename boost::mpl::min<typename boost::mpl::at_c<typename Tile::type, 2>::type,
+                boost::mpl::integral_c<int, KWindow::m_>>::type;
         };
 
-        template < typename Tile, typename KWindow >
+        template <typename Tile, typename KWindow>
         struct get_kplus_bound {
-            using type = typename boost::mpl::max< typename boost::mpl::at_c< typename Tile::type, 2 >::type,
-                boost::mpl::integral_c< int, KWindow::p_ > >::type;
+            using type = typename boost::mpl::max<typename boost::mpl::at_c<typename Tile::type, 2>::type,
+                boost::mpl::integral_c<int, KWindow::p_>>::type;
         };
 
-        template < typename Seq, typename KWindow >
+        template <typename Seq, typename KWindow>
         struct min_enclosing_extent;
 
-        template < typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow >
-        struct min_enclosing_extent< variadic_to_vector< Arg0, Arg1, Arg2, Args... >, KWindow > {
-            using type = variadic_to_vector< Arg0,
-                Arg1,
-                typename boost::mpl::min< Arg2, static_int< KWindow::m_ > >::type,
-                Args... >;
+        template <typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow>
+        struct min_enclosing_extent<variadic_to_vector<Arg0, Arg1, Arg2, Args...>, KWindow> {
+            using type =
+                variadic_to_vector<Arg0, Arg1, typename boost::mpl::min<Arg2, static_int<KWindow::m_>>::type, Args...>;
         };
 
-        template < typename Seq, typename KWindow >
+        template <typename Seq, typename KWindow>
         struct max_enclosing_extent;
 
-        template < typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow >
-        struct max_enclosing_extent< variadic_to_vector< Arg0, Arg1, Arg2, Args... >, KWindow > {
-            using type = variadic_to_vector< Arg0,
-                Arg1,
-                typename boost::mpl::max< Arg2, static_int< KWindow::p_ > >::type,
-                Args... >;
+        template <typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow>
+        struct max_enclosing_extent<variadic_to_vector<Arg0, Arg1, Arg2, Args...>, KWindow> {
+            using type =
+                variadic_to_vector<Arg0, Arg1, typename boost::mpl::max<Arg2, static_int<KWindow::p_>>::type, Args...>;
         };
 
       public:
         using cache_t = Cache;
 
-        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_extents_t;
-        typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_extents_t;
+        typedef typename unzip<variadic_to_vector<static_short<ExtentBounds>...>>::first minus_extents_t;
+        typedef typename unzip<variadic_to_vector<static_short<ExtentBounds>...>>::second plus_extents_t;
 
-        using minus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            boost::mpl::identity< minus_extents_t >,
-            min_enclosing_extent< minus_extents_t, typename cache_t::kwindow_t > >::type;
-        using plus_t = typename boost::mpl::eval_if< boost::mpl::is_void_< typename cache_t::kwindow_t >,
-            boost::mpl::identity< plus_extents_t >,
-            max_enclosing_extent< plus_extents_t, typename cache_t::kwindow_t > >::type;
-        typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
+        using minus_t = typename boost::mpl::eval_if<boost::mpl::is_void_<typename cache_t::kwindow_t>,
+            boost::mpl::identity<minus_extents_t>,
+            min_enclosing_extent<minus_extents_t, typename cache_t::kwindow_t>>::type;
+        using plus_t = typename boost::mpl::eval_if<boost::mpl::is_void_<typename cache_t::kwindow_t>,
+            boost::mpl::identity<plus_extents_t>,
+            max_enclosing_extent<plus_extents_t, typename cache_t::kwindow_t>>::type;
+        typedef variadic_to_vector<static_int<Tiles>...> tiles_t;
 
         static constexpr int tiles_block = accumulate(multiplies(), Tiles...);
 
-        GRIDTOOLS_STATIC_ASSERT(((tiles_block == 1) || !is_k_cache< cache_t >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(((tiles_block == 1) || !is_k_cache<cache_t>::value), GT_INTERNAL_ERROR);
 
         typedef typename StorageWrapper::data_t value_type;
 
@@ -146,14 +141,14 @@ namespace gridtools {
 #endif
 
         typedef typename _impl::generate_layout_map<
-            typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + (extra_dims) >::type >::type layout_t;
+            typename make_gt_integer_sequence<uint_t, sizeof...(Tiles) + (extra_dims)>::type>::type layout_t;
 
-        using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
-        using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
-        using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
-        using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
-        using jplus_t = typename boost::mpl::at_c< typename plus_t::type, 1 >::type;
-        using kplus_t = typename boost::mpl::at_c< typename plus_t::type, 2 >::type;
+        using iminus_t = typename boost::mpl::at_c<typename minus_t::type, 0>::type;
+        using jminus_t = typename boost::mpl::at_c<typename minus_t::type, 1>::type;
+        using kminus_t = typename boost::mpl::at_c<typename minus_t::type, 2>::type;
+        using iplus_t = typename boost::mpl::at_c<typename plus_t::type, 0>::type;
+        using jplus_t = typename boost::mpl::at_c<typename plus_t::type, 1>::type;
+        using kplus_t = typename boost::mpl::at_c<typename plus_t::type, 2>::type;
 
         GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
                                                                          iplus_t::value == 0 && jplus_t::value == 0),
@@ -162,34 +157,34 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
             "Only KCaches can be accessed with a non null extent in K");
 
-        template < typename Accessor >
-        struct is_acc_k_cache : is_k_cache< cache_t > {};
+        template <typename Accessor>
+        struct is_acc_k_cache : is_k_cache<cache_t> {};
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
-        typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, StorageWrapper >::type meta_t;
+        typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, StorageWrapper>::type meta_t;
 
         GT_FUNCTION
         static constexpr uint_t padded_total_length() { return meta_t::padded_total_length(); }
 
-        template < uint_t Color, typename Accessor >
-        GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const &accessor_) {
+        template <uint_t Color, typename Accessor>
+        GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
 
-            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
+            using accessor_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
             GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor< accessor_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
+                (is_accessor<accessor_t>::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
-            typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
-            typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
+            typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
+            typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
 
             // manually aligning the storage
             const uint_t extra_ =
-                (thread_pos[0] - iminus_t::value) * meta_t::template stride< 0 >() +
-                (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 + (extra_dims) >() +
-                (extra_dims)*Color * meta_t::template stride< 1 >() +
-                padded_total_length() * get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
-                compute_offset_cache< meta_t >(accessor_);
+                (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
+                (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
+                (extra_dims)*Color * meta_t::template stride<1>() +
+                padded_total_length() * get_datafield_offset<typename StorageWrapper::data_store_t>::get(accessor_) +
+                compute_offset_cache<meta_t>(accessor_);
             assert((extra_) < (padded_total_length() * StorageWrapper::num_of_storages));
             return m_values[extra_];
         }
@@ -198,15 +193,15 @@ namespace gridtools {
          * @brief retrieve value in a cache given an accessor for a k cache
          * @param accessor_ the accessor that contains the offsets being accessed
          */
-        template < typename Accessor >
-        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_,
-            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
+        template <typename Accessor>
+        GT_FUNCTION value_type &RESTRICT at(
+            Accessor const &accessor_, typename boost::enable_if_c<is_acc_k_cache<Accessor>::value, int>::type = 0) {
             check_kcache_access(accessor_);
 
             const int_t index_ =
                 (int_t)padded_total_length() *
-                    (int_t)get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
-                compute_offset_cache< meta_t >(accessor_) - kminus_t::value;
+                    (int_t)get_datafield_offset<typename StorageWrapper::data_store_t>::get(accessor_) +
+                compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
             assert(index_ >= 0);
             assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
 
@@ -217,15 +212,15 @@ namespace gridtools {
          * @brief retrieve value in a cache given an accessor for a k cache
          * @param accessor_ the accessor that contains the offsets being accessed
          */
-        template < typename Accessor >
+        template <typename Accessor>
         GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_,
-            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
+            typename boost::enable_if_c<is_acc_k_cache<Accessor>::value, int>::type = 0) const {
             check_kcache_access(accessor_);
 
             const int_t index_ =
                 (int_t)padded_total_length() *
-                    (int_t)get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
-                compute_offset_cache< meta_t >(accessor_) - kminus_t::value;
+                    (int_t)get_datafield_offset<typename StorageWrapper::data_store_t>::get(accessor_) +
+                compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
             assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
@@ -236,10 +231,10 @@ namespace gridtools {
         /**
          * @brief slides the values of the ring buffer
          */
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void slide() {
             GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value == K), "Error: we can only slide KCaches");
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "Error");
 
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
             if (ksize > 1) {
@@ -256,26 +251,26 @@ namespace gridtools {
       private:
         value_type m_values[padded_total_length() * StorageWrapper::num_of_storages];
 
-        template < typename Accessor, std::size_t... Coordinates >
+        template <typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION static void check_kcache_access_in_bounds(
-            Accessor const &accessor, gt_index_sequence< Coordinates... >) {
+            Accessor const &accessor, gt_index_sequence<Coordinates...>) {
             assert(accumulate(logical_and(),
-                       (accessor.template get< Accessor::n_dimensions - 1 - Coordinates >() <=
-                                  meta_t::template dim< Coordinates >())...) &&
+                       (accessor.template get<Accessor::n_dimensions - 1 - Coordinates>() <=
+                           meta_t::template dim<Coordinates>())...) &&
                    "Out of bounds access in cache");
         }
 
-        template < typename Accessor >
+        template <typename Accessor>
         GT_FUNCTION static void check_kcache_access(
-            Accessor const &accessor, typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
+            Accessor const &accessor, typename boost::enable_if_c<is_acc_k_cache<Accessor>::value, int>::type = 0) {
 
-            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+            using accessor_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor_t>::value), "Error type is not accessor tuple");
 
-            typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
-            typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
+            typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
+            typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
 
-            check_kcache_access_in_bounds(accessor, make_gt_index_sequence< meta_t::layout_t::masked_length >());
+            check_kcache_access_in_bounds(accessor, make_gt_index_sequence<meta_t::layout_t::masked_length>());
         }
     };
 

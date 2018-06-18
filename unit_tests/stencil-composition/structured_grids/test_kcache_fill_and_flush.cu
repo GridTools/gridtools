@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "kcache_fixture.hpp"
+#include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "gtest/gtest.h"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -45,15 +45,15 @@ using namespace expressions;
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill_and_flush {
 
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > in;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> in;
 
-    typedef boost::mpl::vector< in > arg_list;
+    typedef boost::mpl::vector<in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
         eval(in()) = eval(in()) + eval(in(0, 0, -1));
     }
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(in()) = eval(in());
     }
@@ -61,15 +61,15 @@ struct shift_acc_forward_fill_and_flush {
 
 struct shift_acc_backward_fill_and_flush {
 
-    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > in;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> in;
 
-    typedef boost::mpl::vector< in > arg_list;
+    typedef boost::mpl::vector<in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
         eval(in()) = eval(in()) + eval(in(0, 0, 1));
     }
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(in()) = eval(in());
     }
@@ -77,11 +77,11 @@ struct shift_acc_backward_fill_and_flush {
 
 struct copy_fill {
 
-    typedef accessor< 0, enumtype::inout > in;
+    typedef accessor<0, enumtype::inout> in;
 
-    typedef boost::mpl::vector< in > arg_list;
+    typedef boost::mpl::vector<in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {
         eval(in()) = eval(in());
     }
@@ -98,15 +98,14 @@ TEST_F(kcachef, fill_and_flush_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
+    typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
-            gridtools::make_stage< shift_acc_forward_fill_and_flush >(p_in())));
+        (execute<forward>(),
+            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull>(p_in())),
+            gridtools::make_stage<shift_acc_forward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
 
@@ -115,7 +114,7 @@ TEST_F(kcachef, fill_and_flush_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
@@ -132,14 +131,13 @@ TEST_F(kcachef, fill_and_flush_backward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
+    typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute< backward >(),
-            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
-            gridtools::make_stage< shift_acc_backward_fill_and_flush >(p_in())));
+        gridtools::make_multistage(execute<backward>(),
+            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull>(p_in())),
+            gridtools::make_stage<shift_acc_backward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
 
@@ -148,7 +146,7 @@ TEST_F(kcachef, fill_and_flush_backward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
@@ -164,14 +162,13 @@ TEST_F(kcachef, fill_copy_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
+    typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute< forward >(),
-            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
-            gridtools::make_stage< copy_fill >(p_in())));
+        gridtools::make_multistage(execute<forward>(),
+            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull>(p_in())),
+            gridtools::make_stage<copy_fill>(p_in())));
 
     kcache_stencil.run();
 
@@ -180,7 +177,7 @@ TEST_F(kcachef, fill_copy_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));

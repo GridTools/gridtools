@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "gt_assert.hpp"
 #include "array.hpp"
+#include "gt_assert.hpp"
 
 /**
 @file
@@ -236,10 +236,10 @@ namespace gridtools {
         GT_FUNCTION uint_t total_length() const { return m_total_length; }
 
         /**
-        * @brief sets minus halo to zero.
-        * This operation is needed in the communication module.
-        * Unlike a general setter this operation will always result in a valid halo_descriptor.
-        */
+         * @brief sets minus halo to zero.
+         * This operation is needed in the communication module.
+         * Unlike a general setter this operation will always result in a valid halo_descriptor.
+         */
         GT_FUNCTION void reset_minus() { m_minus = 0; }
         /**
          * @brief sets plus halo to zero.

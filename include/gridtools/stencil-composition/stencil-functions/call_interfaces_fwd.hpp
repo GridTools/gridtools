@@ -37,28 +37,28 @@
 
 namespace gridtools {
     namespace _impl {
-        template < typename CallerAggregator,
+        template <typename CallerAggregator,
             int Offi,
             int Offj,
             int Offk,
             typename PassedAccessors,
             typename ReturnType,
-            int OutArg >
+            int OutArg>
         struct function_aggregator;
 
-        template < typename CallerAggregator,
+        template <typename CallerAggregator,
             int Offi,
             int Offj,
             int Offk,
             typename PassedAccessors,
             typename ReturnType,
-            int OutArg >
+            int OutArg>
         struct function_aggregator_offsets;
 
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments>
         struct function_aggregator_procedure;
 
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments>
         struct function_aggregator_procedure_offsets;
-    }
-}
+    } // namespace _impl
+} // namespace gridtools
