@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/utility/enable_if.hpp>
-#include "../../run_esf_functor.hpp"
 #include "../../block_size.hpp"
-#include "../iterate_domain_remapper.hpp"
 #include "../../functor_decorator.hpp"
+#include "../../run_esf_functor.hpp"
+#include "../iterate_domain_remapper.hpp"
+#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
     /*
@@ -46,22 +46,21 @@ namespace gridtools {
      * @tparam RunFunctorArguments run functor arguments
      * @tparam Interval interval where the functor gets executed
      */
-    template < typename RunFunctorArguments, typename Interval >
-    struct run_esf_functor_cuda
-        : public run_esf_functor< run_esf_functor_cuda< RunFunctorArguments, Interval > > // CRTP
+    template <typename RunFunctorArguments, typename Interval>
+    struct run_esf_functor_cuda : public run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval>> // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
         // TODOCOSUNA This type here is not an interval, is a pair<int_, int_ >
         // BOOST_STATIC_ASSERT((is_interval<Interval>::value));
 
-        typedef run_esf_functor< run_esf_functor_cuda< RunFunctorArguments, Interval > > super;
+        typedef run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval>> super;
         typedef typename RunFunctorArguments::physical_domain_block_size_t physical_domain_block_size_t;
         typedef typename RunFunctorArguments::processing_elements_block_size_t processing_elements_block_size_t;
 
         // metavalue that determines if a warp is processing more grid points that the default assigned
         // at the core of the block
-        typedef typename boost::mpl::not_< typename boost::is_same< physical_domain_block_size_t,
-            processing_elements_block_size_t >::type >::type multiple_grid_points_per_warp_t;
+        typedef typename boost::mpl::not_<typename boost::is_same<physical_domain_block_size_t,
+            processing_elements_block_size_t>::type>::type multiple_grid_points_per_warp_t;
 
         // nevertheless, even if each thread computes more than a grid point, the i size of the physical block
         // size and the cuda block size have to be the same
@@ -81,38 +80,38 @@ namespace gridtools {
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void do_impl() const {
 // To remove a compilation error (calling __device__ from __host__ __device__) I had to add __host__ __device__
 // decorators. However this function is device only and contains device only functions, therefore we have to hide it
 // from host.
 #ifdef __CUDA_ARCH__
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
-            typedef typename get_iterate_domain_remapper< iterate_domain_t,
-                typename EsfArguments::esf_args_map_t >::type iterate_domain_remapper_t;
+            typedef typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
+                iterate_domain_remapper_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
 
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
-            if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
+            if (m_iterate_domain.template is_thread_in_domain<extent_t>()) {
                 // call the user functor at the core of the block
-                _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
                     call_do_method(iterate_domain_remapper);
             }
 
             // synchronize threads if not independent esf
-            if (!boost::mpl::at< typename EsfArguments::async_esf_map_t, functor_t >::type::value)
+            if (!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
                 __syncthreads();
 #endif
         }
     };
-}
+} // namespace gridtools

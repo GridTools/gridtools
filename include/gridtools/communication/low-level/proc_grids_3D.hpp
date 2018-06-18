@@ -36,14 +36,14 @@
 #ifndef _PROC_GRIDS_3D_H_
 #define _PROC_GRIDS_3D_H_
 
-#include <string>
-#include <boost/algorithm/string.hpp>
-#include <iostream>
-#include <cmath>
-#include "../GCL.hpp"
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
+#include "../GCL.hpp"
+#include <boost/algorithm/string.hpp>
 #include <boost/type_traits/integral_constant.hpp>
+#include <cmath>
+#include <iostream>
+#include <string>
 
 // This file needs to be changed
 
@@ -57,7 +57,7 @@ namespace gridtools {
      * \n
      * This is a process grid matching the \ref proc_grid_concept concept
      */
-    template < int Ndims >
+    template <int Ndims>
     struct MPI_3D_process_grid_t {
 
         /** number of dimensions
@@ -65,14 +65,14 @@ namespace gridtools {
         static const int ndims = Ndims;
 
         typedef boost::true_type has_communicator;
-        typedef gridtools::boollist< ndims > period_type;
+        typedef gridtools::boollist<ndims> period_type;
 
       private:
         MPI_Comm m_communicator; // Communicator that is associated with the MPI CART!
         period_type m_cyclic;
         int m_nprocs;
-        gridtools::array< int, ndims > m_dimensions;
-        gridtools::array< int, ndims > m_coordinates;
+        gridtools::array<int, ndims> m_dimensions;
+        gridtools::array<int, ndims> m_coordinates;
 
       public:
         MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other)
@@ -100,7 +100,7 @@ namespace gridtools {
             \param comm MPI Communicator describing the MPI 3D computing grid
             \param dims Array of dimensions of the processor grid
         */
-        template < typename Array >
+        template <typename Array>
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm, Array const &dims)
             : m_communicator(), m_cyclic(c), m_nprocs(0), m_dimensions(dims), m_coordinates() {
             MPI_Comm_size(comm, &m_nprocs);
@@ -169,7 +169,7 @@ namespace gridtools {
             \tparam K Relative coordinate in the third dimension
             \return The process ID of the required process
         */
-        template < int I, int J, int K >
+        template <int I, int J, int K>
         int proc() const {
             // int coords[3]={I,J,K};
             return proc(I, J, K);
@@ -223,10 +223,10 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        gridtools::array< int, ndims > const &coordinates() const { return m_coordinates; }
+        gridtools::array<int, ndims> const &coordinates() const { return m_coordinates; }
 
         GT_FUNCTION
-        gridtools::array< int, ndims > const &dimensions() const { return m_dimensions; }
+        gridtools::array<int, ndims> const &dimensions() const { return m_dimensions; }
 
         /** Returns the process ID of the process with absolute coordinates specified by the input gridtools::array of
            coordinates
@@ -234,7 +234,7 @@ namespace gridtools {
 
             \return The process ID of the required process
         */
-        int abs_proc(gridtools::array< int, ndims > const &crds) const {
+        int abs_proc(gridtools::array<int, ndims> const &crds) const {
             return proc(crds[0] - m_coordinates[0], crds[1] - m_coordinates[1], crds[2] - m_coordinates[2]);
         }
 
@@ -245,7 +245,7 @@ namespace gridtools {
             return m_cyclic.value(index);
         }
 
-        array< bool, ndims > periodic() const {
+        array<bool, ndims> periodic() const {
             GRIDTOOLS_STATIC_ASSERT(period_type::m_size == ndims, "Dimensions not matching");
             return m_cyclic.value();
         }

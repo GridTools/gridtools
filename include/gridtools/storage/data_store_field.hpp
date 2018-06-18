@@ -41,9 +41,9 @@
 #include <boost/mpl/vector_c.hpp>
 
 #include "../common/gt_assert.hpp"
-#include "data_store.hpp"
 #include "common/data_store_field_metafunctions.hpp"
 #include "common/storage_info_interface.hpp"
+#include "data_store.hpp"
 
 namespace gridtools {
 
@@ -58,10 +58,10 @@ namespace gridtools {
      * @tparam N variadic list of coordinate sizes (e.g., 1,2,3 --> first coordinate contains 1 data_store, second 2,
      * third 3)
      */
-    template < typename DataStore, uint_t... N >
+    template <typename DataStore, uint_t... N>
     struct data_store_field {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_data_store< DataStore >::value), GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+            (is_data_store<DataStore>::value), GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         using data_t = typename DataStore::data_t;
         using storage_t = typename DataStore::storage_t;
@@ -73,7 +73,7 @@ namespace gridtools {
 
         // tuple of arrays (e.g., { {s00,s01,s02}, {s10, s11}, {s20} }, 3-dimensional field with snapshot sizes 3, 2,
         // and 1. All together we have 6 storages.)
-        std::array< DataStore, num_of_storages > m_field;
+        std::array<DataStore, num_of_storages> m_field;
 
         // This prevents nvcc to decorate the implicitly defined operator= with __device__
         data_store_field &operator=(const data_store_field &) = default;
@@ -90,17 +90,16 @@ namespace gridtools {
          * @param info storage info that contains size, halo information, etc.
          */
         constexpr data_store_field(storage_info_t const &info)
-            : m_field(fill_array< DataStore, num_of_storages >(info)) {}
+            : m_field(fill_array<DataStore, num_of_storages>(info)) {}
 
         /**
          * @brief construct from existing data_stores
          */
-        template < typename... DataStores,
-            typename std::enable_if< sizeof...(DataStores) == num_of_storages, int >::type = 0 >
-        data_store_field(DataStores &&... data_stores)
-            : m_field{std::forward< DataStores >(data_stores)...} {
+        template <typename... DataStores,
+            typename std::enable_if<sizeof...(DataStores) == num_of_storages, int>::type = 0>
+        data_store_field(DataStores &&... data_stores) : m_field{std::forward<DataStores>(data_stores)...} {
             GRIDTOOLS_STATIC_ASSERT(
-                (conjunction< std::is_convertible< typename std::decay< DataStores >::type, DataStore >... >::value),
+                (conjunction<std::is_convertible<typename std::decay<DataStores>::type, DataStore>...>::value),
                 "At least one data_store does not match data_store_field::data_store_t.");
         }
 
@@ -110,7 +109,7 @@ namespace gridtools {
          * @tparam Snapshot requested snapshot
          * @return data_store instance
          */
-        template < uint_t Dim, uint_t Snapshot >
+        template <uint_t Dim, uint_t Snapshot>
         DataStore const &get() const {
             GRIDTOOLS_STATIC_ASSERT(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
                 GT_INTERNAL_ERROR_MSG("Data store field out of bounds access"));
@@ -137,7 +136,7 @@ namespace gridtools {
          * @tparam Snapshot requested snapshot
          * @param store data_store that should be inserted into the field
          */
-        template < uint_t Dim, uint_t Snapshot >
+        template <uint_t Dim, uint_t Snapshot>
         void set(DataStore const &store) {
             GRIDTOOLS_STATIC_ASSERT(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
                 GT_INTERNAL_ERROR_MSG("Data store field out of bounds access"));
@@ -208,13 +207,13 @@ namespace gridtools {
          * @brief get the content of the data_store_field
          * @return the whole field that contains all data_stores
          */
-        std::array< DataStore, num_of_storages > const &get_field() const { return m_field; }
+        std::array<DataStore, num_of_storages> const &get_field() const { return m_field; }
 
         /**
          * @brief retrieve the sizes of the data_store_field components
          * @return an array that contains the sizes of the data_store_field components
          */
-        constexpr std::array< uint_t, sizeof...(N) > get_dim_sizes() const { return {N...}; }
+        constexpr std::array<uint_t, sizeof...(N)> get_dim_sizes() const { return {N...}; }
 
         /**
          * @brief clone all elements of the field to the device
@@ -272,25 +271,25 @@ namespace gridtools {
     };
 
     // simple metafunction to check if a type is a data_store_field
-    template < typename T, uint_t... N >
+    template <typename T, uint_t... N>
     struct is_data_store_field : boost::mpl::false_ {};
 
-    template < typename S, uint_t... N >
-    struct is_data_store_field< data_store_field< S, N... > > : boost::mpl::true_ {};
+    template <typename S, uint_t... N>
+    struct is_data_store_field<data_store_field<S, N...>> : boost::mpl::true_ {};
 
     /**
      *  @brief Implementation of a swap function. E.g., swap_storage< 0, 0 >::with< 0, 1 >(field_view)
      *  will swap the  storages 0, 0 and 0, 1. This operation invalidates the previously created views.
      **/
-    template < uint_t Dim_S, uint_t Snapshot_S >
+    template <uint_t Dim_S, uint_t Snapshot_S>
     struct swap {
-        template < uint_t Dim_T, uint_t Snapshot_T, typename T, uint_t... N >
-        static void with(data_store_field< T, N... > &data_field) {
+        template <uint_t Dim_T, uint_t Snapshot_T, typename T, uint_t... N>
+        static void with(data_store_field<T, N...> &data_field) {
             GRIDTOOLS_STATIC_ASSERT((Dim_S == Dim_T), GT_INTERNAL_ERROR_MSG("Inter-component swap is not allowed."));
-            GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
+            GRIDTOOLS_STATIC_ASSERT((is_data_store_field<data_store_field<T, N...>>::value),
                 GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
-            auto &a = data_field.template get< Dim_S, Snapshot_S >();
-            auto &b = data_field.template get< Dim_T, Snapshot_T >();
+            auto &a = data_field.template get<Dim_S, Snapshot_S>();
+            auto &b = data_field.template get<Dim_T, Snapshot_T>();
             a.get_storage_ptr()->swap(*b.get_storage_ptr());
         }
     };
@@ -300,11 +299,11 @@ namespace gridtools {
      *  component 0 to the first position and shifting all others one position to the right. This operation invalidates
      *  the previously created views.
      **/
-    template < uint_t Dim >
+    template <uint_t Dim>
     struct cycle {
-        template < int F, typename T, uint_t... N >
-        static void by(data_store_field< T, N... > &data_field) {
-            GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
+        template <int F, typename T, uint_t... N>
+        static void by(data_store_field<T, N...> &data_field) {
+            GRIDTOOLS_STATIC_ASSERT((is_data_store_field<data_store_field<T, N...>>::value),
                 GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
             constexpr int size = get_value_from_pack(Dim, N...);
             // cycle with only swaps, no temporaries
@@ -332,25 +331,25 @@ namespace gridtools {
      **/
     struct cycle_all {
       private:
-        template < int I, int M, typename T, uint_t... N >
-        static typename boost::enable_if_c< (I == 0), void >::type by_impl(data_store_field< T, N... > &data_field) {
-            cycle< (I) >::template by< (M) >(data_field);
+        template <int I, int M, typename T, uint_t... N>
+        static typename boost::enable_if_c<(I == 0), void>::type by_impl(data_store_field<T, N...> &data_field) {
+            cycle<(I)>::template by<(M)>(data_field);
         }
 
-        template < int I, int M, typename T, uint_t... N >
-        static typename boost::enable_if_c< (I > 0), void >::type by_impl(data_store_field< T, N... > &data_field) {
-            cycle< (I) >::template by< (M) >(data_field);
-            by_impl< I - 1, M >(data_field);
+        template <int I, int M, typename T, uint_t... N>
+        static typename boost::enable_if_c<(I > 0), void>::type by_impl(data_store_field<T, N...> &data_field) {
+            cycle<(I)>::template by<(M)>(data_field);
+            by_impl<I - 1, M>(data_field);
         }
 
       public:
-        template < int M, typename T, uint_t... N >
-        static void by(data_store_field< T, N... > &data_field) {
-            by_impl< (sizeof...(N)-1), M >(data_field);
+        template <int M, typename T, uint_t... N>
+        static void by(data_store_field<T, N...> &data_field) {
+            by_impl<(sizeof...(N) - 1), M>(data_field);
         }
     };
 
     /**
      * @}
      */
-}
+} // namespace gridtools

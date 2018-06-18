@@ -36,8 +36,8 @@
 
 #pragma once
 
-#include <boost/type_traits.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/type_traits.hpp>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
@@ -51,39 +51,38 @@ namespace gridtools {
      * @tparam Halo information about the halo sizes (by default no halo is set)
      * @tparam Alignment information about the alignment (mic_storage_info is not aligned by default)
      */
-    template < uint_t Id,
+    template <uint_t Id,
         typename Layout,
-        typename Halo = zero_halo< Layout::masked_length >,
-        typename Alignment = alignment< 8 > >
-    struct mic_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
-        GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
-        GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
+        typename Halo = zero_halo<Layout::masked_length>,
+        typename Alignment = alignment<8>>
+    struct mic_storage_info : storage_info_interface<Id, Layout, Halo, Alignment> {
+        GRIDTOOLS_STATIC_ASSERT((is_halo<Halo>::value), "Given type is not a halo type.");
+        GRIDTOOLS_STATIC_ASSERT((is_alignment<Alignment>::value), "Given type is not an alignment type.");
 
       public:
-        static constexpr uint_t ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
+        static constexpr uint_t ndims = storage_info_interface<Id, Layout, Halo, Alignment>::ndims;
 
         /*
          * @brief mic_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims,
-            typename std::enable_if< sizeof...(Dims) == ndims && is_all_integral_or_enum< Dims... >::value,
-                int >::type = 0 >
+        template <typename... Dims,
+            typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
         explicit constexpr mic_storage_info(Dims... dims)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims...) {}
+            : storage_info_interface<Id, Layout, Halo, Alignment>(dims...) {}
 
         /*
          * @brief cuda_storage_info constructor.
          * @param dims the dimensionality (e.g., 128x128x80)
          * @param strides the strides used to describe a layout of the data in memory
          */
-        constexpr mic_storage_info(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides) {}
+        constexpr mic_storage_info(std::array<uint_t, ndims> dims, std::array<uint_t, ndims> strides)
+            : storage_info_interface<Id, Layout, Halo, Alignment>(dims, strides) {}
     };
 
-    template < typename T >
+    template <typename T>
     struct is_mic_storage_info : boost::mpl::false_ {};
 
-    template < uint_t Id, typename Layout, typename Halo, typename Alignment >
-    struct is_mic_storage_info< mic_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
-}
+    template <uint_t Id, typename Layout, typename Halo, typename Alignment>
+    struct is_mic_storage_info<mic_storage_info<Id, Layout, Halo, Alignment>> : boost::mpl::true_ {};
+} // namespace gridtools

@@ -37,11 +37,11 @@
 #pragma once
 #include <cassert>
 #include <cstddef>
-#include <type_traits>
 #include <functional>
-#include <vector>
-#include <utility>
 #include <memory>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #include <boost/mpl/logical.hpp>
 #include <boost/mpl/transform.hpp>
@@ -61,55 +61,55 @@
 #include <boost/fusion/include/zip_view.hpp>
 
 #include "../../common/defs.hpp"
-#include "../../common/vector_traits.hpp"
 #include "../../common/functional.hpp"
+#include "../../common/vector_traits.hpp"
 
+#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/split_args.hpp"
 #include "../../common/tuple_util.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
 
 #include "../../storage/data_store_field.hpp"
 #include "../arg.hpp"
 #include "../backend_metafunctions.hpp"
 #include "../computation_grammar.hpp"
+#include "../conditionals/condition_tree.hpp"
 #include "../grid.hpp"
 #include "../intermediate.hpp"
 #include "../intermediate_impl.hpp"
 #include "../mss_components_metafunctions.hpp"
-#include "../conditionals/condition_tree.hpp"
 #include "expand_factor.hpp"
 
 namespace gridtools {
 
     namespace _impl {
         namespace expand_detail {
-            template < typename T >
+            template <typename T>
             struct is_expandable : std::false_type {};
 
-            template < typename Arg, typename DataStoreType >
-            struct is_expandable< arg_storage_pair< Arg, DataStoreType > > : is_vector< DataStoreType > {};
+            template <typename Arg, typename DataStoreType>
+            struct is_expandable<arg_storage_pair<Arg, DataStoreType>> : is_vector<DataStoreType> {};
 
-            template < uint_t N, typename T >
+            template <uint_t N, typename T>
             struct convert_data_store_type {
                 using type = T;
             };
-            template < uint_t N, typename T >
-            struct convert_data_store_type< N, std::vector< T > > {
-                using type = data_store_field< T, N >;
+            template <uint_t N, typename T>
+            struct convert_data_store_type<N, std::vector<T>> {
+                using type = data_store_field<T, N>;
             };
 
-            template < uint_t N >
+            template <uint_t N>
             struct convert_placeholder {
-                template < typename >
+                template <typename>
                 struct apply;
-                template < uint_t I, typename S, typename L, bool T >
-                struct apply< arg< I, S, L, T > > {
-                    using type = arg< I, typename convert_data_store_type< N, S >::type, L, T >;
+                template <uint_t I, typename S, typename L, bool T>
+                struct apply<arg<I, S, L, T>> {
+                    using type = arg<I, typename convert_data_store_type<N, S>::type, L, T>;
                 };
             };
 
             struct get_value_size {
-                template < class T >
+                template <class T>
                 size_t operator()(T const &t) const {
                     return t.m_value.size();
                 }
@@ -118,8 +118,8 @@ namespace gridtools {
 #endif
             };
 
-            template < typename ArgStoragePairs >
-            typename std::enable_if< !boost::mpl::empty< ArgStoragePairs >::value, size_t >::type get_expandable_size(
+            template <typename ArgStoragePairs>
+            typename std::enable_if<!boost::mpl::empty<ArgStoragePairs>::value, size_t>::type get_expandable_size(
                 ArgStoragePairs const &src) {
                 namespace f = boost::fusion;
                 auto sizes = f::transform(src, get_value_size{});
@@ -128,81 +128,81 @@ namespace gridtools {
                 return res;
             }
 
-            template < typename ArgStoragePairs >
-            typename std::enable_if< boost::mpl::empty< ArgStoragePairs >::value, size_t >::type get_expandable_size(
+            template <typename ArgStoragePairs>
+            typename std::enable_if<boost::mpl::empty<ArgStoragePairs>::value, size_t>::type get_expandable_size(
                 ArgStoragePairs const &src) {
                 // If there is nothing to expand we are going to compute stensil once.
                 return 1;
             }
 
-            template < class >
+            template <class>
             struct convert_data_store_f;
 
-            template < size_t... Is >
-            struct convert_data_store_f< gt_index_sequence< Is... > > {
+            template <size_t... Is>
+            struct convert_data_store_f<gt_index_sequence<Is...>> {
                 size_t m_offset;
-                template < typename T >
-                data_store_field< T, sizeof...(Is) > operator()(const std::vector< T > &src) const {
+                template <typename T>
+                data_store_field<T, sizeof...(Is)> operator()(const std::vector<T> &src) const {
                     assert(!src.empty());
                     assert(src.size() >= m_offset + sizeof...(Is));
                     return {src[m_offset + Is]...};
                 }
             };
 
-            template < uint_t N >
+            template <uint_t N>
             struct convert_arg_storage_pair_f {
-                convert_data_store_f< make_gt_index_sequence< N > > m_convert_data_store;
-                template < typename Arg, typename DataStoreType >
-                arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                    typename convert_data_store_type< N, DataStoreType >::type >
-                operator()(arg_storage_pair< Arg, DataStoreType > const &src) const {
+                convert_data_store_f<make_gt_index_sequence<N>> m_convert_data_store;
+                template <typename Arg, typename DataStoreType>
+                arg_storage_pair<typename convert_placeholder<N>::template apply<Arg>::type,
+                    typename convert_data_store_type<N, DataStoreType>::type>
+                operator()(arg_storage_pair<Arg, DataStoreType> const &src) const {
                     return {m_convert_data_store(src.m_value)};
                 }
             };
 
-            template < uint_t N, class ArgStoragePairs >
+            template <uint_t N, class ArgStoragePairs>
             auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src)
-                GT_AUTO_RETURN(tuple_util::transform(convert_arg_storage_pair_f< N >{offset}, src));
+                GT_AUTO_RETURN(tuple_util::transform(convert_arg_storage_pair_f<N>{offset}, src));
 
-            template < uint_t N >
+            template <uint_t N>
             struct convert_mss_descriptors_tree_f {
-                template < typename T >
+                template <typename T>
                 auto operator()(T const &src) const
-                    GT_AUTO_RETURN(condition_tree_transform(src, fix_mss_arg_indices_f< N >{}));
+                    GT_AUTO_RETURN(condition_tree_transform(src, fix_mss_arg_indices_f<N>{}));
             };
 
-            template < uint_t N, class... Ts >
-            auto convert_mss_descriptors_trees(std::tuple< Ts... > const &src)
-                GT_AUTO_RETURN(tuple_util::transform(convert_mss_descriptors_tree_f< N >{}, src));
+            template <uint_t N, class... Ts>
+            auto convert_mss_descriptors_trees(std::tuple<Ts...> const &src)
+                GT_AUTO_RETURN(tuple_util::transform(convert_mss_descriptors_tree_f<N>{}, src));
 
-            template < uint_t N, typename MssDescriptorsTrees >
+            template <uint_t N, typename MssDescriptorsTrees>
             using converted_mss_descriptors_trees =
-                decltype(convert_mss_descriptors_trees< N >(std::declval< MssDescriptorsTrees const & >()));
+                decltype(convert_mss_descriptors_trees<N>(std::declval<MssDescriptorsTrees const &>()));
 
-            template < class Intermediate >
+            template <class Intermediate>
             struct run_f {
                 Intermediate &m_intermediate;
-                template < class... Args >
+                template <class... Args>
                 void operator()(Args const &... args) const {
                     m_intermediate.run(args...);
                 }
                 using result_type = void;
             };
 
-            template < class Intermediate, class Args >
+            template <class Intermediate, class Args>
             void invoke_run(Intermediate &intermediate, Args &&args) {
-                boost::fusion::invoke(run_f< Intermediate >{intermediate}, std::forward< Args >(args));
+                boost::fusion::invoke(run_f<Intermediate>{intermediate}, std::forward<Args>(args));
             }
 
             struct sync_f {
-                template < class Arg, class DataStore >
-                void operator()(arg_storage_pair< Arg, std::vector< DataStore > > const &obj) const {
+                template <class Arg, class DataStore>
+                void operator()(arg_storage_pair<Arg, std::vector<DataStore>> const &obj) const {
                     for (auto &&item : obj.m_value)
                         item.sync();
                 }
             };
-        }
-    }
+        } // namespace expand_detail
+    }     // namespace _impl
     /**
      * @file
      * \brief this file contains the intermediate representation used in case of expandable parameters
@@ -222,25 +222,25 @@ namespace gridtools {
        corresponding to the expand factor defined by the user (4 in the previous example), and another
        one with a vector width of expand_factor%total_parameters (3 in the previous example).
      */
-    template < uint_t ExpandFactor,
+    template <uint_t ExpandFactor,
         bool IsStateful,
         class Backend,
         class Grid,
         class BoundArgStoragePairs,
-        class MssDescriptorTrees >
+        class MssDescriptorTrees>
     class intermediate_expand {
         using non_expandable_bound_arg_storage_pairs_t = GT_META_CALL(
-            meta::filter, (meta::not_< _impl::expand_detail::is_expandable >::apply, BoundArgStoragePairs));
+            meta::filter, (meta::not_<_impl::expand_detail::is_expandable>::apply, BoundArgStoragePairs));
         using expandable_bound_arg_storage_pairs_t = GT_META_CALL(
             meta::filter, (_impl::expand_detail::is_expandable, BoundArgStoragePairs));
 
-        template < uint_t N >
-        using converted_intermediate = intermediate< N,
+        template <uint_t N>
+        using converted_intermediate = intermediate<N,
             IsStateful,
             Backend,
             Grid,
             non_expandable_bound_arg_storage_pairs_t,
-            _impl::expand_detail::converted_mss_descriptors_trees< N, MssDescriptorTrees > >;
+            _impl::expand_detail::converted_mss_descriptors_trees<N, MssDescriptorTrees>>;
 
         /// Storages that are expandable, is bound in construction time.
         //
@@ -248,17 +248,17 @@ namespace gridtools {
 
         /// The object of `intermediate` type to which the computation will be delegated.
         //
-        converted_intermediate< ExpandFactor > m_intermediate;
+        converted_intermediate<ExpandFactor> m_intermediate;
 
         /// If the actual size of storages is not divided by `ExpandFactor`, this `intermediate` will process
         /// reminder.
-        converted_intermediate< 1 > m_intermediate_remainder;
+        converted_intermediate<1> m_intermediate_remainder;
 
         typename Backend::backend_traits_t::performance_meter_t m_meter;
 
-        template < class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs >
+        template <class ExpandableBoundArgStoragePairRefs, class NonExpandableBoundArgStoragePairRefs>
         intermediate_expand(Grid const &grid,
-            std::pair< ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs > &&arg_refs,
+            std::pair<ExpandableBoundArgStoragePairRefs, NonExpandableBoundArgStoragePairRefs> &&arg_refs,
             MssDescriptorTrees const &msses)
             // expandable arg_storage_pairs are kept as a class member until run will be called.
             : m_expandable_bound_arg_storage_pairs(std::move(arg_refs.first)),
@@ -266,26 +266,26 @@ namespace gridtools {
               // msses descriptors got transformed and also got passed to intermediates.
               m_intermediate(grid,
                   arg_refs.second,
-                  _impl::expand_detail::convert_mss_descriptors_trees< ExpandFactor >(msses),
+                  _impl::expand_detail::convert_mss_descriptors_trees<ExpandFactor>(msses),
                   false),
               m_intermediate_remainder(
-                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees< 1 >(msses), false),
+                  grid, arg_refs.second, _impl::expand_detail::convert_mss_descriptors_trees<1>(msses), false),
               m_meter("NoName") {}
 
       public:
-        template < class BoundArgStoragePairsRefs >
+        template <class BoundArgStoragePairsRefs>
         intermediate_expand(
             Grid const &grid, BoundArgStoragePairsRefs &&arg_storage_pairs, MssDescriptorTrees const &msses)
             // public constructor splits given ard_storage_pairs to expandable and plain ones and delegates to the
             // private constructor.
             : intermediate_expand(
-                  grid, split_args_tuple< _impl::expand_detail::is_expandable >(std::move(arg_storage_pairs)), msses) {}
+                  grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs)), msses) {}
 
-        template < class... Args, class... DataStores >
-        notype run(arg_storage_pair< Args, DataStores > const &... args) {
+        template <class... Args, class... DataStores>
+        notype run(arg_storage_pair<Args, DataStores> const &... args) {
             m_meter.start();
             // split arguments to expandable and plain arg_storage_pairs
-            auto arg_groups = split_args< _impl::expand_detail::is_expandable >(args...);
+            auto arg_groups = split_args<_impl::expand_detail::is_expandable>(args...);
             auto bound_expandable_arg_refs = tuple_util::transform(identity{}, m_expandable_bound_arg_storage_pairs);
             // concatenate expandable portion of arguments with the refs to bound expandable ard_storage_pairs
             auto expandable_args = std::tuple_cat(std::move(bound_expandable_arg_refs), std::move(arg_groups.first));
@@ -297,14 +297,14 @@ namespace gridtools {
             for (; size - offset >= ExpandFactor; offset += ExpandFactor) {
                 // form the chunks from expandable_args with the given offset
                 auto converted_args =
-                    _impl::expand_detail::convert_arg_storage_pairs< ExpandFactor >(offset, expandable_args);
+                    _impl::expand_detail::convert_arg_storage_pairs<ExpandFactor>(offset, expandable_args);
                 // concatenate that chunk with the plain portion of the arguments
                 // and invoke the `run` of the `m_intermediate`.
                 _impl::expand_detail::invoke_run(m_intermediate, std::tuple_cat(plain_args, converted_args));
             }
             // process the reminder the same way
             for (; offset < size; ++offset) {
-                auto converted_args = _impl::expand_detail::convert_arg_storage_pairs< 1 >(offset, expandable_args);
+                auto converted_args = _impl::expand_detail::convert_arg_storage_pairs<1>(offset, expandable_args);
                 _impl::expand_detail::invoke_run(m_intermediate_remainder, std::tuple_cat(plain_args, converted_args));
             }
             m_meter.pause();
@@ -325,4 +325,4 @@ namespace gridtools {
 
         void reset_meter() { m_meter.reset(); }
     };
-}
+} // namespace gridtools

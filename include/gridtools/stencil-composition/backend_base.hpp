@@ -39,16 +39,17 @@
 #include <boost/mpl/reverse.hpp>
 #include <boost/mpl/transform.hpp>
 
+#include "../gridtools.hpp"
 #include "./backend_traits_fwd.hpp"
 #include "./run_functor_arguments.hpp"
-#include "../gridtools.hpp"
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"
 #endif
-#include "./backend_mic/backend_mic.hpp"
 #include "./backend_host/backend_host.hpp"
+#include "./backend_mic/backend_mic.hpp"
 
+#include "../storage/storage-facility.hpp"
 #include "./accessor.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
@@ -56,7 +57,6 @@
 #include "./mss_metafunctions.hpp"
 #include "./storage_wrapper.hpp"
 #include "./tile.hpp"
-#include "../storage/storage-facility.hpp"
 
 /**
    @file
@@ -110,7 +110,7 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
+    template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId>
     struct backend_base {
 
 #ifdef __CUDACC__
@@ -120,14 +120,14 @@ namespace gridtools {
             "instantiating is another one!!");
 #endif
 
-        typedef backend_base< BackendId, GridId, StrategyId > this_type;
+        typedef backend_base<BackendId, GridId, StrategyId> this_type;
 
-        typedef backend_ids< BackendId, GridId, StrategyId > backend_ids_t;
+        typedef backend_ids<BackendId, GridId, StrategyId> backend_ids_t;
 
-        typedef backend_traits_from_id< BackendId > backend_traits_t;
-        typedef grid_traits_from_id< GridId > grid_traits_t;
-        typedef storage_traits< BackendId > storage_traits_t;
-        typedef typename backend_traits_t::template select_strategy< backend_ids_t >::type strategy_traits_t;
+        typedef backend_traits_from_id<BackendId> backend_traits_t;
+        typedef grid_traits_from_id<GridId> grid_traits_t;
+        typedef storage_traits<BackendId> storage_traits_t;
+        typedef typename backend_traits_t::template select_strategy<backend_ids_t>::type strategy_traits_t;
 
         static constexpr enumtype::strategy s_strategy_id = StrategyId;
         static constexpr enumtype::platform s_backend_id = BackendId;
@@ -136,12 +136,12 @@ namespace gridtools {
         /**
             Method to retrieve a global parameter
          */
-        template < typename T >
-        static typename storage_traits_t::template data_store_t< T,
-            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > >
+        template <typename T>
+        static typename storage_traits_t::template data_store_t<T,
+            typename storage_traits_t::template special_storage_info_t<0, selector<0u>>>
         make_global_parameter(T const &t) {
-            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
-            typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
+            typename storage_traits_t::template special_storage_info_t<0, selector<0u>> si(1);
+            typename storage_traits_t::template data_store_t<T, decltype(si)> ds(si);
             make_host_view(ds)(0) = t;
             ds.sync();
             return ds;
@@ -150,7 +150,7 @@ namespace gridtools {
         /**
             Method to update a global parameter
          */
-        template < typename T, typename V >
+        template <typename T, typename V>
         static void update_global_parameter(T &gp, V const &new_val) {
             gp.sync();
             auto view = make_host_view(gp);
@@ -161,7 +161,7 @@ namespace gridtools {
 
         using make_view_f = typename backend_traits_t::make_view_f;
 
-        using block_size_t = typename backend_traits_t::template get_block_size< StrategyId >::type;
+        using block_size_t = typename backend_traits_t::template get_block_size<StrategyId>::type;
 
         using mss_fuse_esfs_strategy = typename backend_traits_t::mss_fuse_esfs_strategy;
 
@@ -172,18 +172,18 @@ namespace gridtools {
          * \tparam Grid Coordinate class with domain sizes and splitter grid
          * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
-        template < typename MssComponents,
+        template <typename MssComponents,
             typename Grid,
             typename MssLocalDomains,
-            typename ReductionData > // List of local domain to be pbassed to functor at<i>
+            typename ReductionData> // List of local domain to be pbassed to functor at<i>
         static void
         run(Grid const &grid, MssLocalDomains const &mss_local_domain_list, ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomains, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomains, is_mss_local_domain>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
-            strategy_traits_t::template fused_mss_loop< MssComponents, backend_ids_t, ReductionData >::run(
+            strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t, ReductionData>::run(
                 mss_local_domain_list, grid, reduction_data);
         }
     };

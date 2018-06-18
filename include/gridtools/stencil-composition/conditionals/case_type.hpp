@@ -43,7 +43,7 @@ namespace gridtools {
        switch_variable, and the corresponding multi-stage stencil
        to be executed in case the condition holds.
      */
-    template < typename T, typename Mss >
+    template <typename T, typename Mss>
     struct case_type {
       private:
         T m_value;
@@ -56,7 +56,7 @@ namespace gridtools {
         T value() const { return m_value; }
     };
 
-    template < typename Mss >
+    template <typename Mss>
     struct default_type {
       private:
         Mss m_mss;
@@ -74,15 +74,15 @@ namespace gridtools {
         Mss mss() const { return m_mss; }
     };
 
-    template < typename T >
+    template <typename T>
     struct is_case_type : boost::mpl::false_ {};
 
-    template < typename T, typename Mss >
-    struct is_case_type< case_type< T, Mss > > : boost::mpl::true_ {};
+    template <typename T, typename Mss>
+    struct is_case_type<case_type<T, Mss>> : boost::mpl::true_ {};
 
-    template < typename T >
+    template <typename T>
     struct is_default_type : boost::mpl::false_ {};
 
-    template < typename Mss >
-    struct is_default_type< default_type< Mss > > : boost::mpl::true_ {};
+    template <typename Mss>
+    struct is_default_type<default_type<Mss>> : boost::mpl::true_ {};
 } // namespace gridtools

@@ -36,8 +36,8 @@
 
 #pragma once
 #include "../accessor_fwd.hpp"
-#include "accessor_metafunctions.hpp"
 #include "../extent.hpp"
+#include "accessor_metafunctions.hpp"
 
 /** @file
     Vector accessor
@@ -58,29 +58,29 @@ namespace gridtools {
        \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus one (the vector
        field dimension)
     */
-    template < uint_t ID, enumtype::intent Intent = enumtype::in, typename Extent = extent< 0 >, ushort_t NDim = 5 >
-    struct vector_accessor : accessor< ID, Intent, Extent, NDim > {
+    template <uint_t ID, enumtype::intent Intent = enumtype::in, typename Extent = extent<0>, ushort_t NDim = 5>
+    struct vector_accessor : accessor<ID, Intent, Extent, NDim> {
 
-        using super = accessor< ID, Intent, Extent, NDim >;
+        using super = accessor<ID, Intent, Extent, NDim>;
         using super::accessor;
         static const ushort_t n_dimensions = NDim;
     };
 
-    template < typename T >
+    template <typename T>
     struct is_vector_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size >
-    struct is_vector_accessor< vector_accessor< ID, Intent, Extent, Size > > : boost::mpl::true_ {};
+    template <uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size>
+    struct is_vector_accessor<vector_accessor<ID, Intent, Extent, Size>> : boost::mpl::true_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size >
-    struct is_accessor< vector_accessor< ID, Intent, Extent, Size > > : boost::mpl::true_ {};
+    template <uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size>
+    struct is_accessor<vector_accessor<ID, Intent, Extent, Size>> : boost::mpl::true_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size >
-    struct is_grid_accessor< vector_accessor< ID, Intent, Extent, Size > > : boost::mpl::true_ {};
+    template <uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size>
+    struct is_grid_accessor<vector_accessor<ID, Intent, Extent, Size>> : boost::mpl::true_ {};
 
-    template < ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, typename ArgsMap >
-    struct remap_accessor_type< vector_accessor< ID, Intent, Extent, Number >, ArgsMap > {
-        typedef vector_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extent, Number > type;
+    template <ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, typename ArgsMap>
+    struct remap_accessor_type<vector_accessor<ID, Intent, Extent, Number>, ArgsMap> {
+        typedef vector_accessor<_impl::get_remap_accessor_id<ID, ArgsMap>(), Intent, Extent, Number> type;
     };
 
 } // namespace gridtools

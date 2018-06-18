@@ -43,16 +43,16 @@ namespace gridtools {
      */
 
     namespace impl_ {
-        template < typename ForceType, typename... Types >
+        template <typename ForceType, typename... Types>
         struct forced_or_common_type {
             using type = ForceType;
         };
 
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
+        template <typename... Types>
+        struct forced_or_common_type<void, Types...> {
+            using type = typename std::common_type<Types...>::type;
         };
-    }
+    } // namespace impl_
 
     /** \ingroup array
         @{
@@ -71,14 +71,14 @@ namespace gridtools {
         \tparam ForceType Value type of the resulting array (optional)
         \param values List of values to put in the array. The length of the list set the size of the array.
      */
-    template < typename ForceType = void, typename... Types >
+    template <typename ForceType = void, typename... Types>
     constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
+        gridtools::array<typename impl_::forced_or_common_type<ForceType, Types...>::type, sizeof...(Types)>
+        make_array(Types... values) {
+        return gridtools::array<typename impl_::forced_or_common_type<ForceType, Types...>::type, sizeof...(Types)>{
+            static_cast<typename impl_::forced_or_common_type<ForceType, Types...>::type>(values)...};
     }
 
     /** @} */
     /** @} */
-}
+} // namespace gridtools

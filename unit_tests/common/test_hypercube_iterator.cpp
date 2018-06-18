@@ -36,18 +36,18 @@
 
 #include <gridtools/common/hypercube_iterator.hpp>
 
-#include <gridtools/common/pair.hpp>
 #include <gridtools/common/make_array.hpp>
+#include <gridtools/common/pair.hpp>
 #include <vector>
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 using namespace gridtools;
 
 class hypercube_iteration : public ::testing::Test {
-    using range_t = std::array< size_t, 2 >;
-    using data_t = std::vector< std::vector< size_t > >;
+    using range_t = std::array<size_t, 2>;
+    using data_t = std::vector<std::vector<size_t>>;
 
   public:
     void expect_ranges(range_t range_i, range_t range_j, range_t range_k) {
@@ -57,9 +57,9 @@ class hypercube_iteration : public ::testing::Test {
                     m_expected.push_back({i, j, k});
     }
 
-    template < class R >
+    template <class R>
     void call_testee(R &&range) {
-        for (auto &&item : make_hypercube_view(std::forward< R >(range)))
+        for (auto &&item : make_hypercube_view(std::forward<R>(range)))
             m_actual.push_back({item[0], item[1], item[2]});
     }
 
@@ -97,13 +97,13 @@ TEST_F(hypercube_iteration, from_one_to_one) {
 }
 
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_range) {
-    auto view = make_hypercube_view(array< pair< size_t, size_t >, 0 >{});
+    auto view = make_hypercube_view(array<pair<size_t, size_t>, 0>{});
     for (auto it : view)
         FAIL();
 }
 
 TEST(hypercube_view_empty_iteration_space, zero_dimensional_size) {
-    auto view = make_hypercube_view(array< size_t, 0 >{});
+    auto view = make_hypercube_view(array<size_t, 0>{});
     for (auto it : view)
         FAIL();
 }

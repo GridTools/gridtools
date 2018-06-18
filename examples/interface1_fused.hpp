@@ -42,10 +42,10 @@
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/tools/verifier.hpp>
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
@@ -54,12 +54,12 @@ using namespace expressions;
 
 namespace horizontal_diffusion {
     struct lap_function {
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1>> in;
 
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef boost::mpl::vector<out, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
                           (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
@@ -68,15 +68,15 @@ namespace horizontal_diffusion {
 
     struct flx_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -1, 2, -1, 1 > > in;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<-1, 2, -1, 1>> in;
 
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef boost::mpl::vector<out, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
-            auto lap_hi = call< lap_function >::with(eval, in(1, 0, 0));
-            auto lap_lo = call< lap_function >::with(eval, in(0, 0, 0));
+            auto lap_hi = call<lap_function>::with(eval, in(1, 0, 0));
+            auto lap_lo = call<lap_function>::with(eval, in(0, 0, 0));
             auto flx = lap_hi - lap_lo;
 
             eval(out()) = flx * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0 ? 0 : flx;
@@ -85,15 +85,15 @@ namespace horizontal_diffusion {
 
     struct fly_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 2 > > in;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<-1, 1, -1, 2>> in;
 
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef boost::mpl::vector<out, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
-            auto lap_hi = call< lap_function >::with(eval, in(0, 1, 0));
-            auto lap_lo = call< lap_function >::with(eval, in(0, 0, 0));
+            auto lap_hi = call<lap_function>::with(eval, in(0, 1, 0));
+            auto lap_lo = call<lap_function>::with(eval, in(0, 0, 0));
             auto fly = lap_hi - lap_lo;
 
             eval(out()) = fly * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0 ? 0 : fly;
@@ -102,19 +102,19 @@ namespace horizontal_diffusion {
 
     struct out_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -2, 2, -2, 2 > > in;
-        typedef accessor< 2, enumtype::in > coeff;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<-2, 2, -2, 2>> in;
+        typedef accessor<2, enumtype::in> coeff;
 
-        typedef boost::mpl::vector< out, in, coeff > arg_list;
+        typedef boost::mpl::vector<out, in, coeff> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            auto flx_hi = call< flx_function >::with(eval, in(0, 0, 0));
-            auto flx_lo = call< flx_function >::with(eval, in(-1, 0, 0));
+            auto flx_hi = call<flx_function>::with(eval, in(0, 0, 0));
+            auto flx_lo = call<flx_function>::with(eval, in(-1, 0, 0));
 
-            auto fly_hi = call< fly_function >::with(eval, in(0, 0, 0));
-            auto fly_lo = call< fly_function >::with(eval, in(0, -1, 0));
+            auto fly_hi = call<fly_function>::with(eval, in(0, 0, 0));
+            auto fly_lo = call<fly_function>::with(eval, in(0, -1, 0));
 
             eval(out()) = eval(in()) - eval(coeff()) * (flx_hi - flx_lo + fly_hi - fly_lo);
         }
@@ -138,22 +138,21 @@ namespace horizontal_diffusion {
         storage_type &out = repository.out();
         storage_type &coeff = repository.coeff();
 
-        typedef arg< 0, storage_type > p_coeff;
-        typedef arg< 1, storage_type > p_in;
-        typedef arg< 2, storage_type > p_out;
+        typedef arg<0, storage_type> p_coeff;
+        typedef arg<1, storage_type> p_in;
+        typedef arg<2, storage_type> p_out;
 
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
         auto grid = make_grid(di, dj, d3);
 
-        auto horizontal_diffusion = gridtools::make_computation< backend_t >(
-            grid,
+        auto horizontal_diffusion = gridtools::make_computation<backend_t>(grid,
             p_in() = in,
             p_out() = out,
             p_coeff() = coeff,
             gridtools::make_multistage(
-                execute< parallel >(), gridtools::make_stage< out_function >(p_out(), p_in(), p_coeff())));
+                execute<parallel>(), gridtools::make_stage<out_function>(p_out(), p_in(), p_coeff())));
 
         horizontal_diffusion.run();
 
@@ -167,7 +166,7 @@ namespace horizontal_diffusion {
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+            array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
         }
 

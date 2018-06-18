@@ -49,5 +49,5 @@ namespace gridtools {
     };
 
     template <>
-    struct is_iterate_domain_cache< empty_iterate_domain_cache > : boost::mpl::true_ {};
-}
+    struct is_iterate_domain_cache<empty_iterate_domain_cache> : boost::mpl::true_ {};
+} // namespace gridtools

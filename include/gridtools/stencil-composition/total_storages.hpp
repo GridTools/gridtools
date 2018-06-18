@@ -42,27 +42,25 @@ namespace gridtools {
     /**@brief metafunction that counts the total number of data fields which are neceassary for this functor (i.e.
      * number of storage
      * instances times number of fields per storage)
-    */
-    template < typename StorageWrapperList, int_t EndIndex >
+     */
+    template <typename StorageWrapperList, int_t EndIndex>
     struct total_storages {
 
         DISALLOW_COPY_AND_ASSIGN(total_storages);
         // the index must not exceed the number of storages
-        GRIDTOOLS_STATIC_ASSERT(EndIndex <= boost::fusion::result_of::size< StorageWrapperList >::type::value,
+        GRIDTOOLS_STATIC_ASSERT(EndIndex <= boost::fusion::result_of::size<StorageWrapperList>::type::value,
             "the index must not exceed the number of storages");
 
-        typedef
-            typename boost::mpl::if_c< (EndIndex < 0),
+        typedef typename boost::mpl::if_c<(EndIndex < 0),
+            boost::mpl::vector0<>,
+            typename boost::mpl::fold<typename reversed_range<uint_t, 0, EndIndex>::type,
                 boost::mpl::vector0<>,
-                typename boost::mpl::fold< typename reversed_range< uint_t, 0, EndIndex >::type,
-                                           boost::mpl::vector0<>,
-                                           boost::mpl::push_back< boost::mpl::_1,
-                                               boost::mpl::at< StorageWrapperList, boost::mpl::_2 > > >::type >::type
-                storages_wrappers_t;
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<StorageWrapperList, boost::mpl::_2>>>::type>::type
+            storages_wrappers_t;
 
-        typedef typename boost::mpl::fold< storages_wrappers_t,
-            boost::mpl::int_< 0 >,
-            boost::mpl::plus< boost::mpl::_1, num_of_storages_from_storage_wrapper< boost::mpl::_2 > > >::type type;
+        typedef typename boost::mpl::fold<storages_wrappers_t,
+            boost::mpl::int_<0>,
+            boost::mpl::plus<boost::mpl::_1, num_of_storages_from_storage_wrapper<boost::mpl::_2>>>::type type;
 
         static const uint_t value = type::value;
 

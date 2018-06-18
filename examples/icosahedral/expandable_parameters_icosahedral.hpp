@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "backend_select.hpp"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "backend_select.hpp"
 
 namespace test_expandable_parameters_icosahedral {
 
@@ -45,17 +45,17 @@ namespace test_expandable_parameters_icosahedral {
     using namespace expressions;
     using namespace enumtype;
 
-    using x_interval = axis< 1 >::full_interval;
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using x_interval = axis<1>::full_interval;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct functor_exp {
 
-        typedef vector_accessor< 0, enumtype::inout, icosahedral_topology_t::cells > parameters_out;
-        typedef vector_accessor< 1, enumtype::in, icosahedral_topology_t::cells > parameters_in;
-        typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
+        typedef vector_accessor<0, enumtype::inout, icosahedral_topology_t::cells> parameters_out;
+        typedef vector_accessor<1, enumtype::in, icosahedral_topology_t::cells> parameters_in;
+        typedef boost::mpl::vector<parameters_out, parameters_in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(parameters_out{}) = eval(parameters_in{});
         }
@@ -63,22 +63,21 @@ namespace test_expandable_parameters_icosahedral {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-        using cell_storage_type =
-            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::data_store_t<icosahedral_topology_t::cells, double>;
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto storage1 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage1");
-        auto storage2 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage2");
-        auto storage3 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage3");
-        auto storage4 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage4");
-        auto storage5 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage5");
+        auto storage1 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage1");
+        auto storage2 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage2");
+        auto storage3 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage3");
+        auto storage4 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage4");
+        auto storage5 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage5");
 
-        auto storage10 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage10");
-        auto storage20 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage20");
-        auto storage30 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage30");
-        auto storage40 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage40");
-        auto storage50 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage50");
+        auto storage10 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage10");
+        auto storage20 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage20");
+        auto storage30 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage30");
+        auto storage40 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage40");
+        auto storage50 = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("storage50");
 
         auto sinfo = *storage1.get_storage_info_ptr();
 
@@ -94,23 +93,22 @@ namespace test_expandable_parameters_icosahedral {
         storage40 = cell_storage_type(sinfo, 40.);
         storage50 = cell_storage_type(sinfo, 50.);
 
-        std::vector< decltype(storage1) > list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector<decltype(storage1)> list_out_ = {storage1, storage2, storage3, storage4, storage5};
 
-        std::vector< decltype(storage10) > list_in_ = {storage10, storage20, storage30, storage40, storage50};
+        std::vector<decltype(storage10)> list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         auto grid_ = make_grid(icosahedral_grid, d1, d2, d3);
 
-        using p_list_out = arg< 0, std::vector< decltype(storage1) >, enumtype::cells >;
-        using p_list_in = arg< 1, std::vector< decltype(storage10) >, enumtype::cells >;
+        using p_list_out = arg<0, std::vector<decltype(storage1)>, enumtype::cells>;
+        using p_list_in = arg<1, std::vector<decltype(storage10)>, enumtype::cells>;
 
-        auto comp_ = make_computation< backend_t >(
-            expand_factor< 2 >(),
+        auto comp_ = make_computation<backend_t>(expand_factor<2>(),
             grid_,
             p_list_out{} = list_out_,
             p_list_in{} = list_in_,
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                make_stage< functor_exp, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                                p_list_out(), p_list_in())));
+            make_multistage(enumtype::execute<enumtype::forward>(),
+                make_stage<functor_exp, icosahedral_topology_t, icosahedral_topology_t::cells>(
+                    p_list_out(), p_list_in())));
 
         comp_.run();
         comp_.sync_bound_data_stores();
@@ -121,7 +119,7 @@ namespace test_expandable_parameters_icosahedral {
         verifier ver(1e-10);
 #endif
 
-        array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
+        array<array<uint_t, 2>, 4> halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
         bool result = ver.verify(grid_, storage1, storage10, halos);
         result = result & ver.verify(grid_, storage2, storage20, halos);
         result = result & ver.verify(grid_, storage3, storage30, halos);

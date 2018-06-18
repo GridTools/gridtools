@@ -47,9 +47,9 @@ namespace gridtools {
        \tparam F the user functor
        \tparam Axis the vertical axis
      */
-    template < typename Functor, typename Axis >
+    template <typename Functor, typename Axis>
     struct functor_default_interval {
-        GRIDTOOLS_STATIC_ASSERT(is_interval< Axis >::value, "Internal error");
+        GRIDTOOLS_STATIC_ASSERT(is_interval<Axis>::value, "Internal error");
         static const constexpr int_t to_offset = Axis::ToLevel::Offset::value;
         static const constexpr uint_t to_splitter = Axis::ToLevel::Splitter::value;
         static const constexpr int_t from_offset = Axis::FromLevel::Offset::value;
@@ -62,19 +62,20 @@ namespace gridtools {
         // for this reason we have to devise a special case for when the "from" offset in the vertical Axis is -1
         // (in that case the interval representing the whole axis must start from 1 instead of 0, so we have to add
         // -1+2=1)
-        typedef gridtools::interval< level< from_splitter, from_offset >,
-            level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
+        typedef gridtools::interval<level<from_splitter, from_offset>,
+            level<to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2>>
+            default_interval;
 
         typedef typename Functor::arg_list arg_list;
 
-        template < typename Eval >
+        template <typename Eval>
         GT_FUNCTION static void Do(Eval &eval_, default_interval) {
-            Functor::template Do< Eval & >(eval_);
+            Functor::template Do<Eval &>(eval_);
         }
     };
-    template < typename T >
+    template <typename T>
     struct is_functor_default_interval : boost::mpl::false_ {};
 
-    template < typename T, typename A >
-    struct is_functor_default_interval< functor_default_interval< T, A > > : boost::mpl::true_ {};
+    template <typename T, typename A>
+    struct is_functor_default_interval<functor_default_interval<T, A>> : boost::mpl::true_ {};
 } // namespace gridtools

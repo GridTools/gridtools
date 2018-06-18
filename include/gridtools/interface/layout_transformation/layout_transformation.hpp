@@ -36,8 +36,8 @@
 
 #pragma once
 
-#include "../../common/defs.hpp"
 #include "../../common/cuda_is_ptr.hpp"
+#include "../../common/defs.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
 #include "layout_transformation_impl_cuda.hpp"
@@ -49,15 +49,15 @@ namespace gridtools {
     namespace impl {
         inline bool both_gpu_ptrs(void *ptr1, void *ptr2) { return is_gpu_ptr(ptr1) && is_gpu_ptr(ptr2); }
         inline bool both_not_gpu_ptrs(void *ptr1, void *ptr2) { return !is_gpu_ptr(ptr1) && !is_gpu_ptr(ptr2); }
-    }
+    } // namespace impl
 
     namespace interface {
-        template < typename DataType >
+        template <typename DataType>
         void transform(DataType *dst,
             DataType *src,
-            const std::vector< uint_t > &dims,
-            const std::vector< uint_t > &dst_strides,
-            const std::vector< uint_t > &src_strides) {
+            const std::vector<uint_t> &dims,
+            const std::vector<uint_t> &dst_strides,
+            const std::vector<uint_t> &src_strides) {
             if (impl::both_gpu_ptrs(dst, src))
                 impl::transform_cuda_loop(dst, src, dims, dst_strides, src_strides);
             else if (impl::both_not_gpu_ptrs(dst, src))
@@ -66,5 +66,5 @@ namespace gridtools {
                 throw std::runtime_error("transform(): source and destination pointers need to be from the same memory "
                                          "space (both host or both gpu pointers)");
         }
-    }
-}
+    } // namespace interface
+} // namespace gridtools

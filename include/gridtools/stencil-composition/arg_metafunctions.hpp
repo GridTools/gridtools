@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "arg_metafunctions_fwd.hpp"
-#include "arg_fwd.hpp"
 #include "../common/gt_assert.hpp"
+#include "arg_fwd.hpp"
+#include "arg_metafunctions_fwd.hpp"
 
 namespace gridtools {
 
@@ -44,22 +44,22 @@ namespace gridtools {
      * @struct arg_hods_data_field_h
      * high order metafunction of arg_holds_data_field
      */
-    template < typename Arg >
+    template <typename Arg>
     struct arg_holds_data_field_h {
-        typedef typename arg_holds_data_field< typename Arg::type >::type type;
+        typedef typename arg_holds_data_field<typename Arg::type>::type type;
     };
 
-    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
-    struct arg_holds_data_field_h< arg< I, DataStoreType, Location, Temporary > > {
-        typedef typename arg_holds_data_field< arg< I, DataStoreType, Location, Temporary > >::type type;
+    template <uint_t I, typename DataStoreType, typename Location, bool Temporary>
+    struct arg_holds_data_field_h<arg<I, DataStoreType, Location, Temporary>> {
+        typedef typename arg_holds_data_field<arg<I, DataStoreType, Location, Temporary>>::type type;
     };
 
     // metafunction to access the storage type given the arg
-    template < typename T >
+    template <typename T>
     struct get_data_store_from_arg;
 
-    template < unsigned I, typename T, typename L, bool B >
-    struct get_data_store_from_arg< arg< I, T, L, B > > {
+    template <unsigned I, typename T, typename L, bool B>
+    struct get_data_store_from_arg<arg<I, T, L, B>> {
         typedef T type;
     };
 

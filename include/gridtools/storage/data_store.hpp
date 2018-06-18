@@ -36,17 +36,17 @@
 
 #pragma once
 
+#include <array>
 #include <assert.h>
 #include <memory>
-#include <array>
 #include <string>
 
 #include <boost/mpl/bool.hpp>
 
 #include "../common/gt_assert.hpp"
 #include "common/definitions.hpp"
-#include "common/storage_interface.hpp"
 #include "common/storage_info_interface.hpp"
+#include "common/storage_interface.hpp"
 
 #include "../common/array_addons.hpp"
 
@@ -66,12 +66,12 @@ namespace gridtools {
          * @tparam N the number of dimensions (e.g., layout_map<2,1,0> -> 3 dimensions)
          * @tparam Args variadic pack of int types
          */
-        template < typename ReturnType,
+        template <typename ReturnType,
             typename StorageInfo,
             uint_t N = StorageInfo::layout_t::masked_length,
-            typename... Args >
+            typename... Args>
         struct appropriate_function_t {
-            typedef typename appropriate_function_t< ReturnType, StorageInfo, N - 1, Args..., int >::type type;
+            typedef typename appropriate_function_t<ReturnType, StorageInfo, N - 1, Args..., int>::type type;
         };
 
         /**
@@ -82,9 +82,9 @@ namespace gridtools {
          * @tparam StorageInfo storage_info type
          * @tparam Args variadic pack of int types
          */
-        template < typename ReturnType, typename StorageInfo, typename... Args >
-        struct appropriate_function_t< ReturnType, StorageInfo, 0, Args... > {
-            typedef std::function< ReturnType(Args...) > type;
+        template <typename ReturnType, typename StorageInfo, typename... Args>
+        struct appropriate_function_t<ReturnType, StorageInfo, 0, Args...> {
+            typedef std::function<ReturnType(Args...)> type;
         };
 
         /**
@@ -101,10 +101,10 @@ namespace gridtools {
          * @param ptr storage cpu pointer
          * @param args pack that contains the current index for each dimension
          */
-        template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
-        typename boost::enable_if_c< (sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void >::type
+        template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
+        typename boost::enable_if_c<(sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void>::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (uint_t i = 0; i < si.template total_length< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
         }
@@ -123,14 +123,14 @@ namespace gridtools {
          * @param ptr storage cpu pointer
          * @param args pack that contains the current index for each dimension
          */
-        template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
-        typename boost::enable_if_c< (sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void >::type
+        template <typename Lambda, typename StorageInfo, typename DataType, typename... Args>
+        typename boost::enable_if_c<(sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void>::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (uint_t i = 0; i < si.template total_length< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template total_length<sizeof...(Args)>(); ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
         }
-    }
+    } // namespace
 
     /** \ingroup storage
      * @brief data_store implementation. This struct wraps storage and storage information in one class.
@@ -139,19 +139,19 @@ namespace gridtools {
      * @tparam Storage storage type that should be used (e.g., cuda_storage)
      * @tparam StorageInfo storage info type that should be used (e.g., cuda_storage_info)
      */
-    template < typename Storage, typename StorageInfo >
+    template <typename Storage, typename StorageInfo>
     struct data_store {
-        GRIDTOOLS_STATIC_ASSERT(is_storage< Storage >::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
+        GRIDTOOLS_STATIC_ASSERT(is_storage<Storage>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
         GRIDTOOLS_STATIC_ASSERT(
-            is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage_info type"));
+            is_storage_info<StorageInfo>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage_info type"));
         typedef typename Storage::data_t data_t;
         typedef typename Storage::state_machine_t state_machine_t;
         typedef StorageInfo storage_info_t;
         typedef Storage storage_t;
 
       protected:
-        std::shared_ptr< storage_t > m_shared_storage;
-        std::shared_ptr< storage_info_t > m_shared_storage_info;
+        std::shared_ptr<storage_t> m_shared_storage;
+        std::shared_ptr<storage_info_t> m_shared_storage_info;
         std::string m_name;
 
       public:
@@ -198,7 +198,7 @@ namespace gridtools {
          * @param name Human readable name for the data_store
          */
         data_store(StorageInfo const &info,
-            typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
+            typename appropriate_function_t<data_t, StorageInfo>::type const &initializer,
             std::string const &name = "")
             : m_shared_storage(new storage_t(
                   info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
@@ -209,14 +209,14 @@ namespace gridtools {
             clone_to_device();
         }
 
-        data_store(data_store const &src, std::shared_ptr< StorageInfo > const &storage_info) : data_store(src) {
+        data_store(data_store const &src, std::shared_ptr<StorageInfo> const &storage_info) : data_store(src) {
             assert(valid());
             assert(storage_info);
             assert(*m_shared_storage_info == *storage_info);
             m_shared_storage_info = storage_info;
         }
 
-        data_store(data_store &&src, std::shared_ptr< StorageInfo > const &storage_info) noexcept
+        data_store(data_store &&src, std::shared_ptr<StorageInfo> const &storage_info) noexcept
             : data_store(std::move(src)) {
             assert(valid());
             assert(*storage_info);
@@ -233,9 +233,9 @@ namespace gridtools {
          * @param own ownership information
          * @param name Human readable name for the data_store
          */
-        template < typename T = data_t *,
-            typename boost::enable_if_c< boost::is_pointer< T >::value && boost::is_same< data_t *, T >::value,
-                int >::type = 0 >
+        template <typename T = data_t *,
+            typename boost::enable_if_c<boost::is_pointer<T>::value && boost::is_same<data_t *, T>::value, int>::type =
+                0>
         explicit constexpr data_store(StorageInfo const &info,
             T external_ptr,
             ownership own = ownership::ExternalCPU,
@@ -259,8 +259,8 @@ namespace gridtools {
         void allocate(StorageInfo const &info) {
             ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
                 "This data store has already been allocated.");
-            m_shared_storage_info = std::make_shared< storage_info_t >(info);
-            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length(),
+            m_shared_storage_info = std::make_shared<storage_info_t>(info);
+            m_shared_storage = std::make_shared<storage_t>(m_shared_storage_info->padded_total_length(),
                 m_shared_storage_info->first_index_of_inner_region(),
                 typename StorageInfo::alignment_t{});
         }
@@ -279,10 +279,10 @@ namespace gridtools {
          * @tparam Coord queried coordinate
          * @return size of dimension (corresponding to total_length, thus including halos but not padding)
          */
-        template < int Coord >
+        template <int Coord>
         int dim() const {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template dim< Coord >();
+            return m_shared_storage_info->template dim<Coord>();
         }
 
         /**
@@ -291,10 +291,10 @@ namespace gridtools {
          * @tparam Coord queried coordinate
          * @return size of dimension (including halos but not padding)
          */
-        template < int Coord >
+        template <int Coord>
         int total_length() const {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template total_length< Coord >();
+            return m_shared_storage_info->template total_length<Coord>();
         }
 
         /**
@@ -328,13 +328,13 @@ namespace gridtools {
          * @brief retrieve a pointer to the underlying storage instance.
          * @return shared pointer to the underlying storage instance
          */
-        std::shared_ptr< storage_t > get_storage_ptr() const { return m_shared_storage; }
+        std::shared_ptr<storage_t> get_storage_ptr() const { return m_shared_storage; }
 
         /**
          * @brief retrieve a pointer to the underlying storage_info instance.
          * @return shared pointer to the underlying storage_info instance
          */
-        std::shared_ptr< storage_info_t > get_storage_info_ptr() const { return m_shared_storage_info; }
+        std::shared_ptr<storage_info_t> get_storage_info_ptr() const { return m_shared_storage_info; }
 
         /**
          * @brief check if underlying storage info and storage is valid.
@@ -399,13 +399,13 @@ namespace gridtools {
     };
 
     /// @brief simple metafunction to check if a type is a data_store
-    template < typename T >
+    template <typename T>
     struct is_data_store : boost::mpl::false_ {};
 
-    template < typename S, typename SI >
-    struct is_data_store< data_store< S, SI > > : boost::mpl::true_ {};
+    template <typename S, typename SI>
+    struct is_data_store<data_store<S, SI>> : boost::mpl::true_ {};
 
     /**
      * @}
      */
-}
+} // namespace gridtools

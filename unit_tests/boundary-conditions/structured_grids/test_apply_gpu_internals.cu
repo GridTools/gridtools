@@ -86,13 +86,13 @@ TEST(apply_gpu, configurtation) {
         gt::uint_t b0 = 1, b1 = 4, b2 = 5;
         gt::uint_t e0 = 67, e1 = 45, e2 = 54;
 
-        gt::array< gt::halo_descriptor, 3 > halos{gt::halo_descriptor{m0, p0, b0, e0, l},
+        gt::array<gt::halo_descriptor, 3> halos{gt::halo_descriptor{m0, p0, b0, e0, l},
             gt::halo_descriptor{m1, p1, b1, e1, l},
             gt::halo_descriptor{m2, p2, b2, e2, l}};
 
         conf c{halos};
 
-        gt::array< std::size_t, 3 > res{67, 50, 3};
+        gt::array<std::size_t, 3> res{67, 50, 3};
 
         EXPECT_EQ(c.configuration[0], res[0]);
         EXPECT_EQ(c.configuration[1], res[1]);
@@ -133,13 +133,13 @@ TEST(apply_gpu, configurtation) {
         gt::uint_t b0 = 1, b1 = 4, b2 = 5;
         gt::uint_t e0 = 2, e1 = 5, e2 = 5;
 
-        gt::array< gt::halo_descriptor, 3 > halos{gt::halo_descriptor{m0, p0, b0, e0, l},
+        gt::array<gt::halo_descriptor, 3> halos{gt::halo_descriptor{m0, p0, b0, e0, l},
             gt::halo_descriptor{m1, p1, b1, e1, l},
             gt::halo_descriptor{m2, p2, b2, e2, l}};
 
         conf c{halos};
 
-        gt::array< std::size_t, 3 > res{5, 3, 2};
+        gt::array<std::size_t, 3> res{5, 3, 2};
 
         EXPECT_EQ(c.configuration[0], res[0]);
         EXPECT_EQ(c.configuration[1], res[1]);
@@ -152,13 +152,13 @@ TEST(apply_gpu, configurtation) {
         gt::uint_t b0 = 1, b1 = 1, b2 = 1;
         gt::uint_t e0 = 3, e1 = 3, e2 = 3;
 
-        gt::array< gt::halo_descriptor, 3 > halos{gt::halo_descriptor{m0, p0, b0, e0, l},
+        gt::array<gt::halo_descriptor, 3> halos{gt::halo_descriptor{m0, p0, b0, e0, l},
             gt::halo_descriptor{m1, p1, b1, e1, l},
             gt::halo_descriptor{m2, p2, b2, e2, l}};
 
         conf c{halos};
 
-        gt::array< std::size_t, 3 > res{3, 3, 1};
+        gt::array<std::size_t, 3> res{3, 3, 1};
 
         EXPECT_EQ(c.configuration[0], res[0]);
         EXPECT_EQ(c.configuration[1], res[1]);

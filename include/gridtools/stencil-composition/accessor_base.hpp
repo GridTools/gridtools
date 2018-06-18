@@ -40,10 +40,10 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
-#include "../common/host_device.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../common/host_device.hpp"
 
 namespace gridtools {
 
@@ -53,32 +53,32 @@ namespace gridtools {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
          * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
          * in the most common case. */
-        template < typename T, std::size_t Dim >
+        template <typename T, std::size_t Dim>
         struct pseudo_array_type {
-            using type = array< T, Dim >;
+            using type = array<T, Dim>;
         };
 
-        template < typename T >
-        struct pseudo_array_type< T, 3 > {
+        template <typename T>
+        struct pseudo_array_type<T, 3> {
             struct type {
                 T data0, data1, data2;
 
-                constexpr type(array< T, 3 > const &a)
-                    : data0(a.template get< 0 >()), data1(a.template get< 1 >()), data2(a.template get< 2 >()) {}
+                constexpr type(array<T, 3> const &a)
+                    : data0(a.template get<0>()), data1(a.template get<1>()), data2(a.template get<2>()) {}
 
                 constexpr type(T const &data0, T const &data1, T const &data2)
                     : data0(data0), data1(data1), data2(data2) {}
 
-                template < std::size_t Idx >
-                GT_FUNCTION constexpr typename std::enable_if< Idx == 0, T const & >::type get() const {
+                template <std::size_t Idx>
+                GT_FUNCTION constexpr typename std::enable_if<Idx == 0, T const &>::type get() const {
                     return data0;
                 }
-                template < std::size_t Idx >
-                GT_FUNCTION constexpr typename std::enable_if< Idx == 1, T const & >::type get() const {
+                template <std::size_t Idx>
+                GT_FUNCTION constexpr typename std::enable_if<Idx == 1, T const &>::type get() const {
                     return data1;
                 }
-                template < std::size_t Idx >
-                GT_FUNCTION constexpr typename std::enable_if< Idx == 2, T const & >::type get() const {
+                template <std::size_t Idx>
+                GT_FUNCTION constexpr typename std::enable_if<Idx == 2, T const &>::type get() const {
                     return data2;
                 }
 
@@ -87,36 +87,35 @@ namespace gridtools {
         };
 #endif
 
-        template < ushort_t I >
+        template <ushort_t I>
         struct get_dimension_value_f {
-            template < ushort_t J >
-            GT_FUNCTION constexpr int_t operator()(dimension< J > src) const {
+            template <ushort_t J>
+            GT_FUNCTION constexpr int_t operator()(dimension<J> src) const {
                 return 0;
             }
-            GT_FUNCTION constexpr int_t operator()(dimension< I > src) const { return src.value; }
+            GT_FUNCTION constexpr int_t operator()(dimension<I> src) const { return src.value; }
         };
 
-        template < ushort_t I >
+        template <ushort_t I>
         GT_FUNCTION constexpr int_t sum_dimensions() {
             return 0;
         }
 
-        template < ushort_t I, class T, class... Ts >
+        template <ushort_t I, class T, class... Ts>
         GT_FUNCTION constexpr int_t sum_dimensions(T src, Ts... srcs) {
-            return get_dimension_value_f< I >{}(src) + sum_dimensions< I >(srcs...);
+            return get_dimension_value_f<I>{}(src) + sum_dimensions<I>(srcs...);
         }
 
-        template < ushort_t Dim, ushort_t... Is, class... Ts >
-        GT_FUNCTION constexpr array< int_t, Dim > make_offsets_impl(
-            gt_integer_sequence< ushort_t, Is... >, Ts... srcs) {
-            return {sum_dimensions< Is + 1 >(srcs...)...};
+        template <ushort_t Dim, ushort_t... Is, class... Ts>
+        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(gt_integer_sequence<ushort_t, Is...>, Ts... srcs) {
+            return {sum_dimensions<Is + 1>(srcs...)...};
         }
 
-        template < ushort_t Dim, class... Ts >
-        GT_FUNCTION constexpr array< int_t, Dim > make_offsets(Ts... srcs) {
-            return make_offsets_impl< Dim >(make_gt_integer_sequence< ushort_t, Dim >{}, srcs...);
+        template <ushort_t Dim, class... Ts>
+        GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
+            return make_offsets_impl<Dim>(make_gt_integer_sequence<ushort_t, Dim>{}, srcs...);
         }
-    }
+    } // namespace _impl
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -141,28 +140,27 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Extent Bounds over which the function access the argument
      */
-    template < ushort_t Dim >
+    template <ushort_t Dim>
     class accessor_base {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
 #ifdef __INTEL_COMPILER
         /* The Intel compiler does not want to vectorize when we use a real array here. */
-        using offsets_t = typename _impl::pseudo_array_type< int_t, Dim >::type;
+        using offsets_t = typename _impl::pseudo_array_type<int_t, Dim>::type;
         offsets_t m_offsets;
         /* The Intel compiler likes to generate calls to memset if we don't have this additional member.*/
         int_t m_workaround;
 #else
-        using offsets_t = array< int_t, Dim >;
+        using offsets_t = array<int_t, Dim>;
         offsets_t m_offsets;
 #endif
 
       public:
         static const ushort_t n_dimensions = Dim;
 
-        template < class... Ints,
-            typename std::enable_if< sizeof...(Ints) <= Dim &&
-                                         conjunction< std::is_convertible< Ints, int_t >... >::value,
-                int >::type = 0 >
+        template <class... Ints,
+            typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
+                int>::type = 0>
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
             : m_offsets({offsets...})
 #ifdef __INTEL_COMPILER
@@ -181,30 +179,30 @@ namespace gridtools {
         {
         }
 
-        template < ushort_t I, ushort_t... Is >
-        GT_FUNCTION constexpr explicit accessor_base(dimension< I > d, dimension< Is >... ds)
-            : m_offsets(_impl::make_offsets< Dim >(d, ds...))
+        template <ushort_t I, ushort_t... Is>
+        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
 #ifdef __INTEL_COMPILER
               ,
               m_workaround(Dim)
 #endif
         {
-            GRIDTOOLS_STATIC_ASSERT((meta::is_set< meta::list< dimension< I >, dimension< Is >... > >::value),
+            GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
         }
 
-        template < short_t Idx >
+        template <short_t Idx>
         GT_FUNCTION int_t constexpr get() const {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-            return m_offsets.template get< Dim - 1 - Idx >();
+            return m_offsets.template get<Dim - 1 - Idx>();
         }
 
-        template < short_t Idx >
+        template <short_t Idx>
         GT_FUNCTION void set(uint_t offset_) {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
             m_offsets[Dim - 1 - Idx] = offset_;
         }
     };
-}
+} // namespace gridtools

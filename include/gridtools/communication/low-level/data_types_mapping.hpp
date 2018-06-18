@@ -38,7 +38,7 @@
 
 namespace gridtools {
     namespace _impl {
-        template < typename v_type >
+        template <typename v_type>
         struct compute_type {
             // This is called when no other type is found.
             // In this case the type is considered POD
@@ -52,39 +52,39 @@ namespace gridtools {
         };
 
         template <>
-        struct compute_type< int > {
+        struct compute_type<int> {
             const MPI_Datatype value;
             compute_type() : value(MPI_INT) {}
         };
 
         template <>
-        struct compute_type< char > {
+        struct compute_type<char> {
             const MPI_Datatype value;
             compute_type() : value(MPI_CHAR) {}
         };
 
         template <>
-        struct compute_type< float > {
+        struct compute_type<float> {
             const MPI_Datatype value;
             compute_type() : value(MPI_FLOAT) {}
         };
 
         template <>
-        struct compute_type< double > {
+        struct compute_type<double> {
             const MPI_Datatype value;
             compute_type() : value(MPI_DOUBLE) {}
         };
 
-        template < typename value_type >
+        template <typename value_type>
         struct make_datatype {
 
           public:
-            static MPI_Datatype type() { return _impl::compute_type< value_type >().value; }
+            static MPI_Datatype type() { return _impl::compute_type<value_type>().value; }
 
-            template < typename arraytype >
+            template <typename arraytype>
             static MPI_Datatype make(arraytype const &halo) {
                 const int d = halo.size();
-                std::vector< int > sizes(d), subsizes(d), starts(d);
+                std::vector<int> sizes(d), subsizes(d), starts(d);
 
                 for (int i = 0; i < d; ++i) {
                     sizes[i] = halo[i].total_length();
@@ -105,5 +105,5 @@ namespace gridtools {
             }
         };
     } // namespace _impl
-}
+} // namespace gridtools
 #endif
