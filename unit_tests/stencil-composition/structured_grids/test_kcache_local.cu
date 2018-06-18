@@ -124,7 +124,7 @@ struct biside_large_kcache_backward {
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
 };
