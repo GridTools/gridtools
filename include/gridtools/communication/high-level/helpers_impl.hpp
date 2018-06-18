@@ -36,7 +36,7 @@
 #ifndef _HELPERS_IMPL_H_
 #define _HELPERS_IMPL_H_
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
-#include "./descriptors_fwd.hpp"
+#include "descriptors_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {

@@ -35,6 +35,9 @@
 */
 #pragma once
 
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+
 /**
    @file
    @brief On all boundary the values are copied from the last data field to the first. Minimum 2 fields.

@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 
 #include <gridtools/common/host_device.hpp>
 

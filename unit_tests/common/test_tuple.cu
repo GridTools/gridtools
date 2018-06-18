@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "test_tuple.hpp"
+#include "gtest/gtest.h"
 
 __global__ void test_tuple_kernel(bool *result) { test_tuple_elements(result); }
 

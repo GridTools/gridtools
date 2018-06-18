@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "../../common/halo_descriptor.hpp"
+
 template <typename value_type>
 __global__ void m_unpackYLKernel(value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab_r,

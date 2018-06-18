@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "../../common/halo_descriptor.hpp"
+
 template <typename value_type>
 __global__ void m_packXLKernel(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
@@ -147,7 +149,7 @@ void m_packXL(array_t const &d_data_array,
 
         // the actual kernel launch
         // clang-format off
-      m_packXLKernel< <<blocks, threads, 0, XL_stream> >>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, ny, nz, i);
+      m_packXLKernel<<<blocks, threads, 0, XL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, ny, nz, i);
         // clang-format on
 
 #ifdef CUDAMSG

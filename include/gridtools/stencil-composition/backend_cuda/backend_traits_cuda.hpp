@@ -40,7 +40,6 @@
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
 #include "../grid_traits.hpp"
-//#include "iterate_domain_cuda.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "iterate_domain_cache.hpp"
 #include "run_esf_functor_cuda.hpp"

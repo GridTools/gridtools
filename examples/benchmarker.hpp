@@ -41,6 +41,8 @@
 
 #include "cache_flusher.hpp"
 #include "defs.hpp"
+#include <iostream>
+#include <memory>
 
 namespace gridtools {
 

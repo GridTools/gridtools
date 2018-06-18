@@ -41,18 +41,11 @@
 #include "../block_size.hpp"
 #include "../grid.hpp"
 #include "../mss_components.hpp"
+#include "../mss_functor.hpp"
 #include "../reductions/reduction_data.hpp"
 #include "./execute_kernel_functor_host.hpp"
 
 namespace gridtools {
-
-    template <typename MssComponentsArray,
-        typename Grid,
-        typename MssLocalDomainArray,
-        typename BackendIds,
-        typename ReductionData,
-        typename ExecutionInfo>
-    struct mss_functor;
 
     template <enumtype::strategy>
     struct strategy_from_id_host;
