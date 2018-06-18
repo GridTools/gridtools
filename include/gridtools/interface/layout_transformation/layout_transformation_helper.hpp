@@ -36,11 +36,9 @@
 
 #pragma once
 
-#include <cassert>
-#include <vector>
-
 #include "../../common/array.hpp"
 #include "../../common/defs.hpp"
+#include <vector>
 
 namespace gridtools {
     namespace impl {

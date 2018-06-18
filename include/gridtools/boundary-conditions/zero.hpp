@@ -37,9 +37,6 @@
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 
-#include "../common/defs.hpp"
-#include "../common/host_device.hpp"
-
 /**
    @file
    @brief On all boundary the values ares set to DataField::value_type(), which is zero for basic data types.
