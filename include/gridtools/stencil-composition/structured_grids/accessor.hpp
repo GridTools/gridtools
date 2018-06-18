@@ -77,27 +77,27 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template < uint_t ID,
+    template <uint_t ID,
         enumtype::intent Intent = enumtype::in,
-        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-        ushort_t Number = 3 >
-    struct accessor : accessor_base< Number > {
-        using index_t = static_uint< ID >;
+        typename Extent = extent<0, 0, 0, 0, 0, 0>,
+        ushort_t Number = 3>
+    struct accessor : accessor_base<Number> {
+        using index_t = static_uint<ID>;
         static constexpr enumtype::intent intent = Intent;
         using extent_t = Extent;
 
         /**inheriting all constructors from accessor_base*/
-        using accessor_base< Number >::accessor_base;
+        using accessor_base<Number>::accessor_base;
 
-        template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
-        GT_FUNCTION constexpr accessor(accessor< OtherID, Intent, Extent, Number > const &src)
-            : accessor_base< Number >(src) {}
+        template <uint_t OtherID, typename std::enable_if<ID != OtherID, int>::type = 0>
+        GT_FUNCTION constexpr accessor(accessor<OtherID, Intent, Extent, Number> const &src)
+            : accessor_base<Number>(src) {}
     };
 
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
+    template <uint_t ID, typename Extent = extent<0, 0, 0, 0, 0, 0>, ushort_t Number = 3>
+    using in_accessor = accessor<ID, enumtype::in, Extent, Number>;
 
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
+    template <uint_t ID, typename Extent = extent<0, 0, 0, 0, 0, 0>, ushort_t Number = 3>
+    using inout_accessor = accessor<ID, enumtype::inout, Extent, Number>;
 
 } // namespace gridtools

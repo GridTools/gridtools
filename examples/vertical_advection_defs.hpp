@@ -35,8 +35,8 @@
 */
 
 #pragma once
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/gridtools.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include "backend_select.hpp"
 
@@ -47,5 +47,5 @@ namespace vertical_advection {
 #define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
 #define BET_P ((double)0.5 * ((double)1.0 + BETA_V))
 
-    using storage_tr = gridtools::storage_traits< backend_t::s_backend_id >;
-}
+    using storage_tr = gridtools::storage_traits<backend_t::s_backend_id>;
+} // namespace vertical_advection

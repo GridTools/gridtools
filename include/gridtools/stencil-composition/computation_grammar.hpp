@@ -37,9 +37,9 @@
 #include "../common/defs.hpp"
 namespace gridtools {
 
-    template < typename T >
+    template <typename T>
     struct is_mss_descriptor;
-    template < typename T >
+    template <typename T>
     struct is_reduction_descriptor;
     /**
      type traits for the computation grammar. computation_token is any descriptor that implements
@@ -47,7 +47,6 @@ namespace gridtools {
      tokens: currently mss_descriptor, condition, and reduction_descriptor
      */
 
-    template < typename T >
-    using is_computation_token =
-        boost::mpl::or_< boost::mpl::or_< is_mss_descriptor< T > >, is_reduction_descriptor< T > >;
-}
+    template <typename T>
+    using is_computation_token = boost::mpl::or_<boost::mpl::or_<is_mss_descriptor<T>>, is_reduction_descriptor<T>>;
+} // namespace gridtools

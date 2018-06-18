@@ -42,15 +42,15 @@
 #endif
 
 namespace gridtools {
-    template < typename T >
+    template <typename T>
     struct is_accessor;
 
-    template < typename T >
+    template <typename T>
     struct is_grid_accessor;
 
     /**
      * Struct to test if an argument is a temporary
      */
-    template < typename T >
+    template <typename T>
     struct is_tmp_arg;
-}
+} // namespace gridtools

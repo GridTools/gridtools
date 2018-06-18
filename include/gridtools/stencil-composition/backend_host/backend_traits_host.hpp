@@ -57,27 +57,27 @@
 namespace gridtools {
     namespace _impl_host {
         /**forward declaration*/
-        template < typename Arguments >
+        template <typename Arguments>
         struct run_functor_host;
-    }
+    } // namespace _impl_host
 
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
-    struct backend_traits_from_id< enumtype::Host > {
+    struct backend_traits_from_id<enumtype::Host> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
         */
         struct make_view_f {
-            template < typename S, typename SI >
-            auto operator()(data_store< S, SI > const &src) const GT_AUTO_RETURN(make_host_view(src));
-            template < typename S, uint_t... N >
-            auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_host_view(src));
+            template <typename S, typename SI>
+            auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
+            template <typename S, uint_t... N>
+            auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
-        template < typename Arguments >
+        template <typename Arguments>
         struct execute_traits {
-            typedef _impl_host::run_functor_host< Arguments > run_functor_t;
+            typedef _impl_host::run_functor_host<Arguments> run_functor_t;
         };
 
         /** This is the function used by the specific backend
@@ -92,11 +92,11 @@ namespace gridtools {
 #endif
         }
 
-        template < uint_t Id, typename BlockSize >
+        template <uint_t Id, typename BlockSize>
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
 
-            template < typename Left, typename Right >
+            template <typename Left, typename Right>
             GT_FUNCTION // inline
                 static void
                 assign(Left &l, Right const &r) {
@@ -104,14 +104,14 @@ namespace gridtools {
             }
         };
 
-        template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
+        template <class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy>
         struct tmp_storage_size_f;
 
         // get a temporary storage size
-        template < class MaxExtent, class StorageWrapper, class GridTraits >
-        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Naive > {
-            template < class Grid >
-            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+        template <class MaxExtent, class StorageWrapper, class GridTraits>
+        struct tmp_storage_size_f<MaxExtent, StorageWrapper, GridTraits, enumtype::Naive> {
+            template <class Grid>
+            std::array<uint_t, 3> operator()(Grid const &grid) const {
                 auto i_size = grid.direction_i().total_length();
                 auto j_size = grid.direction_j().total_length();
                 auto k_size = grid.k_max() + 1;
@@ -119,15 +119,15 @@ namespace gridtools {
             }
         };
 
-        template < class MaxExtent, class StorageWrapper, class GridTraits >
-        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Block > {
+        template <class MaxExtent, class StorageWrapper, class GridTraits>
+        struct tmp_storage_size_f<MaxExtent, StorageWrapper, GridTraits, enumtype::Block> {
             using storage_info_t = typename StorageWrapper::storage_info_t;
             using halo_t = typename storage_info_t::halo_t;
-            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
-            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
+            static constexpr uint_t halo_i = halo_t::template at<GridTraits::dim_i_t::value>();
+            static constexpr uint_t halo_j = halo_t::template at<GridTraits::dim_j_t::value>();
 
-            template < class Grid >
-            std::array< uint_t, 3 > operator()(Grid const &grid) const {
+            template <class Grid>
+            std::array<uint_t, 3> operator()(Grid const &grid) const {
                 auto threads = omp_get_max_threads();
                 auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
                 auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
@@ -143,17 +143,17 @@ namespace gridtools {
            regions for each thread. This method calculates the offset for temporaries and takes the private halo and
            alignment information into account.
         */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
+        static typename boost::enable_if_c<Arg::is_temporary, int>::type fields_offset(StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             // get the thread ID
             const uint_t i = processing_element_i();
             // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            constexpr int halo_i = StorageInfo::halo_t::template at<grid_traits_t::dim_i_t::value>();
             // compute the blocksize
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
-            const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
+            const int stride_i = sinfo->template stride<grid_traits_t::dim_i_t::value>();
             return stride_i * (i * blocksize + halo_i);
         }
 
@@ -162,8 +162,8 @@ namespace gridtools {
            storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
            the offset of this pointer. This function computes the field offset for non temporary storages.
         */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
+        static typename boost::enable_if_c<!Arg::is_temporary, int>::type fields_offset(StorageInfo const *sinfo) {
             return 0;
         }
 
@@ -172,23 +172,23 @@ namespace gridtools {
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
          */
-        template < typename RunFunctorArgs >
+        template <typename RunFunctorArgs>
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
+            template <typename LocalDomain, typename Grid, typename ReductionData>
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_host &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
                 // each strategy executes a different high level loop for a mss
-                strategy_from_id_host< backend_ids_t::s_strategy_id >::template mss_loop<
-                    RunFunctorArgs >::template run(local_domain, grid, reduction_data, execution_info);
+                strategy_from_id_host<backend_ids_t::s_strategy_id>::template mss_loop<RunFunctorArgs>::template run(
+                    local_domain, grid, reduction_data, execution_info);
             }
         };
 
@@ -198,18 +198,18 @@ namespace gridtools {
         typedef std::false_type mss_fuse_esfs_strategy;
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2< run_esf_functor_host > run_esf_functor_h_t;
+        typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template < typename BackendIds >
+        template <typename BackendIds>
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_host< BackendIds::s_strategy_id > type;
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            typedef strategy_from_id_host<BackendIds::s_strategy_id> type;
         };
 
-        template < enumtype::strategy StrategyId >
+        template <enumtype::strategy StrategyId>
         struct get_block_size {
-            typedef typename strategy_from_id_host< StrategyId >::block_size_t type;
+            typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
         };
 
         /**
@@ -218,33 +218,33 @@ namespace gridtools {
          * @param IterateDomainArguments the iterate domain arguments
          * @return the iterate domain type for this backend
          */
-        template < typename IterateDomainArguments >
+        template <typename IterateDomainArguments>
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 // indirection in order to avoid instantiation of both types of the eval_if
 #ifdef STRUCTURED_GRIDS
-            template < typename _IterateDomainArguments >
+            template <typename _IterateDomainArguments>
             struct select_positional_iterate_domain {
-                typedef iterate_domain_host< positional_iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_host<positional_iterate_domain, _IterateDomainArguments> type;
             };
 #endif
 
-            template < typename _IterateDomainArguments >
+            template <typename _IterateDomainArguments>
             struct select_basic_iterate_domain {
-                typedef iterate_domain_host< iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_host<iterate_domain, _IterateDomainArguments> type;
             };
 
-            typedef typename boost::mpl::eval_if<
-                local_domain_is_stateful< typename IterateDomainArguments::local_domain_t >,
+            typedef
+                typename boost::mpl::eval_if<local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
 #ifdef STRUCTURED_GRIDS
-                select_positional_iterate_domain< IterateDomainArguments >,
+                    select_positional_iterate_domain<IterateDomainArguments>,
 #else
-                select_basic_iterate_domain< IterateDomainArguments >,
+                    select_basic_iterate_domain<IterateDomainArguments>,
 #endif
-                select_basic_iterate_domain< IterateDomainArguments > >::type type;
+                    select_basic_iterate_domain<IterateDomainArguments>>::type type;
         };
 
-        template < typename IterateDomainArguments >
+        template <typename IterateDomainArguments>
         struct select_iterate_domain_cache {
             typedef empty_iterate_domain_cache type;
         };

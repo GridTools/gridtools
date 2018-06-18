@@ -47,13 +47,13 @@ namespace gridtools {
 
     namespace _impl_strcuda {
 
-        template < int VBoundary >
+        template <int VBoundary>
         struct padded_boundary
-            : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
+            : boost::mpl::integral_c<int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8))> {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template < typename RunFunctorArguments, size_t NumThreads >
+        template <typename RunFunctorArguments, size_t NumThreads>
         __global__ void __launch_bounds__(NumThreads)
             do_it_on_gpu(typename RunFunctorArguments::local_domain_t const l_domain,
                 typename RunFunctorArguments::grid_t const grid) {
@@ -68,13 +68,14 @@ namespace gridtools {
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
-            typedef backend_traits_from_id< enumtype::Cuda > backend_traits_t;
+            typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
             typedef typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
-            typedef shared_iterate_domain< data_ptr_cached_t,
+            typedef shared_iterate_domain<data_ptr_cached_t,
                 strides_t,
                 max_extent_t,
-                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
+                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t>
+                shared_iterate_domain_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
@@ -95,8 +96,8 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_storage_pointers< backend_traits_t >();
-            it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
+            it_domain.template assign_storage_pointers<backend_traits_t>();
+            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
             __syncthreads();
 
@@ -148,7 +149,7 @@ namespace gridtools {
                 iblock = threadIdx.x;
                 jblock = (int)threadIdx.y + max_extent_t::jminus::value;
             } else if (threadIdx.y < iminus_limit) {
-                const int padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
+                const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
                 assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
                            padded_boundary_ <=
@@ -160,7 +161,7 @@ namespace gridtools {
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
-                const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
+                const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
                 assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
                            padded_boundary_ <=
@@ -176,25 +177,26 @@ namespace gridtools {
             it_domain.reset_index();
 
             // initialize the indices
-            it_domain.template initialize< 0 >(i + grid.i_low_bound(), blockIdx.x);
-            it_domain.template initialize< 1 >(j + grid.j_low_bound(), blockIdx.y);
+            it_domain.template initialize<0>(i + grid.i_low_bound(), blockIdx.x);
+            it_domain.template initialize<1>(j + grid.j_low_bound(), blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
-            typedef typename boost::mpl::front< typename RunFunctorArguments::loop_intervals_t >::type interval;
-            typedef typename index_to_level< typename interval::first >::type from;
-            typedef typename index_to_level< typename interval::second >::type to;
-            typedef _impl::iteration_policy< from,
+            typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
+            typedef typename index_to_level<typename interval::first>::type from;
+            typedef typename index_to_level<typename interval::second>::type to;
+            typedef _impl::iteration_policy<from,
                 to,
-                typename grid_traits_from_id< enumtype::structured >::dim_k_t,
-                execution_type_t::type::iteration > iteration_policy_t;
+                typename grid_traits_from_id<enumtype::structured>::dim_k_t,
+                execution_type_t::type::iteration>
+                iteration_policy_t;
 
-            it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >(
-                grid.template value_at< iteration_policy_t::from >());
+            it_domain.template initialize<grid_traits_from_id<enumtype::structured>::dim_k_t::value>(
+                grid.template value_at<iteration_policy_t::from>());
 
             // execute the k interval functors
-            boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(
-                _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >(it_domain, grid));
+            boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
+                _impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain, grid));
 
             __syncthreads();
         }
@@ -206,14 +208,14 @@ namespace gridtools {
          * @brief main functor that setups the CUDA kernel for a MSS and launchs it
          * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
          */
-        template < typename RunFunctorArguments >
+        template <typename RunFunctorArguments>
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< local_domain_t >::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable< grid_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable<local_domain_t>::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(cuda_util::is_cloneable<grid_t>::value, GT_INTERNAL_ERROR);
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain, const grid_t &grid)
@@ -281,8 +283,8 @@ namespace gridtools {
 #endif
 
                 constexpr size_t num_threads = cuda_block_size_t::i_size_t::value * cuda_block_size_t::j_size_t::value;
-                _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t, num_threads ><<< blocks, threads >>>(
-                    m_local_domain, m_grid);
+                _impl_strcuda::do_it_on_gpu<run_functor_arguments_cuda_t, num_threads>
+                    <<<blocks, threads>>>(m_local_domain, m_grid);
 
 #ifndef NDEBUG
                 cudaDeviceSynchronize();

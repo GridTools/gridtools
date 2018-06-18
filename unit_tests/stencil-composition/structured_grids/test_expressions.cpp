@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "../../cuda_gtest_plugin.hpp"
+#include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
@@ -44,39 +44,39 @@ using namespace gridtools::expressions;
 /*
  * Mocking accessor and iterate domain
  */
-template < typename T >
+template <typename T>
 struct accessor_mock {
     using return_type = T;
     T value;
 };
 
 namespace gridtools {
-    template < typename T >
-    struct is_accessor< accessor_mock< T > > : boost::mpl::true_ {};
-}
+    template <typename T>
+    struct is_accessor<accessor_mock<T>> : boost::mpl::true_ {};
+} // namespace gridtools
 
 struct iterate_domain_mock {
-    template < typename... Ts >
+    template <typename... Ts>
     GT_FUNCTION iterate_domain_mock(Ts...) {}
 
     // trivial evaluation of the accessor_mock
-    template < typename Accessor, typename std::enable_if< is_accessor< Accessor >::value, int >::type = 0 >
+    template <typename Accessor, typename std::enable_if<is_accessor<Accessor>::value, int>::type = 0>
     GT_FUNCTION typename Accessor::return_type operator()(Accessor const &val) const {
         return val.value;
     }
 
     // copy of the iterate_domain for expr
-    template < class Op, class... Args >
-    GT_FUNCTION auto operator()(expr< Op, Args... > const &arg) const
+    template <class Op, class... Args>
+    GT_FUNCTION auto operator()(expr<Op, Args...> const &arg) const
         GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
 };
 
 namespace gridtools {
     template <>
-    struct is_iterate_domain< iterate_domain_mock > : boost::mpl::true_ {};
-}
+    struct is_iterate_domain<iterate_domain_mock> : boost::mpl::true_ {};
+} // namespace gridtools
 
-using val = accessor_mock< float >;
+using val = accessor_mock<float>;
 
 /*
  * User API tests
@@ -130,8 +130,8 @@ CUDA_TEST(test_expressions, with_parenthesis) {
  * Library tests illustrating how expressions are evaluated
  */
 TEST(test_expressions, expr_plus_by_ctor) {
-    accessor_mock< double > a{1};
-    accessor_mock< double > b{2};
+    accessor_mock<double> a{1};
+    accessor_mock<double> b{2};
 
     auto add = make_expr(plus_f{}, a, b);
 

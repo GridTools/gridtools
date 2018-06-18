@@ -53,21 +53,20 @@ namespace gridtools {
      * @tparam T first sequence
      * @tparam V second sequence
      */
-    template < typename T, typename V >
+    template <typename T, typename V>
     struct combine {
-        typedef typename boost::mpl::fold< T, V, boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
+        typedef typename boost::mpl::fold<T, V, boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>>::type type;
     };
 
     /** @brief This meta-function takes a sequence (T) that contains an arbitrary number of sub-sequences
      * and creates a single vector that contains all elements of all the sub-sequences.
      * @tparam T sequence of sequences
      */
-    template < class T >
+    template <class T>
     struct flatten {
-        typedef
-            typename boost::mpl::fold< T, boost::mpl::vector0<>, combine< boost::mpl::_2, boost::mpl::_1 > >::type type;
+        typedef typename boost::mpl::fold<T, boost::mpl::vector0<>, combine<boost::mpl::_2, boost::mpl::_1>>::type type;
     };
     /** @} */
     /** @} */
     /** @} */
-}
+} // namespace gridtools

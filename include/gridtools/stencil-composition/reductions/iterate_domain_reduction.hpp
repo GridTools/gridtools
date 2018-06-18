@@ -38,7 +38,7 @@
 namespace gridtools {
 
     namespace impl {
-        template < typename IterateDomainArguments, bool IsReduction >
+        template <typename IterateDomainArguments, bool IsReduction>
         class iterate_domain_reduction_impl {
             typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
 
@@ -49,8 +49,8 @@ namespace gridtools {
             reduction_type_t reduction_value() const { return 0; }
         };
 
-        template < typename IterateDomainArguments >
-        class iterate_domain_reduction_impl< IterateDomainArguments, true > {
+        template <typename IterateDomainArguments>
+        class iterate_domain_reduction_impl<IterateDomainArguments, true> {
           protected:
             typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
 
@@ -67,17 +67,17 @@ namespace gridtools {
           private:
             reduction_type_t m_reduced_value;
         };
-    }
+    } // namespace impl
 
-    template < typename IterateDomainArguments >
+    template <typename IterateDomainArguments>
     class iterate_domain_reduction
-        : public impl::iterate_domain_reduction_impl< IterateDomainArguments, IterateDomainArguments::s_is_reduction > {
+        : public impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction> {
       public:
         typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
 
         GT_FUNCTION
         iterate_domain_reduction(const reduction_type_t &initial_value)
-            : impl::iterate_domain_reduction_impl< IterateDomainArguments, IterateDomainArguments::s_is_reduction >(
+            : impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction>(
                   initial_value) {}
     };
-}
+} // namespace gridtools

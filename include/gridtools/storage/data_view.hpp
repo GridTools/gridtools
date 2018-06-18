@@ -64,7 +64,7 @@ namespace gridtools {
     /** \ingroup storage
      * @{
      */
-    template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
+    template <typename DataStore, access_mode AccessMode = access_mode::ReadWrite>
     struct data_view;
 
     namespace advanced {
@@ -78,7 +78,7 @@ namespace gridtools {
             \param dv The data_view object
             \param i The index of the pointer in the arrays of raw pointers
         */
-        template < typename DataView >
+        template <typename DataView>
         typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i];
         }
@@ -88,10 +88,10 @@ namespace gridtools {
          *
          *  Destination should be an array or should model STL container concept.
          */
-        template < typename Src, typename Dst >
+        template <typename Src, typename Dst>
         void copy_raw_pointers(Src const &src, Dst &dst) {
-            using std::copy;
             using std::begin;
+            using std::copy;
             using std::end;
             copy(begin(src.m_raw_ptrs), end(src.m_raw_ptrs), begin(dst));
         }
@@ -106,13 +106,13 @@ namespace gridtools {
             \param dv The data_view object
             \param i The index of the pointer in the arrays of raw pointers
         */
-        template < typename DataView >
+        template <typename DataView>
         inline typename DataView::data_t *get_address_of(DataView const &dv, int i = 0) {
             return dv.m_raw_ptrs[i];
         }
 
-        template < typename DataStore, access_mode AccessMode >
-        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view< DataStore, AccessMode > const &);
+        template <typename DataStore, access_mode AccessMode>
+        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view<DataStore, AccessMode> const &);
 
     } // namespace advanced
 
@@ -122,10 +122,10 @@ namespace gridtools {
      * @tparam DataStore data store type
      * @tparam AccessMode access mode (default is read-write)
      */
-    template < typename DataStore, access_mode AccessMode >
+    template <typename DataStore, access_mode AccessMode>
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
-            is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+            is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
@@ -184,14 +184,14 @@ namespace gridtools {
          * @return pointer to the first position
          */
         GT_FUNCTION
-        data_t *ptr_to_first_position() { return &operator()(gridtools::array< int, storage_info_t::ndims >{{}}); }
+        data_t *ptr_to_first_position() { return &operator()(gridtools::array<int, storage_info_t::ndims>{{}}); }
 
         /**
          * return pointer to the first position
          */
         GT_FUNCTION
         data_t const *ptr_to_first_position() const {
-            return &operator()(gridtools::array< int, storage_info_t::ndims >{{}});
+            return &operator()(gridtools::array<int, storage_info_t::ndims>{{}});
         }
 
         /**
@@ -199,11 +199,11 @@ namespace gridtools {
          * @param c given indices
          * @return reference to the queried value
          */
-        template < typename... Coords >
-        typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
+        template <typename... Coords>
+        typename boost::mpl::if_c<(AccessMode == access_mode::ReadOnly), data_t const &, data_t &>::type GT_FUNCTION
         operator()(Coords... c) const {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
-                                        typename is_all_integral_or_enum< Coords... >::type >::value),
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_<boost::mpl::bool_<(sizeof...(Coords) > 0)>,
+                                        typename is_all_integral_or_enum<Coords...>::type>::value),
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
             CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptrs[0][m_storage_info->index(c...)];
@@ -214,8 +214,8 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
-        operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
+        typename boost::mpl::if_c<(AccessMode == access_mode::ReadOnly), data_t const &, data_t &>::type GT_FUNCTION
+        operator()(gridtools::array<int, storage_info_t::ndims> const &arr) const {
             CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
@@ -252,9 +252,9 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint_t Dim >
+        template <uint_t Dim>
         GT_FUNCTION constexpr int length() const {
-            return m_storage_info->template length< Dim >();
+            return m_storage_info->template length<Dim>();
         }
 
         /*
@@ -262,9 +262,9 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint_t Dim >
+        template <uint_t Dim>
         GT_FUNCTION constexpr int total_length() const {
-            return m_storage_info->template total_length< Dim >();
+            return m_storage_info->template total_length<Dim>();
         }
 
         /*
@@ -273,9 +273,9 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint_t Dim >
+        template <uint_t Dim>
         GT_FUNCTION constexpr int total_begin() const {
-            return m_storage_info->template total_begin< Dim >();
+            return m_storage_info->template total_begin<Dim>();
         }
 
         /*
@@ -283,9 +283,9 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint_t Dim >
+        template <uint_t Dim>
         GT_FUNCTION constexpr int begin() const {
-            return m_storage_info->template begin< Dim >();
+            return m_storage_info->template begin<Dim>();
         }
 
         /*
@@ -294,9 +294,9 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint_t Dim >
+        template <uint_t Dim>
         GT_FUNCTION constexpr int total_end() const {
-            return m_storage_info->template total_end< Dim >();
+            return m_storage_info->template total_end<Dim>();
         }
 
         /*
@@ -304,39 +304,39 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint_t Dim >
+        template <uint_t Dim>
         GT_FUNCTION constexpr int end() const {
-            return m_storage_info->template end< Dim >();
+            return m_storage_info->template end<Dim>();
         }
 
-        template < typename T >
+        template <typename T>
         friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
 
-        template < typename T >
+        template <typename T>
         friend typename T::data_t *advanced::get_address_of(T const &, int);
 
-        template < typename Src, typename Dst >
+        template <typename Src, typename Dst>
         friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
 
-        template < typename D, access_mode A >
-        friend typename D::storage_info_t const *advanced::storage_info_raw_ptr(data_view< D, A > const &);
+        template <typename D, access_mode A>
+        friend typename D::storage_info_t const *advanced::storage_info_raw_ptr(data_view<D, A> const &);
     };
 
-    template < typename T >
+    template <typename T>
     struct is_data_view : boost::mpl::false_ {};
 
-    template < typename Storage, access_mode AccessMode >
-    struct is_data_view< data_view< Storage, AccessMode > > : boost::mpl::true_ {};
+    template <typename Storage, access_mode AccessMode>
+    struct is_data_view<data_view<Storage, AccessMode>> : boost::mpl::true_ {};
 
     namespace advanced {
-        template < typename DataStore, access_mode AccessMode >
-        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view< DataStore, AccessMode > const &src) {
+        template <typename DataStore, access_mode AccessMode>
+        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view<DataStore, AccessMode> const &src) {
             return src.m_storage_info;
         }
-    }
+    } // namespace advanced
     /**
      * @}
      */
-}
+} // namespace gridtools
 
 #undef CHECK_MEMORY_SPACE

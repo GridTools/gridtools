@@ -35,14 +35,14 @@
 */
 #pragma once
 
+#include "../benchmarker.hpp"
+#include "curl_functors.hpp"
+#include "operator_defs.hpp"
+#include "operators_repository.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "operators_repository.hpp"
-#include "../benchmarker.hpp"
-#include "operator_defs.hpp"
-#include "curl_functors.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -64,7 +64,7 @@ namespace ico_operators {
         const uint_t halo_mc = repo.halo_mc;
         const uint_t halo_k = repo.halo_k;
 
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
+        typedef gridtools::layout_map<2, 1, 0> layout_t;
 
         using edge_storage_type = repository::edge_storage_type;
         using cell_storage_type = repository::cell_storage_type;
@@ -81,10 +81,10 @@ namespace ico_operators {
         auto &ref_vertices = repo.curl_u_ref();
         auto &out_vertices = repo.out_vertex();
 
-        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage< icosahedral_topology_t::vertices,
+        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage<icosahedral_topology_t::vertices,
                                               float_type,
                                               typename repository::halo_5d_t,
-                                              selector< 1, 1, 1, 1, 1 > >("weights", 6));
+                                              selector<1, 1, 1, 1, 1>>("weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
         curl_weights = vertices_4d_storage_type(*curl_weights.get_storage_info_ptr(), 0.0);
@@ -97,22 +97,19 @@ namespace ico_operators {
         bool result = true;
 
         {
-            typedef arg< 0, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
-            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef arg< 2, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 3, edges_of_vertices_storage_type, enumtype::vertices > p_edge_orientation;
+            typedef arg<0, vertex_2d_storage_type, enumtype::vertices> p_dual_area_reciprocal;
+            typedef arg<1, edge_2d_storage_type, enumtype::edges> p_dual_edge_length;
+            typedef arg<2, vertices_4d_storage_type, enumtype::vertices> p_curl_weights;
+            typedef arg<3, edges_of_vertices_storage_type, enumtype::vertices> p_edge_orientation;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_dual_area_reciprocal{} = dual_area_reciprocal,
                 p_dual_edge_length{} = dual_edge_length,
                 p_curl_weights{} = curl_weights,
                 p_edge_orientation{} = edge_orientation,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< curl_prep_functor,
-                        icosahedral_topology_t,
-                        icosahedral_topology_t::vertices >(
+                (execute<forward>(),
+                    gridtools::make_stage<curl_prep_functor, icosahedral_topology_t, icosahedral_topology_t::vertices>(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
             stencil_.run();
 
@@ -123,20 +120,19 @@ namespace ico_operators {
         }
 
         {
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-            typedef arg< 1, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 2, vertex_storage_type, enumtype::vertices > p_out_vertices;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
+            typedef arg<1, vertices_4d_storage_type, enumtype::vertices> p_curl_weights;
+            typedef arg<2, vertex_storage_type, enumtype::vertices> p_out_vertices;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_curl_weights{} = curl_weights,
                 p_out_vertices{} = out_vertices,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< curl_functor_weights,
+                (execute<forward>(),
+                    gridtools::make_stage<curl_functor_weights,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::vertices >(p_in_edges(), p_curl_weights(), p_out_vertices())));
+                        icosahedral_topology_t::vertices>(p_in_edges(), p_curl_weights(), p_out_vertices())));
 
             stencil_.run();
 
@@ -149,7 +145,7 @@ namespace ico_operators {
 #else
             verifier ver(1e-9);
 #endif
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+            array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
 
 #ifdef BENCHMARK
@@ -159,22 +155,21 @@ namespace ico_operators {
         }
 
         {
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-            typedef arg< 1, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
-            typedef arg< 2, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef arg< 3, vertex_storage_type, enumtype::vertices > p_out_vertices;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
+            typedef arg<1, vertex_2d_storage_type, enumtype::vertices> p_dual_area_reciprocal;
+            typedef arg<2, edge_2d_storage_type, enumtype::edges> p_dual_edge_length;
+            typedef arg<3, vertex_storage_type, enumtype::vertices> p_out_vertices;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_dual_area_reciprocal{} = dual_area_reciprocal,
                 p_dual_edge_length{} = dual_edge_length,
                 p_out_vertices{} = out_vertices,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< curl_functor_flow_convention,
+                (execute<forward>(),
+                    gridtools::make_stage<curl_functor_flow_convention,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::vertices >(
+                        icosahedral_topology_t::vertices>(
                         p_in_edges(), p_dual_area_reciprocal(), p_dual_edge_length(), p_out_vertices())));
 
             stencil_.run();
@@ -190,7 +185,7 @@ namespace ico_operators {
             verifier ver(1e-9);
 #endif
 
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+            array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
 
 #ifdef BENCHMARK
@@ -201,4 +196,4 @@ namespace ico_operators {
 
         return result;
     }
-}
+} // namespace ico_operators

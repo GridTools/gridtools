@@ -37,19 +37,19 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 #ifdef __CUDACC__
-#include "m_packZL.hpp"
-#include "m_packZU.hpp"
-#include "m_packYL.hpp"
-#include "m_packYU.hpp"
 #include "m_packXL.hpp"
 #include "m_packXU.hpp"
+#include "m_packYL.hpp"
+#include "m_packYU.hpp"
+#include "m_packZL.hpp"
+#include "m_packZU.hpp"
 
-#include "m_unpackZL.hpp"
-#include "m_unpackZU.hpp"
-#include "m_unpackYL.hpp"
-#include "m_unpackYU.hpp"
 #include "m_unpackXL.hpp"
 #include "m_unpackXU.hpp"
+#include "m_unpackYL.hpp"
+#include "m_unpackYU.hpp"
+#include "m_unpackZL.hpp"
+#include "m_unpackZU.hpp"
 #endif
 
 namespace gridtools {
@@ -71,10 +71,10 @@ namespace gridtools {
 
         \tparam DIMS the number of dimensions of the data field
     */
-    template < int DIMS >
-    class empty_field_no_dt_gpu : public empty_field_base< int, DIMS > {
+    template <int DIMS>
+    class empty_field_no_dt_gpu : public empty_field_base<int, DIMS> {
 
-        typedef empty_field_base< int, DIMS > base_type;
+        typedef empty_field_base<int, DIMS> base_type;
 
       public:
         /**
@@ -88,17 +88,17 @@ namespace gridtools {
         const halo_descriptor *raw_array() const { return &(base_type::halos[0]); }
 
       protected:
-        template < typename DataType, typename GridType, typename HaloExch, typename proc_layout, typename arch, int V >
+        template <typename DataType, typename GridType, typename HaloExch, typename proc_layout, typename arch, int V>
         friend class hndlr_dynamic_ut;
 
-        template < int I >
-        friend std::ostream &operator<<(std::ostream &s, empty_field_no_dt_gpu< I > const &ef);
+        template <int I>
+        friend std::ostream &operator<<(std::ostream &s, empty_field_no_dt_gpu<I> const &ef);
 
         halo_descriptor *dangerous_raw_array() { return &(base_type::halos[0]); }
     };
 
-    template < int I >
-    std::ostream &operator<<(std::ostream &s, empty_field_no_dt_gpu< I > const &ef) {
+    template <int I>
+    std::ostream &operator<<(std::ostream &s, empty_field_no_dt_gpu<I> const &ef) {
         s << "empty_field_no_dt_gpu ";
         for (int i = 0; i < I; ++i)
             s << ef.raw_array()[i] << ", ";
@@ -107,16 +107,16 @@ namespace gridtools {
 
 #ifdef __CUDACC__
     /** specialization for GPU and manual packing */
-    template < typename DataType, typename HaloExch, typename proc_layout, template < int Ndim > class GridType >
-    class hndlr_dynamic_ut< DataType, GridType< 3 >, HaloExch, proc_layout, gcl_gpu, 2 >
-        : public descriptor_base< HaloExch > {
+    template <typename DataType, typename HaloExch, typename proc_layout, template <int Ndim> class GridType>
+    class hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu, 2>
+        : public descriptor_base<HaloExch> {
 
         static const int DIMS = 3;
 
-        typedef hndlr_dynamic_ut< DataType, GridType< 3 >, HaloExch, proc_layout, gcl_gpu, 2 > this_type;
+        typedef hndlr_dynamic_ut<DataType, GridType<3>, HaloExch, proc_layout, gcl_gpu, 2> this_type;
 
       public:
-        empty_field_no_dt_gpu< DIMS > halo;
+        empty_field_no_dt_gpu<DIMS> halo;
 
       private:
         typedef gcl_gpu arch_type;
@@ -125,17 +125,17 @@ namespace gridtools {
 
         halo_descriptor dangeroushalo[3];
         halo_descriptor dangeroushalo_r[3];
-        array< DataType *, _impl::static_pow3< DIMS >::value > send_buffer;
-        array< DataType *, _impl::static_pow3< DIMS >::value > recv_buffer;
-        array< int, _impl::static_pow3< DIMS >::value > send_size;
-        array< int, _impl::static_pow3< DIMS >::value > recv_size;
+        array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer;
+        array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
+        array<int, _impl::static_pow3<DIMS>::value> send_size;
+        array<int, _impl::static_pow3<DIMS>::value> recv_size;
         int *d_send_size;
         int *d_recv_size;
 
         halo_descriptor *halo_d;   // pointer to halo descr on device
         halo_descriptor *halo_d_r; // pointer to halo descr on device
       public:
-        typedef descriptor_base< HaloExch > base_type;
+        typedef descriptor_base<HaloExch> base_type;
         typedef base_type pattern_type;
 
         /**
@@ -146,7 +146,7 @@ namespace gridtools {
         /**
            Type of the translation used to map dimensions to buffer addresses
          */
-        typedef translate_t< DIMS, typename default_layout_map< DIMS >::type > translate;
+        typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
       private:
         hndlr_dynamic_ut(hndlr_dynamic_ut const &) {}
@@ -180,9 +180,9 @@ namespace gridtools {
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
                         if (!send_buffer[translate()(i, j, k)])
-                            _impl::gcl_alloc< DataType, arch_type >::free(send_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<DataType, arch_type>::free(send_buffer[translate()(i, j, k)]);
                         if (!recv_buffer[translate()(i, j, k)])
-                            _impl::gcl_alloc< DataType, arch_type >::free(recv_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<DataType, arch_type>::free(recv_buffer[translate()(i, j, k)]);
                     }
             int err = cudaFree(d_send_buffer);
             if (err != cudaSuccess) {
@@ -226,8 +226,8 @@ namespace gridtools {
         */
         void setup(const int max_fields_n) {
 
-            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
-            typedef translate_t< 3, proc_layout > translate_P;
+            typedef translate_t<3, default_layout_map<3>::type> translate;
+            typedef translate_t<3, proc_layout> translate_P;
 
             dangeroushalo[0] = halo.dangerous_raw_array()[0];
             dangeroushalo[1] = halo.dangerous_raw_array()[1];
@@ -273,9 +273,9 @@ namespace gridtools {
                 int ii = 1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     dangeroushalo[0].reset_minus();
                     dangeroushalo_r[0].reset_plus();
@@ -286,9 +286,9 @@ namespace gridtools {
                 int ii = -1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     dangeroushalo[0].reset_plus();
                     dangeroushalo_r[0].reset_minus();
@@ -299,9 +299,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 1;
                 int kk = 0;
-                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     dangeroushalo[1].reset_minus();
                     dangeroushalo_r[1].reset_plus();
@@ -312,9 +312,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = -1;
                 int kk = 0;
-                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     dangeroushalo[1].reset_plus();
                     dangeroushalo_r[1].reset_minus();
@@ -325,9 +325,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = 1;
-                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     dangeroushalo[2].reset_minus();
                     dangeroushalo_r[2].reset_plus();
@@ -338,9 +338,9 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = -1;
-                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     dangeroushalo[2].reset_plus();
                     dangeroushalo_r[2].reset_minus();
@@ -393,14 +393,14 @@ namespace gridtools {
                     for (int kk = -1; kk <= 1; ++kk)
                         if (ii != 0 || jj != 0 || kk != 0) {
                             typedef typename translate_P::map_type map_type;
-                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
 
                             if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
                                 send_size[translate()(ii, jj, kk)] = halo.send_buffer_size(make_array(ii, jj, kk));
 
-                                send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc< DataType, arch_type >::alloc(
+                                send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<DataType, arch_type>::alloc(
                                     send_size[translate()(ii, jj, kk)] * max_fields_n);
 
                                 base_type::m_haloexch.register_send_to_buffer(
@@ -412,7 +412,7 @@ namespace gridtools {
 
                                 recv_size[translate()(ii, jj, kk)] = halo.recv_buffer_size(make_array(ii, jj, kk));
 
-                                recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc< DataType, arch_type >::alloc(
+                                recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<DataType, arch_type>::alloc(
                                     recv_size[translate()(ii, jj, kk)] * max_fields_n);
 
                                 base_type::m_haloexch.register_receive_from_buffer(
@@ -436,50 +436,50 @@ namespace gridtools {
                         }
 
             int err;
-            err = cudaMalloc((&d_send_buffer), _impl::static_pow3< DIMS >::value * sizeof(DataType *));
+            err = cudaMalloc((&d_send_buffer), _impl::static_pow3<DIMS>::value * sizeof(DataType *));
             if (err != cudaSuccess) {
                 printf("Error creating buffer table on device\n");
             }
 
             err = cudaMemcpy(d_send_buffer,
                 &(send_buffer[0]),
-                _impl::static_pow3< DIMS >::value * sizeof(DataType *),
+                _impl::static_pow3<DIMS>::value * sizeof(DataType *),
                 cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
                 printf("Error transferring buffer table to device\n");
             }
 
-            err = cudaMalloc(&d_recv_buffer, _impl::static_pow3< DIMS >::value * sizeof(DataType *));
+            err = cudaMalloc(&d_recv_buffer, _impl::static_pow3<DIMS>::value * sizeof(DataType *));
             if (err != cudaSuccess) {
                 printf("Error creating buffer table on device\n");
             }
 
             err = cudaMemcpy(d_recv_buffer,
                 &(recv_buffer[0]),
-                _impl::static_pow3< DIMS >::value * sizeof(DataType *),
+                _impl::static_pow3<DIMS>::value * sizeof(DataType *),
                 cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
                 printf("Error transferring buffer table to device\n");
             }
 
-            err = cudaMalloc(&d_send_size, _impl::static_pow3< DIMS >::value * sizeof(int));
+            err = cudaMalloc(&d_send_size, _impl::static_pow3<DIMS>::value * sizeof(int));
             if (err != cudaSuccess) {
                 printf("Error creating buffer table on device\n");
             }
 
             err = cudaMemcpy(
-                d_send_size, &(send_size[0]), _impl::static_pow3< DIMS >::value * sizeof(int), cudaMemcpyHostToDevice);
+                d_send_size, &(send_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
                 printf("Error transferring buffer table to device\n");
             }
 
-            err = cudaMalloc(&d_recv_size, _impl::static_pow3< DIMS >::value * sizeof(int));
+            err = cudaMalloc(&d_recv_size, _impl::static_pow3<DIMS>::value * sizeof(int));
             if (err != cudaSuccess) {
                 printf("Error creating buffer table on device\n");
             }
 
             err = cudaMemcpy(
-                d_recv_size, &(recv_size[0]), _impl::static_pow3< DIMS >::value * sizeof(int), cudaMemcpyHostToDevice);
+                d_recv_size, &(recv_size[0]), _impl::static_pow3<DIMS>::value * sizeof(int), cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
                 printf("Error transferring buffer table to device\n");
             }
@@ -512,10 +512,10 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be packed from
         */
-        template < typename... Pointers >
+        template <typename... Pointers>
         void pack(const Pointers *... fields) {
-            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
-            auto ints = typename make_gt_integer_sequence< unsigned int, sizeof...(Pointers) >::type{};
+            typedef translate_t<3, default_layout_map<3>::type> translate;
+            auto ints = typename make_gt_integer_sequence<unsigned int, sizeof...(Pointers)>::type{};
             if (send_size[translate()(0, 0, -1)]) {
                 m_packZL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
             }
@@ -552,10 +552,10 @@ namespace gridtools {
 #endif
         }
 
-        template < typename... Pointers >
+        template <typename... Pointers>
         void unpack(Pointers *... fields) {
-            auto ints = typename make_gt_integer_sequence< unsigned int, sizeof...(Pointers) >::type{};
-            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
+            auto ints = typename make_gt_integer_sequence<unsigned int, sizeof...(Pointers)>::type{};
+            typedef translate_t<3, default_layout_map<3>::type> translate;
             if (recv_size[translate()(0, 0, -1)]) {
                 m_unpackZL_variadic(
                     d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
@@ -587,8 +587,8 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be packed from
         */
-        void pack(std::vector< DataType * > const &fields) {
-            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
+        void pack(std::vector<DataType *> const &fields) {
+            typedef translate_t<3, default_layout_map<3>::type> translate;
             if (send_size[translate()(0, 0, -1)]) {
                 m_packZL(fields, d_send_buffer, d_send_size, dangeroushalo, halo_d);
             }
@@ -676,8 +676,8 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be unpacked into
         */
-        void unpack(std::vector< DataType * > const &fields) {
-            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
+        void unpack(std::vector<DataType *> const &fields) {
+            typedef translate_t<3, default_layout_map<3>::type> translate;
             if (recv_size[translate()(0, 0, -1)]) {
                 m_unpackZL(fields, d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r);
             }
@@ -699,4 +699,4 @@ namespace gridtools {
         }
     };
 #endif
-} // namespace
+} // namespace gridtools

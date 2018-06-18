@@ -34,22 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../grid_traits_backend_fwd.hpp"
 #include "../../run_functor_arguments_fwd.hpp"
+#include "../grid_traits_backend_fwd.hpp"
 #include "execute_kernel_functor_mic_fwd.hpp"
 
 namespace gridtools {
 
     namespace icgrid {
         template <>
-        struct grid_traits_arch< enumtype::Mic > {
-            template < typename RunFunctorArguments >
+        struct grid_traits_arch<enumtype::Mic> {
+            template <typename RunFunctorArguments>
             struct kernel_functor_executor {
-                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-                typedef execute_kernel_functor_mic< RunFunctorArguments > type;
+                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+                typedef execute_kernel_functor_mic<RunFunctorArguments> type;
             };
 
-            typedef layout_map< 0, 1, 2, 3 > layout_map_t;
+            typedef layout_map<0, 1, 2, 3> layout_map_t;
         };
-    }
-}
+    } // namespace icgrid
+} // namespace gridtools

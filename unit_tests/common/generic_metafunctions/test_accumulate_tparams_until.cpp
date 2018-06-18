@@ -35,22 +35,22 @@
 */
 #include "gtest/gtest.h"
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/gt_assert.hpp>
 #include <gridtools/common/generic_metafunctions/accumulate_tparams_until.hpp>
 #include <gridtools/common/generic_metafunctions/binary_ops.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 using namespace gridtools;
 
 namespace gridtools {
 
-    template < int_t... Vals >
+    template <int_t... Vals>
     struct test_container {};
-}
+} // namespace gridtools
 
 TEST(accumulate_tparams_until, first_few_vals) {
-    using ref = test_container< 1, -2, 3, -3, 4, 5 >;
-    using test = test_container< 1, -2, 3, -2, 4, 5 >;
+    using ref = test_container<1, -2, 3, -3, 4, 5>;
+    using test = test_container<1, -2, 3, -2, 4, 5>;
 
-    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until< equal, logical_and, ref, test, 3 >::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until< equal, logical_and, ref, test, 4 >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until<equal, logical_and, ref, test, 3>::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until<equal, logical_and, ref, test, 4>::value), "ERROR");
 }

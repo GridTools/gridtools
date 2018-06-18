@@ -36,41 +36,41 @@
 
 #pragma once
 
-#include "../../common/make_array.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/hypercube_iterator.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
+#include "../../common/make_array.hpp"
+#include "../../storage/storage-facility.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
-#include "../../storage/storage-facility.hpp"
 
 #include <vector>
 
 namespace gridtools {
     namespace impl {
-        template < typename DataType >
+        template <typename DataType>
         void transform_openmp_loop(DataType *dst,
             DataType *src,
-            const std::vector< uint_t > &dims,
-            const std::vector< uint_t > &dst_strides,
-            const std::vector< uint_t > &src_strides) {
+            const std::vector<uint_t> &dims,
+            const std::vector<uint_t> &dst_strides,
+            const std::vector<uint_t> &src_strides) {
 
             if (dims.size() > GT_TRANSFORM_MAX_DIM)
                 throw std::runtime_error("Reached compile time GT_TRANSFORM_MAX_DIM in layout transformation. Increase "
                                          "the value for higher dimensional transformations.");
 
             using dummy_layout_map =
-                default_layout_map_t< GT_TRANSFORM_MAX_DIM >; // not used since we pass strides directly
+                default_layout_map_t<GT_TRANSFORM_MAX_DIM>; // not used since we pass strides directly
 
-            using storage_info = gridtools::storage_info_interface< 0, dummy_layout_map >;
-            auto a_dims = impl::vector_to_dims_array< GT_TRANSFORM_MAX_DIM >(dims);
-            auto a_dst_strides = impl::vector_to_strides_array< GT_TRANSFORM_MAX_DIM >(dst_strides);
-            auto a_src_strides = impl::vector_to_strides_array< GT_TRANSFORM_MAX_DIM >(src_strides);
+            using storage_info = gridtools::storage_info_interface<0, dummy_layout_map>;
+            auto a_dims = impl::vector_to_dims_array<GT_TRANSFORM_MAX_DIM>(dims);
+            auto a_dst_strides = impl::vector_to_strides_array<GT_TRANSFORM_MAX_DIM>(dst_strides);
+            auto a_src_strides = impl::vector_to_strides_array<GT_TRANSFORM_MAX_DIM>(src_strides);
 
             storage_info si_dst(a_dims, a_dst_strides);
             storage_info si_src(a_dims, a_src_strides);
 
-            array< size_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
+            array<size_t, GT_TRANSFORM_MAX_DIM - 3> outer_dims;
             for (size_t i = 0; i < GT_TRANSFORM_MAX_DIM - 3; ++i)
                 outer_dims[i] = a_dims[3 + i];
 
@@ -82,10 +82,10 @@ namespace gridtools {
                 for (int i = 0; i < size_i; ++i)
                     for (int j = 0; j < size_j; ++j)
                         for (int k = 0; k < size_k; ++k) {
-                            auto index = join_array(make_array(i, j, k), convert_to_array< int >(outer));
+                            auto index = join_array(make_array(i, j, k), convert_to_array<int>(outer));
                             dst[si_dst.index(index)] = src[si_src.index(index)];
                         }
             }
         }
-    }
-}
+    } // namespace impl
+} // namespace gridtools

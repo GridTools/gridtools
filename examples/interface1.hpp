@@ -35,21 +35,21 @@
 */
 #pragma once
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 #include "benchmarker.hpp"
 #include "horizontal_diffusion_repository.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "backend_select.hpp"
 
 /**
   @file
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
@@ -59,12 +59,12 @@ using namespace expressions;
 namespace horizontal_diffusion {
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1>> in;
 
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef boost::mpl::vector<out, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
                           (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
@@ -73,13 +73,13 @@ namespace horizontal_diffusion {
 
     struct flx_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > in;
-        typedef accessor< 2, enumtype::in, extent< 0, 1, 0, 0 > > lap;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<0, 1, 0, 0>> in;
+        typedef accessor<2, enumtype::in, extent<0, 1, 0, 0>> lap;
 
-        typedef boost::mpl::vector< out, in, lap > arg_list;
+        typedef boost::mpl::vector<out, in, lap> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
@@ -90,13 +90,13 @@ namespace horizontal_diffusion {
 
     struct fly_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< 0, 0, 0, 1 > > in;
-        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 1 > > lap;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<0, 0, 0, 1>> in;
+        typedef accessor<2, enumtype::in, extent<0, 0, 0, 1>> lap;
 
-        typedef boost::mpl::vector< out, in, lap > arg_list;
+        typedef boost::mpl::vector<out, in, lap> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
@@ -107,15 +107,15 @@ namespace horizontal_diffusion {
 
     struct out_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in > in;
-        typedef accessor< 2, enumtype::in, extent< -1, 0, 0, 0 > > flx;
-        typedef accessor< 3, enumtype::in, extent< 0, 0, -1, 0 > > fly;
-        typedef accessor< 4, enumtype::in > coeff;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in> in;
+        typedef accessor<2, enumtype::in, extent<-1, 0, 0, 0>> flx;
+        typedef accessor<3, enumtype::in, extent<0, 0, -1, 0>> fly;
+        typedef accessor<4, enumtype::in> coeff;
 
-        typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
+        typedef boost::mpl::vector<out, in, flx, fly, coeff> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
@@ -153,12 +153,12 @@ namespace horizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef tmp_arg< 0, storage_type > p_lap;
-        typedef tmp_arg< 1, storage_type > p_flx;
-        typedef tmp_arg< 2, storage_type > p_fly;
-        typedef arg< 3, storage_type > p_coeff;
-        typedef arg< 4, storage_type > p_in;
-        typedef arg< 5, storage_type > p_out;
+        typedef tmp_arg<0, storage_type> p_lap;
+        typedef tmp_arg<1, storage_type> p_flx;
+        typedef tmp_arg<2, storage_type> p_fly;
+        typedef arg<3, storage_type> p_coeff;
+        typedef arg<4, storage_type> p_in;
+        typedef arg<5, storage_type> p_out;
 
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
@@ -175,19 +175,18 @@ namespace horizontal_diffusion {
           3) The actual grid dimensions
         */
 
-        auto horizontal_diffusion = gridtools::make_computation< backend_t >(
-            grid,
+        auto horizontal_diffusion = gridtools::make_computation<backend_t>(grid,
             p_in() = in,
             p_out() = out,
             p_coeff() = coeff,         // assign placeholders
             gridtools::make_multistage // mss_descriptor
-            (execute< parallel >(),
-                define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
-                gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
-                gridtools::make_independent(                            // independent_esf
-                    gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
-                    gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
-                gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+            (execute<parallel>(),
+                define_caches(cache<IJ, cache_io_policy::local>(p_lap(), p_flx(), p_fly())),
+                gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_independent(                          // independent_esf
+                    gridtools::make_stage<flx_function>(p_flx(), p_in(), p_lap()),
+                    gridtools::make_stage<fly_function>(p_fly(), p_in(), p_lap())),
+                gridtools::make_stage<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion.run();
 
@@ -201,7 +200,7 @@ namespace horizontal_diffusion {
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+            array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
         }
 

@@ -63,4 +63,4 @@ namespace gridtools {
         return false;
 #endif
     }
-}
+} // namespace gridtools

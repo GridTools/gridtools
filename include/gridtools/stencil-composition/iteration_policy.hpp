@@ -42,12 +42,12 @@ namespace gridtools {
     namespace _impl {
 
         /**\brief policy defining the behaviour on the vertical direction*/
-        template < typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType >
+        template <typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType>
         struct iteration_policy {};
 
         /**\brief specialization for the forward iteration loop over k*/
-        template < typename From, typename To, typename ZDimIndex >
-        struct iteration_policy< From, To, ZDimIndex, enumtype::forward > {
+        template <typename From, typename To, typename ZDimIndex>
+        struct iteration_policy<From, To, ZDimIndex, enumtype::forward> {
             static const enumtype::execution value = enumtype::forward;
 
             typedef From from;
@@ -56,10 +56,10 @@ namespace gridtools {
             GT_FUNCTION
             static int_t increment(int_t &k) { return ++k; }
 
-            template < typename IterateDomain >
+            template <typename IterateDomain>
             GT_FUNCTION static void increment(IterateDomain &eval) {
-                GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Error: wrong type");
-                eval.template increment< ZDimIndex::value, static_int< 1 > >();
+                GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), "Error: wrong type");
+                eval.template increment<ZDimIndex::value, static_int<1>>();
             }
 
             GT_FUNCTION
@@ -70,8 +70,8 @@ namespace gridtools {
         };
 
         /**\brief specialization for the backward iteration loop over k*/
-        template < typename From, typename To, typename ZDimIndex >
-        struct iteration_policy< From, To, ZDimIndex, enumtype::backward > {
+        template <typename From, typename To, typename ZDimIndex>
+        struct iteration_policy<From, To, ZDimIndex, enumtype::backward> {
             static const enumtype::execution value = enumtype::backward;
             typedef To from;
             typedef From to;
@@ -79,9 +79,9 @@ namespace gridtools {
             GT_FUNCTION
             static int_t increment(int_t &k) { return --k; }
 
-            template < typename Domain >
+            template <typename Domain>
             GT_FUNCTION static void increment(Domain &dom) {
-                dom.template increment< ZDimIndex::value, static_int< -1 > >();
+                dom.template increment<ZDimIndex::value, static_int<-1>>();
             }
 
             GT_FUNCTION
@@ -93,10 +93,10 @@ namespace gridtools {
 
     } // namespace _impl
 
-    template < typename T >
+    template <typename T>
     struct is_iteration_policy : boost::mpl::false_ {};
 
-    template < typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType >
-    struct is_iteration_policy< _impl::iteration_policy< From, To, ZDimIndex, ExecutionType > > : boost::mpl::true_ {};
+    template <typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType>
+    struct is_iteration_policy<_impl::iteration_policy<From, To, ZDimIndex, ExecutionType>> : boost::mpl::true_ {};
 
 } // namespace gridtools

@@ -48,13 +48,13 @@
  *
  */
 
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "unstructured_grid.hpp"
-#include "benchmarker.hpp"
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -62,23 +62,23 @@ using namespace expressions;
 
 namespace smf {
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    using x_interval = axis< 1 >::full_interval;
+    using x_interval = axis<1>::full_interval;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct test_on_edges_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > cell_area;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells, 5 > weight_edges;
-        typedef boost::mpl::vector< cell_area, weight_edges > arg_list;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> cell_area;
+        typedef inout_accessor<1, icosahedral_topology_t::cells, 5> weight_edges;
+        typedef boost::mpl::vector<cell_area, weight_edges> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            using edge_of_cell_dim = dimension< 5 >;
+            using edge_of_cell_dim = dimension<5>;
             edge_of_cell_dim edge;
 
             // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
-            constexpr auto neighbors_offsets = connectivity< cells, cells, Color >::offsets();
+            constexpr auto neighbors_offsets = connectivity<cells, cells, Color>::offsets();
             ushort_t e = 0;
             // loop over all neighbours. Each iterator (neighbor_offset) is a position offset, i.e. an array with length
             // 4
@@ -95,8 +95,7 @@ namespace smf {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type =
-            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::data_store_t<icosahedral_topology_t::cells, double>;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -104,12 +103,12 @@ namespace smf {
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         // area of cells is a storage with location type cells
-        auto cell_area = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("cell_area");
+        auto cell_area = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("cell_area");
         // we need a storage of weights with location cells, but storing 3 weights (one for each edge).
         // We extend the storage with location type cells by one more dimension with length 3
         auto weight_edges_meta = storage_info_extender()(cell_area.get_storage_info_ptr(), 3);
         using edges_of_cells_storage_type =
-            backend_t::storage_traits_t::data_store_t< double, decltype(weight_edges_meta) >;
+            backend_t::storage_traits_t::data_store_t<double, decltype(weight_edges_meta)>;
         // allocate the weight on edges of cells and the reference values
         edges_of_cells_storage_type weight_edges(weight_edges_meta, 0.0);
         edges_of_cells_storage_type ref_weights(weight_edges_meta, 0.0);
@@ -126,21 +125,20 @@ namespace smf {
             }
         }
 
-        typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
-        typedef arg< 1, edges_of_cells_storage_type, enumtype::cells > p_weight_edges;
+        typedef arg<0, cell_storage_type, enumtype::cells> p_cell_area;
+        typedef arg<1, edges_of_cells_storage_type, enumtype::cells> p_weight_edges;
 
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
-        auto stencil_ = gridtools::make_computation< backend_t >(
-            grid_,
+        auto stencil_ = gridtools::make_computation<backend_t>(grid_,
             p_cell_area() = cell_area,
             p_weight_edges() = weight_edges,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+            (execute<forward>(),
+                gridtools::make_stage<test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                     p_cell_area(), p_weight_edges())));
         stencil_.run();
 
@@ -159,7 +157,7 @@ namespace smf {
                         for (uint_t k = 0; k < d3; ++k) {
 
                             auto neighbours =
-                                ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
+                                ugrid.neighbours_of<icosahedral_topology_t::cells, icosahedral_topology_t::cells>(
                                     {i, c, j, k});
                             ushort_t e = 0;
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
@@ -177,7 +175,7 @@ namespace smf {
             verifier ver(1e-10);
 #endif
 
-            array< array< uint_t, 2 >, 5 > halos = {
+            array<array<uint_t, 2>, 5> halos = {
                 {{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}, {0, 0}}};
             result = ver.verify(grid_, ref_weights, weight_edges, halos);
         }
@@ -187,4 +185,4 @@ namespace smf {
 #endif
         return result;
     }
-} // namespace soeov
+} // namespace smf

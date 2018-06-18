@@ -36,9 +36,9 @@
 
 #pragma once
 
-#include <boost/mpl/integral_c_tag.hpp>
-#include <boost/mpl/comparison.hpp>
 #include <boost/mpl/arithmetic.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/integral_c_tag.hpp>
 #include <type_traits>
 
 namespace boost {
@@ -53,61 +53,61 @@ namespace boost {
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct equal_to_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct equal_to_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct not_equal_to_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct not_equal_to_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct less_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct less_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct less_equal_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct less_equal_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct greater_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct greater_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct greater_equal_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct greater_equal_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct plus_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct plus_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
 
         /** Tag to make std::integral_constants boost::mpl compatible
          */
-        template < class T, T V >
-        struct minus_tag< std::integral_constant< T, V > > {
+        template <class T, T V>
+        struct minus_tag<std::integral_constant<T, V>> {
             using type = integral_c_tag;
         };
         /** @} */
         /** @} */
         /** @} */
-    }
-}
+    } // namespace mpl
+} // namespace boost

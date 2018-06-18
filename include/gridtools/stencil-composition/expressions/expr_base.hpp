@@ -38,8 +38,8 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../common/host_device.hpp"
 #include "../accessor_fwd.hpp"
 #include "../global_accessor_fwd.hpp"
 
@@ -55,55 +55,55 @@ namespace gridtools {
         This is the base class of a binary expression, containing the instances of the two arguments.
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
     */
-    template < class Op, class... Args >
+    template <class Op, class... Args>
     struct expr;
 
-    template < class Op, class Arg >
-    struct expr< Op, Arg > {
+    template <class Op, class Arg>
+    struct expr<Op, Arg> {
         Arg m_arg;
     };
 
-    template < class Op, class Lhs, class Rhs >
-    struct expr< Op, Lhs, Rhs > {
+    template <class Op, class Lhs, class Rhs>
+    struct expr<Op, Lhs, Rhs> {
         Lhs m_lhs;
         Rhs m_rhs;
     };
 
     namespace expressions {
 
-        template < class >
+        template <class>
         struct is_expr : std::false_type {};
-        template < class... Ts >
-        struct is_expr< expr< Ts... > > : std::true_type {};
+        template <class... Ts>
+        struct is_expr<expr<Ts...>> : std::true_type {};
 
-        template < class Arg >
+        template <class Arg>
         using expr_or_accessor =
-            bool_constant< is_expr< Arg >::value || is_accessor< Arg >::value || is_global_accessor< Arg >::value ||
-                           is_global_accessor_with_arguments< Arg >::value >;
+            bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value || is_global_accessor<Arg>::value ||
+                          is_global_accessor_with_arguments<Arg>::value>;
 
-        template < class Op, class... Args, enable_if_t< disjunction< expr_or_accessor< Args >... >::value, int > = 0 >
-        GT_FUNCTION constexpr expr< Op, Args... > make_expr(Op, Args... args) {
+        template <class Op, class... Args, enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
+        GT_FUNCTION constexpr expr<Op, Args...> make_expr(Op, Args... args) {
             return {args...};
         }
 
         namespace evaluation {
-            template < class Eval, class Arg, enable_if_t< std::is_arithmetic< Arg >::value, int > = 0 >
+            template <class Eval, class Arg, enable_if_t<std::is_arithmetic<Arg>::value, int> = 0>
             GT_FUNCTION constexpr Arg apply_eval(Eval &, Arg arg) {
                 return arg;
             }
 
-            template < class Eval, class Arg, enable_if_t< !std::is_arithmetic< Arg >::value, int > = 0 >
+            template <class Eval, class Arg, enable_if_t<!std::is_arithmetic<Arg>::value, int> = 0>
             GT_FUNCTION constexpr auto apply_eval(Eval &eval, Arg const &arg) GT_AUTO_RETURN(eval(arg));
 
-            template < class Eval, class Op, class Arg >
-            GT_FUNCTION constexpr auto value(Eval &eval, expr< Op, Arg > const &arg)
+            template <class Eval, class Op, class Arg>
+            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Arg> const &arg)
                 GT_AUTO_RETURN(Op{}(eval(arg.m_arg)));
 
-            template < class Eval, class Op, class Lhs, class Rhs >
-            GT_FUNCTION constexpr auto value(Eval &eval, expr< Op, Lhs, Rhs > const &arg)
+            template <class Eval, class Op, class Lhs, class Rhs>
+            GT_FUNCTION constexpr auto value(Eval &eval, expr<Op, Lhs, Rhs> const &arg)
                 GT_AUTO_RETURN(Op{}(apply_eval(eval, arg.m_lhs), apply_eval(eval, arg.m_rhs)));
-        }
-    }
+        } // namespace evaluation
+    }     // namespace expressions
     /** @} */
     /** @} */
-}
+} // namespace gridtools

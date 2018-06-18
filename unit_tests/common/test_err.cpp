@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/common/error.hpp>
 #include "gtest/gtest.h"
+#include <gridtools/common/error.hpp>
 
 using namespace gridtools;
 

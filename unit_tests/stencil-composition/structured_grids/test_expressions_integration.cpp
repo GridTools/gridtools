@@ -62,24 +62,24 @@ class test_expressions : public testing::Test {
     const uint_t d2 = 9;
     const uint_t d3 = 7;
 
-    using storage_info_t = storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
-    using data_store_t = storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >;
+    using storage_info_t = storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3>;
+    using data_store_t = storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t>;
 
     storage_info_t storage_info_;
 
-    gridtools::grid< axis< 1 >::axis_interval_t > grid;
+    gridtools::grid<axis<1>::axis_interval_t> grid;
 
     verifier verifier_;
-    array< array< uint_t, 2 >, 3 > verifier_halos;
+    array<array<uint_t, 2>, 3> verifier_halos;
 
     data_store_t val2;
     data_store_t val3;
     data_store_t out;
     data_store_t reference;
 
-    typedef arg< 0, data_store_t > p_val2;
-    typedef arg< 1, data_store_t > p_val3;
-    typedef arg< 2, data_store_t > p_out;
+    typedef arg<0, data_store_t> p_val2;
+    typedef arg<1, data_store_t> p_val3;
+    typedef arg<2, data_store_t> p_out;
 
     test_expressions()
         : storage_info_(d1, d2, d3), grid(make_grid(d1, d2, d3)),
@@ -92,7 +92,7 @@ class test_expressions : public testing::Test {
           out(storage_info_, -555, "out"), reference(storage_info_, ::DEFAULT_VALUE, "reference") {
     }
 
-    template < typename Computation >
+    template <typename Computation>
     void execute_computation(Computation &comp) {
         comp.run(p_val2() = val2, p_val3() = val3, p_out() = out);
 #ifdef __CUDACC__
@@ -111,15 +111,15 @@ class test_expressions : public testing::Test {
 
 namespace {
     struct test_functor {
-        typedef in_accessor< 0, extent<>, 3 > val2;
-        typedef in_accessor< 1, extent<>, 3 > val3;
-        typedef inout_accessor< 2, extent<>, 3 > out;
-        typedef boost::mpl::vector< val2, val3, out > arg_list;
-        template < typename Evaluation >
+        typedef in_accessor<0, extent<>, 3> val2;
+        typedef in_accessor<1, extent<>, 3> val3;
+        typedef inout_accessor<2, extent<>, 3> out;
+        typedef boost::mpl::vector<val2, val3, out> arg_list;
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            constexpr gridtools::dimension< 1 > i{};
-            constexpr gridtools::dimension< 2 > j{};
-            constexpr gridtools::dimension< 3 > k{};
+            constexpr gridtools::dimension<1> i{};
+            constexpr gridtools::dimension<2> j{};
+            constexpr gridtools::dimension<3> k{};
 
             // starts the cascade
             int index = 0;
@@ -165,18 +165,17 @@ namespace {
 
             EXPRESSION_TEST(val3() + 2. * val2())
 
-            EXPRESSION_TEST(pow< 2 >(val3()))
+            EXPRESSION_TEST(pow<2>(val3()))
 
             else eval(out()) = DEFAULT_VALUE;
         }
     };
-}
+} // namespace
 
 TEST_F(test_expressions, integration_test) {
-    auto comp = gridtools::make_positional_computation< backend_t >(
-        grid,
+    auto comp = gridtools::make_positional_computation<backend_t>(grid,
         gridtools::make_multistage(
-            execute< forward >(), gridtools::make_stage<::test_functor >(p_val2(), p_val3(), p_out())));
+            execute<forward>(), gridtools::make_stage<::test_functor>(p_val2(), p_val3(), p_out())));
 
     int index = 0;
 
