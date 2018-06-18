@@ -42,6 +42,7 @@
 #include "../../block_size.hpp"
 #include "../../grid.hpp"
 #include "../../mss_components.hpp"
+#include "../../mss_functor.hpp"
 #include "../../reductions/reduction_data.hpp"
 #include "execute_kernel_functor_mic.hpp"
 
@@ -49,14 +50,6 @@ namespace gridtools {
 
     template <enumtype::strategy>
     struct strategy_from_id_mic;
-
-    template <typename MssComponentsArray,
-        typename Grid,
-        typename MssLocalDomainArray,
-        typename BackendIds,
-        typename ReductionData,
-        typename ExecutionInfo>
-    struct mss_functor;
 
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.

@@ -67,6 +67,6 @@ namespace gridtools {
     template <uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/>
     constexpr int tmp_storage_block_offset_multiplier(
         backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &) {
-        return throw "should not be used", 0;
+        return false ? 0 : throw "should not be used";
     }
 } // namespace gridtools

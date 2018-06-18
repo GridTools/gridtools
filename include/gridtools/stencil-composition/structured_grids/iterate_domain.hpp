@@ -38,6 +38,8 @@
 
 #include "../../common/gt_assert.hpp"
 
+#include "../../storage/data_field_view.hpp"
+
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"

@@ -46,8 +46,8 @@
 
 #include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 #include "../../common/generic_metafunctions/void_if_empty.hpp"
-#include "../../stencil-composition/accessor.hpp"
-//#include "../../stencil-composition/iterate_domain_aux.hpp"
+#include "../accessor.hpp"
+#include "../iterate_domain_aux.hpp"
 
 namespace gridtools {
 

@@ -34,19 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/utility/enable_if.hpp>
+
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/gt_assert.hpp"
+
+#include "../../storage/data_store_field.hpp"
+
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../iterate_domain_aux.hpp"
 #include "../iteration_policy_fwd.hpp"
 #include "../offset_computation.hpp"
-#include "cache_traits.hpp"
-#include <boost/utility/enable_if.hpp>
 
 #include "cache_storage_metafunctions.hpp"
+#include "cache_traits.hpp"
 #include "meta_storage_cache.hpp"
 
 namespace gridtools {

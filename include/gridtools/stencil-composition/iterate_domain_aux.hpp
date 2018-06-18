@@ -443,22 +443,6 @@ namespace gridtools {
         typedef typename LocalDomain::template get_data_store<typename Accessor::index_t>::type type;
     };
 
-    template <typename T>
-    struct get_datafield_offset {
-        template <typename Acc>
-        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-            return 0;
-        }
-    };
-
-    template <typename T, unsigned... N>
-    struct get_datafield_offset<data_store_field<T, N...>> {
-        template <typename Acc>
-        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-            return get_accumulated_data_field_index(a.template get<1>(), N...) + a.template get<0>();
-        }
-    };
-
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */

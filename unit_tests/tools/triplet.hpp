@@ -36,8 +36,9 @@
 
 #pragma once
 
+#include <iostream>
+
 #include <gridtools/common/host_device.hpp>
-#include <iosfwd>
 
 /**
    @brief Small value type to use in tests where we want to check the

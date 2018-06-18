@@ -35,12 +35,14 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
-#include "direction.hpp"
-#include "predicate.hpp"
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
+
+#include "../common/defs.hpp"
+#include "../common/halo_descriptor.hpp"
+#include "direction.hpp"
+#include "predicate.hpp"
 
 /**
 @file
