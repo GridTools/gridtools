@@ -35,29 +35,29 @@
 */
 #pragma once
 
-#include "../timer.hpp"
 #include "../../common/defs.hpp"
+#include "../timer.hpp"
 
 namespace gridtools {
 
     /**
-    * @class timer_mic
-    * mic implementation of the Timer interface
-    */
-    class timer_mic : public timer< timer_mic > // CRTP
+     * @class timer_mic
+     * mic implementation of the Timer interface
+     */
+    class timer_mic : public timer<timer_mic> // CRTP
     {
       public:
-        timer_mic(std::string name) : timer< timer_mic >(name) { startTime_ = 0.0; }
+        timer_mic(std::string name) : timer<timer_mic>(name) { startTime_ = 0.0; }
         ~timer_mic() {}
 
         /**
-        * Reset counters
-        */
+         * Reset counters
+         */
         void set_impl(double const &time_) { startTime_ = time_; }
 
         /**
-        * Start the stop watch
-        */
+         * Start the stop watch
+         */
         void start_impl() {
 #if defined(_OPENMP)
             startTime_ = omp_get_wtime();
@@ -65,8 +65,8 @@ namespace gridtools {
         }
 
         /**
-        * Pause the stop watch
-        */
+         * Pause the stop watch
+         */
         double pause_impl() {
 #if defined(_OPENMP)
             return omp_get_wtime() - startTime_;
@@ -78,4 +78,4 @@ namespace gridtools {
       private:
         double startTime_;
     };
-}
+} // namespace gridtools

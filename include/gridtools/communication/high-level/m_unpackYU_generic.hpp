@@ -35,11 +35,11 @@
 */
 #include "wrap_argument.hpp"
 
-template < typename value_type >
+template <typename value_type>
 __global__ void m_unpackYUKernel_generic(value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab_r,
     const wrap_argument d_msgsize_r,
-    const gridtools::array< gridtools::halo_descriptor, 3 > halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
     int const nx,
     int const nz,
     const int traslation_const,
@@ -108,7 +108,7 @@ __global__ void m_unpackYUKernel_generic(value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t >
+template <typename array_t>
 void m_unpackYU_generic(
     array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab_r, int *d_msgsize_r) {
 
@@ -159,7 +159,7 @@ void m_unpackYU_generic(
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_unpackYUKernel_generic<<<blocks, threads, 0, YU_stream>>>
+        m_unpackYUKernel_generic< <<blocks, threads, 0, YU_stream> >>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
          wrap_argument(d_msgsize_r+27*i),

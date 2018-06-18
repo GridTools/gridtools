@@ -37,8 +37,8 @@
 #define _GENERIC_ALL_TO_ALL_H_
 
 #include "../GCL.hpp"
-#include <vector>
 #include <mpi.h>
+#include <vector>
 
 /** \file
 
@@ -51,7 +51,7 @@
 
 namespace gridtools {
 
-    template < typename vtype >
+    template <typename vtype>
     struct all_to_all;
 
     /** This struct describe an MPI datatype along with the pointer to
@@ -60,7 +60,7 @@ namespace gridtools {
 
         \tparam T Value type of the data the pointer points to
      */
-    template < typename T >
+    template <typename T>
     struct packet {
         /** Type of the elements to be exchanged.
          */
@@ -105,7 +105,7 @@ namespace gridtools {
         bool emtpy() const { return !full(); }
 
       private:
-        friend class all_to_all< value_type >;
+        friend class all_to_all<value_type>;
     };
 
     /** This all to all class is explicitly designed to be a light
@@ -119,7 +119,7 @@ namespace gridtools {
 
         \tparam vtype The type of the elements pointed by the pointer do the data to be sent or received.
      */
-    template < typename vtype >
+    template <typename vtype>
     struct all_to_all {
         typedef vtype value_type;
 
@@ -129,13 +129,13 @@ namespace gridtools {
             process. The element i of the array specify what to sent to
             process with ID i.
          */
-        std::vector< packet< value_type > > to;
+        std::vector<packet<value_type>> to;
 
         /** Array of packets defining what has to be received from a given
             process. The element i of the array specify what to received
             from process with ID i.
          */
-        std::vector< packet< value_type > > from;
+        std::vector<packet<value_type>> from;
 
         /** Constructor that takes the number of process (this work with
             MPI_COMM_WORLD, or gridtools::GCL_WORLD communicators). The elements
@@ -236,5 +236,5 @@ namespace gridtools {
             }
         }
     };
-}
+} // namespace gridtools
 #endif

@@ -43,9 +43,9 @@
 
 #pragma once
 
+#include "backend_select.hpp"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "backend_select.hpp"
 
 namespace test_expandable_parameters {
 
@@ -54,20 +54,20 @@ namespace test_expandable_parameters {
 
     struct functor_single_kernel {
 
-        typedef accessor< 0, enumtype::inout > parameters1_out;
-        typedef accessor< 1, enumtype::inout > parameters2_out;
-        typedef accessor< 2, enumtype::inout > parameters3_out;
-        typedef accessor< 3, enumtype::inout > parameters4_out;
-        typedef accessor< 4, enumtype::inout > parameters5_out;
+        typedef accessor<0, enumtype::inout> parameters1_out;
+        typedef accessor<1, enumtype::inout> parameters2_out;
+        typedef accessor<2, enumtype::inout> parameters3_out;
+        typedef accessor<3, enumtype::inout> parameters4_out;
+        typedef accessor<4, enumtype::inout> parameters5_out;
 
-        typedef accessor< 5, enumtype::in > parameters1_in;
-        typedef accessor< 6, enumtype::in > parameters2_in;
-        typedef accessor< 7, enumtype::in > parameters3_in;
-        typedef accessor< 8, enumtype::in > parameters4_in;
-        typedef accessor< 9, enumtype::in > parameters5_in;
+        typedef accessor<5, enumtype::in> parameters1_in;
+        typedef accessor<6, enumtype::in> parameters2_in;
+        typedef accessor<7, enumtype::in> parameters3_in;
+        typedef accessor<8, enumtype::in> parameters4_in;
+        typedef accessor<9, enumtype::in> parameters5_in;
         // typedef accessor<2, enumtype::in> scalar;
 
-        typedef boost::mpl::vector< parameters1_out,
+        typedef boost::mpl::vector<parameters1_out,
             parameters2_out,
             parameters3_out,
             parameters4_out,
@@ -76,9 +76,10 @@ namespace test_expandable_parameters {
             parameters2_in,
             parameters3_in,
             parameters4_in,
-            parameters5_in > arg_list;
+            parameters5_in>
+            arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
             eval(parameters1_out()) = eval(parameters1_in());
             eval(parameters2_out()) = eval(parameters2_in());
@@ -90,8 +91,8 @@ namespace test_expandable_parameters {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -107,30 +108,30 @@ namespace test_expandable_parameters {
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
 
-        std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
-        std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
+        std::vector<storage_t> list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector<storage_t> list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         auto grid_ = make_grid(d1, d2, d3);
 
-        typedef arg< 0, storage_t > p_0_out;
-        typedef arg< 1, storage_t > p_1_out;
-        typedef arg< 2, storage_t > p_2_out;
-        typedef arg< 3, storage_t > p_3_out;
-        typedef arg< 4, storage_t > p_4_out;
+        typedef arg<0, storage_t> p_0_out;
+        typedef arg<1, storage_t> p_1_out;
+        typedef arg<2, storage_t> p_2_out;
+        typedef arg<3, storage_t> p_3_out;
+        typedef arg<4, storage_t> p_4_out;
 
-        typedef arg< 5, storage_t > p_0_in;
-        typedef arg< 6, storage_t > p_1_in;
-        typedef arg< 7, storage_t > p_2_in;
-        typedef arg< 8, storage_t > p_3_in;
-        typedef arg< 9, storage_t > p_4_in;
+        typedef arg<5, storage_t> p_0_in;
+        typedef arg<6, storage_t> p_1_in;
+        typedef arg<7, storage_t> p_2_in;
+        typedef arg<8, storage_t> p_3_in;
+        typedef arg<9, storage_t> p_4_in;
 
-        typedef tmp_arg< 10, storage_t > p_0_tmp;
-        typedef tmp_arg< 11, storage_t > p_1_tmp;
-        typedef tmp_arg< 12, storage_t > p_2_tmp;
-        typedef tmp_arg< 13, storage_t > p_3_tmp;
-        typedef tmp_arg< 14, storage_t > p_4_tmp;
+        typedef tmp_arg<10, storage_t> p_0_tmp;
+        typedef tmp_arg<11, storage_t> p_1_tmp;
+        typedef tmp_arg<12, storage_t> p_2_tmp;
+        typedef tmp_arg<13, storage_t> p_3_tmp;
+        typedef tmp_arg<14, storage_t> p_4_tmp;
 
-        auto comp_ = make_computation< backend_t >(grid_,
+        auto comp_ = make_computation<backend_t>(grid_,
             p_0_out{} = storage1,
             p_1_out{} = storage2,
             p_2_out{} = storage3,
@@ -141,29 +142,28 @@ namespace test_expandable_parameters {
             p_2_in{} = storage30,
             p_3_in{} = storage40,
             p_4_in{} = storage50,
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                                                       define_caches(cache< IJ, cache_io_policy::local >(
-                                                           p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
-                                                       make_stage< functor_single_kernel >(p_0_tmp(),
-                                                           p_1_tmp(),
-                                                           p_2_tmp(),
-                                                           p_3_tmp(),
-                                                           p_4_tmp(),
-                                                           p_0_in(),
-                                                           p_1_in(),
-                                                           p_2_in(),
-                                                           p_3_in(),
-                                                           p_4_in()),
-                                                       make_stage< functor_single_kernel >(p_0_out(),
-                                                           p_1_out(),
-                                                           p_2_out(),
-                                                           p_3_out(),
-                                                           p_4_out(),
-                                                           p_0_tmp(),
-                                                           p_1_tmp(),
-                                                           p_2_tmp(),
-                                                           p_3_tmp(),
-                                                           p_4_tmp())));
+            make_multistage(enumtype::execute<enumtype::forward>(),
+                define_caches(cache<IJ, cache_io_policy::local>(p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
+                make_stage<functor_single_kernel>(p_0_tmp(),
+                    p_1_tmp(),
+                    p_2_tmp(),
+                    p_3_tmp(),
+                    p_4_tmp(),
+                    p_0_in(),
+                    p_1_in(),
+                    p_2_in(),
+                    p_3_in(),
+                    p_4_in()),
+                make_stage<functor_single_kernel>(p_0_out(),
+                    p_1_out(),
+                    p_2_out(),
+                    p_3_out(),
+                    p_4_out(),
+                    p_0_tmp(),
+                    p_1_tmp(),
+                    p_2_tmp(),
+                    p_3_tmp(),
+                    p_4_tmp())));
 
         comp_.run();
         comp_.sync_bound_data_stores();

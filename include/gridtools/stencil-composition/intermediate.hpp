@@ -38,7 +38,6 @@
 #include <memory>
 #include <tuple>
 #include <utility>
-#include <memory>
 
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
@@ -48,13 +47,13 @@
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/list.hpp>
+#include <boost/mpl/max_element.hpp>
+#include <boost/mpl/min_element.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
-#include <boost/mpl/min_element.hpp>
-#include <boost/mpl/max_element.hpp>
 
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
@@ -77,8 +76,8 @@
 #include "wrap_type.hpp"
 
 #include "computation_grammar.hpp"
-#include "iterate_on_esfs.hpp"
 #include "extract_placeholders.hpp"
+#include "iterate_on_esfs.hpp"
 
 #include "../common/generic_metafunctions/meta.hpp"
 #include "../common/tuple_util.hpp"
@@ -92,128 +91,121 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template < enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful >
+    template <enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful>
     struct create_mss_local_domains {
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
         struct get_the_mss_local_domain {
-            template < typename T >
+            template <typename T>
             struct apply {
-                typedef mss_local_domain< BackendId, T, StorageWrapperList, IsStateful > type;
+                typedef mss_local_domain<BackendId, T, StorageWrapperList, IsStateful> type;
             };
         };
 
-        typedef typename boost::mpl::transform< MssComponents, get_the_mss_local_domain >::type type;
+        typedef typename boost::mpl::transform<MssComponents, get_the_mss_local_domain>::type type;
     };
 
-    template < typename Placeholder >
+    template <typename Placeholder>
     struct create_view {
-        using type = typename _impl::get_view< typename get_data_store_from_arg< Placeholder >::type >::type;
+        using type = typename _impl::get_view<typename get_data_store_from_arg<Placeholder>::type>::type;
     };
 
-    template < typename Backend, typename Placeholders, typename MssComponentsArray >
+    template <typename Backend, typename Placeholders, typename MssComponentsArray>
     struct create_storage_wrapper_list {
         // handle all tmps, obtain the storage_wrapper_list for written tmps
-        typedef
-            typename _impl::obtain_storage_wrapper_list_t< Backend, Placeholders, MssComponentsArray >::type all_tmps;
+        typedef typename _impl::obtain_storage_wrapper_list_t<Backend, Placeholders, MssComponentsArray>::type all_tmps;
 
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
         // if we find a read-only tmp void will be pushed back, but this will be filtered out in the
         // last step.
-        typedef typename boost::mpl::transform_view<
-            Placeholders,
-            boost::mpl::if_< is_tmp_arg< boost::mpl::_ >,
-                storage_wrapper_elem< boost::mpl::_, all_tmps >,
-                storage_wrapper< boost::mpl::_, create_view< boost::mpl::_ >, tile< 0, 0, 0 >, tile< 0, 0, 0 > > > >::
-            type complete_list;
+        typedef typename boost::mpl::transform_view<Placeholders,
+            boost::mpl::if_<is_tmp_arg<boost::mpl::_>,
+                storage_wrapper_elem<boost::mpl::_, all_tmps>,
+                storage_wrapper<boost::mpl::_, create_view<boost::mpl::_>, tile<0, 0, 0>, tile<0, 0, 0>>>>::type
+            complete_list;
         // filter the list
-        typedef
-            typename boost::mpl::filter_view< complete_list, is_storage_wrapper< boost::mpl::_1 > >::type filtered_list;
-        typedef typename boost::mpl::fold< filtered_list,
+        typedef typename boost::mpl::filter_view<complete_list, is_storage_wrapper<boost::mpl::_1>>::type filtered_list;
+        typedef typename boost::mpl::fold<filtered_list,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
+            boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>>::type type;
     };
 
-    template < typename MssDescs >
+    template <typename MssDescs>
     struct need_to_compute_extents {
 
         /* helper since boost::mpl::and_ fails in this case with nvcc
-        */
-        template < typename BoolA, typename BoolB >
-        struct gt_and : std::integral_constant< bool, BoolA::value and BoolB::value > {};
+         */
+        template <typename BoolA, typename BoolB>
+        struct gt_and : std::integral_constant<bool, BoolA::value and BoolB::value> {};
 
         /* helper since boost::mpl::or_ fails in this case with nvcc
-        */
-        template < typename BoolA, typename BoolB >
-        struct gt_or : std::integral_constant< bool, BoolA::value or BoolB::value > {};
+         */
+        template <typename BoolA, typename BoolB>
+        struct gt_or : std::integral_constant<bool, BoolA::value or BoolB::value> {};
 
-        using has_all_extents = typename with_operators< is_esf_with_extent,
-            gt_and >::template iterate_on_esfs< std::true_type, MssDescs >::type;
-        using has_extent = typename with_operators< is_esf_with_extent,
-            gt_or >::template iterate_on_esfs< std::false_type, MssDescs >::type;
+        using has_all_extents = typename with_operators<is_esf_with_extent,
+            gt_and>::template iterate_on_esfs<std::true_type, MssDescs>::type;
+        using has_extent = typename with_operators<is_esf_with_extent, gt_or>::template iterate_on_esfs<std::false_type,
+            MssDescs>::type;
 
         GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
             "The computation appears to have stages with and without extents being specified at the same time. A "
             "computation should have all stages with extents or none.");
-        using type = typename boost::mpl::not_< has_all_extents >::type;
+        using type = typename boost::mpl::not_<has_all_extents>::type;
     };
 
     // function that checks if the given extents (I+- and J+-)
     // are within the halo that was defined when creating the grid.
-    template < typename ExtentsVec, typename Grid >
+    template <typename ExtentsVec, typename Grid>
     void check_grid_against_extents(Grid const &grid) {
         typedef ExtentsVec all_extents_vecs_t;
         // get smallest i_minus extent
         typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 0 > > >::type >::type >::type >::
-            type IM_t;
+            typename boost::mpl::min_element<typename boost::mpl::transform<all_extents_vecs_t,
+                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<0>>>::type>::type>::type>::type IM_t;
         // get smallest j_minus extent
         typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 2 > > >::type >::type >::type >::
-            type JM_t;
+            typename boost::mpl::min_element<typename boost::mpl::transform<all_extents_vecs_t,
+                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<2>>>::type>::type>::type>::type JM_t;
         // get largest i_plus extent
         typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 1 > > >::type >::type >::type >::
-            type IP_t;
+            typename boost::mpl::max_element<typename boost::mpl::transform<all_extents_vecs_t,
+                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<1>>>::type>::type>::type>::type IP_t;
         // get largest j_plus extent
         typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 3 > > >::type >::type >::type >::
-            type JP_t;
-        const bool check = (IM_t::value >= -static_cast< int >(grid.direction_i().minus())) &&
-                           (IP_t::value <= static_cast< int >(grid.direction_i().plus())) &&
-                           (JM_t::value >= -static_cast< int >(grid.direction_j().minus())) &&
-                           (JP_t::value <= static_cast< int >(grid.direction_j().plus()));
+            typename boost::mpl::max_element<typename boost::mpl::transform<all_extents_vecs_t,
+                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<3>>>::type>::type>::type>::type JP_t;
+        const bool check = (IM_t::value >= -static_cast<int>(grid.direction_i().minus())) &&
+                           (IP_t::value <= static_cast<int>(grid.direction_i().plus())) &&
+                           (JM_t::value >= -static_cast<int>(grid.direction_j().minus())) &&
+                           (JP_t::value <= static_cast<int>(grid.direction_j().plus()));
         assert(check && "One of the stencil accessor extents is exceeding the halo region.");
     }
 
     namespace _impl {
 
-        template < int I, class Layout >
-        using exists_in_layout = bool_constant < I< Layout::masked_length >;
+        template <int I, class Layout>
+        using exists_in_layout = bool_constant < I<Layout::masked_length>;
 
-        template < int I, uint_t Id, class Layout, class Halo, class Alignment >
-        enable_if_t< exists_in_layout< I, Layout >::value, bool > storage_info_dim_fits(
-            storage_info_interface< Id, Layout, Halo, Alignment > const &storage_info, int val) {
-            return val + 1 <= storage_info.template dim< I >();
+        template <int I, uint_t Id, class Layout, class Halo, class Alignment>
+        enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
+            storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
+            return val + 1 <= storage_info.template dim<I>();
         }
-        template < int I, uint_t Id, class Layout, class Halo, class Alignment >
-        enable_if_t< !exists_in_layout< I, Layout >::value, bool > storage_info_dim_fits(
-            storage_info_interface< Id, Layout, Halo, Alignment > const &, int) {
+        template <int I, uint_t Id, class Layout, class Halo, class Alignment>
+        enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
+            storage_info_interface<Id, Layout, Halo, Alignment> const &, int) {
             return true;
         }
 
-        template < class GridTraits, class Grid >
+        template <class GridTraits, class Grid>
         struct storage_info_fits_grid_f {
             Grid const &grid;
 
-            template < uint_t Id, class Layout, class Halo, class Alignment >
-            bool operator()(storage_info_interface< Id, Layout, Halo, Alignment > const &src) const {
+            template <uint_t Id, class Layout, class Halo, class Alignment>
+            bool operator()(storage_info_interface<Id, Layout, Halo, Alignment> const &src) const {
 
                 // TODO: This check may be not accurate since there is
                 // an ongoing change in the convention for storage and
@@ -231,9 +223,9 @@ namespace gridtools {
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                return storage_info_dim_fits< GridTraits::dim_k_t::value >(src, grid.k_max()) &&
-                       storage_info_dim_fits< GridTraits::dim_j_t::value >(src, grid.j_high_bound()) &&
-                       storage_info_dim_fits< GridTraits::dim_i_t::value >(src, grid.i_high_bound());
+                return storage_info_dim_fits<GridTraits::dim_k_t::value>(src, grid.k_max()) &&
+                       storage_info_dim_fits<GridTraits::dim_j_t::value>(src, grid.j_high_bound()) &&
+                       storage_info_dim_fits<GridTraits::dim_i_t::value>(src, grid.i_high_bound());
             }
         };
 
@@ -245,137 +237,133 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template < class GridTraits, class Grid >
-    _impl::storage_info_fits_grid_f< GridTraits, Grid > storage_info_fits_grid(Grid const &grid) {
+    template <class GridTraits, class Grid>
+    _impl::storage_info_fits_grid_f<GridTraits, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
     namespace _impl {
         struct dummy_run_f {
-            template < typename T >
-            reduction_type< T > operator()(T const &) const;
+            template <typename T>
+            reduction_type<T> operator()(T const &) const;
         };
-    }
+    } // namespace _impl
 
     /**
      *  @brief structure collecting helper metafunctions
      */
-    template < uint_t RepeatFunctor,
+    template <uint_t RepeatFunctor,
         bool IsStateful,
         class Backend,
         class Grid,
         class BoundArgStoragePairs,
-        class MssDescriptors >
+        class MssDescriptors>
     class intermediate;
 
-    template < uint_t RepeatFunctor,
+    template <uint_t RepeatFunctor,
         bool IsStateful,
         class Backend,
         class Grid,
         class... BoundPlaceholders,
         class... BoundDataStores,
-        class... MssDescriptors >
-    class intermediate< RepeatFunctor,
+        class... MssDescriptors>
+    class intermediate<RepeatFunctor,
         IsStateful,
         Backend,
         Grid,
-        std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... >,
-        std::tuple< MssDescriptors... > > {
-        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
+        std::tuple<MssDescriptors...>> {
+        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT((conjunction< is_condition_tree_of< MssDescriptors, is_computation_token >... >::value),
+        GRIDTOOLS_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_computation_token>...>::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
-        using branch_selector_t = branch_selector< MssDescriptors... >;
+        using branch_selector_t = branch_selector<MssDescriptors...>;
         using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
-        using return_type = decltype(std::declval< branch_selector_t >().apply(_impl::dummy_run_f{}));
+        using return_type = decltype(std::declval<branch_selector_t>().apply(_impl::dummy_run_f{}));
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
         using placeholders_t = GT_META_CALL(extract_placeholders, all_mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
-        using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_< is_tmp_arg >::apply, placeholders_t));
+        using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
 
 #if GT_BROKEN_TEMPLATE_ALIASES
-        template < class Arg >
+        template <class Arg>
         struct to_arg_storage_pair {
-            using type = arg_storage_pair< Arg, typename Arg::data_store_t >;
+            using type = arg_storage_pair<Arg, typename Arg::data_store_t>;
         };
-        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(
-            meta::rename,
-            (meta::defer< std::tuple >::apply,
-                GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t))));
+        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::rename,
+            (meta::defer<std::tuple>::apply, GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t))));
 #else
-        template < class Arg >
-        using to_arg_storage_pair = arg_storage_pair< Arg, typename Arg::data_store_t >;
+        template <class Arg>
+        using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
 
         using tmp_arg_storage_pair_tuple_t =
-            meta::rename< std::tuple, meta::transform< to_arg_storage_pair, tmp_placeholders_t > >;
+            meta::rename<std::tuple, meta::transform<to_arg_storage_pair, tmp_placeholders_t>>;
 #endif
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (conjunction< meta::st_contains< non_tmp_placeholders_t, BoundPlaceholders >... >::value),
+        GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
 
-        GRIDTOOLS_STATIC_ASSERT(meta::is_set_fast< meta::list< BoundPlaceholders... > >::value,
-            "bound placeholders should be all different");
+        GRIDTOOLS_STATIC_ASSERT(
+            meta::is_set_fast<meta::list<BoundPlaceholders...>>::value, "bound placeholders should be all different");
 
-        template < class Arg >
-        using is_free = negation< meta::st_contains< meta::list< BoundPlaceholders... >, Arg > >;
+        template <class Arg>
+        using is_free = negation<meta::st_contains<meta::list<BoundPlaceholders...>, Arg>>;
 
         using free_placeholders_t = GT_META_CALL(meta::filter, (is_free, non_tmp_placeholders_t));
 
-        using storage_info_map_t = _impl::storage_info_map_t< placeholders_t >;
+        using storage_info_map_t = _impl::storage_info_map_t<placeholders_t>;
 
         using bound_arg_storage_pair_tuple_t =
-            std::tuple< _impl::bound_arg_storage_pair< BoundPlaceholders, BoundDataStores >... >;
+            std::tuple<_impl::bound_arg_storage_pair<BoundPlaceholders, BoundDataStores>...>;
 
       public:
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
-        using extent_map_t =
-            typename boost::mpl::eval_if< typename need_to_compute_extents< all_mss_descriptors_t >::type,
-                placeholder_to_extent_map< all_mss_descriptors_t, placeholders_t >,
-                boost::mpl::void_ >::type;
+        using extent_map_t = typename boost::mpl::eval_if<typename need_to_compute_extents<all_mss_descriptors_t>::type,
+            placeholder_to_extent_map<all_mss_descriptors_t, placeholders_t>,
+            boost::mpl::void_>::type;
 
       private:
-        template < typename MssDescs >
+        template <typename MssDescs>
         using convert_to_mss_components_array_t =
-            typename build_mss_components_array< typename Backend::mss_fuse_esfs_strategy,
+            typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
                 MssDescs,
                 extent_map_t,
-                static_int< RepeatFunctor >,
-                typename Grid::axis_type >::type;
+                static_int<RepeatFunctor>,
+                typename Grid::axis_type>::type;
 
-        typedef convert_to_mss_components_array_t< all_mss_descriptors_t > mss_components_array_t;
+        typedef convert_to_mss_components_array_t<all_mss_descriptors_t> mss_components_array_t;
 
         // create storage_wrapper_list
-        typedef typename create_storage_wrapper_list< Backend, placeholders_t, mss_components_array_t >::type
+        typedef typename create_storage_wrapper_list<Backend, placeholders_t, mss_components_array_t>::type
             storage_wrapper_list_t;
 
         // get the maximum extent (used to retrieve the size of the temporaries)
-        typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_list_t >::type max_i_extent_t;
+        typedef typename max_i_extent_from_storage_wrapper_list<storage_wrapper_list_t>::type max_i_extent_t;
 
       public:
         // creates an mpl sequence of local domains
-        typedef typename create_mss_local_domains< backend_id< Backend >::value,
+        typedef typename create_mss_local_domains<backend_id<Backend>::value,
             mss_components_array_t,
             storage_wrapper_list_t,
-            IsStateful >::type mss_local_domains_t;
+            IsStateful>::type mss_local_domains_t;
 
       private:
         // creates a tuple of local domains
-        using mss_local_domain_list_t = copy_into_variadic< mss_local_domains_t, std::tuple<> >;
+        using mss_local_domain_list_t = copy_into_variadic<mss_local_domains_t, std::tuple<>>;
 
         struct run_f {
-            template < typename MssDescs >
-            reduction_type< MssDescs > operator()(MssDescs const &mss_descriptors,
+            template <typename MssDescs>
+            reduction_type<MssDescs> operator()(MssDescs const &mss_descriptors,
                 Grid const &grid,
                 mss_local_domain_list_t const &mss_local_domain_list) const {
                 auto reduction_data = make_reduction_data(mss_descriptors);
-                Backend::template run< convert_to_mss_components_array_t< MssDescs > >(
+                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(
                     grid, mss_local_domain_list, reduction_data);
                 return reduction_data.reduced_value();
             }
@@ -385,7 +373,7 @@ namespace gridtools {
 
         Grid m_grid;
 
-        std::unique_ptr< performance_meter_t > m_meter;
+        std::unique_ptr<performance_meter_t> m_meter;
 
         /// branch_selector is responsible for choosing the right branch of in condition MSS tree.
         //
@@ -409,8 +397,8 @@ namespace gridtools {
 
       public:
         intermediate(Grid const &grid,
-            std::tuple< arg_storage_pair< BoundPlaceholders, BoundDataStores >... > arg_storage_pairs,
-            std::tuple< MssDescriptors... > msses,
+            std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...> arg_storage_pairs,
+            std::tuple<MssDescriptors...> msses,
             bool timer_enabled = true)
             // grid just stored to the member
             : m_grid(grid),
@@ -420,7 +408,7 @@ namespace gridtools {
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               // that ensures, that only
               m_tmp_arg_storage_pair_tuple(dedup_storage_info(
-                  _impl::make_tmp_arg_storage_pairs< max_i_extent_t, Backend, tmp_arg_storage_pair_tuple_t >(grid))),
+                  _impl::make_tmp_arg_storage_pairs<max_i_extent_t, Backend, tmp_arg_storage_pair_tuple_t>(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
@@ -441,15 +429,15 @@ namespace gridtools {
         // TODO(anstaf): introduce overload that takes a tuple of arg_storage_pair's. it will simplify a bit
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
         //               `boost::fusion::invoke`.
-        template < class... Args, class... DataStores >
-        typename std::enable_if< sizeof...(Args) == meta::length< free_placeholders_t >::value, return_type >::type run(
-            arg_storage_pair< Args, DataStores > const &... srcs) {
+        template <class... Args, class... DataStores>
+        typename std::enable_if<sizeof...(Args) == meta::length<free_placeholders_t>::value, return_type>::type run(
+            arg_storage_pair<Args, DataStores> const &... srcs) {
             if (m_meter)
                 m_meter->start();
-            GRIDTOOLS_STATIC_ASSERT((conjunction< meta::st_contains< free_placeholders_t, Args >... >::value),
+            GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<free_placeholders_t, Args>...>::value),
                 "some placeholders are not used in mss descriptors");
             GRIDTOOLS_STATIC_ASSERT(
-                meta::is_set_fast< meta::list< Args... > >::value, "free placeholders should be all different");
+                meta::is_set_fast<meta::list<Args...>>::value, "free placeholders should be all different");
 
             // make views from bound storages again (in the case old views got inconsistent)
             // make views from free storages;
@@ -488,18 +476,18 @@ namespace gridtools {
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
       private:
-        template < class Src >
+        template <class Src>
         static auto make_view_infos(Src &&src)
-            GT_AUTO_RETURN(tuple_util::transform(_impl::make_view_info_f< Backend >{}, std::forward< Src >(src)));
+            GT_AUTO_RETURN(tuple_util::transform(_impl::make_view_info_f<Backend>{}, std::forward<Src>(src)));
 
-        template < class Views >
+        template <class Views>
         void update_local_domains(Views const &views) {
             _impl::update_local_domains(views, m_mss_local_domain_list);
         }
 
-        template < class Seq >
+        template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
-            tuple_util::transform(_impl::dedup_storage_info_f< storage_info_map_t >{m_storage_info_map}, seq));
+            tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
     };
 
     /**
@@ -509,7 +497,7 @@ namespace gridtools {
      *  I would consider this as a design flaw. `mss_local_domains_t` is not logically the interface of `intermediate`.
      *  Probably the creation of local domains should be factored out into a separate component to resolve this issue.
      */
-    template < typename Intermediate >
+    template <typename Intermediate>
     using intermediate_mss_local_domains = typename Intermediate::mss_local_domains_t;
 
 } // namespace gridtools

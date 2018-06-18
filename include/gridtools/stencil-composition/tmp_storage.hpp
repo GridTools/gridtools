@@ -52,17 +52,17 @@
 
 namespace gridtools {
 
-    template < class MaxExtent, uint_t ArgId, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid >
+    template <class MaxExtent, uint_t ArgId, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
-        Backend const &, arg< ArgId, DataStore, location_type< I, NColors >, true > const &, Grid const &grid) {
+        Backend const &, arg<ArgId, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
         using storage_info_t = typename DataStore::storage_info_t;
         static constexpr auto backend = typename Backend::backend_ids_t{};
-        return {make_tmp_storage_info< storage_info_t, NColors >(
-            backend, get_tmp_data_storage_size< storage_info_t, MaxExtent >(backend, grid))};
+        return {make_tmp_storage_info<storage_info_t, NColors>(
+            backend, get_tmp_data_storage_size<storage_info_t, MaxExtent>(backend, grid))};
     }
 
-    template < uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/, class BackendIds >
+    template <uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/, class BackendIds>
     GT_FUNCTION constexpr int_t tmp_storage_block_offset_multiplier(BackendIds const &) {
         return 0;
     };
-}
+} // namespace gridtools

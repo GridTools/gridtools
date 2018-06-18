@@ -33,11 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-template < typename value_type >
+template <typename value_type>
 __global__ void m_packYUKernel_generic(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
     const wrap_argument d_msgsize,
-    const gridtools::array< gridtools::halo_descriptor, 3 > halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
     int const nx,
     int const nz,
     int const field_index) {
@@ -119,7 +119,7 @@ __global__ void m_packYUKernel_generic(const value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t >
+template <typename array_t>
 void m_packYU_generic(array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, int *d_msgsize) {
 
 #ifdef CUDAMSG
@@ -169,7 +169,7 @@ void m_packYU_generic(array_t const &fields, typename array_t::value_type::value
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_packYUKernel_generic<<<blocks, threads, 0, YU_stream>>>
+        m_packYUKernel_generic< <<blocks, threads, 0, YU_stream> >>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab),
          wrap_argument(d_msgsize+27*i),

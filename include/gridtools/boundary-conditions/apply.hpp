@@ -38,9 +38,9 @@
 #include "../common/defs.hpp"
 #include "direction.hpp"
 #include "predicate.hpp"
-#include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/repetition/repeat.hpp>
 
 /**
 @file
@@ -53,9 +53,9 @@ namespace gridtools {
      * @{
      */
 
-    template < typename BoundaryFunction,
+    template <typename BoundaryFunction,
         typename Predicate = default_predicate,
-        typename HaloDescriptors = array< halo_descriptor, 3u > >
+        typename HaloDescriptors = array<halo_descriptor, 3u>>
     struct boundary_apply {
       private:
         HaloDescriptors halo_descriptors;
@@ -66,7 +66,7 @@ namespace gridtools {
            boundary_function in the specified direction, in the specified halo node.
             this macro expands to n definitions of the function loop, taking a number of arguments ranging from 0 to n
            (DataField0, Datafield1, DataField2, ...)*/
-        template < typename Direction, typename... DataField >
+        template <typename Direction, typename... DataField>
         void loop(DataField &... data_field) const {
             for (int_t i = halo_descriptors[0].loop_low_bound_outside(Direction::I);
                  i <= halo_descriptors[0].loop_high_bound_outside(Direction::I);
@@ -97,69 +97,69 @@ namespace gridtools {
         (DataField0, Datafield1, DataField2, ...)
 
         */
-        template < typename... DataFieldViews >
+        template <typename... DataFieldViews>
         void apply(DataFieldViews const &... data_field_views) const {
 
-            if (predicate(direction< minus_, minus_, minus_ >()))
-                this->loop< direction< minus_, minus_, minus_ > >(data_field_views...);
-            if (predicate(direction< minus_, minus_, zero_ >()))
-                this->loop< direction< minus_, minus_, zero_ > >(data_field_views...);
-            if (predicate(direction< minus_, minus_, plus_ >()))
-                this->loop< direction< minus_, minus_, plus_ > >(data_field_views...);
+            if (predicate(direction<minus_, minus_, minus_>()))
+                this->loop<direction<minus_, minus_, minus_>>(data_field_views...);
+            if (predicate(direction<minus_, minus_, zero_>()))
+                this->loop<direction<minus_, minus_, zero_>>(data_field_views...);
+            if (predicate(direction<minus_, minus_, plus_>()))
+                this->loop<direction<minus_, minus_, plus_>>(data_field_views...);
 
-            if (predicate(direction< minus_, zero_, minus_ >()))
-                this->loop< direction< minus_, zero_, minus_ > >(data_field_views...);
-            if (predicate(direction< minus_, zero_, zero_ >()))
-                this->loop< direction< minus_, zero_, zero_ > >(data_field_views...);
-            if (predicate(direction< minus_, zero_, plus_ >()))
-                this->loop< direction< minus_, zero_, plus_ > >(data_field_views...);
+            if (predicate(direction<minus_, zero_, minus_>()))
+                this->loop<direction<minus_, zero_, minus_>>(data_field_views...);
+            if (predicate(direction<minus_, zero_, zero_>()))
+                this->loop<direction<minus_, zero_, zero_>>(data_field_views...);
+            if (predicate(direction<minus_, zero_, plus_>()))
+                this->loop<direction<minus_, zero_, plus_>>(data_field_views...);
 
-            if (predicate(direction< minus_, plus_, minus_ >()))
-                this->loop< direction< minus_, plus_, minus_ > >(data_field_views...);
-            if (predicate(direction< minus_, plus_, zero_ >()))
-                this->loop< direction< minus_, plus_, zero_ > >(data_field_views...);
-            if (predicate(direction< minus_, plus_, plus_ >()))
-                this->loop< direction< minus_, plus_, plus_ > >(data_field_views...);
+            if (predicate(direction<minus_, plus_, minus_>()))
+                this->loop<direction<minus_, plus_, minus_>>(data_field_views...);
+            if (predicate(direction<minus_, plus_, zero_>()))
+                this->loop<direction<minus_, plus_, zero_>>(data_field_views...);
+            if (predicate(direction<minus_, plus_, plus_>()))
+                this->loop<direction<minus_, plus_, plus_>>(data_field_views...);
 
-            if (predicate(direction< zero_, minus_, minus_ >()))
-                this->loop< direction< zero_, minus_, minus_ > >(data_field_views...);
-            if (predicate(direction< zero_, minus_, zero_ >()))
-                this->loop< direction< zero_, minus_, zero_ > >(data_field_views...);
-            if (predicate(direction< zero_, minus_, plus_ >()))
-                this->loop< direction< zero_, minus_, plus_ > >(data_field_views...);
+            if (predicate(direction<zero_, minus_, minus_>()))
+                this->loop<direction<zero_, minus_, minus_>>(data_field_views...);
+            if (predicate(direction<zero_, minus_, zero_>()))
+                this->loop<direction<zero_, minus_, zero_>>(data_field_views...);
+            if (predicate(direction<zero_, minus_, plus_>()))
+                this->loop<direction<zero_, minus_, plus_>>(data_field_views...);
 
-            if (predicate(direction< zero_, zero_, minus_ >()))
-                this->loop< direction< zero_, zero_, minus_ > >(data_field_views...);
-            if (predicate(direction< zero_, zero_, plus_ >()))
-                this->loop< direction< zero_, zero_, plus_ > >(data_field_views...);
+            if (predicate(direction<zero_, zero_, minus_>()))
+                this->loop<direction<zero_, zero_, minus_>>(data_field_views...);
+            if (predicate(direction<zero_, zero_, plus_>()))
+                this->loop<direction<zero_, zero_, plus_>>(data_field_views...);
 
-            if (predicate(direction< zero_, plus_, minus_ >()))
-                this->loop< direction< zero_, plus_, minus_ > >(data_field_views...);
-            if (predicate(direction< zero_, plus_, zero_ >()))
-                this->loop< direction< zero_, plus_, zero_ > >(data_field_views...);
-            if (predicate(direction< zero_, plus_, plus_ >()))
-                this->loop< direction< zero_, plus_, plus_ > >(data_field_views...);
+            if (predicate(direction<zero_, plus_, minus_>()))
+                this->loop<direction<zero_, plus_, minus_>>(data_field_views...);
+            if (predicate(direction<zero_, plus_, zero_>()))
+                this->loop<direction<zero_, plus_, zero_>>(data_field_views...);
+            if (predicate(direction<zero_, plus_, plus_>()))
+                this->loop<direction<zero_, plus_, plus_>>(data_field_views...);
 
-            if (predicate(direction< plus_, minus_, minus_ >()))
-                this->loop< direction< plus_, minus_, minus_ > >(data_field_views...);
-            if (predicate(direction< plus_, minus_, zero_ >()))
-                this->loop< direction< plus_, minus_, zero_ > >(data_field_views...);
-            if (predicate(direction< plus_, minus_, plus_ >()))
-                this->loop< direction< plus_, minus_, plus_ > >(data_field_views...);
+            if (predicate(direction<plus_, minus_, minus_>()))
+                this->loop<direction<plus_, minus_, minus_>>(data_field_views...);
+            if (predicate(direction<plus_, minus_, zero_>()))
+                this->loop<direction<plus_, minus_, zero_>>(data_field_views...);
+            if (predicate(direction<plus_, minus_, plus_>()))
+                this->loop<direction<plus_, minus_, plus_>>(data_field_views...);
 
-            if (predicate(direction< plus_, zero_, minus_ >()))
-                this->loop< direction< plus_, zero_, minus_ > >(data_field_views...);
-            if (predicate(direction< plus_, zero_, zero_ >()))
-                this->loop< direction< plus_, zero_, zero_ > >(data_field_views...);
-            if (predicate(direction< plus_, zero_, plus_ >()))
-                this->loop< direction< plus_, zero_, plus_ > >(data_field_views...);
+            if (predicate(direction<plus_, zero_, minus_>()))
+                this->loop<direction<plus_, zero_, minus_>>(data_field_views...);
+            if (predicate(direction<plus_, zero_, zero_>()))
+                this->loop<direction<plus_, zero_, zero_>>(data_field_views...);
+            if (predicate(direction<plus_, zero_, plus_>()))
+                this->loop<direction<plus_, zero_, plus_>>(data_field_views...);
 
-            if (predicate(direction< plus_, plus_, minus_ >()))
-                this->loop< direction< plus_, plus_, minus_ > >(data_field_views...);
-            if (predicate(direction< plus_, plus_, zero_ >()))
-                this->loop< direction< plus_, plus_, zero_ > >(data_field_views...);
-            if (predicate(direction< plus_, plus_, plus_ >()))
-                this->loop< direction< plus_, plus_, plus_ > >(data_field_views...);
+            if (predicate(direction<plus_, plus_, minus_>()))
+                this->loop<direction<plus_, plus_, minus_>>(data_field_views...);
+            if (predicate(direction<plus_, plus_, zero_>()))
+                this->loop<direction<plus_, plus_, zero_>>(data_field_views...);
+            if (predicate(direction<plus_, plus_, plus_>()))
+                this->loop<direction<plus_, plus_, plus_>>(data_field_views...);
 
             // apply(data_field_views ...);
         }

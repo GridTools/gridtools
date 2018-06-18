@@ -46,18 +46,18 @@ namespace gridtools {
     */
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
-    template < uint_t Number >
+    template <uint_t Number>
     struct gt_pow {
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION static Value constexpr apply(Value const &v) {
-            return v * gt_pow< Number - 1 >::apply(v);
+            return v * gt_pow<Number - 1>::apply(v);
         }
     };
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
     template <>
-    struct gt_pow< 0 > {
-        template < typename Value >
+    struct gt_pow<0> {
+        template <typename Value>
         GT_FUNCTION static Value constexpr apply(Value const &v) {
             return 1.;
         }
@@ -69,38 +69,38 @@ namespace gridtools {
      * @return ceiled value
      */
     GT_FUNCTION constexpr static int gt_ceil(float num) {
-        return (static_cast< float >(static_cast< int >(num)) == num) ? static_cast< int >(num)
-                                                                      : static_cast< int >(num) + ((num > 0) ? 1 : 0);
+        return (static_cast<float>(static_cast<int>(num)) == num) ? static_cast<int>(num)
+                                                                  : static_cast<int>(num) + ((num > 0) ? 1 : 0);
     }
 
     namespace math {
 
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION constexpr Value const &max(Value const &val0) {
             return val0;
         }
 
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1) {
             return val0 > val1 ? val0 : val1;
         }
 
-        template < typename Value, typename... OtherValues >
+        template <typename Value, typename... OtherValues>
         GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
         }
 
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION constexpr Value const &min(Value const &val0) {
             return val0;
         }
 
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1) {
             return val0 > val1 ? val1 : val0;
         }
 
-        template < typename Value, typename... OtherValues >
+        template <typename Value, typename... OtherValues>
         GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
@@ -112,7 +112,7 @@ namespace gridtools {
 
         GT_FUNCTION auto fabs(float val) -> decltype(::fabs(val)) { return ::fabs(val); }
 
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION auto fabs(Value val) -> decltype(::fabs((double)val)) {
             return ::fabs((double)val);
         }
@@ -120,7 +120,7 @@ namespace gridtools {
         GT_FUNCTION_HOST auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
 #else
         // long double not supported in device code
-        template < typename ErrorTrigger = double >
+        template <typename ErrorTrigger = double>
         GT_FUNCTION_DEVICE double fabs(long double val) {
             GRIDTOOLS_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
             return 0.;
@@ -140,7 +140,7 @@ namespace gridtools {
         GT_FUNCTION auto abs(long long val) -> decltype(::abs(val)) { return ::abs(val); }
 
         // forward to fabs
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION auto abs(Value val) -> decltype(math::fabs(val)) {
             return math::fabs(val);
         }
@@ -150,8 +150,8 @@ namespace gridtools {
 
 #ifdef __CUDA_ARCH__
         /**
-        * Function computing the exponential
-        */
+         * Function computing the exponential
+         */
         GT_FUNCTION float exp(const float x) { return ::expf(x); }
 
         GT_FUNCTION double exp(const double x) { return ::exp(x); }
@@ -161,8 +161,8 @@ namespace gridtools {
 
 #ifdef __CUDA_ARCH__
         /**
-        * Function computing the log function
-        */
+         * Function computing the log function
+         */
         GT_FUNCTION float log(const float x) { return ::logf(x); }
 
         GT_FUNCTION double log(const double x) { return ::log(x); }
@@ -172,8 +172,8 @@ namespace gridtools {
 
 #ifdef __CUDA_ARCH__
         /**
-        * Function computing the power function
-        */
+         * Function computing the power function
+         */
         GT_FUNCTION float pow(const float x, const float y) { return ::powf(x, y); }
 
         GT_FUNCTION double pow(const double x, const double y) { return ::pow(x, y); }
@@ -188,7 +188,7 @@ namespace gridtools {
 
         GT_FUNCTION auto fmod(double x, double y) -> decltype(::fmod(x, y)) { return ::fmod(x, y); }
 
-        template < typename ErrorTrigger = int >
+        template <typename ErrorTrigger = int>
         GT_FUNCTION auto fmod(long double x, long double y) -> decltype(std::fmod(x, y)) {
 #ifdef __CUDA_ARCH__
             GRIDTOOLS_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");
@@ -207,12 +207,12 @@ namespace gridtools {
 
         GT_FUNCTION auto trunc(double val) -> decltype(::trunc(val)) { return ::trunc(val); }
 
-        template < typename Value >
+        template <typename Value>
         GT_FUNCTION auto trunc(Value val) -> decltype(::trunc((double)val)) {
             return ::trunc((double)val);
         }
 
-        template < typename ErrorTrigger = int >
+        template <typename ErrorTrigger = int>
         GT_FUNCTION auto trunc(long double val) -> decltype(std::trunc(val)) {
 #ifdef __CUDA_ARCH__
             GRIDTOOLS_STATIC_ASSERT(sizeof(ErrorTrigger) != 0, "long double is not supported in device code");

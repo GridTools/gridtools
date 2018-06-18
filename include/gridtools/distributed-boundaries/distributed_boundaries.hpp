@@ -39,40 +39,40 @@
 /** \defgroup Distributed-Boundaries Distributed Boundary Conditions
  */
 
-#include "./bound_bc.hpp"
+#include "../boundary-conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
+#include "../communication/GCL.hpp"
+#include "../communication/halo_exchange.hpp"
+#include "../communication/low-level/proc_grids_3D.hpp"
 #include "../gridtools.hpp"
 #include "../stencil-composition/stencil-composition.hpp"
-#include "../communication/GCL.hpp"
-#include "../communication/low-level/proc_grids_3D.hpp"
-#include "../communication/halo_exchange.hpp"
-#include "../boundary-conditions/predicate.hpp"
+#include "./bound_bc.hpp"
 
 namespace gridtools {
 
     namespace _workaround {
         /** \internal Workaround for NVCC that has troubles with tuple_cat */
-        template < typename... Tuples >
+        template <typename... Tuples>
         struct pairwise_tuple_cat;
 
-        template < typename Tuple >
-        struct pairwise_tuple_cat< Tuple > {
+        template <typename Tuple>
+        struct pairwise_tuple_cat<Tuple> {
             static Tuple apply(Tuple t) { return t; }
         };
 
-        template < typename Tuple1, typename Tuple2, typename... Rest >
-        struct pairwise_tuple_cat< Tuple1, Tuple2, Rest... > {
+        template <typename Tuple1, typename Tuple2, typename... Rest>
+        struct pairwise_tuple_cat<Tuple1, Tuple2, Rest...> {
             static auto apply(Tuple1 t, Tuple2 s, Rest... rest) -> decltype(
-                pairwise_tuple_cat< decltype(std::tuple_cat(t, s)), Rest... >::apply(std::tuple_cat(t, s), rest...)) {
-                return pairwise_tuple_cat< decltype(std::tuple_cat(t, s)), Rest... >::apply(
+                pairwise_tuple_cat<decltype(std::tuple_cat(t, s)), Rest...>::apply(std::tuple_cat(t, s), rest...)) {
+                return pairwise_tuple_cat<decltype(std::tuple_cat(t, s)), Rest...>::apply(
                     std::tuple_cat(t, s), rest...);
             }
         };
 
-        template < typename... Tuples >
-        auto tuple_cat(Tuples... ts) -> decltype(pairwise_tuple_cat< Tuples... >::apply(ts...)) {
-            return pairwise_tuple_cat< Tuples... >::apply(ts...);
+        template <typename... Tuples>
+        auto tuple_cat(Tuples... ts) -> decltype(pairwise_tuple_cat<Tuples...>::apply(ts...)) {
+            return pairwise_tuple_cat<Tuples...>::apply(ts...);
         };
     } // namespace _workaround
 
@@ -114,19 +114,19 @@ namespace gridtools {
 
         \tparam CTraits Communication traits. To see an example see gridtools::comm_traits
     */
-    template < typename CTraits >
+    template <typename CTraits>
     struct distributed_boundaries {
 
-        using pattern_type = halo_exchange_dynamic_ut< typename CTraits::data_layout,
+        using pattern_type = halo_exchange_dynamic_ut<typename CTraits::data_layout,
             typename CTraits::proc_layout,
             typename CTraits::value_type,
             typename CTraits::proc_grid_type,
             typename CTraits::comm_arch_type,
-            CTraits::version >;
+            CTraits::version>;
 
       private:
-        array< halo_descriptor, 3 > m_halos;
-        array< int_t, 3 > m_sizes;
+        array<halo_descriptor, 3> m_halos;
+        array<int_t, 3> m_sizes;
         uint_t m_max_stores;
         pattern_type m_he;
 
@@ -143,15 +143,15 @@ namespace gridtools {
             \param CartComm MPI communicator to use in the halo update operation.
         */
         distributed_boundaries(
-            array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)
+            array<halo_descriptor, 3> halos, boollist<3> period, uint_t max_stores, MPI_Comm CartComm)
             : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm, m_sizes) {
-            m_he.template add_halo< 0 >(
+            m_he.template add_halo<0>(
                 m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
 
-            m_he.template add_halo< 1 >(
+            m_he.template add_halo<1>(
                 m_halos[1].minus(), m_halos[1].plus(), m_halos[1].begin(), m_halos[1].end(), m_halos[1].total_length());
 
-            m_he.template add_halo< 2 >(
+            m_he.template add_halo<2>(
                 m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
 
             m_he.setup(m_max_stores);
@@ -165,7 +165,7 @@ namespace gridtools {
 
             \param jobs Variadic list of jobs
         */
-        template < typename... Jobs >
+        template <typename... Jobs>
         void exchange(Jobs const &... jobs) {
 #ifdef __CUDACC__
             // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
@@ -174,9 +174,9 @@ namespace gridtools {
 #else
             auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
 #endif
-            if (m_max_stores < std::tuple_size< decltype(all_stores_for_exc) >::value) {
+            if (m_max_stores < std::tuple_size<decltype(all_stores_for_exc)>::value) {
                 std::string err{"Too many data stores to be exchanged" +
-                                std::to_string(std::tuple_size< decltype(all_stores_for_exc) >::value) +
+                                std::to_string(std::tuple_size<decltype(all_stores_for_exc)>::value) +
                                 " instead of the maximum allowed, which is " + std::to_string(m_max_stores)};
                 throw std::runtime_error(err);
             }
@@ -184,76 +184,76 @@ namespace gridtools {
             using execute_in_order = int[];
             (void)execute_in_order{(apply_boundary(jobs), 0)...};
             call_pack(all_stores_for_exc,
-                typename make_gt_integer_sequence< uint_t,
-                          std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
+                typename make_gt_integer_sequence<uint_t,
+                    std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
             m_he.exchange();
             call_unpack(all_stores_for_exc,
-                typename make_gt_integer_sequence< uint_t,
-                            std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
+                typename make_gt_integer_sequence<uint_t,
+                    std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
         }
 
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
 
       private:
-        template < typename BoundaryApply, typename ArgsTuple, uint_t... Ids >
+        template <typename BoundaryApply, typename ArgsTuple, uint_t... Ids>
         static void call_apply(
-            BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence< uint_t, Ids... >) {
-            boundary_apply.apply(std::get< Ids >(args)...);
+            BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence<uint_t, Ids...>) {
+            boundary_apply.apply(std::get<Ids>(args)...);
         }
 
-        template < typename BCApply >
-        typename std::enable_if< is_bound_bc< BCApply >::value, void >::type apply_boundary(BCApply bcapply) {
+        template <typename BCApply>
+        typename std::enable_if<is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
-            call_apply(boundary< typename BCApply::boundary_class,
+            call_apply(boundary<typename BCApply::boundary_class,
                            CTraits::compute_arch,
-                           proc_grid_predicate< typename CTraits::proc_grid_type > >(m_halos,
+                           proc_grid_predicate<typename CTraits::proc_grid_type>>(m_halos,
                            bcapply.boundary_to_apply(),
-                           proc_grid_predicate< typename CTraits::proc_grid_type >(m_he.comm())),
+                           proc_grid_predicate<typename CTraits::proc_grid_type>(m_he.comm())),
                 bcapply.stores(),
-                typename make_gt_integer_sequence< uint_t,
-                           std::tuple_size< typename BCApply::stores_type >::value >::type{});
+                typename make_gt_integer_sequence<uint_t,
+                    std::tuple_size<typename BCApply::stores_type>::value>::type{});
         }
 
-        template < typename BCApply >
-        typename std::enable_if< not is_bound_bc< BCApply >::value, void >::type apply_boundary(BCApply) {
+        template <typename BCApply>
+        typename std::enable_if<not is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply) {
             /* do nothing for a pure data_store*/
         }
 
-        template < typename FirstJob >
+        template <typename FirstJob>
         static auto collect_stores(
-            FirstJob const &firstjob, typename std::enable_if< is_bound_bc< FirstJob >::value, void * >::type = nullptr)
+            FirstJob const &firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void *>::type = nullptr)
             -> decltype(firstjob.exc_stores()) {
             return firstjob.exc_stores();
         }
 
-        template < typename FirstJob >
+        template <typename FirstJob>
         static auto collect_stores(FirstJob const &first_job,
-            typename std::enable_if< not is_bound_bc< FirstJob >::value, void * >::type = nullptr)
+            typename std::enable_if<not is_bound_bc<FirstJob>::value, void *>::type = nullptr)
             -> decltype(std::make_tuple(first_job)) {
             return std::make_tuple(first_job);
         }
 
-        template < typename Stores, uint_t... Ids >
-        void call_pack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
-            m_he.pack(advanced::get_address_of(_impl::proper_view< CTraits::compute_arch,
+        template <typename Stores, uint_t... Ids>
+        void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
+            m_he.pack(advanced::get_address_of(_impl::proper_view<CTraits::compute_arch,
                 access_mode::ReadWrite,
-                typename std::decay< typename std::tuple_element< Ids, Stores >::type >::type >::
-                    make(std::get< Ids >(stores)))...);
+                typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
+                    make(std::get<Ids>(stores)))...);
         }
 
-        template < typename Stores, uint_t... Ids >
-        void call_pack(Stores const &stores, gt_integer_sequence< uint_t >) {}
+        template <typename Stores, uint_t... Ids>
+        void call_pack(Stores const &stores, gt_integer_sequence<uint_t>) {}
 
-        template < typename Stores, uint_t... Ids >
-        void call_unpack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
-            m_he.unpack(advanced::get_address_of(_impl::proper_view< CTraits::compute_arch,
+        template <typename Stores, uint_t... Ids>
+        void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
+            m_he.unpack(advanced::get_address_of(_impl::proper_view<CTraits::compute_arch,
                 access_mode::ReadWrite,
-                typename std::decay< typename std::tuple_element< Ids, Stores >::type >::type >::
-                    make(std::get< Ids >(stores)))...);
+                typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
+                    make(std::get<Ids>(stores)))...);
         }
 
-        template < typename Stores, uint_t... Ids >
-        static void call_unpack(Stores const &stores, gt_integer_sequence< uint_t >) {}
+        template <typename Stores, uint_t... Ids>
+        static void call_unpack(Stores const &stores, gt_integer_sequence<uint_t>) {}
     };
 
     /** @} */

@@ -37,7 +37,7 @@
 
 namespace gridtools {
     namespace strgrid {
-        template < enumtype::platform BackendId >
+        template <enumtype::platform BackendId>
         struct grid_traits_arch;
     }
-}
+} // namespace gridtools

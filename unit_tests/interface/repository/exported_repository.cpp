@@ -16,9 +16,9 @@ namespace {
         auto ijk_view = make_host_view(ijk_field);
 
         int i = 0;
-        for (int z = 0; z < ijk_field.dim< 2 >(); ++z) {
-            for (int y = 0; y < ijk_field.dim< 1 >(); ++y) {
-                for (int x = 0; x < ijk_field.dim< 0 >(); ++x) {
+        for (int z = 0; z < ijk_field.dim<2>(); ++z) {
+            for (int y = 0; y < ijk_field.dim<1>(); ++y) {
+                for (int x = 0; x < ijk_field.dim<0>(); ++x) {
                     EXPECT_EQ(ijk_view(x, y, z), i++);
                 }
             }
@@ -27,8 +27,8 @@ namespace {
         auto ij_field = repository.ijfield();
         auto ij_view = make_host_view(ij_field);
         i = 0;
-        for (int y = 0; y < ij_field.dim< 1 >(); ++y) {
-            for (int x = 0; x < ij_field.dim< 0 >(); ++x) {
+        for (int y = 0; y < ij_field.dim<1>(); ++y) {
+            for (int x = 0; x < ij_field.dim<0>(); ++x) {
                 EXPECT_EQ(ij_view(x, y, 0), i++);
             }
         }
@@ -36,11 +36,11 @@ namespace {
         auto jk_field = repository.jkfield();
         auto jk_view = make_host_view(jk_field);
         i = 0;
-        for (int z = 0; z < jk_field.dim< 2 >(); ++z) {
-            for (int y = 0; y < jk_field.dim< 1 >(); ++y) {
+        for (int z = 0; z < jk_field.dim<2>(); ++z) {
+            for (int y = 0; y < jk_field.dim<1>(); ++y) {
                 EXPECT_EQ(jk_view(0, y, z), i++);
             }
         }
     }
     GT_EXPORT_BINDING_1(verify_exported_repository, verify_exported_repository_impl);
-}
+} // namespace

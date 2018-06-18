@@ -47,18 +47,18 @@ namespace gridtools {
             @{
         */
         struct minus_f {
-            template < class Lhs, class Rhs >
+            template <class Lhs, class Rhs>
             GT_FUNCTION constexpr auto operator()(Lhs const &lhs, Rhs const &rhs) const GT_AUTO_RETURN(lhs - rhs);
-            template < class Arg >
+            template <class Arg>
             GT_FUNCTION constexpr auto operator()(Arg const &arg) const GT_AUTO_RETURN(-arg);
         };
 
-        template < class Lhs, class Rhs >
+        template <class Lhs, class Rhs>
         GT_FUNCTION constexpr auto operator-(Lhs lhs, Rhs rhs) GT_AUTO_RETURN(make_expr(minus_f{}, lhs, rhs));
 
-        template < class Arg >
+        template <class Arg>
         GT_FUNCTION constexpr auto operator-(Arg arg) GT_AUTO_RETURN(make_expr(minus_f{}, arg));
         /** @} */
         /** @} */
-    }
-}
+    } // namespace expressions
+} // namespace gridtools

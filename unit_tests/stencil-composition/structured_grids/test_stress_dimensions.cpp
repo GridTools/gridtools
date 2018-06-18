@@ -45,34 +45,31 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-using layout_map_t = typename boost::conditional< backend_t::s_backend_id == Host,
-    layout_map< 3, 4, 5, 0, 1, 2 >,
-    layout_map< 5, 4, 3, 2, 1, 0 > >::type;
-using layout_map_global_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
-    layout_map< 1, 2, 3, 0 >,
-    layout_map< 3, 2, 1, 0 > >::type;
-using layout_map_local_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
-    layout_map< -1, -1, -1, 1, 2, 3, 0 >,
-    layout_map< -1, -1, -1, 3, 2, 1, 0 > >::type;
+using layout_map_t = typename boost::
+    conditional<backend_t::s_backend_id == Host, layout_map<3, 4, 5, 0, 1, 2>, layout_map<5, 4, 3, 2, 1, 0>>::type;
+using layout_map_global_quad_t =
+    typename boost::conditional<backend_t::s_backend_id == Host, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>::type;
+using layout_map_local_quad_t = typename boost::conditional<backend_t::s_backend_id == Host,
+    layout_map<-1, -1, -1, 1, 2, 3, 0>,
+    layout_map<-1, -1, -1, 3, 2, 1, 0>>::type;
 
-template < unsigned Id, typename Layout >
-using special_storage_info_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< Id,
-    Layout,
-    zero_halo< Layout::masked_length > >::type;
+template <unsigned Id, typename Layout>
+using special_storage_info_t = typename backend_t::storage_traits_t::
+    select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
 
-using storage_info_t = special_storage_info_t< 0, layout_map_t >;
-using storage_info_global_quad_t = special_storage_info_t< 0, layout_map_global_quad_t >;
-using storage_info_local_quad_t = special_storage_info_t< 0, layout_map_local_quad_t >;
+using storage_info_t = special_storage_info_t<0, layout_map_t>;
+using storage_info_global_quad_t = special_storage_info_t<0, layout_map_global_quad_t>;
+using storage_info_local_quad_t = special_storage_info_t<0, layout_map_local_quad_t>;
 
 //                      dims  x y z  qp
 //                   strides  1 x xy xyz
-typedef layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
-typedef layout_map< 3, 2, 1, 0 > layout4_t;
-typedef layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
+typedef layout_map<-1, -1, -1, 3, 2, 1, 0> layoutphi_t;
+typedef layout_map<3, 2, 1, 0> layout4_t;
+typedef layout_map<2, 1, 0, 3, 4, 5> layout_t;
 
-typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_type;
-typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_global_quad_t > storage_global_quad_t;
-typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_local_quad_t > storage_local_quad_t;
+typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_type;
+typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_global_quad_t> storage_global_quad_t;
+typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_local_quad_t> storage_local_quad_t;
 
 /**
   @file
@@ -106,7 +103,7 @@ typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_loca
   point.
 */
 
-template < typename StorageLocal, typename StorageGlobal, typename Storage, typename Grid >
+template <typename StorageLocal, typename StorageGlobal, typename Storage, typename Grid>
 bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Grid const &grid) {
 
     typedef Storage storage_t;
@@ -188,7 +185,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 6 > halos{{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 6> halos{{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
     bool result = verif.verify(grid, reference, result_, halos);
 
     return result;
@@ -196,21 +193,21 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 
 namespace assembly {
     struct integration {
-        typedef in_accessor< 0, extent<>, 7 > phi;
-        typedef in_accessor< 1, extent<>, 7 > psi; // how to detect when index is wrong??
-        typedef in_accessor< 2, extent<>, 4 > jac;
-        typedef in_accessor< 3, extent<>, 6 > f;
-        typedef inout_accessor< 4, extent<>, 6 > result;
-        typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
-        using quad = dimension< 7 >;
-        template < typename Evaluation >
+        typedef in_accessor<0, extent<>, 7> phi;
+        typedef in_accessor<1, extent<>, 7> psi; // how to detect when index is wrong??
+        typedef in_accessor<2, extent<>, 4> jac;
+        typedef in_accessor<3, extent<>, 6> f;
+        typedef inout_accessor<4, extent<>, 6> result;
+        typedef boost::mpl::vector<phi, psi, jac, f, result> arg_list;
+        using quad = dimension<7>;
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            dimension< 1 > i;
-            dimension< 2 > j;
-            dimension< 3 > k;
-            dimension< 4 > di;
-            dimension< 5 > dj;
-            dimension< 6 > dk;
+            dimension<1> i;
+            dimension<2> j;
+            dimension<3> k;
+            dimension<4> di;
+            dimension<5> dj;
+            dimension<6> dk;
             quad qp;
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
@@ -248,11 +245,11 @@ namespace assembly {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        typedef arg< 0, storage_local_quad_t > p_phi;
-        typedef arg< 1, storage_local_quad_t > p_psi;
-        typedef arg< 2, storage_global_quad_t > p_jac;
-        typedef arg< 3, storage_type > p_f;
-        typedef arg< 4, storage_type > p_result;
+        typedef arg<0, storage_local_quad_t> p_phi;
+        typedef arg<1, storage_local_quad_t> p_psi;
+        typedef arg<2, storage_global_quad_t> p_jac;
+        typedef arg<3, storage_type> p_f;
+        typedef arg<4, storage_type> p_result;
 
         uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
         uint_t b1 = 2;
@@ -300,22 +297,20 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp =
-            make_computation< backend_t >(grid,
-                p_phi() = phi,
-                p_psi() = psi,
-                p_jac() = jac,
-                p_f() = f,
-                p_result() = result,
-                make_multistage(execute< forward >(),
-                                              make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+        auto fe_comp = make_computation<backend_t>(grid,
+            p_phi() = phi,
+            p_psi() = psi,
+            p_jac() = jac,
+            p_f() = f,
+            p_result() = result,
+            make_multistage(execute<forward>(), make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp.run();
         fe_comp.sync_bound_data_stores();
 
-        return do_verification< storage_local_quad_t, storage_global_quad_t >(d1, d2, d3, result, grid);
+        return do_verification<storage_local_quad_t, storage_global_quad_t>(d1, d2, d3, result, grid);
     }
 
-}; // namespace extended_4d
+}; // namespace assembly
 
 TEST(Accessor, Multidimensional) { ASSERT_TRUE(assembly::test(13, 14, 12)); }

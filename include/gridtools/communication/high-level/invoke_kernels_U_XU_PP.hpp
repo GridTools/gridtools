@@ -50,10 +50,10 @@
         dim3 blocks(nbx, nby, nbz);                                                                                    \
                                                                                                                        \
         if (nbx != 0 && nby != 0 && nbz != 0) {                                                                        \
-            m_unpackXUKernel_generic<<< blocks, threads, 0, XU_stream >>>(field##n.ptr,                            \
-                reinterpret_cast< typename FOTF_T##n::value_type ** >(d_msgbufTab_r),                                  \
+            m_unpackXUKernel_generic<<<blocks, threads, 0, XU_stream>>>(field##n.ptr,                                  \
+                reinterpret_cast<typename FOTF_T##n::value_type **>(d_msgbufTab_r),                                    \
                 wrap_argument(d_msgsize_r + 27 * n),                                                                   \
-                *(reinterpret_cast< const gridtools::array< gridtools::halo_descriptor, 3 > * >(&field##n)),           \
+                *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor, 3> *>(&field##n)),               \
                 ny,                                                                                                    \
                 nz,                                                                                                    \
                 (field##n.halos[0].end() + 1) + (field##n.halos[1].begin()) * field##n.halos[0].total_length() +       \

@@ -48,23 +48,23 @@
 
 namespace gridtools {
 
-    template < class /*StorageInfo*/, class /*MaxExtent*/, enumtype::grid_type GridType, class Grid >
-    std::array< uint_t, 3 > get_tmp_data_storage_size(
-        backend_ids< enumtype::Host, GridType, enumtype::Naive > const &, Grid const &grid) {
+    template <class /*StorageInfo*/, class /*MaxExtent*/, enumtype::grid_type GridType, class Grid>
+    std::array<uint_t, 3> get_tmp_data_storage_size(
+        backend_ids<enumtype::Host, GridType, enumtype::Naive> const &, Grid const &grid) {
         auto i_size = grid.direction_i().total_length();
         auto j_size = grid.direction_j().total_length();
         auto k_size = grid.k_total_length();
         return {i_size, j_size, k_size};
     }
 
-    template < class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType, class Grid >
-    std::array< uint_t, 3 > get_tmp_data_storage_size(
-        backend_ids< enumtype::Host, GridType, enumtype::Block > const &, Grid const &grid) {
-        using block_size_t = typename strategy_from_id_host< enumtype::Block >::block_size_t;
-        using grid_traits_t = grid_traits_from_id< GridType >;
+    template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType, class Grid>
+    std::array<uint_t, 3> get_tmp_data_storage_size(
+        backend_ids<enumtype::Host, GridType, enumtype::Block> const &, Grid const &grid) {
+        using block_size_t = typename strategy_from_id_host<enumtype::Block>::block_size_t;
+        using grid_traits_t = grid_traits_from_id<GridType>;
         using halo_t = typename StorageInfo::halo_t;
-        static constexpr auto halo_i = halo_t::template at< grid_traits_t::dim_i_t::value >();
-        static constexpr auto halo_j = halo_t::template at< grid_traits_t::dim_j_t::value >();
+        static constexpr auto halo_i = halo_t::template at<grid_traits_t::dim_i_t::value>();
+        static constexpr auto halo_j = halo_t::template at<grid_traits_t::dim_j_t::value>();
         auto threads = omp_get_max_threads();
         auto i_size = (block_size_t::i_size_t::value + 2 * halo_i) * threads;
         auto j_size = block_size_t::j_size_t::value + 2 * halo_j;
@@ -72,23 +72,23 @@ namespace gridtools {
         return {i_size, j_size, k_size};
     }
 
-    template < uint_t Coordinate,
+    template <uint_t Coordinate,
         class /*MaxExtent*/,
         class StorageInfo,
         enumtype::grid_type GridType,
-        int_t Res = 2 * StorageInfo::halo_t::template at< Coordinate >() >
-    constexpr enable_if_t< Coordinate == grid_traits_from_id< GridType >::dim_i_t::value, int_t >
-    tmp_storage_block_offset_multiplier(backend_ids< enumtype::Host, GridType, enumtype::Block > const &) {
+        int_t Res = 2 * StorageInfo::halo_t::template at<Coordinate>()>
+    constexpr enable_if_t<Coordinate == grid_traits_from_id<GridType>::dim_i_t::value, int_t>
+    tmp_storage_block_offset_multiplier(backend_ids<enumtype::Host, GridType, enumtype::Block> const &) {
         return Res;
     }
 
-    template < uint_t Coordinate,
+    template <uint_t Coordinate,
         class /*MaxExtent*/,
         class /*StorageInfo*/,
         enumtype::grid_type GridType,
-        int_t Res = -strategy_from_id_host< enumtype::Block >::block_size_t::j_size_t::value >
-    constexpr enable_if_t< Coordinate == grid_traits_from_id< GridType >::dim_j_t::value, int_t >
-    tmp_storage_block_offset_multiplier(backend_ids< enumtype::Host, GridType, enumtype::Block > const &) {
+        int_t Res = -strategy_from_id_host<enumtype::Block>::block_size_t::j_size_t::value>
+    constexpr enable_if_t<Coordinate == grid_traits_from_id<GridType>::dim_j_t::value, int_t>
+    tmp_storage_block_offset_multiplier(backend_ids<enumtype::Host, GridType, enumtype::Block> const &) {
         return Res;
     }
-}
+} // namespace gridtools

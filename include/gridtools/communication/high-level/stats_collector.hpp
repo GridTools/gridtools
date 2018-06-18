@@ -36,17 +36,17 @@
 #ifndef _STATS_COLLECTOR_H_
 #define _STATS_COLLECTOR_H_
 
-#include <vector>
-#include <map>
-#include <set>
-#include <numeric>
 #include <iomanip>
+#include <map>
+#include <numeric>
+#include <set>
+#include <vector>
 
 #include <mpi.h>
 
+#include "../../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
 #include "../common/boollist.hpp"
-#include "../../common/halo_descriptor.hpp"
 
 namespace gridtools {
 
@@ -97,24 +97,20 @@ namespace gridtools {
     // for it to be replicated
     enum PatternType { pt_dynamic, pt_generic }; // note that only pt_dynamic is supported for now
 
-    template < int DIM >
+    template <int DIM>
     struct Pattern {
-        typedef array< halo_descriptor, DIM > halo_array;
-        typedef gcl_utils::boollist< DIM > ptype;
+        typedef array<halo_descriptor, DIM> halo_array;
+        typedef gcl_utils::boollist<DIM> ptype;
 
-        std::vector< int > proc_map;
+        std::vector<int> proc_map;
         PatternType type;
         halo_array halos;
         bool periodicity[DIM];
         int coords[DIM];
         int dims[DIM];
 
-        Pattern(PatternType t,
-            const halo_array &h,
-            std::vector< int > map,
-            const ptype &c,
-            int coords_[DIM],
-            int dims_[DIM])
+        Pattern(
+            PatternType t, const halo_array &h, std::vector<int> map, const ptype &c, int coords_[DIM], int dims_[DIM])
             : type(t), halos(h), proc_map(map) {
             c.copy_out(periodicity);
             std::copy(coords_, coords_ + DIM, coords);
@@ -128,16 +124,16 @@ namespace gridtools {
     };
 
     // singleton for collecting run time statistics about communication
-    template < int DIM >
+    template <int DIM>
     class stats_collector {
       public:
-        typedef stats_collector< DIM > collector;
-        typedef std::vector< CommEvent >::iterator event_iterator;
-        typedef std::vector< CommEvent >::const_iterator const_event_iterator;
-        typedef std::vector< ExchangeEvent >::iterator exchange_iterator;
-        typedef std::vector< ExchangeEvent >::const_iterator const_exchange_iterator;
-        typedef typename std::vector< Pattern< DIM > >::iterator pattern_iterator;
-        typedef typename std::vector< Pattern< DIM > >::const_iterator const_pattern_iterator;
+        typedef stats_collector<DIM> collector;
+        typedef std::vector<CommEvent>::iterator event_iterator;
+        typedef std::vector<CommEvent>::const_iterator const_event_iterator;
+        typedef std::vector<ExchangeEvent>::iterator exchange_iterator;
+        typedef std::vector<ExchangeEvent>::const_iterator const_exchange_iterator;
+        typedef typename std::vector<Pattern<DIM>>::iterator pattern_iterator;
+        typedef typename std::vector<Pattern<DIM>>::const_iterator const_pattern_iterator;
 
         // get instance of the stats_collector singleton
         static collector *instance() { return instance_ ? instance_ : (instance_ = new collector); }
@@ -173,7 +169,7 @@ namespace gridtools {
                 exchange_events_.push_back(event);
         }
 
-        int add_pattern(const Pattern< DIM > &pat) {
+        int add_pattern(const Pattern<DIM> &pat) {
             patterns_.push_back(pat);
             return patterns_.size() - 1;
         }
@@ -212,22 +208,22 @@ namespace gridtools {
 
         // print information about communicatio pattern that is required
         // to reproduce communication
-        template < typename S >
+        template <typename S>
         void evaluate(S &stream, int level = 0) const {
             // determine which subset of patterns were actually used
-            std::set< int > patterns_used;
+            std::set<int> patterns_used;
             for (const_exchange_iterator it = exchange_begin(); it != exchange_end(); it++)
                 patterns_used.insert(it->pattern);
 
             // enumerate the patterns from 0:patterns_used.size()-1
-            std::map< int, int > pattern_map;
-            for (std::set< int >::const_iterator it = patterns_used.begin(); it != patterns_used.end(); it++)
+            std::map<int, int> pattern_map;
+            for (std::set<int>::const_iterator it = patterns_used.begin(); it != patterns_used.end(); it++)
                 pattern_map[*it] = pattern_map.size() - 1;
 
             // stream << "global inded, local index, minus, plus, begin, end, total_length" << std::endl;
             if (!rank)
                 stream << "patterns_start" << std::endl;
-            for (std::map< int, int >::const_iterator it = pattern_map.begin(); it != pattern_map.end(); it++) {
+            for (std::map<int, int>::const_iterator it = pattern_map.begin(); it != pattern_map.end(); it++) {
                 int p = it->first;
                 if (!rank) {
                     stream << "pattern " << it->second << "  " << it->first << std::endl;
@@ -244,7 +240,7 @@ namespace gridtools {
                 }
                 for (int i = 0; i < DIM; i++) {
                     // allocate memory for receive buffer
-                    std::vector< int > coord_buff(size);
+                    std::vector<int> coord_buff(size);
                     int dim = patterns_[p].coords[i];
                     MPI_Gather(&dim, 1, MPI_INT, &coord_buff[0], 1, MPI_INT, 0, comm_);
 
@@ -257,7 +253,7 @@ namespace gridtools {
                 }
                 for (int i = 0; i < DIM; i++) {
                     // allocate memory for receive buffer
-                    std::vector< int > recvbuff(size);
+                    std::vector<int> recvbuff(size);
 
                     // gather and output the minus ranges
                     int minus = patterns_[p].halo(i).minus();
@@ -320,18 +316,17 @@ namespace gridtools {
             if (!rank)
                 stream << "pattern_times_start" << std::endl;
 
-            typedef std::map< ExchangeEventType, double > PatternTimeTable;
+            typedef std::map<ExchangeEventType, double> PatternTimeTable;
             PatternTimeTable time_table;
             time_table[ee_pack] = time_table[ee_unpack] = time_table[ee_wait] = time_table[ee_exchange] =
                 time_table[ee_start_exchange] = 0.;
             // a map that stores a time table for each pattern
-            std::map< int, PatternTimeTable > pattern_times;
+            std::map<int, PatternTimeTable> pattern_times;
             // initialize time table for each pattern to zero
-            for (std::map< int, int >::const_iterator it = pattern_map.begin(); it != pattern_map.end(); it++) {
+            for (std::map<int, int>::const_iterator it = pattern_map.begin(); it != pattern_map.end(); it++) {
                 pattern_times[it->first] = time_table;
             }
-            for (std::vector< ExchangeEvent >::const_iterator it = exchange_events_.begin();
-                 it != exchange_events_.end();
+            for (std::vector<ExchangeEvent>::const_iterator it = exchange_events_.begin(); it != exchange_events_.end();
                  it++) {
                 double dt = it->wall_time_end - it->wall_time_start;
                 pattern_times[it->pattern][it->type] += dt;
@@ -341,7 +336,7 @@ namespace gridtools {
             double local_times[5];
             double mean_times[5];
             // temporary storage for output string
-            std::vector< char > str_storage(256);
+            std::vector<char> str_storage(256);
             char *str = &str_storage[0];
 
             // print details of the communication patterns
@@ -356,7 +351,7 @@ namespace gridtools {
             }
             double sum_pack = 0., sum_wait = 0., sum_exchg = 0., sum_start_exchg = 0.;
             int idx = 0;
-            for (std::map< int, PatternTimeTable >::iterator it = pattern_times.begin(); it != pattern_times.end();
+            for (std::map<int, PatternTimeTable>::iterator it = pattern_times.begin(); it != pattern_times.end();
                  it++) {
                 // local_times[0,1,2,3] = pack, wait, start_exchange, exchange times
                 // local_times[4] = sum of all times
@@ -444,28 +439,28 @@ namespace gridtools {
         //      1 : show patterns and exchange events
         //      2 : show all profiling information: patters, exchange events,
         //          and low-level MPI calls
-        template < typename S >
+        template <typename S>
         void print(S &stream, int level = 1) const {
             // map of event types onto their names for printing
-            std::map< CommEventType, std::string > event_labels;
+            std::map<CommEventType, std::string> event_labels;
             event_labels[ce_send] = std::string("send");
             event_labels[ce_receive_wait] = std::string("receive_wait");
             event_labels[ce_send_wait] = std::string("send_wait");
             event_labels[ce_receive] = std::string("receive");
 
-            std::map< ExchangeEventType, std::string > exchange_labels;
+            std::map<ExchangeEventType, std::string> exchange_labels;
             exchange_labels[ee_pack] = std::string("pack");
             exchange_labels[ee_unpack] = std::string("unpack");
             exchange_labels[ee_exchange] = std::string("exchange");
             exchange_labels[ee_start_exchange] = std::string("start exchg");
             exchange_labels[ee_wait] = std::string("wait");
 
-            std::map< PatternType, std::string > pattern_labels;
+            std::map<PatternType, std::string> pattern_labels;
             pattern_labels[pt_dynamic] = std::string("dynamic");
             pattern_labels[pt_generic] = std::string("generic");
 
             // temporary storage for output string
-            std::vector< char > str_storage(256);
+            std::vector<char> str_storage(256);
             char *str = &str_storage[0];
 
             // print details of the communication patterns
@@ -562,8 +557,8 @@ namespace gridtools {
         double initial_time_stamp_;
 
         // list of all recorded events
-        std::vector< CommEvent > events_;
-        std::vector< ExchangeEvent > exchange_events_;
+        std::vector<CommEvent> events_;
+        std::vector<ExchangeEvent> exchange_events_;
 
         // flag whether to record events
         bool recording_;
@@ -571,7 +566,7 @@ namespace gridtools {
         // flag whether initialized
         bool initialized_;
 
-        std::vector< Pattern< DIM > > patterns_;
+        std::vector<Pattern<DIM>> patterns_;
 
         // storage for MPI information
         int rank;
@@ -580,8 +575,8 @@ namespace gridtools {
     };
 
     // make conventient handles for collectors to avoid cumbersome instance()-> interface
-    extern stats_collector< 2 > &stats_collector_2D;
-    extern stats_collector< 3 > &stats_collector_3D;
+    extern stats_collector<2> &stats_collector_2D;
+    extern stats_collector<3> &stats_collector_3D;
 
 } // namespace gridtools
 

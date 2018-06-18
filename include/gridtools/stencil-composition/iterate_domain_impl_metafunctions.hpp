@@ -40,14 +40,14 @@
 
 namespace gridtools {
 
-    template < typename Impl >
+    template <typename Impl>
     struct iterate_domain_impl_arguments;
 
-    template < typename IterateDomainArguments,
-        template < typename > class IterateDomainBase,
-        template < template < typename > class, typename > class IterateDomainImpl >
-    struct iterate_domain_impl_arguments< IterateDomainImpl< IterateDomainBase, IterateDomainArguments > > {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+    template <typename IterateDomainArguments,
+        template <typename> class IterateDomainBase,
+        template <template <typename> class, typename> class IterateDomainImpl>
+    struct iterate_domain_impl_arguments<IterateDomainImpl<IterateDomainBase, IterateDomainArguments>> {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
         typedef IterateDomainArguments type;
     };
-}
+} // namespace gridtools

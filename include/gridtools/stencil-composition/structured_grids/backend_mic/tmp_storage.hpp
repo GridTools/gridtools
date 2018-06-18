@@ -46,14 +46,14 @@
 
 namespace gridtools {
 
-    template < class StorageInfo, class /*MaxExtent*/, class Grid >
-    std::array< uint_t, 3 > get_tmp_data_storage_size(
-        backend_ids< enumtype::Mic, enumtype::structured, enumtype::Block > const &, Grid const &grid) {
+    template <class StorageInfo, class /*MaxExtent*/, class Grid>
+    std::array<uint_t, 3> get_tmp_data_storage_size(
+        backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
         using halo_t = typename StorageInfo::halo_t;
-        using grid_traits_t = grid_traits_from_id< enumtype::structured >;
+        using grid_traits_t = grid_traits_from_id<enumtype::structured>;
 
-        static constexpr auto halo_i = halo_t::template at< grid_traits_t::dim_i_t::value >();
-        static constexpr auto halo_j = halo_t::template at< grid_traits_t::dim_j_t::value >();
+        static constexpr auto halo_i = halo_t::template at<grid_traits_t::dim_i_t::value>();
+        static constexpr auto halo_j = halo_t::template at<grid_traits_t::dim_j_t::value>();
         static constexpr auto alignment = StorageInfo::alignment_t::value;
 
         execinfo_mic exinfo(grid);
@@ -64,9 +64,9 @@ namespace gridtools {
         return {i_size, j_size, k_size};
     }
 
-    template < uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/ >
+    template <uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/>
     constexpr int tmp_storage_block_offset_multiplier(
-        backend_ids< enumtype::Mic, enumtype::structured, enumtype::Block > const &) {
+        backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &) {
         return throw "should not be used", 0;
     }
-}
+} // namespace gridtools

@@ -47,15 +47,15 @@
 
 namespace gridtools {
 
-    template < typename MssComponentsArray,
+    template <typename MssComponentsArray,
         typename Grid,
         typename MssLocalDomainArray,
         typename BackendIds,
         typename ReductionData,
-        typename ExecutionInfo >
+        typename ExecutionInfo>
     struct mss_functor;
 
-    template < enumtype::strategy >
+    template <enumtype::strategy>
     struct strategy_from_id_cuda;
 
     /**
@@ -69,33 +69,33 @@ namespace gridtools {
        Empty as not used in the CUDA backend
     */
     template <>
-    struct strategy_from_id_cuda< enumtype::Block > {
+    struct strategy_from_id_cuda<enumtype::Block> {
         // default block size for Block strategy
-        typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > block_size_t;
+        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1> block_size_t;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
          * @tparam BackendIds backend ids type
          */
-        template < typename MssComponents, typename BackendIds, typename ReductionData >
+        template <typename MssComponents, typename BackendIds, typename ReductionData>
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-            template < typename LocalDomainListArray, typename Grid >
+            template <typename LocalDomainListArray, typename Grid>
             static void run(
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                host_for_each< GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >)>(
-                    mss_functor< MssComponents,
+                host_for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                    mss_functor<MssComponents,
                         Grid,
                         LocalDomainListArray,
                         BackendIds,
                         ReductionData,
-                        execution_info_cuda >(local_domain_lists, grid, reduction_data, {}));
+                        execution_info_cuda>(local_domain_lists, grid, reduction_data, {}));
             }
         };
     };

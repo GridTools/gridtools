@@ -36,9 +36,9 @@
 #ifndef _ALL_TO_ALL_HALO_H_
 #define _ALL_TO_ALL_HALO_H_
 
-#include "low-level/access_functions.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "low-level/Generic_All_to_All.hpp"
+#include "low-level/access_functions.hpp"
 #include "low-level/data_types_mapping.hpp"
 
 /**
@@ -47,7 +47,7 @@
 
 namespace gridtools {
 
-    template < typename vtype, typename pgrid >
+    template <typename vtype, typename pgrid>
     struct all_to_all_halo {
         /** Type of the elements to be exchanged.
          */
@@ -63,7 +63,7 @@ namespace gridtools {
 
       private:
         const grid_type proc_grid;
-        all_to_all< value_type > a2a;
+        all_to_all<value_type> a2a;
 
       public:
         /** Constructor that takes the computing grid and initializes the
@@ -91,13 +91,13 @@ namespace gridtools {
             \param halo_block or vector of type arraytype1 that contains the description of the data to be sent
             \param coords Array of vector of absolute coordinates of the process that will receive the data
          */
-        template < typename arraytype1, typename arraytype2 >
+        template <typename arraytype1, typename arraytype2>
         void register_block_to(value_type *field, arraytype1 const &halo_block, arraytype2 const &coords) {
 #ifndef NDEBUG
             std::cout << "register_block_to " << proc_grid.abs_proc(coords) << "\n";
 #endif
             a2a.to[proc_grid.abs_proc(coords)] =
-                packet< value_type >(_impl::make_datatype< value_type >::make(halo_block), field);
+                packet<value_type>(_impl::make_datatype<value_type>::make(halo_block), field);
         }
 
         /** This function takes an array or vector of halos (sorted by
@@ -116,13 +116,13 @@ namespace gridtools {
             \param coords Array of vector of absolute coordinates of the process that from where the data will be
            received
          */
-        template < typename arraytype1, typename arraytype2 >
+        template <typename arraytype1, typename arraytype2>
         void register_block_from(value_type *field, arraytype1 const &halo_block, arraytype2 const &coords) {
 #ifndef NDEBUG
             std::cout << "register_block_from " << proc_grid.abs_proc(coords) << "\n";
 #endif
             a2a.from[proc_grid.abs_proc(coords)] =
-                packet< value_type >(_impl::make_datatype< value_type >::make(halo_block), field);
+                packet<value_type>(_impl::make_datatype<value_type>::make(halo_block), field);
         }
 
         /** This method prepare the pattern to be ready to execute

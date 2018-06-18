@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/offset_computation.hpp>
 #include "backend_select.hpp"
+#include "gtest/gtest.h"
+#include <gridtools/stencil-composition/offset_computation.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -46,85 +46,87 @@ namespace test_multidimensional_caches {
 
     int test_ijcache() {
 
-        typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
-        typedef storage_wrapper< arg< 0, storage_t >,
-            data_view< storage_t >,
-            gridtools::tile< 0, 0, 0 >,
-            gridtools::tile< 0, 0, 0 > > sw1_t;
-        typedef detail::cache_impl< IJ, arg< 0, storage_t >, cache_io_policy::local, boost::mpl::void_ > cache_t;
+        typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
+        typedef storage_wrapper<arg<0, storage_t>,
+            data_view<storage_t>,
+            gridtools::tile<0, 0, 0>,
+            gridtools::tile<0, 0, 0>>
+            sw1_t;
+        typedef detail::cache_impl<IJ, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_> cache_t;
 
-        typedef cache_storage< cache_t, block_size< 8, 3, 1, 1, 1 >, extent< -1, 1, -2, 2, 0, 0, 0, 2, -1, 0 >, sw1_t >
+        typedef cache_storage<cache_t, block_size<8, 3, 1, 1, 1>, extent<-1, 1, -2, 2, 0, 0, 0, 2, -1, 0>, sw1_t>
             cache_storage_t;
-        typedef accessor< 0, enumtype::in, extent<>, 6 > acc_t;
+        typedef accessor<0, enumtype::in, extent<>, 6> acc_t;
 
         typedef typename cache_storage_t::meta_t m_t;
 
         static constexpr m_t m_;
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
         // ICC 18 shows a strange bug here
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 10, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 7, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 2 >() == 1, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 3, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 2, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<0>() == 10, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<1>() == 7, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<2>() == 1, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<3>() == 3, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<4>() == 2, "error");
 #endif
 
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(1, 0, 0, 0, 0, 0)) == 1), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(1, 0, 0, 0, 0, 0)) == 1), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(2, 0, 0, 0, 0, 0)) == 2), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(2, 0, 0, 0, 0, 0)) == 2), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(3, 0, 0, 0, 0, 0)) == 3), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(3, 0, 0, 0, 0, 0)) == 3), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(4, 0, 0, 0, 0, 0)) == 4), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(4, 0, 0, 0, 0, 0)) == 4), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(5, 0, 0, 0, 0, 0)) == 5), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(5, 0, 0, 0, 0, 0)) == 5), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(6, 0, 0, 0, 0, 0)) == 6), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(6, 0, 0, 0, 0, 0)) == 6), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(7, 0, 0, 0, 0, 0)) == 7), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(7, 0, 0, 0, 0, 0)) == 7), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(8, 0, 0, 0, 0, 0)) == 8), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(8, 0, 0, 0, 0, 0)) == 8), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(9, 0, 0, 0, 0, 0)) == 9), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(9, 0, 0, 0, 0, 0)) == 9), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 0, 0)) == 0), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 0, 0)) == 0), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 1, 0, 0, 0, 0)) == 10), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 1, 0, 0, 0, 0)) == 10), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 2, 0, 0, 0, 0)) == 20), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 2, 0, 0, 0, 0)) == 20), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 3, 0, 0, 0, 0)) == 30), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 3, 0, 0, 0, 0)) == 30), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 4, 0, 0, 0, 0)) == 40), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 4, 0, 0, 0, 0)) == 40), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 5, 0, 0, 0, 0)) == 50), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 5, 0, 0, 0, 0)) == 50), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 6, 0, 0, 0, 0)) == 60), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 6, 0, 0, 0, 0)) == 60), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 1, 0, 0, 0)) == 70), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 1, 0, 0, 0)) == 70), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0)) == 140), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0)) == 140), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0)) == 70), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0)) == 70), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 1, 0)) == 210), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 1, 0)) == 210), "error");
         return true;
     }
 
     int test_kcache() {
-        typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
-        typedef storage_wrapper< arg< 0, storage_t >,
-            data_view< storage_t >,
-            gridtools::tile< 0, 0, 0 >,
-            gridtools::tile< 0, 0, 0 > > sw1_t;
-        typedef detail::cache_impl< K, arg< 0, storage_t >, cache_io_policy::local, boost::mpl::void_ > cache_t;
+        typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
+        typedef storage_wrapper<arg<0, storage_t>,
+            data_view<storage_t>,
+            gridtools::tile<0, 0, 0>,
+            gridtools::tile<0, 0, 0>>
+            sw1_t;
+        typedef detail::cache_impl<K, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_> cache_t;
 
-        typedef cache_storage< cache_t, block_size< 1, 1, 1, 1, 1 >, extent< 0, 0, 0, 0, -3, 2, 0, 1, 0, 3 >, sw1_t >
+        typedef cache_storage<cache_t, block_size<1, 1, 1, 1, 1>, extent<0, 0, 0, 0, -3, 2, 0, 1, 0, 3>, sw1_t>
             cache_storage_t;
-        typedef accessor< 0, enumtype::in, extent<>, 6 > acc_t;
+        typedef accessor<0, enumtype::in, extent<>, 6> acc_t;
 
         typedef typename cache_storage_t::meta_t m_t;
 
@@ -132,25 +134,25 @@ namespace test_multidimensional_caches {
 
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
         // ICC 18 shows a strange bug here
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 1, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 1, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 2 >() == 6, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 2, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 4, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<0>() == 1, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<1>() == 1, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<2>() == 6, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<3>() == 2, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<4>() == 4, "error");
 #endif
 
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, -3, 0, 0, 0)) == -3), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, -3, 0, 0, 0)) == -3), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, -1, 0, 0, 0)) == -1), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, -1, 0, 0, 0)) == -1), "error");
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0)) == 2), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0)) == 2), "error");
 
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0)) == 6), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0)) == 6), "error");
 
         GRIDTOOLS_STATIC_ASSERT(
-            (compute_offset_cache< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 2, 0)) == 24), "error");
+            (compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 2, 0)) == 24), "error");
 
         return true;
     }

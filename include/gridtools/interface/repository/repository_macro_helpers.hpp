@@ -42,10 +42,10 @@
 
 #include "../../common/boost_pp_generic_macros.hpp"
 #include "boost/preprocessor/seq.hpp"
-#include <boost/preprocessor/tuple.hpp>
 #include <boost/preprocessor/list.hpp>
 #include <boost/preprocessor/selection/max.hpp>
 #include <boost/preprocessor/selection/min.hpp>
+#include <boost/preprocessor/tuple.hpp>
 
 /*
  * @brief data_store_types_tuple is a tuple of the form (DataStoreType, DimTuple). The following macros

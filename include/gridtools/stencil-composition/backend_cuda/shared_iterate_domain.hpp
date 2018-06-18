@@ -58,21 +58,21 @@ namespace gridtools {
      * @tparam StridesType strides cached type
      * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
-    template < typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple >
+    template <typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple>
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
       private:
         DataPointerArray m_data_pointer;
         StridesType m_strides;
-        void_if_empty_t< IJCachesTuple > m_ij_caches_tuple; // HACK: see void_if_empty_t
+        void_if_empty_t<IJCachesTuple> m_ij_caches_tuple; // HACK: see void_if_empty_t
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.
         // Therefore we construct here a mirror metadata mpl map type to be used for meta algorithms
-        typedef typename fusion_map_to_mpl_map< IJCachesTuple >::type ij_caches_map_t;
+        typedef typename fusion_map_to_mpl_map<IJCachesTuple>::type ij_caches_map_t;
 
       public:
         shared_iterate_domain() {}
@@ -86,11 +86,11 @@ namespace gridtools {
         GT_FUNCTION
         StridesType &strides() { return m_strides; }
 
-        template < typename IndexType >
-        GT_FUNCTION typename boost::mpl::at< ij_caches_map_t, IndexType >::type &RESTRICT get_ij_cache() {
+        template <typename IndexType>
+        GT_FUNCTION typename boost::mpl::at<ij_caches_map_t, IndexType>::type &RESTRICT get_ij_cache() {
             GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::has_key< ij_caches_map_t, IndexType >::value), "Accessing a non registered cached");
-            return boost::fusion::at_key< IndexType >(m_ij_caches_tuple);
+                (boost::mpl::has_key<ij_caches_map_t, IndexType>::value), "Accessing a non registered cached");
+            return boost::fusion::at_key<IndexType>(m_ij_caches_tuple);
         }
     };
 

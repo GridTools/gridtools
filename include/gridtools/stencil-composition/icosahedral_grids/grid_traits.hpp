@@ -43,15 +43,15 @@
 namespace gridtools {
 
     template <>
-    struct grid_traits_from_id< enumtype::icosahedral > {
-        typedef static_uint< 0 > dim_i_t;
-        typedef static_uint< 1 > dim_c_t;
-        typedef static_uint< 2 > dim_j_t;
-        typedef static_uint< 3 > dim_k_t;
+    struct grid_traits_from_id<enumtype::icosahedral> {
+        typedef static_uint<0> dim_i_t;
+        typedef static_uint<1> dim_c_t;
+        typedef static_uint<2> dim_j_t;
+        typedef static_uint<3> dim_k_t;
 
-        template < enumtype::platform BackendId >
+        template <enumtype::platform BackendId>
         struct with_arch {
-            typedef icgrid::grid_traits_arch< BackendId > type;
+            typedef icgrid::grid_traits_arch<BackendId> type;
         };
     };
-}
+} // namespace gridtools

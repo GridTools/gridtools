@@ -54,19 +54,19 @@ namespace gridtools {
 
     namespace _impl {
         /** Helper struct for initializing std arrays (used in initializer lists) in a constexpr way */
-        template < std::size_t N, typename T, typename... Ts >
+        template <std::size_t N, typename T, typename... Ts>
         struct array_emplacer {
-            template < typename... Args,
-                typename = typename boost::enable_if_c< (int)(sizeof...(Args), sizeof...(Ts) + 1 < N), void >::type >
-            static constexpr std::array< T, N > emplace(Args const &... args) {
-                return array_emplacer< N, T, T, Ts... >::emplace(args...);
+            template <typename... Args,
+                typename = typename boost::enable_if_c<(int)(sizeof...(Args), sizeof...(Ts) + 1 < N), void>::type>
+            static constexpr std::array<T, N> emplace(Args const &... args) {
+                return array_emplacer<N, T, T, Ts...>::emplace(args...);
             }
 
-            template < typename... Args,
-                typename = typename boost::enable_if_c< (int)(sizeof...(Args), sizeof...(Ts) + 1 == N), void >::type,
-                typename = void >
-            static constexpr std::array< T, N > emplace(Args const &... args) {
-                return std::array< T, N >{T(args...), Ts(args...)...};
+            template <typename... Args,
+                typename = typename boost::enable_if_c<(int)(sizeof...(Args), sizeof...(Ts) + 1 == N), void>::type,
+                typename = void>
+            static constexpr std::array<T, N> emplace(Args const &... args) {
+                return std::array<T, N>{T(args...), Ts(args...)...};
             }
         };
     } // namespace _impl
@@ -78,9 +78,9 @@ namespace gridtools {
      * \param args Variadic list of the constructor argument for type T
      * \return A std::array<T,N> with elements initialized with the object constructed with the given arguments
      */
-    template < typename T, std::size_t N, typename... Args >
-    constexpr std::array< T, N > fill_array(Args const &... args) {
-        return _impl::array_emplacer< N, T >::emplace(args...);
+    template <typename T, std::size_t N, typename... Args>
+    constexpr std::array<T, N> fill_array(Args const &... args) {
+        return _impl::array_emplacer<N, T>::emplace(args...);
     }
 
     /**
@@ -101,7 +101,7 @@ namespace gridtools {
      * @param M variadic list containing the size of other data field coordinates
      * @return accumulated data field index.
      */
-    template < typename First, typename... Ints >
+    template <typename First, typename... Ints>
     GT_FUNCTION constexpr uint_t get_accumulated_data_field_index(int N, First F, Ints... M) {
         return (N == 0) ? 0 : F + get_accumulated_data_field_index(N - 1, M...);
     }
@@ -109,4 +109,4 @@ namespace gridtools {
     /**
      * @}
      */
-}
+} // namespace gridtools

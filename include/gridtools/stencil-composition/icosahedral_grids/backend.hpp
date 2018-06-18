@@ -35,44 +35,44 @@
 */
 #pragma once
 
-#include "../location_type.hpp"
-#include "../backend_base.hpp"
-#include "icosahedral_grid_traits.hpp"
-#include "../../common/selector.hpp"
 #include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
+#include "../../common/selector.hpp"
+#include "../backend_base.hpp"
+#include "../location_type.hpp"
+#include "icosahedral_grid_traits.hpp"
 
 namespace gridtools {
 
     /**
        The backend is, as usual, declaring what the storage types are
      */
-    template < enumtype::platform BackendId, enumtype::strategy StrategyType >
-    struct backend< BackendId, enumtype::icosahedral, StrategyType >
-        : public backend_base< BackendId, enumtype::icosahedral, StrategyType > {
+    template <enumtype::platform BackendId, enumtype::strategy StrategyType>
+    struct backend<BackendId, enumtype::icosahedral, StrategyType>
+        : public backend_base<BackendId, enumtype::icosahedral, StrategyType> {
       public:
-        typedef backend_base< BackendId, enumtype::icosahedral, StrategyType > base_t;
+        typedef backend_base<BackendId, enumtype::icosahedral, StrategyType> base_t;
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
-        using layout_map_t = typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t;
+        using layout_map_t = typename icgrid::grid_traits_arch<base_t::s_backend_id>::layout_map_t;
 
-        template < typename DimSelector >
+        template <typename DimSelector>
         struct select_layout {
 
-            using dim_selector_4d_t = typename shorten< bool, DimSelector, 4 >::type;
-            using filtered_layout = typename filter_layout< layout_map_t, dim_selector_4d_t >::type;
+            using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
+            using filtered_layout = typename filter_layout<layout_map_t, dim_selector_4d_t>::type;
 
-            using type = typename boost::mpl::eval_if_c< (DimSelector::size > 4),
-                extend_layout_map< filtered_layout, DimSelector::size - 4 >,
-                boost::mpl::identity< filtered_layout > >::type;
+            using type = typename boost::mpl::eval_if_c<(DimSelector::size > 4),
+                extend_layout_map<filtered_layout, DimSelector::size - 4>,
+                boost::mpl::identity<filtered_layout>>::type;
         };
 
-        template < unsigned Index, typename LayoutMap = layout_map_t, typename Halo = halo< 0, 0, 0, 0 > >
+        template <unsigned Index, typename LayoutMap = layout_map_t, typename Halo = halo<0, 0, 0, 0>>
         using storage_info_t =
-            typename base_t::storage_traits_t::template custom_layout_storage_info_t< Index, LayoutMap, Halo >;
+            typename base_t::storage_traits_t::template custom_layout_storage_info_t<Index, LayoutMap, Halo>;
 
-        template < typename ValueType, typename StorageInfo >
-        using data_store_t = typename base_t::storage_traits_t::template data_store_t< ValueType, StorageInfo >;
+        template <typename ValueType, typename StorageInfo>
+        using data_store_t = typename base_t::storage_traits_t::template data_store_t<ValueType, StorageInfo>;
     };
 } // namespace gridtools

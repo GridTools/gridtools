@@ -50,12 +50,12 @@
    @file
    @brief global definitions
 */
+#include "./generic_metafunctions/mpl_tags.hpp"
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
-#include "./generic_metafunctions/mpl_tags.hpp"
 #include <type_traits>
 
 #define GT_MAX_ARGS 20
@@ -179,16 +179,16 @@ namespace gridtools {
         enum grid_type { structured, icosahedral };
 
         /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
-        template < typename EnumType, EnumType T >
+        template <typename EnumType, EnumType T>
         struct enum_type {
             static const EnumType value = T;
         };
 
-        template < typename Value >
+        template <typename Value>
         struct is_enum {
-            template < typename T >
+            template <typename T>
             struct of_type {
-                typedef typename boost::is_same< Value, enum_type< T, Value::value > >::type type;
+                typedef typename boost::is_same<Value, enum_type<T, Value::value>>::type type;
                 BOOST_STATIC_CONSTANT(bool, value = (type::value));
             };
         };
@@ -196,20 +196,20 @@ namespace gridtools {
         enum isparallel { parallel_impl, serial };
         enum execution { forward, backward, parallel };
 
-        template < enumtype::isparallel T, enumtype::execution U = forward >
+        template <enumtype::isparallel T, enumtype::execution U = forward>
         struct execute_impl {
             static const enumtype::execution iteration = U;
             static const enumtype::isparallel execution = T;
         };
 
-        template < enumtype::execution U >
+        template <enumtype::execution U>
         struct execute {
-            typedef execute_impl< serial, U > type;
+            typedef execute_impl<serial, U> type;
         };
 
         template <>
-        struct execute< parallel > {
-            typedef execute_impl< parallel_impl, forward > type;
+        struct execute<parallel> {
+            typedef execute_impl<parallel_impl, forward> type;
         };
 
         /*
@@ -232,11 +232,11 @@ namespace gridtools {
 #define GRIDBACKEND icosahedral
 #endif
 
-    template < typename T >
+    template <typename T>
     struct is_execution_engine : boost::mpl::false_ {};
 
-    template < enumtype::execution U >
-    struct is_execution_engine< enumtype::execute< U > > : boost::mpl::true_ {};
+    template <enumtype::execution U>
+    struct is_execution_engine<enumtype::execute<U>> : boost::mpl::true_ {};
 
 #define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
@@ -259,17 +259,17 @@ namespace gridtools {
     static_assert(1, "")
 #endif
 
-//################ Type aliases for GridTools ################
+    //################ Type aliases for GridTools ################
 
-/**
-   @section typedefs Gridtools types definitions
-   @{
-   @note the integer types are all signed,
-   also the ones which should be logically unsigned (uint_t). This is due
-   to a GCC (4.8.2) bug which is preventing vectorization of nested loops
-   with an unsigned iteration index.
-   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
-*/
+    /**
+       @section typedefs Gridtools types definitions
+       @{
+       @note the integer types are all signed,
+       also the ones which should be logically unsigned (uint_t). This is due
+       to a GCC (4.8.2) bug which is preventing vectorization of nested loops
+       with an unsigned iteration index.
+       https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
+    */
 
 #ifndef FLOAT_PRECISION
 #define FLOAT_PRECISION 8
@@ -295,19 +295,19 @@ namespace gridtools {
     using short_t = int;
     using uint_t = unsigned int;
     using ushort_t = unsigned int;
-    template < int_t N >
-    using static_int = std::integral_constant< int_t, N >;
-    template < uint_t N >
-    using static_uint = std::integral_constant< uint_t, N >;
-    template < short_t N >
-    using static_short = std::integral_constant< short_t, N >;
-    template < ushort_t N >
-    using static_ushort = std::integral_constant< ushort_t, N >;
+    template <int_t N>
+    using static_int = std::integral_constant<int_t, N>;
+    template <uint_t N>
+    using static_uint = std::integral_constant<uint_t, N>;
+    template <short_t N>
+    using static_short = std::integral_constant<short_t, N>;
+    template <ushort_t N>
+    using static_ushort = std::integral_constant<ushort_t, N>;
 
-    template < size_t N >
-    using static_size_t = std::integral_constant< size_t, N >;
-    template < bool B >
-    using static_bool = std::integral_constant< bool, B >;
+    template <size_t N>
+    using static_size_t = std::integral_constant<size_t, N>;
+    template <bool B>
+    using static_bool = std::integral_constant<bool, B>;
 
     /** @} */
 

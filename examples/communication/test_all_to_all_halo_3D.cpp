@@ -33,17 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools/communication/low-level/proc_grids_3D.hpp>
-#include <gridtools/communication/all_to_all_halo.hpp>
-#include <stdlib.h>
-#include <iostream>
-#include <sstream>
+#include "gtest/gtest.h"
 #include <fstream>
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/boollist.hpp>
+#include <gridtools/communication/all_to_all_halo.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
 #include <gridtools/storage/storage-facility.hpp>
-#include "gtest/gtest.h"
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
+#include <iostream>
+#include <sstream>
+#include <stdlib.h>
 
 /*
   If GT_TEST_ENABLE_OUTPUT macro is defined then output is produced in
@@ -51,8 +51,8 @@
 */
 
 namespace test_all_to_all_halo_3D {
-    template < typename STREAM, typename T >
-    void print(STREAM &cout, std::vector< T > const &v, int n, int m, int l) {
+    template <typename STREAM, typename T>
+    void print(STREAM &cout, std::vector<T> const &v, int n, int m, int l) {
         if ((n < 40) && (m < 40)) {
             cout << "---------------------------------------------------------------------------------------\n\n";
             for (int i = 0; i < n; ++i) {
@@ -81,14 +81,14 @@ namespace test_all_to_all_halo_3D {
         std::ofstream file(filename.c_str());
 #endif
 
-        typedef gridtools::array< gridtools::halo_descriptor, 3 > halo_block;
+        typedef gridtools::array<gridtools::halo_descriptor, 3> halo_block;
 
-        typedef gridtools::MPI_3D_process_grid_t< 3 > grid_type;
+        typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
-        gridtools::array< int, 3 > dims{0, 0, 0};
-        grid_type pgrid(gridtools::boollist< 3 >(true, true, true), MPI_COMM_WORLD, dims);
+        gridtools::array<int, 3> dims{0, 0, 0};
+        grid_type pgrid(gridtools::boollist<3>(true, true, true), MPI_COMM_WORLD, dims);
 
-        gridtools::all_to_all_halo< int, grid_type > a2a(pgrid, gridtools::GCL_WORLD);
+        gridtools::all_to_all_halo<int, grid_type> a2a(pgrid, gridtools::GCL_WORLD);
 
         int pi, pj, pk;
         int PI, PJ, PK;
@@ -103,14 +103,14 @@ namespace test_all_to_all_halo_3D {
         file.flush();
 #endif
 
-        std::vector< int > dataout(PI * N * PJ * N * PK * N);
-        std::vector< int > datain((N + 2 * H) * (N + 2 * H) * (N + 2 * H));
+        std::vector<int> dataout(PI * N * PJ * N * PK * N);
+        std::vector<int> datain((N + 2 * H) * (N + 2 * H) * (N + 2 * H));
 
 #ifdef GT_TEST_ENABLE_OUTPUT
         file << "Address of data: " << (void *)(&(dataout[0])) << ", data in " << (void *)(&(datain[0])) << "\n";
 #endif
 
-        gridtools::array< int, 3 > crds;
+        gridtools::array<int, 3> crds;
 
         if (gridtools::PID == 0) {
 #ifdef GT_TEST_ENABLE_OUTPUT

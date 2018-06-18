@@ -36,9 +36,9 @@
 
 #pragma once
 
-#include "definitions.hpp"
-#include "../../common/gt_assert.hpp"
 #include "../../common/array.hpp"
+#include "../../common/gt_assert.hpp"
+#include "definitions.hpp"
 #include "storage_info_metafunctions.hpp"
 
 namespace gridtools {
@@ -52,19 +52,19 @@ namespace gridtools {
      * of elements.
      * @tparam alignment value
      */
-    template < uint_t N >
+    template <uint_t N>
     struct alignment {
         GRIDTOOLS_STATIC_ASSERT(N > 0, "Alignment value must be greater than 0");
         const static uint_t value = N;
     };
 
-    template < typename T >
+    template <typename T>
     struct is_alignment : boost::mpl::false_ {};
 
-    template < uint_t N >
-    struct is_alignment< alignment< N > > : boost::mpl::true_ {};
+    template <uint_t N>
+    struct is_alignment<alignment<N>> : boost::mpl::true_ {};
 
     /**
      * @}
      */
-}
+} // namespace gridtools

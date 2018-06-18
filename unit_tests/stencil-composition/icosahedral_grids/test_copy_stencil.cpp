@@ -33,39 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "backend_select.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace cs_test {
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    using x_interval = axis< 1 >::full_interval;
+    using x_interval = axis<1>::full_interval;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct test_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
-        typedef boost::mpl::vector2< in, out > arg_list;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> in;
+        typedef inout_accessor<1, icosahedral_topology_t::cells> out;
+        typedef boost::mpl::vector2<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
-}
+} // namespace cs_test
 
 using namespace cs_test;
 
 TEST(test_copy_stencil, run) {
 
-    using cell_storage_type = typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
+    using cell_storage_type = typename icosahedral_topology_t::data_store_t<icosahedral_topology_t::cells, double>;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
@@ -75,8 +75,8 @@ TEST(test_copy_stencil, run) {
     const uint_t d2 = 12 + halo_mc * 2;
     icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-    cell_storage_type in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
-    cell_storage_type out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
+    cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in");
+    cell_storage_type out_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("out");
 
     auto inv = make_host_view(in_cells);
     auto outv = make_host_view(out_cells);
@@ -92,22 +92,21 @@ TEST(test_copy_stencil, run) {
         }
     }
 
-    typedef arg< 0, cell_storage_type, enumtype::cells > p_in_cells;
-    typedef arg< 1, cell_storage_type, enumtype::cells > p_out_cells;
+    typedef arg<0, cell_storage_type, enumtype::cells> p_in_cells;
+    typedef arg<1, cell_storage_type, enumtype::cells> p_out_cells;
 
     halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
     halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-    gridtools::grid< axis< 1 >::axis_interval_t, icosahedral_topology_t > grid_(
+    gridtools::grid<axis<1>::axis_interval_t, icosahedral_topology_t> grid_(
         icosahedral_grid, di, dj, {halo_k, d3 - halo_k});
 
-    auto copy = gridtools::make_computation< backend_t >(
-        grid_,
+    auto copy = gridtools::make_computation<backend_t>(grid_,
         p_in_cells() = in_cells,
         p_out_cells() = out_cells,
         gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            gridtools::make_stage< test_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+        (execute<forward>(),
+            gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                 p_in_cells(), p_out_cells())));
     copy.run();
 
@@ -115,6 +114,6 @@ TEST(test_copy_stencil, run) {
     out_cells.sync();
 
     verifier ver(1e-10);
-    array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+    array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
     EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
 }
