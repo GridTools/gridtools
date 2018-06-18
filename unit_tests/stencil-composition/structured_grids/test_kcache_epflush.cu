@@ -99,7 +99,7 @@ TEST_F(kcachef, epflush_forward) {
 
             for (uint_t k = 2; k < m_d3; ++k) {
                 auxv(i, j, k) = auxv(i, j, k - 1) + auxv(i, j, k - 2) + m_inv(i, j, k);
-                if (k >= m_d3 - 2) {
+                if (k >= m_d3 - 1) {
                     m_refv(i, j, k) = auxv(i, j, k);
                 }
             }
@@ -146,7 +146,7 @@ TEST_F(kcachef, epflush_backward) {
 
             for (int_t k = m_d3 - 3; k >= 0; --k) {
                 auxv(i, j, k) = auxv(i, j, k + 1) + auxv(i, j, k + 2) + m_inv(i, j, k);
-                if (k < 2) {
+                if (k < 1) {
                     m_refv(i, j, k) = auxv(i, j, k);
                 }
             }
