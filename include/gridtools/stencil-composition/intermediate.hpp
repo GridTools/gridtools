@@ -419,10 +419,8 @@ namespace gridtools {
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               // that ensures, that only
-              m_tmp_arg_storage_pair_tuple(dedup_storage_info(_impl::make_tmp_arg_storage_pairs< max_i_extent_t,
-                  Backend,
-                  storage_wrapper_list_t,
-                  tmp_arg_storage_pair_tuple_t >(grid))),
+              m_tmp_arg_storage_pair_tuple(dedup_storage_info(
+                  _impl::make_tmp_arg_storage_pairs< max_i_extent_t, Backend, tmp_arg_storage_pair_tuple_t >(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)

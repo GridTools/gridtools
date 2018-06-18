@@ -35,19 +35,21 @@
 */
 
 #pragma once
-#include <boost/static_assert.hpp>
+
+#include <boost/mpl/fold.hpp>
+
 #include "../common/defs.hpp"
-#include "./block_size.hpp"
-#include "./local_domain.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "./caches/cache_metafunctions.hpp"
-#include "./backend_traits_fwd.hpp"
-#include "./esf.hpp"
-#include "./grid.hpp"
-#include "./grid_traits.hpp"
 #include "./backend_ids.hpp"
-#include "./reductions/reduction_data.hpp"
+#include "./backend_traits_fwd.hpp"
+#include "./block_size.hpp"
+#include "./caches/cache_traits.hpp"
+#include "./extent.hpp"
+#include "./grid.hpp"
+#include "./grid_traits_fwd.hpp"
 #include "./color.hpp"
+#include "./local_domain.hpp"
+#include "./reductions/reduction_data.hpp"
 
 namespace gridtools {
 

@@ -92,64 +92,6 @@ namespace gridtools {
             }
         };
 
-        template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
-        struct tmp_storage_size_f;
-
-        // get a temporary storage size
-        template < class MaxExtent, class StorageWrapper, class GridTraits >
-        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Naive > {
-            template < class Grid >
-            std::array< uint_t, 3 > operator()(Grid const &grid) const {
-                auto i_size = grid.direction_i().total_length();
-                auto j_size = grid.direction_j().total_length();
-                auto k_size = grid.k_total_length();
-                return {i_size, j_size, k_size};
-            }
-        };
-
-        template < class MaxExtent, class StorageWrapper, class GridTraits >
-        struct tmp_storage_size_f< MaxExtent, StorageWrapper, GridTraits, enumtype::Block > {
-            using storage_info_t = typename StorageWrapper::storage_info_t;
-            using halo_t = typename storage_info_t::halo_t;
-            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
-            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
-
-            template < class Grid >
-            std::array< uint_t, 3 > operator()(Grid const &grid) const {
-                auto threads = omp_get_max_threads();
-                auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
-                auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
-                auto k_size = grid.k_total_length;
-                return {i_size, j_size, k_size};
-            }
-        };
-
-        template < uint_t Coordinate,
-            class LocalDomain,
-            class PEBlockSize,
-            class GridTraits,
-            class StorageInfo,
-            class = void >
-        struct tmp_storage_block_offset_multiplier : std::integral_constant< int_t, 0 > {};
-
-        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
-        struct tmp_storage_block_offset_multiplier< Coordinate,
-            LocalDomain,
-            PEBlockSize,
-            StorageInfo,
-            GridTraits,
-            enable_if_t< Coordinate == GridTraits::dim_i_t::value > >
-            : std::integral_constant< int_t, 2 * StorageInfo::halo_t::template at< Coordinate >() > {};
-
-        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
-        struct tmp_storage_block_offset_multiplier< Coordinate,
-            LocalDomain,
-            PEBlockSize,
-            GridTraits,
-            StorageInfo,
-            enable_if_t< Coordinate == GridTraits::dim_j_t::value > >
-            : std::integral_constant< int_t, -PEBlockSize::j_size_t::value > {};
-
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss

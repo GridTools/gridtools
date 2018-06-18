@@ -34,15 +34,25 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include <type_traits>
 
-#include "../../backend_traits_fwd.hpp"
-#include "../../mss_functor.hpp"
-#include "../../tile.hpp"
-#include "./execute_kernel_functor_mic.hpp"
-#include "./execinfo_mic.hpp"
+#include <boost/mpl/and.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/transform.hpp>
+
+#include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
+#include "../../backend_ids.hpp"
+#include "../../block_size.hpp"
+#include "../../mss_components.hpp"
+#include "../../mss_functor.hpp"
+#include "../../reductions/reduction_data.hpp"
+
+#include "./execinfo_mic.hpp"
 
 namespace gridtools {
 

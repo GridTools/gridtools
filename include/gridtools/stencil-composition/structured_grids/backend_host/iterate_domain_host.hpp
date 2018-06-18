@@ -35,8 +35,8 @@
 */
 #pragma once
 
+#include "../../iteration_policy.hpp"
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../iterate_domain_impl_metafunctions.hpp"
 

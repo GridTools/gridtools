@@ -49,17 +49,6 @@ namespace gridtools {
         typedef static_uint< 2 > dim_j_t;
         typedef static_uint< 3 > dim_k_t;
 
-        template < class >
-        struct make_tmp_data_store_f;
-
-        template < uint_t I, class DataStore, int_t II, ushort_t NColors >
-        struct make_tmp_data_store_f< arg< I, DataStore, location_type< II, NColors >, true > > {
-            template < class Size3D >
-            DataStore operator()(Size3D const &size) const {
-                return {typename DataStore::storage_info_t{size[0], NColors, size[1], size[2]}};
-            }
-        };
-
         template < enumtype::platform BackendId >
         struct with_arch {
             typedef icgrid::grid_traits_arch< BackendId > type;

@@ -34,19 +34,29 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <type_traits>
 
-#include "../../backend_traits_fwd.hpp"
-#include "../../mss_functor.hpp"
-#include "../../tile.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
+#include "../../block_size.hpp"
+#include "../../grid.hpp"
+#include "../../mss_components.hpp"
+#include "../../reductions/reduction_data.hpp"
 #include "execute_kernel_functor_mic.hpp"
 
 namespace gridtools {
 
     template < enumtype::strategy >
     struct strategy_from_id_mic;
+
+    template < typename MssComponentsArray,
+        typename Grid,
+        typename MssLocalDomainArray,
+        typename BackendIds,
+        typename ReductionData,
+        typename ExecutionInfo >
+    struct mss_functor;
 
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.
@@ -76,8 +86,6 @@ namespace gridtools {
         template < typename MssComponents, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
             using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
 
@@ -115,16 +123,12 @@ namespace gridtools {
         struct mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
 
-            using backend_ids_t = typename RunFunctorArgs::backend_ids_t;
-
             template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_mic &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size< typename RunFunctorArgs::functor_list_t >::value == 1), GT_INTERNAL_ERROR);
 

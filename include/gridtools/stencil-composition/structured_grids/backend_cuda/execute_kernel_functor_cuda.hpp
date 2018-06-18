@@ -41,7 +41,8 @@
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
-#include "../iterate_domain.hpp"
+#include "../grid_traits.hpp"
+#include "./iterate_domain_cuda.hpp"
 
 namespace gridtools {
 

@@ -35,26 +35,38 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
+#include <array>
+
+#include "../../../common/defs.hpp"
+
+#include "../../backend_ids.hpp"
+#include "../../grid_traits_fwd.hpp"
+
+#include "execinfo_mic.hpp"
 
 namespace gridtools {
 
-    /**
-     * @brief metadata with the information for architecture, grid and strategy backends
-     * @tparam BackendId architecture backend id
-     * @tparam GridId grid backend id
-     * @tparam StrategyId strategy id
-     */
-    template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
-    struct backend_ids {
-        static constexpr enumtype::strategy s_strategy_id = StrategyId;
-        static constexpr enumtype::platform s_backend_id = BackendId;
-        static constexpr enumtype::grid_type s_grid_type_id = GridId;
-    };
+    template < class StorageInfo, class /*MaxExtent*/, class Grid >
+    std::array< uint_t, 3 > get_tmp_data_storage_size(
+        backend_ids< enumtype::Mic, enumtype::structured, enumtype::Block > const &, Grid const &grid) {
+        using halo_t = typename StorageInfo::halo_t;
+        using grid_traits_t = grid_traits_from_id< enumtype::structured >;
 
-    template < typename T >
-    struct is_backend_ids : boost::mpl::false_ {};
+        static constexpr auto halo_i = halo_t::template at< grid_traits_t::dim_i_t::value >();
+        static constexpr auto halo_j = halo_t::template at< grid_traits_t::dim_j_t::value >();
+        static constexpr auto alignment = StorageInfo::alignment_t::value;
 
-    template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
-    struct is_backend_ids< backend_ids< BackendId, GridId, StrategyId > > : boost::mpl::true_ {};
+        execinfo_mic exinfo(grid);
+        auto threads = omp_get_max_threads();
+        auto i_size = ((exinfo.i_block_size() + 2 * halo_i + alignment - 1) / alignment) * alignment;
+        auto j_size = (exinfo.j_block_size() + 2 * halo_j) * threads;
+        auto k_size = grid.k_total_length();
+        return {i_size, j_size, k_size};
+    }
+
+    template < uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/ >
+    constexpr int tmp_storage_block_offset_multiplier(
+        backend_ids< enumtype::Mic, enumtype::structured, enumtype::Block > const &) {
+        return throw "should not be used", 0;
+    }
 }

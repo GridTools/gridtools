@@ -39,9 +39,12 @@
 #include "../../common/numerics.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
-#include "iterate_domain_cuda.hpp"
+#include "../grid_traits.hpp"
+//#include "iterate_domain_cuda.hpp"
 #include "run_esf_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
+#include "execute_kernel_functor_cuda.hpp"
+#include "iterate_domain_cache.hpp"
 
 #ifdef ENABLE_METERS
 #include "timer_cuda.hpp"
@@ -54,6 +57,16 @@
 namespace gridtools {
 
     /**forward declaration*/
+
+    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    class iterate_domain_cuda;
+
+    template < typename IterateDomainImpl >
+    struct positional_iterate_domain;
+
+    template < typename IterateDomainImpl >
+    struct iterate_domain;
+
     namespace _impl_cuda {
         template < typename Arguments >
         struct run_functor_cuda;
@@ -96,75 +109,6 @@ namespace gridtools {
             }
         };
 
-        template < class StorageInfo,
-            size_t alignment = StorageInfo::alignment_t::value ? StorageInfo::alignment_t::value : 1 >
-        static constexpr size_t align(size_t x) {
-            return (x + alignment - 1) / alignment * alignment;
-        }
-
-        template < class MaxExtent, class StorageInfo >
-        static constexpr uint_t i_block_extra() {
-            return align< StorageInfo >(2 * MaxExtent::value);
-        }
-
-        // get a temporary storage size
-        template < class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy >
-        struct tmp_storage_size_f {
-            using storage_info_t = typename StorageWrapper::storage_info_t;
-            using halo_t = typename storage_info_t::halo_t;
-            static constexpr uint_t halo_i = halo_t::template at< GridTraits::dim_i_t::value >();
-            static constexpr uint_t halo_j = halo_t::template at< GridTraits::dim_j_t::value >();
-            static constexpr uint_t full_block_i_size =
-                align< storage_info_t >(block_size::i_size_t::value + 2 * MaxExtent::value);
-            static constexpr uint_t full_block_j_size = block_size::j_size_t::value + 2 * halo_j;
-            static constexpr uint
-
-                static constexpr uint_t diff_between_blocks =
-                    (block_size::i_size_t::value + 2 * MaxExtent::value + align - 1) / align * align;
-            //                _impl::static_ceil(static_cast< float >(full_block_size) / align) * align;
-            static constexpr uint_t padding =
-                align + (2 * MaxExtent::value + align - 1) / align * align - 2 * MaxExtent::value;
-
-            template < class Grid >
-            std::array< uint_t, 3 > operator()(Grid const &grid) const {
-                // TODO(anstaf): there is a bug here. k_size should be set to grid.total_length()
-                auto k_size = grid.k_total_length();
-                auto num_blocks_i = (grid.i_high_bound() - grid.i_low_bound() + block_size::i_size_t::value) /
-                                    block_size::i_size_t::value;
-                auto num_blocks_j = (grid.j_high_bound() - grid.j_low_bound() + block_size::j_size_t::value) /
-                                    block_size::j_size_t::value;
-                auto inner_domain_size =
-                    num_blocks_i * full_block_size - 2 * MaxExtent::value + (num_blocks_i - 1) * padding;
-                return {full_block_i_size * num_blocks_i, full_block_j_size * num_blocks_j, k_size};
-            }
-        };
-
-        template < uint_t Coordinate,
-            class LocalDomain,
-            class PEBlockSize,
-            class GridTraits,
-            class StorageInfo,
-            class = void >
-        struct tmp_storage_block_offset_multiplier : std::integral_constant< int_t, 0 > {};
-
-        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
-        struct tmp_storage_block_offset_multiplier< Coordinate,
-            LocalDomain,
-            PEBlockSize,
-            GridTraits,
-            StorageInfo,
-            enable_if_t< Coordinate == GridTraits::dim_i_t::value > >
-            : std::integral_constant< int_t, i_block_extra< typename LocalDomain::max_i_extent_t, StorageInfo >() > {};
-
-        template < uint_t Coordinate, class LocalDomain, class PEBlockSize, class GridTraits, class StorageInfo >
-        struct tmp_storage_block_offset_multiplier< Coordinate,
-            LocalDomain,
-            PEBlockSize,
-            StorageInfo,
-            GridTraits,
-            enable_if_t< Coordinate == GridTraits::dim_j_t::value > >
-            : std::integral_constant< int_t, 2 * StorageInfo::halo_t::template at< Coordinate >() > {};
-
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
@@ -174,11 +118,9 @@ namespace gridtools {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            template < typename LocalDomain, typename Grid, typename ReductionData >
-            static void run(LocalDomain &local_domain,
-                const Grid &grid,
-                ReductionData &reduction_data,
-                const execution_info_cuda &execution_info) {
+            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
+            static void run(
+                LocalDomain &local_domain, const Grid &grid, ReductionData &reduction_data, ExecutionInfo &&) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 

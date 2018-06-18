@@ -40,6 +40,7 @@
 #else
 #include "icosahedral_grids/iterate_domain_expandable_parameters.hpp"
 #endif
+#include "hasdo.hpp"
 #include "run_functor_arguments.hpp"
 #include "functor_decorator.hpp"
 

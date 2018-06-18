@@ -35,8 +35,7 @@
 */
 #pragma once
 
-#include <boost/typeof/typeof.hpp>
-#include <boost/fusion/include/size.hpp>
+#include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/if.hpp>
@@ -49,19 +48,16 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/identity.hpp>
 #include <boost/mpl/modulus.hpp>
-#include <boost/range/algorithm/copy.hpp>
 #include <boost/utility/enable_if.hpp>
 #include "expressions/expressions.hpp"
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/reversed_range.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
-#include "total_storages.hpp"
-#include "run_functor_arguments_fwd.hpp"
 #include "run_functor_arguments.hpp"
 #include "arg_metafunctions.hpp"
 #include "offset_computation.hpp"
+#include "tmp_storage.hpp"
 
 /**
    @file
@@ -233,15 +229,6 @@ namespace gridtools {
         GT_FUNCTION int_t get_stride(Strides const &strides) {
             return strides[Cur];
         }
-
-        template < bool IsTmp, class BlockMultiplier >
-        struct initialize_index_functor_f {
-            GT_FUNCTION int_t operator()(int_t pos, uint_t) const { return pos; }
-        };
-        template < class BlockMultiplier >
-        struct initialize_index_functor_f< true, BlockMultiplier > {
-            GT_FUNCTION int_t operator()(int_t pos, uint_t block) const { return pos + BlockMultiplier::value * block; }
-        };
     }
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
@@ -288,17 +275,10 @@ namespace gridtools {
      * @tparam StorageSequence sequence of storages
      */
 
-    template < uint_t Coordinate,
-        typename Strides,
-        typename LocalDomain,
-        typename ArrayIndex,
-        typename PEBlockSize,
-        typename GridTraits,
-        typename BackendTraits >
+    template < uint_t Coordinate, typename Strides, typename LocalDomain, typename ArrayIndex, typename BackendIds >
     struct initialize_index_functor {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), GT_INTERNAL_ERROR);
 
         Strides const &RESTRICT m_strides;
         int_t m_initial_pos;
@@ -315,17 +295,15 @@ namespace gridtools {
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t< !_impl::is_dummy_coordinate< Coordinate, Layout >::value, int > = 0 >
         GT_FUNCTION void operator()(const StorageInfo *) const {
-            int_t stride = _impl::get_stride< Coordinate, Layout >(m_strides.template get< I >());
+            GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             static constexpr bool is_tmp =
                 boost::mpl::at< typename LocalDomain::storage_info_tmp_info_t, StorageInfo >::type::value;
-            using block_multiplier_t = typename BackendTraits::template tmp_storage_block_offset_multiplier< Coordinate,
-                LocalDomain,
-                PEBlockSize,
-                GridTraits,
-                StorageInfo >;
-            GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            m_index_array[I] +=
-                stride * _impl::initialize_index_functor_f< is_tmp, block_multiplier_t >{}(m_initial_pos, m_block);
+            static constexpr auto block_multiplier =
+                is_tmp *
+                tmp_storage_block_offset_multiplier< Coordinate, typename LocalDomain::max_i_extent_t, StorageInfo >(
+                    BackendIds{});
+            int_t stride = _impl::get_stride< Coordinate, Layout >(m_strides.template get< I >());
+            m_index_array[I] += stride * (m_initial_pos + block_multiplier * m_block);
         }
     };
 
@@ -498,8 +476,6 @@ namespace gridtools {
 
     template < typename Accessor, typename IterateDomainArguments >
     struct get_arg_value_type_from_accessor {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
-
         typedef typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::data_store_t::data_t type;
     };
 
@@ -508,7 +484,6 @@ namespace gridtools {
      */
     template < typename Accessor, typename IterateDomainArguments >
     struct accessor_return_type_impl {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
         typedef typename boost::remove_reference< Accessor >::type acc_t;
 
         typedef typename boost::mpl::eval_if< boost::mpl::or_< is_accessor< acc_t >, is_vector_accessor< acc_t > >,

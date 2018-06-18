@@ -50,8 +50,10 @@
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
+#include "../../total_storages.hpp"
 #include "../../reductions/iterate_domain_reduction.hpp"
 #include "../../offset_computation.hpp"
+#include "../../caches/cache_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -93,14 +95,6 @@ namespace gridtools {
             }
         };
     }
-
-    template < typename IterateDomainArguments >
-    class iterate_domain_mic;
-
-    template < typename IterateDomainArguments >
-    struct iterate_domain_backend_id< iterate_domain_mic< IterateDomainArguments > > {
-        using type = enumtype::enum_type< enumtype::platform, enumtype::Mic >;
-    };
 
     /**
      * @brief Iterate domain class for the MIC backend.

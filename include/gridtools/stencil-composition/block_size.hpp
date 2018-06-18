@@ -35,6 +35,10 @@
 */
 #pragma once
 
+#include <boost/mpl/integral_c.hpp>
+
+#include "../common/defs.hpp"
+
 namespace gridtools {
     template < uint_t X, uint_t Y, uint_t... Rest >
     struct block_size {

@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/utility/enable_if.hpp>
+
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../execution_policy.hpp"
@@ -41,7 +43,7 @@
 #include "../../iteration_policy.hpp"
 #include "../../backend_host/iterate_domain_host.hpp"
 #include "../../icosahedral_grids/esf_metafunctions.hpp"
-#include <boost/utility/enable_if.hpp>
+#include "../../icosahedral_grids/grid_traits.hpp"
 
 namespace gridtools {
 

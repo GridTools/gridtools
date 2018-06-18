@@ -47,6 +47,7 @@
 #include "mss.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "run_functor_arguments.hpp"
+#include "caches/cache_metafunctions.hpp"
 
 namespace gridtools {
 

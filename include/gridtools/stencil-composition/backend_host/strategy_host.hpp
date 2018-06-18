@@ -34,12 +34,25 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../backend_traits_fwd.hpp"
-#include "../mss_functor.hpp"
-#include "../tile.hpp"
-#include "execute_kernel_functor_host.hpp"
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../backend_ids.hpp"
+#include "../block_size.hpp"
+#include "../grid.hpp"
+#include "../mss_components.hpp"
+#include "../reductions/reduction_data.hpp"
+#include "./execute_kernel_functor_host.hpp"
 
 namespace gridtools {
+
+    template < typename MssComponentsArray,
+        typename Grid,
+        typename MssLocalDomainArray,
+        typename BackendIds,
+        typename ReductionData,
+        typename ExecutionInfo >
+    struct mss_functor;
 
     template < enumtype::strategy >
     struct strategy_from_id_host;

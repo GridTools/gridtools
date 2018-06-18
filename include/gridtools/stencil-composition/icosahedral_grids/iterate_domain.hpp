@@ -46,6 +46,7 @@
 #include "../iterate_domain_impl_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../position_offset_type.hpp"
+#include "../total_storages.hpp"
 #include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 
@@ -246,14 +247,13 @@ namespace gridtools {
         /**@brief method for initializing the index */
         template < ushort_t Coordinate >
         GT_FUNCTION void initialize(int_t initial_pos = 0, uint_t block = 0) {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
+            boost::fusion::for_each(
+                m_local_domain.m_local_storage_info_ptrs,
                 initialize_index_functor< Coordinate,
-                                        strides_cached_t,
-                                        local_domain_t,
-                                        array_index_t,
-                                        processing_elements_block_size_t,
-                                        grid_traits_t,
-                                        backend_traits_t >{strides(), initial_pos, block, m_index});
+                    strides_cached_t,
+                    local_domain_t,
+                    array_index_t,
+                    typename iterate_domain_arguments_t::backend_ids_t >{strides(), initial_pos, block, m_index});
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();
             m_grid_position[Coordinate] = initial_pos;
         }

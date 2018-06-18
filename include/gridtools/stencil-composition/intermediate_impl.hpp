@@ -39,8 +39,10 @@
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/include/flatten.hpp>
 #include <boost/fusion/include/count.hpp>
+#include <boost/fusion/include/at_key.hpp>
 #include <boost/optional.hpp>
 
+#include "./tmp_storage.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/functional.hpp"
 #include "../common/vector_traits.hpp"
@@ -227,29 +229,15 @@ namespace gridtools {
                 set_view_to_local_domain_f{}, view_infos, std::move(local_domains));
         }
 
-        template < class MaxExtent, class Backend, class StorageWrapperList >
+        template < class MaxExtent, class Backend >
         struct get_tmp_arg_storage_pair_generator {
-            using tmp_storage_wrappers_t = typename boost::mpl::copy_if<
-                StorageWrapperList,
-                temporary_info_from_storage_wrapper< boost::mpl::_ >,
-                boost::mpl::inserter<
-                    boost::mpl::map0<>,
-                    boost::mpl::insert< boost::mpl::_1,
-                        boost::mpl::pair< arg_from_storage_wrapper< boost::mpl::_2 >, boost::mpl::_2 > > > >::type;
-            using backend_traits_t = typename Backend::backend_traits_t;
-            using grid_traits_t = typename Backend::grid_traits_t;
-            static constexpr enumtype::strategy s_strategy_id = Backend::s_strategy_id;
-
             template < class ArgStoragePair >
             struct generator {
                 template < class Grid >
                 ArgStoragePair operator()(Grid const &grid) const {
-                    using arg_t = typename ArgStoragePair::arg_t;
-                    using storage_wrapper_t = typename boost::mpl::at< tmp_storage_wrappers_t, arg_t >::type;
-                    auto get_size = typename backend_traits_t::
-                        template tmp_storage_size_f< MaxExtent, storage_wrapper_t, grid_traits_t, s_strategy_id >{};
-                    auto make_data_store = typename grid_traits_t::template make_tmp_data_store_f< arg_t >{};
-                    return make_data_store(get_size(grid));
+                    static constexpr auto backend = Backend{};
+                    static constexpr auto arg = typename ArgStoragePair::arg_t{};
+                    return make_tmp_data_store< MaxExtent >(backend, arg, grid);
                 }
             };
             template < class T >
@@ -262,10 +250,10 @@ namespace gridtools {
 #endif
         };
 
-        template < class MaxExtent, class Backend, class StorageWrapperList, class Res, class Grid >
+        template < class MaxExtent, class Backend, class Res, class Grid >
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = GT_META_CALL(meta::transform,
-                (get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply, Res));
+            using generators = GT_META_CALL(
+                meta::transform, (get_tmp_arg_storage_pair_generator< MaxExtent, Backend >::template apply, Res));
             return tuple_util::generate< generators, Res >(grid);
         }
 

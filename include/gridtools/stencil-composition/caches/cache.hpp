@@ -53,6 +53,7 @@
 #include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
 #include "./cache_definitions.hpp"
 #include "../accessor.hpp"
+#include "../arg.hpp"
 #include "../interval.hpp"
 #include "../location_type.hpp"
 

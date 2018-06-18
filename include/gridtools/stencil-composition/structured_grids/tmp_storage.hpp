@@ -35,26 +35,19 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
+#include "../../common/defs.hpp"
+#include "../backend_ids.hpp"
+
+#include "./backend_mic/tmp_storage.hpp"
 
 namespace gridtools {
-
-    /**
-     * @brief metadata with the information for architecture, grid and strategy backends
-     * @tparam BackendId architecture backend id
-     * @tparam GridId grid backend id
-     * @tparam StrategyId strategy id
-     */
-    template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
-    struct backend_ids {
-        static constexpr enumtype::strategy s_strategy_id = StrategyId;
-        static constexpr enumtype::platform s_backend_id = BackendId;
-        static constexpr enumtype::grid_type s_grid_type_id = GridId;
-    };
-
-    template < typename T >
-    struct is_backend_ids : boost::mpl::false_ {};
-
-    template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
-    struct is_backend_ids< backend_ids< BackendId, GridId, StrategyId > > : boost::mpl::true_ {};
+    template < class StorageInfo,
+        uint_t /*NColors*/,
+        enumtype::platform BackendId,
+        enumtype::strategy StrategyId,
+        class Size3D >
+    StorageInfo make_tmp_storage_info(
+        backend_ids< BackendId, enumtype::structured, StrategyId > const &, Size3D const &size) {
+        return StorageInfo{size[0], size[1], size[2]};
+    }
 }

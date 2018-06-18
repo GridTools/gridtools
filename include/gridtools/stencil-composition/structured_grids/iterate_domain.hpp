@@ -38,10 +38,12 @@
 
 #include "../../common/gt_assert.hpp"
 
+#include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_impl_metafunctions.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
-
+#include "../total_storages.hpp"
+#include "../esf_metafunctions.hpp"
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -89,9 +91,6 @@
 
 namespace gridtools {
 
-    template < typename >
-    struct iterate_domain;
-
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for
@@ -110,10 +109,9 @@ namespace gridtools {
         typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
         typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
-        typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
-        typedef backend_traits_from_id< backend_id_t::value > backend_traits_t;
-        typedef typename backend_traits_from_id< backend_id_t::value >::template select_iterate_domain_cache<
-            iterate_domain_arguments_t >::type iterate_domain_cache_t;
+        typedef backend_traits_from_id< iterate_domain_arguments_t::backend_ids_t::s_backend_id > backend_traits_t;
+        typedef typename backend_traits_t::template select_iterate_domain_cache< iterate_domain_arguments_t >::type
+            iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
 
@@ -285,14 +283,13 @@ namespace gridtools {
         /**@brief method for initializing the index */
         template < ushort_t Coordinate >
         GT_FUNCTION void initialize(int_t initial_pos = 0, uint_t block = 0) {
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+            boost::fusion::for_each(
+                local_domain.m_local_storage_info_ptrs,
                 initialize_index_functor< Coordinate,
-                                        strides_cached_t,
-                                        local_domain_t,
-                                        array_index_t,
-                                        processing_elements_block_size_t,
-                                        grid_traits_t,
-                                        backend_traits_t >{strides(), initial_pos, block, m_index});
+                    strides_cached_t,
+                    local_domain_t,
+                    array_index_t,
+                    typename iterate_domain_arguments_t::backend_ids_t >{strides(), initial_pos, block, m_index});
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();
         }
 

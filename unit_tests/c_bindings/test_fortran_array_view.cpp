@@ -61,7 +61,9 @@ namespace gridtools {
             struct StaticHypercube {
                 StaticHypercube(double *data) : data_(data) {}
 
-                double operator()(const std::array< size_t, Rank > &element) const {
+                template < class... Ts >
+                double operator()(Ts... indices) const {
+                    size_t element[Rank] = {size_t(indices)...};
                     size_t index = 0;
                     for (size_t i = 0; i < Rank; ++i) {
                         if (element[i] >= 2) {
@@ -102,8 +104,10 @@ namespace gridtools {
             struct DynamicHypercube {
                 DynamicHypercube(double *data, size_t rank) : data_(data), rank_(rank) {}
 
-                double operator()(const std::vector< size_t > &element) const {
-                    if (element.size() != rank_) {
+                template < class... Ts >
+                double operator()(Ts... indices) const {
+                    size_t element[] = {size_t(indices)...};
+                    if (sizeof...(Ts) != rank_) {
                         throw std::out_of_range("Rank out of range");
                     }
                     size_t index = 0;
@@ -197,9 +201,11 @@ namespace gridtools {
                     data_ = reinterpret_cast< double * >(descriptor.data);
                 }
 
-                double operator()(const std::array< size_t, Rank > &element) const {
+                template < class... Ts >
+                double operator()(Ts... indices) const {
+                    size_t element[Rank] = {size_t(indices)...};
                     size_t index = 0;
-                    for (size_t i = 0; i < Rank; ++i) {
+                    for (size_t i = 0; i < sizeof...(Ts); ++i) {
                         if (element[i] >= 2) {
                             throw std::out_of_range("Index out of range");
                         }
@@ -222,8 +228,8 @@ namespace gridtools {
 
                 BindableStaticHypercubeWithConstructor< 4 > view =
                     make_fortran_array_view< BindableStaticHypercubeWithConstructor< 4 > >(&descriptor);
-                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
+                EXPECT_EQ(view(0, 1, 0, 1), 6.);
+                EXPECT_EQ(view(1, 0, 1, 0), 11.);
             }
 
             template < size_t Rank >
@@ -239,7 +245,9 @@ namespace gridtools {
                     data_ = reinterpret_cast< double * >(descriptor.data);
                 }
 
-                double operator()(const std::array< size_t, Rank > &element) const {
+                template < class... Ts >
+                double operator()(Ts... indices) const {
+                    size_t element[Rank] = {size_t(indices)...};
                     size_t index = 0;
                     for (size_t i = 0; i < Rank; ++i) {
                         if (element[i] >= 2) {
@@ -267,8 +275,8 @@ namespace gridtools {
 
                 WrappableStaticHypercubeWithMetaTypes< 4 > view =
                     make_fortran_array_view< WrappableStaticHypercubeWithMetaTypes< 4 > >(&descriptor);
-                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
+                EXPECT_EQ(view(0, 1, 0, 1), 6.);
+                EXPECT_EQ(view(1, 0, 1, 0), 11.);
             }
 
             TEST(FortranArrayView, WrappableStaticHypercubeWithMetaTypesIsWrappable) {
@@ -287,8 +295,8 @@ namespace gridtools {
                 gt_fortran_array_descriptor descriptor{gt_fk_Double, 4, {2, 2, 2, 2}, &data[0]};
 
                 adltest::DynamicHypercube view = make_fortran_array_view< adltest::DynamicHypercube >(&descriptor);
-                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
+                EXPECT_EQ(view(0, 1, 0, 1), 6.);
+                EXPECT_EQ(view(1, 0, 1, 0), 11.);
             }
 
             static_assert(!is_fortran_array_bindable< adltest::StaticHypercube< 3 > & >::value, "");
@@ -302,8 +310,8 @@ namespace gridtools {
 
                 adltest::StaticHypercube< 4 > view =
                     make_fortran_array_view< adltest::StaticHypercube< 4 > >(&descriptor);
-                EXPECT_EQ(view({0, 1, 0, 1}), 6.);
-                EXPECT_EQ(view({1, 0, 1, 0}), 11.);
+                EXPECT_EQ(view(0, 1, 0, 1), 6.);
+                EXPECT_EQ(view(1, 0, 1, 0), 11.);
             }
             TEST(FortranArrayView, WrappableStaticHypercubeWithMetaFunctionIsWrappable) {
                 gt_fortran_array_descriptor meta = get_fortran_view_meta((adltest::StaticHypercube< 3 > *){nullptr});
