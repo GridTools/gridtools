@@ -58,6 +58,9 @@
 
 namespace gridtools {
 
+    /**
+     * @brief class to store the bounds of a window used in caches
+     */
     template <int M, int P>
     struct window {
         static constexpr int m_ = M;
@@ -106,6 +109,8 @@ namespace gridtools {
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
          * @tparam Interval vertical interval of validity of the cache
+         * @tparam KWindow window of the cache for IO synchronizations (only used for IO policies that synchronize with
+         * main mem)
          */
         template <cache_type cacheType,
             typename Arg,

@@ -47,9 +47,9 @@ namespace gridtools {
 
         /**
          * @struct flush_mem_accessor
-         * functor that will synchronize a cache with main memory
-         * \tparam AccIndex index of the accessor
-         * \tparam ExecutionPolicy : forward, backward
+         * functor that will synchronize the last level of the cache ring-buffer with main memory, before iteration goes
+         * to the next k-level
+         * \tparam AccIndex index of the accessor \tparam ExecutionPolicy : forward, backward
          * \tparam InitialOffset additional offset to be applied to the accessor
          */
         template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
@@ -81,6 +81,13 @@ namespace gridtools {
             };
         };
 
+        /**
+         * @struct flush_mem_accessor_end
+         * functor that will synchronize a window of the cache with main memory at the end of a vertical looping
+         * \tparam AccIndex index of the accessor
+         * \tparam ExecutionPolicy : forward, backward
+         * \tparam InitialOffset additional offset to be applied to the accessor
+         */
         template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
         struct flush_mem_accessor_end {
             /**
@@ -115,7 +122,7 @@ namespace gridtools {
 
         /**
          * @struct fill_mem_accessor
-         * functor that prefill a kcache (before starting the vertical iteration) with initial values from main memory
+         * functor that prefill the next k level being executed with values from main memory
          * \tparam AccIndex index of the accessor
          * \tparam ExecutionPolicy : forward, backward
          * \tparam InitialOffset additional offset to be applied to the accessor
@@ -150,8 +157,14 @@ namespace gridtools {
             };
         };
 
+        /**
+         * @struct fill_mem_accessor_begin
+         * functor that prefill a window of a kcache (before starting the vertical iteration) with initial values from
+         * main memory \tparam AccIndex index of the accessor \tparam ExecutionPolicy : forward, backward \tparam
+         * InitialOffset additional offset to be applied to the accessor
+         */
         template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
-        struct fill_mem_accessor_end {
+        struct fill_mem_accessor_begin {
             /**
              * Apply struct of the functor
              * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
@@ -199,6 +212,9 @@ namespace gridtools {
             using type = flush_mem_accessor<AccIndex, ExecutionPolicy, InitialOffset>;
         };
 
+        /**
+         * struct to dispatch the corresponding IO operator for caches
+         */
         template <typename AccIndex,
             enumtype::execution ExecutionPolicy,
             cache_io_policy CacheIOPolicy,
@@ -207,7 +223,7 @@ namespace gridtools {
 
         template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset>
         struct io_operator_end<AccIndex, ExecutionPolicy, cache_io_policy::fill, InitialOffset> {
-            using type = fill_mem_accessor_end<AccIndex, ExecutionPolicy, InitialOffset>;
+            using type = fill_mem_accessor_begin<AccIndex, ExecutionPolicy, InitialOffset>;
         };
 
         template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset>
@@ -245,7 +261,7 @@ namespace gridtools {
         }
 
         /**
-         * computes the base of the window of the kcache that needs to be synchronized to main memory.
+         * computes the base position of the window of the kcache that needs to be synchronized to main memory.
          * Depending on the loop direction we will need to synchronize either the head or the tail of the kcache,
          * therefore the base of the window will be either kminus (tail) or 0 (head).
          */
@@ -360,7 +376,6 @@ namespace gridtools {
                 constexpr int_t kbase =
                     compute_section_kcache_base_to_sync_with_mem<IterationPolicy, k_cache_storage_t>(CacheIOPolicy);
 
-                // TODO use constexpr function
                 constexpr uint_t kwindow_size = boost::mpl::eval_if<boost::mpl::is_void_<typename kcache_t::kwindow_t>,
                     boost::mpl::identity<static_int<koffset>>,
                     window_get_size<kcache_t::ccacheIOPolicy, typename kcache_t::kwindow_t>>::type::value;
