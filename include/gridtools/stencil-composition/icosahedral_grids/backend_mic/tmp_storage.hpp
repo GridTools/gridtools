@@ -74,6 +74,6 @@ namespace gridtools {
         size_t J = coord_j<backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block>>::value>
     constexpr enable_if_t<Coordinate == J, int_t> tmp_storage_block_offset_multiplier(
         backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &backend) {
-        return -block_j_size(backend);
+        return -static_cast<int_t>(block_j_size(backend));
     }
 } // namespace gridtools

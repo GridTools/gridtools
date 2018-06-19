@@ -294,10 +294,10 @@ namespace gridtools {
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            static constexpr bool is_tmp =
+            static constexpr auto is_tmp =
                 boost::mpl::at<typename LocalDomain::storage_info_tmp_info_t, StorageInfo>::type::value;
             static constexpr auto block_multiplier =
-                is_tmp *
+                !!is_tmp *
                 tmp_storage_block_offset_multiplier<Coordinate, typename LocalDomain::max_i_extent_t, StorageInfo>(
                     BackendIds{});
             int_t stride = _impl::get_stride<Coordinate, Layout>(m_strides.template get<I>());
