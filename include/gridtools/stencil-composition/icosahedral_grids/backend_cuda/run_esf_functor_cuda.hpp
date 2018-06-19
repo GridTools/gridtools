@@ -37,6 +37,7 @@
 #include "../../block_size.hpp"
 #include "../../functor_decorator.hpp"
 #include "../../run_esf_functor.hpp"
+#include "../grid_traits.hpp"
 #include "../iterate_domain_remapper.hpp"
 #include <boost/utility/enable_if.hpp>
 

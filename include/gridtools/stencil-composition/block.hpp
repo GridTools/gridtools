@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
+#include "./backend_cuda/block.hpp"
+#include "./backend_host/block.hpp"
 
-namespace gridtools {
-    template <enumtype::platform BackendType, enumtype::grid_type GridType, enumtype::strategy StrategyType>
-    struct backend;
-}
+#ifndef STRUCTURED_GRIDS
+#include "./icosahedral_grids/backend_mic/block.hpp"
+#endif

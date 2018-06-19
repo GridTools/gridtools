@@ -34,12 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/for_each.hpp>
 
-#include "../../common/numerics.hpp"
+#include <cuda_runtime.h>
+
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/quote.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../storage/data_store.hpp"
+#include "../../storage/data_store_field.hpp"
+#include "../../storage/storage_cuda/data_field_view_helpers.hpp"
+#include "../../storage/storage_cuda/data_view_helpers.hpp"
+
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
-#include "../grid_traits.hpp"
+#include "../grid_traits_fwd.hpp"
+#include "../run_functor_arguments_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "iterate_domain_cache.hpp"
 #include "run_esf_functor_cuda.hpp"
@@ -66,11 +76,6 @@ namespace gridtools {
     template <typename IterateDomainImpl>
     struct iterate_domain;
 
-    namespace _impl_cuda {
-        template <typename Arguments>
-        struct run_functor_cuda;
-    }
-
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits_from_id<enumtype::Cuda> {
@@ -84,11 +89,6 @@ namespace gridtools {
             auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_device_view(src));
             template <typename S, uint_t... N>
             auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_device_view(src));
-        };
-
-        template <typename Arguments>
-        struct execute_traits {
-            typedef _impl_cuda::run_functor_cuda<Arguments> run_functor_t;
         };
 
         /**
@@ -120,8 +120,6 @@ namespace gridtools {
             template <typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo>
             static void run(
                 LocalDomain &local_domain, const Grid &grid, ReductionData &reduction_data, ExecutionInfo &&) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
                 typedef typename grid_traits_t::template with_arch<enumtype::Cuda>::type arch_grid_traits_t;

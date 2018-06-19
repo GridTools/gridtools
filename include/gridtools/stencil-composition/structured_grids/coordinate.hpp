@@ -35,9 +35,28 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
+#include <cstddef>
+
+#include "../../common/defs.hpp"
+#include "../backend_ids.hpp"
 
 namespace gridtools {
-    template <enumtype::platform BackendType, enumtype::grid_type GridType, enumtype::strategy StrategyType>
-    struct backend;
-}
+
+    template <class>
+    struct coord_i;
+
+    template <enumtype::platform BackendId, enumtype::strategy StrategyId>
+    struct coord_i<backend_ids<BackendId, enumtype::structured, StrategyId>> : std::integral_constant<size_t, 0> {};
+
+    template <class>
+    struct coord_j;
+
+    template <enumtype::platform BackendId, enumtype::strategy StrategyId>
+    struct coord_j<backend_ids<BackendId, enumtype::structured, StrategyId>> : std::integral_constant<size_t, 1> {};
+
+    template <class>
+    struct coord_k;
+
+    template <enumtype::platform BackendId, enumtype::strategy StrategyId>
+    struct coord_k<backend_ids<BackendId, enumtype::structured, StrategyId>> : std::integral_constant<size_t, 2> {};
+} // namespace gridtools

@@ -35,9 +35,19 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
+#include <cstddef>
+
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
+#include "../backend_ids.hpp"
 
 namespace gridtools {
-    template <enumtype::platform BackendType, enumtype::grid_type GridType, enumtype::strategy StrategyType>
-    struct backend;
-}
+    template <enumtype::grid_type GridType>
+    GT_FUNCTION constexpr size_t block_i_size(backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
+        return GT_DEFAULT_TILE_I;
+    }
+    template <enumtype::grid_type GridType>
+    GT_FUNCTION constexpr size_t block_j_size(backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
+        return GT_DEFAULT_TILE_J;
+    }
+} // namespace gridtools

@@ -34,20 +34,24 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/quote.hpp>
 
-#include "../../common/numerics.hpp"
-#include "../compute_extents_metafunctions.hpp"
-#include "./icosahedral_grid_traits.hpp"
+#include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "../backend_ids.hpp"
+
+#include "coordinate.hpp"
+#include "grid_traits_backend_fwd.hpp"
 
 namespace gridtools {
 
     template <>
     struct grid_traits_from_id<enumtype::icosahedral> {
-        typedef static_uint<0> dim_i_t;
-        typedef static_uint<1> dim_c_t;
-        typedef static_uint<2> dim_j_t;
-        typedef static_uint<3> dim_k_t;
+        using dummy_t = backend_ids<enumtype::Host, enumtype::icosahedral, enumtype::Block>;
+        using dim_i_t = coord_i<dummy_t>;
+        using dim_j_t = coord_j<dummy_t>;
+        using dim_k_t = coord_k<dummy_t>;
+        using dim_c_t = std::integral_constant<size_t, 1>;
 
         template <enumtype::platform BackendId>
         struct with_arch {

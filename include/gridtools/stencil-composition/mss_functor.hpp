@@ -43,6 +43,7 @@
 #pragma once
 
 #include "caches/cache_metafunctions.hpp"
+#include "hasdo.hpp"
 #include "mss.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "mss_local_domain.hpp"

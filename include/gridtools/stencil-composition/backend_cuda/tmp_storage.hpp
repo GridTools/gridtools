@@ -39,40 +39,38 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../common/host_device.hpp"
 
 #include "../backend_ids.hpp"
-#include "../backend_traits_fwd.hpp"
-#include "../grid_traits_fwd.hpp"
-
-#include "./strategy_cuda.hpp"
+#include "../coordinate.hpp"
+#include "../grid.hpp"
+#include "./block.hpp"
 
 namespace gridtools {
 
     namespace _impl {
         template <class StorageInfo,
             size_t alignment = StorageInfo::alignment_t::value ? StorageInfo::alignment_t::value : 1>
-        static constexpr size_t align(size_t x) {
+        GT_FUNCTION constexpr size_t align(size_t x) {
             return (x + alignment - 1) / alignment * alignment;
         }
     } // namespace _impl
 
     template <class StorageInfo, class MaxExtent, enumtype::grid_type GridType, class Grid>
     std::array<uint_t, 3> get_tmp_data_storage_size(
-        backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &, Grid const &grid) {
+        backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &backend, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
-        using block_size_t = typename strategy_from_id_cuda<enumtype::Block>::block_size_t;
-        using grid_traits_t = grid_traits_from_id<GridType>;
+        using backend_t = backend_ids<enumtype::Cuda, GridType, enumtype::Block>;
 
-        static constexpr uint_t full_block_i_size =
-            _impl::align<StorageInfo>(block_size_t::i_size_t::value + 2 * MaxExtent::value);
-        static constexpr uint_t full_block_j_size =
-            block_size_t::j_size_t::value + 2 * StorageInfo::halo_t::template at<grid_traits_t::dim_j_t::value>();
+        auto pe_block_i_size = block_i_size(backend);
+        auto pe_block_j_size = block_j_size(backend);
 
-        auto k_size = grid.k_total_length();
-        auto num_blocks_i =
-            (grid.i_high_bound() - grid.i_low_bound() + block_size_t::i_size_t::value) / block_size_t::i_size_t::value;
-        auto num_blocks_j =
-            (grid.j_high_bound() - grid.j_low_bound() + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
+        uint_t full_block_i_size = _impl::align<StorageInfo>(pe_block_i_size + 2 * MaxExtent::value);
+        uint_t full_block_j_size = pe_block_j_size + 2 * StorageInfo::halo_t::template at<coord_j<backend_t>::value>();
+
+        uint_t k_size = grid.k_total_length();
+        uint_t num_blocks_i = (grid.i_high_bound() - grid.i_low_bound() + pe_block_i_size) / pe_block_i_size;
+        uint_t num_blocks_j = (grid.j_high_bound() - grid.j_low_bound() + pe_block_j_size) / pe_block_j_size;
         return {full_block_i_size * num_blocks_i, full_block_j_size * num_blocks_j, k_size};
     }
 
@@ -80,21 +78,19 @@ namespace gridtools {
         class MaxExtent,
         class StorageInfo,
         enumtype::grid_type GridType,
-        size_t BlockSize = strategy_from_id_cuda<enumtype::Block>::block_size_t::i_size_t::value,
-        size_t FullBlockSize = _impl::align<StorageInfo>(BlockSize + 2 * MaxExtent::value),
-        int_t Res = FullBlockSize - BlockSize>
-    GT_FUNCTION constexpr enable_if_t<Coordinate == grid_traits_from_id<GridType>::dim_i_t::value, int_t>
-    tmp_storage_block_offset_multiplier(backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
-        return Res;
+        enable_if_t<Coordinate == coord_i<backend_ids<enumtype::Cuda, GridType, enumtype::Block>>::value, int> = 0>
+    GT_FUNCTION constexpr int_t tmp_storage_block_offset_multiplier(
+        backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &backend) {
+        return _impl::align<StorageInfo>(block_i_size(backend) + 2 * MaxExtent::value) - block_i_size(backend);
     }
 
     template <uint_t Coordinate,
         class MaxExtent,
         class StorageInfo,
         enumtype::grid_type GridType,
-        int_t Res = 2 * StorageInfo::halo_t::template at<Coordinate>()>
-    GT_FUNCTION constexpr enable_if_t<Coordinate == grid_traits_from_id<GridType>::dim_j_t::value, int_t>
-    tmp_storage_block_offset_multiplier(backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
-        return Res;
+        enable_if_t<Coordinate == coord_j<backend_ids<enumtype::Cuda, GridType, enumtype::Block>>::value, int> = 0>
+    GT_FUNCTION constexpr int_t tmp_storage_block_offset_multiplier(
+        backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
+        return 2 * StorageInfo::halo_t::template at<Coordinate>();
     }
 } // namespace gridtools

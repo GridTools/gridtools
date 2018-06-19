@@ -45,6 +45,7 @@
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 #include "../position_offset_type.hpp"
+#include "./on_neighbors.hpp"
 
 namespace gridtools {
 

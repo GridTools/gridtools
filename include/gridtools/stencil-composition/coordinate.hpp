@@ -36,7 +36,7 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids/positional_iterate_domain.hpp"
+#include "./structured_grids/coordinate.hpp"
 #else
-#include "icosahedral_grids/iterate_domain.hpp"
+#include "./icosahedral_grids/coordinate.hpp"
 #endif

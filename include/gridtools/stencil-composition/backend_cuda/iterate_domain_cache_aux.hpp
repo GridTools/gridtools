@@ -41,6 +41,11 @@
 
 #pragma once
 
+#include "../../common/defs.hpp"
+#include "../accessor.hpp"
+#include "../caches/cache_definitions.hpp"
+#include "../grid.hpp"
+
 namespace gridtools {
 
     namespace _impl {

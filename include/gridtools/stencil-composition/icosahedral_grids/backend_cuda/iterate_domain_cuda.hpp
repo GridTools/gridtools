@@ -35,7 +35,6 @@
 */
 #pragma once
 
-#include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../grid_traits.hpp"
 

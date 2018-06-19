@@ -38,11 +38,9 @@
 #include <array>
 
 #include "../../../common/defs.hpp"
-
 #include "../../backend_ids.hpp"
-#include "../../grid_traits_fwd.hpp"
-
-#include "execinfo_mic.hpp"
+#include "../coordinate.hpp"
+#include "./execinfo_mic.hpp"
 
 namespace gridtools {
 
@@ -50,10 +48,10 @@ namespace gridtools {
     std::array<uint_t, 3> get_tmp_data_storage_size(
         backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
         using halo_t = typename StorageInfo::halo_t;
-        using grid_traits_t = grid_traits_from_id<enumtype::structured>;
+        using backend_t = backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block>;
 
-        static constexpr auto halo_i = halo_t::template at<grid_traits_t::dim_i_t::value>();
-        static constexpr auto halo_j = halo_t::template at<grid_traits_t::dim_j_t::value>();
+        static constexpr auto halo_i = halo_t::template at<coord_i<backend_t>::value>();
+        static constexpr auto halo_j = halo_t::template at<coord_j<backend_t>::value>();
         static constexpr auto alignment = StorageInfo::alignment_t::value;
 
         execinfo_mic exinfo(grid);

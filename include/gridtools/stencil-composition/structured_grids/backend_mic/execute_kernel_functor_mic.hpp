@@ -45,7 +45,6 @@
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
-#include "../../iterate_domain.hpp"
 #include "../../iteration_policy.hpp"
 #include "./execinfo_mic.hpp"
 #include "./iterate_domain_mic.hpp"

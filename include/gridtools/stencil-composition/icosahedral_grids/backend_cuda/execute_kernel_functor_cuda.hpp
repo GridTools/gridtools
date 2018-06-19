@@ -41,8 +41,9 @@
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
-#include "../../iterate_domain.hpp"
 #include "../../iteration_policy.hpp"
+#include "./iterate_domain_cuda.hpp"
+
 namespace gridtools {
 
     namespace _impl_iccuda {

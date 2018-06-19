@@ -39,6 +39,7 @@
 #include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
+#include "../positional_iterate_domain.hpp"
 
 namespace gridtools {
 

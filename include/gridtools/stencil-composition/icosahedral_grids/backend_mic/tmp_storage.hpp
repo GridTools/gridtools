@@ -41,44 +41,39 @@
 #include "../../../common/generic_metafunctions/type_traits.hpp"
 
 #include "../../backend_ids.hpp"
-#include "../../backend_traits_fwd.hpp"
-#include "../../grid_traits_fwd.hpp"
-
-#include "./strategy_mic.hpp"
+#include "../coordinate.hpp"
+#include "./block.hpp"
 
 namespace gridtools {
 
     template <class StorageInfo, class /*MaxExtent*/, class Grid>
     std::array<uint_t, 3> get_tmp_data_storage_size(
-        backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &, Grid const &grid) {
-        using block_size_t = typename strategy_from_id_mic<enumtype::Block>::block_size_t;
-        using grid_traits_t = grid_traits_from_id<enumtype::icosahedral>;
+        backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &backend, Grid const &grid) {
         using halo_t = typename StorageInfo::halo_t;
-
-        static constexpr auto halo_i = halo_t::template at<grid_traits_t::dim_i_t::value>();
-        static constexpr auto halo_j = halo_t::template at<grid_traits_t::dim_j_t::value>();
-        auto threads = omp_get_max_threads();
-        auto i_size = (block_size_t::i_size_t::value + 2 * halo_i) * threads;
-        auto j_size = block_size_t::j_size_t::value + 2 * halo_j;
-        auto k_size = grid.k_total_length();
+        using backend_t = backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block>;
+        auto full_block_i_size = block_i_size(backend) + halo_t::template at<coord_i<backend_t>::value>();
+        uint_t i_size = full_block_i_size * omp_get_max_threads();
+        uint_t j_size = block_j_size(backend) + 2 * halo_t::template at<coord_j<backend_t>::value>();
+        uint_t k_size = grid.k_total_length();
         return {i_size, j_size, k_size};
     }
 
     template <uint_t Coordinate,
         class /*MaxExtent*/,
         class StorageInfo,
-        int_t Res = 2 * StorageInfo::halo_t::template at<Coordinate>()>
-    constexpr enable_if_t<Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value, int_t>
-    tmp_storage_block_offset_multiplier(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &) {
+        int_t Res = 2 * StorageInfo::halo_t::template at<Coordinate>(),
+        size_t I = coord_i<backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block>>::value>
+    constexpr enable_if_t<Coordinate == I, int_t> tmp_storage_block_offset_multiplier(
+        backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &) {
         return Res;
     }
 
     template <uint_t Coordinate,
         class /*MaxExtent*/,
         class /*StorageInfo*/,
-        int_t Res = -strategy_from_id_mic<enumtype::Block>::block_size_t::j_size_t::value>
-    constexpr enable_if_t<Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value, int_t>
-    tmp_storage_block_offset_multiplier(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &) {
-        return Res;
+        size_t J = coord_j<backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block>>::value>
+    constexpr enable_if_t<Coordinate == J, int_t> tmp_storage_block_offset_multiplier(
+        backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &backend) {
+        return -block_j_size(backend);
     }
 } // namespace gridtools

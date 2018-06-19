@@ -35,18 +35,11 @@
 */
 #pragma once
 
-#include "../../common/numerics.hpp"
-#include "../compute_extents_metafunctions.hpp"
-#include "../storage_wrapper.hpp"
-#include "../tile.hpp"
-#include "grid_traits_backend_fwd.hpp"
+#include "../../common/defs.hpp"
+#include "../backend_ids.hpp"
 
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/max_element.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/quote.hpp>
-#include <boost/mpl/vector.hpp>
+#include "coordinate.hpp"
+#include "grid_traits_backend_fwd.hpp"
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
@@ -58,10 +51,11 @@ namespace gridtools {
 
     template <>
     struct grid_traits_from_id<enumtype::structured> {
+        using dummy_t = backend_ids<enumtype::Host, enumtype::structured, enumtype::Block>;
         // index positions of the different dimensions in the layout map (convention)
-        typedef static_uint<0> dim_i_t;
-        typedef static_uint<1> dim_j_t;
-        typedef static_uint<2> dim_k_t;
+        using dim_i_t = coord_i<dummy_t>;
+        using dim_j_t = coord_j<dummy_t>;
+        using dim_k_t = coord_k<dummy_t>;
 
         template <enumtype::platform BackendId>
         struct with_arch {

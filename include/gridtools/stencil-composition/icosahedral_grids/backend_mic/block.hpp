@@ -35,9 +35,16 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
+#include <cstddef>
+
+#include "../../../common/defs.hpp"
+#include "../../backend_ids.hpp"
 
 namespace gridtools {
-    template <enumtype::platform BackendType, enumtype::grid_type GridType, enumtype::strategy StrategyType>
-    struct backend;
-}
+    inline constexpr size_t block_i_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &) {
+        return GT_DEFAULT_TILE_I;
+    }
+    inline constexpr size_t block_j_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &) {
+        return GT_DEFAULT_TILE_J;
+    }
+} // namespace gridtools

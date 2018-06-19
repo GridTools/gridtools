@@ -35,8 +35,11 @@
 */
 
 #pragma once
-#include "../iterate_domain.hpp"
-#include "../sfinae.hpp"
+
+#include "../../common/defs.hpp"
+#include "../expressions/expr_base.hpp"
+#include "../structured_grids/accessor.hpp"
+#include "../structured_grids/vector_accessor.hpp"
 
 /** @file
     iterate_domain for expandable parameters
@@ -107,12 +110,6 @@ namespace gridtools {
         GT_FUNCTION auto operator()(expr<Op, Args...> const &arg)
             GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
     };
-
-    template <typename T>
-    struct is_iterate_domain_expandable_parameters : boost::mpl::false_ {};
-
-    template <typename T, ushort_t Val>
-    struct is_iterate_domain_expandable_parameters<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};
 
     template <typename T, ushort_t Val>
     struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};

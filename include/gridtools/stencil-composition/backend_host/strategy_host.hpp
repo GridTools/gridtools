@@ -43,6 +43,7 @@
 #include "../mss_components.hpp"
 #include "../mss_functor.hpp"
 #include "../reductions/reduction_data.hpp"
+#include "./block.hpp"
 #include "./execute_kernel_functor_host.hpp"
 
 namespace gridtools {
@@ -63,10 +64,9 @@ namespace gridtools {
     template <>
     struct strategy_from_id_host<enumtype::Naive> {
         // default block size for Naive strategy
-        typedef block_size<0, 0, 0> block_size_t;
+        typedef block_size<0, 0> block_size_t;
         static const uint_t BI = block_size_t::i_size_t::value;
         static const uint_t BJ = block_size_t::j_size_t::value;
-        static const uint_t BK = 0;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -91,7 +91,7 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execution_info_host>(local_domain_lists, grid, reduction_data, {0, 0}));
+                    execution_info_host>{local_domain_lists, grid, reduction_data, {0, 0}});
             }
         };
 
@@ -134,12 +134,12 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_host<enumtype::Block> {
+        using dummy_t = backend_ids<enumtype::Host, enumtype::structured, enumtype::Block>;
         // default block size for Block strategy
-        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1> block_size_t;
+        typedef block_size<block_i_size(dummy_t{}), block_j_size(dummy_t{})> block_size_t;
 
-        static const uint_t BI = block_size_t::i_size_t::value;
-        static const uint_t BJ = block_size_t::j_size_t::value;
-        static const uint_t BK = 0;
+        static constexpr uint_t BI = block_size_t::i_size_t::value;
+        static constexpr uint_t BJ = block_size_t::j_size_t::value;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block

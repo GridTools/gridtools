@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "grid_traits_fwd.hpp"
 #include "interval.hpp"
 #include "iteration_policy.hpp"
 #include "level.hpp"
