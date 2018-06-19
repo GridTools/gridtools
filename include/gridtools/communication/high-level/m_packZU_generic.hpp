@@ -33,11 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-template < typename value_type >
+#include "../../common/halo_descriptor.hpp"
+
+template <typename value_type>
 __global__ void m_packZUKernel_generic(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
     const wrap_argument d_msgsize,
-    const gridtools::array< gridtools::halo_descriptor, 3 > halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
     int const nx,
     int const ny,
     int const field_index) {
@@ -142,7 +144,7 @@ __global__ void m_packZUKernel_generic(const value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t >
+template <typename array_t>
 void m_packZU_generic(array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, int *d_msgsize) {
 
 #ifdef CUDAMSG

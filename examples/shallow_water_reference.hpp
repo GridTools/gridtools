@@ -48,19 +48,19 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace {
-    template < int exponent >
+    template <int exponent>
     static constexpr float_type pow(float_type const &x) {
-        return gridtools::gt_pow< exponent >::apply(x);
+        return gridtools::gt_pow<exponent>::apply(x);
     }
-}
+} // namespace
 
-template < typename RefBackend >
+template <typename RefBackend>
 struct shallow_water_reference {
 
-    using solution_meta_t = typename RefBackend::storage_traits_t::template storage_info_t< 0, 3 >;
-    using data_store_t = typename RefBackend::storage_traits_t::template data_store_t< float_type, solution_meta_t >;
+    using solution_meta_t = typename RefBackend::storage_traits_t::template storage_info_t<0, 3>;
+    using data_store_t = typename RefBackend::storage_traits_t::template data_store_t<float_type, solution_meta_t>;
     using sol_type =
-        typename RefBackend::storage_traits_t::template data_store_field_t< float_type, solution_meta_t, 1, 1, 1 >;
+        typename RefBackend::storage_traits_t::template data_store_field_t<float_type, solution_meta_t, 1, 1, 1>;
 
     uint_t DimI;
     uint_t DimJ;
@@ -90,9 +90,9 @@ struct shallow_water_reference {
           h(solution_meta, [](int i, int j, int k) { return droplet_(i, j, dx(), dy(), height); }, "h"),
           ux(solution_meta, 0.0, "ux"), vx(solution_meta, 0.0, "vx"), hx(solution_meta, 0.0, "hx"),
           uy(solution_meta, 0.0, "uy"), vy(solution_meta, 0.0, "vy"), hy(solution_meta, 0.0, "hy") {
-        solution.template set< 0, 0 >(h);
-        solution.template set< 1, 0 >(u);
-        solution.template set< 2, 0 >(v);
+        solution.template set<0, 0>(h);
+        solution.template set<1, 0>(u);
+        solution.template set<2, 0>(v);
     }
 
     void iterate() {
@@ -114,9 +114,8 @@ struct shallow_water_reference {
 
                 uxv(i, j, 0) =
                     (uv(i + 1, j + 1, 0) + uv(i, j + 1, 0)) / 2. -
-                    (((pow< 2 >(uv(i + 1, j + 1, 0))) / hv(i + 1, j + 1, 0) +
-                         pow< 2 >(hv(i + 1, j + 1, 0)) * g() / 2.) -
-                        (pow< 2 >(uv(i, j + 1, 0)) / hv(i, j + 1, 0) + pow< 2 >(hv(i, j + 1, 0)) * (g() / 2.))) *
+                    (((pow<2>(uv(i + 1, j + 1, 0))) / hv(i + 1, j + 1, 0) + pow<2>(hv(i + 1, j + 1, 0)) * g() / 2.) -
+                        (pow<2>(uv(i, j + 1, 0)) / hv(i, j + 1, 0) + pow<2>(hv(i, j + 1, 0)) * (g() / 2.))) *
                         (dt() / (2. * dx()));
 
                 vxv(i, j, 0) = (vv(i + 1, j + 1, 0) + vv(i, j + 1, 0)) / 2. -
@@ -137,8 +136,8 @@ struct shallow_water_reference {
 
                 vyv(i, j, 0) =
                     (vv(i + 1, j + 1, 0) + vv(i + 1, j, 0)) / 2. -
-                    ((pow< 2 >(vv(i + 1, j + 1, 0)) / hv(i + 1, j + 1, 0) + pow< 2 >(hv(i + 1, j + 1, 0)) * g() / 2.) -
-                        (pow< 2 >(vv(i + 1, j, 0)) / hv(i + 1, j, 0) + pow< 2 >(hv(i + 1, j, 0)) * (g() / 2.))) *
+                    ((pow<2>(vv(i + 1, j + 1, 0)) / hv(i + 1, j + 1, 0) + pow<2>(hv(i + 1, j + 1, 0)) * g() / 2.) -
+                        (pow<2>(vv(i + 1, j, 0)) / hv(i + 1, j, 0) + pow<2>(hv(i + 1, j, 0)) * (g() / 2.))) *
                         (dt() / (2. * dy()));
             }
 
@@ -147,25 +146,24 @@ struct shallow_water_reference {
                 hv(i, j, 0) = hv(i, j, 0) - (uxv(i, j - 1, 0) - uxv(i - 1, j - 1, 0)) * (dt() / dx()) -
                               (vyv(i - 1, j, 0) - vyv(i - 1, j - 1, 0)) * (dt() / dy());
 
-                uv(i, j, 0) = uv(i, j, 0) -
-                              (pow< 2 >(uxv(i, j - 1, 0)) / hxv(i, j - 1, 0) +
-                                  hxv(i, j - 1, 0) * hxv(i, j - 1, 0) * ((g() / 2.)) -
-                                  (pow< 2 >(uxv(i - 1, j - 1, 0)) / hxv(i - 1, j - 1, 0) +
-                                      pow< 2 >(hxv(i - 1, j - 1, 0)) * ((g() / 2.)))) *
-                                  ((dt() / dx())) -
-                              (vyv(i - 1, j, 0) * uyv(i - 1, j, 0) / hyv(i - 1, j, 0) -
-                                  vyv(i - 1, j - 1, 0) * uyv(i - 1, j - 1, 0) / hyv(i - 1, j - 1, 0)) *
-                                  (dt() / dy());
-
-                vv(i, j, 0) =
-                    vv(i, j, 0) -
-                    (uxv(i, j - 1, 0) * vxv(i, j - 1, 0) / hxv(i, j - 1, 0) -
-                        (uxv(i - 1, j - 1, 0) * vxv(i - 1, j - 1, 0)) / hxv(i - 1, j - 1, 0)) *
+                uv(i, j, 0) =
+                    uv(i, j, 0) -
+                    (pow<2>(uxv(i, j - 1, 0)) / hxv(i, j - 1, 0) + hxv(i, j - 1, 0) * hxv(i, j - 1, 0) * ((g() / 2.)) -
+                        (pow<2>(uxv(i - 1, j - 1, 0)) / hxv(i - 1, j - 1, 0) +
+                            pow<2>(hxv(i - 1, j - 1, 0)) * ((g() / 2.)))) *
                         ((dt() / dx())) -
-                    (pow< 2 >(vyv(i - 1, j, 0)) / hyv(i - 1, j, 0) + pow< 2 >(hyv(i - 1, j, 0)) * ((g() / 2.)) -
-                        (pow< 2 >(vyv(i - 1, j - 1, 0)) / hyv(i - 1, j - 1, 0) +
-                            pow< 2 >(hyv(i - 1, j - 1, 0)) * ((g() / 2.)))) *
-                        ((dt() / dy()));
+                    (vyv(i - 1, j, 0) * uyv(i - 1, j, 0) / hyv(i - 1, j, 0) -
+                        vyv(i - 1, j - 1, 0) * uyv(i - 1, j - 1, 0) / hyv(i - 1, j - 1, 0)) *
+                        (dt() / dy());
+
+                vv(i, j, 0) = vv(i, j, 0) -
+                              (uxv(i, j - 1, 0) * vxv(i, j - 1, 0) / hxv(i, j - 1, 0) -
+                                  (uxv(i - 1, j - 1, 0) * vxv(i - 1, j - 1, 0)) / hxv(i - 1, j - 1, 0)) *
+                                  ((dt() / dx())) -
+                              (pow<2>(vyv(i - 1, j, 0)) / hyv(i - 1, j, 0) + pow<2>(hyv(i - 1, j, 0)) * ((g() / 2.)) -
+                                  (pow<2>(vyv(i - 1, j - 1, 0)) / hyv(i - 1, j - 1, 0) +
+                                      pow<2>(hyv(i - 1, j - 1, 0)) * ((g() / 2.)))) *
+                                  ((dt() / dy()));
             }
     }
 };

@@ -36,17 +36,17 @@
 #pragma once
 #include <type_traits>
 
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../mss_functor.hpp"
 #include "../../tile.hpp"
-#include "./execute_kernel_functor_mic.hpp"
 #include "./execinfo_mic.hpp"
-#include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
+#include "./execute_kernel_functor_mic.hpp"
 
 namespace gridtools {
 
-    template < enumtype::strategy >
+    template <enumtype::strategy>
     struct strategy_from_id_mic;
 
     namespace _impl {
@@ -55,20 +55,20 @@ namespace gridtools {
          * @brief Meta function to check if an MSS can be executed in parallel along k-axis.
          */
         struct is_mss_kparallel {
-            template < typename Mss >
+            template <typename Mss>
             struct apply {
-                using type = boost::mpl::bool_< Mss::execution_engine_t::type::execution == enumtype::parallel_impl >;
+                using type = boost::mpl::bool_<Mss::execution_engine_t::type::execution == enumtype::parallel_impl>;
             };
         };
 
         /**
          * @brief Meta function to check if all MSS in an MssComponents array can be executed in parallel along k-axis.
          */
-        template < typename MssComponents >
+        template <typename MssComponents>
         struct all_mss_kparallel
-            : boost::mpl::fold< typename boost::mpl::transform< MssComponents, is_mss_kparallel >::type,
+            : boost::mpl::fold<typename boost::mpl::transform<MssComponents, is_mss_kparallel>::type,
                   boost::mpl::true_,
-                  boost::mpl::and_< boost::mpl::placeholders::_1, boost::mpl::placeholders::_2 > >::type {};
+                  boost::mpl::and_<boost::mpl::placeholders::_1, boost::mpl::placeholders::_2>>::type {};
 
     } // namespace _impl
 
@@ -76,8 +76,8 @@ namespace gridtools {
      * @brief Specialization for the \ref gridtools::enumtype::Block strategy.
      */
     template <>
-    struct strategy_from_id_mic< enumtype::Block > {
-        using block_size_t = block_size< 0, 0, 0 >;
+    struct strategy_from_id_mic<enumtype::Block> {
+        using block_size_t = block_size<0, 0, 0>;
 
         /**
          * @brief Loops over all blocks and executes sequentially all MSS functors for each block.
@@ -86,22 +86,22 @@ namespace gridtools {
          * @tparam MssComponents A meta array with the MSS components of all MSS.
          * @tparam BackendIds IDs of backend.
          */
-        template < typename MssComponents, typename BackendIds, typename ReductionData, typename Enable = void >
+        template <typename MssComponents, typename BackendIds, typename ReductionData, typename Enable = void>
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-            template < typename LocalDomainListArray, typename Grid >
+            template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
-                using mss_functor_t = mss_functor< MssComponents,
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
+                using mss_functor_t = mss_functor<MssComponents,
                     Grid,
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execinfo_mic::block_kserial_t >;
+                    execinfo_mic::block_kserial_t>;
 
                 execinfo_mic exinfo(grid);
                 const int_t i_blocks = exinfo.i_blocks();
@@ -109,7 +109,7 @@ namespace gridtools {
 #pragma omp parallel for collapse(2)
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t bi = 0; bi < i_blocks; ++bi) {
-                        gridtools::for_each< iter_range >(
+                        gridtools::for_each<iter_range>(
                             mss_functor_t(local_domain_lists, grid, reduction_data, exinfo.block(bi, bj)));
                     }
                 }
@@ -124,25 +124,25 @@ namespace gridtools {
          * @tparam MssComponents A meta array with the MSS components of all MSS.
          * @tparam BackendIds IDs of backend.
          */
-        template < typename MssComponents, typename BackendIds, typename ReductionData >
-        struct fused_mss_loop< MssComponents,
+        template <typename MssComponents, typename BackendIds, typename ReductionData>
+        struct fused_mss_loop<MssComponents,
             BackendIds,
             ReductionData,
-            typename std::enable_if< _impl::all_mss_kparallel< MssComponents >::value >::type > {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+            typename std::enable_if<_impl::all_mss_kparallel<MssComponents>::value>::type> {
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-            template < typename LocalDomainListArray, typename Grid >
+            template <typename LocalDomainListArray, typename Grid>
             GT_FUNCTION static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
-                using mss_functor_t = mss_functor< MssComponents,
+                using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
+                using mss_functor_t = mss_functor<MssComponents,
                     Grid,
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execinfo_mic::block_kparallel_t >;
+                    execinfo_mic::block_kparallel_t>;
 
                 execinfo_mic exinfo(grid);
                 const int_t i_blocks = exinfo.i_blocks();
@@ -153,7 +153,7 @@ namespace gridtools {
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t k = k_first; k <= k_last; ++k) {
                         for (int_t bi = 0; bi < i_blocks; ++bi) {
-                            gridtools::for_each< iter_range >(
+                            gridtools::for_each<iter_range>(
                                 mss_functor_t(local_domain_lists, grid, reduction_data, exinfo.block(bi, bj, k)));
                         }
                     }

@@ -55,12 +55,12 @@
 
 namespace gridtools {
     namespace impl_ {
-        template < typename Seq, typename T >
+        template <typename Seq, typename T>
         struct get_position {
-            using type = typename boost::mpl::distance< typename boost::mpl::begin< Seq >::type,
-                typename boost::mpl::find< Seq, T >::type >::type;
+            using type = typename boost::mpl::distance<typename boost::mpl::begin<Seq>::type,
+                typename boost::mpl::find<Seq, T>::type>::type;
         };
-    }
+    } // namespace impl_
 
     /** \ingroup common
      * \defgroup permute_to Permute
@@ -88,18 +88,17 @@ namespace gridtools {
      * \param src The input sequence
      * \return The permuted sequence
      */
-    template < typename Res, typename Src >
+    template <typename Res, typename Src>
     Res permute_to(Src &&src) {
         namespace f = boost::fusion;
         namespace m = boost::mpl;
-        using src_t = typename std::decay< Src >::type;
-        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< Res >::value, "Output type should model fusion sequence.");
-        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< src_t >::value, "Input type should model fusion sequence.");
-        using positions_t = typename m::transform< Res,
-            impl_::get_position< src_t, m::_ >,
-            m::back_inserter< m::vector_c< int > > >::type;
-        GRIDTOOLS_STATIC_ASSERT((m::count_if< positions_t, m::equal_to< m::_, m::size< src_t > > >::value == 0),
+        using src_t = typename std::decay<Src>::type;
+        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence<Res>::value, "Output type should model fusion sequence.");
+        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence<src_t>::value, "Input type should model fusion sequence.");
+        using positions_t =
+            typename m::transform<Res, impl_::get_position<src_t, m::_>, m::back_inserter<m::vector_c<int>>>::type;
+        GRIDTOOLS_STATIC_ASSERT((m::count_if<positions_t, m::equal_to<m::_, m::size<src_t>>>::value == 0),
             "All types from the result should present in the source.");
-        return Res{f::nview< typename std::remove_reference< Src >::type, positions_t >(src)};
+        return Res{f::nview<typename std::remove_reference<Src>::type, positions_t>(src)};
     };
-}
+} // namespace gridtools

@@ -41,16 +41,16 @@
 namespace test_conditionals {
     using namespace gridtools;
 
-    using axis_t = axis< 1 >;
+    using axis_t = axis<1>;
     using x_interval = axis_t::full_interval;
 
-    template < uint_t Id >
+    template <uint_t Id>
     struct functor {
 
-        typedef accessor< 0, enumtype::inout > p_dummy;
-        typedef boost::mpl::vector1< p_dummy > arg_list;
+        typedef accessor<0, enumtype::inout> p_dummy;
+        typedef boost::mpl::vector1<p_dummy> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) = +Id;
         }
@@ -63,26 +63,25 @@ namespace test_conditionals {
 
         auto grid_ = make_grid((uint_t)2, (uint_t)2, axis_t((uint_t)3));
 
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t>
             data_store_t;
         storage_info_t meta_data_(3, 3, 3);
         data_store_t dummy(meta_data_, 0.);
-        typedef arg< 0, data_store_t > p_dummy;
+        typedef arg<0, data_store_t> p_dummy;
 
-        auto comp_ = make_computation< backend_t >(
-            grid_,
+        auto comp_ = make_computation<backend_t>(grid_,
             p_dummy() = dummy,
             if_(cond,
-                make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
+                make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor<0>>(p_dummy())),
                 if_(cond2,
-                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
-                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
+                    make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor<1>>(p_dummy())),
+                    make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor<2>>(p_dummy())))));
 
         comp_.run();
         comp_.sync_bound_data_stores();
         return make_host_view(dummy)(0, 0, 0) == 1;
     }
-} // namespace test_conditional
+} // namespace test_conditionals
 
 TEST(stencil_composition, conditionals) { EXPECT_TRUE(test_conditionals::test()); }

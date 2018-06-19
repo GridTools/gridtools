@@ -37,8 +37,8 @@
 
 #include <array>
 #include <functional>
-#include <type_traits>
 #include <tuple>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
@@ -49,46 +49,44 @@
 
 namespace gridtools {
     namespace {
-        template < typename Lhs, typename Rhs >
-        using node_t = condition< Lhs, Rhs, std::function< bool() > >;
+        template <typename Lhs, typename Rhs>
+        using node_t = condition<Lhs, Rhs, std::function<bool()>>;
 
-        static_assert(is_condition_tree_of< int *, std::is_pointer >::value, "good leaf");
-        static_assert(is_condition_tree_of< node_t< int *, void * >, std::is_pointer >::value, "good node");
-        static_assert(
-            is_condition_tree_of< node_t< int *, node_t< long *, void * > >, std::is_pointer >::value, "good tree");
-        static_assert(!is_condition_tree_of< int, std::is_pointer >::value, "bad leaf");
-        static_assert(!is_condition_tree_of< node_t< int *, int >, std::is_pointer >::value, "bad node");
-        static_assert(
-            !is_condition_tree_of< node_t< int *, node_t< long, void * > >, std::is_pointer >::value, "bad tree");
+        static_assert(is_condition_tree_of<int *, std::is_pointer>::value, "good leaf");
+        static_assert(is_condition_tree_of<node_t<int *, void *>, std::is_pointer>::value, "good node");
+        static_assert(is_condition_tree_of<node_t<int *, node_t<long *, void *>>, std::is_pointer>::value, "good tree");
+        static_assert(!is_condition_tree_of<int, std::is_pointer>::value, "bad leaf");
+        static_assert(!is_condition_tree_of<node_t<int *, int>, std::is_pointer>::value, "bad node");
+        static_assert(!is_condition_tree_of<node_t<int *, node_t<long, void *>>, std::is_pointer>::value, "bad tree");
 
-        template < typename Lhs, typename Rhs, typename Cond = std::function< bool() > >
-        condition< Lhs, Rhs, Cond > make_node(Lhs lhs, Rhs rhs, Cond fun = {}) {
+        template <typename Lhs, typename Rhs, typename Cond = std::function<bool()>>
+        condition<Lhs, Rhs, Cond> make_node(Lhs lhs, Rhs rhs, Cond fun = {}) {
             return {fun, lhs, rhs};
         };
 
-        TEST(tree_transform, leaf) { EXPECT_EQ(condition_tree_transform(1, std::negate< int >{}), -1); }
+        TEST(tree_transform, leaf) { EXPECT_EQ(condition_tree_transform(1, std::negate<int>{}), -1); }
 
         TEST(tree_transform, node) {
-            auto actual = condition_tree_transform(make_node(1, 2), std::negate< int >{});
+            auto actual = condition_tree_transform(make_node(1, 2), std::negate<int>{});
             EXPECT_EQ(actual.m_first, -1);
             EXPECT_EQ(actual.m_second, -2);
         }
 
         TEST(branch_selector, empty) {
             auto testee = make_branch_selector();
-            static_assert(std::is_same< decltype(testee)::all_leaves_t, std::tuple<> >::value, "all_leaves");
+            static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<>>::value, "all_leaves");
             EXPECT_EQ(testee.apply(identity{}), std::make_tuple());
         }
 
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
-            static_assert(std::is_same< decltype(testee)::all_leaves_t, std::tuple< int > >::value, "all_leaves");
+            static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<int>>::value, "all_leaves");
             EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
         }
 
         TEST(branch_selector, no_conditions) {
             auto testee = make_branch_selector(1, 2);
-            static_assert(std::is_same< decltype(testee)::all_leaves_t, std::tuple< int, int > >::value, "all_leaves");
+            static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<int, int>>::value, "all_leaves");
             EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1, 2));
         }
 
@@ -120,11 +118,10 @@ namespace gridtools {
         }
 
         TEST(branch_selector, condition_tree) {
-            std::array< bool, 2 > keys;
+            std::array<bool, 2> keys;
             auto testee =
                 make_branch_selector(make_node(1, make_node(2, 3, [&] { return keys[1]; }), [&] { return keys[0]; }));
-            static_assert(
-                std::is_same< decltype(testee)::all_leaves_t, std::tuple< int, int, int > >::value, "all_leaves");
+            static_assert(std::is_same<decltype(testee)::all_leaves_t, std::tuple<int, int, int>>::value, "all_leaves");
             keys = {true};
             EXPECT_EQ(testee.apply(identity{}), std::make_tuple(1));
             keys = {false, true};
@@ -134,7 +131,7 @@ namespace gridtools {
         }
 
         TEST(branch_selector, two_conditions) {
-            std::array< bool, 2 > keys;
+            std::array<bool, 2> keys;
             auto testee = make_branch_selector(
                 make_node(1, 2, [&] { return keys[0]; }), make_node(10, 20, [&] { return keys[1]; }));
             keys = {true, true};
@@ -147,19 +144,19 @@ namespace gridtools {
             EXPECT_EQ(testee.apply(identity{}), std::make_tuple(2, 20));
         }
 
-        template < size_t I >
-        using val_t = std::integral_constant< size_t, I >;
+        template <size_t I>
+        using val_t = std::integral_constant<size_t, I>;
 
         struct get_elem_f {
-            template < size_t I >
-            size_t operator()(val_t< I >) const {
+            template <size_t I>
+            size_t operator()(val_t<I>) const {
                 return I;
             }
         };
 
         TEST(branch_selector, different_types) {
             bool key;
-            auto testee = make_branch_selector(make_node(val_t< 1 >{}, val_t< 2 >{}, [&] { return key; }));
+            auto testee = make_branch_selector(make_node(val_t<1>{}, val_t<2>{}, [&] { return key; }));
             key = true;
             auto fun = tuple_util::transform(get_elem_f{});
             EXPECT_EQ(testee.apply(fun), std::make_tuple(1));
@@ -168,7 +165,7 @@ namespace gridtools {
         }
 
         struct second_f {
-            template < typename T, typename U >
+            template <typename T, typename U>
             U operator()(T t, U u) const {
                 return u;
             }
@@ -177,5 +174,5 @@ namespace gridtools {
         TEST(branch_selector, extra_args) { EXPECT_EQ(make_branch_selector(1).apply(second_f{}, 8), 8); }
 
         TEST(branch_selector, void_return) { make_branch_selector(1).apply(noop{}); }
-    }
-}
+    } // namespace
+} // namespace gridtools

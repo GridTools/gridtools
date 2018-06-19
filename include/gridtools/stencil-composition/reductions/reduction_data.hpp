@@ -52,7 +52,7 @@ namespace gridtools {
 
     namespace _impl {
 
-        template < typename = void >
+        template <typename = void>
         struct reduction_data {
             using reduction_type_t = notype;
             notype reduced_value() const { return {}; }
@@ -61,14 +61,14 @@ namespace gridtools {
             void reduce() {}
         };
 
-        template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-        struct reduction_data< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+        template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+        struct reduction_data<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
             using reduction_type_t = ReductionType;
             using bin_op_t = BinOp;
 
           private:
             BinOp m_bin_op;
-            std::vector< ReductionType > m_parallel_reduced_val;
+            std::vector<ReductionType> m_parallel_reduced_val;
             ReductionType m_initial_value;
             ReductionType m_reduced_value;
 
@@ -89,44 +89,42 @@ namespace gridtools {
             ReductionType reduced_value() const { return m_reduced_value; }
         };
 
-        template < typename MssDescriptors >
+        template <typename MssDescriptors>
         using has_reduction_descriptor =
-            boost::mpl::count_if< MssDescriptors, mss_descriptor_is_reduction< boost::mpl::_ > >;
+            boost::mpl::count_if<MssDescriptors, mss_descriptor_is_reduction<boost::mpl::_>>;
 
-        template < typename MssDescriptors >
+        template <typename MssDescriptors>
         struct get_reduction_descrpitor {
-            using descriptors_t =
-                boost::mpl::filter_view< MssDescriptors, mss_descriptor_is_reduction< boost::mpl::_ > >;
+            using descriptors_t = boost::mpl::filter_view<MssDescriptors, mss_descriptor_is_reduction<boost::mpl::_>>;
             GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::size< descriptors_t >::value < 2), "Error: more than one reduction found");
-            using type = typename boost::mpl::eval_if< boost::mpl::empty< descriptors_t >,
-                boost::mpl::void_,
-                boost::mpl::front< descriptors_t > >::type;
+                (boost::mpl::size<descriptors_t>::value < 2), "Error: more than one reduction found");
+            using type = typename boost::mpl::
+                eval_if<boost::mpl::empty<descriptors_t>, boost::mpl::void_, boost::mpl::front<descriptors_t>>::type;
         };
 
-        template < typename MssDescriptors >
-        using get_reduction_data_t = reduction_data< typename get_reduction_descrpitor< MssDescriptors >::type >;
+        template <typename MssDescriptors>
+        using get_reduction_data_t = reduction_data<typename get_reduction_descrpitor<MssDescriptors>::type>;
+    } // namespace _impl
+
+    template <typename MssDescriptors>
+    using reduction_type = typename _impl::get_reduction_data_t<MssDescriptors>::reduction_type_t;
+
+    template <typename MssDescriptors,
+        typename std::enable_if<_impl::has_reduction_descriptor<MssDescriptors>::value, int>::type = 0>
+    _impl::get_reduction_data_t<MssDescriptors> make_reduction_data(MssDescriptors const &src) {
+        GRIDTOOLS_STATIC_ASSERT((boost::fusion::traits::is_sequence<MssDescriptors>::value), GT_INTERNAL_ERROR);
+        return {(*boost::fusion::find_if<mss_descriptor_is_reduction<boost::mpl::_>>(src)).get()};
     }
 
-    template < typename MssDescriptors >
-    using reduction_type = typename _impl::get_reduction_data_t< MssDescriptors >::reduction_type_t;
-
-    template < typename MssDescriptors,
-        typename std::enable_if< _impl::has_reduction_descriptor< MssDescriptors >::value, int >::type = 0 >
-    _impl::get_reduction_data_t< MssDescriptors > make_reduction_data(MssDescriptors const &src) {
-        GRIDTOOLS_STATIC_ASSERT((boost::fusion::traits::is_sequence< MssDescriptors >::value), GT_INTERNAL_ERROR);
-        return {(*boost::fusion::find_if< mss_descriptor_is_reduction< boost::mpl::_ > >(src)).get()};
-    }
-
-    template < typename MssDescriptors,
-        typename std::enable_if< !_impl::has_reduction_descriptor< MssDescriptors >::value, int >::type = 0 >
+    template <typename MssDescriptors,
+        typename std::enable_if<!_impl::has_reduction_descriptor<MssDescriptors>::value, int>::type = 0>
     _impl::reduction_data<> make_reduction_data(MssDescriptors) {
         return {};
     }
 
-    template < typename... T >
+    template <typename... T>
     struct is_reduction_data : std::false_type {};
 
-    template < typename... T >
-    struct is_reduction_data< _impl::reduction_data< T... > > : std::true_type {};
-}
+    template <typename... T>
+    struct is_reduction_data<_impl::reduction_data<T...>> : std::true_type {};
+} // namespace gridtools

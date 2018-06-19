@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gtest/gtest.h>
 #include <gridtools/common/boost_pp_generic_macros.hpp>
+#include <gtest/gtest.h>
 
 TEST(double_parenthesis, check) {
 #define my_types (int, 2)(double, 3)

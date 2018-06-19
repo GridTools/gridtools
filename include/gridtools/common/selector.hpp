@@ -53,16 +53,16 @@ namespace gridtools {
      *  we have to pass following selector selector<1,0,1> to the storage-facility.
      *  @tparam Bitmask bitmask defining the masked and unmasked dimensions
      */
-    template < bool... Bitmask >
+    template <bool... Bitmask>
     struct selector {
         static constexpr uint_t size = sizeof...(Bitmask);
     };
 
-    template < typename T >
+    template <typename T>
     struct is_selector : boost::mpl::false_ {};
 
-    template < bool... Bitmask >
-    struct is_selector< selector< Bitmask... > > : boost::mpl::true_ {};
+    template <bool... Bitmask>
+    struct is_selector<selector<Bitmask...>> : boost::mpl::true_ {};
     /** @} */
     /** @} */
-}
+} // namespace gridtools

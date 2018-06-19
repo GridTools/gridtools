@@ -46,61 +46,60 @@
 
 namespace gridtools {
     namespace _impl {
-        template < class Trees, template < class... > class FlattenTree >
+        template <class Trees, template <class...> class FlattenTree>
         GT_META_DEFINE_ALIAS(flatten_trees, meta::flatten, (GT_META_CALL(meta::transform, (FlattenTree, Trees))));
 
 //  Flatten an ESF tree formed by regular ESF's and independent_esf into an MPL sequence.
 //  The result contains only regular ESF's.
 #if GT_BROKEN_TEMPLATE_ALIASES
-        template < class T >
+        template <class T>
         struct flatten_esfs;
-        template < class T >
+        template <class T>
         struct flatten_esf {
-            using type = std::tuple< T >;
+            using type = std::tuple<T>;
         };
-        template < class EsfSeq >
-        struct flatten_esf< independent_esf< EsfSeq > > {
-            using type = typename flatten_esfs< EsfSeq >::type;
+        template <class EsfSeq>
+        struct flatten_esf<independent_esf<EsfSeq>> {
+            using type = typename flatten_esfs<EsfSeq>::type;
         };
-        template < class T >
-        struct flatten_esfs : flatten_trees< T, flatten_esf > {};
+        template <class T>
+        struct flatten_esfs : flatten_trees<T, flatten_esf> {};
 
         // Extract args from ESF.
-        template < class Esf >
-        struct get_args : lazy_copy_into_variadic< typename Esf::args_t, std::tuple<> > {};
+        template <class Esf>
+        struct get_args : lazy_copy_into_variadic<typename Esf::args_t, std::tuple<>> {};
 
 #else
-        template < class >
+        template <class>
         struct lazy_flatten_esf;
-        template < class T >
-        using flatten_esf = typename lazy_flatten_esf< T >::type;
-        template < class T >
-        using flatten_esfs = flatten_trees< T, flatten_esf >;
-        template < class T >
+        template <class T>
+        using flatten_esf = typename lazy_flatten_esf<T>::type;
+        template <class T>
+        using flatten_esfs = flatten_trees<T, flatten_esf>;
+        template <class T>
         struct lazy_flatten_esf {
-            using type = std::tuple< T >;
+            using type = std::tuple<T>;
         };
-        template < class EsfSeq >
-        struct lazy_flatten_esf< independent_esf< EsfSeq > > {
-            using type = flatten_esfs< EsfSeq >;
+        template <class EsfSeq>
+        struct lazy_flatten_esf<independent_esf<EsfSeq>> {
+            using type = flatten_esfs<EsfSeq>;
         };
 
         // Extract args from ESF.
-        template < class Esf >
-        using get_args = copy_into_variadic< typename Esf::args_t, std::tuple<> >;
+        template <class Esf>
+        using get_args = copy_into_variadic<typename Esf::args_t, std::tuple<>>;
 #endif
 
         // Extract ESFs from an MSS.
-        template < class Mss >
-        GT_META_DEFINE_ALIAS(
-            get_esfs, flatten_esfs, (copy_into_variadic< typename Mss::esf_sequence_t, std::tuple<> >));
-    }
+        template <class Mss>
+        GT_META_DEFINE_ALIAS(get_esfs, flatten_esfs, (copy_into_variadic<typename Mss::esf_sequence_t, std::tuple<>>));
+    } // namespace _impl
 
     /// Takes a typelist of MSS descriptions and returns deduplicated typelist of all placeholders
     /// that are used in the given msses.
-    template < class Msses >
+    template <class Msses>
     GT_META_DEFINE_ALIAS(extract_placeholders,
         meta::dedup,
         (GT_META_CALL(
             _impl::flatten_trees, (GT_META_CALL(_impl::flatten_trees, (Msses, _impl::get_esfs)), _impl::get_args))));
-}
+} // namespace gridtools

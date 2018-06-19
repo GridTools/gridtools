@@ -40,57 +40,57 @@
  *      Author: carlosos
  */
 
-#include <gridtools/gridtools.hpp>
-#include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/mpl/equal.hpp>
+#include <gridtools/gridtools.hpp>
 
 #include "gtest/gtest.h"
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/stencil-composition/reductions/reductions.hpp>
-#include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace make_reduction_test {
 
-    using x_interval = gridtools::interval< level< 0, -1 >, level< 1, -1 > >;
+    using x_interval = gridtools::interval<level<0, -1>, level<1, -1>>;
 
     struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
+        typedef accessor<0> in;
+        typedef boost::mpl::vector1<in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
-}
+} // namespace make_reduction_test
 
 TEST(test_make_reduction, make_reduction) {
 
     using namespace gridtools;
 
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list_t;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef boost::mpl::vector<p_in, p_out> accessor_list_t;
 
-    typedef decltype(gridtools::make_reduction< make_reduction_test::test_functor, binop::sum >(0.0, p_in())) red_t;
+    typedef decltype(gridtools::make_reduction<make_reduction_test::test_functor, binop::sum>(0.0, p_in())) red_t;
 
-    typedef reduction_descriptor< double,
+    typedef reduction_descriptor<double,
         binop::sum,
-        boost::mpl::vector1< esf_descriptor< make_reduction_test::test_functor, boost::mpl::vector1< p_in > > > >
+        boost::mpl::vector1<esf_descriptor<make_reduction_test::test_functor, boost::mpl::vector1<p_in>>>>
         red_ref_t;
 
     GRIDTOOLS_STATIC_ASSERT((red_t::is_reduction_t::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< red_t::esf_sequence_t,
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<red_t::esf_sequence_t,
                                 red_ref_t::esf_sequence_t,
-                                esf_equal< boost::mpl::_1, boost::mpl::_2 > >::type::value),
+                                esf_equal<boost::mpl::_1, boost::mpl::_2>>::type::value),
         "ERROR");
 
     EXPECT_TRUE(true);

@@ -41,6 +41,6 @@
 using namespace gridtools;
 
 namespace ico_operators {
-    using x_interval = axis< 1 >::full_interval;
-    using icosahedral_topology_t = icosahedral_topology< backend_t >;
-}
+    using x_interval = axis<1>::full_interval;
+    using icosahedral_topology_t = icosahedral_topology<backend_t>;
+} // namespace ico_operators

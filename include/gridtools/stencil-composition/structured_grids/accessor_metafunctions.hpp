@@ -35,74 +35,74 @@
 */
 #pragma once
 
-#include "../expressions/expressions.hpp"
 #include "../accessor_metafunctions.hpp"
+#include "../expressions/expressions.hpp"
 #include "accessor.hpp"
 
 namespace gridtools {
 
-    template < typename T >
+    template <typename T>
     struct is_regular_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
-    struct is_regular_accessor< accessor< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
+    template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
+    struct is_regular_accessor<accessor<ID, Intent, Extent, Number>> : boost::mpl::true_ {};
 
-    template < typename T >
-    struct is_regular_accessor< const T > : is_regular_accessor< T > {};
+    template <typename T>
+    struct is_regular_accessor<const T> : is_regular_accessor<T> {};
 
-    template < typename T >
+    template <typename T>
     struct is_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
-    struct is_accessor< accessor< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
+    template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
+    struct is_accessor<accessor<ID, Intent, Extent, Number>> : boost::mpl::true_ {};
 
-    template < typename T >
+    template <typename T>
     struct is_grid_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number >
-    struct is_grid_accessor< accessor< ID, Intent, Extent, Number > > : boost::mpl::true_ {};
+    template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
+    struct is_grid_accessor<accessor<ID, Intent, Extent, Number>> : boost::mpl::true_ {};
 
     // TODO add documentation
-    template < typename Accessor, unsigned Ext >
+    template <typename Accessor, unsigned Ext>
     struct accessor_extend;
 
-    template < ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, unsigned Ext >
-    struct accessor_extend< accessor< ID, Intent, Extent, Number >, Ext > {
-        typedef accessor< ID, Intent, Extent, (Number + Ext) > type;
+    template <ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, unsigned Ext>
+    struct accessor_extend<accessor<ID, Intent, Extent, Number>, Ext> {
+        typedef accessor<ID, Intent, Extent, (Number + Ext)> type;
     };
 
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
      * to the corresponding entry in ArgsMap
      */
-    template < typename Accessor, typename ArgsMap, typename Enable = void >
+    template <typename Accessor, typename ArgsMap, typename Enable = void>
     struct remap_accessor_type {};
 
     // TODO(havogt) I have no idea why I end up here...
-    template < typename ArgsMap >
-    struct remap_accessor_type< boost::mpl::void_, ArgsMap > {
+    template <typename ArgsMap>
+    struct remap_accessor_type<boost::mpl::void_, ArgsMap> {
         using type = boost::mpl::void_;
     };
 
-    template < ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, typename ArgsMap >
-    struct remap_accessor_type< accessor< ID, Intent, Extent, Number >, ArgsMap > {
-        using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extent, Number >;
+    template <ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, typename ArgsMap>
+    struct remap_accessor_type<accessor<ID, Intent, Extent, Number>, ArgsMap> {
+        using type = accessor<_impl::get_remap_accessor_id<ID, ArgsMap>(), Intent, Extent, Number>;
     };
 
-    template < class ArgsMap, class Op, class... Args >
-    struct remap_accessor_type< expr< Op, Args... >, ArgsMap > {
+    template <class ArgsMap, class Op, class... Args>
+    struct remap_accessor_type<expr<Op, Args...>, ArgsMap> {
         // Here we traverse the expression AST down to the leaves, and we assert if
         // the leaves are not accessor types.
 
         // recursively remapping the template arguments,
         // until the specialization above stops the recursion
-        using type = expr< Op, typename remap_accessor_type< Args, ArgsMap >::type... >;
+        using type = expr<Op, typename remap_accessor_type<Args, ArgsMap>::type...>;
     };
 
-    template < typename T, typename ArgsMap >
-    struct remap_accessor_type< T,
+    template <typename T, typename ArgsMap>
+    struct remap_accessor_type<T,
         ArgsMap,
-        typename boost::enable_if< typename boost::is_arithmetic< T >::type, void >::type > {
+        typename boost::enable_if<typename boost::is_arithmetic<T>::type, void>::type> {
         // when a leaf don't do anything
         typedef T type;
     };

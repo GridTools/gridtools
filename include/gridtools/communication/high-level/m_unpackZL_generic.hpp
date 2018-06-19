@@ -33,13 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "../../common/halo_descriptor.hpp"
 #include "wrap_argument.hpp"
 
-template < typename value_type >
+template <typename value_type>
 __global__ void m_unpackZLKernel_generic(value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab_r,
     const wrap_argument d_msgsize_r,
-    const gridtools::array< gridtools::halo_descriptor, 3 > halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
     int const nx,
     int const ny,
     int const tranlation_const,
@@ -124,7 +125,7 @@ __global__ void m_unpackZLKernel_generic(value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t >
+template <typename array_t>
 void m_unpackZL_generic(
     array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab_r, int *d_msgsize_r) {
 

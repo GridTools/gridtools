@@ -43,16 +43,16 @@ namespace gridtools {
         @{
     */
 
-    template < typename T >
+    template <typename T>
     class atomic_host {
 
       public:
         /**
-        * Function computing an atomic addition
-        * @param var reference to variable where the addition is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic addition
+         * @param var reference to variable where the addition is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION
         static T atomic_add(T &var, const T val) {
 #if _OPENMP > 201106
@@ -75,11 +75,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic substraction
-        * @param var reference to variable where the substraction is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic substraction
+         * @param var reference to variable where the substraction is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION
         static T atomic_sub(T &var, const T val) {
 #if _OPENMP > 201106
@@ -102,11 +102,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic exchange of value of a variable
-        * @param var reference to variable which value is replaced by val
-        * @param val value inserted in variable var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic exchange of value of a variable
+         * @param var reference to variable which value is replaced by val
+         * @param val value inserted in variable var
+         * @return the old value contained in var
+         */
         GT_FUNCTION
         static T atomic_exch(T &var, const T val) {
 #if _OPENMP > 201106
@@ -129,11 +129,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic min operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic min operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION
         static T atomic_min(T &var, const T val) {
             T old;
@@ -146,11 +146,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic max operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic max operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION
         static T atomic_max(T &var, const T val) {
             T old;
@@ -163,9 +163,9 @@ namespace gridtools {
         }
     };
 
-    template < typename T >
+    template <typename T>
     struct get_atomic_helper {
-        typedef atomic_host< T > type;
+        typedef atomic_host<T> type;
     };
     /** @} */
     /** @} */

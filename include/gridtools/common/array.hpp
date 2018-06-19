@@ -38,10 +38,10 @@
 @file
 @brief Implementation of an array class
 */
-#include <algorithm>
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
+#include <algorithm>
 #include <type_traits>
 
 namespace gridtools {
@@ -55,20 +55,20 @@ namespace gridtools {
     */
 
     namespace impl_ {
-        template < typename T, std::size_t N >
+        template <typename T, std::size_t N>
         struct array_traits {
             using type = T[N];
             static constexpr GT_FUNCTION bool assert_range(size_t i) { return i < N; }
         };
 
-        template < typename T >
-        struct array_traits< T, 0 > {
+        template <typename T>
+        struct array_traits<T, 0> {
             using type = T[1]; // maybe use implementation from std::array instead?
             static constexpr GT_FUNCTION bool assert_range(size_t) { return false; }
         };
-    }
+    } // namespace impl_
 
-    template < typename T >
+    template <typename T>
     struct is_array;
 
     /** \brief A class equivalent to std::array but enabled for GridTools use
@@ -76,18 +76,18 @@ namespace gridtools {
         \tparam T Value type of the array
         \tparam B Size of the array
      */
-    template < typename T, size_t D >
+    template <typename T, size_t D>
     class array {
-        typedef array< T, D > type;
+        typedef array<T, D> type;
 
       public:
         // we make the members public to make this class an aggregate
-        typename impl_::array_traits< T, D >::type _array;
+        typename impl_::array_traits<T, D>::type _array;
 
         typedef T value_type;
 
-        GT_FUNCTION array< T, D + 1 > append_dim(T const &val) const {
-            array< T, D + 1 > ret;
+        GT_FUNCTION array<T, D + 1> append_dim(T const &val) const {
+            array<T, D + 1> ret;
             for (size_t c = 0; c < D; ++c) {
                 ret[c] = this->operator[](c);
             }
@@ -95,8 +95,8 @@ namespace gridtools {
             return ret;
         }
 
-        GT_FUNCTION array< T, D + 1 > prepend_dim(T const &val) const {
-            array< T, D + 1 > ret;
+        GT_FUNCTION array<T, D + 1> prepend_dim(T const &val) const {
+            array<T, D + 1> ret;
             for (size_t c = 1; c <= D; ++c) {
                 ret[c] = this->operator[](c - 1);
             }
@@ -124,7 +124,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr T const &operator[](size_t i) const { return _array[i]; }
 
-        template < size_t I >
+        template <size_t I>
         GT_FUNCTION constexpr T get() const {
             GRIDTOOLS_STATIC_ASSERT((I < D), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
             return _array[I];
@@ -132,11 +132,11 @@ namespace gridtools {
 
         GT_FUNCTION
         T &operator[](size_t i) {
-            assert((impl_::array_traits< T, D >::assert_range(i)));
+            assert((impl_::array_traits<T, D>::assert_range(i)));
             return _array[i];
         }
 
-        template < typename A >
+        template <typename A>
         GT_FUNCTION array &operator=(A const &a) {
             assert(a.size() == D);
             std::copy(a.begin(), a.end(), _array);
@@ -148,9 +148,8 @@ namespace gridtools {
     };
 
     // in case we need a constexpr version we need to implement a recursive one for c++11
-    template < typename T, typename U, size_t D >
-    GT_CXX14CONSTEXPR GT_FUNCTION bool operator==(
-        gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+    template <typename T, typename U, size_t D>
+    GT_CXX14CONSTEXPR GT_FUNCTION bool operator==(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
         for (size_t i = 0; i < D; ++i) {
             if (a[i] != b[i])
                 return false;
@@ -158,54 +157,53 @@ namespace gridtools {
         return true;
     }
 
-    template < typename T, typename U, size_t D >
-    GT_CXX14CONSTEXPR GT_FUNCTION bool operator!=(
-        gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+    template <typename T, typename U, size_t D>
+    GT_CXX14CONSTEXPR GT_FUNCTION bool operator!=(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
         return !(a == b);
     }
 
-    template < typename T >
+    template <typename T>
     struct is_array : boost::mpl::false_ {};
 
-    template < typename T, size_t D >
-    struct is_array< array< T, D > > : boost::mpl::true_ {};
+    template <typename T, size_t D>
+    struct is_array<array<T, D>> : boost::mpl::true_ {};
 
-    template < typename Array, typename Value >
+    template <typename Array, typename Value>
     struct is_array_of : boost::mpl::false_ {};
 
-    template < size_t D, typename Value >
-    struct is_array_of< array< Value, D >, Value > : boost::mpl::true_ {};
+    template <size_t D, typename Value>
+    struct is_array_of<array<Value, D>, Value> : boost::mpl::true_ {};
 
-    template < typename T >
+    template <typename T>
     struct tuple_size;
 
-    template < typename T, size_t D >
-    struct tuple_size< array< T, D > > : std::integral_constant< size_t, D > {};
+    template <typename T, size_t D>
+    struct tuple_size<array<T, D>> : std::integral_constant<size_t, D> {};
 
-    template < size_t, typename T >
+    template <size_t, typename T>
     struct tuple_element;
 
-    template < size_t I, typename T, size_t D >
-    struct tuple_element< I, array< T, D > > {
+    template <size_t I, typename T, size_t D>
+    struct tuple_element<I, array<T, D>> {
         using type = T;
     };
 
-    template < size_t I, typename T, size_t D >
-    GT_FUNCTION constexpr T &get(array< T, D > &arr) noexcept {
+    template <size_t I, typename T, size_t D>
+    GT_FUNCTION constexpr T &get(array<T, D> &arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
         return arr[I];
     }
 
-    template < size_t I, typename T, size_t D >
-    GT_FUNCTION constexpr const T &get(const array< T, D > &arr) noexcept {
+    template <size_t I, typename T, size_t D>
+    GT_FUNCTION constexpr const T &get(const array<T, D> &arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
         return arr[I];
     }
 
-    template < size_t I, typename T, size_t D >
-    GT_FUNCTION constexpr T &&get(array< T, D > &&arr) noexcept {
+    template <size_t I, typename T, size_t D>
+    GT_FUNCTION constexpr T &&get(array<T, D> &&arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
-        return std::move(get< I >(arr));
+        return std::move(get<I>(arr));
     }
 
     /** @} */

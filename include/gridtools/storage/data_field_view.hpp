@@ -36,14 +36,14 @@
 
 #pragma once
 
-#include <boost/mpl/if.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/mpl/if.hpp>
 #include <boost/type_traits.hpp>
 
 #include "../common/gt_assert.hpp"
+#include "common/definitions.hpp"
 #include "data_store_field.hpp"
 #include "data_view.hpp"
-#include "common/definitions.hpp"
 
 namespace gridtools {
 
@@ -53,9 +53,9 @@ namespace gridtools {
      * @tparam DataStoreField data store field type
      * @tparam AccessMode access mode (default is read-write)
      */
-    template < typename DataStoreField, access_mode AccessMode = access_mode::ReadWrite >
+    template <typename DataStoreField, access_mode AccessMode = access_mode::ReadWrite>
     struct data_field_view {
-        GRIDTOOLS_STATIC_ASSERT(is_data_store_field< DataStoreField >::value,
+        GRIDTOOLS_STATIC_ASSERT(is_data_store_field<DataStoreField>::value,
             GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type"));
         typedef typename DataStoreField::data_store_t data_store_t;
         typedef typename DataStoreField::data_t data_t;
@@ -102,9 +102,9 @@ namespace gridtools {
          * @tparam Snapshot requested snapshot
          * @return data_view to the queried data_store
          */
-        template < uint_t Dim, uint_t Snapshot >
-        GT_FUNCTION data_view< data_store_t, AccessMode > get() const {
-            return data_view< data_store_t, AccessMode >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
+        template <uint_t Dim, uint_t Snapshot>
+        GT_FUNCTION data_view<data_store_t, AccessMode> get() const {
+            return data_view<data_store_t, AccessMode>(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
                 m_state_machines[m_offsets[Dim] + Snapshot],
                 m_device_view);
@@ -116,8 +116,8 @@ namespace gridtools {
          * @param Snapshot requested snapshot
          * @return data_view to the queried data_store
          */
-        GT_FUNCTION data_view< data_store_t, AccessMode > get(uint_t Dim, uint_t Snapshot) const {
-            return data_view< data_store_t, AccessMode >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
+        GT_FUNCTION data_view<data_store_t, AccessMode> get(uint_t Dim, uint_t Snapshot) const {
+            return data_view<data_store_t, AccessMode>(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
                 m_state_machines[m_offsets[Dim] + Snapshot],
                 m_device_view);
@@ -141,14 +141,14 @@ namespace gridtools {
     };
 
     /// @brief simple metafunction to check if a type is a data_field_view
-    template < typename T >
+    template <typename T>
     struct is_data_field_view : boost::mpl::false_ {};
 
-    template < typename T, access_mode AccessMode >
-    struct is_data_field_view< data_field_view< T, AccessMode > > : boost::mpl::true_ {};
+    template <typename T, access_mode AccessMode>
+    struct is_data_field_view<data_field_view<T, AccessMode>> : boost::mpl::true_ {};
 
     namespace advanced {
-        template < typename T, access_mode AccessMode >
-        auto storage_info_raw_ptr(data_field_view< T, AccessMode > const &src) GT_AUTO_RETURN(src.m_storage_infos[0]);
+        template <typename T, access_mode AccessMode>
+        auto storage_info_raw_ptr(data_field_view<T, AccessMode> const &src) GT_AUTO_RETURN(src.m_storage_infos[0]);
     }
-}
+} // namespace gridtools

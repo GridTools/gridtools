@@ -40,9 +40,9 @@
  *      Author: carlosos
  */
 
-#include <gridtools/gridtools.hpp>
-#include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/mpl/equal.hpp>
+#include <gridtools/gridtools.hpp>
 
 #include "gtest/gtest.h"
 
@@ -53,17 +53,17 @@ using namespace gridtools;
 
 namespace make_computation_test {
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > axis;
-    using backend_t = backend< enumtype::Host, enumtype::icosahedral, enumtype::Block >;
-    using icosahedral_topology_t = gridtools::icosahedral_topology< backend_t >;
+    typedef gridtools::interval<level<0, -1>, level<1, -1>> axis;
+    using backend_t = backend<enumtype::Host, enumtype::icosahedral, enumtype::Block>;
+    using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
     struct test_functor {
-        using in = in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > >;
-        using arg_list = boost::mpl::vector1< in >;
+        using in = in_accessor<0, icosahedral_topology_t::cells, extent<1>>;
+        using arg_list = boost::mpl::vector1<in>;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, axis) {}
     };
-}
+} // namespace make_computation_test
 
 TEST(MakeComputation, Basic) {}

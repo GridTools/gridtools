@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
-#include <string>
-#include <vector>
-#include <random>
-#include <cassert>
-#include <unordered_map>
 #include <boost/program_options.hpp>
+#include <cassert>
+#include <iostream>
+#include <random>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 std::string add_define(std::string macro, int value) {
     std::string def;
@@ -131,11 +131,11 @@ struct generate_functor {
     std::string m_name;
     int m_n_args;
     int m_index_of_output;
-    std::vector< range > m_ranges;
+    std::vector<range> m_ranges;
 
     generate_functor() : m_name("not initialized"), m_n_args(-1), m_index_of_output(-1), m_ranges() {}
 
-    template < typename RandG >
+    template <typename RandG>
     generate_functor(std::string const &name, int n_args, int index_of_output, RandG gen)
         : m_name(name), m_n_args(n_args), m_index_of_output(index_of_output), m_ranges(m_n_args) {
         generate_ranges(gen);
@@ -144,7 +144,7 @@ struct generate_functor {
     generate_functor(generate_functor const &o)
         : m_name(o.m_name), m_n_args(o.m_n_args), m_index_of_output(o.m_index_of_output), m_ranges(o.m_ranges) {}
 
-    template < typename RandGen >
+    template <typename RandGen>
     void generate_ranges(RandGen gen) {
         std::uniform_int_distribution<> out_gen(0, 3);
 
@@ -209,20 +209,19 @@ std::ostream &operator<<(std::ostream &s, range const &f) { return s << f.out();
     But we need a place to put names.
 */
 struct field_names {
-    std::vector< std::vector< std::string > > m_names;
+    std::vector<std::vector<std::string>> m_names;
 
-    template < typename FunctorVec >
-    field_names(FunctorVec const &fv)
-        : m_names(fv.size()) {
+    template <typename FunctorVec>
+    field_names(FunctorVec const &fv) : m_names(fv.size()) {
         for (int i = 0; i < m_names.size(); ++i) {
-            m_names[i] = std::vector< std::string >(fv[i].n_args());
+            m_names[i] = std::vector<std::string>(fv[i].n_args());
             for (int j = 0; j < m_names[i].size(); ++j) {
                 m_names[i][j] = "na";
             }
         }
     }
 
-    std::vector< std::string > &operator[](int i) { return m_names[i]; }
+    std::vector<std::string> &operator[](int i) { return m_names[i]; }
 
     int size() const { return m_names.size(); }
 
@@ -239,7 +238,7 @@ struct field_names {
     }
 };
 
-int find_input_close_to(int idx, generate_functor const &functor, std::vector< std::string > const &names) {
+int find_input_close_to(int idx, generate_functor const &functor, std::vector<std::string> const &names) {
     int initial = idx;
 
     while (idx == functor.index_of_output() || names[idx] != "na") {
@@ -259,15 +258,15 @@ int main(int argc, char **argv) {
 
     boost::program_options::options_description desc("Usage");
     desc.add_options()("make,m",
-        boost::program_options::value< bool >(&make_comp)->default_value(false),
+        boost::program_options::value<bool>(&make_comp)->default_value(false),
         "It 1/yes/on/true the code will actually run make_computation instead of simply compiute_extents. This is "
         "useful to benchmark the compiler. The check for correctness of the extents is turned off if this option is "
         "set to 1/yes/on/true\n")("explicit,e",
-        boost::program_options::value< bool >(&explicit_extents)->default_value(false),
+        boost::program_options::value<bool>(&explicit_extents)->default_value(false),
         "If -m or --make is specified, this option tells if the make_computation should use explicit extents")("seed,s",
-        boost::program_options::value< unsigned >(&seed)->default_value(0),
+        boost::program_options::value<unsigned>(&seed)->default_value(0),
         "Random seed for the random number generation. A vlaue equal to 0 will let the seed unspecified")("ops,o",
-        boost::program_options::value< int >(&ops)->default_value(-1),
+        boost::program_options::value<int>(&ops)->default_value(-1),
         "Number of operators (<=0 for random)")("help,h", "Produce help");
 
     boost::program_options::variables_map vm;
@@ -289,7 +288,7 @@ int main(int argc, char **argv) {
     std::uniform_int_distribution<> functor_gen(1, 8);
     std::uniform_int_distribution<> arg_gen(2, 6);
 
-    std::vector< generate_functor > functors((ops <= 0) ? functor_gen(gen) : ops);
+    std::vector<generate_functor> functors((ops <= 0) ? functor_gen(gen) : ops);
 
     // generating arguments + output index
     int n = 0;
@@ -328,7 +327,7 @@ int main(int argc, char **argv) {
     }
 
     // fixing dependencies
-    std::uniform_real_distribution< double > prob_range(0, 1);
+    std::uniform_real_distribution<double> prob_range(0, 1);
     for (int i = 0; i < functors.size(); ++i) {
         double prob = 0.9;
         for (int j = i + 1; j < functors.size(); ++j) {
@@ -360,7 +359,7 @@ int main(int argc, char **argv) {
 
     assert(min_count <= max_count);
     std::uniform_int_distribution<> input_generators(min_count, max_count);
-    std::vector< std::string > input_names(input_generators(gen));
+    std::vector<std::string> input_names(input_generators(gen));
 
     for (int i = 0; i < input_names.size(); ++i) {
         input_names[i] = "in" + std::to_string(i);
@@ -417,7 +416,7 @@ int main(int argc, char **argv) {
     /********************************************************************************
      This is the part that computes the extents given the computation to the check
     ********************************************************************************/
-    std::unordered_map< std::string, range > map;
+    std::unordered_map<std::string, range> map;
 
     for (int i = 0; i < functors.size(); ++i) {
         map.insert({"o" + std::to_string(i), range(0, 0, 0, 0, 0, 0)});

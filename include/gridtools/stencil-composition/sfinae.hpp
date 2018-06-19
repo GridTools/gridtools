@@ -48,41 +48,41 @@ namespace gridtools {
  */
 
 /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
-#define HAS_CONSTEXPR_CONSTRUCTOR(name)       \
-    template < int >                          \
-    struct sfinae_true : std::true_type {};   \
-    template < class T >                      \
-    sfinae_true< (T().name(), 0) > test(int); \
-    template < class >                        \
-    std::false_type test(...);                \
-                                              \
-    template < class T >                      \
-    struct has_constexpr_name : decltype(test< T >(0)) {};
+#define HAS_CONSTEXPR_CONSTRUCTOR(name)     \
+    template <int>                          \
+    struct sfinae_true : std::true_type {}; \
+    template <class T>                      \
+    sfinae_true<(T().name(), 0)> test(int); \
+    template <class>                        \
+    std::false_type test(...);              \
+                                            \
+    template <class T>                      \
+    struct has_constexpr_name : decltype(test<T>(0)) {};
 
-    template < int >
+    template <int>
     struct sfinae_true : boost::mpl::true_ {};
 
 /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
-#define HAS_CONSTEXPR_METHOD(instance_, name)       \
-    sfinae_true< (instance_.name(), 0) > test(int); \
-    template < class >                              \
-    std::false_type test(...);                      \
-                                                    \
-    template < class T >                            \
-    struct has_constexpr_name : decltype(test< T >(0)) {};
+#define HAS_CONSTEXPR_METHOD(instance_, name)     \
+    sfinae_true<(instance_.name(), 0)> test(int); \
+    template <class>                              \
+    std::false_type test(...);                    \
+                                                  \
+    template <class T>                            \
+    struct has_constexpr_name : decltype(test<T>(0)) {};
 
     namespace sfinae {
 
         /**@brief overload of the comma operator in order to use void function (the Do method)
          as arguments*/
-        template < typename T >
-        int operator, (T const &, int) {
+        template <typename T>
+        int operator,(T const &, int) {
             return 0;
         };
 
         namespace _impl {
             struct dummy_type {}; // used for SFINAE
-        }
+        }                         // namespace _impl
 
         /**
            @brief SFINAE metafunction to detect when a static Do functor in a struct has
@@ -91,27 +91,27 @@ namespace gridtools {
            Used in order to make the second argument optional in the Do method of the user
            functors
         */
-        template < typename Functor >
+        template <typename Functor>
         struct has_two_args {
 
             static constexpr _impl::dummy_type c_ = _impl::dummy_type{};
 
-            template < typename Derived >
+            template <typename Derived>
             static std::false_type test(decltype(Derived::Do(c_), 0)) {
                 return {};
             }
 
-            template < typename Derived >
+            template <typename Derived>
             static std::true_type test(decltype(Derived::Do(c_, _impl::dummy_type{}), 0)) {
                 return {};
             }
 
-            template < typename Derived >
+            template <typename Derived>
             static std::true_type test(...) {
                 return {};
             }
 
-            typedef decltype(test< Functor >(0)) type;
+            typedef decltype(test<Functor>(0)) type;
             static const bool value = type::value;
         };
     } // namespace sfinae

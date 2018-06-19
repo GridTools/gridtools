@@ -33,36 +33,36 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "backend_select.hpp"
+#include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace nested_test {
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval<level<0, -1>, level<1, -1>> x_interval;
+    typedef gridtools::interval<level<0, -2>, level<1, 1>> axis;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct nested_stencil {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 2 > > in_cells;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > in_edges;
-        typedef in_accessor< 2, icosahedral_topology_t::edges, extent< 1 > > ipos;
-        typedef in_accessor< 3, icosahedral_topology_t::edges, extent< 1 > > cpos;
-        typedef in_accessor< 4, icosahedral_topology_t::edges, extent< 1 > > jpos;
-        typedef in_accessor< 5, icosahedral_topology_t::edges, extent< 1 > > kpos;
-        typedef inout_accessor< 6, icosahedral_topology_t::edges > out_edges;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<2>> in_cells;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>> in_edges;
+        typedef in_accessor<2, icosahedral_topology_t::edges, extent<1>> ipos;
+        typedef in_accessor<3, icosahedral_topology_t::edges, extent<1>> cpos;
+        typedef in_accessor<4, icosahedral_topology_t::edges, extent<1>> jpos;
+        typedef in_accessor<5, icosahedral_topology_t::edges, extent<1>> kpos;
+        typedef inout_accessor<6, icosahedral_topology_t::edges> out_edges;
 
-        typedef boost::mpl::vector< in_cells, in_edges, ipos, cpos, jpos, kpos, out_edges > arg_list;
+        typedef boost::mpl::vector<in_cells, in_edges, ipos, cpos, jpos, kpos, out_edges> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double {
                 std::cout << "INNER FF " << _in << " " << _res << " " << _in + _res + 1 << std::endl;
@@ -89,14 +89,14 @@ namespace nested_test {
             // eval(out()) = eval(reduce_on_edges(reduction, 0.0, edges0::reduce_on_cells(gg, in()), edges1()));
         }
     };
-}
+} // namespace nested_test
 
 using namespace nested_test;
 
 TEST(test_stencil_nested_on, run) {
 
-    using cell_storage_type = typename backend_t::data_store_t< icosahedral_topology_t::cells, double >;
-    using edge_storage_type = typename backend_t::data_store_t< icosahedral_topology_t::edges, double >;
+    using cell_storage_type = typename backend_t::data_store_t<icosahedral_topology_t::cells, double>;
+    using edge_storage_type = typename backend_t::data_store_t<icosahedral_topology_t::edges, double>;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 1;
@@ -106,15 +106,15 @@ TEST(test_stencil_nested_on, run) {
     const uint_t d2 = 6 + halo_mc * 2;
     icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-    cell_storage_type in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in_cell");
-    edge_storage_type in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in_edge");
-    edge_storage_type out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out_edge");
+    cell_storage_type in_cells = icosahedral_grid.make_storage<icosahedral_topology_t::cells, double>("in_cell");
+    edge_storage_type in_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("in_edge");
+    edge_storage_type out_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("out_edge");
 
-    edge_storage_type i_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("i");
-    edge_storage_type j_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("j");
-    edge_storage_type c_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("c");
-    edge_storage_type k_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("k");
-    edge_storage_type ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
+    edge_storage_type i_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("i");
+    edge_storage_type j_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("j");
+    edge_storage_type c_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("c");
+    edge_storage_type k_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("k");
+    edge_storage_type ref_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("ref");
 
     auto incv = make_host_view(in_cells);
     auto inev = make_host_view(in_edges);
@@ -143,32 +143,31 @@ TEST(test_stencil_nested_on, run) {
         }
     }
 
-    typedef arg< 0, cell_storage_type > p_in_cells;
-    typedef arg< 1, edge_storage_type > p_in_edges;
-    typedef arg< 2, edge_storage_type > p_i_edges;
-    typedef arg< 3, edge_storage_type > p_c_edges;
-    typedef arg< 4, edge_storage_type > p_j_edges;
-    typedef arg< 5, edge_storage_type > p_k_edges;
-    typedef arg< 6, edge_storage_type > p_out_edges;
+    typedef arg<0, cell_storage_type> p_in_cells;
+    typedef arg<1, edge_storage_type> p_in_edges;
+    typedef arg<2, edge_storage_type> p_i_edges;
+    typedef arg<3, edge_storage_type> p_c_edges;
+    typedef arg<4, edge_storage_type> p_j_edges;
+    typedef arg<5, edge_storage_type> p_k_edges;
+    typedef arg<6, edge_storage_type> p_out_edges;
 
-    typedef boost::mpl::vector< p_in_cells, p_in_edges, p_i_edges, p_c_edges, p_j_edges, p_k_edges, p_out_edges >
+    typedef boost::mpl::vector<p_in_cells, p_in_edges, p_i_edges, p_c_edges, p_j_edges, p_k_edges, p_out_edges>
         accessor_list_t;
 
-    gridtools::aggregator_type< accessor_list_t > domain(
+    gridtools::aggregator_type<accessor_list_t> domain(
         in_cells, in_edges, i_edges, c_edges, j_edges, k_edges, out_edges);
-    array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-    array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+    array<uint_t, 5> di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+    array<uint_t, 5> dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-    gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
+    gridtools::grid<axis, icosahedral_topology_t> grid_(icosahedral_grid, di, dj);
     grid_.value_list[0] = 0;
     grid_.value_list[1] = d3 - 1;
 
-    std::shared_ptr< gridtools::stencil > copy = gridtools::make_computation< backend_t >(
-        domain,
+    std::shared_ptr<gridtools::stencil> copy = gridtools::make_computation<backend_t>(domain,
         grid_,
         gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            gridtools::make_stage< nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells >(
+        (execute<forward>(),
+            gridtools::make_stage<nested_stencil, icosahedral_topology_t, icosahedral_topology_t::cells>(
                 p_in_cells(), p_in_edges(), p_i_edges(), p_c_edges(), p_j_edges(), p_k_edges(), p_out_edges())));
     copy->ready();
     copy->steady();
@@ -185,11 +184,10 @@ TEST(test_stencil_nested_on, run) {
 
                     double acc = 0.0;
                     auto neighbours =
-                        ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
-                            {i, c, j, k});
+                        ugrid.neighbours_of<icosahedral_topology_t::edges, icosahedral_topology_t::edges>({i, c, j, k});
                     for (auto edge_iter = neighbours.begin(); edge_iter != neighbours.end(); ++edge_iter) {
                         auto innercell_neighbours =
-                            ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::cells >(
+                            ugrid.neighbours_of<icosahedral_topology_t::edges, icosahedral_topology_t::cells>(
                                 *edge_iter);
                         for (auto cell_iter = innercell_neighbours.begin(); cell_iter != innercell_neighbours.end();
                              ++cell_iter) {
@@ -225,6 +223,6 @@ TEST(test_stencil_nested_on, run) {
     verifier ver(1e-12);
 #endif
 
-    array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+    array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
     EXPECT_TRUE(ver.verify(grid_, ref_edges, out_edges, halos));
 }

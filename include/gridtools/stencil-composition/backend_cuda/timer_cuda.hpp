@@ -35,24 +35,24 @@
 */
 #pragma once
 
+#include <cuda_runtime.h>
 #include <memory>
 #include <string>
-#include <cuda_runtime.h>
 
 #include "../timer.hpp"
 
 namespace gridtools {
 
     /**
-    * @class timer_cuda
-    * CUDA implementation of the Timer interface
-    */
-    class timer_cuda : public timer< timer_cuda > // CRTP
+     * @class timer_cuda
+     * CUDA implementation of the Timer interface
+     */
+    class timer_cuda : public timer<timer_cuda> // CRTP
     {
         struct event_deleter {
             void operator()(cudaEvent_t event) const { cudaEventDestroy(event); }
         };
-        using event_holder = std::unique_ptr< CUevent_st, event_deleter >;
+        using event_holder = std::unique_ptr<CUevent_st, event_deleter>;
 
         static event_holder create_event() {
             cudaEvent_t event;
@@ -64,24 +64,24 @@ namespace gridtools {
         event_holder m_stop = create_event();
 
       public:
-        timer_cuda(std::string name) : timer< timer_cuda >(name) {}
+        timer_cuda(std::string name) : timer<timer_cuda>(name) {}
 
         /**
-        * Reset counters
-        */
+         * Reset counters
+         */
         void set_impl(double) {}
 
         /**
-        * Start the stop watch
-        */
+         * Start the stop watch
+         */
         void start_impl() {
             // insert a start event
             cudaEventRecord(m_start.get(), 0);
         }
 
         /**
-        * Pause the stop watch
-        */
+         * Pause the stop watch
+         */
         double pause_impl() {
             // insert stop event and wait for it
             cudaEventRecord(m_stop.get(), 0);
@@ -93,4 +93,4 @@ namespace gridtools {
             return result * 0.001; // convert ms to s
         }
     };
-}
+} // namespace gridtools

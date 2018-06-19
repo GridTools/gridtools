@@ -35,8 +35,8 @@
 */
 #pragma once
 #include <boost/mpl/copy.hpp>
-#include <boost/mpl/inserter.hpp>
 #include <boost/mpl/insert.hpp>
+#include <boost/mpl/inserter.hpp>
 
 namespace gridtools {
     /** \ingroup common
@@ -48,13 +48,13 @@ namespace gridtools {
     */
 
     /// similar to boost::mpl::copy but it copies into an associative set container
-    template < typename ToInsert, typename Seq >
+    template <typename ToInsert, typename Seq>
     struct copy_into_set {
-        typedef typename boost::mpl::copy< ToInsert,
-            boost::mpl::inserter< Seq, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
+        typedef typename boost::mpl::copy<ToInsert,
+            boost::mpl::inserter<Seq, boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>>::type type;
     };
     /** @} */
     /** @} */
     /** @} */
 
-} // namespace
+} // namespace gridtools

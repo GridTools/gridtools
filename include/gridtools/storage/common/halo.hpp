@@ -38,14 +38,14 @@
 
 #include <array>
 
-#include <boost/mpl/bool.hpp>
 #include <boost/mpl/accumulate.hpp>
-#include <boost/mpl/vector.hpp>
+#include <boost/mpl/bool.hpp>
 #include <boost/mpl/plus.hpp>
+#include <boost/mpl/vector.hpp>
 
+#include "../../common/generic_metafunctions/repeat_template.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
-#include "../../common/generic_metafunctions/repeat_template.hpp"
 
 namespace gridtools {
     /** \ingroup storage
@@ -60,7 +60,7 @@ namespace gridtools {
      *  in + and - direction.
      *  @tparam N variadic list of halo sizes
      */
-    template < uint_t... N >
+    template <uint_t... N>
     struct halo {
 
         /**
@@ -68,7 +68,7 @@ namespace gridtools {
          * @tparam V Dimension or coordinate to query
          * @return halo size
          */
-        template < uint_t V >
+        template <uint_t V>
         GT_FUNCTION static constexpr uint_t at() {
             GRIDTOOLS_STATIC_ASSERT(
                 (V < sizeof...(N)), GT_INTERNAL_ERROR_MSG("Out of bounds access in halo type discovered."));
@@ -93,17 +93,17 @@ namespace gridtools {
     /**
      *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
      */
-    template < uint_t Cnt >
-    using zero_halo = typename repeat_template_c< 0, Cnt, halo >::type;
+    template <uint_t Cnt>
+    using zero_halo = typename repeat_template_c<0, Cnt, halo>::type;
 
     /* used to check if a given type is a halo type */
-    template < typename T >
+    template <typename T>
     struct is_halo : boost::mpl::false_ {};
 
-    template < uint_t... N >
-    struct is_halo< halo< N... > > : boost::mpl::true_ {};
+    template <uint_t... N>
+    struct is_halo<halo<N...>> : boost::mpl::true_ {};
 
     /**
      * @}
      */
-}
+} // namespace gridtools

@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <gridtools/tools/verifier.hpp>
 #include <gridtools/common/defs.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
 
-template < typename StorageLocal, typename StorageGlobal, typename Storage, typename Grid >
+template <typename StorageLocal, typename StorageGlobal, typename Storage, typename Grid>
 bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Grid const &grid) {
 
     typedef Storage storage_t;
@@ -98,7 +98,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 6 > halos{{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 6> halos{{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
     bool result = verif.verify(grid, reference, result_, halos);
     return result;
 }

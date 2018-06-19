@@ -35,64 +35,63 @@
 */
 #pragma once
 
+#include "../../common/defs.hpp"
+#include "../structured_grids/accessor_metafunctions.hpp"
+#include "./call_interfaces_fwd.hpp"
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
-#include "../../common/defs.hpp"
-#include "../structured_grids/accessor_metafunctions.hpp"
-#include "./call_interfaces_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {
-        template < typename T >
+        template <typename T>
         struct is_function_aggregator : boost::mpl::false_ {};
 
-        template < typename CallerAggregator,
+        template <typename CallerAggregator,
             int Offi,
             int Offj,
             int Offk,
             typename PassedAccessors,
             typename ReturnType,
-            int OutArg >
+            int OutArg>
         struct is_function_aggregator<
-            function_aggregator< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
+            function_aggregator<CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg>>
             : boost::mpl::true_ {};
 
-        template < typename CallerAggregator,
+        template <typename CallerAggregator,
             int Offi,
             int Offj,
             int Offk,
             typename PassedAccessors,
             typename ReturnType,
-            int OutArg >
+            int OutArg>
         struct is_function_aggregator<
-            function_aggregator_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
+            function_aggregator_offsets<CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg>>
             : boost::mpl::true_ {};
 
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors >
+        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors>
         struct is_function_aggregator<
-            function_aggregator_procedure< CallerAggregator, Offi, Offj, Offk, PassedAccessors > > : boost::mpl::true_ {
-        };
+            function_aggregator_procedure<CallerAggregator, Offi, Offj, Offk, PassedAccessors>> : boost::mpl::true_ {};
 
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors >
+        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors>
         struct is_function_aggregator<
-            function_aggregator_procedure_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors > >
+            function_aggregator_procedure_offsets<CallerAggregator, Offi, Offj, Offk, PassedAccessors>>
             : boost::mpl::true_ {};
 
         /** Metafunction to compute the index of the first accessor in the
             list of accessors to be written.
         */
-        template < typename Functor >
+        template <typename Functor>
         struct _get_index_of_first_non_const {
 
-            typedef typename boost::mpl::find_if< typename Functor::arg_list,
-                is_accessor_written< typename boost::mpl::_ > >::type iter;
+            typedef typename boost::mpl::find_if<typename Functor::arg_list,
+                is_accessor_written<typename boost::mpl::_>>::type iter;
 
             typedef typename boost::mpl::if_<
-                typename boost::is_same< iter, typename boost::mpl::end< typename Functor::arg_list >::type >::type,
-                boost::mpl::int_< -1 >,
-                typename iter::pos >::type result;
+                typename boost::is_same<iter, typename boost::mpl::end<typename Functor::arg_list>::type>::type,
+                boost::mpl::int_<-1>,
+                typename iter::pos>::type result;
 
             static const int value = result::value;
         };
@@ -104,10 +103,10 @@ namespace gridtools {
 
             User protection
         */
-        template < typename Functor >
+        template <typename Functor>
         struct can_be_a_function {
-            typedef typename boost::mpl::count_if< typename Functor::arg_list,
-                is_accessor_written< boost::mpl::_ > >::type type;
+            typedef typename boost::mpl::count_if<typename Functor::arg_list, is_accessor_written<boost::mpl::_>>::type
+                type;
 
             static const bool value = type::value == 1;
         };
@@ -119,20 +118,20 @@ namespace gridtools {
 
             It may belong to common, but its use may be not so easily explained.
          */
-        template < typename ListOfIndices, typename Value >
+        template <typename ListOfIndices, typename Value>
         struct contains_value {
-            template < typename TheValue >
+            template <typename TheValue>
             struct has_value {
-                template < typename Element >
+                template <typename Element>
                 struct apply {
                     static const bool value = Value::value == Element::value;
-                    using type = boost::mpl::bool_< value >;
+                    using type = boost::mpl::bool_<value>;
                 };
             };
 
-            using cnt = typename boost::mpl::count_if< ListOfIndices,
-                typename has_value< Value >::template apply< boost::mpl::_ > >::type;
-            using type = boost::mpl::bool_< cnt::value >= 1 >;
+            using cnt = typename boost::mpl::count_if<ListOfIndices,
+                typename has_value<Value>::template apply<boost::mpl::_>>::type;
+            using type = boost::mpl::bool_<cnt::value >= 1>;
             static const bool value = type::value;
         };
 
@@ -141,14 +140,14 @@ namespace gridtools {
             to provide enable_ifs based on accessor indices of the
             called function.
          */
-        template < typename PArguments >
+        template <typename PArguments>
         struct insert_index_if_not_accessor {
-            template < typename Index, typename CurrentState >
+            template <typename Index, typename CurrentState>
             struct apply {
-                typedef typename boost::mpl::at< PArguments, static_uint< Index::value > >::type to_check;
-                typedef typename boost::mpl::if_< is_accessor< to_check >,
+                typedef typename boost::mpl::at<PArguments, static_uint<Index::value>>::type to_check;
+                typedef typename boost::mpl::if_<is_accessor<to_check>,
                     CurrentState,
-                    typename boost::mpl::push_back< CurrentState, Index >::type >::type type;
+                    typename boost::mpl::push_back<CurrentState, Index>::type>::type type;
             };
         };
 
@@ -156,14 +155,14 @@ namespace gridtools {
             (call_proc). This is used to deduce the type of the arguments
             required by the called function.
          */
-        template < typename Type >
+        template <typename Type>
         struct wrap_reference {
             using type = Type;
 
             type *p_value;
 
             GT_FUNCTION
-            wrap_reference(type const &v) : p_value(const_cast< typename std::decay< type >::type * >(&v)) {}
+            wrap_reference(type const &v) : p_value(const_cast<typename std::decay<type>::type *>(&v)) {}
 
             GT_FUNCTION
             type &value() const { return *p_value; }
@@ -173,25 +172,23 @@ namespace gridtools {
             produced which keeps the accessors as they are and
             wrap the references.
          */
-        template < typename... Args >
+        template <typename... Args>
         struct package_args;
 
-        template < class First, typename... Args >
-        struct package_args< First, Args... > {
-            using thefirst = typename std::decay< First >::type;
-            typedef
-                typename boost::mpl::if_c< is_accessor< thefirst >::value, thefirst, wrap_reference< thefirst > >::type
-                    to_pack;
-            typedef typename boost::mpl::push_front< typename package_args< Args... >::type, to_pack >::type type;
+        template <class First, typename... Args>
+        struct package_args<First, Args...> {
+            using thefirst = typename std::decay<First>::type;
+            typedef typename boost::mpl::if_c<is_accessor<thefirst>::value, thefirst, wrap_reference<thefirst>>::type
+                to_pack;
+            typedef typename boost::mpl::push_front<typename package_args<Args...>::type, to_pack>::type type;
         };
 
-        template < class T >
-        struct package_args< T > {
-            using thefirst = typename std::decay< T >::type;
-            typedef
-                typename boost::mpl::if_c< is_accessor< thefirst >::value, thefirst, wrap_reference< thefirst > >::type
-                    to_pack;
-            typedef boost::mpl::vector1< to_pack > type;
+        template <class T>
+        struct package_args<T> {
+            using thefirst = typename std::decay<T>::type;
+            typedef typename boost::mpl::if_c<is_accessor<thefirst>::value, thefirst, wrap_reference<thefirst>>::type
+                to_pack;
+            typedef boost::mpl::vector1<to_pack> type;
         };
 
         template <>
@@ -203,21 +200,21 @@ namespace gridtools {
 
             Used to apply the transformation to a variadic pack.
          */
-        template < typename T >
-        GT_FUNCTION typename boost::enable_if_c< is_accessor< T >::value, T >::type make_wrap(T const &v) {
+        template <typename T>
+        GT_FUNCTION typename boost::enable_if_c<is_accessor<T>::value, T>::type make_wrap(T const &v) {
             return v;
         }
 
-        template < typename T >
-        GT_FUNCTION typename boost::enable_if_c< not is_accessor< T >::value, _impl::wrap_reference< T > >::type
-        make_wrap(T const &v) {
-            return _impl::wrap_reference< typename std::decay< T >::type >(v);
+        template <typename T>
+        GT_FUNCTION typename boost::enable_if_c<not is_accessor<T>::value, _impl::wrap_reference<T>>::type make_wrap(
+            T const &v) {
+            return _impl::wrap_reference<typename std::decay<T>::type>(v);
         }
 
     } // namespace _impl
 
-    template < typename Type, typename ArgsMap >
-    struct remap_accessor_type< _impl::wrap_reference< Type >, ArgsMap > {
-        using type = _impl::wrap_reference< Type >;
+    template <typename Type, typename ArgsMap>
+    struct remap_accessor_type<_impl::wrap_reference<Type>, ArgsMap> {
+        using type = _impl::wrap_reference<Type>;
     };
 } // namespace gridtools

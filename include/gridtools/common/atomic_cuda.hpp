@@ -44,90 +44,90 @@ namespace gridtools {
     */
 
     /**
-    * @class atomic_cuda
-    * generic implementation for CUDA that provides atomic functions
-    */
-    template < typename T >
+     * @class atomic_cuda
+     * generic implementation for CUDA that provides atomic functions
+     */
+    template <typename T>
     class atomic_cuda {
       public:
         /**
-        * Function computing an atomic addition
-        * @param var reference to variable where the addition is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic addition
+         * @param var reference to variable where the addition is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static T atomic_add(T &var, const T val) { return ::atomicAdd(&var, val); }
 
         /**
-        * Function computing an atomic substraction
-        * @param var reference to variable where the substracion is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic substraction
+         * @param var reference to variable where the substracion is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static T atomic_sub(T &var, const T val) { return ::atomicSub(&var, val); }
 
         /**
-        * Function computing an atomic exchange of value of a variable
-        * @param var reference to variable which value is replaced by val
-        * @param val value inserted in variable var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic exchange of value of a variable
+         * @param var reference to variable which value is replaced by val
+         * @param val value inserted in variable var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static T atomic_exch(T &var, const T val) { return ::atomicExch(&var, val); }
 
         /**
-        * Function computing an atomic min operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic min operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static T atomic_min(T &var, const T val) { return ::atomicMin(&var, val); }
 
         /**
-        * Function computing an atomic max operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic max operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static T atomic_max(T &var, const T val) { return ::atomicMax(&var, val); }
     };
 
     /**
-    * Specialization for float
-    * generic implementation for CUDA that provides atomic functions
-    */
+     * Specialization for float
+     * generic implementation for CUDA that provides atomic functions
+     */
     template <>
-    class atomic_cuda< float > {
+    class atomic_cuda<float> {
       public:
         /**
-        * Function computing an atomic addition
-        * @param var reference to variable where the addition is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic addition
+         * @param var reference to variable where the addition is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static float atomic_add(float &var, const float val) { return ::atomicAdd(&var, val); }
 
         /**
-        * Function computing an atomic substraction
-        * @param var reference to variable where the substracion is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic substraction
+         * @param var reference to variable where the substracion is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static float atomic_sub(float &var, const float val) { return ::atomicAdd(&var, -val); }
 
         /**
-        * Function computing an atomic exchange of value of a variable
-        * @param var reference to variable which value is replaced by val
-        * @param val value inserted in variable var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic exchange of value of a variable
+         * @param var reference to variable which value is replaced by val
+         * @param val value inserted in variable var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static float atomic_exch(float &var, const float val) { return ::atomicExch(&var, val); }
 
         /**
-        * Function computing an atomic min operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic min operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static float atomic_min(float &var, const float val) {
             float old = var;
             float assumed;
@@ -142,11 +142,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic max operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic max operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static float atomic_max(float &var, const float val) {
             float old = var;
             float assumed;
@@ -162,17 +162,17 @@ namespace gridtools {
     };
 
     /**
-    * Specialization for doubles of AtomicCUDA that provides atomic functions
-    */
+     * Specialization for doubles of AtomicCUDA that provides atomic functions
+     */
     template <>
-    class atomic_cuda< double > {
+    class atomic_cuda<double> {
       public:
         /**
-        * Function computing an atomic addition
-        * @param var reference to variable where the addition is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic addition
+         * @param var reference to variable where the addition is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static double atomic_add(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
             unsigned long long int old = *address_as_ull, assumed;
@@ -184,11 +184,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic substraction
-        * @param var reference to variable where the substracion is performed
-        * @param val value added to var
-        * @return the old value contained in var
-        */
+         * Function computing an atomic substraction
+         * @param var reference to variable where the substracion is performed
+         * @param val value added to var
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static double atomic_sub(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
             unsigned long long int old = *address_as_ull, assumed;
@@ -200,12 +200,12 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic exchange of value of a variable
-        *
-        * @param x reference to variable which value is replaced by val
-        * @param val value inserted in variable var
-        * @return the old value contained in x
-        */
+         * Function computing an atomic exchange of value of a variable
+         *
+         * @param x reference to variable which value is replaced by val
+         * @param val value inserted in variable var
+         * @return the old value contained in x
+         */
         GT_FUNCTION_DEVICE static double atomic_exch(double &x, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&x);
             unsigned long long int old = *address_as_ull, assumed;
@@ -217,11 +217,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic min operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic min operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static double atomic_min(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
 
@@ -239,11 +239,11 @@ namespace gridtools {
         }
 
         /**
-        * Function computing an atomic min operation
-        * @param var reference used to compute and store the min
-        * @param val value used in the min comparison
-        * @return the old value contained in var
-        */
+         * Function computing an atomic min operation
+         * @param var reference used to compute and store the min
+         * @param val value used in the min comparison
+         * @return the old value contained in var
+         */
         GT_FUNCTION_DEVICE static double atomic_max(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
 
@@ -261,9 +261,9 @@ namespace gridtools {
         }
     };
 
-    template < typename T >
+    template <typename T>
     struct get_atomic_helper {
-        typedef atomic_cuda< T > type;
+        typedef atomic_cuda<T> type;
     };
     /** @} */
     /** @} */

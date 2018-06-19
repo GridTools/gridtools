@@ -57,20 +57,20 @@ namespace gridtools {
      * @return The stride along the given axis: 0 if the axis is masked, 1 if the axis is the contiguous one, run
      * time value read from `strides` otherwise.
      */
-    template < typename StorageInfo, int_t Coordinate, typename StridesCached >
+    template <typename StorageInfo, int_t Coordinate, typename StridesCached>
     GT_FUNCTION constexpr int_t stride(StridesCached const &RESTRICT strides) {
         using layout_t = typename StorageInfo::layout_t;
 
         /* get the maximum integer value in the layout map */
-        using layout_max_t = std::integral_constant< int, layout_t::max() >;
+        using layout_max_t = std::integral_constant<int, layout_t::max()>;
 
         /* get the layout map value at the given coordinate */
-        using layout_val_t = std::integral_constant< int, layout_t::template at_unsafe< Coordinate >() >;
+        using layout_val_t = std::integral_constant<int, layout_t::template at_unsafe<Coordinate>()>;
 
         /* check if we are at a masked-out value (-> stride == 0) */
-        using is_masked_t = bool_constant< layout_val_t::value == -1 >;
+        using is_masked_t = bool_constant<layout_val_t::value == -1>;
         /* check if we are at the maximum value (-> stride == 1) */
-        using is_max_t = bool_constant< layout_max_t::value == layout_val_t::value >;
+        using is_max_t = bool_constant<layout_max_t::value == layout_val_t::value>;
 
         /* return constants for masked and max coordinates, otherwise lookup stride */
         return is_masked_t::value ? 0 : is_max_t::value ? 1 : strides[layout_val_t::value];
@@ -86,16 +86,16 @@ namespace gridtools {
      *
      * @return The offset stored in the given accessor for the given axis.
      */
-    template < int_t Coordinate, typename Accessor >
-    GT_FUNCTION constexpr typename std::enable_if< !is_position_offset_type< Accessor >::value, int_t >::type
+    template <int_t Coordinate, typename Accessor>
+    GT_FUNCTION constexpr typename std::enable_if<!is_position_offset_type<Accessor>::value, int_t>::type
     accessor_offset(Accessor const &accessor) {
-        return accessor.template get< Accessor::n_dimensions - 1 - Coordinate >();
+        return accessor.template get<Accessor::n_dimensions - 1 - Coordinate>();
     }
 
-    template < int_t Coordinate, typename Accessor >
-    GT_FUNCTION constexpr typename std::enable_if< is_position_offset_type< Accessor >::value, int_t >::type
+    template <int_t Coordinate, typename Accessor>
+    GT_FUNCTION constexpr typename std::enable_if<is_position_offset_type<Accessor>::value, int_t>::type
     accessor_offset(Accessor const &accessor) {
-        return accessor.template get< Coordinate >();
+        return accessor.template get<Coordinate>();
     }
 
     namespace _impl {
@@ -113,13 +113,13 @@ namespace gridtools {
          *
          * @return The data offset computed for the given storage info and accessor for the given axes.
          */
-        template < typename StorageInfo, typename StridesCached, typename Accessor, std::size_t... Coordinates >
+        template <typename StorageInfo, typename StridesCached, typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION constexpr int_t compute_offset(StridesCached const &RESTRICT strides,
             Accessor const &RESTRICT accessor,
-            gt_index_sequence< Coordinates... >) {
+            gt_index_sequence<Coordinates...>) {
             /* sum stride_x * offset_x + stride_y * offset_y + ... */
             return accumulate(plus_functor(),
-                (stride< StorageInfo, Coordinates >(strides) * accessor_offset< Coordinates >(accessor))...);
+                (stride<StorageInfo, Coordinates>(strides) * accessor_offset<Coordinates>(accessor))...);
         }
 
         /**
@@ -133,13 +133,13 @@ namespace gridtools {
          *
          * @return The data offset computed for the given storage info and accessor for the given axes.
          */
-        template < typename StorageInfo, typename Accessor, std::size_t... Coordinates >
+        template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION constexpr int_t compute_offset_cache(
-            Accessor const &RESTRICT accessor, gt_index_sequence< Coordinates... >) {
+            Accessor const &RESTRICT accessor, gt_index_sequence<Coordinates...>) {
             return accumulate(plus_functor(),
-                (StorageInfo::template stride< Coordinates >() * accessor_offset< Coordinates >(accessor))...);
+                (StorageInfo::template stride<Coordinates>() * accessor_offset<Coordinates>(accessor))...);
         }
-    }
+    } // namespace _impl
 
     /**
      * This function computes the total accessor-induces pointer offset (sum) for all axes in the given storage info.
@@ -153,11 +153,11 @@ namespace gridtools {
      *
      * @return The total data offset computed for the given storage info and accessor.
      */
-    template < typename StorageInfo, typename Accessor, typename StridesCached >
+    template <typename StorageInfo, typename Accessor, typename StridesCached>
     GT_FUNCTION constexpr int_t compute_offset(
         StridesCached const &RESTRICT strides, Accessor const &RESTRICT accessor) {
-        using sequence_t = make_gt_index_sequence< StorageInfo::layout_t::masked_length >;
-        return _impl::compute_offset< StorageInfo >(strides, accessor, sequence_t());
+        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+        return _impl::compute_offset<StorageInfo>(strides, accessor, sequence_t());
     }
 
     /**
@@ -171,9 +171,9 @@ namespace gridtools {
      *
      * @return The total data offset computed for the given storage info and accessor.
      */
-    template < typename StorageInfo, typename Accessor >
+    template <typename StorageInfo, typename Accessor>
     GT_FUNCTION constexpr int_t compute_offset_cache(Accessor const &accessor) {
-        using sequence_t = make_gt_index_sequence< StorageInfo::layout_t::masked_length >;
-        return _impl::compute_offset_cache< StorageInfo >(accessor, sequence_t());
+        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+        return _impl::compute_offset_cache<StorageInfo>(accessor, sequence_t());
     }
-}
+} // namespace gridtools
