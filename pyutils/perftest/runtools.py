@@ -173,9 +173,9 @@ def _poll(task_ids):
             if state == 'CANCELLED':
                 raise JobError(f'Job {jobid} ({jobname}) was cancelled')
             elif state == 'COMPLETED':
-                # There might be additional internal subtasks in the output, that
-                # we do not want to add to the set of finished jobs so we have
-                # to check the ID here
+                # There might be additional internal subtasks in the output,
+                # that we do not want to add to the set of finished jobs so we
+                # have to check the ID here
                 if jobid in task_ids:
                     finished.add(jobid)
             elif state == 'FAILED':
