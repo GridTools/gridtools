@@ -180,6 +180,8 @@ def _poll(task_ids):
             elif state == 'TIMEOUT':
                 raise JobError(f'Job {jobid} ({jobname}) timed out, consider '
                                f'increasing the time limit')
-
+            else:
+                raise JobError(f'Job {jobid} ({jobname}) failed with state '
+                               f'{state}')
 
     return finished
