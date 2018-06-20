@@ -105,7 +105,7 @@ def _submit(command, conf):
         out.close()
 
         # Run sbatch to start the job and specify job output file
-        sbatch_command = ['sbatch', '-o', out.name, sbatch.name]
+        sbatch_command = ['sbatch', '-o', out.name, '--requeue', sbatch.name]
         try:
             sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
         except subprocess.CalledProcessError as e:
@@ -176,7 +176,9 @@ def _poll(task_ids):
                 raise JobError(f'Job {jobid} ({jobname}) failed with exitcode '
                                f'{exitcode}')
             elif state == 'NODE_FAIL':
-                raise JobError(f'Node failure for job {jobid} ({jobname})')
+                # Ignore node failures, job should be automatically rescheduled
+                # by SLURM here as we use the --requeue flag on submission
+                pass
             elif state == 'TIMEOUT':
                 raise JobError(f'Job {jobid} ({jobname}) timed out, consider '
                                f'increasing the time limit')
