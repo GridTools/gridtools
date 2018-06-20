@@ -6,10 +6,10 @@ import subprocess
 import tempfile
 import time
 
-from perftest import config, JobError, logger
+from perftest import config, JobError, JobSchedulingError, logger
 
 
-def run(commands, conf=None, job_limit=None):
+def run(commands, conf=None, job_limit=None, retry=5):
     """Runs the given command(s) using SLURM and the given configuration.
 
     `conf` must be a valid argument for `perftest.config.get`.
@@ -45,7 +45,17 @@ def run(commands, conf=None, job_limit=None):
         # Submit jobs if less than `job_limit` are running
         while len(running) < job_limit and commands:
             index, command = commands.pop()
-            task_id, outfile = _submit(command, conf)
+            # Try to submit job `retry` times
+            for _ in range(retry):
+                try:
+                    task_id, outfile = _submit(command, conf)
+                    break
+                except JobSchedulingError:
+                    time.sleep(1)
+            else:
+                # Raise error if all attempts failed
+                raise JobSchedulingError(f'Failed to run command "{command}", '
+                                         f'all {retry} attempts failed')
             running.add((index, task_id, outfile))
             # Wait a bit to avoid overloading SLURM
             time.sleep(0.1)
@@ -109,11 +119,8 @@ def _submit(command, conf):
         try:
             sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
         except subprocess.CalledProcessError as e:
-            logger.warning('Submitting job failed the first time with output:',
-                           e.output)
-            # If the command fails, we wait a bit and retry once
-            time.sleep(1)
-            sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
+            raise JobSchedulingError(f'Submitting job "{command}" failed '
+                                     f'with output: {e.output}')
 
         # Parse the task ID from the sbatch stdout
         task_id = re.match(r'Submitted batch job (\d+)',
