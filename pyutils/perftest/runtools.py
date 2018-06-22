@@ -61,7 +61,24 @@ def run(commands, conf=None, job_limit=None, retry=5):
             time.sleep(0.1)
 
         # Poll SLURM to get finished jobs
-        finished_ids = _poll([task_id for _, task_id, _ in running])
+        try:
+            finished_ids = _poll([task_id for _, task_id, _ in running])
+        except JobError as e:
+            # Cancel all (possibly still running) jobs
+            for _, task_id, _ in running:
+                subprocess.call(['scancel', '--full', str(task_id)],
+                                env=conf.env)
+            # Wait a few more seconds for buffered output
+            time.sleep(10)
+            # Print all current job outputs on job failure
+            for _, task_id, outfile in running:
+                with open(outfile, 'r') as f:
+                    output = f.read()
+                logger.debug(f'Current output of job {task_id}:', output)
+                os.remove(outfile)
+            # Re-raise job error
+            raise e
+
         logger.debug('Finished jobs: ' + ', '.join(finished_ids))
         time.sleep(10)
 
