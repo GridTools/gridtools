@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/static_assert.hpp>
-#include <boost/mpl/for_each.hpp>
-#include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
+#include "basic_token_execution.hpp"
 #include "run_functor_arguments_fwd.hpp"
+#include <boost/mpl/for_each.hpp>
+#include <boost/static_assert.hpp>
 
 /**
 @file
@@ -58,26 +58,27 @@ namespace gridtools {
         /**
            @brief   Execution kernel containing the loop over k levels
         */
-        template < typename ExecutionEngine, typename ExtraArguments >
+        template <typename ExecutionEngine, typename ExtraArguments>
         struct run_f_on_interval;
 
         /**
            @brief partial specialization for the forward or backward cases (currently also used for the parallel case)
         */
-        template < enumtype::execution IterationType, typename RunFunctorArguments >
-        struct run_f_on_interval< enumtype::execute< IterationType >, RunFunctorArguments >
+        template <enumtype::execution IterationType, typename RunFunctorArguments>
+        struct run_f_on_interval<enumtype::execute<IterationType>, RunFunctorArguments>
             : public run_f_on_interval_base<
-                  run_f_on_interval< enumtype::execute< IterationType >, RunFunctorArguments > > // CRTP
+                  run_f_on_interval<enumtype::execute<IterationType>, RunFunctorArguments>> // CRTP
         {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
             typedef
-                typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
+                typename backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>::run_esf_functor_h_t
                     run_esf_functor_h_t;
             typedef run_f_on_interval_base<
-                run_f_on_interval< typename enumtype::execute< IterationType >, RunFunctorArguments > > super;
+                run_f_on_interval<typename enumtype::execute<IterationType>, RunFunctorArguments>>
+                super;
             typedef typename super::iterate_domain_t iterate_domain_t;
-            typedef typename enumtype::execute< IterationType >::type execution_engine;
+            typedef typename enumtype::execute<IterationType>::type execution_engine;
             typedef typename RunFunctorArguments::functor_list_t functor_list_t;
 
             GT_FUNCTION
@@ -85,33 +86,33 @@ namespace gridtools {
                 iterate_domain_t &iterate_domain_, typename RunFunctorArguments::grid_t const &grid)
                 : super(iterate_domain_, grid) {}
 
-            template < typename IterationPolicy, typename Interval >
+            template <typename IterationPolicy, typename Interval>
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
                 assert(to >= from);
-                typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
-                    run_esf_functor_t;
+                typedef
+                    typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
-                if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
-                    super::m_domain.template begin_fill< IterationPolicy >();
+                if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
+                    super::m_domain.template begin_fill<IterationPolicy>();
                 }
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
-                    if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+                    if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
                         const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;
-                        super::m_domain.template fill_caches< IterationPolicy >(lev, super::m_grid);
+                        super::m_domain.template fill_caches<IterationPolicy>(lev, super::m_grid);
                     }
 
-                    boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
+                    boost::mpl::for_each<boost::mpl::range_c<int, 0, boost::mpl::size<functor_list_t>::value>>(
                         run_esf_functor_t(super::m_domain));
-                    if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+                    if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
 
                         const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;
 
-                        super::m_domain.template flush_caches< IterationPolicy >(lev, super::m_grid);
-                        super::m_domain.template slide_caches< IterationPolicy >();
+                        super::m_domain.template flush_caches<IterationPolicy>(lev, super::m_grid);
+                        super::m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
-                if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
-                    super::m_domain.template final_flush< IterationPolicy >();
+                if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
+                    super::m_domain.template final_flush<IterationPolicy>();
                 }
             }
         };

@@ -45,24 +45,24 @@ using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
 struct copy_functor {
-    typedef vector_accessor< 0, enumtype::inout > out;
-    typedef vector_accessor< 1, enumtype::in > in;
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector< out, in > arg_list;
+    typedef boost::mpl::vector<out, in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
         eval(out{}) = eval(in{});
     }
 };
 
 struct copy_functor_with_expression {
-    typedef vector_accessor< 0, enumtype::inout > out;
-    typedef vector_accessor< 1, enumtype::in > in;
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector< out, in > arg_list;
+    typedef boost::mpl::vector<out, in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
         // use an expression which is equivalent to a copy to simplify the check
         eval(out{}) = eval(2. * in{} - in{});
@@ -70,26 +70,26 @@ struct copy_functor_with_expression {
 };
 
 struct call_proc_copy_functor {
-    typedef vector_accessor< 0, enumtype::inout > out;
-    typedef vector_accessor< 1, enumtype::in > in;
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector< out, in > arg_list;
+    typedef boost::mpl::vector<out, in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        call_proc< copy_functor >::with(eval, out(), in());
+        call_proc<copy_functor>::with(eval, out(), in());
     }
 };
 
 struct call_copy_functor {
-    typedef vector_accessor< 0, enumtype::inout > out;
-    typedef vector_accessor< 1, enumtype::in > in;
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector< out, in > arg_list;
+    typedef boost::mpl::vector<out, in> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        eval(out()) = call< copy_functor >::with(eval, in());
+        eval(out()) = call<copy_functor>::with(eval, in());
     }
 };
 
@@ -100,18 +100,17 @@ class expandable_parameters : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 0;
 
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
-        data_store_t;
+    typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< gridtools::axis< 1 >::axis_interval_t > grid;
+    gridtools::grid<gridtools::axis<1>::axis_interval_t> grid;
 
     verifier verifier_;
-    array< array< uint_t, 2 >, 3 > verifier_halos;
+    array<array<uint_t, 2>, 3> verifier_halos;
 
     data_store_t in_1;
     data_store_t in_2;
@@ -125,11 +124,11 @@ class expandable_parameters : public testing::Test {
     data_store_t out_4;
     data_store_t out_5;
 
-    std::vector< data_store_t > in;
-    std::vector< data_store_t > out;
+    std::vector<data_store_t> in;
+    std::vector<data_store_t> out;
 
-    typedef arg< 0, std::vector< data_store_t > > p_in;
-    typedef arg< 1, std::vector< data_store_t > > p_out;
+    typedef arg<0, std::vector<data_store_t>> p_in;
+    typedef arg<1, std::vector<data_store_t>> p_out;
 
     expandable_parameters()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
@@ -154,7 +153,7 @@ class expandable_parameters : public testing::Test {
           out{out_1, out_2, out_3, out_4, out_5} {
     }
 
-    template < typename Computation >
+    template <typename Computation>
     void execute_computation(Computation &comp) {
         comp.run(p_in() = in, p_out() = out);
         out_1.sync();
@@ -166,9 +165,9 @@ class expandable_parameters : public testing::Test {
 };
 
 TEST_F(expandable_parameters, copy) {
-    auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
-        gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_out(), p_in())));
+        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -181,11 +180,10 @@ TEST_F(expandable_parameters, copy) {
 
 // TODO this should be enabled when working on a bug fix for expressions with vector_accessors
 TEST_F(expandable_parameters, copy_with_expression) {
-    auto comp = gridtools::make_computation< backend_t >(
-        expand_factor< 2 >(),
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
         gridtools::make_multistage(
-            execute< forward >(), gridtools::make_stage< copy_functor_with_expression >(p_out(), p_in())));
+            execute<forward>(), gridtools::make_stage<copy_functor_with_expression>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -197,11 +195,9 @@ TEST_F(expandable_parameters, copy_with_expression) {
 }
 
 TEST_F(expandable_parameters, call_proc_copy) {
-    auto comp =
-        gridtools::make_computation< backend_t >(expand_factor< 2 >(),
-            grid,
-            gridtools::make_multistage(execute< forward >(),
-                                                     gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
+        grid,
+        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_proc_copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -213,9 +209,9 @@ TEST_F(expandable_parameters, call_proc_copy) {
 }
 
 TEST_F(expandable_parameters, call_copy) {
-    auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
-        gridtools::make_multistage(execute< forward >(), gridtools::make_stage< call_copy_functor >(p_out(), p_in())));
+        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
 

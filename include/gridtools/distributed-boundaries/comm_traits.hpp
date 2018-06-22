@@ -38,30 +38,30 @@
 
 #include "../gridtools.hpp"
 
-#include "../stencil-composition/stencil-composition.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
+#include "../stencil-composition/stencil-composition.hpp"
 
 namespace gridtools {
 
     /** \ingroup Distributed-Boundaries
      * @{ */
 
-    template < typename StorageType, typename Arch >
+    template <typename StorageType, typename Arch>
     struct comm_traits {
-        template < typename GCLArch, typename = void >
+        template <typename GCLArch, typename = void>
         struct compute_arch_of {
             static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Host;
         };
 
-        template < typename T >
-        struct compute_arch_of< gcl_gpu, T > {
+        template <typename T>
+        struct compute_arch_of<gcl_gpu, T> {
             static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Cuda;
         };
 
-        using proc_layout = gridtools::layout_map< 0, 1, 2 >;
-        using proc_grid_type = gridtools::MPI_3D_process_grid_t< 3 >;
+        using proc_layout = gridtools::layout_map<0, 1, 2>;
+        using proc_grid_type = gridtools::MPI_3D_process_grid_t<3>;
         using comm_arch_type = Arch;
-        static constexpr gridtools::enumtype::platform compute_arch = compute_arch_of< comm_arch_type >::value;
+        static constexpr gridtools::enumtype::platform compute_arch = compute_arch_of<comm_arch_type>::value;
         static constexpr int version = gridtools::version_manual;
         using data_layout = typename StorageType::storage_info_t::layout_t;
         using value_type = typename StorageType::data_t;

@@ -36,15 +36,15 @@
 
 #pragma once
 
-#include <boost/utility.hpp>
-#include <boost/type_traits.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/type_traits.hpp>
+#include <boost/utility.hpp>
 
 #include "../../common/gt_assert.hpp"
+#include "../data_field_view.hpp"
+#include "../data_store_field.hpp"
 #include "mic_storage.hpp"
 #include "mic_storage_info.hpp"
-#include "../data_store_field.hpp"
-#include "../data_field_view.hpp"
 
 namespace gridtools {
 
@@ -54,13 +54,13 @@ namespace gridtools {
      * @param ds data store field
      * @return a view to the given data store field.
      */
-    template < access_mode AccessMode = access_mode::ReadWrite,
+    template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStoreField,
-        typename DecayedDSF = typename boost::decay< DataStoreField >::type >
-    typename boost::enable_if< boost::mpl::and_< is_mic_storage< typename DecayedDSF::storage_t >,
-                                   is_mic_storage_info< typename DecayedDSF::storage_info_t >,
-                                   is_data_store_field< DecayedDSF > >,
-        data_field_view< DecayedDSF, AccessMode > >::type
+        typename DecayedDSF = typename boost::decay<DataStoreField>::type>
+    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDSF::storage_t>,
+                                  is_mic_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_data_store_field<DecayedDSF>>,
+        data_field_view<DecayedDSF, AccessMode>>::type
     make_field_host_view(DataStoreField &ds) {
         typename DecayedDSF::data_t *ptrs[DecayedDSF::num_of_storages];
         typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::num_of_storages];
@@ -78,7 +78,7 @@ namespace gridtools {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_cpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
         }
-        return data_field_view< DecayedDSF, AccessMode >(ptrs, info_ptrs, state_ptrs, offsets, false);
+        return data_field_view<DecayedDSF, AccessMode>(ptrs, info_ptrs, state_ptrs, offsets, false);
     }
 
     /**
@@ -87,17 +87,17 @@ namespace gridtools {
      * @param dv data field view
      * @return true if the given view is in a valid state and can be used safely.
      */
-    template < typename DataStoreField,
+    template <typename DataStoreField,
         typename DataFieldView,
-        typename DecayedDSF = typename boost::decay< DataStoreField >::type,
-        typename DecayedDFV = typename boost::decay< DataFieldView >::type >
-    typename boost::enable_if< boost::mpl::and_< is_mic_storage< typename DecayedDSF::storage_t >,
-                                   is_mic_storage_info< typename DecayedDSF::storage_info_t >,
-                                   is_data_store_field< DecayedDSF > >,
-        bool >::type
+        typename DecayedDSF = typename boost::decay<DataStoreField>::type,
+        typename DecayedDFV = typename boost::decay<DataFieldView>::type>
+    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDSF::storage_t>,
+                                  is_mic_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_data_store_field<DecayedDSF>>,
+        bool>::type
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {
         GRIDTOOLS_STATIC_ASSERT(
-            is_data_field_view< DecayedDFV >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_field_view type"));
+            is_data_field_view<DecayedDFV>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_field_view type"));
         bool res = true;
         uint_t i = 0;
         for (uint_t dim = 0; dim < DecayedDSF::num_of_components; ++dim) {
@@ -108,4 +108,4 @@ namespace gridtools {
         }
         return res;
     }
-}
+} // namespace gridtools

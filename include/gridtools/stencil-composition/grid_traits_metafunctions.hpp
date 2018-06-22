@@ -37,12 +37,12 @@
 
 namespace gridtools {
 
-    template < enumtype::grid_type G >
+    template <enumtype::grid_type G>
     struct grid_traits_from_id; // breaks circular dependency
 
-    template < typename T >
+    template <typename T>
     struct is_grid_traits_from_id : boost::false_type {};
 
-    template < enumtype::grid_type G >
-    struct is_grid_traits_from_id< grid_traits_from_id< G > > : boost::true_type {};
+    template <enumtype::grid_type G>
+    struct is_grid_traits_from_id<grid_traits_from_id<G>> : boost::true_type {};
 } // namespace gridtools

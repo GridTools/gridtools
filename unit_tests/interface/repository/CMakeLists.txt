@@ -72,6 +72,7 @@ target_link_libraries(repository_fortran_lib array_descriptor repository_fortran
 
 if (ENABLE_HOST)
     target_link_libraries(test_repository_host repository_fortran_lib)
-elseif (ENABLE_CUDA)
+endif()
+if (ENABLE_CUDA)
     target_link_libraries(test_repository_cuda repository_fortran_lib)
 endif()

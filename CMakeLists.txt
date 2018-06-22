@@ -2,6 +2,8 @@ cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
 enable_language (CXX Fortran)
 
+enable_language (CXX Fortran)
+
 if( GRIDTOOLS_MODULES )
 # To be completed!
   
@@ -102,6 +104,8 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
   "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
 
+# TODO this needs to be cleaned up when cleaning up the CMakeLists (FindGridtools)
+# We need to define which files go where (e.g. bindings.cmake)
 install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
 install(TARGETS
         gcl
@@ -115,7 +119,11 @@ install(FILES
     "${PROJECT_BINARY_DIR}/mod/gt_handle.mod"
     "${PROJECT_BINARY_DIR}/mod/array_descriptor.mod"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
+install(FILES
+    "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}")
 # Install the export set for use with the install-tree
+# TODO should this really be installed to PROJECT_BINARY_DIR (why not install?)
 install(EXPORT GridTools DESTINATION
     "${PROJECT_BINARY_DIR}/cmake" COMPONENT dev)
 message("compile definitions: ${COMPILE_DEFINITIONS}")

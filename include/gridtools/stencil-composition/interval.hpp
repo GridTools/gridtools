@@ -35,18 +35,18 @@
 */
 #pragma once
 
-#include <boost/static_assert.hpp>
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/front.hpp>
-#include <boost/mpl/back.hpp>
-#include <boost/mpl/range_c.hpp>
+#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../common/gt_assert.hpp"
+#include "../common/host_device.hpp"
 #include "level.hpp"
 #include "level_metafunctions.hpp"
-#include "../common/host_device.hpp"
-#include "../common/gt_assert.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "sfinae.hpp"
+#include <boost/mpl/back.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/static_assert.hpp>
 
 namespace gridtools {
 
@@ -56,13 +56,13 @@ namespace gridtools {
         constexpr int_t add_offset(int_t offset, int_t value) {
             return (sign(offset + value) != sign(offset)) ? (offset + value + sign(value)) : (offset + value);
         }
-    }
+    } // namespace _impl
 
     /**
      * @struct Interval
      * Structure defining a closed interval on an axis given two levels
      */
-    template < typename TFromLevel, typename TToLevel >
+    template <typename TFromLevel, typename TToLevel>
     struct interval {
         // HACK allow implicit conversion from the from level to any interval starting with the from level
         // (due to this trick we can search all do method overloads starting at a given from position)
@@ -79,8 +79,8 @@ namespace gridtools {
             printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);
         }
         // check the parameters are of type level
-        GRIDTOOLS_STATIC_ASSERT(is_level< TFromLevel >::value, "check the first template parameter is of type level");
-        GRIDTOOLS_STATIC_ASSERT(is_level< TToLevel >::value, "check the second template parameter is of type level");
+        GRIDTOOLS_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");
+        GRIDTOOLS_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level");
 
         // check the from level is lower or equal to the to level
         GRIDTOOLS_STATIC_ASSERT((TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
@@ -93,15 +93,15 @@ namespace gridtools {
         typedef TToLevel ToLevel;
 
         // User API: helper to access the first and last level as an interval
-        using first_level = interval< TFromLevel, TFromLevel >;
-        using last_level = interval< TToLevel, TToLevel >;
+        using first_level = interval<TFromLevel, TFromLevel>;
+        using last_level = interval<TToLevel, TToLevel>;
 
         /**
          * @brief returns an interval where the boundaries are modified accroding to left and right
          * @param left moves the left boundary, the interval is enlarged (left < 0) or shrunk (left > 0)
          * @param right moves the right boundary, the interval is enlarged (right > 0) or shrunk (right < 0)
          */
-        template < int_t left, int_t right >
+        template <int_t left, int_t right>
         struct modify_impl {
             GRIDTOOLS_STATIC_ASSERT((_impl::add_offset(TFromLevel::Offset::value, left) >= -cLevelOffsetLimit &&
                                         _impl::add_offset(TToLevel::Offset::value, right) <= cLevelOffsetLimit),
@@ -112,68 +112,68 @@ namespace gridtools {
                 "You are trying to modify an interval such that the result is an empty interval(left boundary > right "
                 "boundary).");
             using type =
-                interval< level< TFromLevel::Splitter::value, _impl::add_offset(TFromLevel::Offset::value, left) >,
-                    level< TToLevel::Splitter::value, _impl::add_offset(TToLevel::Offset::value, right) > >;
+                interval<level<TFromLevel::Splitter::value, _impl::add_offset(TFromLevel::Offset::value, left)>,
+                    level<TToLevel::Splitter::value, _impl::add_offset(TToLevel::Offset::value, right)>>;
         };
-        template < int_t left, int_t right >
-        using modify = typename modify_impl< left, right >::type;
-        template < int_t dir >
-        using shift = modify< dir, dir >;
+        template <int_t left, int_t right>
+        using modify = typename modify_impl<left, right>::type;
+        template <int_t dir>
+        using shift = modify<dir, dir>;
     };
 
     /**
      * @struct is_interval
      * Trait returning true it the template parameter is an interval
      */
-    template < typename T >
+    template <typename T>
     struct is_interval : boost::mpl::false_ {};
 
-    template < typename TFromLevel, typename TToLevel >
-    struct is_interval< interval< TFromLevel, TToLevel > > : boost::mpl::true_ {};
+    template <typename TFromLevel, typename TToLevel>
+    struct is_interval<interval<TFromLevel, TToLevel>> : boost::mpl::true_ {};
 
     /**
      * @struct interval_from_index
      * Meta function returning the interval from level index
      */
-    template < typename TInterval >
+    template <typename TInterval>
     struct interval_from_index;
 
-    template < typename TFromLevel, typename TToLevel >
-    struct interval_from_index< interval< TFromLevel, TToLevel > > : level_to_index< TFromLevel > {};
+    template <typename TFromLevel, typename TToLevel>
+    struct interval_from_index<interval<TFromLevel, TToLevel>> : level_to_index<TFromLevel> {};
 
     /**
      * @struct interval_to_index
      * Meta function returning the interval to level index
      */
-    template < typename TInterval >
+    template <typename TInterval>
     struct interval_to_index;
 
-    template < typename TFromLevel, typename TToLevel >
-    struct interval_to_index< interval< TFromLevel, TToLevel > > : level_to_index< TToLevel > {};
+    template <typename TFromLevel, typename TToLevel>
+    struct interval_to_index<interval<TFromLevel, TToLevel>> : level_to_index<TToLevel> {};
 
     /**
      * @struct make_interval
      * Meta function computing an interval given a from and a to level index
      */
-    template < typename TFromIndex, typename ToIndex >
+    template <typename TFromIndex, typename ToIndex>
     struct make_interval {
-        typedef interval< typename index_to_level< TFromIndex >::type, typename index_to_level< ToIndex >::type > type;
+        typedef interval<typename index_to_level<TFromIndex>::type, typename index_to_level<ToIndex>::type> type;
     };
 
     namespace _impl {
-        template < typename... Intervals >
+        template <typename... Intervals>
         struct join_interval {
-            GRIDTOOLS_STATIC_ASSERT((conjunction< is_interval< Intervals >... >::value),
+            GRIDTOOLS_STATIC_ASSERT((conjunction<is_interval<Intervals>...>::value),
                 GT_INTERNAL_ERROR_MSG("Expected all types to be intervals."));
-            using from_levels_vector = sort_levels< typename Intervals::FromLevel... >;
-            using to_levels_vector = sort_levels< typename Intervals::ToLevel... >;
-            using type = interval< typename boost::mpl::back< from_levels_vector >::type,
-                typename boost::mpl::front< to_levels_vector >::type >;
+            using from_levels_vector = sort_levels<typename Intervals::FromLevel...>;
+            using to_levels_vector = sort_levels<typename Intervals::ToLevel...>;
+            using type = interval<typename boost::mpl::back<from_levels_vector>::type,
+                typename boost::mpl::front<to_levels_vector>::type>;
         };
-    }
+    } // namespace _impl
     /**
      * @brief returns an interval which has all given intervals as subset
      */
-    template < typename... Intervals >
-    using join_interval = typename _impl::join_interval< Intervals... >::type;
+    template <typename... Intervals>
+    using join_interval = typename _impl::join_interval<Intervals...>::type;
 } // namespace gridtools

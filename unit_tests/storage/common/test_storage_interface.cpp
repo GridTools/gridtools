@@ -41,14 +41,14 @@
 using namespace gridtools;
 
 // storage that implements the storage_interface
-struct host_storage : storage_interface< host_storage > {
+struct host_storage : storage_interface<host_storage> {
     int a;
     host_storage(uint_t i) : a(i) {}
     void clone_to_device_impl() { a *= 2; }
 };
 
 // another storage that implements the storage_interface
-struct cuda_storage : storage_interface< cuda_storage > {
+struct cuda_storage : storage_interface<cuda_storage> {
     int a;
     cuda_storage(uint_t i) : a(i) {}
     void clone_to_device_impl() { a *= 3; }
@@ -73,6 +73,6 @@ TEST(StorageInterface, Sizes) {
     host_storage h(10);
     // the sizes should stay 1, because the idea is that the
     // storage interface is only providing a set of methods
-    EXPECT_EQ(sizeof(storage_interface< host_storage >), 1);
-    EXPECT_EQ(sizeof(storage_interface< cuda_storage >), 1);
+    EXPECT_EQ(sizeof(storage_interface<host_storage>), 1);
+    EXPECT_EQ(sizeof(storage_interface<cuda_storage>), 1);
 }

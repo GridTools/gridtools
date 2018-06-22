@@ -53,14 +53,13 @@ namespace gridtools {
        As everything what is inside the enumtype namespace, the dimension keyword is
        supposed to be used at the application interface level.
     */
-    template < ushort_t Coordinate >
+    template <ushort_t Coordinate>
     struct dimension {
 
         GT_FUNCTION constexpr dimension() : value(0) {}
 
-        template < typename IntType >
-        GT_FUNCTION constexpr dimension(IntType val)
-            : value{(int_t)val} {
+        template <typename IntType>
+        GT_FUNCTION constexpr dimension(IntType val) : value{(int_t)val} {
             GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
             GRIDTOOLS_STATIC_ASSERT(
                 Coordinate > 0, "The coordinate values passed to the accessor must be positive integers");
@@ -89,17 +88,17 @@ namespace gridtools {
          */
     };
 
-    template < typename T >
+    template <typename T>
     struct is_dimension : boost::mpl::false_ {};
 
-    template < ushort_t Id >
-    struct is_dimension< dimension< Id > > : boost::mpl::true_ {};
+    template <ushort_t Id>
+    struct is_dimension<dimension<Id>> : boost::mpl::true_ {};
 
     // metafunction that determines if a variadic pack are valid accessor ctr arguments
-    template < typename... Types >
+    template <typename... Types>
     struct all_dimensions {
-        typedef typename boost::enable_if_c< accumulate(logical_and(), is_dimension< Types >::type::value...),
-            bool >::type type;
+        typedef typename boost::enable_if_c<accumulate(logical_and(), is_dimension<Types>::type::value...), bool>::type
+            type;
     };
     template <>
     struct all_dimensions<> : boost::mpl::true_ {};

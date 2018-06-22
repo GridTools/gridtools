@@ -36,8 +36,8 @@
 
 #pragma once
 #include <boost/mpl/advance.hpp>
-#include <boost/mpl/insert.hpp>
 #include <boost/mpl/erase.hpp>
+#include <boost/mpl/insert.hpp>
 
 namespace gridtools {
     /** \ingroup common
@@ -51,19 +51,19 @@ namespace gridtools {
     /*
      * Replace in a sequence the element in the given position by another element
      */
-    template < typename Seq_, typename Pos, typename Elem >
+    template <typename Seq_, typename Pos, typename Elem>
     struct replace {
-        typedef typename boost::mpl::advance< typename boost::mpl::begin< Seq_ >::type,
-            boost::mpl::int_< Pos::value > >::type iter_t;
-        typedef typename boost::mpl::insert< Seq_, iter_t, Elem >::type inserted_seq;
+        typedef typename boost::mpl::advance<typename boost::mpl::begin<Seq_>::type, boost::mpl::int_<Pos::value>>::type
+            iter_t;
+        typedef typename boost::mpl::insert<Seq_, iter_t, Elem>::type inserted_seq;
 
-        typedef typename boost::mpl::advance< typename boost::mpl::begin< inserted_seq >::type,
-            boost::mpl::int_< Pos::value + 1 > >::type iter2_t;
+        typedef typename boost::mpl::advance<typename boost::mpl::begin<inserted_seq>::type,
+            boost::mpl::int_<Pos::value + 1>>::type iter2_t;
 
-        typedef typename boost::mpl::erase< inserted_seq, iter2_t >::type type;
+        typedef typename boost::mpl::erase<inserted_seq, iter2_t>::type type;
     };
     /** @} */
     /** @} */
     /** @} */
 
-} // gridtools
+} // namespace gridtools

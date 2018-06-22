@@ -51,32 +51,32 @@
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
 #endif
-#include "backend_mic/grid_traits_mic.hpp"
 #include "backend_host/grid_traits_host.hpp"
+#include "backend_mic/grid_traits_mic.hpp"
 
 namespace gridtools {
 
     template <>
-    struct grid_traits_from_id< enumtype::structured > {
+    struct grid_traits_from_id<enumtype::structured> {
         // index positions of the different dimensions in the layout map (convention)
-        typedef static_uint< 0 > dim_i_t;
-        typedef static_uint< 1 > dim_j_t;
-        typedef static_uint< 2 > dim_k_t;
+        typedef static_uint<0> dim_i_t;
+        typedef static_uint<1> dim_j_t;
+        typedef static_uint<2> dim_k_t;
 
-        template < class >
+        template <class>
         struct make_tmp_data_store_f;
 
-        template < uint_t I, class DataStore >
-        struct make_tmp_data_store_f< arg< I, DataStore, enumtype::default_location_type, true > > {
-            template < class Size3D >
+        template <uint_t I, class DataStore>
+        struct make_tmp_data_store_f<arg<I, DataStore, enumtype::default_location_type, true>> {
+            template <class Size3D>
             DataStore operator()(Size3D const &size) const {
                 return {typename DataStore::storage_info_t{size[0], size[1], size[2]}};
             }
         };
 
-        template < enumtype::platform BackendId >
+        template <enumtype::platform BackendId>
         struct with_arch {
-            typedef strgrid::grid_traits_arch< BackendId > type;
+            typedef strgrid::grid_traits_arch<BackendId> type;
         };
     };
-}
+} // namespace gridtools

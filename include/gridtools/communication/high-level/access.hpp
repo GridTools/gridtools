@@ -44,8 +44,8 @@ namespace gridtools {
         return i1 + i2 * N1 + i3 * N1 * N2;
     }
 
-    template < int N >
-    inline int access(gridtools::array< int, N > const &coords, gridtools::array< int, N > const &sizes) {
+    template <int N>
+    inline int access(gridtools::array<int, N> const &coords, gridtools::array<int, N> const &sizes) {
         int index = 0;
         for (int i = 0; i < N; ++i) {
             int mul = 1;
@@ -56,5 +56,5 @@ namespace gridtools {
         }
         return index;
     }
-}
+} // namespace gridtools
 #endif

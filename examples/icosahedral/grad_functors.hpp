@@ -35,9 +35,9 @@
 */
 
 #pragma once
+#include "operator_defs.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include "operator_defs.hpp"
 
 namespace ico_operators {
 
@@ -45,34 +45,34 @@ namespace ico_operators {
     using namespace enumtype;
     using namespace expressions;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct grad_n {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in_cells;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > dual_edge_length_reciprocal;
-        typedef inout_accessor< 2, icosahedral_topology_t::edges > out_edges;
-        typedef boost::mpl::vector< in_cells, dual_edge_length_reciprocal, out_edges > arg_list;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> in_cells;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>> dual_edge_length_reciprocal;
+        typedef inout_accessor<2, icosahedral_topology_t::edges> out_edges;
+        typedef boost::mpl::vector<in_cells, dual_edge_length_reciprocal, out_edges> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
+            constexpr auto neighbors_offsets = connectivity<edges, cells, Color>::offsets();
 
             eval(out_edges()) = (eval(in_cells(neighbors_offsets[0])) - eval(in_cells(neighbors_offsets[1]))) *
                                 eval(dual_edge_length_reciprocal());
         }
     };
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct grad_tau {
-        typedef in_accessor< 0, icosahedral_topology_t::vertices, extent< 1 > > in_vertices;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length_reciprocal;
-        typedef inout_accessor< 2, icosahedral_topology_t::edges > out_edges;
-        typedef boost::mpl::vector< in_vertices, edge_length_reciprocal, out_edges > arg_list;
+        typedef in_accessor<0, icosahedral_topology_t::vertices, extent<1>> in_vertices;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>> edge_length_reciprocal;
+        typedef inout_accessor<2, icosahedral_topology_t::edges> out_edges;
+        typedef boost::mpl::vector<in_vertices, edge_length_reciprocal, out_edges> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            constexpr auto neighbors_offsets = connectivity< edges, vertices, Color >::offsets();
+            constexpr auto neighbors_offsets = connectivity<edges, vertices, Color>::offsets();
             eval(out_edges()) = (eval(in_vertices(neighbors_offsets[1])) - eval(in_vertices(neighbors_offsets[0]))) *
                                 eval(edge_length_reciprocal());
         }
     };
-}
+} // namespace ico_operators

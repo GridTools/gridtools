@@ -35,64 +35,64 @@
 */
 #pragma once
 
+#include "level_metafunctions_fwd.hpp"
 #include <boost/mpl/placeholders.hpp>
 #include <boost/mpl/sort.hpp>
-#include "level_metafunctions_fwd.hpp"
 
 namespace gridtools {
     /**
      * @brief Meta function to compare two levels: left <= right
      */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
+    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
     struct level_leq : boost::mpl::false_ {};
 
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_leq< TLevelLeft,
+    template <typename TLevelLeft, typename TLevelRight>
+    struct level_leq<TLevelLeft,
         TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value <= level_to_index< TLevelRight >::value) >::type >
+        typename std::enable_if<(level_to_index<TLevelLeft>::value <= level_to_index<TLevelRight>::value)>::type>
         : boost::mpl::true_ {};
 
     /**
      * @brief Meta function to compare two levels: left < right
      */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
+    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
     struct level_lt : boost::mpl::false_ {};
 
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_lt< TLevelLeft,
+    template <typename TLevelLeft, typename TLevelRight>
+    struct level_lt<TLevelLeft,
         TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value < level_to_index< TLevelRight >::value) >::type >
+        typename std::enable_if<(level_to_index<TLevelLeft>::value < level_to_index<TLevelRight>::value)>::type>
         : boost::mpl::true_ {};
 
     /**
      * @brief Meta function to compare two levels: left >= right
      */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
+    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
     struct level_geq : boost::mpl::false_ {};
 
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_geq< TLevelLeft,
+    template <typename TLevelLeft, typename TLevelRight>
+    struct level_geq<TLevelLeft,
         TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value >= level_to_index< TLevelRight >::value) >::type >
+        typename std::enable_if<(level_to_index<TLevelLeft>::value >= level_to_index<TLevelRight>::value)>::type>
         : boost::mpl::true_ {};
 
     /**
      * @brief Meta function to compare two levels: left > right
      */
-    template < typename TLevelLeft, typename TLevelRight, typename Enable = void >
+    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
     struct level_gt : boost::mpl::false_ {};
 
-    template < typename TLevelLeft, typename TLevelRight >
-    struct level_gt< TLevelLeft,
+    template <typename TLevelLeft, typename TLevelRight>
+    struct level_gt<TLevelLeft,
         TLevelRight,
-        typename std::enable_if< (level_to_index< TLevelLeft >::value > level_to_index< TLevelRight >::value) >::type >
+        typename std::enable_if<(level_to_index<TLevelLeft>::value > level_to_index<TLevelRight>::value)>::type>
         : boost::mpl::true_ {};
 
     /**
      * @brief return sorted mpl::vector of levels (ascending order)
      */
-    template < typename... Levels >
+    template <typename... Levels>
     using sort_levels =
-        typename boost::mpl::sort< boost::mpl::vector< Levels... >, level_gt< boost::mpl::_, boost::mpl::_ > >::type;
+        typename boost::mpl::sort<boost::mpl::vector<Levels...>, level_gt<boost::mpl::_, boost::mpl::_>>::type;
 
 } // namespace gridtools

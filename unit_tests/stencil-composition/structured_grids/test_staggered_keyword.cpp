@@ -46,10 +46,10 @@ namespace test_staggered_keyword {
         static uint_t ok_i;
         static uint_t ok_j;
 
-        typedef accessor< 0, gridtools::enumtype::inout > p_i;
-        typedef accessor< 1 > p_j;
-        typedef boost::mpl::vector< p_i, p_j > arg_list;
-        template < typename Evaluation >
+        typedef accessor<0, gridtools::enumtype::inout> p_i;
+        typedef accessor<1> p_j;
+        typedef boost::mpl::vector<p_i, p_j> arg_list;
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             // std::cout<<"i: "<< eval(p_i(-5,-5,0)) <<", j: "<<eval(p_j(-5,-5,0))<< std::endl;
             if (eval(p_i(-5, -5, 0)) == 5)
@@ -62,8 +62,8 @@ namespace test_staggered_keyword {
     uint_t functor::ok_j = 0;
 
     bool test() {
-        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
         meta_data_t meta_((uint_t)30, (uint_t)20, (uint_t)1);
         storage_t i_data(meta_, [](int i, int j, int k) { return i; });
@@ -74,15 +74,14 @@ namespace test_staggered_keyword {
 
         auto grid = make_grid(di, dj, (uint_t)1);
 
-        typedef arg< 0, storage_t > p_i_data;
-        typedef arg< 1, storage_t > p_j_data;
+        typedef arg<0, storage_t> p_i_data;
+        typedef arg<1, storage_t> p_j_data;
 
-        auto comp = gridtools::make_computation< backend_t >(
-            grid,
+        auto comp = gridtools::make_computation<backend_t>(grid,
             p_i_data() = i_data,
             p_j_data() = j_data,
-            gridtools::make_multistage(execute< forward >(),
-                gridtools::make_stage< functor, staggered< 5, 5, 5, 5 > >(p_i_data(), p_j_data())));
+            gridtools::make_multistage(
+                execute<forward>(), gridtools::make_stage<functor, staggered<5, 5, 5, 5>>(p_i_data(), p_j_data())));
 
         comp.run();
 

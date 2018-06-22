@@ -33,30 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
-#include <gridtools/gridtools.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/gridtools.hpp>
+#include <iostream>
 
 #include <gridtools/boundary-conditions/boundary.hpp>
 
 using gridtools::direction;
-using gridtools::sign;
 using gridtools::minus_;
-using gridtools::zero_;
 using gridtools::plus_;
+using gridtools::sign;
+using gridtools::zero_;
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/repetition/repeat.hpp>
 
 #include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
-template < typename T >
+template <typename T>
 struct direction_bc_input {
     T value;
 
@@ -67,15 +67,15 @@ struct direction_bc_input {
     direction_bc_input(T v) : value(v) {}
 
     // relative coordinates
-    template < typename Direction, typename DataField0, typename DataField1 >
+    template <typename Direction, typename DataField0, typename DataField1>
     GT_FUNCTION void operator()(
         Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
         data_field1(i, j, k) = data_field0(i, j, k) * value;
     }
 
     // relative coordinates
-    template < sign I, sign K, typename DataField0, typename DataField1 >
-    GT_FUNCTION void operator()(direction< I, minus_, K >,
+    template <sign I, sign K, typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(direction<I, minus_, K>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -85,8 +85,8 @@ struct direction_bc_input {
     }
 
     // relative coordinates
-    template < sign K, typename DataField0, typename DataField1 >
-    GT_FUNCTION void operator()(direction< minus_, minus_, K >,
+    template <sign K, typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(direction<minus_, minus_, K>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -95,8 +95,8 @@ struct direction_bc_input {
         data_field1(i, j, k) = 77777 * value;
     }
 
-    template < typename DataField0, typename DataField1 >
-    GT_FUNCTION void operator()(direction< minus_, minus_, minus_ >,
+    template <typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(direction<minus_, minus_, minus_>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -108,8 +108,9 @@ struct direction_bc_input {
 
 int main(int argc, char **argv) {
     if (argc != 4) {
-        std::cout << "Usage: " << argv[0] << " dimx dimy dimz\n"
-                                             " where args are integer sizes of the data fields"
+        std::cout << "Usage: " << argv[0]
+                  << " dimx dimy dimz\n"
+                     " where args are integer sizes of the data fields"
                   << std::endl;
         return EXIT_FAILURE;
     }
@@ -118,15 +119,15 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo< 1, 1, 1 > > meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t<int_t, meta_data_t> storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
     storage_t in_s(meta_, [](int i, int j, int k) { return i + j + k; }, "in");
     storage_t out_s(meta_, 0, "out");
 
-    gridtools::array< gridtools::halo_descriptor, 3 > halos;
+    gridtools::array<gridtools::halo_descriptor, 3> halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
@@ -135,8 +136,8 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    gridtools::template boundary< direction_bc_input< uint_t >, backend_t::s_backend_id >(
-        halos, direction_bc_input< uint_t >(2))
+    gridtools::template boundary<direction_bc_input<uint_t>, backend_t::s_backend_id>(
+        halos, direction_bc_input<uint_t>(2))
         .apply(in_s, out_s);
 
     // sync the data stores if needed

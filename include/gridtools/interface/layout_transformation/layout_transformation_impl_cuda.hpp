@@ -36,10 +36,10 @@
 
 #pragma once
 
-#include "../../common/make_array.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/hypercube_iterator.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
+#include "../../common/make_array.hpp"
 #include "../../storage/storage-facility.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
@@ -49,13 +49,13 @@
 namespace gridtools {
     namespace impl {
 #ifdef __CUDACC__
-        template < typename DataType >
+        template <typename DataType>
         __global__ void transform_cuda_loop_kernel(DataType *dst,
             DataType *src,
-            gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > dims,
-            gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > dst_strides,
-            gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > src_strides,
-            gridtools::array< size_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims) {
+            gridtools::array<gridtools::uint_t, GT_TRANSFORM_MAX_DIM> dims,
+            gridtools::array<gridtools::uint_t, GT_TRANSFORM_MAX_DIM> dst_strides,
+            gridtools::array<gridtools::uint_t, GT_TRANSFORM_MAX_DIM> src_strides,
+            gridtools::array<size_t, GT_TRANSFORM_MAX_DIM - 3> outer_dims) {
 
             int i = blockIdx.x * blockDim.x + threadIdx.x;
             if (i >= dims[0])
@@ -68,8 +68,8 @@ namespace gridtools {
                 return;
 
             using dummy_layout_map =
-                gridtools::default_layout_map_t< GT_TRANSFORM_MAX_DIM >; // not used since we pass strides directly
-            using storage_info = gridtools::storage_info_interface< 0, dummy_layout_map >;
+                gridtools::default_layout_map_t<GT_TRANSFORM_MAX_DIM>; // not used since we pass strides directly
+            using storage_info = gridtools::storage_info_interface<0, dummy_layout_map>;
             storage_info si_dst(dims, dst_strides);
             storage_info si_src(dims, src_strides);
 
@@ -80,23 +80,23 @@ namespace gridtools {
             // for (auto &&outer : make_hypercube_view(outer_dims)) {
             auto &&hyper = make_hypercube_view(outer_dims);
             for (auto &&outer = hyper.begin(); outer != hyper.end(); ++outer) {
-                auto index = join_array(make_array(i, j, k), convert_to_array< int >(*outer));
+                auto index = join_array(make_array(i, j, k), convert_to_array<int>(*outer));
                 dst[si_dst.index(index)] = src[si_src.index(index)];
             }
         }
 #endif
 
-        template < typename DataType >
+        template <typename DataType>
         void transform_cuda_loop(DataType *dst,
             DataType *src,
-            const std::vector< uint_t > &dims,
-            const std::vector< uint_t > &dst_strides,
-            const std::vector< uint_t > &src_strides) {
+            const std::vector<uint_t> &dims,
+            const std::vector<uint_t> &dst_strides,
+            const std::vector<uint_t> &src_strides) {
 #ifdef __CUDACC__
             int block_size_1d = 8;
 
-            auto a_dims = impl::vector_to_dims_array< GT_TRANSFORM_MAX_DIM >(dims);
-            gridtools::array< size_t, GT_TRANSFORM_MAX_DIM - 3 > outer_dims;
+            auto a_dims = impl::vector_to_dims_array<GT_TRANSFORM_MAX_DIM>(dims);
+            gridtools::array<size_t, GT_TRANSFORM_MAX_DIM - 3> outer_dims;
             std::copy(a_dims.begin() + 3, a_dims.end(), outer_dims.begin());
 
             dim3 grid_size((a_dims[0] + block_size_1d - 1) / block_size_1d,
@@ -104,11 +104,11 @@ namespace gridtools {
                 (a_dims[2] + block_size_1d - 1) / block_size_1d);
             dim3 block_size(block_size_1d, block_size_1d, block_size_1d);
 
-            transform_cuda_loop_kernel<<< grid_size, block_size >>>(dst,
+            transform_cuda_loop_kernel<<<grid_size, block_size>>>(dst,
                 src,
                 a_dims,
-                impl::vector_to_strides_array< GT_TRANSFORM_MAX_DIM >(dst_strides),
-                impl::vector_to_strides_array< GT_TRANSFORM_MAX_DIM >(src_strides),
+                impl::vector_to_strides_array<GT_TRANSFORM_MAX_DIM>(dst_strides),
+                impl::vector_to_strides_array<GT_TRANSFORM_MAX_DIM>(src_strides),
                 outer_dims);
 
 #ifndef NDEBUG
@@ -126,5 +126,5 @@ namespace gridtools {
             throw std::runtime_error("calling CUDA transformation, but not compiled with CUDA support");
 #endif
         }
-    }
-}
+    } // namespace impl
+} // namespace gridtools

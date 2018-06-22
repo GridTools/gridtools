@@ -39,23 +39,23 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../accessor_base.hpp"
 #include "../extent.hpp"
 #include "../location_type.hpp"
-#include "../accessor_base.hpp"
 
 namespace gridtools {
     /**
-    * This is the type of the accessors accessed by a stencil functor.
-    * It's a pretty minimal implementation.
-    */
-    template < uint_t ID,
+     * This is the type of the accessors accessed by a stencil functor.
+     * It's a pretty minimal implementation.
+     */
+    template <uint_t ID,
         enumtype::intent Intent,
         typename LocationType,
-        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-        ushort_t FieldDimensions = 4 >
-    struct accessor : public accessor_base< FieldDimensions > {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
-        using index_t = static_uint< ID >;
+        typename Extent = extent<0, 0, 0, 0, 0, 0>,
+        ushort_t FieldDimensions = 4>
+    struct accessor : public accessor_base<FieldDimensions> {
+        GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
+        using index_t = static_uint<ID>;
         static constexpr enumtype::intent intent = Intent;
         using extent_t = Extent;
         using location_type = LocationType;
@@ -63,17 +63,17 @@ namespace gridtools {
         location_type location() const { return location_type(); }
 
         /**inheriting all constructors from accessor_base*/
-        using accessor_base< FieldDimensions >::accessor_base;
+        using accessor_base<FieldDimensions>::accessor_base;
 
-        template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
-        GT_FUNCTION accessor(accessor< OtherID, Intent, LocationType, Extent, FieldDimensions > const &src)
-            : accessor_base< FieldDimensions >(src) {}
+        template <uint_t OtherID, typename std::enable_if<ID != OtherID, int>::type = 0>
+        GT_FUNCTION accessor(accessor<OtherID, Intent, LocationType, Extent, FieldDimensions> const &src)
+            : accessor_base<FieldDimensions>(src) {}
     };
 
-    template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >
-    using in_accessor = accessor< ID, enumtype::in, LocationType, Extent, FieldDimensions >;
+    template <uint_t ID, typename LocationType, typename Extent = extent<0>, ushort_t FieldDimensions = 4>
+    using in_accessor = accessor<ID, enumtype::in, LocationType, Extent, FieldDimensions>;
 
-    template < uint_t ID, typename LocationType, ushort_t FieldDimensions = 4 >
-    using inout_accessor = accessor< ID, enumtype::inout, LocationType, extent< 0 >, FieldDimensions >;
+    template <uint_t ID, typename LocationType, ushort_t FieldDimensions = 4>
+    using inout_accessor = accessor<ID, enumtype::inout, LocationType, extent<0>, FieldDimensions>;
 
 } // namespace gridtools

@@ -46,40 +46,40 @@
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
  */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
-    using axis_t = axis< 1 >;
-    using kbody = axis_t::full_interval::modify< 1, -1 >;
-    using kbody_low = axis_t::full_interval::modify< 0, -1 >;
+    using axis_t = axis<1>;
+    using kbody = axis_t::full_interval::modify<1, -1>;
+    using kbody_low = axis_t::full_interval::modify<0, -1>;
     using kfull = axis_t::full_interval;
     using kminimum = axis_t::full_interval::first_level;
     using kmaximum = axis_t::full_interval::last_level;
 
-    template < typename T >
+    template <typename T>
     struct u_forward_function {
-        typedef accessor< 0, enumtype::in > utens_stage;
-        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0, 0, 1 > > wcon;
-        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > u_stage;
-        typedef accessor< 3, enumtype::in > u_pos;
-        typedef accessor< 4, enumtype::in > utens;
-        typedef accessor< 5, enumtype::in > dtr_stage;
-        typedef accessor< 6, enumtype::inout > acol;
-        typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > ccol;
-        typedef accessor< 9, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > dcol;
+        typedef accessor<0, enumtype::in> utens_stage;
+        typedef accessor<1, enumtype::in, extent<0, 1, 0, 0, 0, 1>> wcon;
+        typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 1>> u_stage;
+        typedef accessor<3, enumtype::in> u_pos;
+        typedef accessor<4, enumtype::in> utens;
+        typedef accessor<5, enumtype::in> dtr_stage;
+        typedef accessor<6, enumtype::inout> acol;
+        typedef accessor<7, enumtype::inout> bcol;
+        typedef accessor<8, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> ccol;
+        typedef accessor<9, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> dcol;
 
-        typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
+        typedef boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>
             arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, kbody interval) {
             // TODO use Average function here
             T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
@@ -99,7 +99,7 @@ namespace vertical_advection_dycore {
             thomas_forward(eval, interval);
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, kmaximum interval) {
             T gav = -(T)0.25 * (eval(wcon(1, 0, 0)) + eval(wcon()));
             T as = gav * BET_M;
@@ -114,7 +114,7 @@ namespace vertical_advection_dycore {
             thomas_forward(eval, interval);
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, kminimum interval) {
             T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
             T cs = gcv * BET_M;
@@ -129,25 +129,25 @@ namespace vertical_advection_dycore {
         }
 
       private:
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void computeDColumn(Evaluation &eval, const T correctionTerm) {
             eval(dcol()) = eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correctionTerm;
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void thomas_forward(Evaluation &eval, kbody) {
             T divided = (T)1.0 / (eval(bcol()) - (eval(ccol(0, 0, -1)) * eval(acol())));
             eval(ccol()) = eval(ccol()) * divided;
             eval(dcol()) = (eval(dcol()) - (eval(dcol(0, 0, -1)) * eval(acol()))) * divided;
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void thomas_forward(Evaluation &eval, kmaximum) {
             T divided = (T)1.0 / (eval(bcol()) - eval(ccol(0, 0, -1)) * eval(acol()));
             eval(dcol()) = (eval(dcol()) - eval(dcol(0, 0, -1)) * eval(acol())) * divided;
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void thomas_forward(Evaluation &eval, kminimum) {
             T divided = (T)1.0 / eval(bcol());
             eval(ccol()) = eval(ccol()) * divided;
@@ -155,36 +155,36 @@ namespace vertical_advection_dycore {
         }
     };
 
-    template < typename T >
+    template <typename T>
     struct u_backward_function {
-        typedef accessor< 0, enumtype::inout > utens_stage;
-        typedef accessor< 1, enumtype::inout > u_pos;
-        typedef accessor< 2, enumtype::inout > dtr_stage;
-        typedef accessor< 3, enumtype::inout > ccol;
-        typedef accessor< 4, enumtype::inout > dcol;
-        typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > data_col;
+        typedef accessor<0, enumtype::inout> utens_stage;
+        typedef accessor<1, enumtype::inout> u_pos;
+        typedef accessor<2, enumtype::inout> dtr_stage;
+        typedef accessor<3, enumtype::inout> ccol;
+        typedef accessor<4, enumtype::inout> dcol;
+        typedef accessor<5, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> data_col;
 
-        typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
+        typedef boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, kbody_low interval) {
             eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, kmaximum interval) {
             eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         }
 
       private:
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static T thomas_backward(Evaluation &eval, kbody_low) {
             T datacol = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
             eval(data_col()) = datacol;
             return datacol;
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static T thomas_backward(Evaluation &eval, kmaximum) {
             T datacol = eval(dcol());
             eval(data_col()) = datacol;
@@ -202,21 +202,21 @@ namespace vertical_advection_dycore {
         vertical_advection::repository repository;
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type > p_utens_stage;
-        typedef arg< 1, storage_type > p_u_stage;
-        typedef arg< 2, storage_type > p_wcon;
-        typedef arg< 3, storage_type > p_u_pos;
-        typedef arg< 4, storage_type > p_utens;
-        typedef arg< 5, scalar_storage_type > p_dtr_stage;
-        typedef tmp_arg< 6, storage_type > p_acol;
-        typedef tmp_arg< 7, storage_type > p_bcol;
-        typedef tmp_arg< 8, storage_type > p_ccol;
-        typedef tmp_arg< 9, storage_type > p_dcol;
-        typedef tmp_arg< 10, storage_type > p_data_col;
+        typedef arg<0, storage_type> p_utens_stage;
+        typedef arg<1, storage_type> p_u_stage;
+        typedef arg<2, storage_type> p_wcon;
+        typedef arg<3, storage_type> p_u_pos;
+        typedef arg<4, storage_type> p_utens;
+        typedef arg<5, scalar_storage_type> p_dtr_stage;
+        typedef tmp_arg<6, storage_type> p_acol;
+        typedef tmp_arg<7, storage_type> p_bcol;
+        typedef tmp_arg<8, storage_type> p_ccol;
+        typedef tmp_arg<9, storage_type> p_dcol;
+        typedef tmp_arg<10, storage_type> p_data_col;
 
         halo_descriptor di, dj;
 
-        gridtools::grid< axis_t::axis_interval_t > grid;
+        gridtools::grid<axis_t::axis_interval_t> grid;
 
         vertical_advection_test(u_int d1, u_int d2, u_int d3)
             : repository(d1, d2, d3, halo_size), di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
@@ -234,13 +234,13 @@ namespace vertical_advection_dycore {
         bool test(uint_t t_steps, bool verify) {
 
             auto up_stencil = gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< K, cache_io_policy::local, kfull >(p_acol()),
-                        cache< K, cache_io_policy::local, kfull >(p_bcol()),
-                        cache< K, cache_io_policy::flush, kfull >(p_ccol()),
-                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
-                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                    gridtools::make_stage< u_forward_function< float_type > >(p_utens_stage(),
+                (execute<forward>(),
+                    define_caches(cache<K, cache_io_policy::local, kfull>(p_acol()),
+                        cache<K, cache_io_policy::local, kfull>(p_bcol()),
+                        cache<K, cache_io_policy::flush, kfull>(p_ccol()),
+                        cache<K, cache_io_policy::flush, kfull>(p_dcol()),
+                        cache<K, cache_io_policy::fill, kfull>(p_u_stage())),
+                    gridtools::make_stage<u_forward_function<float_type>>(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -250,15 +250,14 @@ namespace vertical_advection_dycore {
                         p_bcol(),
                         p_ccol(),
                         p_dcol()) // esf_descriptor
-                    );
+                );
 
-            auto down_stencil = gridtools::make_multistage(
-                execute< backward >(),
-                define_caches(cache< K, cache_io_policy::local, kfull >(p_data_col())),
-                gridtools::make_stage< u_backward_function< float_type > >(
+            auto down_stencil = gridtools::make_multistage(execute<backward>(),
+                define_caches(cache<K, cache_io_policy::local, kfull>(p_data_col())),
+                gridtools::make_stage<u_backward_function<float_type>>(
                     p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
 
-            auto vertical_advection = gridtools::make_computation< backend_t >(grid,
+            auto vertical_advection = gridtools::make_computation<backend_t>(grid,
                 p_utens_stage{} = repository.utens_stage(),
                 p_u_stage{} = repository.u_stage(),
                 p_wcon{} = repository.wcon(),
@@ -280,7 +279,7 @@ namespace vertical_advection_dycore {
 #else
                 verifier verif(1e-11);
 #endif
-                array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+                array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
 
@@ -292,8 +291,7 @@ namespace vertical_advection_dycore {
 
         bool test_with_extents(bool verify) {
 
-            auto vertical_advection = gridtools::make_computation< backend_t >(
-                grid,
+            auto vertical_advection = gridtools::make_computation<backend_t>(grid,
                 p_utens_stage{} = repository.utens_stage(),
                 p_u_stage{} = repository.u_stage(),
                 p_wcon{} = repository.wcon(),
@@ -301,11 +299,11 @@ namespace vertical_advection_dycore {
                 p_utens{} = repository.utens(),
                 p_dtr_stage{} = repository.dtr_stage(),
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
-                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
-                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                    gridtools::make_stage_with_extent< u_forward_function< float_type >, extent< 0 > >(p_utens_stage(),
+                (execute<forward>(),
+                    define_caches(cache<K, cache_io_policy::flush, kfull>(p_ccol()),
+                        cache<K, cache_io_policy::flush, kfull>(p_dcol()),
+                        cache<K, cache_io_policy::fill, kfull>(p_u_stage())),
+                    gridtools::make_stage_with_extent<u_forward_function<float_type>, extent<0>>(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
@@ -316,14 +314,10 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_multistage(execute< backward >(),
-                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                    gridtools::make_stage_with_extent< u_backward_function< float_type >, extent< 0 > >(p_utens_stage(),
-                                               p_u_pos(),
-                                               p_dtr_stage(),
-                                               p_ccol(),
-                                               p_dcol(),
-                                               p_data_col())));
+                gridtools::make_multistage(execute<backward>(),
+                    define_caches(cache<K, cache_io_policy::flush, kfull>(p_data_col())),
+                    gridtools::make_stage_with_extent<u_backward_function<float_type>, extent<0>>(
+                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
             vertical_advection.run();
 
@@ -337,7 +331,7 @@ namespace vertical_advection_dycore {
 #else
                 verifier verif(1e-12);
 #endif
-                array< array< uint_t, 2 >, 3 > halos{
+                array<array<uint_t, 2>, 3> halos{
                     {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
@@ -345,4 +339,4 @@ namespace vertical_advection_dycore {
         }
     };
 
-} // namespace vertical_advection
+} // namespace vertical_advection_dycore

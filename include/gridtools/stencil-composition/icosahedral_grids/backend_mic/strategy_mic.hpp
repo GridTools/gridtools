@@ -36,16 +36,16 @@
 #pragma once
 #include <type_traits>
 
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../mss_functor.hpp"
 #include "../../tile.hpp"
-#include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
 #include "execute_kernel_functor_mic.hpp"
 
 namespace gridtools {
 
-    template < enumtype::strategy >
+    template <enumtype::strategy>
     struct strategy_from_id_mic;
 
     /**
@@ -60,9 +60,9 @@ namespace gridtools {
        The loops over i and j are split according to the values of BI and BJ
     */
     template <>
-    struct strategy_from_id_mic< enumtype::Block > {
+    struct strategy_from_id_mic<enumtype::Block> {
         // default block size for Block strategy
-        using block_size_t = block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 >;
+        using block_size_t = block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1>;
 
         static constexpr uint_t BI = block_size_t::i_size_t::value;
         static constexpr uint_t BJ = block_size_t::j_size_t::value;
@@ -73,18 +73,18 @@ namespace gridtools {
          * @tparam MssComponents a meta array with the mss components of all MSS
          * @tparam BackendIds ids of backend
          */
-        template < typename MssComponents, typename BackendIds, typename ReductionData >
+        template <typename MssComponents, typename BackendIds, typename ReductionData>
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size< MssComponents >);
+            using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
 
-            template < typename LocalDomainListArray, typename Grid >
+            template <typename LocalDomainListArray, typename Grid>
             static void run(
                 LocalDomainListArray const &local_domain_lists, Grid const &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 const uint_t m = grid.j_high_bound() - grid.j_low_bound();
@@ -95,12 +95,12 @@ namespace gridtools {
 #pragma omp parallel for
                 for (uint_t bi = 0; bi <= NBI; ++bi) {
                     for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                        gridtools::for_each< iter_range >(mss_functor< MssComponents,
+                        gridtools::for_each<iter_range>(mss_functor<MssComponents,
                             Grid,
                             LocalDomainListArray,
                             BackendIds,
                             ReductionData,
-                            execution_info_mic >(local_domain_lists, grid, reduction_data, {bi, bj}));
+                            execution_info_mic>(local_domain_lists, grid, reduction_data, {bi, bj}));
                     }
                 }
             }
@@ -111,22 +111,22 @@ namespace gridtools {
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
          */
-        template < typename RunFunctorArgs >
+        template <typename RunFunctorArgs>
         struct mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
 
             using backend_ids_t = typename RunFunctorArgs::backend_ids_t;
 
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template <typename LocalDomain, typename Grid, typename ReductionData>
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_mic &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size< typename RunFunctorArgs::functor_list_t >::value == 1), GT_INTERNAL_ERROR);
+                    (boost::mpl::size<typename RunFunctorArgs::functor_list_t>::value == 1), GT_INTERNAL_ERROR);
 
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 const uint_t m = grid.j_high_bound() - grid.j_low_bound();
@@ -140,7 +140,7 @@ namespace gridtools {
                 const uint_t last_i = execution_info.bi == NBI ? n - NBI * BI : BI - 1;
                 const uint_t last_j = execution_info.bj == NBJ ? m - NBJ * BJ : BJ - 1;
 
-                icgrid::execute_kernel_functor_mic< RunFunctorArgs >(local_domain,
+                icgrid::execute_kernel_functor_mic<RunFunctorArgs>(local_domain,
                     grid,
                     reduction_data,
                     first_i,

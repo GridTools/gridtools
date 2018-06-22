@@ -35,19 +35,19 @@
 */
 
 #pragma once
-#include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
-#include "interval.hpp"
+#include "../common/halo_descriptor.hpp"
 #include "axis.hpp"
+#include "interval.hpp"
 
 namespace gridtools {
     namespace _impl {
         /*
          * @brief convert an array of intervals in an array of indices of splitters
          */
-        template < size_t NIntervals >
-        array< uint_t, NIntervals + 1 > intervals_to_indices(const array< uint_t, NIntervals > &intervals) {
-            array< uint_t, NIntervals + 1 > indices;
+        template <size_t NIntervals>
+        array<uint_t, NIntervals + 1> intervals_to_indices(const array<uint_t, NIntervals> &intervals) {
+            array<uint_t, NIntervals + 1> indices;
             indices[0] = 0;
             indices[1] = intervals[0];
             for (size_t i = 2; i < NIntervals + 1; ++i) {
@@ -55,7 +55,7 @@ namespace gridtools {
             }
             return indices;
         }
-    }
+    } // namespace _impl
 
     // TODO should be removed once we removed all ctor(array) calls
     namespace enumtype_axis {
@@ -64,16 +64,16 @@ namespace gridtools {
 
     using namespace enumtype_axis;
 
-    template < typename Axis >
+    template <typename Axis>
     struct grid_base {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
 
         typedef typename boost::mpl::plus<
-            boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >,
-            static_int< 1 > >::type size_type;
+            boost::mpl::minus<typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter>,
+            static_int<1>>::type size_type;
 
-        array< uint_t, size_type::value > value_list;
+        array<uint_t, size_type::value> value_list;
 
       private:
         halo_descriptor m_direction_i;
@@ -94,7 +94,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
-            const array< uint_t, size_type::value > &value_list)
+            const array<uint_t, size_type::value> &value_list)
             : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
 
         DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
@@ -114,20 +114,20 @@ namespace gridtools {
         GT_FUNCTION
         uint_t j_high_bound() const { return m_direction_j.end(); }
 
-        template < typename Level >
+        template <typename Level>
         GT_FUNCTION uint_t value_at() const {
-            GRIDTOOLS_STATIC_ASSERT((is_level< Level >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
             int_t offs = Level::Offset::value;
             if (offs > 0)
                 offs -= 1;
             return value_list[Level::Splitter::value] + offs;
         }
 
-        GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
+        GT_FUNCTION uint_t k_min() const { return value_at<typename Axis::FromLevel>(); }
 
         GT_FUNCTION uint_t k_max() const {
             // -1 because the axis has to be one level bigger than the largest k interval
-            return value_at< typename Axis::ToLevel >() - 1;
+            return value_at<typename Axis::ToLevel>() - 1;
         }
 
         /**

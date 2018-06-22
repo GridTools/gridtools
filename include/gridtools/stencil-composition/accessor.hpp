@@ -36,13 +36,13 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "./structured_grids/accessor_metafunctions.hpp"
 #include "./structured_grids/accessor.hpp"
+#include "./structured_grids/accessor_metafunctions.hpp"
 #include "./structured_grids/accessor_mixed.hpp"
 #else
-#include "./icosahedral_grids/accessor_metafunctions.hpp"
 #include "./icosahedral_grids/accessor.hpp"
+#include "./icosahedral_grids/accessor_metafunctions.hpp"
 #endif
 
-#include "./global_accessor_metafunctions.hpp"
 #include "./global_accessor.hpp"
+#include "./global_accessor_metafunctions.hpp"

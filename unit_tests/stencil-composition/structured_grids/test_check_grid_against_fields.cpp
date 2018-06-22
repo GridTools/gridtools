@@ -63,13 +63,13 @@ namespace gridtools {
      */
     bool do_test(uint_t x, uint_t y, uint_t z, uint_t gx, uint_t gy, uint_t gz) {
 
-        using storage_info_t = storage_traits< enumtype::Host >::storage_info_t< 0, 3, halo< 2, 2, 0 > >;
+        using storage_info_t = storage_traits<enumtype::Host>::storage_info_t<0, 3, halo<2, 2, 0>>;
 
         halo_descriptor di = {0, 0, 0, gx - 1, gx};
         halo_descriptor dj = {0, 0, 0, gy - 1, gy};
 
         auto grid = make_grid(di, dj, gz);
-        auto testee = storage_info_fits_grid< grid_traits_from_id< enumtype::structured > >(grid);
+        auto testee = storage_info_fits_grid<grid_traits_from_id<enumtype::structured>>(grid);
 
         return testee(storage_info_t{x + 3, y, z}) && testee(storage_info_t{x, y + 2, z}) &&
                testee(storage_info_t{x, y, z + 1});
@@ -83,4 +83,4 @@ namespace gridtools {
     TEST(stencil_composition, check_grid_bounds4) { EXPECT_FALSE(do_test(4, 5, 6, 4, 5, 7)); }
     TEST(stencil_composition, check_grid_bounds5) { EXPECT_FALSE(do_test(4, 5, 6, 4, 12, 6)); }
     TEST(stencil_composition, check_grid_bounds6) { EXPECT_FALSE(do_test(4, 5, 6, 9, 5, 6)); }
-}
+} // namespace gridtools
