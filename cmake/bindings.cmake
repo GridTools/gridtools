@@ -12,9 +12,10 @@ macro(add_bindings_library)
         set(binding_main_lib c_bindings_generator_main)
     endif()
 
-    set(target_name ${target_name})
+    set(target_name ${ARGV0})
 
     add_library(${ARGV})
+
     target_link_libraries(${target_name} ${binding_libs})
     add_custom_command(OUTPUT ${target_name}_empty.cpp COMMAND touch ${target_name}_empty.cpp)
     add_executable(${target_name}_decl_generator
