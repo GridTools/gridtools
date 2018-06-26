@@ -80,7 +80,7 @@ namespace gridtools {
 
             template <typename Domain>
             GT_FUNCTION static void increment(Domain &dom) {
-                dom.increment_k(-1);
+                dom.template increment_k<-1>();
             }
 
             GT_FUNCTION

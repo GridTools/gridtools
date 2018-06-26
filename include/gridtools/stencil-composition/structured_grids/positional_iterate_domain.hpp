@@ -56,15 +56,30 @@ namespace gridtools {
 
         using iterate_domain<IterateDomainImpl>::iterate_domain;
 
-        GT_FUNCTION void increment_i(ptrdiff_t step = 1) {
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_i() {
+            m_pos.i += Step;
+            base_t::template increment_i<Step>();
+        }
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_j() {
+            m_pos.j += Step;
+            base_t::template increment_j<Step>();
+        }
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_k() {
+            m_pos.k += Step;
+            base_t::template increment_k<Step>();
+        }
+        GT_FUNCTION void increment_i(ptrdiff_t step) {
             m_pos.i += step;
             base_t::increment_i(step);
         }
-        GT_FUNCTION void increment_j(ptrdiff_t step = 1) {
+        GT_FUNCTION void increment_j(ptrdiff_t step) {
             m_pos.j += step;
             base_t::increment_j(step);
         }
-        GT_FUNCTION void increment_k(ptrdiff_t step = 1) {
+        GT_FUNCTION void increment_k(ptrdiff_t step) {
             m_pos.k += step;
             base_t::increment_k(step);
         }

@@ -187,7 +187,7 @@ namespace gridtools {
                         color_execution_functor_mic<RunFunctorArguments, iterate_domain_t, grid_t, extent_t>(
                             it_domain, m_grid, m_first_pos, m_loop_size));
 
-                    it_domain.increment_c(-n_colors_t::value);
+                    it_domain.template increment_c<-n_colors_t::value>();
                     it_domain.increment_i();
                 }
                 it_domain.increment_i(-(m_loop_size[0] + 1 + extent_t::iplus::value - extent_t::iminus::value));

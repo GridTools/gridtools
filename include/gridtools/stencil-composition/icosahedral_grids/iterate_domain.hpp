@@ -254,16 +254,37 @@ namespace gridtools {
         }
 
       private:
+        template <size_t Coordinate, ptrdiff_t Step>
+        GT_FUNCTION void increment() {
+            do_increment<Coordinate, Step>(m_local_domain, strides(), m_index);
+        }
         template <size_t Coordinate>
         GT_FUNCTION void increment(ptrdiff_t step) {
             do_increment<Coordinate>(step, m_local_domain, strides(), m_index);
         }
 
       public:
-        GT_FUNCTION void increment_i(ptrdiff_t step = 1) { increment<0>(step); }
-        GT_FUNCTION void increment_c(ptrdiff_t step = 1) { increment<1>(step); }
-        GT_FUNCTION void increment_j(ptrdiff_t step = 1) { increment<2>(step); }
-        GT_FUNCTION void increment_k(ptrdiff_t step = 1) { increment<3>(step); }
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_i() {
+            increment<0, Step>();
+        }
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_c() {
+            increment<1, Step>();
+        }
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_j() {
+            increment<2, Step>();
+        }
+        template <ptrdiff_t Step = 1>
+        GT_FUNCTION void increment_k() {
+            increment<3, Step>();
+        }
+
+        GT_FUNCTION void increment_i(ptrdiff_t step) { increment<0>(step); }
+        GT_FUNCTION void increment_c(ptrdiff_t step) { increment<1>(step); }
+        GT_FUNCTION void increment_j(ptrdiff_t step) { increment<2>(step); }
+        GT_FUNCTION void increment_k(ptrdiff_t step) { increment<3>(step); }
 
         GT_FUNCTION
         array_index_t const &index() const { return m_index; }

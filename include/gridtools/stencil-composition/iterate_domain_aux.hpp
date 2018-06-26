@@ -216,9 +216,7 @@ namespace gridtools {
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
-            enable_if_t<Cur<0, int> = 0> GT_FUNCTION size_t get_stride(Strides const &) {
-            return 0;
-        }
+            enable_if_t<Cur<0, int> = 0> GT_FUNCTION auto get_stride(Strides const &) GT_AUTO_RETURN(0);
 
         template <size_t Coordinate,
             class LayoutMap,
@@ -226,18 +224,15 @@ namespace gridtools {
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
             enable_if_t<Cur >= 0 && Cur == Max, int> = 0>
-        GT_FUNCTION size_t get_stride(Strides const &) {
-            return 1;
-        }
+        GT_FUNCTION auto get_stride(Strides const &) GT_AUTO_RETURN(1);
+
         template <size_t Coordinate,
             class LayoutMap,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
-        GT_FUNCTION size_t get_stride(Strides const &strides) {
-            return strides[Cur];
-        }
+        GT_FUNCTION auto get_stride(Strides const &strides) GT_AUTO_RETURN(strides[Cur]);
     } // namespace _impl
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
@@ -270,7 +265,7 @@ namespace gridtools {
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            int_t stride = _impl::get_stride<Coordinate, Layout>(m_strides_cached.template get<I>());
+            auto stride = _impl::get_stride<Coordinate, Layout>(m_strides_cached.template get<I>());
             m_index_array[I] += stride * m_increment;
         }
     };
@@ -280,6 +275,12 @@ namespace gridtools {
         ptrdiff_t step, LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
         boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{step, index, strides});
+    }
+
+    template <size_t Coordinate, ptrdiff_t Step, class LocalDomain, class Strides, class ArrayIndex>
+    GT_FUNCTION void do_increment(LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
+        boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+            increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{Step, index, strides});
     }
 
     /**@brief functor initializing the indices does the actual assignment

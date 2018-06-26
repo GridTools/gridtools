@@ -191,12 +191,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
 
             // TODO we could identify if previous ESF was in the same color and avoid this iterator operations
-            m_iterate_domain.increment_c(color_t::value);
+            m_iterate_domain.template increment_c<color_t::value>();
 
             // call the user functor at the core of the block
             _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
                 call_do_method(iterate_domain_remapper);
-            m_iterate_domain.increment_c(-color_t::value);
+            m_iterate_domain.template increment_c<-color_t::value>();
         }
 
         // specialization of the loop over colors when the ESF does not specify any particular color.
@@ -215,7 +215,7 @@ namespace gridtools {
             boost::mpl::for_each<color_range_t>(
                 color_functor<iterate_domain_t, EsfArguments, location_type_t, IntervalType>(m_iterate_domain));
 
-            m_iterate_domain.increment_c(-location_type_t::n_colors::value);
+            m_iterate_domain.template increment_c<-location_type_t::n_colors::value>();
         }
     };
 } // namespace gridtools

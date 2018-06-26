@@ -140,11 +140,6 @@ namespace gridtools {
                 typedef ::gridtools::_impl::iteration_policy<from, to, execution_type_t::type::iteration>
                     iteration_policy_t;
 
-                const int_t ifirst = m_first_pos[0] + extent_t::iminus::value;
-                const int_t ilast = m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value;
-                const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
-                const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
-
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                     {m_block_id[0], m_block_id[1], 0},
                     {extent_t::iminus::value,
@@ -153,15 +148,11 @@ namespace gridtools {
 
                 // run the nested ij loop
                 typename iterate_domain_t::array_index_t irestore_index, jrestore_index;
-                for (int_t i = ifirst; i <= ilast; ++i) {
-#if defined(VERBOSE) && !defined(NDEBUG)
-                    std::cout << "iteration " << i << ", index i" << std::endl;
-#endif
+                const auto ilast = m_last_pos[0] + extent_t::iplus::value;
+                const auto jlast = m_last_pos[1] + extent_t::jplus::value;
+                for (auto i = extent_t::iminus::value; i <= ilast; ++i) {
                     irestore_index = it_domain.index();
-                    for (int_t j = jfirst; j <= jlast; ++j) {
-#if defined(VERBOSE) && !defined(NDEBUG)
-                        std::cout << "iteration " << j << ", index j" << std::endl;
-#endif
+                    for (int_t j = extent_t::jminus::value; j <= jlast; ++j) {
                         jrestore_index = it_domain.index();
                         boost::mpl::for_each<loop_intervals_t>(
                             ::gridtools::_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>{
