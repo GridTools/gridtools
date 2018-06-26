@@ -35,31 +35,8 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../backend_ids.hpp"
-
-#include "coordinate.hpp"
-#include "grid_traits_backend_fwd.hpp"
-
 #ifdef __CUDACC__
-#include "backend_cuda/grid_traits_cuda.hpp"
+#include "./backend_cuda/grid_traits_cuda.hpp"
 #endif
-#include "backend_host/grid_traits_host.hpp"
-#include "backend_mic/grid_traits_mic.hpp"
-
-namespace gridtools {
-
-    template <>
-    struct grid_traits_from_id<enumtype::structured> {
-        using dummy_t = backend_ids<enumtype::Host, enumtype::structured, enumtype::Block>;
-        // index positions of the different dimensions in the layout map (convention)
-        using dim_i_t = coord_i<dummy_t>;
-        using dim_j_t = coord_j<dummy_t>;
-        using dim_k_t = coord_k<dummy_t>;
-
-        template <enumtype::platform BackendId>
-        struct with_arch {
-            typedef strgrid::grid_traits_arch<BackendId> type;
-        };
-    };
-} // namespace gridtools
+#include "./backend_host/grid_traits_host.hpp"
+#include "./backend_mic/grid_traits_mic.hpp"

@@ -44,6 +44,7 @@
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_impl_metafunctions.hpp"
+#include "../pos3.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
 #include "../total_storages.hpp"
 /**@file
@@ -109,7 +110,6 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
         typedef iterate_domain_reduction<iterate_domain_arguments_t> iterate_domain_reduction_t;
         typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
-        typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
         typedef backend_traits_from_id<iterate_domain_arguments_t::backend_ids_t::s_backend_id> backend_traits_t;
         typedef typename backend_traits_t::template select_iterate_domain_cache<iterate_domain_arguments_t>::type
@@ -255,48 +255,25 @@ namespace gridtools {
          */
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        GT_FUNCTION void reset_index() { m_index = array_index_t{}; }
-
-        /**@brief method for incrementing by 1 the index when moving forward along the given direction
-           \tparam Coordinate dimension being incremented
-           \tparam Execution the policy for the increment (e.g. forward/backward)
-         */
-        template <ushort_t Coordinate, typename Steps>
-        GT_FUNCTION void increment() {
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                increment_index_functor<local_domain_t, Coordinate, strides_cached_t, array_index_t>{
-                    Steps::value, m_index, strides()});
-            static_cast<IterateDomainImpl *>(this)->template increment_impl<Coordinate, Steps>();
+      private:
+        template <size_t Coordinate>
+        GT_FUNCTION void increment(ptrdiff_t step) {
+            do_increment<Coordinate>(step, local_domain, strides(), m_index);
         }
 
-        /**@brief method for incrementing the index when moving forward along the given direction
-
-           \param steps_ the increment
-           \tparam Coordinate dimension being incremented
-         */
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment(int_t steps_) {
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                increment_index_functor<local_domain_t, Coordinate, strides_cached_t, array_index_t>{
-                    steps_, m_index, strides()});
-            static_cast<IterateDomainImpl *>(this)->template increment_impl<Coordinate>(steps_);
-        }
+      public:
+        GT_FUNCTION void increment_i(ptrdiff_t step = 1) { increment<0>(step); }
+        GT_FUNCTION void increment_j(ptrdiff_t step = 1) { increment<1>(step); }
+        GT_FUNCTION void increment_k(ptrdiff_t step = 1) { increment<2>(step); }
 
         /**@brief method for initializing the index */
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize(int_t initial_pos = 0, uint_t block = 0) {
+        GT_FUNCTION void initialize(pos3<ptrdiff_t> const &RESTRICT begin,
+            pos3<size_t> const &RESTRICT block_no,
+            pos3<ptrdiff_t> const &RESTRICT pos_in_block) {
+            using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                initialize_index_functor<Coordinate,
-                    strides_cached_t,
-                    local_domain_t,
-                    array_index_t,
-                    typename iterate_domain_arguments_t::backend_ids_t>{strides(), initial_pos, block, m_index});
-            static_cast<IterateDomainImpl *>(this)->template initialize_impl<Coordinate>();
-        }
-
-        template <typename T>
-        GT_FUNCTION void info(T const &x) const {
-            local_domain.info(x);
+                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
+                    strides(), begin, block_no, pos_in_block, m_index});
         }
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
@@ -567,7 +544,7 @@ namespace gridtools {
             m_index[storage_info_index_t::value] +
             compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
 
-        assert(pointer_oob_check(storage_info, real_storage_pointer, pointer_offset));
+        assert(pointer_oob_check(storage_info, pointer_offset));
 
         return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }

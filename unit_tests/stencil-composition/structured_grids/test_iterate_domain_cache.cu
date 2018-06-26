@@ -158,30 +158,26 @@ TEST(iterate_domain_cache, flush) {
             boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
         "Error");
 
-    using iteration_policy1_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy1_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::forward>;
 
     using final_flush_indexes1_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy1_t>::type;
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes1_t, boost::mpl::vector1<static_uint<0>>>::value), "Error");
 
-    using iteration_policy2_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy2_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::forward>;
 
     using final_flush_indexes2_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy2_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes2_t, boost::mpl::vector1<static_uint<1>>>::value), "Error");
 
-    using iteration_policy3_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy3_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::forward>;
 
     using final_flush_indexes3_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy3_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<final_flush_indexes3_t>::value == 0), "Error");
 
-    using iteration_policy4_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy4_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::forward>;
 
     using final_flush_indexes4_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy4_t>::type;
 
@@ -189,30 +185,26 @@ TEST(iterate_domain_cache, flush) {
         (boost::mpl::equal<final_flush_indexes4_t, boost::mpl::vector2<static_uint<2>, static_uint<4>>>::value),
         "Error");
     // backward
-    using iteration_policy5_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy5_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::backward>;
 
     using final_flush_indexes5_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy5_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<final_flush_indexes5_t>::value == 0), "Error");
 
-    using iteration_policy6_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy6_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::backward>;
 
     using final_flush_indexes6_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy6_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes6_t, boost::mpl::vector1<static_uint<2>>>::value), "Error");
 
-    using iteration_policy7_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy7_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::backward>;
 
     using final_flush_indexes7_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy7_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<final_flush_indexes7_t>::value == 0), "Error");
 
-    using iteration_policy8_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy8_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::backward>;
 
     using final_flush_indexes8_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy8_t>::type;
 
@@ -265,60 +257,52 @@ TEST(iterate_domain_cache, fill) {
         (boost::mpl::equal<k_filling_caches_indexes_t, boost::mpl::vector2<static_uint<0>, static_uint<2>>>::value),
         "Error");
 
-    using iteration_policy1_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy1_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes1_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy1_t>::type;
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<begin_fill_indexes1_t, boost::mpl::vector1<static_uint<0>>>::value), "Error");
 
-    using iteration_policy2_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy2_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes2_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy2_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes2_t>::value == 0), "Error");
 
-    using iteration_policy3_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy3_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes3_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy3_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<begin_fill_indexes3_t, boost::mpl::vector1<static_uint<2>>>::value), "Error");
 
-    using iteration_policy4_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy4_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes4_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy4_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes4_t>::value == 0), "Error");
 
     // backward
-    using iteration_policy5_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy5_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes5_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy5_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<begin_fill_indexes5_t, boost::mpl::vector1<static_uint<2>>>::value), "Error");
 
-    using iteration_policy6_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy6_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes6_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy6_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes6_t>::value == 0), "Error");
 
-    using iteration_policy7_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy7_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes7_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy7_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes7_t>::value == 0), "Error");
 
-    using iteration_policy8_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy8_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes8_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy8_t>::type;
 
@@ -375,30 +359,26 @@ TEST(iterate_domain_cache, epflush) {
                                 boost::mpl::vector3<static_uint<1>, static_uint<2>, static_uint<3>>>::value),
         "Error");
 
-    using iteration_policy1_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy1_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::forward>;
 
     using final_flush_indexes1_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy1_t>::type;
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes1_t, boost::mpl::vector1<static_uint<0>>>::value), "Error");
 
-    using iteration_policy2_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy2_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::forward>;
 
     using final_flush_indexes2_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy2_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes2_t, boost::mpl::vector1<static_uint<1>>>::value), "Error");
 
-    using iteration_policy3_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy3_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::forward>;
 
     using final_flush_indexes3_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy3_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<final_flush_indexes3_t>::value == 0), "Error");
 
-    using iteration_policy4_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy4_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::forward>;
 
     using final_flush_indexes4_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy4_t>::type;
 
@@ -406,31 +386,27 @@ TEST(iterate_domain_cache, epflush) {
                                 boost::mpl::vector3<static_uint<2>, static_uint<3>, static_uint<4>>>::value),
         "Error");
     // backward
-    using iteration_policy5_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy5_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::backward>;
 
     using final_flush_indexes5_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy5_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes5_t, boost::mpl::vector1<static_uint<3>>>::value), "Error");
 
-    using iteration_policy6_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy6_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::backward>;
 
     using final_flush_indexes6_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy6_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<final_flush_indexes6_t, boost::mpl::vector1<static_uint<2>>>::value), "Error");
 
-    using iteration_policy7_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy7_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::backward>;
 
     using final_flush_indexes7_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy7_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<final_flush_indexes7_t>::value == 0), "Error");
 
-    using iteration_policy8_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy8_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::backward>;
 
     using final_flush_indexes8_t = iterate_domain_cache_t::kcache_final_flush_indexes<iteration_policy8_t>::type;
 
@@ -482,8 +458,7 @@ TEST(iterate_domain_cache, bpfill) {
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<k_filling_caches_indexes_t, boost::mpl::vector1<static_uint<0>>>::value), "Error");
 
-    using iteration_policy1_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy1_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes1_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy1_t>::type;
 
@@ -491,54 +466,47 @@ TEST(iterate_domain_cache, bpfill) {
         (boost::mpl::equal<begin_fill_indexes1_t, boost::mpl::vector2<static_uint<1>, static_uint<0>>>::value),
         "Error");
 
-    using iteration_policy2_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy2_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes2_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy2_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes2_t>::value == 0), "Error");
 
-    using iteration_policy3_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy3_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes3_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy3_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<begin_fill_indexes3_t, boost::mpl::vector1<static_uint<2>>>::value), "Error");
 
-    using iteration_policy4_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::forward>;
+    using iteration_policy4_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::forward>;
 
     using begin_fill_indexes4_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy4_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes4_t>::value == 0), "Error");
 
     // backward
-    using iteration_policy5_t =
-        _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy5_t = _impl::iteration_policy<kmaximum::FromLevel, kmaximum::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes5_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy5_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<begin_fill_indexes5_t, boost::mpl::vector1<static_uint<2>>>::value), "Error");
 
-    using iteration_policy6_t =
-        _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy6_t = _impl::iteration_policy<krange2::FromLevel, krange2::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes6_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy6_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<begin_fill_indexes6_t>::value == 0), "Error");
 
-    using iteration_policy7_t =
-        _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy7_t = _impl::iteration_policy<krange1::FromLevel, krange1::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes7_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy7_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<begin_fill_indexes7_t, boost::mpl::vector1<static_uint<1>>>::value), "Error");
 
-    using iteration_policy8_t =
-        _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, static_uint<2>, enumtype::backward>;
+    using iteration_policy8_t = _impl::iteration_policy<kminimum::FromLevel, kminimum::ToLevel, enumtype::backward>;
 
     using begin_fill_indexes8_t = iterate_domain_cache_t::kcache_begin_fill_indexes<iteration_policy8_t>::type;
 

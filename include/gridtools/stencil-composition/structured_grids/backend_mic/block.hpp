@@ -35,17 +35,20 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../backend_ids.hpp"
+#include <cstddef>
 
-#include "./backend_mic/tmp_storage.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/host_device.hpp"
+#include "../../backend_ids.hpp"
+#include "./execinfo_mic.hpp"
 
 namespace gridtools {
-    namespace tmp_storage {
-        template <class StorageInfo, size_t /*NColors*/, enumtype::platform Platform, enumtype::strategy Strategy>
-        StorageInfo make_storage_info(
-            backend_ids<Platform, enumtype::structured, Strategy> const &, size_t i, size_t j, size_t k) {
-            return StorageInfo{i, j, k};
-        }
-    } // namespace tmp_storage
+    template <class Grid>
+    size_t block_i_size(backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
+        return execinfo_mic{grid}.i_block_size();
+    }
+    template <class Grid>
+    size_t block_j_size(backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
+        return execinfo_mic{grid}.j_block_size();
+    }
 } // namespace gridtools

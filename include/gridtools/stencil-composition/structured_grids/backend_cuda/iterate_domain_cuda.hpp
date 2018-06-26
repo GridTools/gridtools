@@ -90,6 +90,8 @@ namespace gridtools {
 
         using super::get_data_pointer;
         using super::get_value;
+        using super::increment_i;
+        using super::increment_j;
 
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
@@ -103,14 +105,6 @@ namespace gridtools {
             const uint_t block_size_i,
             const uint_t block_size_j)
             : super(local_domain, reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {
-        }
-
-        GT_FUNCTION
-        uint_t thread_position_x() const { return threadIdx.x; }
-
-        template <int_t minus, int_t plus>
-        GT_FUNCTION uint_t thread_position_y() const {
-            return threadIdx.y;
         }
 
         /**
@@ -129,27 +123,6 @@ namespace gridtools {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
         }
-
-        /**
-         * @brief determines whether the current (i) position + an offset is within the block size
-         */
-        template <int_t minus, int_t plus>
-        GT_FUNCTION bool is_thread_in_domain_x(const int_t i_offset) const {
-            return m_thread_pos[0] + i_offset >= minus && m_thread_pos[0] + i_offset < (int)m_block_size_i + plus;
-        }
-
-        /**
-         * @brief determines whether the current (j) position is within the block size
-         */
-        template <int_t minus, int_t plus>
-        GT_FUNCTION bool is_thread_in_domain_y(const int_t j_offset) const {
-            return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus;
-        }
-
-        GT_FUNCTION
-        uint_t block_size_i() { return m_block_size_i; }
-        GT_FUNCTION
-        uint_t block_size_j() { return m_block_size_j; }
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
@@ -175,28 +148,6 @@ namespace gridtools {
         strides_cached_t &RESTRICT strides_impl() {
             //        assert((m_pshared_iterate_domain));
             return m_pshared_iterate_domain->strides();
-        }
-
-        template <ushort_t Coordinate, typename Execution>
-        GT_FUNCTION void increment_impl() {
-            if (Coordinate != 0 && Coordinate != 1)
-                return;
-            m_thread_pos[Coordinate] += Execution::value;
-        }
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment_impl(const int_t steps) {
-            if (Coordinate != 0 && Coordinate != 1)
-                return;
-            m_thread_pos[Coordinate] += steps;
-        }
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize_impl() {
-            if (Coordinate == 0)
-                m_thread_pos[Coordinate] = threadIdx.x;
-            else if (Coordinate == 1)
-                m_thread_pos[Coordinate] = threadIdx.y;
         }
 
         /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs

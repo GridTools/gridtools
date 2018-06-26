@@ -41,13 +41,11 @@
 #include "./backend_mic/tmp_storage.hpp"
 
 namespace gridtools {
-    template <class StorageInfo,
-        uint_t NColors,
-        enumtype::platform BackendId,
-        enumtype::strategy StrategyId,
-        class Size3D>
-    StorageInfo make_tmp_storage_info(
-        backend_ids<BackendId, enumtype::icosahedral, StrategyId> const &, Size3D const &size) {
-        return StorageInfo{size[0], NColors, size[1], size[2]};
-    }
+    namespace tmp_storage {
+        template <class StorageInfo, size_t NColors, enumtype::platform Platform, enumtype::strategy Strategy>
+        StorageInfo make_storage_info(
+            backend_ids<Platform, enumtype::icosahedral, Strategy> const &, size_t i, size_t j, size_t k) {
+            return StorageInfo{i, NColors, j, k};
+        }
+    } // namespace tmp_storage
 } // namespace gridtools

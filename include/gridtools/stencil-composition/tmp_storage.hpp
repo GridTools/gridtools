@@ -39,7 +39,10 @@
 #include "../common/host_device.hpp"
 
 #include "./arg.hpp"
+#include "./block.hpp"
+#include "./grid.hpp"
 #include "./location_type.hpp"
+#include "./pos3.hpp"
 
 #include "./backend_cuda/tmp_storage.hpp"
 #include "./backend_host/tmp_storage.hpp"
@@ -51,18 +54,46 @@
 #endif
 
 namespace gridtools {
+    namespace tmp_storage {
+        template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
+        size_t get_k_size(Backend const &, size_t /*block_size*/, size_t total_size) {
+            return total_size;
+        }
+        template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
+        GT_FUNCTION ptrdiff_t get_k_block_offset(Backend const &, size_t /*block_size*/, size_t /*block_no*/) {
+            return 0;
+        }
+    } // namespace tmp_storage
 
     template <class MaxExtent, uint_t ArgId, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
         Backend const &, arg<ArgId, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
+        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;
         static constexpr auto backend = typename Backend::backend_ids_t{};
-        return {make_tmp_storage_info<storage_info_t, NColors>(
-            backend, get_tmp_data_storage_size<storage_info_t, MaxExtent>(backend, grid))};
+        return {make_storage_info<storage_info_t, NColors>(backend,
+            get_i_size<storage_info_t, MaxExtent>(
+                backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
+            get_j_size<storage_info_t, MaxExtent>(
+                backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
+            get_k_size<storage_info_t, MaxExtent>(backend, block_k_size(backend, grid), grid.k_total_length()))};
     }
 
-    template <uint_t /*Coordinate*/, class /*MaxExtent*/, class /*StorageInfo*/, class BackendIds>
-    GT_FUNCTION constexpr int_t tmp_storage_block_offset_multiplier(BackendIds const &) {
-        return 0;
+    template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
+    GT_FUNCTION ptrdiff_t get_tmp_storage_offset(Backend const &backend,
+        Stride const &RESTRICT stride,
+        BlockNo const &RESTRICT block_no,
+        PosInBlock const &RESTRICT pos_in_block) {
+        using namespace tmp_storage;
+        static constexpr auto block_size =
+            make_pos3(block_i_size(Backend{}), block_j_size(Backend{}), block_k_size(Backend{}));
+        return stride.i *
+                   (get_i_block_offset<StorageInfo, MaxExtent>(backend, block_size.i, block_no.i) + pos_in_block.i) +
+               stride.j *
+                   (get_j_block_offset<StorageInfo, MaxExtent>(backend, block_size.j, block_no.j) + pos_in_block.j) +
+               stride.k *
+                   (get_k_block_offset<StorageInfo, MaxExtent>(backend, block_size.k, block_no.k) + pos_in_block.k);
     };
+
 } // namespace gridtools

@@ -35,27 +35,6 @@
 */
 #pragma once
 
-#include <type_traits>
-
-#include "../../common/defs.hpp"
-#include "../backend_ids.hpp"
-
-#include "coordinate.hpp"
-#include "grid_traits_backend_fwd.hpp"
-
-namespace gridtools {
-
-    template <>
-    struct grid_traits_from_id<enumtype::icosahedral> {
-        using dummy_t = backend_ids<enumtype::Host, enumtype::icosahedral, enumtype::Block>;
-        using dim_i_t = coord_i<dummy_t>;
-        using dim_j_t = coord_j<dummy_t>;
-        using dim_k_t = coord_k<dummy_t>;
-        using dim_c_t = std::integral_constant<size_t, 1>;
-
-        template <enumtype::platform BackendId>
-        struct with_arch {
-            typedef icgrid::grid_traits_arch<BackendId> type;
-        };
-    };
-} // namespace gridtools
+#include "./backend_cuda/grid_traits_cuda.hpp"
+#include "./backend_host/grid_traits_host.hpp"
+#include "./backend_mic/grid_traits_mic.hpp"

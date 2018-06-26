@@ -43,7 +43,6 @@
 #include "../common/gt_assert.hpp"
 #include "computation_grammar.hpp"
 #include "esf_metafunctions.hpp"
-#include "grid_traits_metafunctions.hpp"
 #include "linearize_mss_functions.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"

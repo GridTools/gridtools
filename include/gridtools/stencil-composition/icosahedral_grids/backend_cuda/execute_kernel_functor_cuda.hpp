@@ -139,13 +139,9 @@ namespace gridtools {
             // the block
             //   get negative values
 
-            int i = max_extent_t::iminus::value - 1;
-            int j = max_extent_t::jminus::value - 1;
             int iblock = max_extent_t::iminus::value - 1;
             int jblock = max_extent_t::jminus::value - 1;
             if (threadIdx.y < jboundary_limit) {
-                i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.y + max_extent_t::jminus::value;
                 iblock = threadIdx.x;
                 jblock = (int)threadIdx.y + max_extent_t::jminus::value;
             } else if (threadIdx.y < iminus_limit) {
@@ -155,9 +151,6 @@ namespace gridtools {
                            padded_boundary_ <=
                        enumtype::vector_width);
 
-                i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
-                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
-                    max_extent_t::jminus::value;
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
@@ -167,38 +160,19 @@ namespace gridtools {
                            padded_boundary_ <=
                        enumtype::vector_width);
 
-                i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
-                    block_size_t::i_size_t::value;
-                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
-                    max_extent_t::jminus::value;
                 iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
-            it_domain.reset_index();
-
-            // initialize the i index
-            it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value>(
-                i + grid.i_low_bound(), blockIdx.x);
-            // initialize to color 0
-            it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value>(0, 0);
-            // initialize the j index
-            it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value>(
-                j + grid.j_low_bound(), blockIdx.y);
-
-            it_domain.set_block_pos(iblock, jblock);
-
             typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
             typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from,
-                to,
-                typename grid_traits_from_id<enumtype::icosahedral>::dim_k_t,
-                execution_type_t::type::iteration>
-                iteration_policy_t;
+            typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
 
-            it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_k_t::value>(
-                grid.template value_at<iteration_policy_t::from>());
+            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
+                {blockIdx.x, blockIdx.y, 0},
+                {iblock, jblock, grid.template value_at<iteration_policy_t::from>() - grid.k_min()});
+            it_domain.set_block_pos(iblock, jblock);
 
             // execute the k interval functors
             boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(

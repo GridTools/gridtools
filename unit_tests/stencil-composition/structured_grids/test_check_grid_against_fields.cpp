@@ -40,7 +40,7 @@
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/stencil-composition/grid_traits.hpp>
+#include <gridtools/stencil-composition/backend_ids.hpp>
 #include <gridtools/storage/common/halo.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
@@ -69,7 +69,7 @@ namespace gridtools {
         halo_descriptor dj = {0, 0, 0, gy - 1, gy};
 
         auto grid = make_grid(di, dj, gz);
-        auto testee = storage_info_fits_grid<grid_traits_from_id<enumtype::structured>>(grid);
+        auto testee = storage_info_fits_grid<backend_ids<enumtype::Host, enumtype::structured, enumtype::Block>>(grid);
 
         return testee(storage_info_t{x + 3, y, z}) && testee(storage_info_t{x, y + 2, z}) &&
                testee(storage_info_t{x, y, z + 1});

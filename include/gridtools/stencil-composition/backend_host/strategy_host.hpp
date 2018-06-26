@@ -43,7 +43,6 @@
 #include "../mss_components.hpp"
 #include "../mss_functor.hpp"
 #include "../reductions/reduction_data.hpp"
-#include "./block.hpp"
 #include "./execute_kernel_functor_host.hpp"
 
 namespace gridtools {
@@ -65,8 +64,8 @@ namespace gridtools {
     struct strategy_from_id_host<enumtype::Naive> {
         // default block size for Naive strategy
         typedef block_size<0, 0> block_size_t;
-        static const uint_t BI = block_size_t::i_size_t::value;
-        static const uint_t BJ = block_size_t::j_size_t::value;
+        static constexpr auto BI = block_size_t::i_size_t::value;
+        static constexpr auto BJ = block_size_t::j_size_t::value;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -113,12 +112,8 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-                typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
-                typedef typename grid_traits_t::template with_arch<enumtype::Host>::type arch_grid_traits_t;
-
                 // getting the architecture and grid dependent traits
-                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type
-                    kernel_functor_executor_t;
+                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT(
@@ -134,12 +129,11 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_host<enumtype::Block> {
-        using dummy_t = backend_ids<enumtype::Host, enumtype::structured, enumtype::Block>;
         // default block size for Block strategy
-        typedef block_size<block_i_size(dummy_t{}), block_j_size(dummy_t{})> block_size_t;
+        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J> block_size_t;
 
-        static constexpr uint_t BI = block_size_t::i_size_t::value;
-        static constexpr uint_t BJ = block_size_t::j_size_t::value;
+        static constexpr auto BI = block_size_t::i_size_t::value;
+        static constexpr auto BJ = block_size_t::j_size_t::value;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -202,11 +196,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-                typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
-                typedef typename grid_traits_t::template with_arch<enumtype::Host>::type arch_grid_traits_t;
-
-                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type
-                    kernel_functor_executor_t;
+                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR);

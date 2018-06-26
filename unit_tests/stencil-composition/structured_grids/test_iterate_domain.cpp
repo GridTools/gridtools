@@ -176,7 +176,7 @@ namespace test_iterate_domain {
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
 #ifndef BACKEND_MIC
-        it_domain.reset_index();
+        it_domain.initialize({}, {}, {});
 #endif
         auto inv = make_field_host_view(in);
         inv.get<0, 0>()(0, 0, 0, 0) = 0.; // is accessor<0>
@@ -278,8 +278,7 @@ namespace test_iterate_domain {
 
         // check index initialization and increment
 
-        array<int_t, 3> index;
-        index = it_domain.index();
+        auto index = it_domain.index();
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
 #ifndef BACKEND_MIC
         index[0] += 3;
@@ -295,17 +294,16 @@ namespace test_iterate_domain {
         auto mdb = buff.template get<0, 0>().get_storage_info_ptr();
         auto mdi = in.template get<0, 0>().get_storage_info_ptr();
 
-        array<int_t, 3> new_index;
 #ifdef BACKEND_MIC
         it_domain.set_i_block_index(1);
         it_domain.set_j_block_index(1);
         it_domain.set_k_block_index(1);
 #else
-        it_domain.increment<0, static_uint<1>>(); // increment i
-        it_domain.increment<1, static_uint<1>>(); // increment j
-        it_domain.increment<2, static_uint<1>>(); // increment k
+        it_domain.increment_i();
+        it_domain.increment_j();
+        it_domain.increment_k();
 #endif
-        new_index = it_domain.index();
+        auto new_index = it_domain.index();
 
         // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra
         // stride

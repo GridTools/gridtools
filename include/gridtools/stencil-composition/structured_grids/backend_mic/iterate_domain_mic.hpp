@@ -111,7 +111,6 @@ namespace gridtools {
 
         using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
         using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
-        using grid_traits_t = typename IterateDomainArguments::grid_traits_t;
         using backend_traits_t = backend_traits_from_id<enumtype::Mic>;
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;

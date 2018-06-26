@@ -101,15 +101,6 @@ namespace gridtools {
 
         iterate_domain_host const &get() const { return *this; }
 
-        template <ushort_t Coordinate, typename Execution>
-        GT_FUNCTION void increment_impl() {}
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment_impl(int_t steps) {}
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize_impl() {}
-
         template <typename ReturnType, typename Accessor, typename StoragePointer>
         GT_FUNCTION ReturnType get_value_impl(
             StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {

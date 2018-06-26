@@ -48,17 +48,6 @@
 
 namespace gridtools {
 
-    namespace _impl {
-        template <ushort_t Index, typename IterateDomain, typename VT>
-        typename boost::enable_if<typename is_positional_iterate_domain<IterateDomain>::type, void>::type GT_FUNCTION
-        reset_index_if_positional(IterateDomain &itdom, VT value) {
-            itdom.template reset_positional_index<Index>(value);
-        }
-        template <ushort_t Index, typename IterateDomain, typename VT>
-        typename boost::disable_if<typename is_positional_iterate_domain<IterateDomain>::type, void>::type GT_FUNCTION
-        reset_index_if_positional(IterateDomain &, VT) {}
-    } // namespace _impl
-
     namespace strgrid {
 
         /**
@@ -67,35 +56,6 @@ namespace gridtools {
          */
         template <typename RunFunctorArguments>
         struct execute_kernel_functor_host {
-            /**
-             * @brief functor implementing the kernel executed in the innermost loop
-             * This functor contains the portion of the code executed in the innermost loop. In this case it
-             * is the loop over the third dimension (k), but the generality of the loop hierarchy implementation
-             * allows to easily generalize this.
-             */
-            template <typename LoopIntervals,
-                typename RunOnInterval,
-                typename IterateDomain,
-                typename Grid,
-                typename IterationPolicy>
-            struct innermost_functor {
-
-              private:
-                IterateDomain &m_it_domain;
-                const Grid &m_grid;
-
-              public:
-                IterateDomain const &it_domain() const { return m_it_domain; }
-
-                innermost_functor(IterateDomain &it_domain, const Grid &grid) : m_it_domain(it_domain), m_grid(grid) {}
-
-                void operator()() const {
-                    m_it_domain.template initialize<2>(m_grid.template value_at<typename IterationPolicy::from>());
-
-                    boost::mpl::for_each<LoopIntervals>(RunOnInterval(m_it_domain, m_grid));
-                }
-            };
-
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
@@ -177,10 +137,7 @@ namespace gridtools {
                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
                 typedef typename index_to_level<typename interval::second>::type to;
-                typedef ::gridtools::_impl::iteration_policy<from,
-                    to,
-                    typename ::gridtools::grid_traits_from_id<enumtype::structured>::dim_k_t,
-                    execution_type_t::type::iteration>
+                typedef ::gridtools::_impl::iteration_policy<from, to, execution_type_t::type::iteration>
                     iteration_policy_t;
 
                 const int_t ifirst = m_first_pos[0] + extent_t::iminus::value;
@@ -188,21 +145,11 @@ namespace gridtools {
                 const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
                 const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
 
-                // reset the index
-                it_domain.reset_index();
-                it_domain.template initialize<0>(ifirst, m_block_id[0]);
-                it_domain.template initialize<1>(jfirst, m_block_id[1]);
-
-                // define the kernel functor
-                typedef innermost_functor<loop_intervals_t,
-                    ::gridtools::_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>,
-                    iterate_domain_t,
-                    grid_t,
-                    iteration_policy_t>
-                    innermost_functor_t;
-
-                // instantiate the kernel functor
-                innermost_functor_t f(it_domain, m_grid);
+                it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
+                    {m_block_id[0], m_block_id[1], 0},
+                    {extent_t::iminus::value,
+                        extent_t::jminus::value,
+                        m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min()});
 
                 // run the nested ij loop
                 typename iterate_domain_t::array_index_t irestore_index, jrestore_index;
@@ -210,20 +157,20 @@ namespace gridtools {
 #if defined(VERBOSE) && !defined(NDEBUG)
                     std::cout << "iteration " << i << ", index i" << std::endl;
 #endif
-                    ::gridtools::_impl::reset_index_if_positional<0>(it_domain, i);
                     irestore_index = it_domain.index();
                     for (int_t j = jfirst; j <= jlast; ++j) {
 #if defined(VERBOSE) && !defined(NDEBUG)
                         std::cout << "iteration " << j << ", index j" << std::endl;
 #endif
-                        ::gridtools::_impl::reset_index_if_positional<1>(it_domain, j);
                         jrestore_index = it_domain.index();
-                        f();
+                        boost::mpl::for_each<loop_intervals_t>(
+                            ::gridtools::_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>{
+                                it_domain, m_grid});
                         it_domain.set_index(jrestore_index);
-                        it_domain.template increment<1, static_uint<1>>();
+                        it_domain.increment_j();
                     }
                     it_domain.set_index(irestore_index);
-                    it_domain.template increment<0, static_uint<1>>();
+                    it_domain.increment_i();
                 }
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
                 m_reduction_data.reduce();

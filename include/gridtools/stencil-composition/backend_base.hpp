@@ -125,7 +125,6 @@ namespace gridtools {
         typedef backend_ids<BackendId, GridId, StrategyId> backend_ids_t;
 
         typedef backend_traits_from_id<BackendId> backend_traits_t;
-        typedef grid_traits_from_id<GridId> grid_traits_t;
         typedef storage_traits<BackendId> storage_traits_t;
         typedef typename backend_traits_t::template select_strategy<backend_ids_t>::type strategy_traits_t;
 

@@ -39,7 +39,7 @@ namespace gridtools {
     namespace _impl {
 
         /**\brief policy defining the behaviour on the vertical direction*/
-        template <typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType>
+        template <typename From, typename To, enumtype::execution ExecutionType>
         struct iteration_policy;
     } // namespace _impl
 

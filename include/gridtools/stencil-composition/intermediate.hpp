@@ -60,6 +60,7 @@
 #include "backend_traits_fwd.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "conditionals/condition_tree.hpp"
+#include "coordinate.hpp"
 #include "esf.hpp"
 #include "functor_do_method_lookup_maps.hpp"
 #include "functor_do_methods.hpp"
@@ -200,7 +201,7 @@ namespace gridtools {
             return true;
         }
 
-        template <class GridTraits, class Grid>
+        template <class Backend, class Grid>
         struct storage_info_fits_grid_f {
             Grid const &grid;
 
@@ -223,9 +224,9 @@ namespace gridtools {
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                return storage_info_dim_fits<GridTraits::dim_k_t::value>(src, grid.k_max()) &&
-                       storage_info_dim_fits<GridTraits::dim_j_t::value>(src, grid.j_high_bound()) &&
-                       storage_info_dim_fits<GridTraits::dim_i_t::value>(src, grid.i_high_bound());
+                return storage_info_dim_fits<coord_k<Backend>::value>(src, grid.k_max()) &&
+                       storage_info_dim_fits<coord_j<Backend>::value>(src, grid.j_high_bound()) &&
+                       storage_info_dim_fits<coord_i<Backend>::value>(src, grid.i_high_bound());
             }
         };
 
@@ -237,8 +238,8 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class GridTraits, class Grid>
-    _impl::storage_info_fits_grid_f<GridTraits, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class BackendIds, class Grid>
+    _impl::storage_info_fits_grid_f<BackendIds, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
@@ -413,9 +414,6 @@ namespace gridtools {
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
                 m_meter.reset(new performance_meter_t{"NoName"});
-
-            // check_grid_against_extents< all_extents_vecs_t >(grid);
-            // check_fields_sizes< grid_traits_t >(grid, domain);
 
             // Here we make views (actually supplemental view_info structures are made) from both temporary and bound
             // storages, concatenate them together and pass to `update_local_domains`

@@ -44,7 +44,6 @@
 #include "../grid.hpp"
 #include "../mss_components.hpp"
 #include "../reductions/reduction_data.hpp"
-#include "./block.hpp"
 
 namespace gridtools {
 
@@ -73,7 +72,7 @@ namespace gridtools {
     struct strategy_from_id_cuda<enumtype::Block> {
         using dummy_t = backend_ids<enumtype::Cuda, enumtype::structured, enumtype::Block>;
         // default block size for Block strategy
-        using block_size_t = block_size<block_i_size(dummy_t{}), block_j_size(dummy_t{}), 1>;
+        using block_size_t = block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1>;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block

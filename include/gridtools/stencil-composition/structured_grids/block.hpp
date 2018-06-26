@@ -35,17 +35,4 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../backend_ids.hpp"
-
-#include "./backend_mic/tmp_storage.hpp"
-
-namespace gridtools {
-    namespace tmp_storage {
-        template <class StorageInfo, size_t /*NColors*/, enumtype::platform Platform, enumtype::strategy Strategy>
-        StorageInfo make_storage_info(
-            backend_ids<Platform, enumtype::structured, Strategy> const &, size_t i, size_t j, size_t k) {
-            return StorageInfo{i, j, k};
-        }
-    } // namespace tmp_storage
-} // namespace gridtools
+#include "./backend_mic/block.hpp"

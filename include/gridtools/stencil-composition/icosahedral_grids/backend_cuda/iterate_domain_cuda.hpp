@@ -73,13 +73,13 @@ namespace gridtools {
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
 
-        //    using super::get_value;
-        //    using super::get_data_pointer;
-
       private:
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+
+        using super::increment_i;
+        using super::increment_j;
 
       public:
         template <typename Accessor>
@@ -94,14 +94,6 @@ namespace gridtools {
             const uint_t block_size_j)
             : super(local_domain, grid_topology), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
-        GT_FUNCTION
-        uint_t thread_position_x() const { return threadIdx.x; }
-
-        template <int_t minus, int_t plus>
-        GT_FUNCTION uint_t thread_position_y() const {
-            return threadIdx.y;
-        }
-
         /**
          * @brief determines whether the current (i,j) position is within the block size
          */
@@ -115,40 +107,10 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_block_pos(const int_t ipos, const int_t jpos) {
+        void set_block_pos(int_t ipos, int_t jpos) {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
         }
-
-        /**
-         * @brief determines whether the current (i,j) position + an offset is within the block size
-         */
-        template <typename Extent>
-        GT_FUNCTION bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const {
-            return is_thread_in_domain_x<Extent::iminus::value, Extent::iplus::value>(i_offset) &&
-                   is_thread_in_domain_y<Extent::jminus::value, Extent::jplus::value>(j_offset);
-        }
-
-        /**
-         * @brief determines whether the current (i) position + an offset is within the block size
-         */
-        template <int_t minus, int_t plus>
-        GT_FUNCTION bool is_thread_in_domain_x(const int_t i_offset) const {
-            return m_thread_pos[0] + i_offset >= minus && m_thread_pos[0] + i_offset < (int)m_block_size_i + plus;
-        }
-
-        /**
-         * @brief determines whether the current (j) position is within the block size
-         */
-        template <int_t minus, int_t plus>
-        GT_FUNCTION bool is_thread_in_domain_y(const int_t j_offset) const {
-            return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus;
-        }
-
-        GT_FUNCTION
-        uint_t block_size_i() { return m_block_size_i; }
-        GT_FUNCTION
-        uint_t block_size_j() { return m_block_size_j; }
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
@@ -174,40 +136,6 @@ namespace gridtools {
         strides_cached_t &RESTRICT strides_impl() {
             //        assert((m_pshared_iterate_domain));
             return m_pshared_iterate_domain->strides();
-        }
-
-        template <ushort_t Coordinate, typename Execution>
-        GT_FUNCTION void increment_impl() {
-            if (Coordinate != grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value &&
-                Coordinate != grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value)
-                return;
-
-            if (Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value)
-                m_thread_pos[Coordinate] += Execution::value;
-            else if (Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value)
-                m_thread_pos[1] += Execution::value;
-        }
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment_impl(const int_t steps) {
-            // TODO provide this return at compile time
-            if (Coordinate != grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value &&
-                Coordinate != grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value)
-                return;
-
-            if (Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value)
-                m_thread_pos[0] += steps;
-            else if (Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value)
-                m_thread_pos[1] += steps;
-        }
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize_impl() {
-
-            if (Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value)
-                m_thread_pos[0] = threadIdx.x;
-            else if (Coordinate == grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value)
-                m_thread_pos[1] = threadIdx.y;
         }
 
         /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs

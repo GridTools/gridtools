@@ -120,12 +120,7 @@ namespace gridtools {
             template <typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo>
             static void run(
                 LocalDomain &local_domain, const Grid &grid, ReductionData &reduction_data, ExecutionInfo &&) {
-
-                typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
-                typedef typename grid_traits_t::template with_arch<enumtype::Cuda>::type arch_grid_traits_t;
-
-                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type
-                    kernel_functor_executor_t;
+                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
                 kernel_functor_executor_t(local_domain, grid)();
             }
         };
