@@ -107,8 +107,7 @@ namespace gridtools {
                 uint_t const from = m_grid.template value_at<from_t>();
                 uint_t const to = m_grid.template value_at<to_t>();
 
-                static_cast<RunFOnIntervalImpl *>(const_cast<run_f_on_interval_base<RunFOnIntervalImpl> *>(this))
-                    ->template k_loop<iteration_policy_t, Interval>(from, to);
+                static_cast<RunFOnIntervalImpl const *>(this)->template k_loop<iteration_policy_t, Interval>(from, to);
             }
 
           protected:

@@ -118,7 +118,14 @@ namespace gridtools {
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
-                kernel_functor_executor_t(local_domain, grid, reduction_data)();
+
+                kernel_functor_executor_t{local_domain,
+                    grid,
+                    reduction_data,
+                    grid.i_high_bound() - grid.i_low_bound() + 1,
+                    grid.j_high_bound() - grid.j_low_bound() + 1,
+                    0,
+                    0}();
             }
         };
     };
@@ -201,36 +208,20 @@ namespace gridtools {
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR);
 
-                uint_t n = grid.i_high_bound() - grid.i_low_bound();
-                uint_t m = grid.j_high_bound() - grid.j_low_bound();
+                auto block_size_f = [](size_t total, size_t block_size, size_t block_no) {
+                    auto n = (total + block_size - 1) / block_size;
+                    return block_no == n - 1 ? total - block_no * block_size : block_size;
+                };
+                auto total_i = grid.i_high_bound() - grid.i_low_bound() + 1;
+                auto total_j = grid.j_high_bound() - grid.j_low_bound() + 1;
 
-                uint_t NBI = n / BI;
-                uint_t NBJ = m / BJ;
-
-                uint_t first_i = execution_info.bi * BI + grid.i_low_bound();
-                uint_t first_j = execution_info.bj * BJ + grid.j_low_bound();
-
-                uint_t last_i = BI - 1;
-                uint_t last_j = BJ - 1;
-
-                if (execution_info.bi == NBI && execution_info.bj == NBJ) {
-                    last_i = n - NBI * BI;
-                    last_j = m - NBJ * BJ;
-                } else if (execution_info.bi == NBI) {
-                    last_i = n - NBI * BI;
-                } else if (execution_info.bj == NBJ) {
-                    last_j = m - NBJ * BJ;
-                }
-
-                kernel_functor_executor_t(local_domain,
+                kernel_functor_executor_t{local_domain,
                     grid,
                     reduction_data,
-                    first_i,
-                    first_j,
-                    last_i,
-                    last_j,
+                    block_size_f(total_i, BI, execution_info.bi),
+                    block_size_f(total_j, BJ, execution_info.bj),
                     execution_info.bi,
-                    execution_info.bj)();
+                    execution_info.bj}();
             }
         };
     };
