@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include <cstddef>
-
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 
@@ -53,20 +51,20 @@
 
 namespace gridtools {
     template <class Backend>
-    GT_FUNCTION constexpr size_t block_k_size(Backend const &) {
+    GT_FUNCTION constexpr uint_t block_k_size(Backend const &) {
         return 0;
     }
 
     template <class Backend, class Grid>
-    size_t block_i_size(Backend const &backend, Grid const &) {
+    uint_t block_i_size(Backend const &backend, Grid const &) {
         return block_i_size(backend);
     }
     template <class Backend, class Grid>
-    size_t block_j_size(Backend const &backend, Grid const &) {
+    uint_t block_j_size(Backend const &backend, Grid const &) {
         return block_j_size(backend);
     }
     template <class Backend, class Grid>
-    size_t block_k_size(Backend const &, Grid const &grid) {
+    uint_t block_k_size(Backend const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.k_total_length();
     }

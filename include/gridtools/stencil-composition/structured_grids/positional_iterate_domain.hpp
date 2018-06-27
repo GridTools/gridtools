@@ -48,44 +48,43 @@ namespace gridtools {
 
         struct array_index_t {
             typename base_t::array_index_t index;
-            pos3<ptrdiff_t> pos;
+            pos3<int_t> pos;
 
-            auto operator[](ptrdiff_t i) const GT_AUTO_RETURN(index[i]);
-            auto operator[](ptrdiff_t i) GT_AUTO_RETURN(index[i]);
+            auto operator[](int_t i) const GT_AUTO_RETURN(index[i]);
+            auto operator[](int_t i) GT_AUTO_RETURN(index[i]);
         };
 
         using iterate_domain<IterateDomainImpl>::iterate_domain;
 
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_i() {
             m_pos.i += Step;
             base_t::template increment_i<Step>();
         }
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_j() {
             m_pos.j += Step;
             base_t::template increment_j<Step>();
         }
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_k() {
             m_pos.k += Step;
             base_t::template increment_k<Step>();
         }
-        GT_FUNCTION void increment_i(ptrdiff_t step) {
+        GT_FUNCTION void increment_i(int_t step) {
             m_pos.i += step;
             base_t::increment_i(step);
         }
-        GT_FUNCTION void increment_j(ptrdiff_t step) {
+        GT_FUNCTION void increment_j(int_t step) {
             m_pos.j += step;
             base_t::increment_j(step);
         }
-        GT_FUNCTION void increment_k(ptrdiff_t step) {
+        GT_FUNCTION void increment_k(int_t step) {
             m_pos.k += step;
             base_t::increment_k(step);
         }
 
-        GT_FUNCTION void initialize(
-            pos3<ptrdiff_t> const &begin, pos3<size_t> const &block_no, pos3<ptrdiff_t> const &pos_in_block) {
+        GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             static constexpr auto backend = typename base_t::iterate_domain_arguments_t::backend_ids_t{};
             static constexpr auto block_size =
                 make_pos3(block_i_size(backend), block_j_size(backend), block_k_size(backend));
@@ -102,13 +101,13 @@ namespace gridtools {
             m_pos = index.pos;
         }
 
-        GT_FUNCTION ptrdiff_t i() const { return m_pos.i; }
+        GT_FUNCTION int_t i() const { return m_pos.i; }
 
-        GT_FUNCTION ptrdiff_t j() const { return m_pos.j; }
+        GT_FUNCTION int_t j() const { return m_pos.j; }
 
-        GT_FUNCTION ptrdiff_t k() const { return m_pos.k; }
+        GT_FUNCTION int_t k() const { return m_pos.k; }
 
       private:
-        pos3<ptrdiff_t> m_pos;
+        pos3<int_t> m_pos;
     };
 } // namespace gridtools

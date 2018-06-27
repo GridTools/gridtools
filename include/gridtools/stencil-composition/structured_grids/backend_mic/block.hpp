@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include <cstddef>
-
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../backend_ids.hpp"
@@ -44,11 +42,11 @@
 
 namespace gridtools {
     template <class Grid>
-    size_t block_i_size(backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
+    uint_t block_i_size(backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
         return execinfo_mic{grid}.i_block_size();
     }
     template <class Grid>
-    size_t block_j_size(backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
+    uint_t block_j_size(backend_ids<enumtype::Mic, enumtype::structured, enumtype::Block> const &, Grid const &grid) {
         return execinfo_mic{grid}.j_block_size();
     }
 } // namespace gridtools

@@ -250,7 +250,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
-        ptrdiff_t m_increment;
+        int_t m_increment;
         ArrayIndex &m_index_array;
         StridesCached const &RESTRICT m_strides_cached;
 
@@ -260,7 +260,7 @@ namespace gridtools {
         GT_FUNCTION void operator()(const StorageInfo *) const {}
 
         template <typename StorageInfo,
-            size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
+            uint_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
@@ -297,7 +297,7 @@ namespace gridtools {
     template <class StorageInfo, class MaxExtent>
     struct get_index_offset_f<StorageInfo, MaxExtent, false> {
         template <class Backend, class Stride, class Begin, class BlockNo, class PosInBlock>
-        GT_FUNCTION ptrdiff_t operator()(Backend const &,
+        GT_FUNCTION int_t operator()(Backend const &,
             Stride const &RESTRICT stride,
             Begin const &RESTRICT begin,
             BlockNo const &RESTRICT block_no,
@@ -313,7 +313,7 @@ namespace gridtools {
     template <class StorageInfo, class MaxExtent>
     struct get_index_offset_f<StorageInfo, MaxExtent, true> {
         template <class Backend, class Stride, class Begin, class BlockNo, class PosInBlock>
-        GT_FUNCTION ptrdiff_t operator()(Backend const &backend,
+        GT_FUNCTION int_t operator()(Backend const &backend,
             Stride const &RESTRICT stride,
             Begin const &RESTRICT /*begin*/,
             BlockNo const &RESTRICT block_no,
@@ -327,12 +327,12 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
         Strides const &RESTRICT m_strides;
-        pos3<ptrdiff_t> m_begin;
-        pos3<size_t> m_block_no;
-        pos3<ptrdiff_t> m_pos_in_block;
+        pos3<uint_t> m_begin;
+        pos3<uint_t> m_block_no;
+        pos3<int_t> m_pos_in_block;
         ArrayIndex &RESTRICT m_index_array;
 
-        template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
+        template <typename StorageInfo, uint_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using max_extent_t = typename LocalDomain::max_i_extent_t;

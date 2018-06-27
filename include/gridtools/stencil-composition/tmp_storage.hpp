@@ -81,7 +81,7 @@ namespace gridtools {
     }
 
     template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
-    GT_FUNCTION ptrdiff_t get_tmp_storage_offset(Backend const &backend,
+    GT_FUNCTION int_t get_tmp_storage_offset(Backend const &backend,
         Stride const &RESTRICT stride,
         BlockNo const &RESTRICT block_no,
         PosInBlock const &RESTRICT pos_in_block) {

@@ -208,7 +208,7 @@ namespace gridtools {
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR);
 
-                auto block_size_f = [](size_t total, size_t block_size, size_t block_no) {
+                auto block_size_f = [](uint_t total, uint_t block_size, uint_t block_no) {
                     auto n = (total + block_size - 1) / block_size;
                     return block_no == n - 1 ? total - block_no * block_size : block_size;
                 };

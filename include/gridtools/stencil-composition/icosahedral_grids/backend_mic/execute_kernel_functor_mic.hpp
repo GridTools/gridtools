@@ -178,7 +178,8 @@ namespace gridtools {
                     {m_block_id[0], m_block_id[1], 0},
                     {extent_t::iminus::value,
                         extent_t::jminus::value,
-                        m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min()});
+                        static_cast<int_t>(
+                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
 
                 for (uint_t i = m_first_pos[0] + extent_t::iminus::value;
                      i <= m_first_pos[0] + m_loop_size[0] + extent_t::iplus::value;

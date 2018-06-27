@@ -87,17 +87,17 @@ namespace gridtools {
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
             reduction_data_t &m_reduction_data;
-            pos3<size_t> m_size;
-            pos3<size_t> m_block_no;
+            pos3<uint_t> m_size;
+            pos3<uint_t> m_block_no;
 
           public:
             execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,
                 reduction_data_t &reduction_data,
-                size_t block_size_i,
-                size_t block_size_j,
-                size_t block_no_i,
-                size_t block_no_j)
+                uint_t block_size_i,
+                uint_t block_size_j,
+                uint_t block_no_i,
+                uint_t block_no_j)
                 : m_local_domain(local_domain), m_grid(grid),
                   m_reduction_data(reduction_data), m_size{block_size_i + extent_t::iplus::value -
                                                                extent_t::iminus::value,
@@ -121,13 +121,14 @@ namespace gridtools {
                     m_block_no,
                     {extent_t::iminus::value,
                         extent_t::jminus::value,
-                        m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min()});
+                        static_cast<int_t>(
+                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
 
                 // run the nested ij loop
                 typename iterate_domain_t::array_index_t irestore_index, jrestore_index;
-                for (size_t i = 0; i != m_size.i; ++i) {
+                for (uint_t i = 0; i != m_size.i; ++i) {
                     irestore_index = it_domain.index();
-                    for (size_t j = 0; j != m_size.j; ++j) {
+                    for (uint_t j = 0; j != m_size.j; ++j) {
                         jrestore_index = it_domain.index();
                         boost::mpl::for_each<loop_intervals_t>(
                             gridtools::_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>{

@@ -64,10 +64,10 @@ namespace gridtools {
           private:
             IterateDomain &m_it_domain;
             Grid const &m_grid;
-            size_t m_loop_size;
+            uint_t m_loop_size;
 
           public:
-            color_execution_functor(IterateDomain &it_domain, Grid const &grid, size_t loop_size)
+            color_execution_functor(IterateDomain &it_domain, Grid const &grid, uint_t loop_size)
                 : m_it_domain(it_domain), m_grid(grid), m_loop_size(loop_size) {}
 
             template <typename Index>
@@ -75,7 +75,7 @@ namespace gridtools {
                 typename boost::enable_if<typename esf_sequence_contains_color<esf_sequence_t,
                     color_type<Index::value>>::type>::type * = 0) const {
 
-                for (size_t j = 0; j != m_loop_size; ++j) {
+                for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
 
                     // we fill the run_functor_arguments with the current color being processed
@@ -134,10 +134,10 @@ namespace gridtools {
             execute_kernel_functor_host(const local_domain_t &local_domain,
                 const grid_t &grid,
                 ReductionData &&,
-                size_t block_size_i,
-                size_t block_size_j,
-                size_t block_no_i,
-                size_t block_no_j)
+                uint_t block_size_i,
+                uint_t block_size_j,
+                uint_t block_no_i,
+                uint_t block_no_j)
                 : m_local_domain(local_domain),
                   m_grid(grid), m_size{block_size_i + extent_t::iplus::value - extent_t::iminus::value,
                                     block_size_j + extent_t::jplus::value - extent_t::jminus::value},
@@ -159,9 +159,10 @@ namespace gridtools {
                     m_block_no,
                     {extent_t::iminus::value,
                         extent_t::jminus::value,
-                        m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min()});
+                        static_cast<int_t>(
+                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
 
-                for (size_t i = 0; i != m_size.i; ++i) {
+                for (uint_t i = 0; i != m_size.i; ++i) {
                     boost::mpl::for_each<boost::mpl::range_c<uint_t, 0, n_colors_t::value>>(
                         color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t, extent_t>{
                             it_domain, m_grid, m_size.j});
@@ -173,8 +174,8 @@ namespace gridtools {
           private:
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
-            pos3<size_t> m_size;
-            pos3<size_t> m_block_no;
+            pos3<uint_t> m_size;
+            pos3<uint_t> m_block_no;
         };
     } // namespace icgrid
 } // namespace gridtools

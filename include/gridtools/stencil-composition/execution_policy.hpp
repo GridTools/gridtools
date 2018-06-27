@@ -92,8 +92,9 @@ namespace gridtools {
                 typedef
                     typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
-                if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>())
+                if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
                     super::m_domain.template begin_fill<IterationPolicy>();
+                }
 
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
                     if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {

@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include <cstddef>
-
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../backend_ids.hpp"
@@ -44,30 +42,30 @@
 
 namespace gridtools {
     template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr size_t block_i_size(backend_ids<enumtype::Host, GridType, enumtype::Block> const &) {
+    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<enumtype::Host, GridType, enumtype::Block> const &) {
         return GT_DEFAULT_TILE_I;
     }
     template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr size_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Block> const &) {
+    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 
     template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr size_t block_i_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &) {
+    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &) {
         return 0;
     }
     template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr size_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &) {
+    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &) {
         return 0;
     }
 
     template <enumtype::grid_type GridType, class Grid>
-    size_t block_i_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &, Grid const &grid) {
+    uint_t block_i_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.i_high_bound() - grid.i_low_bound() + 1;
     }
     template <enumtype::grid_type GridType, class Grid>
-    size_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &, Grid const &grid) {
+    uint_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &, Grid const &grid) {
         return grid.j_high_bound() - grid.j_low_bound() + 1;
     }
 } // namespace gridtools

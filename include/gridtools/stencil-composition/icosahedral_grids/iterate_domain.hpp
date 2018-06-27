@@ -244,9 +244,7 @@ namespace gridtools {
         }
 
         /**@brief method for initializing the index */
-        GT_FUNCTION void initialize(pos3<ptrdiff_t> const &RESTRICT begin,
-            pos3<size_t> const &RESTRICT block_no,
-            pos3<ptrdiff_t> const &RESTRICT pos_in_block) {
+        GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
             boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
                 initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
@@ -254,37 +252,37 @@ namespace gridtools {
         }
 
       private:
-        template <size_t Coordinate, ptrdiff_t Step>
+        template <uint_t Coordinate, int_t Step>
         GT_FUNCTION void increment() {
             do_increment<Coordinate, Step>(m_local_domain, strides(), m_index);
         }
-        template <size_t Coordinate>
-        GT_FUNCTION void increment(ptrdiff_t step) {
+        template <uint_t Coordinate>
+        GT_FUNCTION void increment(int_t step) {
             do_increment<Coordinate>(step, m_local_domain, strides(), m_index);
         }
 
       public:
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_i() {
             increment<0, Step>();
         }
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_c() {
             increment<1, Step>();
         }
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_j() {
             increment<2, Step>();
         }
-        template <ptrdiff_t Step = 1>
+        template <int_t Step = 1>
         GT_FUNCTION void increment_k() {
             increment<3, Step>();
         }
 
-        GT_FUNCTION void increment_i(ptrdiff_t step) { increment<0>(step); }
-        GT_FUNCTION void increment_c(ptrdiff_t step) { increment<1>(step); }
-        GT_FUNCTION void increment_j(ptrdiff_t step) { increment<2>(step); }
-        GT_FUNCTION void increment_k(ptrdiff_t step) { increment<3>(step); }
+        GT_FUNCTION void increment_i(int_t step) { increment<0>(step); }
+        GT_FUNCTION void increment_c(int_t step) { increment<1>(step); }
+        GT_FUNCTION void increment_j(int_t step) { increment<2>(step); }
+        GT_FUNCTION void increment_k(int_t step) { increment<3>(step); }
 
         GT_FUNCTION
         array_index_t const &index() const { return m_index; }

@@ -43,35 +43,33 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class StorageInfo, class /*MaxExtent*/>
-        size_t get_i_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
-            size_t block_size,
-            size_t /*total_size*/) {
+        uint_t get_i_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+            uint_t block_size,
+            uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<0>();
             return (block_size + 2 * halo) * omp_get_max_threads();
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION ptrdiff_t get_i_block_offset(
-            backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
-            size_t block_size,
-            size_t /*block_no*/) {
+        GT_FUNCTION int_t get_i_block_offset(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+            uint_t block_size,
+            uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<0>();
             return (block_size + 2 * halo) * omp_get_thread_num() + halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        size_t get_j_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
-            size_t block_size,
-            size_t /*total_size*/) {
+        uint_t get_j_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+            uint_t block_size,
+            uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<2>();
             return block_size + 2 * halo;
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION ptrdiff_t get_j_block_offset(
-            backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
-            size_t /*block_size*/,
-            size_t /*block_no*/) {
+        GT_FUNCTION int_t get_j_block_offset(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+            uint_t /*block_size*/,
+            uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<2>();
             return halo;
         }
