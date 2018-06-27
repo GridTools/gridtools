@@ -95,7 +95,6 @@ namespace gridtools {
                 if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
                     super::m_domain.template begin_fill<IterationPolicy>();
                 }
-
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
                     if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
                         const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;

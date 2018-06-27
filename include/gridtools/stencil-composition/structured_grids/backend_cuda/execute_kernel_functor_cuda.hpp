@@ -185,8 +185,6 @@ namespace gridtools {
             // execute the k interval functors
             boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
                 _impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain, grid));
-
-            __syncthreads();
         }
     } // namespace _impl_strcuda
 

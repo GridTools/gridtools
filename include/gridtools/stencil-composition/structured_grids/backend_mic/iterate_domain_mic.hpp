@@ -63,14 +63,14 @@ namespace gridtools {
     namespace _impl {
 
         template <typename Arg, typename StorageInfo>
-        enable_if_t<Arg::is_temporary, int> fields_offset(StorageInfo const *sinfo) {
-            auto thread = omp_get_thread_num();
-            auto total_threads = omp_get_max_threads();
+        GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset(StorageInfo const *sinfo) {
+            int_t thread = omp_get_thread_num();
+            int_t total_threads = omp_get_max_threads();
             return sinfo->padded_total_length() * thread / total_threads;
         }
 
         template <typename Arg, typename StorageInfo>
-        enable_if_t<!Arg::is_temporary, int> fields_offset(StorageInfo const *sinfo) {
+        GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
             return 0;
         }
 
@@ -78,11 +78,11 @@ namespace gridtools {
         struct assign_storage_ptrs_mic {
             GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached<DataPtrCached>::value), GT_INTERNAL_ERROR);
 
-            DataPtrCached &m_data_ptr_cached;
-            typename LocalDomain::storage_info_ptr_fusion_list const &m_storageinfo_fusion_list;
+            DataPtrCached &RESTRICT m_data_ptr_cached;
+            typename LocalDomain::storage_info_ptr_fusion_list const &RESTRICT m_storageinfo_fusion_list;
 
             template <typename FusionPair>
-            void operator()(FusionPair const &sw) const {
+            GT_FUNCTION void operator()(FusionPair const &sw) const {
                 typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
                 typedef typename storage_wrapper_elem<arg_t, typename LocalDomain::storage_wrapper_list_t>::type
                     storage_wrapper_t;
@@ -92,8 +92,8 @@ namespace gridtools {
                 typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list,
                     const typename storage_wrapper_t::storage_info_t *>::type::pos si_index_t;
 
-                auto offset = fields_offset<arg_t>(boost::fusion::at<si_index_t>(m_storageinfo_fusion_list));
-                for (uint_t i = 0; i < storage_wrapper_t::num_of_storages; ++i)
+                const int_t offset = fields_offset<arg_t>(boost::fusion::at<si_index_t>(m_storageinfo_fusion_list));
+                for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i)
                     m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i] = sw.second[i] + offset;
             }
         };
@@ -282,8 +282,8 @@ namespace gridtools {
          * Specialization for the accessor placeholders for standard storages.
          *
          * This method is enabled only if the current placeholder dimension does not exceed the number of space
-         * dimensions of the storage class. I.e., if we are dealing with storages, not with storage lists or data
-         * fields (see concepts page for definitions)
+         * dimensions of the storage class. I.e., if we are dealing with storages, not with storage lists or data field
+         * (see concepts page for definitions)
          */
         template <typename Accessor>
         GT_FUNCTION
@@ -294,10 +294,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
-                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` "
-                "has "
-                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) "
-                "brings "
+                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
+                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
                 "you here.");
 
             using acc_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
@@ -310,8 +308,8 @@ namespace gridtools {
          * Specialization for the accessor placeholder for extended storages,
          * containg multiple snapshots of data fields with the same dimension and memory layout.
          *
-         * This method is enabled only if the current placeholder dimension exceeds the number of space dimensions
-         * of the storage class. I.e., if we are dealing with storage lists or data fields (see concepts page for
+         * This method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
+         * the storage class. I.e., if we are dealing with storage lists or data fields (see concepts page for
          * definitions).
          */
         template <typename Accessor>
@@ -327,8 +325,7 @@ namespace gridtools {
             using storage_info_t = typename storage_wrapper_t::storage_info_t;
             using data_t = typename storage_wrapper_t::data_t;
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
-                "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component "
-                "and "
+                "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
                 "snapshot)");
 
             const int_t idx = get_datafield_offset<data_store_t>::get(accessor);
@@ -374,8 +371,8 @@ namespace gridtools {
                 accessor.get_arguments())) /** @endcond */;
 
         /**
-         * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global
-         * accessor nor expression).
+         * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
+         * nor expression).
          */
         template <typename Accessor>
         GT_FUNCTION typename boost::disable_if<
@@ -435,8 +432,7 @@ namespace gridtools {
             constexpr bool is_tmp = storage_is_tmp<StorageInfo>::value;
             constexpr int_t halo = StorageInfo::halo_t::template at<Coordinate>();
 
-            // for temporaries the first element starts after the halo, for other storages we use the block base
-            // index
+            // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_i_block_base;
             return block_base + m_i_block_index + accessor_offset<Coordinate>(accessor);
         }
@@ -461,8 +457,7 @@ namespace gridtools {
             constexpr bool is_tmp = storage_is_tmp<StorageInfo>::value;
             constexpr int_t halo = StorageInfo::halo_t::template at<Coordinate>();
 
-            // for temporaries the first element starts after the halo, for other storages we use the block base
-            // index
+            // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_j_block_base;
             return block_base + m_j_block_index + accessor_offset<Coordinate>(accessor);
         }
@@ -535,8 +530,7 @@ namespace gridtools {
     };
 
     /**
-     * @brief Returns the value of the memory at the given address, plus the offset specified by the arg
-     * placeholder.
+     * @brief Returns the value of the memory at the given address, plus the offset specified by the arg placeholder.
      * @param accessor Accessor passed to the evaluator.
      * @param storage_pointer Pointer to the first element of the specific data field used.
      */

@@ -204,35 +204,41 @@ namespace gridtools {
     struct is_strides_cached<strides_cached<ID, StorageInfoList>> : boost::mpl::true_ {};
 
     namespace _impl {
-        template <size_t Coordinate, class LayoutMap, int Mapped = LayoutMap::template at_unsafe<Coordinate>()>
+        template <uint_t Coordinate, class LayoutMap, int Mapped = LayoutMap::template at_unsafe<Coordinate>()>
         struct is_dummy_coordinate : bool_constant<(Mapped < 0)> {};
 
         template <class StorageInfo, class LocalDomain>
         struct get_index
             : boost::mpl::find<typename LocalDomain::storage_info_ptr_list, const StorageInfo *>::type::pos {};
 
-        template <size_t Coordinate,
+        template <uint_t Coordinate,
             class LayoutMap,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
-            enable_if_t<Cur<0, int> = 0> GT_FUNCTION auto get_stride(Strides const &) GT_AUTO_RETURN(0);
+            enable_if_t<Cur<0, int> = 0> GT_FUNCTION int_t get_stride(Strides const &) {
+            return 0;
+        }
 
-        template <size_t Coordinate,
+        template <uint_t Coordinate,
             class LayoutMap,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
             enable_if_t<Cur >= 0 && Cur == Max, int> = 0>
-        GT_FUNCTION auto get_stride(Strides const &) GT_AUTO_RETURN(1);
+        GT_FUNCTION int_t get_stride(Strides const &) {
+            return 1;
+        }
 
-        template <size_t Coordinate,
+        template <uint_t Coordinate,
             class LayoutMap,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
-        GT_FUNCTION auto get_stride(Strides const &strides) GT_AUTO_RETURN(strides[Cur]);
+        GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
+            return strides[Cur];
+        }
     } // namespace _impl
 
     /**@brief incrementing all the storage pointers to the m_data_pointers array
@@ -250,7 +256,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
-        int_t m_increment;
+        const int_t m_increment;
         ArrayIndex &m_index_array;
         StridesCached const &RESTRICT m_strides_cached;
 
@@ -270,14 +276,14 @@ namespace gridtools {
         }
     };
 
-    template <size_t Coordinate, class LocalDomain, class Strides, class ArrayIndex>
+    template <uint_t Coordinate, class LocalDomain, class Strides, class ArrayIndex>
     GT_FUNCTION void do_increment(
-        ptrdiff_t step, LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
+        int_t step, LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
         boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{step, index, strides});
     }
 
-    template <size_t Coordinate, ptrdiff_t Step, class LocalDomain, class Strides, class ArrayIndex>
+    template <uint_t Coordinate, ptrdiff_t Step, class LocalDomain, class Strides, class ArrayIndex>
     GT_FUNCTION void do_increment(LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
         boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{Step, index, strides});

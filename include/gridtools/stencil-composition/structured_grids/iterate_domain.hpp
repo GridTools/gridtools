@@ -256,11 +256,11 @@ namespace gridtools {
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
       private:
-        template <size_t Coordinate>
+        template <uint_t Coordinate>
         GT_FUNCTION void increment(int_t step) {
             do_increment<Coordinate>(step, local_domain, strides(), m_index);
         }
-        template <size_t Coordinate, int_t Step>
+        template <uint_t Coordinate, int_t Step>
         GT_FUNCTION void increment() {
             do_increment<Coordinate, Step>(local_domain, strides(), m_index);
         }
