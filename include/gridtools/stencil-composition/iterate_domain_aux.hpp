@@ -213,6 +213,7 @@ namespace gridtools {
 
         template <uint_t Coordinate,
             class LayoutMap,
+            uint_t I,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
@@ -222,6 +223,7 @@ namespace gridtools {
 
         template <uint_t Coordinate,
             class LayoutMap,
+            uint_t I,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
@@ -232,12 +234,13 @@ namespace gridtools {
 
         template <uint_t Coordinate,
             class LayoutMap,
+            uint_t I,
             class Strides,
             int Cur = LayoutMap::template at_unsafe<Coordinate>(),
             int Max = LayoutMap::max(),
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
-            return strides[Cur];
+            return strides.template get<I>()[Cur];
         }
     } // namespace _impl
 
@@ -257,7 +260,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
         const int_t m_increment;
-        ArrayIndex &m_index_array;
+        ArrayIndex &RESTRICT m_index_array;
         StridesCached const &RESTRICT m_strides_cached;
 
         template <typename StorageInfo,
@@ -271,8 +274,7 @@ namespace gridtools {
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            auto stride = _impl::get_stride<Coordinate, Layout>(m_strides_cached.template get<I>());
-            m_index_array[I] += stride * m_increment;
+            m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
         }
     };
 
@@ -346,11 +348,10 @@ namespace gridtools {
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
                 boost::mpl::at<typename LocalDomain::storage_info_tmp_info_t, StorageInfo>::type::value;
-            auto raw_strides = m_strides.template get<I>();
             m_index_array[I] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
-                make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t>(raw_strides),
-                    _impl::get_stride<coord_j<Backend>::value, layout_t>(raw_strides),
-                    _impl::get_stride<coord_k<Backend>::value, layout_t>(raw_strides)),
+                make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
+                    _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
+                    _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
                 m_begin,
                 m_block_no,
                 m_pos_in_block);

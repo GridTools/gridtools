@@ -282,7 +282,7 @@ namespace gridtools {
          * Specialization for the accessor placeholders for standard storages.
          *
          * This method is enabled only if the current placeholder dimension does not exceed the number of space
-         * dimensions of the storage class. I.e., if we are dealing with storages, not with storage lists or data field
+         * dimensions of the storage class. I.e., if we are dealing with storages, not with storage lists or data fields
          * (see concepts page for definitions)
          */
         template <typename Accessor>
