@@ -174,11 +174,10 @@ namespace gridtools {
             typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
 
             // initialize the indices
-            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
+            const auto k_min = grid.k_min();
+            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), k_min},
                 {blockIdx.x, blockIdx.y, 0},
-                {iblock,
-                    jblock,
-                    static_cast<int_t>(grid.template value_at<iteration_policy_t::from>() - grid.k_min())});
+                {iblock, jblock, static_cast<int_t>(grid.template value_at<iteration_policy_t::from>() - k_min)});
 
             it_domain.set_block_pos(iblock, jblock);
 
