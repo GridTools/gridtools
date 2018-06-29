@@ -157,8 +157,6 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::vector1<extent<0, 0, 0, 0>>,
             extent<1, -1, 1, -1>,
             caches_t,
-            block_size<32, 4, 1>,
-            block_size<32, 4, 1>,
             gridtools::grid<axis_t>,
             boost::mpl::false_,
             notype>>

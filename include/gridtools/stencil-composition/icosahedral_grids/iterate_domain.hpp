@@ -67,8 +67,6 @@ namespace gridtools {
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
-        typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
-
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
@@ -225,8 +223,7 @@ namespace gridtools {
         template <typename BackendType>
         GT_FUNCTION void assign_storage_pointers() {
             boost::fusion::for_each(m_local_domain.m_local_data_ptrs,
-                assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t>{
-                    data_pointer()});
+                assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t>{data_pointer()});
         }
 
         /**
@@ -239,8 +236,7 @@ namespace gridtools {
         template <typename BackendType, typename Strides>
         GT_FUNCTION void assign_stride_pointers() {
             boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t, processing_elements_block_size_t>(
-                    strides()));
+                assign_strides<BackendType, strides_cached_t, local_domain_t>(strides()));
         }
 
         /**@brief method for initializing the index */

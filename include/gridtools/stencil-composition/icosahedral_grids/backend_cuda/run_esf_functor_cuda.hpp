@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../block_size.hpp"
 #include "../../functor_decorator.hpp"
 #include "../../run_esf_functor.hpp"
 #include "../grid_traits.hpp"
@@ -120,20 +119,6 @@ namespace gridtools {
         // BOOST_STATIC_ASSERT((is_interval<Interval>::value));
 
         typedef run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval>> super;
-        typedef typename RunFunctorArguments::physical_domain_block_size_t physical_domain_block_size_t;
-        typedef typename RunFunctorArguments::processing_elements_block_size_t processing_elements_block_size_t;
-
-        // metavalue that determines if a warp is processing more grid points that the default assigned
-        // at the core of the block
-        typedef typename boost::mpl::not_<typename boost::is_same<physical_domain_block_size_t,
-            processing_elements_block_size_t>::type>::type multiple_grid_points_per_warp_t;
-
-        // nevertheless, even if each thread computes more than a grid point, the i size of the physical block
-        // size and the cuda block size have to be the same
-        GRIDTOOLS_STATIC_ASSERT(
-            (physical_domain_block_size_t::i_size_t::value == processing_elements_block_size_t::i_size_t::value),
-            GT_INTERNAL_ERROR);
-
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         using super::m_iterate_domain;

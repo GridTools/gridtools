@@ -389,12 +389,6 @@ namespace gridtools {
         };
     } // namespace icgrid
 
-    /** Metafunction to query an iterate domain if it's positional. Specialization for
-        iterate_domain_remapper
-    */
-    template <typename T, typename U, typename L, uint_t C>
-    struct is_positional_iterate_domain<icgrid::iterate_domain_remapper<T, U, L, C>> : boost::false_type {};
-
     /** Metafunction to query a type is an iterate domain.
      */
     template <typename T, typename U, typename L, uint_t C>

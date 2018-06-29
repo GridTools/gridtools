@@ -40,6 +40,7 @@
 #include "../common/generic_metafunctions/meta.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "arg_metafunctions.hpp"
+#include "block.hpp"
 #include "expressions/expressions.hpp"
 #include "offset_computation.hpp"
 #include "pos3.hpp"
@@ -367,9 +368,8 @@ namespace gridtools {
      * our execution model is parallel on (i,j). Defaulted to 1.
      * @tparam BackendTraits the type traits of the backend
      * @tparam LocalDomain local domain type
-     * @tparam PEBlockSize the processing elements block size
      * */
-    template <typename BackendTraits, typename DataPtrCached, typename LocalDomain, typename PEBlockSize>
+    template <typename BackendTraits, typename DataPtrCached, typename LocalDomain>
     struct assign_storage_ptrs {
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached<DataPtrCached>::value), GT_INTERNAL_ERROR);
 
@@ -384,7 +384,7 @@ namespace gridtools {
                 typename boost::mpl::find<typename LocalDomain::storage_wrapper_list_t, storage_wrapper_t>::type::pos
                     pos_in_storage_wrapper_list_t;
             for (uint_t i = 0; i < storage_wrapper_t::num_of_storages; ++i)
-                BackendTraits::template once_per_block<pos_in_storage_wrapper_list_t::value, PEBlockSize>::assign(
+                BackendTraits::template once_per_block<pos_in_storage_wrapper_list_t::value>::assign(
                     m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i], sw.second[i]);
         }
     };
@@ -400,12 +400,10 @@ namespace gridtools {
        * @tparam BackendType the type of backend
        * @tparam StridesCached strides cached type
        * @tparam LocalDomain local domain type
-       * @tparam PEBlockSize the processing elements block size
        */
-    template <typename BackendType, typename StridesCached, typename LocalDomain, typename PEBlockSize>
+    template <typename BackendType, typename StridesCached, typename LocalDomain>
     struct assign_strides {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_block_size<PEBlockSize>::value), GT_INTERNAL_ERROR);
 
         template <typename SInfo>
         struct assign {
@@ -433,7 +431,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((pos < SInfo::layout_t::masked_length),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
-                BackendType::template once_per_block<index_t::value, PEBlockSize>::assign(
+                BackendType::template once_per_block<index_t::value>::assign(
                     (m_strides_cached.template get<index_t::value>())[Coordinate::value],
                     m_storage_info->template stride<pos>());
             }

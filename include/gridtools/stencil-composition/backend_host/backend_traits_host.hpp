@@ -39,7 +39,6 @@
 
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../block_size.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_host.hpp"
 #include "run_esf_functor_host.hpp"
@@ -80,15 +79,11 @@ namespace gridtools {
             typedef _impl_host::run_functor_host<Arguments> run_functor_t;
         };
 
-        template <uint_t Id, typename BlockSize>
+        template <uint_t Id>
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
-
             template <typename Left, typename Right>
-            GT_FUNCTION // inline
-                static void
-                assign(Left &l, Right const &r) {
-                l = (Left)r;
+            GT_FUNCTION static void assign(Left &l, Right const &r) {
+                l = r;
             }
         };
 
@@ -130,11 +125,6 @@ namespace gridtools {
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_host<BackendIds::s_strategy_id> type;
-        };
-
-        template <enumtype::strategy StrategyId>
-        struct get_block_size {
-            typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
         };
 
         /**

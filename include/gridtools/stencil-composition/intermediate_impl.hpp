@@ -356,18 +356,15 @@ namespace gridtools {
            tmp storage, whose extent depends on an index, to the
            element in the Temporaries vector at that index position.
         */
-        template <uint_t BI, uint_t BJ>
+        template <typename MapElem>
         struct get_storage_wrapper {
-            template <typename MapElem>
-            struct apply {
-                typedef typename boost::mpl::second<MapElem>::type extent_t;
-                typedef typename boost::mpl::first<MapElem>::type temporary;
-                typedef storage_wrapper<temporary,
-                    typename get_view<typename temporary::data_store_t>::type,
-                    tile<BI, -extent_t::iminus::value, extent_t::iplus::value>,
-                    tile<BJ, -extent_t::jminus::value, extent_t::jplus::value>>
-                    type;
-            };
+            typedef typename boost::mpl::second<MapElem>::type extent_t;
+            typedef typename boost::mpl::first<MapElem>::type temporary;
+            typedef storage_wrapper<temporary,
+                typename get_view<typename temporary::data_store_t>::type,
+                tile<-extent_t::iminus::value, extent_t::iplus::value>,
+                tile<-extent_t::jminus::value, extent_t::jplus::value>>
+                type;
         };
 
         /**
@@ -375,22 +372,16 @@ namespace gridtools {
          * @tparam AggregatorType domain
          * @tparam MssComponentsArray meta array of mss components
          */
-        template <typename Backend, typename Placeholders, typename MssComponents>
+        template <typename Placeholders, typename MssComponents>
         struct obtain_storage_wrapper_list_t {
 
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-            using block_size_t = typename Backend::block_size_t;
-
-            static const uint_t tileI = block_size_t::i_size_t::value;
-            static const uint_t tileJ = block_size_t::j_size_t::value;
 
             typedef typename obtain_map_extents_temporaries_mss_array<Placeholders, MssComponents>::type map_of_extents;
 
             typedef typename boost::mpl::fold<map_of_extents,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back<boost::mpl::_1,
-                    typename get_storage_wrapper<tileI, tileJ>::template apply<boost::mpl::_2>>>::type type;
+                boost::mpl::push_back<boost::mpl::_1, get_storage_wrapper<boost::mpl::_2>>>::type type;
         };
     } // namespace _impl
 } // namespace gridtools

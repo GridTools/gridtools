@@ -37,10 +37,10 @@
 
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
+#include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
 
@@ -62,7 +62,6 @@ namespace gridtools {
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
-            typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
             typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
 
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
@@ -81,12 +80,12 @@ namespace gridtools {
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
 
-            const uint_t block_size_i = (blockIdx.x + 1) * block_size_t::i_size_t::value < nx
-                                            ? block_size_t::i_size_t::value
-                                            : nx - blockIdx.x * block_size_t::i_size_t::value;
-            const uint_t block_size_j = (blockIdx.y + 1) * block_size_t::j_size_t::value < ny
-                                            ? block_size_t::j_size_t::value
-                                            : ny - blockIdx.y * block_size_t::j_size_t::value;
+            static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
+            static constexpr uint_t ntx = block_i_size(backend);
+            static constexpr uint_t nty = block_j_size(backend);
+
+            const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
+            const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
 
             __shared__ shared_iterate_domain_t shared_iterate_domain;
 
@@ -123,12 +122,11 @@ namespace gridtools {
              */
             // jboundary_limit determines the number of warps required to execute (b,d,f)
             // TODO FUSING
-            const int jboundary_limit =
-                block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value;
+            static constexpr auto jboundary_limit = int(nty) + max_extent_t::jplus::value - max_extent_t::jminus::value;
             // iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
-            const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value < 0 ? 1 : 0);
+            static constexpr auto iminus_limit = jboundary_limit + !!max_extent_t::iminus::value;
             // iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
-            const int iplus_limit = iminus_limit + (max_extent_t::iplus::value > 0 ? 1 : 0);
+            static constexpr auto iplus_limit = iminus_limit + !!max_extent_t::iplus::value;
 
             // The kernel allocate enough warps to execute all halos of all ESFs.
             // The max_extent_t is the enclosing extent of all the ESFs
@@ -145,22 +143,19 @@ namespace gridtools {
                 iblock = threadIdx.x;
                 jblock = (int)threadIdx.y + max_extent_t::jminus::value;
             } else if (threadIdx.y < iminus_limit) {
-                const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
+                static constexpr auto padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
-                           padded_boundary_ <=
-                       enumtype::vector_width);
-
+                GRIDTOOLS_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
-                           padded_boundary_ <=
-                       enumtype::vector_width);
+                GRIDTOOLS_STATIC_ASSERT(
+                    jboundary_limit * padded_boundary_ <= enumtype::vector_width, GT_INTERNAL_ERROR);
 
-                iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+                iblock = threadIdx.x % padded_boundary_ + ntx;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
@@ -235,15 +230,20 @@ namespace gridtools {
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
                 const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
 
-                typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
-
-                typedef typename RunFunctorArguments::cuda_block_size_t cuda_block_size_t;
+                static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
 
                 // number of grid points that a cuda block covers
-                constexpr uint_t ntx = block_size_t::i_size_t::value;
-                constexpr uint_t nty = block_size_t::j_size_t::value;
-                constexpr uint_t ntz = 1;
-                dim3 threads(cuda_block_size_t::i_size_t::value, cuda_block_size_t::j_size_t::value, ntz);
+                static constexpr uint_t ntx = block_i_size(backend);
+                static constexpr uint_t nty = block_j_size(backend);
+                ;
+                static constexpr uint_t ntz = 1;
+
+                using max_extent_t = typename RunFunctorArguments::max_extent_t;
+                static constexpr uint_t halo_processing_warps =
+                    max_extent_t::jplus::value - max_extent_t::jminus::value + !!max_extent_t::iminus::value +
+                    !!max_extent_t::iplus::value;
+
+                dim3 threads(ntx, nty + halo_processing_warps, ntz);
 
                 // number of blocks required
                 const uint_t nbx = (nx + ntx - 1) / ntx;
@@ -252,19 +252,13 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-                // re-create the run functor arguments, replacing the processing elements block size
-                // with the corresponding, recently computed, block size
-                using run_functor_arguments_cuda_t =
-                    GT_META_CALL(meta::replace_at_c, (RunFunctorArguments, 1, cuda_block_size_t));
-
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
                 printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                constexpr size_t num_threads = cuda_block_size_t::i_size_t::value * cuda_block_size_t::j_size_t::value;
-                _impl_iccuda::do_it_on_gpu<run_functor_arguments_cuda_t, num_threads>
+                _impl_iccuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
                     <<<blocks, threads>>>(m_local_domain, m_grid);
 #ifndef NDEBUG
                 cudaDeviceSynchronize();

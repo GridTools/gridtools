@@ -166,7 +166,7 @@ namespace gridtools {
                     boost::mpl::for_each<boost::mpl::range_c<uint_t, 0, n_colors_t::value>>(
                         color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t, extent_t>{
                             it_domain, m_grid, m_size.j});
-                    it_domain.template increment_c<-n_colors_t::value>();
+                    it_domain.template increment_c<-int_t(n_colors_t::value)>();
                     it_domain.increment_i();
                 }
             }

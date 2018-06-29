@@ -252,9 +252,4 @@ namespace gridtools {
     template <template <class> class IterateDomainBase, typename IterateDomainArguments>
     struct is_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>
         : public boost::mpl::true_ {};
-
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>
-        : is_positional_iterate_domain<
-              IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>> {};
 } // namespace gridtools

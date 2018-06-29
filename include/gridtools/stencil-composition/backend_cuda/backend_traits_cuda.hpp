@@ -47,7 +47,6 @@
 #include "../../storage/storage_cuda/data_view_helpers.hpp"
 
 #include "../backend_traits_fwd.hpp"
-#include "../block_size.hpp"
 #include "../grid_traits_fwd.hpp"
 #include "../run_functor_arguments_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
@@ -94,17 +93,13 @@ namespace gridtools {
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
-        template <uint_t Id, typename BlockSize>
+        template <uint_t Id>
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), GT_INTERNAL_ERROR);
-
             template <typename Left, typename Right>
             GT_FUNCTION static void assign(Left &l, Right const &r) {
                 assert(blockDim.z == 1);
-                const uint_t pe_elem = threadIdx.y * BlockSize::i_size_t::value + threadIdx.x;
-                if (Id % (BlockSize::i_size_t::value * BlockSize::j_size_t::value) == pe_elem) {
-                    l = (Left)r;
-                }
+                if (Id % (blockDim.x * blockDim.y) == threadIdx.y * blockDim.x + threadIdx.x)
+                    l = r;
             }
         };
 
@@ -138,15 +133,6 @@ namespace gridtools {
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda<BackendIds::s_strategy_id> type;
-        };
-
-        /**
-         * @brief metafunction that returns the block size
-         */
-        template <enumtype::strategy StrategyId>
-        struct get_block_size {
-            GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block, "For CUDA backend only Block strategy is supported");
-            typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
         };
 
         /**

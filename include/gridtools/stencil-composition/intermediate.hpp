@@ -74,7 +74,7 @@
 #include "mss_local_domain.hpp"
 #include "reductions/reduction_data.hpp"
 #include "storage_wrapper.hpp"
-#include "wrap_type.hpp"
+#include "tile.hpp"
 
 #include "computation_grammar.hpp"
 #include "extract_placeholders.hpp"
@@ -112,10 +112,10 @@ namespace gridtools {
         using type = typename _impl::get_view<typename get_data_store_from_arg<Placeholder>::type>::type;
     };
 
-    template <typename Backend, typename Placeholders, typename MssComponentsArray>
+    template <typename Placeholders, typename MssComponentsArray>
     struct create_storage_wrapper_list {
         // handle all tmps, obtain the storage_wrapper_list for written tmps
-        typedef typename _impl::obtain_storage_wrapper_list_t<Backend, Placeholders, MssComponentsArray>::type all_tmps;
+        typedef typename _impl::obtain_storage_wrapper_list_t<Placeholders, MssComponentsArray>::type all_tmps;
 
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
@@ -124,7 +124,7 @@ namespace gridtools {
         typedef typename boost::mpl::transform_view<Placeholders,
             boost::mpl::if_<is_tmp_arg<boost::mpl::_>,
                 storage_wrapper_elem<boost::mpl::_, all_tmps>,
-                storage_wrapper<boost::mpl::_, create_view<boost::mpl::_>, tile<0, 0, 0>, tile<0, 0, 0>>>>::type
+                storage_wrapper<boost::mpl::_, create_view<boost::mpl::_>, tile<0, 0>, tile<0, 0>>>>::type
             complete_list;
         // filter the list
         typedef typename boost::mpl::filter_view<complete_list, is_storage_wrapper<boost::mpl::_1>>::type filtered_list;
@@ -341,8 +341,8 @@ namespace gridtools {
         typedef convert_to_mss_components_array_t<all_mss_descriptors_t> mss_components_array_t;
 
         // create storage_wrapper_list
-        typedef typename create_storage_wrapper_list<Backend, placeholders_t, mss_components_array_t>::type
-            storage_wrapper_list_t;
+        typedef
+            typename create_storage_wrapper_list<placeholders_t, mss_components_array_t>::type storage_wrapper_list_t;
 
         // get the maximum extent (used to retrieve the size of the temporaries)
         typedef typename max_i_extent_from_storage_wrapper_list<storage_wrapper_list_t>::type max_i_extent_t;

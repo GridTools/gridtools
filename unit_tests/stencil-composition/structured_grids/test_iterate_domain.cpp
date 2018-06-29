@@ -116,8 +116,6 @@ namespace test_iterate_domain {
                 boost::mpl::vector1<extent<0, 0, 0, 0>>,
                 extent<0, 0, 0, 0>,
                 boost::mpl::vector0<>,
-                block_size<32, 4>,
-                block_size<32, 4>,
                 gridtools::grid<gridtools::axis<1>::axis_interval_t>,
                 boost::mpl::false_,
                 notype>>::type it_domain_t;

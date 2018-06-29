@@ -40,7 +40,6 @@
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
 #include "../backend_ids.hpp"
-#include "../block_size.hpp"
 #include "../grid.hpp"
 #include "../mss_components.hpp"
 #include "../reductions/reduction_data.hpp"
@@ -70,10 +69,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_cuda<enumtype::Block> {
-        using dummy_t = backend_ids<enumtype::Cuda, enumtype::structured, enumtype::Block>;
-        // default block size for Block strategy
-        using block_size_t = block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1>;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS

@@ -39,7 +39,7 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../block_size.hpp"
+#include "../../block.hpp"
 #include "../../grid.hpp"
 #include "../../mss_components.hpp"
 #include "../../mss_functor.hpp"
@@ -64,12 +64,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_mic<enumtype::Block> {
-        // default block size for Block strategy
-        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J> block_size_t;
-
-        static constexpr auto BI = block_size_t::i_size_t::value;
-        static constexpr auto BJ = block_size_t::j_size_t::value;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -89,8 +83,8 @@ namespace gridtools {
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 const uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
-                const uint_t NBI = n / BI;
-                const uint_t NBJ = m / BJ;
+                const uint_t NBI = n / block_i_size(BackendIds{});
+                const uint_t NBJ = m / block_j_size(BackendIds{});
 
 #pragma omp parallel for
                 for (uint_t bi = 0; bi <= NBI; ++bi) {
@@ -126,6 +120,9 @@ namespace gridtools {
 
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 const uint_t m = grid.j_high_bound() - grid.j_low_bound();
+
+                static constexpr auto BI = block_i_size(typename RunFunctorArgs::backend_ids_t{});
+                static constexpr auto BJ = block_j_size(typename RunFunctorArgs::backend_ids_t{});
 
                 const uint_t NBI = n / BI;
                 const uint_t NBJ = m / BJ;

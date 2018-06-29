@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../../common/defs.hpp"
+#include "../block.hpp"
 #include "iterate_domain.hpp"
 
 namespace gridtools {

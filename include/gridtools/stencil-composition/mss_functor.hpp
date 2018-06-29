@@ -194,7 +194,6 @@ namespace gridtools {
 
             typedef backend_traits_from_id<BackendIds::s_backend_id> backend_traits_t;
 
-            typedef typename backend_traits_t::template get_block_size<BackendIds::s_strategy_id>::type block_size_t;
             // compute the struct with all the type arguments for the run functor
 
             typedef typename sequence_of_is_independent_esf<typename mss_components_t::mss_descriptor_t>::type
@@ -259,8 +258,6 @@ namespace gridtools {
 
             // perform some checks concerning the reduction types
             typedef run_functor_arguments<BackendIds,
-                block_size_t,
-                block_size_t,
                 functors_list_t,
                 esf_sequence_t,
                 local_domain_esf_args_map_t,

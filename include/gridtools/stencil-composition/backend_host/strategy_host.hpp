@@ -38,7 +38,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../backend_ids.hpp"
-#include "../block_size.hpp"
+#include "../block.hpp"
 #include "../grid.hpp"
 #include "../mss_components.hpp"
 #include "../mss_functor.hpp"
@@ -62,11 +62,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_host<enumtype::Naive> {
-        // default block size for Naive strategy
-        typedef block_size<0, 0> block_size_t;
-        static constexpr auto BI = block_size_t::i_size_t::value;
-        static constexpr auto BJ = block_size_t::j_size_t::value;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -136,12 +131,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_host<enumtype::Block> {
-        // default block size for Block strategy
-        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J> block_size_t;
-
-        static constexpr auto BI = block_size_t::i_size_t::value;
-        static constexpr auto BJ = block_size_t::j_size_t::value;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -163,8 +152,8 @@ namespace gridtools {
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
-                uint_t NBI = n / BI;
-                uint_t NBJ = m / BJ;
+                uint_t NBI = n / block_i_size(BackendIds{});
+                uint_t NBJ = m / block_j_size(BackendIds{});
 
 #pragma omp parallel
                 {
@@ -218,8 +207,8 @@ namespace gridtools {
                 kernel_functor_executor_t{local_domain,
                     grid,
                     reduction_data,
-                    block_size_f(total_i, BI, execution_info.bi),
-                    block_size_f(total_j, BJ, execution_info.bj),
+                    block_size_f(total_i, block_i_size(backend_ids_t{}), execution_info.bi),
+                    block_size_f(total_j, block_j_size(backend_ids_t{}), execution_info.bj),
                     execution_info.bi,
                     execution_info.bj}();
             }

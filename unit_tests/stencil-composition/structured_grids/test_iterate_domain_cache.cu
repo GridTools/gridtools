@@ -43,6 +43,7 @@
 #include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/tile.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -64,15 +65,15 @@ typedef arg<3, storage_type> p_in4;
 typedef arg<4, storage_type> p_out;
 
 using st_wrapper_in1_t =
-    storage_wrapper<p_in1, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_in1, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_in2_t =
-    storage_wrapper<p_in2, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_in2, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_in3_t =
-    storage_wrapper<p_in3, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_in3, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_in4_t =
-    storage_wrapper<p_in4, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_in4, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_out_t =
-    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in1;
@@ -143,8 +144,6 @@ TEST(iterate_domain_cache, flush) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis_t>,
         boost::mpl::false_,
         notype>
@@ -243,8 +242,6 @@ TEST(iterate_domain_cache, fill) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis_t>,
         boost::mpl::false_,
         notype>
@@ -340,8 +337,6 @@ TEST(iterate_domain_cache, epflush) {
         extents_t,
         max_extent_t,
         cachesf_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis_t>,
         boost::mpl::false_,
         notype>
@@ -445,8 +440,6 @@ TEST(iterate_domain_cache, bpfill) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis_t>,
         boost::mpl::false_,
         notype>

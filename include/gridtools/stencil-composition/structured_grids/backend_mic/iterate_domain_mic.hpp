@@ -228,7 +228,7 @@ namespace gridtools {
                     m_data_pointer, local_domain.m_local_storage_info_ptrs});
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t, block_size<0, 0, 0>>(m_strides));
+                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
         }
 
         /** @brief Returns the array of pointers to the raw data as const reference. */

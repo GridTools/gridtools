@@ -47,7 +47,6 @@
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
 #include "reductions/reduction_descriptor.hpp"
-#include "wrap_type.hpp"
 
 /** @file
     This file implements the metafunctions to perform data dependency analysis on a
