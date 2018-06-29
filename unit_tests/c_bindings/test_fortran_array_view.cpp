@@ -96,7 +96,7 @@ namespace gridtools {
                 for (size_t i = 0; i < Rank; ++i) {
                     descriptor.dims[i] = 2;
                 }
-                return gt_fortran_array_descriptor{gt_fk_Double, Rank};
+                return descriptor;
             }
 
             struct DynamicHypercube {
