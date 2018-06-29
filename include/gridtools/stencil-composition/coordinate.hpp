@@ -35,6 +35,14 @@
 */
 #pragma once
 
+/**
+ *  @file
+ *
+ *  Specialisations of coord_i<Backend>, coord_j<Backend>, coord_k<Backend> are defined here.
+ *  Backend should be an instantiation of backend_ids.
+ *  coord_* are expected to be like std::integral_constant of size_t
+ */
+
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/coordinate.hpp"
 #else

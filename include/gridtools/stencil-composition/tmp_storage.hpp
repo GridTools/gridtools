@@ -35,6 +35,37 @@
 */
 #pragma once
 
+/**
+ *  @file API for the temporary storage allocation/offsets
+ *
+ *  Facade API:
+ *    1. DataStore make_tmp_data_store<MaxExtent>(Backend, Arg, Grid);
+ *    2. int_t get_tmp_storage_offset<StorageInfo, MaxExtent>(Backend, Strides, BlockIds, PositionsInBlock);
+ *  where:
+ *    MaxExtent - integral_constant with maximal absolute extent in I direction.
+ *                TODO(anstaf): change to fully specified max extent
+ *    Backend  - instantiation of backend_ids
+ *    Arg      - instantiation of arg
+ *    Grid     - instantiation of grid
+ *    Strides  - 3D struct with the strides that are taken from the DataStore, returned by make_tmp_data_store
+ *    BlockIds - 3D struct that specifies the position of the block in the i,j,k directions
+ *    PositionsInBlock - 3D struct that specifies the position of the target point within the block
+ *
+ *  Backend API:
+ *    1. get_i_size, get_j_size, and optionally get_k_size
+ *    2. get_i_block_offset, get_j_block_offset and optionally get_k_block_offset
+ *    3. make_storage_info
+ *
+ *    Signatures:
+ *    StorageInfo make_storage_info<StorageInfo, NColors>(uint_t i_size, uint_t j_size, uint_t k_size);
+ *    uint_t get_i_size<StorageInfo, MaxExtent>(Backend, uint_t block_size, uint_t total_size);
+ *    GT_FUNCTION int_t get_k_block_offset<StorageInfo, MaxExtent>(Backend, uint_t block_size, uint_t total_size);
+ *
+ *    Backend overloads should be defined in the gridtools::tmp_storage namespace
+ *    TODO(anstaf): switch to ADL lookup mechanism
+ *
+ */
+
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 
@@ -56,11 +87,11 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        size_t get_k_size(Backend const &, size_t /*block_size*/, size_t total_size) {
+        uint_t get_k_size(Backend const &, uint_t /*block_size*/, uint_t total_size) {
             return total_size;
         }
         template <class /*StorageInfo*/, class /*MaxExtent*/, class Backend>
-        GT_FUNCTION ptrdiff_t get_k_block_offset(Backend const &, size_t /*block_size*/, size_t /*block_no*/) {
+        GT_FUNCTION int_t get_k_block_offset(Backend const &, uint_t /*block_size*/, uint_t /*block_no*/) {
             return 0;
         }
     } // namespace tmp_storage
