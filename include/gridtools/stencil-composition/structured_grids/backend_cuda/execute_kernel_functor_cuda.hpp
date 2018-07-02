@@ -123,9 +123,9 @@ namespace gridtools {
             // jboundary_limit determines the number of warps required to execute (b,d,f)
             static constexpr auto jboundary_limit = (int)nty + max_extent_t::jplus::value - max_extent_t::jminus::value;
             // iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
-            static constexpr auto iminus_limit = jboundary_limit + !!max_extent_t::iminus::value;
+            static constexpr auto iminus_limit = jboundary_limit + (max_extent_t::iminus::value < 0 ? 1 : 0);
             // iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
-            static constexpr auto iplus_limit = iminus_limit + !!max_extent_t::iplus::value;
+            static constexpr auto iplus_limit = iminus_limit + (max_extent_t::iplus::value > 0 ? 1 : 0);
 
             // The kernel allocate enough warps to execute all halos of all ESFs.
             // The max_extent_t is the enclosing extent of all the ESFs
@@ -236,8 +236,8 @@ namespace gridtools {
 
                 using max_extent_t = typename RunFunctorArguments::max_extent_t;
                 static constexpr uint_t halo_processing_warps =
-                    max_extent_t::jplus::value - max_extent_t::jminus::value + !!max_extent_t::iminus::value +
-                    !!max_extent_t::iplus::value;
+                    max_extent_t::jplus::value - max_extent_t::jminus::value +
+                    (max_extent_t::iminus::value < 0 ? 1 : 0) + (max_extent_t::iplus::value > 0 ? 1 : 0);
 
                 dim3 threads(ntx, nty + halo_processing_warps, ntz);
 

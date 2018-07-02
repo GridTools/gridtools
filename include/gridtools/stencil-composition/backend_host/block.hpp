@@ -66,6 +66,7 @@ namespace gridtools {
     }
     template <enumtype::grid_type GridType, class Grid>
     uint_t block_j_size(backend_ids<enumtype::Host, GridType, enumtype::Naive> const &, Grid const &grid) {
+        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.j_high_bound() - grid.j_low_bound() + 1;
     }
 } // namespace gridtools
