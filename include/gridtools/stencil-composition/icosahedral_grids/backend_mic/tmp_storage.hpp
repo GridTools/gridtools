@@ -62,6 +62,7 @@ namespace gridtools {
         uint_t get_j_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
             uint_t block_size,
             uint_t /*total_size*/) {
+            // j corresponds to the third dimension in icgrid
             static constexpr auto halo = StorageInfo::halo_t::template at<2>();
             return block_size + 2 * halo;
         }
@@ -70,6 +71,7 @@ namespace gridtools {
         GT_FUNCTION int_t get_j_block_offset(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
             uint_t /*block_size*/,
             uint_t /*block_no*/) {
+            // j corresponds to the third dimension in icgrid
             static constexpr auto halo = StorageInfo::halo_t::template at<2>();
             return halo;
         }
