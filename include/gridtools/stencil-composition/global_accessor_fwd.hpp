@@ -36,15 +36,15 @@
 #pragma once
 
 namespace gridtools {
-    template < typename GlobalAccessor, typename... Args >
+    template <typename GlobalAccessor, typename... Args>
     struct global_accessor_with_arguments;
 
-    template < uint_t I >
+    template <uint_t I>
     struct global_accessor;
 
-    template < typename T >
+    template <typename T>
     struct is_global_accessor;
 
-    template < typename T >
+    template <typename T>
     struct is_global_accessor_with_arguments;
 } // namespace gridtools

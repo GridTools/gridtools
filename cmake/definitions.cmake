@@ -124,11 +124,17 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552")
 endif()
 
-Find_Package( OpenMP )
+# Note: It seems that FindOpenMP ignores CMP0054. As this is an
+# external code, we explicity turn that policy off.
+cmake_policy(PUSH)
+cmake_policy(SET CMP0054 OLD)
+find_package( OpenMP )
+cmake_policy(POP)
 
 ## openmp ##
 if(OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
+    set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
 endif()
 
 ## performance meters ##
@@ -159,11 +165,11 @@ endif()
 ## mpi ##
 if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
-  if( USE_MPI_COMPILER )
-    find_package(MPI REQUIRED)
-    include_directories( "${MPI_CXX_INCLUDE_PATH}" )
-    set( exe_LIBS  ${MPI_CXX_LIBRARIES} ${exe_LIBS} )
+  find_package(MPI REQUIRED)
+  if ( MPI_CXX_INCLUDE_PATH )
+      include_directories( "${MPI_CXX_INCLUDE_PATH}" )
   endif()
+  list(APPEND exe_LIBS ${MPI_CXX_LIBRARIES})
 endif()
 
 # add a target to generate API documentation with Doxygen

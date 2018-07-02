@@ -46,94 +46,94 @@ namespace gridtools {
         @{
     */
 
-    template < unsigned K, class R, class F, class Array >
+    template <unsigned K, class R, class F, class Array>
     struct Expander;
 
-    template < unsigned K, class R, class F, typename ArrayValue, size_t ArraySize >
-    struct Expander< K, R, F, const array< ArrayValue, ArraySize > & > {
-        typedef const array< ArrayValue, ArraySize > &array_t;
-        template < class... Us >
+    template <unsigned K, class R, class F, typename ArrayValue, size_t ArraySize>
+    struct Expander<K, R, F, const array<ArrayValue, ArraySize> &> {
+        typedef const array<ArrayValue, ArraySize> &array_t;
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(array_t &&a, Us &&... args) {
-            return Expander< K - 1, R, F, array_t >::expand(a, a[K - 1], args...);
+            return Expander<K - 1, R, F, array_t>::expand(a, a[K - 1], args...);
         }
     };
 
-    template < class F, class R, typename ArrayValue, size_t ArraySize >
-    struct Expander< 0, R, F, const array< ArrayValue, ArraySize > & > {
+    template <class F, class R, typename ArrayValue, size_t ArraySize>
+    struct Expander<0, R, F, const array<ArrayValue, ArraySize> &> {
 
-        typedef const array< ArrayValue, ArraySize > &array_t;
-        template < class... Us >
+        typedef const array<ArrayValue, ArraySize> &array_t;
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(array_t &&, Us... args) {
             return F::apply(args...);
         }
     };
 
-    template < unsigned K, class R, class F, typename... Args >
-    struct Expander< K, R, F, const tuple< Args... > & > {
-        typedef const tuple< Args... > &tuple_t;
-        template < class... Us >
+    template <unsigned K, class R, class F, typename... Args>
+    struct Expander<K, R, F, const tuple<Args...> &> {
+        typedef const tuple<Args...> &tuple_t;
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(tuple_t &&a, Us &&... args) {
-            return Expander< K - 1, R, F, tuple_t >::expand(a, a.template get< K - 1 >(), args...);
+            return Expander<K - 1, R, F, tuple_t>::expand(a, a.template get<K - 1>(), args...);
         }
     };
 
-    template < class F, class R, typename... Args >
-    struct Expander< 0, R, F, const tuple< Args... > & > {
+    template <class F, class R, typename... Args>
+    struct Expander<0, R, F, const tuple<Args...> &> {
 
-        typedef const tuple< Args... > &tuple_t;
-        template < class... Us >
+        typedef const tuple<Args...> &tuple_t;
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(tuple_t &&, Us... args) {
             return F::apply(args...);
         }
     };
 
-    template < unsigned K, class R, class F, typename ExtraData, class Array >
+    template <unsigned K, class R, class F, typename ExtraData, class Array>
     struct Expander_inj;
 
-    template < unsigned K, class R, class F, typename ExtraData, typename ArrayValue, size_t ArraySize >
-    struct Expander_inj< K, R, F, ExtraData, const array< ArrayValue, ArraySize > & > {
-        typedef const array< ArrayValue, ArraySize > &array_t;
+    template <unsigned K, class R, class F, typename ExtraData, typename ArrayValue, size_t ArraySize>
+    struct Expander_inj<K, R, F, ExtraData, const array<ArrayValue, ArraySize> &> {
+        typedef const array<ArrayValue, ArraySize> &array_t;
 
-        template < class... Us >
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(const ExtraData &extra_data, array_t &&a, Us &&... args) {
-            return Expander_inj< K - 1, R, F, ExtraData, array_t >::expand(extra_data, a, a[K - 1], args...);
+            return Expander_inj<K - 1, R, F, ExtraData, array_t>::expand(extra_data, a, a[K - 1], args...);
         }
     };
 
-    template < class R, class F, typename ExtraData, typename ArrayValue, size_t ArraySize >
-    struct Expander_inj< 0, R, F, ExtraData, const array< ArrayValue, ArraySize > & > {
-        typedef const array< ArrayValue, ArraySize > &array_t;
-        template < class... Us >
+    template <class R, class F, typename ExtraData, typename ArrayValue, size_t ArraySize>
+    struct Expander_inj<0, R, F, ExtraData, const array<ArrayValue, ArraySize> &> {
+        typedef const array<ArrayValue, ArraySize> &array_t;
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(const ExtraData &extra_data, array_t &&, Us... args) {
             return F::apply(extra_data, args...);
         }
     };
 
-    template < unsigned K, class R, class F, typename ExtraData, typename... TupleArgs >
-    struct Expander_inj< K, R, F, ExtraData, const tuple< TupleArgs... > & > {
-        typedef const tuple< TupleArgs... > &tuple_t;
+    template <unsigned K, class R, class F, typename ExtraData, typename... TupleArgs>
+    struct Expander_inj<K, R, F, ExtraData, const tuple<TupleArgs...> &> {
+        typedef const tuple<TupleArgs...> &tuple_t;
 
-        template < class... Us >
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(const ExtraData &extra_data, tuple_t &&a, Us &&... args) {
-            return Expander_inj< K - 1, R, F, ExtraData, tuple_t >::expand(
-                extra_data, a, a.template get< K - 1 >(), args...);
+            return Expander_inj<K - 1, R, F, ExtraData, tuple_t>::expand(
+                extra_data, a, a.template get<K - 1>(), args...);
         }
-        template < class... Us >
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(ExtraData &extra_data, tuple_t &&a, Us &&... args) {
-            return Expander_inj< K - 1, R, F, ExtraData, tuple_t >::expand(
-                extra_data, a, a.template get< K - 1 >(), args...);
+            return Expander_inj<K - 1, R, F, ExtraData, tuple_t>::expand(
+                extra_data, a, a.template get<K - 1>(), args...);
         }
     };
 
-    template < class R, class F, typename ExtraData, typename... TupleArgs >
-    struct Expander_inj< 0, R, F, ExtraData, const tuple< TupleArgs... > & > {
-        typedef const tuple< TupleArgs... > &tuple_t;
-        template < class... Us >
+    template <class R, class F, typename ExtraData, typename... TupleArgs>
+    struct Expander_inj<0, R, F, ExtraData, const tuple<TupleArgs...> &> {
+        typedef const tuple<TupleArgs...> &tuple_t;
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(const ExtraData &extra_data, tuple_t &&, Us... args) {
             return F::apply(extra_data, args...);
         }
 
-        template < class... Us >
+        template <class... Us>
         GT_FUNCTION static constexpr R expand(ExtraData &extra_data, tuple_t &&, Us... args) {
             return F::apply(extra_data, args...);
         }
@@ -145,10 +145,10 @@ namespace gridtools {
      * @tparam ReturnType return type of the functor
      * @tparam Fn Functor containing the apply method being called with the expanded array arguments
      */
-    template < typename ReturnType, typename Fn, typename Array >
+    template <typename ReturnType, typename Fn, typename Array>
     GT_FUNCTION static constexpr auto explode(const Array &a) -> ReturnType {
-        GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
-        return Expander< tuple_size< Array >::value, ReturnType, Fn, const Array & >::expand(a);
+        GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value || is_tuple<Array>::value), "Error: Wrong Type");
+        return Expander<tuple_size<Array>::value, ReturnType, Fn, const Array &>::expand(a);
     }
 
     /**
@@ -159,19 +159,17 @@ namespace gridtools {
      * @tparam Fn Functor containing the apply method being called with the expanded array arguments
      * @tparam ExtraData extra data passed to the Fn::apply in addition to the expanded array, as first argument
      */
-    template < typename ReturnType, typename Fn, typename Array, typename ExtraData >
+    template <typename ReturnType, typename Fn, typename Array, typename ExtraData>
     GT_FUNCTION static constexpr auto explode(const Array &a, const ExtraData &extra_data) -> ReturnType const {
-        GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
-        return Expander_inj< tuple_size< Array >::value, ReturnType, Fn, ExtraData, const Array & >::expand(
-            extra_data, a);
+        GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value || is_tuple<Array>::value), "Error: Wrong Type");
+        return Expander_inj<tuple_size<Array>::value, ReturnType, Fn, ExtraData, const Array &>::expand(extra_data, a);
     }
 
-    template < typename ReturnType, typename Fn, typename Array, typename ExtraData >
+    template <typename ReturnType, typename Fn, typename Array, typename ExtraData>
     GT_FUNCTION static constexpr auto explode(const Array &a, ExtraData &extra_data) -> ReturnType {
-        GRIDTOOLS_STATIC_ASSERT((is_array< Array >::value || is_tuple< Array >::value), "Error: Wrong Type");
-        return Expander_inj< tuple_size< Array >::value, ReturnType, Fn, ExtraData, const Array & >::expand(
-            extra_data, a);
+        GRIDTOOLS_STATIC_ASSERT((is_array<Array>::value || is_tuple<Array>::value), "Error: Wrong Type");
+        return Expander_inj<tuple_size<Array>::value, ReturnType, Fn, ExtraData, const Array &>::expand(extra_data, a);
     }
     /** @} */
     /** @} */
-}
+} // namespace gridtools

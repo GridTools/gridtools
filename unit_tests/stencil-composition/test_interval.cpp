@@ -34,26 +34,26 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "../test_helper.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/interval.hpp>
-#include "../test_helper.hpp"
 
 using namespace gridtools;
 
 TEST(test_interval, modify) {
-    using my_interval = interval< level< 0, -1 >, level< 1, -1 > >;
+    using my_interval = interval<level<0, -1>, level<1, -1>>;
 
-    ASSERT_TYPE_EQ< interval< level< 0, -2 >, level< 1, -1 > >, my_interval::modify< -1, 0 > >();
-    ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 1, 1 > >, my_interval::modify< 1, 1 > >();
-    ASSERT_TYPE_EQ< interval< level< 0, -3 >, level< 1, -1 > >, my_interval::modify< -2, 0 > >();
-    ASSERT_TYPE_EQ< interval< level< 0, 2 >, level< 1, 2 > >, my_interval::modify< 2, 2 > >();
+    ASSERT_TYPE_EQ<interval<level<0, -2>, level<1, -1>>, my_interval::modify<-1, 0>>();
+    ASSERT_TYPE_EQ<interval<level<0, 1>, level<1, 1>>, my_interval::modify<1, 1>>();
+    ASSERT_TYPE_EQ<interval<level<0, -3>, level<1, -1>>, my_interval::modify<-2, 0>>();
+    ASSERT_TYPE_EQ<interval<level<0, 2>, level<1, 2>>, my_interval::modify<2, 2>>();
 }
 
 TEST(test_interval, join) {
-    using interval1 = interval< level< 1, -2 >, level< 1, -1 > >;
-    using interval2 = interval< level< 0, -1 >, level< 3, -1 > >;
-    using interval3 = interval< level< 2, -2 >, level< 3, -1 > >;
-    using joined_interval = join_interval< interval1, interval2, interval3 >;
+    using interval1 = interval<level<1, -2>, level<1, -1>>;
+    using interval2 = interval<level<0, -1>, level<3, -1>>;
+    using interval3 = interval<level<2, -2>, level<3, -1>>;
+    using joined_interval = join_interval<interval1, interval2, interval3>;
 
-    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, joined_interval >();
+    ASSERT_TYPE_EQ<interval<level<0, -1>, level<3, -1>>, joined_interval>();
 }

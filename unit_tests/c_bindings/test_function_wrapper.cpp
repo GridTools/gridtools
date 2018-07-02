@@ -36,9 +36,9 @@
 
 #include <gridtools/c_bindings/function_wrapper.hpp>
 
-#include <type_traits>
-#include <stack>
 #include <iostream>
+#include <stack>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
@@ -52,73 +52,73 @@ namespace gridtools {
             struct array_descriptor_struct {
                 array_descriptor_struct(const gt_fortran_array_descriptor &);
                 using gt_view_element_type = int;
-                using gt_view_rank = std::integral_constant< std::size_t, 3 >;
+                using gt_view_rank = std::integral_constant<std::size_t, 3>;
             };
-            static_assert(std::is_same< wrapped_t< void (*)() >, void() >::value, "");
-            static_assert(std::is_same< wrapped_t< int() >, int() >::value, "");
-            static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >::value, "");
-            static_assert(std::is_same< wrapped_t< a_struct const &() >, gt_handle *() >::value, "");
-            static_assert(std::is_same< wrapped_t< void(int) >, void(int) >::value, "");
-            static_assert(std::is_same< wrapped_t< void(int &) >, void(int *) >::value, "");
-            static_assert(std::is_same< wrapped_t< void(int const *) >, void(int const *) >::value, "");
-            static_assert(std::is_same< wrapped_t< void(a_struct *) >, void(gt_handle *) >::value, "");
-            static_assert(std::is_same< wrapped_t< void(a_struct &) >, void(gt_handle *) >::value, "");
-            static_assert(std::is_same< wrapped_t< void(a_struct) >, void(gt_handle *) >::value, "");
+            static_assert(std::is_same<wrapped_t<void (*)()>, void()>::value, "");
+            static_assert(std::is_same<wrapped_t<int()>, int()>::value, "");
+            static_assert(std::is_same<wrapped_t<a_struct()>, gt_handle *()>::value, "");
+            static_assert(std::is_same<wrapped_t<a_struct const &()>, gt_handle *()>::value, "");
+            static_assert(std::is_same<wrapped_t<void(int)>, void(int)>::value, "");
+            static_assert(std::is_same<wrapped_t<void(int &)>, void(int *)>::value, "");
+            static_assert(std::is_same<wrapped_t<void(int const *)>, void(int const *)>::value, "");
+            static_assert(std::is_same<wrapped_t<void(a_struct *)>, void(gt_handle *)>::value, "");
+            static_assert(std::is_same<wrapped_t<void(a_struct &)>, void(gt_handle *)>::value, "");
+            static_assert(std::is_same<wrapped_t<void(a_struct)>, void(gt_handle *)>::value, "");
             static_assert(
-                std::is_same< wrapped_t< void(float(&)[1][2][3]) >, void(gt_fortran_array_descriptor *) >::value, "");
-            static_assert(std::is_same< wrapped_t< array_descriptor_struct(array_descriptor_struct) >,
-                              gt_handle *(gt_fortran_array_descriptor *) >::value,
+                std::is_same<wrapped_t<void(float (&)[1][2][3])>, void(gt_fortran_array_descriptor *)>::value, "");
+            static_assert(std::is_same<wrapped_t<array_descriptor_struct(array_descriptor_struct)>,
+                              gt_handle *(gt_fortran_array_descriptor *)>::value,
                 "");
 
-            template < class T >
-            std::stack< T > create() {
-                return std::stack< T >{};
+            template <class T>
+            std::stack<T> create() {
+                return std::stack<T>{};
             }
 
-            template < class T >
-            void push_to_ref(std::stack< T > &obj, T val) {
+            template <class T>
+            void push_to_ref(std::stack<T> &obj, T val) {
                 obj.push(val);
             }
 
-            template < class T >
-            void push_to_ptr(std::stack< T > *obj, T val) {
+            template <class T>
+            void push_to_ptr(std::stack<T> *obj, T val) {
                 obj->push(val);
             }
 
-            template < class T >
-            void pop(std::stack< T > &obj) {
+            template <class T>
+            void pop(std::stack<T> &obj) {
                 obj.pop();
             }
 
-            template < class T >
-            T top(const std::stack< T > &obj) {
+            template <class T>
+            T top(const std::stack<T> &obj) {
                 return obj.top();
             }
 
-            template < class T >
-            bool empty(const std::stack< T > &obj) {
+            template <class T>
+            bool empty(const std::stack<T> &obj) {
                 return obj.empty();
             }
 
             TEST(wrap, smoke) {
-                gt_handle *obj = wrap(create< int >)();
-                EXPECT_TRUE(wrap(empty< int >)(obj));
-                wrap(push_to_ref< int >)(obj, 42);
-                EXPECT_FALSE(wrap(empty< int >)(obj));
-                EXPECT_EQ(42, wrap(top< int >)(obj));
-                wrap(push_to_ptr< int >)(obj, 43);
-                EXPECT_EQ(43, wrap(top< int >)(obj));
-                wrap(pop< int >)(obj);
-                wrap(pop< int >)(obj);
-                EXPECT_TRUE(wrap(empty< int >)(obj));
+                gt_handle *obj = wrap(create<int>)();
+                EXPECT_TRUE(wrap(empty<int>)(obj));
+                wrap(push_to_ref<int>)(obj, 42);
+                EXPECT_FALSE(wrap(empty<int>)(obj));
+                EXPECT_EQ(42, wrap(top<int>)(obj));
+                wrap(push_to_ptr<int>)(obj, 43);
+                EXPECT_EQ(43, wrap(top<int>)(obj));
+                wrap(pop<int>)(obj);
+                wrap(pop<int>)(obj);
+                EXPECT_TRUE(wrap(empty<int>)(obj));
                 gt_release(obj);
             }
 
-            std::unique_ptr< int > make_ptr() { return std::unique_ptr< int >{new int{3}}; }
-            std::unique_ptr< int > forward_ptr(std::unique_ptr< int > &&ptr) { return std::move(ptr); }
-            void set_ptr(std::unique_ptr< int > &ptr, int v) { *ptr = v; }
-            int get_ptr(std::unique_ptr< int > &ptr) { return *ptr; }
-            bool is_ptr_set(std::unique_ptr< int > &ptr) { return ptr.get(); }
+            std::unique_ptr<int> make_ptr() { return std::unique_ptr<int>{new int{3}}; }
+            std::unique_ptr<int> forward_ptr(std::unique_ptr<int> &&ptr) { return std::move(ptr); }
+            void set_ptr(std::unique_ptr<int> &ptr, int v) { *ptr = v; }
+            int get_ptr(std::unique_ptr<int> &ptr) { return *ptr; }
+            bool is_ptr_set(std::unique_ptr<int> &ptr) { return ptr.get(); }
             TEST(wrap, return_values) {
                 gt_handle *obj = wrap(make_ptr)();
                 wrap(set_ptr)(obj, 3);
@@ -146,7 +146,7 @@ namespace gridtools {
 
             TEST(wrap, lambda2) {
                 int val = 42;
-                auto testee = wrap< int() >([&] { return val; });
+                auto testee = wrap<int()>([&] { return val; });
                 EXPECT_EQ(42, testee());
                 val = 1;
                 EXPECT_EQ(1, testee());
@@ -161,10 +161,10 @@ namespace gridtools {
                 descriptor.dims[0] = 3;
                 descriptor.dims[1] = 2;
 
-                auto get = wrap< int(int(&)[2][3], size_t, size_t) >(
+                auto get = wrap<int(int(&)[2][3], size_t, size_t)>(
                     [](int(&array)[2][3], size_t i, size_t j) { return array[i][j]; });
                 EXPECT_EQ(array[0][0], get(&descriptor, 0, 0));
             }
-        }
-    }
-}
+        } // namespace
+    }     // namespace c_bindings
+} // namespace gridtools

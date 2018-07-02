@@ -53,15 +53,15 @@ namespace gridtools {
 
            \tparam the local layout map, i.e. defining the order of the dimensions
          */
-        template < typename Layout >
+        template <typename Layout>
         struct cartesian {};
     } // namespace topology
 
-    template < typename TopologyType >
+    template <typename TopologyType>
     class cell_topology {};
 
-    template < typename Layout >
-    class cell_topology< topology::cartesian< Layout > > {
+    template <typename Layout>
+    class cell_topology<topology::cartesian<Layout>> {
       public:
         static const ushort_t space_dimensions = Layout::masked_length;
     };

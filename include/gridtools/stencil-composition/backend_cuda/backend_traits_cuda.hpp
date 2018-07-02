@@ -55,28 +55,28 @@ namespace gridtools {
 
     /**forward declaration*/
     namespace _impl_cuda {
-        template < typename Arguments >
+        template <typename Arguments>
         struct run_functor_cuda;
     }
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
-    struct backend_traits_from_id< enumtype::Cuda > {
+    struct backend_traits_from_id<enumtype::Cuda> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
            instances.
         */
         struct make_view_f {
-            template < typename S, typename SI >
-            auto operator()(data_store< S, SI > const &src) const GT_AUTO_RETURN(make_device_view(src));
-            template < typename S, uint_t... N >
-            auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_device_view(src));
+            template <typename S, typename SI>
+            auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_device_view(src));
+            template <typename S, uint_t... N>
+            auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_device_view(src));
         };
 
-        template < typename Arguments >
+        template <typename Arguments>
         struct execute_traits {
-            typedef _impl_cuda::run_functor_cuda< Arguments > run_functor_t;
+            typedef _impl_cuda::run_functor_cuda<Arguments> run_functor_t;
         };
 
         /** This is the function used by the specific backend to inform the
@@ -85,7 +85,7 @@ namespace gridtools {
             in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_i_pes(const uint_t i_size) {
-            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
+            typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
             return (i_size + block_size_t::i_size_t::value) / block_size_t::i_size_t::value;
         }
 
@@ -95,7 +95,7 @@ namespace gridtools {
             in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_j_pes(const uint_t j_size) {
-            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
+            typedef typename strategy_from_id_cuda<enumtype::Block>::block_size_t block_size_t;
             return (j_size + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
         }
 
@@ -116,17 +116,43 @@ namespace gridtools {
         /**
            @brief assigns the two given values using the given thread Id whithin the block
         */
-        template < uint_t Id, typename BlockSize >
+        template <uint_t Id, typename BlockSize>
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), GT_INTERNAL_ERROR);
 
-            template < typename Left, typename Right >
+            template <typename Left, typename Right>
             GT_FUNCTION static void assign(Left &l, Right const &r) {
                 assert(blockDim.z == 1);
                 const uint_t pe_elem = threadIdx.y * BlockSize::i_size_t::value + threadIdx.x;
                 if (Id % (BlockSize::i_size_t::value * BlockSize::j_size_t::value) == pe_elem) {
                     l = (Left)r;
                 }
+            }
+        };
+
+        // get a temporary storage size
+        template <class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy>
+        struct tmp_storage_size_f {
+            using storage_info_t = typename StorageWrapper::storage_info_t;
+            using halo_t = typename storage_info_t::halo_t;
+            static constexpr uint_t halo_i = halo_t::template at<GridTraits::dim_i_t::value>();
+            static constexpr uint_t halo_j = halo_t::template at<GridTraits::dim_j_t::value>();
+            static constexpr uint_t full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
+            static constexpr uint_t alignment = storage_info_t::alignment_t::value;
+            static constexpr uint_t diff_between_blocks =
+                alignment > 1 ? _impl::static_ceil(static_cast<float>(full_block_size) / alignment) * alignment
+                              : full_block_size;
+            static constexpr uint_t padding = diff_between_blocks - full_block_size;
+
+            template <class Grid>
+            std::array<uint_t, 3> operator()(Grid const &grid) const {
+                // TODO(anstaf): there is a bug here. k_size should be set to grid.total_length()
+                auto k_size = grid.k_max() + 1;
+                auto threads_i = n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+                auto threads_j = n_j_pes(grid.j_high_bound() - grid.j_low_bound());
+                auto inner_domain_size = threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
+                return {
+                    inner_domain_size + 2 * halo_i, (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * threads_j, k_size};
             }
         };
 
@@ -137,14 +163,14 @@ namespace gridtools {
            regions for each block. This method calculates the offset for temporaries and takes the private halo and
            alignment information into account.
         */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
+        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
+        GT_FUNCTION static typename boost::enable_if_c<Arg::is_temporary, int>::type fields_offset(
             StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             typedef typename LocalDomain::max_i_extent_t max_i_t;
             // halo in I and J direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            constexpr int halo_j = StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >();
+            constexpr int halo_i = StorageInfo::halo_t::template at<grid_traits_t::dim_i_t::value>();
+            constexpr int halo_j = StorageInfo::halo_t::template at<grid_traits_t::dim_j_t::value>();
             // calculate the blocksize in I and J direction
             constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
             constexpr int block_size_j = 2 * halo_j + PEBlockSize::j_size_t::value;
@@ -152,7 +178,7 @@ namespace gridtools {
             // protect against div. by 0 and compute the distance between two blocks
             constexpr int diff_between_blocks =
                 ((StorageInfo::alignment_t::value > 1)
-                        ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
+                        ? _impl::static_ceil(static_cast<float>(block_size_i) / StorageInfo::alignment_t::value) *
                               StorageInfo::alignment_t::value
                         : block_size_i);
 
@@ -169,8 +195,8 @@ namespace gridtools {
            storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
            the offset of this pointer. This function computes the field offset for non temporary storages.
         */
-        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
+        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
+        GT_FUNCTION static typename boost::enable_if_c<!Arg::is_temporary, int>::type fields_offset(
             StorageInfo const *sinfo) {
             return 0;
         }
@@ -179,24 +205,23 @@ namespace gridtools {
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
          */
-        template < typename RunFunctorArgs >
+        template <typename RunFunctorArgs>
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
+            template <typename LocalDomain, typename Grid, typename ReductionData>
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_cuda &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-                typedef
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
+                typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
+                typedef typename grid_traits_t::template with_arch<enumtype::Cuda>::type arch_grid_traits_t;
 
-                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
+                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type
                     kernel_functor_executor_t;
                 kernel_functor_executor_t(local_domain, grid)();
             }
@@ -208,22 +233,22 @@ namespace gridtools {
         typedef std::true_type mss_fuse_esfs_strategy;
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2< run_esf_functor_cuda > run_esf_functor_h_t;
+        typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
-        template < typename BackendIds >
+        template <typename BackendIds>
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            typedef strategy_from_id_cuda<BackendIds::s_strategy_id> type;
         };
 
         /**
          * @brief metafunction that returns the block size
          */
-        template < enumtype::strategy StrategyId >
+        template <enumtype::strategy StrategyId>
         struct get_block_size {
             GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block, "For CUDA backend only Block strategy is supported");
-            typedef typename strategy_from_id_cuda< StrategyId >::block_size_t type;
+            typedef typename strategy_from_id_cuda<StrategyId>::block_size_t type;
         };
 
         /**
@@ -232,35 +257,35 @@ namespace gridtools {
          * @tparam IterateDomainArguments the iterate domain arguments
          * @return the iterate domain type for this backend
          */
-        template < typename IterateDomainArguments >
+        template <typename IterateDomainArguments>
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
             // indirection in order to avoid instantiation of both types of the eval_if
-            template < typename _IterateDomainArguments >
+            template <typename _IterateDomainArguments>
             struct select_positional_iterate_domain {
 // TODO to do this properly this should belong to a arch_grid_trait (i.e. a trait dispatching types depending
 // on the comp architecture and the grid.
 #ifdef STRUCTURED_GRIDS
-                typedef iterate_domain_cuda< positional_iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
 #else
-                typedef iterate_domain_cuda< iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
 #endif
             };
 
-            template < typename _IterateDomainArguments >
+            template <typename _IterateDomainArguments>
             struct select_basic_iterate_domain {
-                typedef iterate_domain_cuda< iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
             };
 
-            typedef typename boost::mpl::eval_if<
-                local_domain_is_stateful< typename IterateDomainArguments::local_domain_t >,
-                select_positional_iterate_domain< IterateDomainArguments >,
-                select_basic_iterate_domain< IterateDomainArguments > >::type type;
+            typedef
+                typename boost::mpl::eval_if<local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
+                    select_positional_iterate_domain<IterateDomainArguments>,
+                    select_basic_iterate_domain<IterateDomainArguments>>::type type;
         };
 
-        template < typename IterateDomainArguments >
+        template <typename IterateDomainArguments>
         struct select_iterate_domain_cache {
-            typedef iterate_domain_cache< IterateDomainArguments > type;
+            typedef iterate_domain_cache<IterateDomainArguments> type;
         };
 
 #ifdef ENABLE_METERS

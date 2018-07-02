@@ -38,13 +38,13 @@
 
 static const size_t Size = 2;
 
-GT_FUNCTION int linear_index(gridtools::array< size_t, 2 > &index) { return index[0] * Size + index[1]; }
+GT_FUNCTION int linear_index(gridtools::array<size_t, 2> &index) { return index[0] * Size + index[1]; }
 
 __global__ void test_kernel(int *out_ptr) {
     for (size_t i = 0; i < Size * Size; ++i)
         out_ptr[i] = -1;
 
-    using hypercube_t = gridtools::array< gridtools::array< size_t, 2 >, 2 >;
+    using hypercube_t = gridtools::array<gridtools::array<size_t, 2>, 2>;
     for (auto pos : make_hypercube_view(hypercube_t{{{0ul, Size}, {0ul, Size}}})) {
         out_ptr[linear_index(pos)] = linear_index(pos);
     }
@@ -54,7 +54,7 @@ TEST(multi_iterator, iterate_on_device) {
     int *out;
     cudaMalloc(&out, sizeof(int) * Size * Size);
 
-    test_kernel<<< 1, 1 >>>(out);
+    test_kernel<<<1, 1>>>(out);
 
     int host_out[Size * Size];
     cudaMemcpy(&host_out, out, sizeof(int) * Size * Size, cudaMemcpyDeviceToHost);

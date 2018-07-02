@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
 #include "test_grid.hpp"
+#include "gtest/gtest.h"
 #include <gridtools/stencil-composition/axis.hpp>
 
 TEST(test_grid, k_total_length) {
@@ -45,8 +45,8 @@ TEST(test_grid, k_total_length) {
     uint_t splitter_begin = 5;
     uint_t splitter_end = 50;
 
-    typedef interval< level< 0, offset_from >, level< 1, offset_to + 1 > > axis;
-    grid< axis > grid_(halo_descriptor{}, halo_descriptor{}, {splitter_begin, splitter_end});
+    typedef interval<level<0, offset_from>, level<1, offset_to + 1>> axis;
+    grid<axis> grid_(halo_descriptor{}, halo_descriptor{}, {splitter_begin, splitter_end});
 
     uint_t expected_total_length = (int_t)splitter_end - (int_t)splitter_begin - offset_from + offset_to;
 
@@ -61,8 +61,8 @@ class test_grid_copy_ctor : public ::testing::Test {
     const uint_t splitter_1;
 
   public:
-    typedef interval< level< 0, -1 >, level< 1, -1 > > axis;
-    grid< axis > grid_;
+    typedef interval<level<0, -1>, level<1, -1>> axis;
+    grid<axis> grid_;
 
     test_grid_copy_ctor()
         : halo_i(1, 1, 1, 3, 5), halo_j(2, 2, 2, 7, 10), splitter_0(2), splitter_1(5),
@@ -70,7 +70,7 @@ class test_grid_copy_ctor : public ::testing::Test {
 };
 
 TEST_F(test_grid_copy_ctor, copy_on_host) {
-    grid< axis > copy(grid_);
+    grid<axis> copy(grid_);
 
     ASSERT_TRUE(test_grid_eq(grid_, copy));
 }
@@ -81,7 +81,7 @@ TEST(test_grid, make_grid_makes_splitters_and_values) {
     const uint_t interval1_size = 5;
     const uint_t interval2_size = 10;
 
-    auto grid_ = make_grid(empty_, empty_, axis< 2 >((uint_t)5, (uint_t)10));
+    auto grid_ = make_grid(empty_, empty_, axis<2>((uint_t)5, (uint_t)10));
 
     ASSERT_EQ(3, grid_.value_list.size());
 

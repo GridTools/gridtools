@@ -34,49 +34,49 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <gridtools/common/defs.hpp>
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/array_addons.hpp>
+#include <gridtools/common/defs.hpp>
 
 using namespace gridtools;
 
 TEST(array, test_append) {
-    array< uint_t, 4 > a{1, 2, 3, 4};
+    array<uint_t, 4> a{1, 2, 3, 4};
     auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{1, 2, 3, 4, 5}));
+    ASSERT_TRUE((mod_a == array<uint_t, 5>{1, 2, 3, 4, 5}));
     ASSERT_TRUE((mod_a[4] == 5));
 }
 
 TEST(array, test_append_to_empty) {
-    array< uint_t, 0 > a{};
+    array<uint_t, 0> a{};
     auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
+    ASSERT_TRUE((mod_a == array<uint_t, 1>{5}));
     ASSERT_TRUE((mod_a[0] == 5));
 }
 
 TEST(array, test_prepend) {
-    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
+    constexpr array<uint_t, 4> a{1, 2, 3, 4};
     auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{5, 1, 2, 3, 4}));
+    ASSERT_TRUE((mod_a == array<uint_t, 5>{5, 1, 2, 3, 4}));
     ASSERT_TRUE((mod_a[0] == 5));
 }
 
 TEST(array, test_prepend_to_empty) {
-    array< uint_t, 0 > a{};
+    array<uint_t, 0> a{};
     auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
+    ASSERT_TRUE((mod_a == array<uint_t, 1>{5}));
     ASSERT_TRUE((mod_a[0] == 5));
 }
 
 TEST(array, test_copyctr) {
-    constexpr array< uint_t, 4 > a{4, 2, 3, 1};
+    constexpr array<uint_t, 4> a{4, 2, 3, 1};
     constexpr auto mod_a(a);
-    ASSERT_TRUE((mod_a == array< uint_t, 4 >{4, 2, 3, 1}));
+    ASSERT_TRUE((mod_a == array<uint_t, 4>{4, 2, 3, 1}));
     ASSERT_TRUE((mod_a[0] == 4));
 }
 
 TEST(array, iterate_empty) {
-    array< uint_t, 0 > a{};
+    array<uint_t, 0> a{};
 
     ASSERT_EQ(a.begin(), a.end());
 
@@ -87,9 +87,9 @@ TEST(array, iterate_empty) {
 
 #if __cplusplus >= 201402L
 TEST(array, constexpr_compare) {
-    constexpr array< uint_t, 3 > a{0, 0, 0};
-    constexpr array< uint_t, 3 > b{0, 0, 0};
-    constexpr array< uint_t, 3 > c{0, 0, 1};
+    constexpr array<uint_t, 3> a{0, 0, 0};
+    constexpr array<uint_t, 3> b{0, 0, 0};
+    constexpr array<uint_t, 3> c{0, 0, 1};
 
     constexpr bool eq = (a == b);
     constexpr bool neq = (a != c);
@@ -101,9 +101,9 @@ TEST(array, constexpr_compare) {
 
 TEST(array, iterate) {
     const int N = 5;
-    array< double, N > a{};
+    array<double, N> a{};
 
-    ASSERT_EQ(N * sizeof(double), reinterpret_cast< char * >(a.end()) - reinterpret_cast< char * >(a.begin()));
+    ASSERT_EQ(N * sizeof(double), reinterpret_cast<char *>(a.end()) - reinterpret_cast<char *>(a.begin()));
 
     int count = 0;
     for (auto it = a.begin(); it < a.end(); ++it) {

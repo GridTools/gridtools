@@ -55,19 +55,19 @@ namespace gridtools {
         the iterate_domain which contains an overload of ```operator()``` specialised for
        global_accessor_with_arguments.
      */
-    template < typename GlobalAccessor, typename... Args >
+    template <typename GlobalAccessor, typename... Args>
     struct global_accessor_with_arguments {
       private:
-        boost::fusion::vector< Args... > m_arguments;
+        boost::fusion::vector<Args...> m_arguments;
 
       public:
         typedef GlobalAccessor super;
         typedef typename super::index_t index_t;
 
         GT_FUNCTION
-        global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward< Args >(args_)...) {}
+        global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward<Args>(args_)...) {}
         GT_FUNCTION
-        boost::fusion::vector< Args... > const &get_arguments() const { return m_arguments; };
+        boost::fusion::vector<Args...> const &get_arguments() const { return m_arguments; };
     };
 
     /**
@@ -79,27 +79,27 @@ namespace gridtools {
        Calling the parenthesis operator on the global_accessor generates an instance of
        ```global_accessor_with_arguments```.
      */
-    template < uint_t I >
+    template <uint_t I>
     struct global_accessor {
 
         static const constexpr enumtype::intent intent = enumtype::in;
 
-        typedef global_accessor< I > type;
+        typedef global_accessor<I> type;
 
-        typedef static_uint< I > index_t;
+        typedef static_uint<I> index_t;
 
         typedef empty_extent extent_t;
 
         GT_FUNCTION constexpr global_accessor() {}
 
         // copy ctor from another global_accessor with different index
-        template < uint_t OtherIndex >
-        GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex > &other) {}
+        template <uint_t OtherIndex>
+        GT_FUNCTION constexpr global_accessor(const global_accessor<OtherIndex> &other) {}
 
         /** @brief generates a global_accessor_with_arguments and returns it by value */
-        template < typename... Args >
-        GT_FUNCTION global_accessor_with_arguments< global_accessor, Args... > operator()(Args &&... args_) {
-            return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
+        template <typename... Args>
+        GT_FUNCTION global_accessor_with_arguments<global_accessor, Args...> operator()(Args &&... args_) {
+            return global_accessor_with_arguments<global_accessor, Args...>(std::forward<Args>(args_)...);
         }
     };
 } // namespace gridtools

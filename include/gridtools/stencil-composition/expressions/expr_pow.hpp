@@ -47,16 +47,15 @@ namespace gridtools {
             \addtogroup expressions
             @{
         */
-        template < int I >
+        template <int I>
         struct pow_f {
-            template < class Arg >
-            GT_FUNCTION constexpr auto operator()(Arg const &arg) const
-                GT_AUTO_RETURN(gt_pow< I >::template apply(arg));
+            template <class Arg>
+            GT_FUNCTION constexpr auto operator()(Arg const &arg) const GT_AUTO_RETURN(gt_pow<I>::template apply(arg));
         };
 
-        template < int I, class Arg >
-        GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f< I >{}, arg));
+        template <int I, class Arg>
+        GT_FUNCTION constexpr auto pow(Arg arg) GT_AUTO_RETURN(make_expr(pow_f<I>{}, arg));
         /** @} */
         /** @} */
-    }
-}
+    } // namespace expressions
+} // namespace gridtools

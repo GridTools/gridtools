@@ -36,8 +36,8 @@
 
 #include <iostream>
 
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 #include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -45,13 +45,13 @@ using namespace enumtype;
 namespace data_store_field_test {
 
     struct A {
-        typedef accessor_extend< accessor< 0, in, extent<>, 3 >, 2 >::type pin;
-        typedef accessor_extend< accessor< 1, inout, extent<>, 3 >, 2 >::type pout;
-        typedef dimension< 4 > comp;
-        typedef dimension< 5 > snap;
-        typedef boost::mpl::vector< pin, pout > arg_list;
+        typedef accessor_extend<accessor<0, in, extent<>, 3>, 2>::type pin;
+        typedef accessor_extend<accessor<1, inout, extent<>, 3>, 2>::type pout;
+        typedef dimension<4> comp;
+        typedef dimension<5> snap;
+        typedef boost::mpl::vector<pin, pout> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             // copy first component elements
             eval(pout(comp(0), snap(0))) = eval(pin(comp(0), snap(0)));
@@ -70,10 +70,10 @@ namespace data_store_field_test {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
-        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_ty >
+        typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_ty; // storage info type
+        typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_ty>
             data_store_t; // data store type
-        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
+        typedef storage_traits<backend_t::s_backend_id>::data_store_field_t<float_type, storage_info_ty, 1, 2, 3>
             data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
         storage_info_ty si(d1, d2, d3);
@@ -87,25 +87,25 @@ namespace data_store_field_test {
         for (int i = 0; i < d1; ++i)
             for (int j = 0; j < d2; ++j)
                 for (int k = 0; k < d3; ++k) {
-                    hv_in.get< 0, 0 >()(i, j, k) = 1;
-                    hv_in.get< 1, 0 >()(i, j, k) = 2;
-                    hv_in.get< 1, 1 >()(i, j, k) = 3;
-                    hv_in.get< 2, 0 >()(i, j, k) = 4;
-                    hv_in.get< 2, 1 >()(i, j, k) = 5;
-                    hv_in.get< 2, 2 >()(i, j, k) = 6;
+                    hv_in.get<0, 0>()(i, j, k) = 1;
+                    hv_in.get<1, 0>()(i, j, k) = 2;
+                    hv_in.get<1, 1>()(i, j, k) = 3;
+                    hv_in.get<2, 0>()(i, j, k) = 4;
+                    hv_in.get<2, 1>()(i, j, k) = 5;
+                    hv_in.get<2, 2>()(i, j, k) = 6;
 
-                    hv_out.get< 0, 0 >()(i, j, k) = 123;
-                    hv_out.get< 1, 0 >()(i, j, k) = 123;
-                    hv_out.get< 1, 1 >()(i, j, k) = 123;
-                    hv_out.get< 2, 0 >()(i, j, k) = 123;
-                    hv_out.get< 2, 1 >()(i, j, k) = 123;
-                    hv_out.get< 2, 2 >()(i, j, k) = 123;
+                    hv_out.get<0, 0>()(i, j, k) = 123;
+                    hv_out.get<1, 0>()(i, j, k) = 123;
+                    hv_out.get<1, 1>()(i, j, k) = 123;
+                    hv_out.get<2, 0>()(i, j, k) = 123;
+                    hv_out.get<2, 1>()(i, j, k) = 123;
+                    hv_out.get<2, 2>()(i, j, k) = 123;
                 }
 
         // create some gridtools stuff
-        typedef arg< 0, data_store_field_t > p_in;
-        typedef arg< 1, data_store_field_t > p_out;
-        typedef tmp_arg< 2, data_store_field_t > p_tmp;
+        typedef arg<0, data_store_field_t> p_in;
+        typedef arg<1, data_store_field_t> p_out;
+        typedef tmp_arg<2, data_store_field_t> p_tmp;
 
         uint_t halo_size = 0;
 
@@ -114,13 +114,13 @@ namespace data_store_field_test {
 
         auto grid_ = make_grid(di, dj, d3);
 
-        auto comp = make_computation< backend_t >(grid_,
+        auto comp = make_computation<backend_t>(grid_,
             p_in() = dsf_in,
             p_out() = dsf_out,
-            make_multistage(execute< forward >(),
-                                                      define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
-                                                      make_stage< A >(p_in(), p_tmp()),
-                                                      make_stage< A >(p_tmp(), p_out())));
+            make_multistage(execute<forward>(),
+                define_caches(cache<IJ, cache_io_policy::local>(p_tmp())),
+                make_stage<A>(p_in(), p_tmp()),
+                make_stage<A>(p_tmp(), p_out())));
 
         comp.run();
         comp.sync_bound_data_stores();
@@ -129,14 +129,14 @@ namespace data_store_field_test {
         for (int i = halo_size; i < d1 - halo_size; ++i) {
             for (int j = halo_size; j < d2 - halo_size; ++j) {
                 for (int k = 0; k < d3; ++k) {
-                    valid &= (hv_out.get< 0, 0 >()(i, j, k) == 1);
+                    valid &= (hv_out.get<0, 0>()(i, j, k) == 1);
 
-                    valid &= (hv_out.get< 1, 0 >()(i, j, k) == 2);
-                    valid &= (hv_out.get< 1, 1 >()(i, j, k) == 3);
+                    valid &= (hv_out.get<1, 0>()(i, j, k) == 2);
+                    valid &= (hv_out.get<1, 1>()(i, j, k) == 3);
 
-                    valid &= (hv_out.get< 2, 0 >()(i, j, k) == 4);
-                    valid &= (hv_out.get< 2, 1 >()(i, j, k) == 5);
-                    valid &= (hv_out.get< 2, 2 >()(i, j, k) == 6);
+                    valid &= (hv_out.get<2, 0>()(i, j, k) == 4);
+                    valid &= (hv_out.get<2, 1>()(i, j, k) == 5);
+                    valid &= (hv_out.get<2, 2>()(i, j, k) == 6);
 
                     if (!valid) {
                         std::cout << "ERROR IN: " << i << " " << j << " " << k << std::endl;
@@ -147,4 +147,4 @@ namespace data_store_field_test {
         }
         return valid;
     }
-}
+} // namespace data_store_field_test

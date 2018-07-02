@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include "../common/hypercube_iterator.hpp"
 #include "../common/array.hpp"
 #include "../common/gt_math.hpp"
+#include "../common/hypercube_iterator.hpp"
 #include "../stencil-composition/grid_traits_fwd.hpp"
 #include "../storage/common/storage_info_rt.hpp"
 #include "../storage/storage-facility.hpp"
@@ -46,7 +46,7 @@
 namespace gridtools {
 
     namespace _impl {
-        template < class T >
+        template <class T>
         class default_precision {
             static const double value;
 
@@ -55,15 +55,15 @@ namespace gridtools {
         };
 
         template <>
-        const double default_precision< float >::value = 1e-6;
+        const double default_precision<float>::value = 1e-6;
 
         template <>
-        const double default_precision< double >::value = 1e-14;
-    }
+        const double default_precision<double>::value = 1e-14;
+    } // namespace _impl
 
-    template < typename value_type >
+    template <typename value_type>
     GT_FUNCTION bool compare_below_threshold(
-        value_type expected, value_type actual, double precision = _impl::default_precision< value_type >()) {
+        value_type expected, value_type actual, double precision = _impl::default_precision<value_type>()) {
         value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
         value_type absolute_error = math::fabs(expected - actual);
         value_type relative_error = absolute_error / absmax;
@@ -82,32 +82,32 @@ namespace gridtools {
         verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
         ~verifier() {}
 
-        template < typename Grid, typename StorageType >
+        template <typename Grid, typename StorageType>
         bool verify(Grid const &grid_ /*TODO: unused*/,
             StorageType const &expected_field,
             StorageType const &actual_field,
-            const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > &halos) {
+            const array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> &halos) {
             if (StorageType::num_of_storages > 1)
                 throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
 
             // TODO This is following the original implementation. Shouldn't we deduce the range from the grid (as we
             // already pass it)?
             storage_info_rt meta_rt = make_storage_info_rt(*(expected_field.get_storage_info_ptr()));
-            array< array< size_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > bounds;
+            array<array<size_t, 2>, StorageType::storage_info_t::layout_t::masked_length> bounds;
             for (size_t i = 0; i < bounds.size(); ++i) {
                 bounds[i] = {halos[i][0], meta_rt.unaligned_dims()[i] - halos[i][1]};
             }
             auto cube_view = make_hypercube_view(bounds);
 
             expected_field.sync();
-            auto expected_view = make_host_view< access_mode::ReadOnly >(expected_field);
+            auto expected_view = make_host_view<access_mode::ReadOnly>(expected_field);
             actual_field.sync();
-            auto actual_view = make_host_view< access_mode::ReadOnly >(actual_field);
+            auto actual_view = make_host_view<access_mode::ReadOnly>(actual_field);
 
             size_t error_count = 0;
             for (auto &&pos : cube_view) {
-                auto expected = expected_view(convert_to_array< int >(pos));
-                auto actual = actual_view(convert_to_array< int >(pos));
+                auto expected = expected_view(convert_to_array<int>(pos));
+                auto actual = actual_view(convert_to_array<int>(pos));
                 if (!compare_below_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected

@@ -33,15 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <communication/GCL.hpp>
-#include <mpi.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <communication/high-level/descriptors_dt.hpp>
-#include <communication/high-level/descriptors.hpp>
-#include <string>
 #include <common/boollist.hpp>
+#include <communication/GCL.hpp>
+#include <communication/high-level/descriptors.hpp>
+#include <communication/high-level/descriptors_dt.hpp>
+#include <fstream>
+#include <iostream>
+#include <mpi.h>
+#include <sstream>
+#include <string>
 
 #define DIM 10
 
@@ -94,14 +94,14 @@ int main(int argc, char **argv) {
 
     MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-    typedef gridtools::MPI_3D_process_grid_t< 3 > grid_type;
-    gridtools::array< int, 3 > dimensions;
+    typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
+    gridtools::array<int, 3> dimensions;
     dimensions[0] = dims[0];
     dimensions[1] = dims[1];
     dimensions[2] = dims[2];
 
-    gridtools::hndlr_dynamic_ut< triple_t, grid_type, gridtools::Halo_Exchange_3D< grid_type > > hd(
-        gridtools::boollist< 3 >(false, false, false), CartComm, &dimensions);
+    gridtools::hndlr_dynamic_ut<triple_t, grid_type, gridtools::Halo_Exchange_3D<grid_type>> hd(
+        gridtools::boollist<3>(false, false, false), CartComm, &dimensions);
 
     hd.halo.add_halo(2, 2, 1, 3, 6, DIM);
     hd.halo.add_halo(1, 2, 1, 3, 6, DIM);

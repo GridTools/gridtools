@@ -41,34 +41,35 @@
  * sum_reduce(edges) {sign_edge * lengh_edge}
  * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
  */
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
-#include "unstructured_grid.hpp"
-#include "benchmarker.hpp"
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace soem {
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    using x_interval = axis< 1 >::full_interval;
+    using x_interval = axis<1>::full_interval;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct test_on_edges_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 1 > > in1;
-        typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > in2;
-        typedef inout_accessor< 2, icosahedral_topology_t::edges > out;
-        typedef boost::mpl::vector< in1, in2, out > arg_list;
+        typedef in_accessor<0, icosahedral_topology_t::edges, extent<1>> in1;
+        typedef in_accessor<1, icosahedral_topology_t::edges, extent<1>> in2;
+        typedef inout_accessor<2, icosahedral_topology_t::edges> out;
+        typedef boost::mpl::vector<in1, in2, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            auto ff = [](
-                const double _in1, const double _in2, const double _res) -> double { return _in1 + _in2 * 0.1 + _res; };
+            auto ff = [](const double _in1, const double _in2, const double _res) -> double {
+                return _in1 + _in2 * 0.1 + _res;
+            };
 
             eval(out()) = eval(on_edges(ff, 0.0, in1(), in2()));
         }
@@ -80,18 +81,17 @@ namespace soem {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using edge_storage_type =
-            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::edges, double >;
+        using edge_storage_type = typename icosahedral_topology_t::data_store_t<icosahedral_topology_t::edges, double>;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_edges1 = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in1");
-        auto in_edges2 = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in2");
-        auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
-        auto ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
+        auto in_edges1 = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("in1");
+        auto in_edges2 = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("in2");
+        auto out_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("out");
+        auto ref_edges = icosahedral_grid.make_storage<icosahedral_topology_t::edges, double>("ref");
         auto inv1 = make_host_view(in_edges1);
         auto inv2 = make_host_view(in_edges2);
         auto outv = make_host_view(out_edges);
@@ -111,23 +111,22 @@ namespace soem {
             }
         }
 
-        typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges1;
-        typedef arg< 1, edge_storage_type, enumtype::edges > p_in_edges2;
-        typedef arg< 2, edge_storage_type, enumtype::edges > p_out_edges;
+        typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges1;
+        typedef arg<1, edge_storage_type, enumtype::edges> p_in_edges2;
+        typedef arg<2, edge_storage_type, enumtype::edges> p_out_edges;
 
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
-        auto stencil_ = gridtools::make_computation< backend_t >(
-            grid_,
+        auto stencil_ = gridtools::make_computation<backend_t>(grid_,
             p_in_edges1() = in_edges1,
             p_in_edges2() = in_edges2,
             p_out_edges() = out_edges,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(
+            (execute<forward>(),
+                gridtools::make_stage<test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::edges>(
                     p_in_edges1(), p_in_edges2(), p_out_edges())));
         stencil_.run();
 
@@ -143,7 +142,7 @@ namespace soem {
                     for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
                             auto neighbours =
-                                ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
+                                ugrid.neighbours_of<icosahedral_topology_t::edges, icosahedral_topology_t::edges>(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
                                 refv(i, c, j, k) += inv1((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) +
@@ -160,7 +159,7 @@ namespace soem {
             verifier ver(1e-10);
 #endif
 
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+            array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = ver.verify(grid_, ref_edges, out_edges, halos);
         }
 #ifdef BENCHMARK
@@ -168,4 +167,4 @@ namespace soem {
 #endif
         return result;
     }
-} // namespace soe
+} // namespace soem

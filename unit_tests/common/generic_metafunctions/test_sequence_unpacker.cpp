@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "test_sequence_unpacker.hpp"
+#include "gtest/gtest.h"
 
 TEST(sequence_unpacker, test_unpack) {
     bool result = true;

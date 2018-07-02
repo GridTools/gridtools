@@ -34,36 +34,36 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "backend_select.hpp"
+#include <boost/any.hpp>
+#include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
+#include <gtest/gtest.h>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <gtest/gtest.h>
-#include <boost/any.hpp>
-#include <gridtools/stencil-composition/arg.hpp>
-#include "backend_select.hpp"
 
 namespace gridtools {
     namespace {
 
         using storage_traits_t = backend_t::storage_traits_t;
 
-        using data_store_t = storage_traits_t::data_store_t< float_type, storage_traits_t::storage_info_t< 0, 1 > >;
+        using data_store_t = storage_traits_t::data_store_t<float_type, storage_traits_t::storage_info_t<0, 1>>;
 
-        using a = arg< 0, data_store_t >;
-        using b = arg< 1, data_store_t >;
+        using a = arg<0, data_store_t>;
+        using b = arg<1, data_store_t>;
 
         data_store_t data(std::string const &name = "") { return name; }
 
-        using result = std::vector< std::string >;
+        using result = std::vector<std::string>;
 
         struct my_computation {
             size_t m_count = 0;
             bool m_synced = true;
 
-            template < class... Args, class... DataStores >
-            result run(arg_storage_pair< Args, DataStores > const &... args) {
+            template <class... Args, class... DataStores>
+            result run(arg_storage_pair<Args, DataStores> const &... args) {
                 ++m_count;
                 m_synced = false;
                 return {args.m_value.name()...};
@@ -81,13 +81,13 @@ namespace gridtools {
         };
 
         TEST(computation, default_ctor) {
-            EXPECT_FALSE(computation< int >{});
-            EXPECT_FALSE((computation< int, a, b >{}));
+            EXPECT_FALSE(computation<int>{});
+            EXPECT_FALSE((computation<int, a, b>{}));
         }
 
         TEST(computation, without_args) {
-            computation< result > testee = my_computation{};
-            static_assert(std::is_same< decltype(testee.run()), result >{}, "");
+            computation<result> testee = my_computation{};
+            static_assert(std::is_same<decltype(testee.run()), result>{}, "");
             EXPECT_EQ(testee.print_meter(), "synced:0");
             EXPECT_EQ(testee.get_count(), 0);
             testee.run();
@@ -105,30 +105,30 @@ namespace gridtools {
         }
 
         TEST(computation, void_return) {
-            computation< void > testee = my_computation{};
-            static_assert(std::is_void< decltype(testee.run()) >{}, "");
+            computation<void> testee = my_computation{};
+            static_assert(std::is_void<decltype(testee.run())>{}, "");
             testee.run();
         }
 
         TEST(computation, move) {
-            auto make = []() { return computation< void >(my_computation{}); };
+            auto make = []() { return computation<void>(my_computation{}); };
             auto testee = make();
             EXPECT_EQ(testee.print_meter(), "synced:0");
         }
 
         TEST(computation, move_assign) {
             auto make = []() {
-                computation< void > res = my_computation{};
+                computation<void> res = my_computation{};
                 res.run();
                 return res;
             };
-            computation< void > testee;
+            computation<void> testee;
             testee = make();
             EXPECT_EQ(testee.get_count(), 1);
         }
 
         TEST(computation, one_arg) {
-            computation< result, a > testee = my_computation{};
+            computation<result, a> testee = my_computation{};
             EXPECT_EQ(testee.run(a{} = data("foo"))[0], "foo");
             // expect compilation failures
             // testee.run();
@@ -137,7 +137,7 @@ namespace gridtools {
         }
 
         TEST(computation, many_args) {
-            computation< result, a, b > testee = my_computation{};
+            computation<result, a, b> testee = my_computation{};
             result res = testee.run(a{} = data("foo"), b{} = data("bar"));
             ASSERT_EQ(res.size(), 2);
             EXPECT_EQ(res[0], "foo");
@@ -149,21 +149,21 @@ namespace gridtools {
         }
 
         TEST(computation, convertible_args) {
-            computation< void, a, b > tmp = my_computation{};
+            computation<void, a, b> tmp = my_computation{};
             tmp.run(a{} = data(), b{} = data());
-            computation< void, b, a > testee = std::move(tmp);
+            computation<void, b, a> testee = std::move(tmp);
             testee.run(a{} = data(), b{} = data());
             EXPECT_EQ(testee.get_count(), 2);
         }
 
         TEST(computation, convertible_returns) {
-            computation< result > tmp = my_computation{};
+            computation<result> tmp = my_computation{};
             tmp.run();
-            computation< boost::any > tmp_testee = std::move(tmp);
+            computation<boost::any> tmp_testee = std::move(tmp);
             tmp_testee.run();
-            computation< void > testee = std::move(tmp_testee);
+            computation<void> testee = std::move(tmp_testee);
             testee.run();
             EXPECT_EQ(testee.get_count(), 3);
         }
-    }
-}
+    } // namespace
+} // namespace gridtools

@@ -37,14 +37,14 @@
 
 #include <stdexcept>
 
-#include <boost/utility.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/or.hpp>
 #include <boost/type_traits.hpp>
+#include <boost/utility.hpp>
 
-#include "host_device.hpp"
-#include "error.hpp"
 #include "defs.hpp"
+#include "error.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
     /** \addtogroup common
@@ -58,18 +58,18 @@ namespace gridtools {
      *  at a given index of a variadic pack. (step case)
      *  @tparam Size size of the variadic pack
      */
-    template < uint_t Size >
+    template <uint_t Size>
     struct get_value_from_pack_functor {
-        template < typename First, typename... Dims >
+        template <typename First, typename... Dims>
         GT_FUNCTION static constexpr First apply(uint_t Index, First f, Dims... d) {
-            return (Index) ? get_value_from_pack_functor< Size - 1 >::apply(Index - 1, d..., f) : f;
+            return (Index) ? get_value_from_pack_functor<Size - 1>::apply(Index - 1, d..., f) : f;
         }
     };
 
     /// \private
     template <>
-    struct get_value_from_pack_functor< 0 > {
-        template < typename First, typename... Dims >
+    struct get_value_from_pack_functor<0> {
+        template <typename First, typename... Dims>
         GT_FUNCTION static constexpr First apply(uint_t Index, First f, Dims... d) {
             return (Index) ? f : f;
         }
@@ -85,9 +85,9 @@ namespace gridtools {
      *  @param r variadic pack remainders
      *  @return the value of the queried index
      */
-    template < typename First, typename... Rest >
+    template <typename First, typename... Rest>
     GT_FUNCTION constexpr First get_value_from_pack(uint_t v, First f, Rest... r) {
-        return get_value_from_pack_functor< sizeof...(Rest) >::apply(v, f, r...);
+        return get_value_from_pack_functor<sizeof...(Rest)>::apply(v, f, r...);
     }
 
     /**
@@ -95,20 +95,20 @@ namespace gridtools {
      *  of a variadic pack element. (step case)
      *  @tparam Size size of the variadic pack
      */
-    template < uint_t Size >
+    template <uint_t Size>
     struct get_index_of_element_in_pack_functor {
-        template < typename First, typename... Dims >
+        template <typename First, typename... Dims>
         GT_FUNCTION static constexpr uint_t apply(uint_t Index, First needle, Dims... d) {
             return (get_value_from_pack(Index, d...) == needle)
                        ? Index
-                       : get_index_of_element_in_pack_functor< Size - 1 >::apply(Index + 1, needle, d...);
+                       : get_index_of_element_in_pack_functor<Size - 1>::apply(Index + 1, needle, d...);
         }
     };
 
     /// \private
     template <>
-    struct get_index_of_element_in_pack_functor< 0 > {
-        template < typename First, typename... Dims >
+    struct get_index_of_element_in_pack_functor<0> {
+        template <typename First, typename... Dims>
         GT_FUNCTION static constexpr uint_t apply(uint_t Index, First needle, Dims... d) {
             return error_or_return((get_value_from_pack(Index, d...) == needle), Index, "Element not found");
         }
@@ -124,13 +124,13 @@ namespace gridtools {
      *  @param r other variadic pack elements
      *  @return the index of the queried element
      */
-    template < typename First, typename... Rest >
+    template <typename First, typename... Rest>
     GT_FUNCTION constexpr uint_t get_index_of_element_in_pack(uint_t start_index, First needle, Rest... r) {
-        return get_index_of_element_in_pack_functor< sizeof...(Rest) >::apply(start_index, needle, r...);
+        return get_index_of_element_in_pack_functor<sizeof...(Rest)>::apply(start_index, needle, r...);
     }
 
     /// \private
-    template < typename First >
+    template <typename First>
     GT_FUNCTION constexpr bool is_continuous(First first) {
         return true;
     }
@@ -143,10 +143,10 @@ namespace gridtools {
      * \param second Second mandatory argument
      * \param rest Rest of values
      */
-    template < typename First, typename Second, typename... Rest >
+    template <typename First, typename Second, typename... Rest>
     GT_FUNCTION constexpr bool is_continuous(First first, Second second, Rest... rest) {
         return (first + 1 == second) ? (true && is_continuous(second, rest...)) : false;
     }
     /** @} */
     /** @} */
-}
+} // namespace gridtools

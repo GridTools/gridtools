@@ -39,22 +39,22 @@
 #include <gridtools/gridtools.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-using gridtools::uint_t;
 using gridtools::int_t;
+using gridtools::uint_t;
 
 namespace vertical_advection {
 
     class repository {
       public:
-        using storage_info_ijk_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 3, 3, 0 > >;
+        using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gridtools::halo<3, 3, 0>>;
         using storage_info_ij_t =
-            storage_tr::special_storage_info_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 3, 3, 0 > >;
+            storage_tr::special_storage_info_t<1, gridtools::selector<1, 1, 0>, gridtools::halo<3, 3, 0>>;
         using storage_info_scalar_t =
-            storage_tr::special_storage_info_t< 2, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 > >;
+            storage_tr::special_storage_info_t<2, gridtools::selector<0, 0, 0>, gridtools::halo<0, 0, 0>>;
 
-        using storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_ijk_t >;
-        using ij_storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_ij_t >;
-        using scalar_storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_scalar_t >;
+        using storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ijk_t>;
+        using ij_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ij_t>;
+        using scalar_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_scalar_t>;
 
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
             : m_storage_info(idim, jdim, kdim), m_scalar_storage_info(1, 1, 1), // fake 3D
@@ -274,4 +274,4 @@ namespace vertical_advection {
         const uint_t halo_size_;
         const uint_t idim_, jdim_, kdim_;
     };
-}
+} // namespace vertical_advection

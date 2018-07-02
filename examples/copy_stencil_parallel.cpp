@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "copy_stencil_parallel.hpp"
+#include "gtest/gtest.h"
 #include <gridtools/gridtools.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
-#include "gtest/gtest.h"
-#include "copy_stencil_parallel.hpp"
 
 TEST(Communication, copy_stencil_parallel) {
     bool passed = copy_stencil::test(13, 11, 7);
