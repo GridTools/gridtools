@@ -38,7 +38,7 @@
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../..//icosahedral_grids/esf_metafunctions.hpp"
 #include "../../backend_mic/iterate_domain_mic.hpp"
-#include "../../execution_policy.hpp"
+#include "../../basic_token_execution.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include <boost/utility/enable_if.hpp>
@@ -85,8 +85,7 @@ namespace gridtools {
                     using run_functor_arguments_t = GT_META_CALL(meta::replace,
                         (RunFunctorArguments, typename RunFunctorArguments::color_t, color_type<(uint_t)Index::value>));
 
-                    boost::mpl::for_each<loop_intervals_t>(
-                        _impl::run_f_on_interval<execution_type_t, run_functor_arguments_t>(m_it_domain, m_grid));
+                    run_functors_on_interval<run_functor_arguments_t>(m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
                 }

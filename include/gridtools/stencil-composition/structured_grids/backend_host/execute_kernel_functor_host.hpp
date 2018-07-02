@@ -42,7 +42,7 @@
 
 #pragma once
 #include "../../backend_host/iterate_domain_host.hpp"
-#include "../../execution_policy.hpp"
+#include "../../basic_token_execution.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
@@ -130,9 +130,7 @@ namespace gridtools {
                     irestore_index = it_domain.index();
                     for (uint_t j = 0; j != m_size.j; ++j) {
                         jrestore_index = it_domain.index();
-                        boost::mpl::for_each<loop_intervals_t>(
-                            gridtools::_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>{
-                                it_domain, m_grid});
+                        run_functors_on_interval<RunFunctorArguments>(it_domain, m_grid);
                         it_domain.set_index(jrestore_index);
                         it_domain.increment_j();
                     }

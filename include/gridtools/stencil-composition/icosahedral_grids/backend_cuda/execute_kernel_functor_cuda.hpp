@@ -172,8 +172,7 @@ namespace gridtools {
             it_domain.set_block_pos(iblock, jblock);
 
             // execute the k interval functors
-            boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
-                _impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain, grid));
+            run_functors_on_interval<RunFunctorArguments>(it_domain, grid);
         }
 
     } // namespace _impl_iccuda
