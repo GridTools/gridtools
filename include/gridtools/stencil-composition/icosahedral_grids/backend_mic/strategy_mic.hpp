@@ -34,13 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <type_traits>
 
+#include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../backend_traits_fwd.hpp"
+#include "../../block.hpp"
+#include "../../grid.hpp"
+#include "../../mss_components.hpp"
 #include "../../mss_functor.hpp"
-#include "../../tile.hpp"
+#include "../../reductions/reduction_data.hpp"
 #include "execute_kernel_functor_mic.hpp"
 
 namespace gridtools {
@@ -61,13 +64,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_mic<enumtype::Block> {
-        // default block size for Block strategy
-        using block_size_t = block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1>;
-
-        static constexpr uint_t BI = block_size_t::i_size_t::value;
-        static constexpr uint_t BJ = block_size_t::j_size_t::value;
-        static constexpr uint_t BK = 0;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -76,8 +72,6 @@ namespace gridtools {
         template <typename MssComponents, typename BackendIds, typename ReductionData>
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
             using iter_range = GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>);
 
@@ -89,8 +83,8 @@ namespace gridtools {
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 const uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
-                const uint_t NBI = n / BI;
-                const uint_t NBJ = m / BJ;
+                const uint_t NBI = n / block_i_size(BackendIds{});
+                const uint_t NBJ = m / block_j_size(BackendIds{});
 
 #pragma omp parallel for
                 for (uint_t bi = 0; bi <= NBI; ++bi) {
@@ -115,21 +109,20 @@ namespace gridtools {
         struct mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
 
-            using backend_ids_t = typename RunFunctorArgs::backend_ids_t;
-
             template <typename LocalDomain, typename Grid, typename ReductionData>
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const execution_info_mic &execution_info) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<typename RunFunctorArgs::functor_list_t>::value == 1), GT_INTERNAL_ERROR);
 
                 const uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 const uint_t m = grid.j_high_bound() - grid.j_low_bound();
+
+                static constexpr auto BI = block_i_size(typename RunFunctorArgs::backend_ids_t{});
+                static constexpr auto BJ = block_j_size(typename RunFunctorArgs::backend_ids_t{});
 
                 const uint_t NBI = n / BI;
                 const uint_t NBJ = m / BJ;

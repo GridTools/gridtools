@@ -45,7 +45,6 @@
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
-#include "../../iterate_domain.hpp"
 #include "../../iteration_policy.hpp"
 #include "./execinfo_mic.hpp"
 #include "./iterate_domain_mic.hpp"
@@ -140,15 +139,11 @@ namespace gridtools {
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
                 using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
-                using grid_traits_t = grid_traits_from_id<RunFunctorArguments::backend_ids_t::s_grid_type_id>;
-
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = ::gridtools::_impl::iteration_policy<interval_from_t,
-                    interval_to_t,
-                    typename grid_traits_t::dim_k_t,
-                    execution_type_t::type::iteration>;
+                using iteration_policy_t = ::gridtools::_impl::
+                    iteration_policy<interval_from_t, interval_to_t, execution_type_t::type::iteration>;
 
                 using run_esf_functor_t =
                     typename backend_traits_t::run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type;
@@ -212,15 +207,11 @@ namespace gridtools {
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
                 using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
-                using grid_traits_t = grid_traits_from_id<RunFunctorArguments::backend_ids_t::s_grid_type_id>;
-
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = ::gridtools::_impl::iteration_policy<interval_from_t,
-                    interval_to_t,
-                    typename grid_traits_t::dim_k_t,
-                    execution_type_t::type::iteration>;
+                using iteration_policy_t = ::gridtools::_impl::
+                    iteration_policy<interval_from_t, interval_to_t, execution_type_t::type::iteration>;
 
                 using run_esf_functor_t =
                     typename backend_traits_t::run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type;

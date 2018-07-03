@@ -38,10 +38,15 @@
 
 #include "../../common/gt_assert.hpp"
 
+#include "../../storage/data_field_view.hpp"
+
+#include "../esf_metafunctions.hpp"
+#include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_impl_metafunctions.hpp"
+#include "../pos3.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
-
+#include "../total_storages.hpp"
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -89,9 +94,6 @@
 
 namespace gridtools {
 
-    template <typename>
-    struct iterate_domain;
-
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for
@@ -108,12 +110,9 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
         typedef iterate_domain_reduction<iterate_domain_arguments_t> iterate_domain_reduction_t;
         typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
-        typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
-        typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
-        typedef typename iterate_domain_backend_id<IterateDomainImpl>::type backend_id_t;
-        typedef backend_traits_from_id<backend_id_t::value> backend_traits_t;
-        typedef typename backend_traits_from_id<backend_id_t::value>::template select_iterate_domain_cache<
-            iterate_domain_arguments_t>::type iterate_domain_cache_t;
+        typedef backend_traits_from_id<iterate_domain_arguments_t::backend_ids_t::s_backend_id> backend_traits_t;
+        typedef typename backend_traits_t::template select_iterate_domain_cache<iterate_domain_arguments_t>::type
+            iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
@@ -215,9 +214,7 @@ namespace gridtools {
         */
         GT_FUNCTION
         iterate_domain(local_domain_t const &local_domain_, const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index{
-                                                                                                    0,
-                                                                                                } {}
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index{0} {}
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -229,11 +226,7 @@ namespace gridtools {
         template <typename BackendType>
         GT_FUNCTION void assign_storage_pointers() {
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                assign_storage_ptrs<BackendType,
-                    data_ptr_cached_t,
-                    local_domain_t,
-                    processing_elements_block_size_t,
-                    grid_traits_t>(data_pointer(), local_domain.m_local_storage_info_ptrs));
+                assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t>{data_pointer()});
         }
 
         /**
@@ -247,8 +240,7 @@ namespace gridtools {
         GT_FUNCTION void assign_stride_pointers() {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t, processing_elements_block_size_t>(
-                    strides()));
+                assign_strides<BackendType, strides_cached_t, local_domain_t>(strides()));
         }
 
         GT_FUNCTION array_index_t const &index() const { return m_index; }
@@ -260,49 +252,40 @@ namespace gridtools {
          */
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        GT_FUNCTION void reset_index() { m_index = array_index_t{}; }
-
-        /**@brief method for incrementing by 1 the index when moving forward along the given direction
-           \tparam Coordinate dimension being incremented
-           \tparam Execution the policy for the increment (e.g. forward/backward)
-         */
-        template <ushort_t Coordinate, typename Steps>
+      private:
+        template <uint_t Coordinate>
+        GT_FUNCTION void increment(int_t step) {
+            do_increment<Coordinate>(step, local_domain, strides(), m_index);
+        }
+        template <uint_t Coordinate, int_t Step>
         GT_FUNCTION void increment() {
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                increment_index_functor<local_domain_t, Coordinate, strides_cached_t, array_index_t>(
-                    Steps::value, m_index, strides()));
-            static_cast<IterateDomainImpl *>(this)->template increment_impl<Coordinate, Steps>();
+            do_increment<Coordinate, Step>(local_domain, strides(), m_index);
         }
 
-        /**@brief method for incrementing the index when moving forward along the given direction
-
-           \param steps_ the increment
-           \tparam Coordinate dimension being incremented
-         */
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment(int_t steps_) {
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                increment_index_functor<local_domain_t, Coordinate, strides_cached_t, array_index_t>(
-                    steps_, m_index, strides()));
-            static_cast<IterateDomainImpl *>(this)->template increment_impl<Coordinate>(steps_);
+      public:
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_i() {
+            increment<0, Step>();
         }
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_j() {
+            increment<1, Step>();
+        }
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_k() {
+            increment<2, Step>();
+        }
+
+        GT_FUNCTION void increment_i(int_t step) { increment<0>(step); }
+        GT_FUNCTION void increment_j(int_t step) { increment<1>(step); }
+        GT_FUNCTION void increment_k(int_t step) { increment<2>(step); }
 
         /**@brief method for initializing the index */
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
+        GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
+            using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                initialize_index_functor<Coordinate,
-                    strides_cached_t,
-                    local_domain_t,
-                    array_index_t,
-                    processing_elements_block_size_t,
-                    grid_traits_t>(strides(), initial_pos, block, m_index));
-            static_cast<IterateDomainImpl *>(this)->template initialize_impl<Coordinate>();
-        }
-
-        template <typename T>
-        GT_FUNCTION void info(T const &x) const {
-            local_domain.info(x);
+                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
+                    strides(), begin, block_no, pos_in_block, m_index});
         }
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
@@ -573,11 +556,7 @@ namespace gridtools {
             m_index[storage_info_index_t::value] +
             compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
 
-#ifndef NDEBUG
-        assert((
-            pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, arg_t, grid_traits_t>(
-                storage_info, real_storage_pointer, pointer_offset)));
-#endif
+        assert(pointer_oob_check(storage_info, pointer_offset));
 
         return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }

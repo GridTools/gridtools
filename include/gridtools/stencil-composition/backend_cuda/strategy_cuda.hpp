@@ -35,29 +35,27 @@
 */
 #pragma once
 
-#include "../../gridtools.hpp"
-#include "../level.hpp"
-#include <boost/fusion/include/value_at.hpp>
-#include <boost/mpl/has_key.hpp>
-
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
-#include "../mss_functor.hpp"
-#include "../sfinae.hpp"
-#include "../tile.hpp"
-#include "./execute_kernel_functor_cuda.hpp"
+#include "../backend_ids.hpp"
+#include "../grid.hpp"
+#include "../mss_components.hpp"
+#include "../reductions/reduction_data.hpp"
 
 namespace gridtools {
 
+    template <typename MssComponentsArray,
+        typename Grid,
+        typename MssLocalDomainArray,
+        typename BackendIds,
+        typename ReductionData,
+        typename ExecutionInfo>
+    struct mss_functor;
+
     template <enumtype::strategy>
     struct strategy_from_id_cuda;
-
-    /**
-       @brief specialization for the \ref enumtype::Naive strategy
-    */
-    template <>
-    struct strategy_from_id_cuda<enumtype::Naive> {};
 
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.
@@ -71,9 +69,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_cuda<enumtype::Block> {
-        // default block size for Block strategy
-        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1> block_size_t;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS

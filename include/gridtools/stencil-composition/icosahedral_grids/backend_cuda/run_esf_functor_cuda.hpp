@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../block_size.hpp"
 #include "../../functor_decorator.hpp"
 #include "../../run_esf_functor.hpp"
+#include "../grid_traits.hpp"
 #include "../iterate_domain_remapper.hpp"
 #include <boost/utility/enable_if.hpp>
 
@@ -102,8 +102,7 @@ namespace gridtools {
             // call the user functor at the core of the block
             _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
                 call_do_method(iterate_domain_remapper);
-            (m_iterate_domain)
-                .template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value, static_uint<1>>();
+            m_iterate_domain.increment_c();
         }
     };
 
@@ -120,20 +119,6 @@ namespace gridtools {
         // BOOST_STATIC_ASSERT((is_interval<Interval>::value));
 
         typedef run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval>> super;
-        typedef typename RunFunctorArguments::physical_domain_block_size_t physical_domain_block_size_t;
-        typedef typename RunFunctorArguments::processing_elements_block_size_t processing_elements_block_size_t;
-
-        // metavalue that determines if a warp is processing more grid points that the default assigned
-        // at the core of the block
-        typedef typename boost::mpl::not_<typename boost::is_same<physical_domain_block_size_t,
-            processing_elements_block_size_t>::type>::type multiple_grid_points_per_warp_t;
-
-        // nevertheless, even if each thread computes more than a grid point, the i size of the physical block
-        // size and the cuda block size have to be the same
-        GRIDTOOLS_STATIC_ASSERT(
-            (physical_domain_block_size_t::i_size_t::value == processing_elements_block_size_t::i_size_t::value),
-            GT_INTERNAL_ERROR);
-
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         using super::m_iterate_domain;
@@ -166,7 +151,7 @@ namespace gridtools {
         }
 
       private:
-        // specialization of the loop over colors when the user speficied the ESF with a specific color
+        // specialization of the loop over colors when the user specified the ESF with a specific color
         // Only that color gets executed
         template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION_DEVICE void color_loop(
@@ -191,15 +176,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
 
             // TODO we could identify if previous ESF was in the same color and avoid this iterator operations
-            (m_iterate_domain)
-                .template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value, color_t>();
+            m_iterate_domain.template increment_c<color_t::value>();
 
             // call the user functor at the core of the block
             _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
                 call_do_method(iterate_domain_remapper);
-            (m_iterate_domain)
-                .template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value,
-                    static_int<-color_t::value>>();
+            m_iterate_domain.template increment_c<-color_t::value>();
         }
 
         // specialization of the loop over colors when the ESF does not specify any particular color.
@@ -218,9 +200,7 @@ namespace gridtools {
             boost::mpl::for_each<color_range_t>(
                 color_functor<iterate_domain_t, EsfArguments, location_type_t, IntervalType>(m_iterate_domain));
 
-            using neg_n_colors_t = static_int<-location_type_t::n_colors::value>;
-            (m_iterate_domain)
-                .template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value, neg_n_colors_t>();
+            m_iterate_domain.template increment_c<-location_type_t::n_colors::value>();
         }
     };
 } // namespace gridtools

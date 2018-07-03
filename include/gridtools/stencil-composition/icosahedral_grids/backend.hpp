@@ -35,14 +35,32 @@
 */
 #pragma once
 
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/identity.hpp>
+
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
-#include "../../common/selector.hpp"
 #include "../backend_base.hpp"
-#include "../location_type.hpp"
-#include "icosahedral_grid_traits.hpp"
 
 namespace gridtools {
+
+    namespace _impl {
+        template <enumtype::platform>
+        struct default_layout;
+        template <>
+        struct default_layout<enumtype::Cuda> {
+            using type = layout_map<3, 2, 1, 0>;
+        };
+        template <>
+        struct default_layout<enumtype::Host> {
+            using type = layout_map<0, 1, 2, 3>;
+        };
+        template <>
+        struct default_layout<enumtype::Mic> {
+            using type = layout_map<0, 1, 2, 3>;
+        };
+    } // namespace _impl
 
     /**
        The backend is, as usual, declaring what the storage types are
@@ -55,11 +73,10 @@ namespace gridtools {
 
         using typename base_t::backend_traits_t;
         using typename base_t::strategy_traits_t;
-        using layout_map_t = typename icgrid::grid_traits_arch<base_t::s_backend_id>::layout_map_t;
 
         template <typename DimSelector>
         struct select_layout {
-
+            using layout_map_t = typename _impl::default_layout<BackendId>::type;
             using dim_selector_4d_t = typename shorten<bool, DimSelector, 4>::type;
             using filtered_layout = typename filter_layout<layout_map_t, dim_selector_4d_t>::type;
 
@@ -68,7 +85,7 @@ namespace gridtools {
                 boost::mpl::identity<filtered_layout>>::type;
         };
 
-        template <unsigned Index, typename LayoutMap = layout_map_t, typename Halo = halo<0, 0, 0, 0>>
+        template <unsigned Index, typename LayoutMap, typename Halo>
         using storage_info_t =
             typename base_t::storage_traits_t::template custom_layout_storage_info_t<Index, LayoutMap, Halo>;
 

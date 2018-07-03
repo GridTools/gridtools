@@ -46,22 +46,58 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
+
+#include "../../../storage/data_field_view.hpp"
+
+#include "../../caches/cache_metafunctions.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../offset_computation.hpp"
 #include "../../reductions/iterate_domain_reduction.hpp"
+#include "../../total_storages.hpp"
 
 namespace gridtools {
 
-    template <typename IterateDomainArguments>
-    class iterate_domain_mic;
+    namespace _impl {
 
-    template <typename IterateDomainArguments>
-    struct iterate_domain_backend_id<iterate_domain_mic<IterateDomainArguments>> {
-        using type = enumtype::enum_type<enumtype::platform, enumtype::Mic>;
-    };
+        template <typename Arg, typename StorageInfo>
+        GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset(StorageInfo const *sinfo) {
+            int_t thread = omp_get_thread_num();
+            int_t total_threads = omp_get_max_threads();
+            return sinfo->padded_total_length() * thread / total_threads;
+        }
+
+        template <typename Arg, typename StorageInfo>
+        GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
+            return 0;
+        }
+
+        template <typename DataPtrCached, typename LocalDomain>
+        struct assign_storage_ptrs_mic {
+            GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached<DataPtrCached>::value), GT_INTERNAL_ERROR);
+
+            DataPtrCached &RESTRICT m_data_ptr_cached;
+            typename LocalDomain::storage_info_ptr_fusion_list const &RESTRICT m_storageinfo_fusion_list;
+
+            template <typename FusionPair>
+            GT_FUNCTION void operator()(FusionPair const &sw) const {
+                typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
+                typedef typename storage_wrapper_elem<arg_t, typename LocalDomain::storage_wrapper_list_t>::type
+                    storage_wrapper_t;
+                typedef typename boost::mpl::find<typename LocalDomain::storage_wrapper_list_t,
+                    storage_wrapper_t>::type::pos pos_in_storage_wrapper_list_t;
+
+                typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list,
+                    const typename storage_wrapper_t::storage_info_t *>::type::pos si_index_t;
+
+                const int_t offset = fields_offset<arg_t>(boost::fusion::at<si_index_t>(m_storageinfo_fusion_list));
+                for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i)
+                    m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i] = sw.second[i] + offset;
+            }
+        };
+    } // namespace _impl
 
     /**
      * @brief Iterate domain class for the MIC backend.
@@ -75,7 +111,6 @@ namespace gridtools {
 
         using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
         using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
-        using grid_traits_t = typename IterateDomainArguments::grid_traits_t;
         using backend_traits_t = backend_traits_from_id<enumtype::Mic>;
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
@@ -189,14 +224,11 @@ namespace gridtools {
               m_enable_ij_caches(false) {
             // assign storage pointers
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                assign_storage_ptrs<backend_traits_t,
-                    data_ptr_cached_t,
-                    local_domain_t,
-                    block_size<0, 0, 0>,
-                    grid_traits_t>(m_data_pointer, local_domain.m_local_storage_info_ptrs));
+                _impl::assign_storage_ptrs_mic<data_ptr_cached_t, local_domain_t>{
+                    m_data_pointer, local_domain.m_local_storage_info_ptrs});
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t, block_size<0, 0, 0>>(m_strides));
+                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
         }
 
         /** @brief Returns the array of pointers to the raw data as const reference. */
@@ -526,9 +558,6 @@ namespace gridtools {
         assert(real_storage_pointer);
 
         const int_t pointer_offset = compute_offset<storage_info_t>(accessor);
-
-        assert((pointer_oob_check<backend_traits_t, block_size<0, 0, 0>, local_domain_t, arg_t, grid_traits_t>(
-            storage_info, real_storage_pointer, pointer_offset)));
 
 #ifdef __SSE__
         if (m_prefetch_distance != 0) {

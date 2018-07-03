@@ -45,6 +45,7 @@
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 #include "../position_offset_type.hpp"
+#include "./on_neighbors.hpp"
 
 namespace gridtools {
 
@@ -387,12 +388,6 @@ namespace gridtools {
             explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
         };
     } // namespace icgrid
-
-    /** Metafunction to query an iterate domain if it's positional. Specialization for
-        iterate_domain_remapper
-    */
-    template <typename T, typename U, typename L, uint_t C>
-    struct is_positional_iterate_domain<icgrid::iterate_domain_remapper<T, U, L, C>> : boost::false_type {};
 
     /** Metafunction to query a type is an iterate domain.
      */

@@ -42,19 +42,24 @@
 
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "../accessor_fwd.hpp"
-#include "../caches/cache_metafunctions.hpp"
-#include "../caches/extract_extent_caches.hpp"
-#include "../iterate_domain_fwd.hpp"
-#include "./iterate_domain_cache_aux.hpp"
 #include <boost/fusion/container/map/convert.hpp>
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/support/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/filter_view.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+
+#include "../accessor_fwd.hpp"
+#include "../block.hpp"
+#include "../block_size.hpp"
+#include "../caches/cache_metafunctions.hpp"
+#include "../caches/extract_extent_caches.hpp"
+#include "../iterate_domain_fwd.hpp"
+
+#include "./iterate_domain_cache_aux.hpp"
 
 namespace gridtools {
 
@@ -119,6 +124,9 @@ namespace gridtools {
                 boost::mpl::or_<boost::mpl::_1, boost::mpl::contains<esf_args<boost::mpl::_2>, Arg>>>::type type;
         };
 
+        using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
+        using block_size_t = block_size<block_i_size(backend_ids_t{}), block_j_size(backend_ids_t{}), 1>;
+
       public:
         GT_FUNCTION
         iterate_domain_cache() {}
@@ -139,14 +147,14 @@ namespace gridtools {
         typedef typename get_cache_storage_tuple<IJ,
             caches_t,
             ij_cache_extents_map_t,
-            typename IterateDomainArguments::physical_domain_block_size_t,
+            block_size_t,
             typename IterateDomainArguments::local_domain_t>::type ij_caches_vector_t;
 
         // compute the fusion vector of pair<index_type, cache_storage> for k caches
         typedef typename get_cache_storage_tuple<K,
             caches_t,
             k_cache_extents_map_t,
-            typename IterateDomainArguments::physical_domain_block_size_t,
+            block_size_t,
             typename IterateDomainArguments::local_domain_t>::type k_caches_vector_t;
 
         // extract a fusion map from the fusion vector of pairs for ij caches
@@ -359,8 +367,5 @@ namespace gridtools {
       private:
         k_caches_tuple_t m_k_caches_tuple;
     };
-
-    template <typename IterateDomainArguments>
-    struct is_iterate_domain_cache<iterate_domain_cache<IterateDomainArguments>> : boost::mpl::true_ {};
 
 } // namespace gridtools

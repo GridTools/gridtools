@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include "../common/defs.hpp"
+
 namespace gridtools {
 
     /**
@@ -45,9 +47,9 @@ namespace gridtools {
      */
     template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId>
     struct backend_ids {
-        static const enumtype::strategy s_strategy_id = StrategyId;
-        static const enumtype::platform s_backend_id = BackendId;
-        static const enumtype::grid_type s_grid_type_id = GridId;
+        static constexpr enumtype::strategy s_strategy_id = StrategyId;
+        static constexpr enumtype::platform s_backend_id = BackendId;
+        static constexpr enumtype::grid_type s_grid_type_id = GridId;
     };
 
     template <typename T>
