@@ -38,7 +38,6 @@
    @file
    @brief File containing all definitions and enums required by the cache implementations
 */
-
 namespace gridtools {
 
     /**

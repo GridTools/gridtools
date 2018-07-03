@@ -86,13 +86,13 @@ namespace gridtools {
         template <typename Tile, typename KWindow>
         struct get_kminus_bound {
             using type = typename boost::mpl::min<typename boost::mpl::at_c<typename Tile::type, 2>::type,
-                boost::mpl::integral_c<int, KWindow::m_>>::type;
+                static_int<KWindow::m_>>::type;
         };
 
         template <typename Tile, typename KWindow>
         struct get_kplus_bound {
             using type = typename boost::mpl::max<typename boost::mpl::at_c<typename Tile::type, 2>::type,
-                boost::mpl::integral_c<int, KWindow::p_>>::type;
+                static_int<KWindow::p_>>::type;
         };
 
         template <typename Seq, typename KWindow>

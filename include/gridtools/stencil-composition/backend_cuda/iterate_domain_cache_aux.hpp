@@ -65,6 +65,7 @@ namespace gridtools {
                  * @brief apply the functor
                  * @param it_domain iterate domain
                  * @param cache_st cache storage
+                 * @return dummy int (ignored) required by apply_gt_integer_sequence
                  */
                 template <typename IterateDomain, typename CacheStorage>
                 GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
@@ -101,6 +102,7 @@ namespace gridtools {
                  * @brief apply the functor
                  * @param it_domain iterate domain
                  * @param cache_st cache storage
+                 * @return dummy int (ignored) required by apply_gt_integer_sequence
                  */
                 template <typename IterateDomain, typename CacheStorage>
                 GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
@@ -132,6 +134,7 @@ namespace gridtools {
             /**
              * Apply struct of the functor
              * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+             * @return dummy int (ignored) required by apply_gt_integer_sequence
              */
             template <int_t Offset>
             struct apply_t {
@@ -168,6 +171,7 @@ namespace gridtools {
             /**
              * Apply struct of the functor
              * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+             * @return dummy int (ignored) required by apply_gt_integer_sequence
              */
             template <int_t Offset>
             struct apply_t {
@@ -245,12 +249,13 @@ namespace gridtools {
         }
 
         /**
-         * compute the maximum length of the section of the kcache that will be sync with main memory
-         according to the
+         * compute the maximum length of the section of the kcache that will be sync with main memory according to the
          * iteration policy
          */
         template <typename IterationPolicy, typename CacheStorage>
         GT_FUNCTION constexpr uint_t compute_section_kcache_to_sync_with_mem(cache_io_policy cache_io_policy_) {
+            // synchronization of the kcache with main memory requires that the kcache window includes center of the
+            // gridpoint, i.e. <2,3> is not a valid condition
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::at_c<typename CacheStorage::minus_t::type, 2>::type::value <= 0 &&
                                         boost::mpl::at_c<typename CacheStorage::plus_t::type, 2>::type::value >= 0),
                 GT_INTERNAL_ERROR);
@@ -378,7 +383,8 @@ namespace gridtools {
 
                 constexpr uint_t kwindow_size = boost::mpl::eval_if<boost::mpl::is_void_<typename kcache_t::kwindow_t>,
                     boost::mpl::identity<static_int<koffset>>,
-                    window_get_size<kcache_t::ccacheIOPolicy, typename kcache_t::kwindow_t>>::type::value;
+                    kcache_compute_window_size_to_sync<kcache_t::ccacheIOPolicy,
+                        typename kcache_t::kwindow_t>>::type::value;
 
                 constexpr int_t kwindow_min = boost::mpl::eval_if<boost::mpl::is_void_<typename kcache_t::kwindow_t>,
                     boost::mpl::identity<static_int<kbase>>,

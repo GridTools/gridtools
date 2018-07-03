@@ -76,11 +76,19 @@ namespace gridtools {
     template <int M, int P>
     struct is_window<window<M, P>> : boost::mpl::true_ {};
 
+    /**
+     * @brief computes the window size of a kcache that needs to be sync with mem memory
+     */
     template <cache_io_policy CacheIOPolicy, typename T>
-    struct window_get_size;
+    struct kcache_compute_window_size_to_sync;
 
+    /**
+     * @brief computes the window size of a kcache that needs to be sync with mem memory
+     * in case of an end-point flush, the synchronization happens after the last (regular, i.e. in every klevel
+     * iteration) flush operation, and therefore one klevel less than usual specified within the kcache type is required
+     */
     template <cache_io_policy CacheIOPolicy, int M, int P>
-    struct window_get_size<CacheIOPolicy, window<M, P>> {
+    struct kcache_compute_window_size_to_sync<CacheIOPolicy, window<M, P>> {
         using type = static_int<P - M + 1 + ((CacheIOPolicy == cache_io_policy::epflush) ? (-1) : 0)>;
     };
 
