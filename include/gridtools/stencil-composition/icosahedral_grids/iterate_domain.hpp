@@ -47,7 +47,6 @@
 #include "../iterate_domain_impl_metafunctions.hpp"
 #include "../location_type.hpp"
 #include "../position_offset_type.hpp"
-#include "../total_storages.hpp"
 #include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 #include <boost/type_traits/remove_reference.hpp>
@@ -89,30 +88,11 @@ namespace gridtools {
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
-        // the total number of snapshot (one or several per storage)
-        static const uint_t N_DATA_POINTERS =
-            total_storages<typename local_domain_t::storage_wrapper_list_t, N_STORAGES>::type::value;
 
-        typedef data_ptr_cached<typename local_domain_t::storage_wrapper_list_t> data_ptr_cached_t;
+        typedef data_ptr_cached<typename local_domain_t::esf_args> data_ptr_cached_t;
         typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
-
-        /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get
-         * compiled (generating sometimes a compile-time overflow) */
-        template <bool condition, typename LocalD, typename Accessor>
-        struct current_storage;
-
-        template <typename LocalD, typename Accessor>
-        struct current_storage<true, LocalD, Accessor> {
-            static const uint_t value = 0;
-        };
-
-        template <typename LocalD, typename Accessor>
-        struct current_storage<false, LocalD, Accessor> {
-            static const uint_t value =
-                (total_storages<typename LocalD::local_args_type, Accessor::index_t::value>::value);
-        };
 
         /**
          * metafunction that computes the return type of all operator() of an accessor
@@ -294,10 +274,7 @@ namespace gridtools {
                 (is_accessor<accessor_t>::value), "Using EVAL is only allowed for an accessor type");
             typedef typename accessor_t::index_t index_t;
             typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-            typedef typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_info_t storage_info_t;
-            typedef typename storage_wrapper_t::data_t data_t;
+            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(accessor_t::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "Requested accessor index lower than zero. Check that when you define the accessor you specify the "
@@ -315,12 +292,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-
-            typedef typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef typename storage_wrapper_t::data_store_t data_store_t;
-            typedef typename storage_wrapper_t::storage_info_t storage_info_t;
-            typedef typename storage_wrapper_t::data_t data_t;
+            typedef typename arg_t::data_store_t data_store_t;
+            typedef typename data_store_t::storage_info_t storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(storage_info_t::layout_t::masked_length + 2 >= Accessor::n_dimensions,
                 "the dimension of the accessor exceeds the data field dimension");
@@ -385,11 +358,8 @@ namespace gridtools {
             // getting information about the storage
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-
-            typedef typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_info_t storage_info_t;
-            typedef typename storage_wrapper_t::data_t data_t;
+            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
+            typedef typename arg_t::data_store_t::data_t data_t;
 
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
@@ -428,11 +398,8 @@ namespace gridtools {
 
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-
-            typedef typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_info_t storage_info_t;
-            typedef typename storage_wrapper_t::data_t data_t;
+            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
+            typedef typename arg_t::data_store_t::data_t data_t;
 
             data_t *RESTRICT real_storage_pointer =
                 static_cast<data_t *>(data_pointer().template get<index_t::value>()[0]);
@@ -467,11 +434,7 @@ namespace gridtools {
             // getting information about the storage
             typedef typename accessor_t::index_t index_t;
             typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-
-            typedef typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_info_t storage_info_t;
-            typedef typename storage_wrapper_t::data_t data_t;
+            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
 
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)

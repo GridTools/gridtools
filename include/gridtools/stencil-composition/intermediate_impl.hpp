@@ -48,8 +48,8 @@
 #include "../common/vector_traits.hpp"
 #include "./tmp_storage.hpp"
 
-#include "./mss_local_domain.hpp"
-#include "./tile.hpp"
+#include "./extract_placeholders.hpp"
+#include "./local_domain.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -212,20 +212,9 @@ namespace gridtools {
                 boost::fusion::pair<Arg, OptView> const &, LocalDomain &) const {}
         };
 
-        struct get_local_domain_list_f {
-            // Mind the double parens after GT_AUTO_RETURN. They are here for the reason.
-            template <class T>
-            auto operator()(T &&obj) const GT_AUTO_RETURN((std::forward<T>(obj).local_domain_list));
-        };
-
-        template <class ViewInfos, class MssLocalDomains>
-        void update_local_domains(ViewInfos const &view_infos, MssLocalDomains &mss_local_domains) {
-            // here we produce from mss_local_domains a flat tuple of references to local_domain;
-            auto &&local_domains =
-                tuple_util::flatten(tuple_util::transform(get_local_domain_list_f{}, mss_local_domains));
-            // and for each possible view_info/local_doain pair call set_view_to_local_domain_f functor
-            tuple_util::for_each_in_cartesian_product(
-                set_view_to_local_domain_f{}, view_infos, std::move(local_domains));
+        template <class ViewInfos, class LocalDomains>
+        void update_local_domains(ViewInfos const &view_infos, LocalDomains &local_domains) {
+            tuple_util::for_each_in_cartesian_product(set_view_to_local_domain_f{}, view_infos, local_domains);
         }
 
         template <class MaxExtent, class Backend>
@@ -256,132 +245,37 @@ namespace gridtools {
             return tuple_util::generate<generators, Res>(grid);
         }
 
-        /**
-         * @brief metafunction that computes the list of extents associated to each functor.
-         * It assumes the temporary is written only by one esf.
-         * TODO This assumption is probably wrong?, a temporary could be written my multiple esf concatenated. The
-         * algorithm
-         * we need to use here is find the maximum extent associated to a temporary instead.
-         * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
-         * @tparam ExtentSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
-         */
-        template <typename TMap, typename Temp, typename TempsPerFunctor, typename ExtentSizes>
-        struct associate_extents_map {
-            template <typename TTemp>
-            struct is_temp_there {
-                template <typename TempsInEsf>
-                struct apply {
-                    typedef typename boost::mpl::contains<TempsInEsf, TTemp>::type type;
-                };
-            };
+        template <class Esf, class Extent>
+        struct extent_for_tmp
+            : std::conditional<boost::mpl::empty<typename esf_get_w_temps_per_functor<Esf>::type>::value,
+                  extent<>,
+                  Extent> {};
 
-            typedef typename boost::mpl::find_if<TempsPerFunctor,
-                typename is_temp_there<Temp>::template apply<boost::mpl::_>>::type iter;
+        template <class Extents>
+        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>> {};
 
-            typedef typename boost::mpl::if_<
-                typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type>::type,
-                TMap,
-                typename boost::mpl::insert<TMap,
-                    boost::mpl::pair<Temp, typename boost::mpl::at<ExtentSizes, typename iter::pos>::type>>::type>::type
-                type;
+        template <class MssComponents>
+        struct get_max_extent_for_tmp_from_mss_components
+            : fold_extents<typename boost::mpl::transform<typename MssComponents::linear_esf_t,
+                  typename MssComponents::extent_sizes_t,
+                  extent_for_tmp<boost::mpl::_1, boost::mpl::_2>>::type> {};
+
+        template <class MssComponentsList>
+        struct get_max_extent_for_tmp : fold_extents<boost::mpl::transform_view<MssComponentsList,
+                                            get_max_extent_for_tmp_from_mss_components<boost::mpl::_>>> {};
+
+        template <class MaxExtent, bool IsStateful>
+        struct get_local_domain {
+            template <class MssComponents,
+                class Msses = std::tuple<typename MssComponents::mss_descriptor_t>,
+                class Args = GT_META_CALL(extract_placeholders, Msses)>
+            GT_META_DEFINE_ALIAS(apply, local_domain, (Args, MaxExtent, IsStateful));
         };
 
-        /**
-         * @brief metafunction that computes the map of all the temporaries and their associated ij extents
-         * @tparam Placeholders the placeholders for all storages (including temporaries)
-         * @tparam MssComponents the mss components of the MSS
-         * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
-         *      defined for the different functors of a MSS.
-         */
-        template <typename Placeholders, typename MssComponents>
-        struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), GT_INTERNAL_ERROR);
-            typedef typename MssComponents::extent_sizes_t ExtentSizes;
-
-            // filter all the temporary args
-            typedef typename boost::mpl::fold<Placeholders,
-                boost::mpl::vector0<>,
-                boost::mpl::if_<is_tmp_arg<boost::mpl::_2>,
-                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>,
-                    boost::mpl::_1>>::type list_of_temporaries;
-
-            // vector of written temporaries per functor (vector of vectors)
-            typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
-
-            typedef typename boost::mpl::fold<list_of_temporaries,
-                boost::mpl::map0<>,
-                associate_extents_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, ExtentSizes>>::type
-                type;
-        };
-
-        /**
-         * @brief metafunction that merges two maps of <temporary, ij extent>
-         * The merge is performed by computing the union of all the extents found associated
-         * to the same temporary, i.e. the enclosing extent.
-         * @tparam extent_map1 first map to merge
-         * @tparam extent_map2 second map to merge
-         */
-        template <typename extent_map1, typename extent_map2>
-        struct merge_extent_temporary_maps {
-            typedef typename boost::mpl::fold<extent_map1,
-                extent_map2,
-                boost::mpl::if_<boost::mpl::has_key<extent_map2, boost::mpl::first<boost::mpl::_2>>,
-                    boost::mpl::insert<boost::mpl::_1,
-                        boost::mpl::pair<boost::mpl::first<boost::mpl::_2>,
-                            enclosing_extent<boost::mpl::second<boost::mpl::_2>,
-                                boost::mpl::at<extent_map2, boost::mpl::first<boost::mpl::_2>>>>>,
-                    boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>>::type type;
-        };
-
-        /**
-         * @brief metafunction that computes the map of all the temporaries and their associated ij extents
-         * for all the Mss components in an array (corresponding to a Computation)
-         * @tparam Placeholders the placeholders for all storages (including temporaries)
-         * @tparam MssComponentsArray meta array of the mss components of all MSSs
-         * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
-         *      defined for the temporary in all MSSs.
-         */
-        template <typename Placeholders, typename MssComponents>
-        struct obtain_map_extents_temporaries_mss_array {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-            typedef typename boost::mpl::fold<MssComponents,
-                boost::mpl::map0<>,
-                merge_extent_temporary_maps<boost::mpl::_1,
-                    obtain_map_extents_temporaries_mss<Placeholders, boost::mpl::_2>>>::type type;
-        };
-
-        /**
-           \brief defines a method which associates an
-           tmp storage, whose extent depends on an index, to the
-           element in the Temporaries vector at that index position.
-        */
-        template <typename MapElem>
-        struct get_storage_wrapper {
-            typedef typename boost::mpl::second<MapElem>::type extent_t;
-            typedef typename boost::mpl::first<MapElem>::type temporary;
-            typedef storage_wrapper<temporary,
-                typename get_view<typename temporary::data_store_t>::type,
-                tile<-extent_t::iminus::value, extent_t::iplus::value>,
-                tile<-extent_t::jminus::value, extent_t::jplus::value>>
-                type;
-        };
-
-        /**
-         * @brief compute a list with all the storage_wrappers
-         * @tparam AggregatorType domain
-         * @tparam MssComponentsArray meta array of mss components
-         */
-        template <typename Placeholders, typename MssComponents>
-        struct obtain_storage_wrapper_list_t {
-
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-            typedef typename obtain_map_extents_temporaries_mss_array<Placeholders, MssComponents>::type map_of_extents;
-
-            typedef typename boost::mpl::fold<map_of_extents,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back<boost::mpl::_1, get_storage_wrapper<boost::mpl::_2>>>::type type;
-        };
+        template <class MssComponentsList,
+            bool IsStateful,
+            class MaxExtentForTmp = typename get_max_extent_for_tmp<MssComponentsList>::type,
+            class GetLocalDomain = _impl::get_local_domain<MaxExtentForTmp, IsStateful>>
+        GT_META_DEFINE_ALIAS(get_local_domains, meta::transform, (GetLocalDomain::template apply, MssComponentsList));
     } // namespace _impl
 } // namespace gridtools

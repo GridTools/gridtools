@@ -126,9 +126,6 @@ namespace test_iterate_domain {
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
 
-        GRIDTOOLS_STATIC_ASSERT(
-            it_domain_t::N_DATA_POINTERS == 23, "bug in iterate domain, incorrect number of data pointers");
-
 #ifdef BACKEND_MIC
         auto const &data_pointer = it_domain.data_pointer();
 #else

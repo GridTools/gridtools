@@ -64,16 +64,11 @@ typedef arg<2, storage_type> p_in3;
 typedef arg<3, storage_type> p_in4;
 typedef arg<4, storage_type> p_out;
 
-using st_wrapper_in1_t =
-    storage_wrapper<p_in1, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in2_t =
-    storage_wrapper<p_in2, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in3_t =
-    storage_wrapper<p_in3, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in4_t =
-    storage_wrapper<p_in4, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_out_t =
-    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
+using st_wrapper_in1_t = storage_wrapper<p_in1, tile<0, 0>, tile<0, 0>>;
+using st_wrapper_in2_t = storage_wrapper<p_in2, tile<0, 0>, tile<0, 0>>;
+using st_wrapper_in3_t = storage_wrapper<p_in3, tile<0, 0>, tile<0, 0>>;
+using st_wrapper_in4_t = storage_wrapper<p_in4, tile<0, 0>, tile<0, 0>>;
+using st_wrapper_out_t = storage_wrapper<p_out, tile<0, 0>, tile<0, 0>>;
 
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in1;

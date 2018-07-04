@@ -98,8 +98,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ReductionData>
-            static void run(LocalDomain &local_domain,
-                const Grid &grid,
+            static void run(LocalDomain const &local_domain,
+                Grid const &grid,
                 ReductionData &reduction_data,
                 const execution_info_host &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
