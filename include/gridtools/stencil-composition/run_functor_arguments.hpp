@@ -182,9 +182,6 @@ namespace gridtools {
         template <class Esf>
         struct generate_esf_args_map {
             using from_args_t = typename Esf::args_t;
-            static_assert(
-                boost::mpl::size<from_args_t>::value <= boost::mpl::size<typename LocalDomain::esf_args>::value,
-                "suck");
             using type = typename boost::mpl::fold<boost::mpl::range_c<int, 0, boost::mpl::size<from_args_t>::value>,
                 boost::mpl::map0<>,
                 boost::mpl::insert<boost::mpl::_1,
