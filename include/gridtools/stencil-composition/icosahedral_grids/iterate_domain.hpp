@@ -363,11 +363,8 @@ namespace gridtools {
 
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
-            typedef typename boost::mpl::find<typename local_domain_t::storage_info_ptr_list,
-                const storage_info_t *>::type::pos storage_info_index_t;
-
-            const storage_info_t *storage_info =
-                boost::fusion::at<storage_info_index_t>(m_local_domain.m_local_storage_info_ptrs);
+            static constexpr auto storage_info_index =
+                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -378,10 +375,11 @@ namespace gridtools {
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
-                m_index[storage_info_index_t::value] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
+                m_index[storage_info_index] +
+                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), accessor);
 
-            assert(pointer_oob_check(storage_info, pointer_offset));
+            assert(pointer_oob_check(
+                boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<
@@ -404,14 +402,11 @@ namespace gridtools {
             data_t *RESTRICT real_storage_pointer =
                 static_cast<data_t *>(data_pointer().template get<index_t::value>()[0]);
 
-#ifndef NDEBUG
-            typedef typename boost::mpl::find<typename local_domain_t::storage_info_ptr_list,
-                const storage_info_t *>::type::pos storage_info_index_t;
-            const storage_info_t *storage_info =
-                boost::fusion::at<storage_info_index_t>(m_local_domain.m_local_storage_info_ptrs);
+            static constexpr auto storage_info_index =
+                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
+            assert(pointer_oob_check(
+                boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), offset));
 
-            assert(pointer_oob_check(storage_info, offset));
-#endif
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<
                     typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type,
@@ -438,18 +433,15 @@ namespace gridtools {
 
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
-            typedef typename boost::mpl::find<typename local_domain_t::storage_info_ptr_list,
-                const storage_info_t *>::type::pos storage_info_index_t;
-
-            const storage_info_t *storage_info =
-                boost::fusion::at<storage_info_index_t>(m_local_domain.m_local_storage_info_ptrs);
+            static constexpr auto storage_info_index =
+                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
 
             using location_type_t = typename accessor_t::location_type;
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
-                m_index[storage_info_index_t::value] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), position_offset);
+                m_index[storage_info_index] +
+                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), position_offset);
 
             return get_raw_value(accessor_t(), data_pointer().template get<index_t::value>()[0], pointer_offset);
         }

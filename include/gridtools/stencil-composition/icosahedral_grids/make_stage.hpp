@@ -43,7 +43,7 @@
 namespace gridtools {
 
     template <template <uint_t> class Functor, typename Grid, typename LocationType, typename... Args>
-    esf_descriptor<Functor, Grid, LocationType, nocolor, std::tuple<Args...>> make_stage(Args) {
+    esf_descriptor<Functor, Grid, LocationType, nocolor, std::tuple<Args...>> make_stage(Args...) {
         return {};
     }
 } // namespace gridtools
