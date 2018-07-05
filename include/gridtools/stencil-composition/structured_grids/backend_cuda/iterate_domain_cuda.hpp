@@ -244,10 +244,8 @@ namespace gridtools {
         template <typename ReturnType, typename Accessor>
         GT_FUNCTION typename boost::enable_if<accessor_from_kcache_reg<Accessor>, ReturnType>::type
         get_cache_value_impl(Accessor const &accessor_) {
-            typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), GT_INTERNAL_ERROR);
-
-            return m_iterate_domain_cache.template get_k_cache<static_uint<acc_t::index_t::value>>().at(accessor_);
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
+            return m_iterate_domain_cache.template get_k_cache<static_uint<Accessor::index_t::value>>().at(accessor_);
         }
 
         /** @brief return a the value in memory pointed to by an accessor

@@ -33,6 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <tuple>
+#include <type_traits>
+
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/common/defs.hpp>
@@ -62,12 +65,6 @@ typedef arg<1, storage_type> p_in2;
 typedef arg<2, storage_type> p_in3;
 typedef arg<3, storage_type> p_in4;
 typedef arg<4, storage_type> p_out;
-
-using st_wrapper_in1_t = storage_wrapper<p_in1, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in2_t = storage_wrapper<p_in2, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in3_t = storage_wrapper<p_in3, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in4_t = storage_wrapper<p_in4, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_out_t = storage_wrapper<p_out, tile<0, 0>, tile<0, 0>>;
 
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in1;
@@ -118,13 +115,7 @@ TEST(iterate_domain_cache, flush) {
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
-
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<std::tuple<p_in1, p_in2, p_in3, p_in4, p_out>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -216,13 +207,9 @@ TEST(iterate_domain_cache, fill) {
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
+    typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -303,13 +290,9 @@ TEST(iterate_domain_cache, fill) {
 
 TEST(iterate_domain_cache, epflush) {
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
+    typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -414,13 +397,9 @@ TEST(iterate_domain_cache, bpfill) {
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
+    typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 

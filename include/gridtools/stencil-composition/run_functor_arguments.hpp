@@ -173,7 +173,6 @@ namespace gridtools {
         template <typename Arg>
         struct find_arg_position_in_local_domain {
             using args_t = typename LocalDomain::esf_args;
-            static_assert(boost::mpl::contains<args_t, Arg>{}, "suck");
             typedef typename boost::mpl::find<args_t, Arg>::type pos;
             typedef typename boost::mpl::distance<typename boost::mpl::begin<args_t>::type, pos>::type type;
             BOOST_STATIC_CONSTANT(int, value = type::value);

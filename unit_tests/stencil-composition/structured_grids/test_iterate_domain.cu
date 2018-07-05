@@ -145,14 +145,9 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         p_shared_mem_arg(),
         p_kcache_arg())) esf_t;
 
-    typedef decltype(computation_) intermediate_t;
-    typedef intermediate_mss_local_domains<intermediate_t> mss_local_domains_t;
-
-    typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
-
     typedef iterate_domain_cuda<iterate_domain,
         iterate_domain_arguments<backend_ids<Cuda, GRIDBACKEND, Block>,
-            boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
+            decay_t<decltype(std::get<0>(computation_.local_domains()))>,
             boost::mpl::vector1<esf_t>,
             boost::mpl::vector1<extent<0, 0, 0, 0>>,
             extent<1, -1, 1, -1>,

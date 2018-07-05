@@ -266,10 +266,9 @@ namespace gridtools {
 
         template <class MaxExtent, bool IsStateful>
         struct get_local_domain {
-            template <class MssComponents,
-                class Msses = std::tuple<typename MssComponents::mss_descriptor_t>,
-                class Args = GT_META_CALL(extract_placeholders, Msses)>
-            GT_META_DEFINE_ALIAS(apply, local_domain, (Args, MaxExtent, IsStateful));
+            template <class MssComponents, class Msses = std::tuple<typename MssComponents::mss_descriptor_t>>
+            GT_META_DEFINE_ALIAS(
+                apply, local_domain, (GT_META_CALL(extract_placeholders, Msses), MaxExtent, IsStateful));
         };
 
         template <class MssComponentsList,

@@ -84,7 +84,8 @@ namespace gridtools {
      *        cache within the sequence
      */
     template <typename Cache, typename LocalDomain>
-    struct cache_to_index : meta::st_position<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type> {
+    struct cache_to_index
+        : static_uint<meta::st_position<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type>::value> {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
     };

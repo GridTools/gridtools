@@ -438,10 +438,10 @@ namespace gridtools {
            data fields with the same dimension and memory layout)*/
         template <typename Accessor>
         GT_FUNCTION typename boost::enable_if<cached<Accessor>, typename accessor_return_type<Accessor>::type>::type
-        operator()(Accessor const &accessor_) const {
+        operator()(Accessor const &accessor_) {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            return static_cast<IterateDomainImpl const *>(this)
+            return static_cast<IterateDomainImpl *>(this)
                 ->template get_cache_value_impl<typename accessor_return_type<Accessor>::type>(accessor_);
         }
 

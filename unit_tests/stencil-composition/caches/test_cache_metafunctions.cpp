@@ -188,9 +188,9 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
-            boost::fusion::map<boost::fusion::pair<std::integral_constant<size_t, 0>,
+            boost::fusion::map<boost::fusion::pair<static_uint<0>,
                                    cache_storage<cache1_t, block_size<32, 4, 1>, extent<-1, 2, -2, 1>, p_in>>,
-                boost::fusion::pair<std::integral_constant<size_t, 1>,
+                boost::fusion::pair<static_uint<1>,
                     cache_storage<cache2_t, block_size<32, 4, 1>, extent<-2, 2, -3, 2>, p_buff>>>>::value),
         "ERROR");
 }
@@ -224,9 +224,9 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
-            boost::fusion::map<boost::fusion::pair<std::integral_constant<size_t, 3>,
+            boost::fusion::map<boost::fusion::pair<static_uint<3>,
                                    cache_storage<cache3_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, 0, 1>, p_out>>,
-                boost::fusion::pair<std::integral_constant<size_t, 2>,
+                boost::fusion::pair<static_uint<2>,
                     cache_storage<cache4_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, -1, 1>, p_notin>>>>::value),
         "ERROR");
 }

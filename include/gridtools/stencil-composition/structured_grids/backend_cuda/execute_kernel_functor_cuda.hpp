@@ -39,6 +39,7 @@
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
+#include "../../basic_token_execution.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "../grid_traits.hpp"

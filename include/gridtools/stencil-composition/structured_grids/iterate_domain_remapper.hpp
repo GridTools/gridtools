@@ -118,7 +118,6 @@ namespace gridtools {
                 accessor_mixed<typename remap_accessor_type<Accessor, esf_args_map_t>::type, Pairs...>(arg))) {
                 typedef accessor_mixed<typename remap_accessor_type<Accessor, esf_args_map_t>::type, Pairs...>
                     remap_accessor_t;
-                // const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(remap_accessor_t(arg));
             }
         };
