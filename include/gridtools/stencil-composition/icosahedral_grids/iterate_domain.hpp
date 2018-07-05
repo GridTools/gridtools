@@ -402,10 +402,11 @@ namespace gridtools {
             data_t *RESTRICT real_storage_pointer =
                 static_cast<data_t *>(data_pointer().template get<index_t::value>()[0]);
 
-            static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
             assert(pointer_oob_check(
-                boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), offset));
+                boost::fusion::at_c<
+                    meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value>(
+                    m_local_domain.m_local_storage_info_ptrs),
+                offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<
