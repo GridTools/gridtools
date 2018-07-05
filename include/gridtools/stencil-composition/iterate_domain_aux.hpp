@@ -417,9 +417,6 @@ namespace gridtools {
             operator()(Coordinate) const {
                 typedef typename SInfo::layout_t layout_map_t;
                 using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, const SInfo *>;
-                //                typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list, const
-                //                SInfo *>::type::pos
-                //                    index_t;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(

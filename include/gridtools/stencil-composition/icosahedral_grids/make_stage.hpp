@@ -35,13 +35,15 @@
 */
 #pragma once
 
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../mss_metafunctions.hpp"
+#include <tuple>
+
+#include "../../common/defs.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
 
     template <template <uint_t> class Functor, typename Grid, typename LocationType, typename... Args>
-    esf_descriptor<Functor, Grid, LocationType, nocolor, boost::mpl::vector<Args...>> make_stage(Args &&... /*args_*/) {
-        return esf_descriptor<Functor, Grid, LocationType, nocolor, boost::mpl::vector<Args...>>();
+    esf_descriptor<Functor, Grid, LocationType, nocolor, std::tuple<Args...>> make_stage(Args) {
+        return {};
     }
 } // namespace gridtools

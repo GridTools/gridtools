@@ -83,14 +83,12 @@ namespace gridtools {
             template <typename FusionPair>
             GT_FUNCTION void operator()(FusionPair const &sw) const {
                 typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
-                typedef typename boost::mpl::find<typename LocalDomain::esf_args, arg_t>::type::pos pos_in_args_t;
-
-                typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list,
-                    const typename arg_t::data_store_t::storage_info_t *>::type::pos si_index_t;
-
-                const int_t offset = fields_offset<arg_t>(boost::fusion::at<si_index_t>(m_storageinfo_fusion_list));
+                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, arg_t>::value;
+                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
+                    typename arg_t::data_store_t::storage_info_t const *>::value;
+                const int_t offset = fields_offset<arg_t>(boost::fusion::at_c<si_index>(m_storageinfo_fusion_list));
                 for (unsigned i = 0; i < arg_t::data_store_t::num_of_storages; ++i)
-                    m_data_ptr_cached.template get<pos_in_args_t::value>()[i] = sw.second[i] + offset;
+                    m_data_ptr_cached.template get<pos_in_args>()[i] = sw.second[i] + offset;
             }
         };
     } // namespace _impl
@@ -115,7 +113,7 @@ namespace gridtools {
         /* meta function to get storage info index in local domain */
         template <typename StorageInfo>
         using local_domain_storage_index =
-            typename boost::mpl::find<typename local_domain_t::storage_info_ptr_list, const StorageInfo *>::type::pos;
+            meta::st_position<typename local_domain_t::storage_info_ptr_list, const StorageInfo *>;
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
@@ -379,8 +377,8 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
-            using storage_index_t = local_domain_storage_index<StorageInfo>;
-            auto const &strides = m_strides.template get<storage_index_t::value>();
+            static constexpr auto storage_index = local_domain_storage_index<StorageInfo>::value;
+            auto const &strides = m_strides.template get<storage_index>();
             return stride<StorageInfo, Coordinate>(strides);
         }
 
@@ -516,9 +514,9 @@ namespace gridtools {
         using storage_info_t = typename arg_t::data_store_t::storage_info_t;
         using data_t = typename arg_t::data_store_t::data_t;
 
-        using storage_index_t = local_domain_storage_index<storage_info_t>;
+        static constexpr auto storage_index = local_domain_storage_index<storage_info_t>::value;
 
-        const storage_info_t *storage_info = boost::fusion::at<storage_index_t>(local_domain.m_local_storage_info_ptrs);
+        const storage_info_t *storage_info = boost::fusion::at_c<storage_index>(local_domain.m_local_storage_info_ptrs);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 

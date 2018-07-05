@@ -410,6 +410,6 @@ namespace gridtools {
      *  Probably the creation of local domains should be factored out into a separate component to resolve this issue.
      */
     template <typename Intermediate>
-    using intermediate_mss_local_domains = typename Intermediate::mss_local_domains_t;
+    using intermediate_local_domains = typename Intermediate::local_domains_t;
 
 } // namespace gridtools

@@ -117,11 +117,6 @@ namespace gridtools {
     template <class>
     struct local_domain_esf_args;
 
-    template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
-    struct local_domain_esf_args<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> {
-        using type = EsfArgs;
-    };
-
     // Force cloning to cuda device, even though local_domain is not trivially copyable because of boost fusion
     // containers implementation.
     namespace cuda_util {
