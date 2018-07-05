@@ -39,7 +39,6 @@
 
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../block_size.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_host.hpp"
 #include "run_esf_functor_host.hpp"
@@ -80,92 +79,13 @@ namespace gridtools {
             typedef _impl_host::run_functor_host<Arguments> run_functor_t;
         };
 
-        /** This is the function used by the specific backend
-         *  that determines the i coordinate of a processing element.
-         *  In the case of the host, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_i() {
-#ifdef _OPENMP
-            return omp_get_thread_num();
-#else
-            return 0;
-#endif
-        }
-
-        template <uint_t Id, typename BlockSize>
+        template <uint_t Id>
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
-
             template <typename Left, typename Right>
-            GT_FUNCTION // inline
-                static void
-                assign(Left &l, Right const &r) {
-                l = (Left)r;
+            GT_FUNCTION static void assign(Left &l, Right const &r) {
+                l = r;
             }
         };
-
-        template <class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy>
-        struct tmp_storage_size_f;
-
-        // get a temporary storage size
-        template <class MaxExtent, class StorageWrapper, class GridTraits>
-        struct tmp_storage_size_f<MaxExtent, StorageWrapper, GridTraits, enumtype::Naive> {
-            template <class Grid>
-            std::array<uint_t, 3> operator()(Grid const &grid) const {
-                auto i_size = grid.direction_i().total_length();
-                auto j_size = grid.direction_j().total_length();
-                auto k_size = grid.k_max() + 1;
-                return {i_size, j_size, k_size};
-            }
-        };
-
-        template <class MaxExtent, class StorageWrapper, class GridTraits>
-        struct tmp_storage_size_f<MaxExtent, StorageWrapper, GridTraits, enumtype::Block> {
-            using storage_info_t = typename StorageWrapper::storage_info_t;
-            using halo_t = typename storage_info_t::halo_t;
-            static constexpr uint_t halo_i = halo_t::template at<GridTraits::dim_i_t::value>();
-            static constexpr uint_t halo_j = halo_t::template at<GridTraits::dim_j_t::value>();
-
-            template <class Grid>
-            std::array<uint_t, 3> operator()(Grid const &grid) const {
-                auto threads = omp_get_max_threads();
-                auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
-                auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
-                auto k_size = grid.k_max() + 1;
-                return {i_size, j_size, k_size};
-            }
-        };
-
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage. In addition to this each OpenMP thread stores an integer that indicates the offset of this
-           pointer. For temporaries we use an oversized storage in order to have private halo
-           regions for each thread. This method calculates the offset for temporaries and takes the private halo and
-           alignment information into account.
-        */
-        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
-        static typename boost::enable_if_c<Arg::is_temporary, int>::type fields_offset(StorageInfo const *sinfo) {
-            typedef GridTraits grid_traits_t;
-            // get the thread ID
-            const uint_t i = processing_element_i();
-            // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at<grid_traits_t::dim_i_t::value>();
-            // compute the blocksize
-            constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
-            // return the field offset
-            const int stride_i = sinfo->template stride<grid_traits_t::dim_i_t::value>();
-            return stride_i * (i * blocksize + halo_i);
-        }
-
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
-           the offset of this pointer. This function computes the field offset for non temporary storages.
-        */
-        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
-        static typename boost::enable_if_c<!Arg::is_temporary, int>::type fields_offset(StorageInfo const *sinfo) {
-            return 0;
-        }
 
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
@@ -205,11 +125,6 @@ namespace gridtools {
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_host<BackendIds::s_strategy_id> type;
-        };
-
-        template <enumtype::strategy StrategyId>
-        struct get_block_size {
-            typedef typename strategy_from_id_host<StrategyId>::block_size_t type;
         };
 
         /**

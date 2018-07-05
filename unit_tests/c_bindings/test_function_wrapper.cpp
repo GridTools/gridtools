@@ -48,7 +48,7 @@ namespace gridtools {
     namespace c_bindings {
         namespace {
 
-            struct a_struct;
+            struct a_struct {};
             struct array_descriptor_struct {
                 array_descriptor_struct(const gt_fortran_array_descriptor &);
                 using gt_view_element_type = int;

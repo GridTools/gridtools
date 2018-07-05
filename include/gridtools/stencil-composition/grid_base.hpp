@@ -114,13 +114,16 @@ namespace gridtools {
         GT_FUNCTION
         uint_t j_high_bound() const { return m_direction_j.end(); }
 
-        template <typename Level>
-        GT_FUNCTION uint_t value_at() const {
+        template <class Level, int_t Offset = Level::Offset::value>
+        GT_FUNCTION enable_if_t<(Offset > 0), uint_t> value_at() const {
             GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
-            int_t offs = Level::Offset::value;
-            if (offs > 0)
-                offs -= 1;
-            return value_list[Level::Splitter::value] + offs;
+            return value_list[Level::Splitter::value] + Offset - 1;
+        }
+
+        template <class Level, int_t Offset = Level::Offset::value>
+        GT_FUNCTION enable_if_t<(Offset <= 0), uint_t> value_at() const {
+            GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
+            return value_list[Level::Splitter::value] - static_cast<uint_t>(-Offset);
         }
 
         GT_FUNCTION uint_t k_min() const { return value_at<typename Axis::FromLevel>(); }

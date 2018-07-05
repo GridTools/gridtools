@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/count.hpp>
 #include <boost/fusion/include/flatten.hpp>
 #include <boost/fusion/include/move.hpp>
@@ -45,6 +46,7 @@
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/tuple_util.hpp"
 #include "../common/vector_traits.hpp"
+#include "./tmp_storage.hpp"
 
 #include "./mss_local_domain.hpp"
 #include "./tile.hpp"
@@ -226,27 +228,15 @@ namespace gridtools {
                 set_view_to_local_domain_f{}, view_infos, std::move(local_domains));
         }
 
-        template <class MaxExtent, class Backend, class StorageWrapperList>
+        template <class MaxExtent, class Backend>
         struct get_tmp_arg_storage_pair_generator {
-            using tmp_storage_wrappers_t = typename boost::mpl::copy_if<StorageWrapperList,
-                temporary_info_from_storage_wrapper<boost::mpl::_>,
-                boost::mpl::inserter<boost::mpl::map0<>,
-                    boost::mpl::insert<boost::mpl::_1,
-                        boost::mpl::pair<arg_from_storage_wrapper<boost::mpl::_2>, boost::mpl::_2>>>>::type;
-            using backend_traits_t = typename Backend::backend_traits_t;
-            using grid_traits_t = typename Backend::grid_traits_t;
-            static constexpr enumtype::strategy s_strategy_id = Backend::s_strategy_id;
-
             template <class ArgStoragePair>
             struct generator {
                 template <class Grid>
                 ArgStoragePair operator()(Grid const &grid) const {
-                    using arg_t = typename ArgStoragePair::arg_t;
-                    using storage_wrapper_t = typename boost::mpl::at<tmp_storage_wrappers_t, arg_t>::type;
-                    auto get_size = typename backend_traits_t::
-                        template tmp_storage_size_f<MaxExtent, storage_wrapper_t, grid_traits_t, s_strategy_id>{};
-                    auto make_data_store = typename grid_traits_t::template make_tmp_data_store_f<arg_t>{};
-                    return make_data_store(get_size(grid));
+                    static constexpr auto backend = Backend{};
+                    static constexpr auto arg = typename ArgStoragePair::arg_t{};
+                    return make_tmp_data_store<MaxExtent>(backend, arg, grid);
                 }
             };
             template <class T>
@@ -259,10 +249,10 @@ namespace gridtools {
 #endif
         };
 
-        template <class MaxExtent, class Backend, class StorageWrapperList, class Res, class Grid>
+        template <class MaxExtent, class Backend, class Res, class Grid>
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = GT_META_CALL(meta::transform,
-                (get_tmp_arg_storage_pair_generator<MaxExtent, Backend, StorageWrapperList>::template apply, Res));
+            using generators = GT_META_CALL(
+                meta::transform, (get_tmp_arg_storage_pair_generator<MaxExtent, Backend>::template apply, Res));
             return tuple_util::generate<generators, Res>(grid);
         }
 
@@ -366,18 +356,15 @@ namespace gridtools {
            tmp storage, whose extent depends on an index, to the
            element in the Temporaries vector at that index position.
         */
-        template <uint_t BI, uint_t BJ>
+        template <typename MapElem>
         struct get_storage_wrapper {
-            template <typename MapElem>
-            struct apply {
-                typedef typename boost::mpl::second<MapElem>::type extent_t;
-                typedef typename boost::mpl::first<MapElem>::type temporary;
-                typedef storage_wrapper<temporary,
-                    typename get_view<typename temporary::data_store_t>::type,
-                    tile<BI, -extent_t::iminus::value, extent_t::iplus::value>,
-                    tile<BJ, -extent_t::jminus::value, extent_t::jplus::value>>
-                    type;
-            };
+            typedef typename boost::mpl::second<MapElem>::type extent_t;
+            typedef typename boost::mpl::first<MapElem>::type temporary;
+            typedef storage_wrapper<temporary,
+                typename get_view<typename temporary::data_store_t>::type,
+                tile<-extent_t::iminus::value, extent_t::iplus::value>,
+                tile<-extent_t::jminus::value, extent_t::jplus::value>>
+                type;
         };
 
         /**
@@ -385,22 +372,16 @@ namespace gridtools {
          * @tparam AggregatorType domain
          * @tparam MssComponentsArray meta array of mss components
          */
-        template <typename Backend, typename Placeholders, typename MssComponents>
+        template <typename Placeholders, typename MssComponents>
         struct obtain_storage_wrapper_list_t {
 
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-            using block_size_t = typename Backend::block_size_t;
-
-            static const uint_t tileI = block_size_t::i_size_t::value;
-            static const uint_t tileJ = block_size_t::j_size_t::value;
 
             typedef typename obtain_map_extents_temporaries_mss_array<Placeholders, MssComponents>::type map_of_extents;
 
             typedef typename boost::mpl::fold<map_of_extents,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back<boost::mpl::_1,
-                    typename get_storage_wrapper<tileI, tileJ>::template apply<boost::mpl::_2>>>::type type;
+                boost::mpl::push_back<boost::mpl::_1, get_storage_wrapper<boost::mpl::_2>>>::type type;
         };
     } // namespace _impl
 } // namespace gridtools

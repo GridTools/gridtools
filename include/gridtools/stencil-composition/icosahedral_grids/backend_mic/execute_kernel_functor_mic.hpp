@@ -79,8 +79,7 @@ namespace gridtools {
                 for (uint_t j = m_first_pos[1] + Extent::jminus::value;
                      j <= m_first_pos[1] + m_loop_size[1] + Extent::jplus::value;
                      ++j) {
-                    typename IterateDomain::array_index_t memorized_index = m_it_domain.index();
-                    typename IterateDomain::grid_position_t memorized_position = m_it_domain.position();
+                    auto memorized_index = m_it_domain.index();
 
                     // we fill the run_functor_arguments with the current color being processed
                     using run_functor_arguments_t = GT_META_CALL(meta::replace,
@@ -89,14 +88,10 @@ namespace gridtools {
                     boost::mpl::for_each<loop_intervals_t>(
                         _impl::run_f_on_interval<execution_type_t, run_functor_arguments_t>(m_it_domain, m_grid));
                     m_it_domain.set_index(memorized_index);
-                    m_it_domain.set_position(memorized_position);
-                    m_it_domain.template increment<grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value,
-                        static_int<1>>();
+                    m_it_domain.increment_j();
                 }
-                m_it_domain.template increment<grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value>(
-                    -(m_loop_size[1] + 1 + (Extent::jplus::value - Extent::jminus::value)));
-                m_it_domain
-                    .template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value, static_int<1>>();
+                m_it_domain.increment_j(-(m_loop_size[1] + 1 + Extent::jplus::value - Extent::jminus::value));
+                m_it_domain.increment_c();
             }
             template <typename Index>
             void operator()(Index const &,
@@ -104,8 +99,7 @@ namespace gridtools {
                     color_type<Index::value>>::type>::type * = 0) const {
                 // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
                 // color iterator
-                m_it_domain
-                    .template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value, static_int<1>>();
+                m_it_domain.increment_c();
             }
         };
         /**
@@ -178,26 +172,14 @@ namespace gridtools {
                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
                 typedef typename index_to_level<typename interval::second>::type to;
-                typedef _impl::iteration_policy<from,
-                    to,
-                    typename grid_traits_from_id<enumtype::icosahedral>::dim_k_t,
-                    execution_type_t::type::iteration>
-                    iteration_policy_t;
+                typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
 
-                it_domain.reset_index();
-
-                // TODO FUSING work on extending the loops using the extent
-                //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value,
-                //                m_block_id[0]);
-                it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value>(
-                    m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
-
-                // initialize color dim
-                it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value>(0);
-                it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_j_t::value>(
-                    m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
-                it_domain.template initialize<grid_traits_from_id<enumtype::icosahedral>::dim_k_t::value>(
-                    m_grid.template value_at<typename iteration_policy_t::from>());
+                it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
+                    {m_block_id[0], m_block_id[1], 0},
+                    {extent_t::iminus::value,
+                        extent_t::jminus::value,
+                        static_cast<int_t>(
+                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
 
                 for (uint_t i = m_first_pos[0] + extent_t::iminus::value;
                      i <= m_first_pos[0] + m_loop_size[0] + extent_t::iplus::value;
@@ -206,14 +188,10 @@ namespace gridtools {
                         color_execution_functor_mic<RunFunctorArguments, iterate_domain_t, grid_t, extent_t>(
                             it_domain, m_grid, m_first_pos, m_loop_size));
 
-                    it_domain.template increment<grid_traits_from_id<enumtype::icosahedral>::dim_c_t::value,
-                        static_int<-((int_t)n_colors_t::value)>>();
-
-                    it_domain.template increment<grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value,
-                        static_int<1>>();
+                    it_domain.template increment_c<-int_t(n_colors_t::value)>();
+                    it_domain.increment_i();
                 }
-                it_domain.template increment<grid_traits_from_id<enumtype::icosahedral>::dim_i_t::value>(
-                    -(m_loop_size[0] + 1 + (extent_t::iplus::value - extent_t::iminus::value)));
+                it_domain.increment_i(-(m_loop_size[0] + 1 + extent_t::iplus::value - extent_t::iminus::value));
             }
 
           private:
