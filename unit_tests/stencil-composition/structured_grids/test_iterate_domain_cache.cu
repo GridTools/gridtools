@@ -43,7 +43,6 @@
 #include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/tile.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

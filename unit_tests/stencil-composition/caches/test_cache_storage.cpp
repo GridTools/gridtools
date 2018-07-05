@@ -39,7 +39,6 @@
 #include <gridtools/stencil-composition/block_size.hpp>
 #include <gridtools/stencil-composition/offset_computation.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/tile.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
