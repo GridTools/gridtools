@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include "backend_select.hpp"
 
@@ -42,29 +42,29 @@ namespace test_conditional_switches {
     using namespace gridtools;
     using namespace enumtype;
 
-    template < uint_t Id >
+    template <uint_t Id>
     struct functor1 {
 
-        typedef accessor< 0, enumtype::inout > p_dummy;
-        typedef accessor< 1, enumtype::inout > p_dummy_tmp;
+        typedef accessor<0, enumtype::inout> p_dummy;
+        typedef accessor<1, enumtype::inout> p_dummy_tmp;
 
-        typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
+        typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_dummy()) += Id;
         }
     };
 
-    template < uint_t Id >
+    template <uint_t Id>
     struct functor2 {
 
-        typedef accessor< 0, enumtype::inout > p_dummy;
-        typedef accessor< 1, enumtype::in > p_dummy_tmp;
+        typedef accessor<0, enumtype::inout> p_dummy;
+        typedef accessor<1, enumtype::in> p_dummy_tmp;
 
-        typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
+        typedef boost::mpl::vector2<p_dummy, p_dummy_tmp> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_dummy()) += Id;
         }
@@ -79,53 +79,52 @@ namespace test_conditional_switches {
 
         auto grid_ = make_grid(1, 1, 2);
 
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t>
             data_store_t;
 
         storage_info_t meta_data_(8, 8, 8);
         data_store_t dummy(meta_data_, 0.);
-        typedef arg< 0, data_store_t > p_dummy;
-        typedef tmp_arg< 1, data_store_t > p_dummy_tmp;
+        typedef arg<0, data_store_t> p_dummy;
+        typedef tmp_arg<1, data_store_t> p_dummy_tmp;
 
-        auto comp_ = make_computation< backend_t >(
-            grid_,
+        auto comp_ = make_computation<backend_t>(grid_,
             p_dummy{} = dummy,
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                make_stage< functor1< 0 > >(p_dummy(), p_dummy_tmp()),
-                make_stage< functor2< 0 > >(p_dummy(), p_dummy_tmp())),
+            make_multistage(enumtype::execute<enumtype::forward>(),
+                make_stage<functor1<0>>(p_dummy(), p_dummy_tmp()),
+                make_stage<functor2<0>>(p_dummy(), p_dummy_tmp())),
             switch_(cond_,
                 case_(0,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 1 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 1 > >(p_dummy(), p_dummy_tmp()))),
+                    make_multistage(enumtype::execute<enumtype::forward>(),
+                        make_stage<functor1<1>>(p_dummy(), p_dummy_tmp()),
+                        make_stage<functor2<1>>(p_dummy(), p_dummy_tmp()))),
                 case_(5,
-                        switch_(nested_cond_,
-                            case_(1,
-                                    make_multistage(enumtype::execute< enumtype::forward >(),
-                                        make_stage< functor1< 2000 > >(p_dummy(), p_dummy_tmp()),
-                                        make_stage< functor2< 2000 > >(p_dummy(), p_dummy_tmp()))),
-                            default_(make_multistage(enumtype::execute< enumtype::forward >(),
-                                make_stage< functor1< 3000 > >(p_dummy(), p_dummy_tmp()),
-                                make_stage< functor2< 3000 > >(p_dummy(), p_dummy_tmp()))))),
-                default_(make_multistage(enumtype::execute< enumtype::forward >(),
-                    make_stage< functor1< 7 > >(p_dummy(), p_dummy_tmp()),
-                    make_stage< functor2< 7 > >(p_dummy(), p_dummy_tmp())))),
+                    switch_(nested_cond_,
+                        case_(1,
+                            make_multistage(enumtype::execute<enumtype::forward>(),
+                                make_stage<functor1<2000>>(p_dummy(), p_dummy_tmp()),
+                                make_stage<functor2<2000>>(p_dummy(), p_dummy_tmp()))),
+                        default_(make_multistage(enumtype::execute<enumtype::forward>(),
+                            make_stage<functor1<3000>>(p_dummy(), p_dummy_tmp()),
+                            make_stage<functor2<3000>>(p_dummy(), p_dummy_tmp()))))),
+                default_(make_multistage(enumtype::execute<enumtype::forward>(),
+                    make_stage<functor1<7>>(p_dummy(), p_dummy_tmp()),
+                    make_stage<functor2<7>>(p_dummy(), p_dummy_tmp())))),
             switch_(other_cond_,
                 case_(2,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 10 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 10 > >(p_dummy(), p_dummy_tmp()))),
+                    make_multistage(enumtype::execute<enumtype::forward>(),
+                        make_stage<functor1<10>>(p_dummy(), p_dummy_tmp()),
+                        make_stage<functor2<10>>(p_dummy(), p_dummy_tmp()))),
                 case_(1,
-                        make_multistage(enumtype::execute< enumtype::forward >(),
-                            make_stage< functor1< 20 > >(p_dummy(), p_dummy_tmp()),
-                            make_stage< functor2< 20 > >(p_dummy(), p_dummy_tmp()))),
-                default_(make_multistage(enumtype::execute< enumtype::forward >(),
-                    make_stage< functor1< 30 > >(p_dummy(), p_dummy_tmp()),
-                    make_stage< functor2< 30 > >(p_dummy(), p_dummy_tmp())))),
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                make_stage< functor1< 400 > >(p_dummy(), p_dummy_tmp()),
-                make_stage< functor2< 400 > >(p_dummy(), p_dummy_tmp())));
+                    make_multistage(enumtype::execute<enumtype::forward>(),
+                        make_stage<functor1<20>>(p_dummy(), p_dummy_tmp()),
+                        make_stage<functor2<20>>(p_dummy(), p_dummy_tmp()))),
+                default_(make_multistage(enumtype::execute<enumtype::forward>(),
+                    make_stage<functor1<30>>(p_dummy(), p_dummy_tmp()),
+                    make_stage<functor2<30>>(p_dummy(), p_dummy_tmp())))),
+            make_multistage(enumtype::execute<enumtype::forward>(),
+                make_stage<functor1<400>>(p_dummy(), p_dummy_tmp()),
+                make_stage<functor2<400>>(p_dummy(), p_dummy_tmp())));
 
         comp_.run();
         dummy.sync();
@@ -137,6 +136,6 @@ namespace test_conditional_switches {
         comp_.sync_bound_data_stores();
         return result && make_host_view(dummy)(0, 0, 0) == 5662;
     }
-} // namespace test_conditional
+} // namespace test_conditional_switches
 
 TEST(stencil_composition, conditional_switch) { EXPECT_TRUE(test_conditional_switches::test()); }

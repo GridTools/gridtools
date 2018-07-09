@@ -45,50 +45,50 @@
 #define __WAS_DEBUG
 #endif
 
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/mpl/equal.hpp>
+#include <gridtools/gridtools.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
 #include "backend_select.hpp"
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 namespace positional_when_debug_test {
 
-    using axis_t = gridtools::axis< 1 >;
-    using grid_t = gridtools::grid< axis_t::axis_interval_t >;
-    using x_interval = axis_t::get_interval< 0 >;
+    using axis_t = gridtools::axis<1>;
+    using grid_t = gridtools::grid<axis_t::axis_interval_t>;
+    using x_interval = axis_t::get_interval<0>;
 
     struct test_functor {
-        typedef gridtools::accessor< 0, gridtools::enumtype::inout > in;
-        typedef boost::mpl::vector1< in > arg_list;
+        typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
+        typedef boost::mpl::vector1<in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval.i();
             eval.j();
             eval.k();
         }
     };
-}
+} // namespace positional_when_debug_test
 
 TEST(test_make_computation, positional_when_debug) {
 
     using namespace gridtools;
     using namespace gridtools::enumtype;
 
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
-    typedef arg< 0, storage_t > p_in;
+    typedef arg<0, storage_t> p_in;
 
-    make_computation< backend_t >(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
+    make_computation<backend_t>(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage // mss_descriptor
-        (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
+        (execute<forward>(), make_stage<positional_when_debug_test::test_functor>(p_in())));
 }
 
 #ifdef __WAS_DEBUG

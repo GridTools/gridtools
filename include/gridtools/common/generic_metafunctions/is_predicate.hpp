@@ -50,12 +50,12 @@ namespace gridtools {
      * @struct is_meta_predicate
      * Check if it yields true_type or false_type
      */
-    template < typename Pred, typename = void >
+    template <typename Pred, typename = void>
     struct is_meta_predicate : std::false_type {};
 
-    template < typename Pred >
-    struct is_meta_predicate< Pred, typename std::enable_if< Pred::value || true >::type > : std::true_type {};
+    template <typename Pred>
+    struct is_meta_predicate<Pred, typename std::enable_if<Pred::value || true>::type> : std::true_type {};
     /** @} */
     /** @} */
     /** @} */
-}
+} // namespace gridtools

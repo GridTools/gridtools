@@ -38,8 +38,8 @@
 #include <assert.h>
 #include <stdexcept>
 
-#include "host_device.hpp"
 #include "defs.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
     /** \ingroup common
@@ -56,7 +56,7 @@ namespace gridtools {
      */
     struct error {
 
-        template < typename T >
+        template <typename T>
         GT_FUNCTION static T get(char const *msg) {
 #ifdef __CUDA_ARCH__
             assert(false);
@@ -66,9 +66,9 @@ namespace gridtools {
 #endif
         }
 
-        template < typename T = uint_t >
+        template <typename T = uint_t>
         GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
-            return get< T >(msg);
+            return get<T>(msg);
         }
     };
 
@@ -80,11 +80,11 @@ namespace gridtools {
      * @param res result value
      * @param msg error message if condition is not met
      */
-    template < typename T >
+    template <typename T>
     GT_FUNCTION constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
-        return cond ? res : error::trigger< T >(msg);
+        return cond ? res : error::trigger<T>(msg);
     }
 
     /** @} */
     /** @} */
-}
+} // namespace gridtools

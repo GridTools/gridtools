@@ -1,5 +1,3 @@
-include(bindings)
-
 if (ENABLE_HOST)
     add_bindings_library(implementation implementation.cpp)
     add_bindings_library(implementation_wrapper implementation-wrapper.cpp)
@@ -9,19 +7,14 @@ if (ENABLE_HOST)
     add_executable(driver driver.c)
     target_link_libraries(driver implementation_c)
 
-    enable_language (Fortran)
-
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 
     add_executable(fdriver fdriver.f90)
     target_link_libraries(fdriver implementation_fortran)
+    set_target_properties(fdriver PROPERTIES LINKER_LANGUAGE Fortran)
 
     add_executable(fdriver_wrapper fdriver-wrapper.f90)
     target_link_libraries(fdriver_wrapper implementation_wrapper_fortran)
+    set_target_properties(fdriver_wrapper PROPERTIES LINKER_LANGUAGE Fortran)
 
-    # On tave Intel Fortran is not working
-    if(CMAKE_Fortran_COMPILER_ID MATCHES "Intel")
-        set_target_properties(fdriver PROPERTIES EXCLUDE_FROM_ALL 1)
-        set_target_properties(fdriver_wrapper PROPERTIES EXCLUDE_FROM_ALL 1)
-    endif()
 endif(ENABLE_HOST)

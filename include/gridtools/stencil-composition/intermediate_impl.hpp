@@ -35,19 +35,21 @@
 */
 #pragma once
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/move.hpp>
-#include <boost/fusion/include/flatten.hpp>
+#include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/count.hpp>
+#include <boost/fusion/include/flatten.hpp>
+#include <boost/fusion/include/move.hpp>
+#include <boost/fusion/include/mpl.hpp>
 #include <boost/optional.hpp>
 
-#include "common/generic_metafunctions/copy_into_set.hpp"
-#include "common/functional.hpp"
-#include "common/vector_traits.hpp"
-#include "common/tuple_util.hpp"
+#include "../common/functional.hpp"
+#include "../common/generic_metafunctions/copy_into_set.hpp"
+#include "../common/tuple_util.hpp"
+#include "../common/vector_traits.hpp"
+#include "./tmp_storage.hpp"
 
-#include "mss_local_domain.hpp"
-#include "tile.hpp"
+#include "./mss_local_domain.hpp"
+#include "./tile.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -55,15 +57,15 @@ namespace gridtools {
         /// this functor takes storage infos shared pointers (or types that contain storage_infos);
         /// stashes all infos that are passed through for the first time;
         /// if info is about to pass through twice, the functor substitutes it with the stashed one.
-        template < class StorageInfoMap >
+        template <class StorageInfoMap>
         struct dedup_storage_info_f {
             StorageInfoMap &m_storage_info_map;
 
-            template < class Strorage, class StorageInfo >
-            data_store< Strorage, StorageInfo > operator()(data_store< Strorage, StorageInfo > const &src) const {
+            template <class Strorage, class StorageInfo>
+            data_store<Strorage, StorageInfo> operator()(data_store<Strorage, StorageInfo> const &src) const {
                 assert(src.valid());
-                static_assert(boost::mpl::has_key< StorageInfoMap, StorageInfo >::value, "");
-                auto &stored = boost::fusion::at_key< StorageInfo >(m_storage_info_map);
+                static_assert(boost::mpl::has_key<StorageInfoMap, StorageInfo>::value, "");
+                auto &stored = boost::fusion::at_key<StorageInfo>(m_storage_info_map);
                 if (!stored) {
                     stored = src.get_storage_info_ptr();
                     return src;
@@ -72,11 +74,11 @@ namespace gridtools {
                 return {src, stored};
             }
 
-            template < class Storage, class StorageInfo >
-            data_store< Storage, StorageInfo > operator()(data_store< Storage, StorageInfo > &&src) const {
+            template <class Storage, class StorageInfo>
+            data_store<Storage, StorageInfo> operator()(data_store<Storage, StorageInfo> &&src) const {
                 assert(src.valid());
-                static_assert(boost::mpl::has_key< StorageInfoMap, StorageInfo >::value, "");
-                auto &stored = boost::fusion::at_key< StorageInfo >(m_storage_info_map);
+                static_assert(boost::mpl::has_key<StorageInfoMap, StorageInfo>::value, "");
+                auto &stored = boost::fusion::at_key<StorageInfo>(m_storage_info_map);
                 if (!stored) {
                     stored = src.get_storage_info_ptr();
                     return src;
@@ -85,71 +87,71 @@ namespace gridtools {
                 return {std::move(src), *stored};
             }
 
-            template < class DataStore, uint_t... N >
-            data_store_field< DataStore, N... > operator()(data_store_field< DataStore, N... > src) const {
+            template <class DataStore, uint_t... N>
+            data_store_field<DataStore, N...> operator()(data_store_field<DataStore, N...> src) const {
                 for (auto &item : src.m_field)
                     item = this->operator()(item);
                 return src;
             }
 
-            template < class Arg, class DataStore >
-            arg_storage_pair< Arg, DataStore > operator()(arg_storage_pair< Arg, DataStore > const &src) const {
+            template <class Arg, class DataStore>
+            arg_storage_pair<Arg, DataStore> operator()(arg_storage_pair<Arg, DataStore> const &src) const {
                 return this->operator()(src.m_value);
             }
-            template < class Arg, class DataStore >
-            arg_storage_pair< Arg, DataStore > operator()(arg_storage_pair< Arg, DataStore > &&src) const {
+            template <class Arg, class DataStore>
+            arg_storage_pair<Arg, DataStore> operator()(arg_storage_pair<Arg, DataStore> &&src) const {
                 return this->operator()(std::move(src.m_value));
             }
         };
 
-        template < class Arg >
+        template <class Arg>
         struct get_storage_info {
             using type = typename Arg::data_store_t::storage_info_t;
         };
 
-        template < class StorageInfo >
+        template <class StorageInfo>
         struct get_storage_info_map_element {
-            using type = boost::fusion::pair< StorageInfo, std::shared_ptr< StorageInfo > >;
+            using type = boost::fusion::pair<StorageInfo, std::shared_ptr<StorageInfo>>;
         };
 
-        template < typename Placeholders >
-        using storage_info_map_t = typename boost::fusion::result_of::as_map< boost::mpl::transform_view<
-            typename copy_into_set< boost::mpl::transform_view< Placeholders, get_storage_info< boost::mpl::_ > >,
-                boost::mpl::set0<> >::type,
-            get_storage_info_map_element< boost::mpl::_ > > >::type;
+        template <typename Placeholders>
+        using storage_info_map_t = typename boost::fusion::result_of::as_map<boost::mpl::transform_view<
+            typename copy_into_set<boost::mpl::transform_view<Placeholders, get_storage_info<boost::mpl::_>>,
+                boost::mpl::set0<>>::type,
+            get_storage_info_map_element<boost::mpl::_>>>::type;
 
-        template < typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void >
+        template <typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void>
         struct get_view;
 
-        template < typename Elem, access_mode AccessMode >
-        struct get_view< Elem, AccessMode, typename boost::enable_if< is_data_store< Elem > >::type > {
+        template <typename Elem, access_mode AccessMode>
+        struct get_view<Elem, AccessMode, typename boost::enable_if<is_data_store<Elem>>::type> {
             // we can use make_host_view here because the type is the
             // same for make_device_view and make_host_view.
-            typedef decltype(make_host_view< AccessMode, Elem >(std::declval< Elem & >())) type;
+            typedef decltype(make_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
         };
 
-        template < typename Elem, access_mode AccessMode >
-        struct get_view< Elem, AccessMode, typename boost::enable_if< is_data_store_field< Elem > >::type > {
+        template <typename Elem, access_mode AccessMode>
+        struct get_view<Elem, AccessMode, typename boost::enable_if<is_data_store_field<Elem>>::type> {
             // we can use make_field_host_view here because the type is the
             // same for make_field_device_view and make_field_host_view.
-            typedef decltype(make_field_host_view< AccessMode, Elem >(std::declval< Elem & >())) type;
+            typedef decltype(make_field_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
         };
 
         /// This struct is used to hold bound storages. It holds a view.
         /// the method updated_view return creates a view only if the previously returned view was inconsistent.
-        template < class Arg, class DataStorage >
+        template <class Arg, class DataStorage>
         struct bound_arg_storage_pair {
-            using view_t = typename get_view< DataStorage >::type;
+            using view_t = typename get_view<DataStorage>::type;
 
             DataStorage m_data_storage;
-            boost::optional< view_t > m_view;
+            boost::optional<view_t> m_view;
 
-            bound_arg_storage_pair(arg_storage_pair< Arg, DataStorage > const &src) : m_data_storage{src.m_value} {}
-            bound_arg_storage_pair(arg_storage_pair< Arg, DataStorage > &&src) noexcept
+            bound_arg_storage_pair(arg_storage_pair<Arg, DataStorage> const &src) : m_data_storage{src.m_value} {}
+            bound_arg_storage_pair(arg_storage_pair<Arg, DataStorage> &&src) noexcept
                 : m_data_storage{std::move(src.m_value)} {}
 
-            template < class Backend >
-            boost::optional< view_t > updated_view() {
+            template <class Backend>
+            boost::optional<view_t> updated_view() {
                 if (m_view && check_consistency(m_data_storage, *m_view))
                     return boost::none;
                 if (m_data_storage.device_needs_update())
@@ -160,64 +162,63 @@ namespace gridtools {
         };
 
         struct sync_f {
-            template < class Arg, class DataStorage >
-            void operator()(bound_arg_storage_pair< Arg, DataStorage > const &obj) const {
+            template <class Arg, class DataStorage>
+            void operator()(bound_arg_storage_pair<Arg, DataStorage> const &obj) const {
                 obj.m_data_storage.sync();
             }
         };
 
-        template < class Arg, class DataStorage >
-        using view_info_t = boost::fusion::pair< Arg, boost::optional< typename get_view< DataStorage >::type > >;
+        template <class Arg, class DataStorage>
+        using view_info_t = boost::fusion::pair<Arg, boost::optional<typename get_view<DataStorage>::type>>;
 
-        template < class Backend >
+        template <class Backend>
         struct make_view_info_f {
-            template < class Arg, class DataStorage >
-            view_info_t< Arg, DataStorage > operator()(arg_storage_pair< Arg, DataStorage > const &src) const {
+            template <class Arg, class DataStorage>
+            view_info_t<Arg, DataStorage> operator()(arg_storage_pair<Arg, DataStorage> const &src) const {
                 const auto &storage = src.m_value;
                 if (storage.device_needs_update())
                     storage.sync();
                 return boost::make_optional(typename Backend::make_view_f{}(storage));
             }
-            template < class Arg, class DataStorage >
-            view_info_t< Arg, DataStorage > operator()(bound_arg_storage_pair< Arg, DataStorage > &src) const {
-                return src.template updated_view< Backend >();
+            template <class Arg, class DataStorage>
+            view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
+                return src.template updated_view<Backend>();
             }
         };
 
-        template < class LocalDomain, class Arg >
-        using local_domain_has_arg =
-            typename boost::mpl::has_key< typename LocalDomain::data_ptr_fusion_map, Arg >::type;
+        template <class LocalDomain, class Arg>
+        using local_domain_has_arg = typename boost::mpl::has_key<typename LocalDomain::data_ptr_fusion_map, Arg>::type;
 
         // set pointers from the given view info to the local domain
         struct set_view_to_local_domain_f {
 
             // if the arg belongs to the local domain we set pointers
-            template < class Arg, class OptView, class LocalDomain >
-            enable_if_t< local_domain_has_arg< LocalDomain, Arg >::value > operator()(
-                boost::fusion::pair< Arg, OptView > const &info, LocalDomain &local_domain) const {
+            template <class Arg, class OptView, class LocalDomain>
+            enable_if_t<local_domain_has_arg<LocalDomain, Arg>::value> operator()(
+                boost::fusion::pair<Arg, OptView> const &info, LocalDomain &local_domain) const {
                 if (!info.second)
                     return;
                 auto const &view = *info.second;
                 namespace f = boost::fusion;
                 // here we set data pointers
-                advanced::copy_raw_pointers(view, f::at_key< Arg >(local_domain.m_local_data_ptrs));
+                advanced::copy_raw_pointers(view, f::at_key<Arg>(local_domain.m_local_data_ptrs));
                 // here we set meta data pointers
                 auto const *storage_info = advanced::storage_info_raw_ptr(view);
-                *f::find< decltype(storage_info) >(local_domain.m_local_storage_info_ptrs) = storage_info;
+                *f::find<decltype(storage_info)>(local_domain.m_local_storage_info_ptrs) = storage_info;
             }
             // do nothing if arg is not in this local domain
-            template < class Arg, class OptView, class LocalDomain >
-            enable_if_t< !local_domain_has_arg< LocalDomain, Arg >::value > operator()(
-                boost::fusion::pair< Arg, OptView > const &, LocalDomain &) const {}
+            template <class Arg, class OptView, class LocalDomain>
+            enable_if_t<!local_domain_has_arg<LocalDomain, Arg>::value> operator()(
+                boost::fusion::pair<Arg, OptView> const &, LocalDomain &) const {}
         };
 
         struct get_local_domain_list_f {
             // Mind the double parens after GT_AUTO_RETURN. They are here for the reason.
-            template < class T >
-            auto operator()(T &&obj) const GT_AUTO_RETURN((std::forward< T >(obj).local_domain_list));
+            template <class T>
+            auto operator()(T &&obj) const GT_AUTO_RETURN((std::forward<T>(obj).local_domain_list));
         };
 
-        template < class ViewInfos, class MssLocalDomains >
+        template <class ViewInfos, class MssLocalDomains>
         void update_local_domains(ViewInfos const &view_infos, MssLocalDomains &mss_local_domains) {
             // here we produce from mss_local_domains a flat tuple of references to local_domain;
             auto &&local_domains =
@@ -227,41 +228,32 @@ namespace gridtools {
                 set_view_to_local_domain_f{}, view_infos, std::move(local_domains));
         }
 
-        template < class MaxExtent, class Backend, class StorageWrapperList >
+        template <class MaxExtent, class Backend>
         struct get_tmp_arg_storage_pair_generator {
-            using tmp_storage_wrappers_t = typename boost::mpl::copy_if<
-                StorageWrapperList,
-                temporary_info_from_storage_wrapper< boost::mpl::_ >,
-                boost::mpl::inserter<
-                    boost::mpl::map0<>,
-                    boost::mpl::insert< boost::mpl::_1,
-                        boost::mpl::pair< arg_from_storage_wrapper< boost::mpl::_2 >, boost::mpl::_2 > > > >::type;
-            template < class ArgStoragePair >
+            template <class ArgStoragePair>
             struct generator {
-                template < class Grid >
+                template <class Grid>
                 ArgStoragePair operator()(Grid const &grid) const {
-                    using arg_t = typename ArgStoragePair::arg_t;
-                    using data_store_t = typename ArgStoragePair::data_store_t;
-                    using storage_wrapper_t = typename boost::mpl::at< tmp_storage_wrappers_t, arg_t >::type;
-                    return data_store_t{
-                        Backend::template instantiate_storage_info< MaxExtent, storage_wrapper_t >(grid)};
+                    static constexpr auto backend = Backend{};
+                    static constexpr auto arg = typename ArgStoragePair::arg_t{};
+                    return make_tmp_data_store<MaxExtent>(backend, arg, grid);
                 }
             };
-            template < class T >
+            template <class T>
 #if GT_BROKEN_TEMPLATE_ALIASES
             struct apply {
-                using type = generator< T >;
+                using type = generator<T>;
             };
 #else
-            using apply = generator< T >;
+            using apply = generator<T>;
 #endif
         };
 
-        template < class MaxExtent, class Backend, class StorageWrapperList, class Res, class Grid >
+        template <class MaxExtent, class Backend, class Res, class Grid>
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = GT_META_CALL(meta::transform,
-                (get_tmp_arg_storage_pair_generator< MaxExtent, Backend, StorageWrapperList >::template apply, Res));
-            return tuple_util::generate< generators, Res >(grid);
+            using generators = GT_META_CALL(
+                meta::transform, (get_tmp_arg_storage_pair_generator<MaxExtent, Backend>::template apply, Res));
+            return tuple_util::generate<generators, Res>(grid);
         }
 
         /**
@@ -273,25 +265,25 @@ namespace gridtools {
          * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
          * @tparam ExtentSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
          */
-        template < typename TMap, typename Temp, typename TempsPerFunctor, typename ExtentSizes >
+        template <typename TMap, typename Temp, typename TempsPerFunctor, typename ExtentSizes>
         struct associate_extents_map {
-            template < typename TTemp >
+            template <typename TTemp>
             struct is_temp_there {
-                template < typename TempsInEsf >
+                template <typename TempsInEsf>
                 struct apply {
-                    typedef typename boost::mpl::contains< TempsInEsf, TTemp >::type type;
+                    typedef typename boost::mpl::contains<TempsInEsf, TTemp>::type type;
                 };
             };
 
-            typedef typename boost::mpl::find_if< TempsPerFunctor,
-                typename is_temp_there< Temp >::template apply< boost::mpl::_ > >::type iter;
+            typedef typename boost::mpl::find_if<TempsPerFunctor,
+                typename is_temp_there<Temp>::template apply<boost::mpl::_>>::type iter;
 
             typedef typename boost::mpl::if_<
-                typename boost::is_same< iter, typename boost::mpl::end< TempsPerFunctor >::type >::type,
+                typename boost::is_same<iter, typename boost::mpl::end<TempsPerFunctor>::type>::type,
                 TMap,
-                typename boost::mpl::insert< TMap,
-                    boost::mpl::pair< Temp, typename boost::mpl::at< ExtentSizes, typename iter::pos >::type > >::
-                    type >::type type;
+                typename boost::mpl::insert<TMap,
+                    boost::mpl::pair<Temp, typename boost::mpl::at<ExtentSizes, typename iter::pos>::type>>::type>::type
+                type;
         };
 
         /**
@@ -301,25 +293,25 @@ namespace gridtools {
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the different functors of a MSS.
          */
-        template < typename Placeholders, typename MssComponents >
+        template <typename Placeholders, typename MssComponents>
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), GT_INTERNAL_ERROR);
             typedef typename MssComponents::extent_sizes_t ExtentSizes;
 
             // filter all the temporary args
-            typedef typename boost::mpl::fold< Placeholders,
+            typedef typename boost::mpl::fold<Placeholders,
                 boost::mpl::vector0<>,
-                boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                                                   boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
-                                                   boost::mpl::_1 > >::type list_of_temporaries;
+                boost::mpl::if_<is_tmp_arg<boost::mpl::_2>,
+                    boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>,
+                    boost::mpl::_1>>::type list_of_temporaries;
 
             // vector of written temporaries per functor (vector of vectors)
             typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
 
-            typedef typename boost::mpl::fold< list_of_temporaries,
+            typedef typename boost::mpl::fold<list_of_temporaries,
                 boost::mpl::map0<>,
-                associate_extents_map< boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, ExtentSizes > >::
-                type type;
+                associate_extents_map<boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, ExtentSizes>>::type
+                type;
         };
 
         /**
@@ -328,19 +320,17 @@ namespace gridtools {
          * to the same temporary, i.e. the enclosing extent.
          * @tparam extent_map1 first map to merge
          * @tparam extent_map2 second map to merge
-          */
-        template < typename extent_map1, typename extent_map2 >
+         */
+        template <typename extent_map1, typename extent_map2>
         struct merge_extent_temporary_maps {
-            typedef typename boost::mpl::fold<
-                extent_map1,
+            typedef typename boost::mpl::fold<extent_map1,
                 extent_map2,
-                boost::mpl::if_< boost::mpl::has_key< extent_map2, boost::mpl::first< boost::mpl::_2 > >,
-                    boost::mpl::insert< boost::mpl::_1,
-                                     boost::mpl::pair< boost::mpl::first< boost::mpl::_2 >,
-                                            enclosing_extent< boost::mpl::second< boost::mpl::_2 >,
-                                                           boost::mpl::at< extent_map2,
-                                                                  boost::mpl::first< boost::mpl::_2 > > > > >,
-                    boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
+                boost::mpl::if_<boost::mpl::has_key<extent_map2, boost::mpl::first<boost::mpl::_2>>,
+                    boost::mpl::insert<boost::mpl::_1,
+                        boost::mpl::pair<boost::mpl::first<boost::mpl::_2>,
+                            enclosing_extent<boost::mpl::second<boost::mpl::_2>,
+                                boost::mpl::at<extent_map2, boost::mpl::first<boost::mpl::_2>>>>>,
+                    boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>>::type type;
         };
 
         /**
@@ -351,15 +341,14 @@ namespace gridtools {
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the temporary in all MSSs.
          */
-        template < typename Placeholders, typename MssComponents >
+        template <typename Placeholders, typename MssComponents>
         struct obtain_map_extents_temporaries_mss_array {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
-            typedef typename boost::mpl::fold<
-                MssComponents,
+            typedef typename boost::mpl::fold<MssComponents,
                 boost::mpl::map0<>,
-                merge_extent_temporary_maps< boost::mpl::_1,
-                    obtain_map_extents_temporaries_mss< Placeholders, boost::mpl::_2 > > >::type type;
+                merge_extent_temporary_maps<boost::mpl::_1,
+                    obtain_map_extents_temporaries_mss<Placeholders, boost::mpl::_2>>>::type type;
         };
 
         /**
@@ -367,17 +356,15 @@ namespace gridtools {
            tmp storage, whose extent depends on an index, to the
            element in the Temporaries vector at that index position.
         */
-        template < uint_t BI, uint_t BJ >
+        template <typename MapElem>
         struct get_storage_wrapper {
-            template < typename MapElem >
-            struct apply {
-                typedef typename boost::mpl::second< MapElem >::type extent_t;
-                typedef typename boost::mpl::first< MapElem >::type temporary;
-                typedef storage_wrapper< temporary,
-                    typename get_view< typename temporary::data_store_t >::type,
-                    tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
-                    tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > > type;
-            };
+            typedef typename boost::mpl::second<MapElem>::type extent_t;
+            typedef typename boost::mpl::first<MapElem>::type temporary;
+            typedef storage_wrapper<temporary,
+                typename get_view<typename temporary::data_store_t>::type,
+                tile<-extent_t::iminus::value, extent_t::iplus::value>,
+                tile<-extent_t::jminus::value, extent_t::jplus::value>>
+                type;
         };
 
         /**
@@ -385,24 +372,16 @@ namespace gridtools {
          * @tparam AggregatorType domain
          * @tparam MssComponentsArray meta array of mss components
          */
-        template < typename Backend, typename Placeholders, typename MssComponents >
+        template <typename Placeholders, typename MssComponents>
         struct obtain_storage_wrapper_list_t {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
-            using block_size_t = typename Backend::block_size_t;
+            typedef typename obtain_map_extents_temporaries_mss_array<Placeholders, MssComponents>::type map_of_extents;
 
-            static const uint_t tileI = block_size_t::i_size_t::value;
-            static const uint_t tileJ = block_size_t::j_size_t::value;
-
-            typedef
-                typename obtain_map_extents_temporaries_mss_array< Placeholders, MssComponents >::type map_of_extents;
-
-            typedef typename boost::mpl::fold<
-                map_of_extents,
+            typedef typename boost::mpl::fold<map_of_extents,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                    typename get_storage_wrapper< tileI, tileJ >::template apply< boost::mpl::_2 > > >::type type;
+                boost::mpl::push_back<boost::mpl::_1, get_storage_wrapper<boost::mpl::_2>>>::type type;
         };
     } // namespace _impl
 } // namespace gridtools

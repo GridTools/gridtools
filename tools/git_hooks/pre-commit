@@ -35,8 +35,6 @@ PARSE_EXTS=true
 # FILE_EXTS=".c .h .cpp .hpp"
 FILE_EXTS=".c .h .cpp .hpp .cc .hh .cxx .cu .m"
 
-CHEVRON_FIXER="`pwd -P`/tools/chevron_fixer/chevron_fixer_file.sh"
-
 ##################################################################
 # There should be no need to change anything below this line.
 
@@ -90,7 +88,7 @@ matches_extension() {
     return 1
 }
 
-if [[ "${CLANG_FORMAT_VERSION}" != "3.7" ]]; then
+if [[ "${CLANG_FORMAT_VERSION}" != "6.0" ]]; then
     echo "Clang format version ${CLANG_FORMAT_VERSION} not supported"
     exit 1
 fi
@@ -134,7 +132,7 @@ do
     #    +++ - timestamp
     # to both lines working on the same file and having a a/ and b/ prefix.
     # Else it can not be applied with 'git apply'.
-    "$CLANG_FORMAT" -style=file "$file" | ${CHEVRON_FIXER} | \
+    "$CLANG_FORMAT" -style=file "$file" | \
         diff -u "$file" - | \
         sed -e "1s|--- |--- a/|" -e "2s|+++ -|+++ b/$file|" >> "$patch"
 done

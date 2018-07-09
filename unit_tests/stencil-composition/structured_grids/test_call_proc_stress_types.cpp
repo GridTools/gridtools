@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <common/generic_metafunctions/gt_remove_qualifiers.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <test_helper.hpp>
 #include "backend_select.hpp"
 #include "gtest/gtest.h"
+#include <gridtools/common/generic_metafunctions/gt_remove_qualifiers.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <test_helper.hpp>
 
 /**
  * Compile-time test to ensure that types are correct in all call_proc stages
@@ -50,28 +50,28 @@ using namespace gridtools::expressions;
 
 namespace {
     // used to ensure that types are correctly passed between function calls (no implicit conversion)
-    template < typename tag >
+    template <typename tag>
     struct special_type {};
 
     struct in_tag {};
     struct out_tag {};
-}
+} // namespace
 
 class call_proc_stress_types : public testing::Test {
   protected:
-    using storage_info_t = gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
+    using storage_info_t = gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3>;
     using data_store_in_t =
-        gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< special_type< in_tag >, storage_info_t >;
+        gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<special_type<in_tag>, storage_info_t>;
     using data_store_out_t =
-        gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< special_type< out_tag >, storage_info_t >;
+        gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<special_type<out_tag>, storage_info_t>;
 
-    gridtools::grid< gridtools::axis< 1 >::axis_interval_t > grid;
+    gridtools::grid<gridtools::axis<1>::axis_interval_t> grid;
 
     data_store_in_t in;
     data_store_out_t out;
 
-    typedef arg< 0, data_store_in_t > p_in;
-    typedef arg< 1, data_store_out_t > p_out;
+    typedef arg<0, data_store_in_t> p_in;
+    typedef arg<1, data_store_out_t> p_out;
 
     call_proc_stress_types() : grid(make_grid(1, 1, 1)), in(storage_info_t{1, 1, 1}), out(storage_info_t{1, 1, 1}) {}
 };
@@ -80,63 +80,62 @@ namespace {
     struct local_tag {};
 
     struct triple_nesting_with_type_switching_third_stage {
-        typedef inout_accessor< 0 > out;
-        typedef in_accessor< 1 > local;
-        typedef boost::mpl::vector< out, local > arg_list;
+        typedef inout_accessor<0> out;
+        typedef in_accessor<1> local;
+        typedef boost::mpl::vector<out, local> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+            using out_type = typename remove_qualifiers<decltype(eval(out{}))>::type;
+            (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using local_type = typename remove_qualifiers< decltype(eval(local{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< local_tag >, local_type >{};
+            using local_type = typename remove_qualifiers<decltype(eval(local{}))>::type;
+            (void)ASSERT_TYPE_EQ<special_type<local_tag>, local_type>{};
         }
     };
 
     struct triple_nesting_with_type_switching_second_stage {
-        typedef in_accessor< 0 > in;
-        typedef inout_accessor< 1 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef in_accessor<0> in;
+        typedef inout_accessor<1> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+            using out_type = typename remove_qualifiers<decltype(eval(out{}))>::type;
+            (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using in_type = typename remove_qualifiers< decltype(eval(in{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< in_tag >, in_type >{};
+            using in_type = typename remove_qualifiers<decltype(eval(in{}))>::type;
+            (void)ASSERT_TYPE_EQ<special_type<in_tag>, in_type>{};
 
-            special_type< local_tag > local{};
+            special_type<local_tag> local{};
 
-            call_proc< triple_nesting_with_type_switching_third_stage >::with(eval, out(), local);
+            call_proc<triple_nesting_with_type_switching_third_stage>::with(eval, out(), local);
         }
     };
 
     struct triple_nesting_with_type_switching_first_stage {
-        typedef inout_accessor< 0 > out;
-        typedef in_accessor< 1 > in;
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef inout_accessor<0> out;
+        typedef in_accessor<1> in;
+        typedef boost::mpl::vector<out, in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_type = typename remove_qualifiers< decltype(eval(out{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< out_tag >, out_type >{};
+            using out_type = typename remove_qualifiers<decltype(eval(out{}))>::type;
+            (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using in_type = typename remove_qualifiers< decltype(eval(in{})) >::type;
-            (void)ASSERT_TYPE_EQ< special_type< in_tag >, in_type >{};
+            using in_type = typename remove_qualifiers<decltype(eval(in{}))>::type;
+            (void)ASSERT_TYPE_EQ<special_type<in_tag>, in_type>{};
 
-            call_proc< triple_nesting_with_type_switching_second_stage >::with(eval, in(), out());
+            call_proc<triple_nesting_with_type_switching_second_stage>::with(eval, in(), out());
         }
     };
-}
+} // namespace
 
 TEST_F(call_proc_stress_types, triple_nesting_with_type_switching) {
-    auto comp = gridtools::make_computation< backend_t >(
-        grid,
+    auto comp = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out{} = out,
-        gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< triple_nesting_with_type_switching_first_stage >(p_out(), p_in())));
+        gridtools::make_multistage(execute<forward>(),
+            gridtools::make_stage<triple_nesting_with_type_switching_first_stage>(p_out(), p_in())));
     comp.run();
 }

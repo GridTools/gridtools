@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "mss.hpp"
-#include "reductions/reduction_descriptor.hpp"
-#include "esf_metafunctions.hpp"
-#include "mss_metafunctions.hpp"
 #include "./linearize_mss_functions.hpp"
+#include "esf_metafunctions.hpp"
 #include "functor_decorator.hpp"
+#include "mss.hpp"
+#include "mss_metafunctions.hpp"
+#include "reductions/reduction_descriptor.hpp"
 
 namespace gridtools {
 
@@ -50,32 +50,32 @@ namespace gridtools {
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
      * @tparam RepeatFunctor the length of the chunks for expandable parameters
      */
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
+    template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token<MssDescriptor>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< ExtentSizes >::type::value == 0 || is_sequence_of< ExtentSizes, is_extent >::value),
+            (boost::mpl::size<ExtentSizes>::type::value == 0 || is_sequence_of<ExtentSizes, is_extent>::value),
             "There seems to be a stage in the computation which does not contain any output field. Check that at least "
             "one accessor in each stage is defined as \'inout\'");
         typedef MssDescriptor mss_descriptor_t;
 
-        typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
+        typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
 
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
-        typedef typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type linear_esf_t;
+        typedef typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type linear_esf_t;
 
         /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
-        typedef typename boost::mpl::fold< linear_esf_t,
+        typedef typename boost::mpl::fold<linear_esf_t,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, esf_get_w_temps_per_functor< boost::mpl::_2 > > >::type
+            boost::mpl::push_back<boost::mpl::_1, esf_get_w_temps_per_functor<boost::mpl::_2>>>::type
             written_temps_per_functor_t;
 
         /**
          * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
          * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
          */
-        typedef typename boost::mpl::transform< linear_esf_t, extract_esf_functor >::type functors_seq_t;
+        typedef typename boost::mpl::transform<linear_esf_t, extract_esf_functor>::type functors_seq_t;
 
         /*
           @brief attaching an integer index to each functor
@@ -89,24 +89,22 @@ namespace gridtools {
           times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
           abovementioned map, and we need to attach a unique index to its type.
         */
-        typedef
-            typename boost::mpl::fold< boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                                           functor_decorator< boost::mpl::_2,
-                                               boost::mpl::at< functors_seq_t, boost::mpl::_2 >,
-                                               RepeatFunctor,
-                                               Axis > > >::type functors_list_t;
+        typedef typename boost::mpl::fold<boost::mpl::range_c<ushort_t, 0, boost::mpl::size<functors_seq_t>::value>,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back<boost::mpl::_1,
+                functor_decorator<boost::mpl::_2,
+                    boost::mpl::at<functors_seq_t, boost::mpl::_2>,
+                    RepeatFunctor,
+                    Axis>>>::type functors_list_t;
 
         typedef ExtentSizes extent_sizes_t;
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
     };
 
-    template < typename T >
+    template <typename T>
     struct is_mss_components : boost::mpl::false_ {};
 
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
-    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor, Axis > > : boost::mpl::true_ {
-    };
+    template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
+    struct is_mss_components<mss_components<MssDescriptor, ExtentSizes, RepeatFunctor, Axis>> : boost::mpl::true_ {};
 
 } // namespace gridtools

@@ -38,6 +38,6 @@
 #include "location_type.hpp"
 
 namespace gridtools {
-    template < uint_t I, typename T, typename LocationType = enumtype::default_location_type, bool Temporary = false >
+    template <uint_t I, typename T, typename LocationType = enumtype::default_location_type, bool Temporary = false>
     struct arg;
 }

@@ -33,39 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <boost/shared_ptr.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/reductions/reductions.hpp>
+#include "backend_select.hpp"
 #include "cache_flusher.hpp"
 #include "defs.hpp"
-#include "tools/verifier.hpp"
-#include "backend_select.hpp"
+#include "gtest/gtest.h"
+#include <boost/shared_ptr.hpp>
+#include <gridtools/stencil-composition/reductions/reductions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 /**
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace test_reduction {
-    using axis_t = axis< 1 >;
+    using axis_t = axis<1>;
     using x_interval = axis_t::full_interval; // TODO cannot use default interval because of issue #752
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct sum_red {
 
-        typedef accessor< 0, enumtype::in > in;
-        typedef boost::mpl::vector< in > arg_list;
+        typedef accessor<0, enumtype::in> in;
+        typedef boost::mpl::vector<in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static float_type Do(Evaluation &eval, x_interval) {
             return eval(in());
         }
@@ -74,11 +74,11 @@ namespace test_reduction {
     // These are the stencil operators that compose the multistage stencil in this test
     struct desf {
 
-        typedef accessor< 0, enumtype::in > in;
-        typedef accessor< 1, enumtype::inout > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
@@ -94,8 +94,8 @@ namespace test_reduction {
 
         cache_flusher flusher(cache_flusher_size);
 
-        typedef backend_t::storage_traits_t::storage_info_t< __COUNTER__, 3 > meta_data_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t<__COUNTER__, 3> meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
         meta_data_t meta_data_(x, y, z);
 
@@ -109,22 +109,22 @@ namespace test_reduction {
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
-                    inv(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.002 + 0.51);
+                    inv(i, j, k) = static_cast<float_type>((std::rand() % 100 + std::rand() % 100) * 0.002 + 0.51);
                     sum_ref += inv(i, j, k);
                     prod_ref *= inv(i, j, k);
                 }
 
-        typedef arg< 0, storage_t > p_in;
-        typedef arg< 1, storage_t > p_out;
+        typedef arg<0, storage_t> p_in;
+        typedef arg<1, storage_t> p_out;
 
         // Definition of the physical dimensions of the problem.
         auto grid = make_grid(d1, d2, axis_t(d3));
 
-        auto sum_red_ = make_computation< backend_t >(grid,
+        auto sum_red_ = make_computation<backend_t>(grid,
             p_in{} = in,
             p_out{} = out,
-            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-            make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
+            make_multistage(execute<forward>(), make_stage<desf>(p_in(), p_out())),
+            make_reduction<sum_red, binop::sum>((float_type)(0.0), p_out()));
 
         float_type sum_redt = sum_red_.run();
         float_type precision;
@@ -142,11 +142,11 @@ namespace test_reduction {
         std::cout << "Sum Reduction : " << sum_red_.print_meter() << std::endl;
 #endif
 
-        auto prod_red_ = make_computation< backend_t >(grid,
+        auto prod_red_ = make_computation<backend_t>(grid,
             p_in{} = in,
             p_out{} = out,
-            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-            make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
+            make_multistage(execute<forward>(), make_stage<desf>(p_in(), p_out())),
+            make_reduction<sum_red, binop::prod>((float_type)(1.0), p_out()));
 
         float_type prod_redt = prod_red_.run();
 
@@ -161,4 +161,4 @@ namespace test_reduction {
 
         return success;
     }
-} // namespace red
+} // namespace test_reduction

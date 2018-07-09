@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gtest/gtest.h>
 #include "cuda_test_helper.hpp"
-#include "common/host_device.hpp"
+#include <gridtools/common/host_device.hpp>
+#include <gtest/gtest.h>
 
 struct cuda_test_example1 {
     static bool GT_FUNCTION Do() {
@@ -55,5 +55,5 @@ struct cuda_test_example2 {
     }
 };
 
-TEST(cuda_test, example1) { ASSERT_TRUE(cuda_test< cuda_test_example1 >()); }
-TEST(cuda_test, example2) { ASSERT_TRUE(cuda_test< cuda_test_example2 >(3, 3)); }
+TEST(cuda_test, example1) { ASSERT_TRUE(cuda_test<cuda_test_example1>()); }
+TEST(cuda_test, example2) { ASSERT_TRUE(cuda_test<cuda_test_example2>(3, 3)); }

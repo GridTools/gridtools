@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "../../run_esf_functor.hpp"
 #include "../../functor_decorator.hpp"
+#include "../../run_esf_functor.hpp"
 
 namespace gridtools {
 
@@ -45,12 +45,11 @@ namespace gridtools {
      * @tparam RunFunctorArguments run functor arguments
      * @tparam Interval interval where the functor gets executed
      */
-    template < typename RunFunctorArguments, typename Interval >
-    struct run_esf_functor_host
-        : public run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > // CRTP
+    template <typename RunFunctorArguments, typename Interval>
+    struct run_esf_functor_host : public run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval>> // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-        typedef run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > super;
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
+        typedef run_esf_functor<run_esf_functor_host<RunFunctorArguments, Interval>> super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
         GT_FUNCTION
@@ -62,16 +61,16 @@ namespace gridtools {
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void do_impl(
-            typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
+            typename boost::disable_if<typename EsfArguments::is_reduction_t, int>::type = 0) const {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
             typedef typename EsfArguments::functor_t functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
 
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::
-                call_do_method(this->m_iterate_domain);
+            _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType>::call_do_method(
+                this->m_iterate_domain);
         }
 
         /*
@@ -82,19 +81,19 @@ namespace gridtools {
 
          TODO: reduction at the current state will not work with expandable parameters and default interval
          */
-        template < typename IntervalType, typename EsfArguments >
+        template <typename IntervalType, typename EsfArguments>
         GT_FUNCTION void do_impl(
-            typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
+            typename boost::enable_if<typename EsfArguments::is_reduction_t, int>::type = 0) const {
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((functor_t::repeat_t::value == 1),
                 "Expandable parameters are not implemented for the reduction stages");
-            GRIDTOOLS_STATIC_ASSERT((sfinae::has_two_args< typename functor_t::f_type >::value),
+            GRIDTOOLS_STATIC_ASSERT((sfinae::has_two_args<typename functor_t::f_type>::value),
                 "API with a default interval is not implemented for the reduction stages");
             this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
-                functor_t::f_type::template Do< decltype(this->m_iterate_domain) & >(
-                                                                      this->m_iterate_domain, IntervalType())));
+                functor_t::f_type::template Do<decltype(this->m_iterate_domain) &>(
+                    this->m_iterate_domain, IntervalType())));
         }
     };
-}
+} // namespace gridtools

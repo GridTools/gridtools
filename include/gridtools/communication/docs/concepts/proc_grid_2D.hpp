@@ -41,7 +41,7 @@
 
  \tparam PERIOD Type of the object providing periodicity information
  */
-template < typename PERIOD >
+template <typename PERIOD>
 struct proc_grid_2D_concept {
 
     /** Type of the object to handle periodicities
@@ -75,7 +75,7 @@ struct proc_grid_2D_concept {
         \tparam J Relative coordinate in the seocnd dimension
         \return The process ID of the required process
      */
-    template < int I, int J >
+    template <int I, int J>
     int proc() const {
         ...
     }
@@ -93,5 +93,5 @@ struct proc_grid_2D_concept {
 
         \return The process ID of the required process
     */
-    int abs_proc(gridtools::array< int, ndims > const &crds) const { ... }
+    int abs_proc(gridtools::array<int, ndims> const &crds) const { ... }
 };

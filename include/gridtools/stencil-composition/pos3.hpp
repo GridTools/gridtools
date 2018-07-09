@@ -35,14 +35,16 @@
 */
 #pragma once
 
+#include "../common/host_device.hpp"
+
 namespace gridtools {
+    template <class T>
+    struct pos3 {
+        T i, j, k;
+    };
 
-    template < enumtype::grid_type G >
-    struct grid_traits_from_id; // breaks circular dependency
-
-    template < typename T >
-    struct is_grid_traits_from_id : boost::false_type {};
-
-    template < enumtype::grid_type G >
-    struct is_grid_traits_from_id< grid_traits_from_id< G > > : boost::true_type {};
+    template <class T>
+    GT_FUNCTION constexpr pos3<T> make_pos3(T const &i, T const &j, T const &k) {
+        return {i, j, k};
+    }
 } // namespace gridtools

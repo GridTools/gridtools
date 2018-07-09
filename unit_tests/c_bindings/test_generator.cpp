@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/handle_impl.hpp>
-#include <c_bindings/generator.hpp>
+#include <gridtools/c_bindings/generator.hpp>
+#include <gridtools/c_bindings/handle_impl.hpp>
 
 #include <sstream>
 
@@ -48,7 +48,7 @@ namespace gridtools {
             GT_ADD_GENERATED_DECLARATION(void(), foo);
             GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
             GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
-            GT_ADD_GENERATED_DECLARATION_WRAPPED(void(int, int(&)[1][2][3]), qux);
+            GT_ADD_GENERATED_DECLARATION_WRAPPED(void(int, int (&)[1][2][3]), qux);
 
             GT_ADD_GENERIC_DECLARATION(foo, bar);
             GT_ADD_GENERIC_DECLARATION(foo, baz);
@@ -56,8 +56,8 @@ namespace gridtools {
             const char expected_c_interface[] = R"?(
 #pragma once
 
-#include <c_bindings/handle.h>
-#include <c_bindings/array_descriptor.h>
+#include <gridtools/c_bindings/array_descriptor.h>
+#include <gridtools/c_bindings/handle.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +133,6 @@ end
                 generate_fortran_interface(strm, "my_module");
                 EXPECT_EQ(strm.str(), expected_fortran_interface);
             }
-        }
-    }
-}
+        } // namespace
+    }     // namespace c_bindings
+} // namespace gridtools

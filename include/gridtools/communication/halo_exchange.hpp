@@ -36,20 +36,20 @@
 #ifndef _HALO_EXCHANGE_H_
 #define _HALO_EXCHANGE_H_
 
+#include "../common/boollist.hpp"
 #include "low-level/Halo_Exchange_3D.hpp"
 #include "low-level/Halo_Exchange_3D_DT.hpp"
 #include "low-level/proc_grids_3D.hpp"
-#include "../common/boollist.hpp"
 
 #ifdef MANUAL_PACKING
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
-#include "high-level/descriptors_fwd.hpp"
 #include "high-level/descriptor_generic_manual.hpp"
 #include "high-level/descriptors.hpp"
 #include "high-level/descriptors_dt.hpp"
 #include "high-level/descriptors_dt_whole.hpp"
+#include "high-level/descriptors_fwd.hpp"
 #include "high-level/descriptors_manual_gpu.hpp"
 
 #include "high-level/field_on_the_fly.hpp"
@@ -66,8 +66,8 @@ namespace gridtools {
            pass a Cartesian communicator and its sizes to get a
            communicator that is identical to the one passed in.
          */
-        template < typename ValueType, size_t Size >
-        MPI_Comm _make_comm(MPI_Comm comm, array< ValueType, Size > &dims) {
+        template <typename ValueType, size_t Size>
+        MPI_Comm _make_comm(MPI_Comm comm, array<ValueType, Size> &dims) {
             int nprocs;
             MPI_Comm_size(comm, &nprocs);
             MPI_Dims_create(nprocs, dims.size(), &dims[0]);
@@ -77,37 +77,37 @@ namespace gridtools {
             return CartComm;
         }
 
-        template < int D, typename GT, int version >
+        template <int D, typename GT, int version>
         struct get_pattern;
 
-        template < typename GT >
-        struct get_pattern< 3, GT, 0 > {
-            typedef Halo_Exchange_3D< GT > type;
+        template <typename GT>
+        struct get_pattern<3, GT, 0> {
+            typedef Halo_Exchange_3D<GT> type;
         };
 
-        template < typename GT >
-        struct get_pattern< 3, GT, 1 > {
-            typedef Halo_Exchange_3D_DT< GT > type;
+        template <typename GT>
+        struct get_pattern<3, GT, 1> {
+            typedef Halo_Exchange_3D_DT<GT> type;
         };
 
-        template < typename GT >
-        struct get_pattern< 3, GT, 2 > {
-            typedef Halo_Exchange_3D< GT > type;
+        template <typename GT>
+        struct get_pattern<3, GT, 2> {
+            typedef Halo_Exchange_3D<GT> type;
         };
 
-        template < int D >
+        template <int D>
         struct get_grid;
 
         template <>
-        struct get_grid< 2 > {
-            typedef MPI_3D_process_grid_t< 2 > type;
+        struct get_grid<2> {
+            typedef MPI_3D_process_grid_t<2> type;
         };
 
         template <>
-        struct get_grid< 3 > {
-            typedef MPI_3D_process_grid_t< 3 > type;
+        struct get_grid<3> {
+            typedef MPI_3D_process_grid_t<3> type;
         };
-    }
+    } // namespace _impl
 
     /**
        \anchor descr_halo_exchange_dynamic_ut
@@ -242,19 +242,19 @@ namespace gridtools {
        \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is.
        Possible coiches are defined in low-level/gcl_arch.h .
     */
-    template < typename T_layout_map,
+    template <typename T_layout_map,
         typename layout2proc_map_abs,
         typename DataType,
         typename GridType,
         typename Gcl_Arch = gcl_cpu,
-        int version = 0 >
+        int version = 0>
     class halo_exchange_dynamic_ut {
 
       private:
-        typedef typename reverse_map< T_layout_map >::type layout_map; // This is necessary since the internals of gcl
-                                                                       // use "increasing stride order" instead of
-                                                                       // "decreasing stride order"
-        typedef typename layout_transform< layout_map, layout2proc_map_abs >::type layout2proc_map;
+        typedef typename reverse_map<T_layout_map>::type layout_map; // This is necessary since the internals of gcl
+                                                                     // use "increasing stride order" instead of
+                                                                     // "decreasing stride order"
+        typedef typename layout_transform<layout_map, layout2proc_map_abs>::type layout2proc_map;
 
       public:
         /**
@@ -267,10 +267,10 @@ namespace gridtools {
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
         */
-        typedef typename _impl::get_pattern< DIMS, grid_type, version >::type pattern_type;
+        typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
 
       private:
-        template < typename Array >
+        template <typename Array>
         MPI_Comm _make_comm(MPI_Comm comm, Array dims) {
             int nprocs;
             MPI_Comm_size(comm, &nprocs);
@@ -281,39 +281,39 @@ namespace gridtools {
             return CartComm;
         }
 
-        typedef hndlr_dynamic_ut< DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch, version > hd_t;
+        typedef hndlr_dynamic_ut<DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch, version> hd_t;
 
         hd_t hd;
 
         halo_exchange_dynamic_ut(halo_exchange_dynamic_ut const &) {}
 
-//        typename grid_type::period_type periodicity;
+        //        typename grid_type::period_type periodicity;
 
 #ifdef GCL_TRACE
         int pattern_tag;
 #endif
 
       public:
-        template < typename layout, int DIM >
+        template <typename layout, int DIM>
         struct proc_map {};
 
-        template < typename layout >
-        struct proc_map< layout, 2 > {
-            static std::vector< int > map() {
-                std::vector< int > m(2);
-                m[0] = layout::template at< 0 >();
-                m[1] = layout::template at< 1 >();
+        template <typename layout>
+        struct proc_map<layout, 2> {
+            static std::vector<int> map() {
+                std::vector<int> m(2);
+                m[0] = layout::template at<0>();
+                m[1] = layout::template at<1>();
                 return m;
             }
         };
 
-        template < typename layout >
-        struct proc_map< layout, 3 > {
-            static std::vector< int > map() {
-                std::vector< int > m(3);
-                m[0] = layout::template at< 0 >();
-                m[1] = layout::template at< 1 >();
-                m[2] = layout::template at< 2 >();
+        template <typename layout>
+        struct proc_map<layout, 3> {
+            static std::vector<int> map() {
+                std::vector<int> m(3);
+                m[0] = layout::template at<0>();
+                m[1] = layout::template at<1>();
+                m[2] = layout::template at<2>();
                 return m;
             }
         };
@@ -331,7 +331,7 @@ namespace gridtools {
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
         explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
-            : hd(c.template permute< layout2proc_map_abs >(), comm) {}
+            : hd(c.template permute<layout2proc_map_abs>(), comm) {}
 
         /** constructor that takes the periodicity (mathich the \link
             boollist_concept \endlink concept, and the MPI CART
@@ -360,10 +360,10 @@ namespace gridtools {
             \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
            The behavior is like MPI_Dims_create.
         */
-        template < typename ValueType, size_t Size >
+        template <typename ValueType, size_t Size>
         explicit halo_exchange_dynamic_ut(
-            typename grid_type::period_type const &c, MPI_Comm const &comm, array< ValueType, Size > &&dims)
-            : hd(c.template permute< layout2proc_map_abs >(), _impl::_make_comm(comm, dims)) {}
+            typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &&dims)
+            : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
 
         /**
            Same signature of halo_exchange_dynamic_ut [this] constructor but takes the dims array as reference, in case
@@ -376,10 +376,10 @@ namespace gridtools {
             \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
            The behavior is like MPI_Dims_create.
          */
-        template < typename ValueType, size_t Size >
+        template <typename ValueType, size_t Size>
         explicit halo_exchange_dynamic_ut(
-            typename grid_type::period_type const &c, MPI_Comm const &comm, array< ValueType, Size > &dims)
-            : hd(c.template permute< layout2proc_map_abs >(), _impl::_make_comm(comm, dims)) {}
+            typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &dims)
+            : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
 
@@ -395,14 +395,14 @@ namespace gridtools {
         void setup(int max_fields_n) {
             hd.setup(max_fields_n);
 #ifdef GCL_TRACE
-            stats_collector< DIMS >::instance()->init(hd.pattern().proc_grid().communicator);
-            std::vector< int > map = proc_map< layout_map, DIMS >::map();
+            stats_collector<DIMS>::instance()->init(hd.pattern().proc_grid().communicator);
+            std::vector<int> map = proc_map<layout_map, DIMS>::map();
             int coords[DIMS];
             int dims[DIMS];
             hd.pattern().proc_grid().coords(coords[0], coords[1], coords[2]);
             hd.pattern().proc_grid().dims(dims[0], dims[1], dims[2]);
-            pattern_tag = stats_collector< DIMS >::instance()->add_pattern(
-                Pattern< DIMS >(pt_dynamic, hd.halo.halos, map, periodicity, coords, dims));
+            pattern_tag = stats_collector<DIMS>::instance()->add_pattern(
+                Pattern<DIMS>(pt_dynamic, hd.halo.halos, map, periodicity, coords, dims));
             hd.set_pattern_tag(pattern_tag);
 #endif
         }
@@ -423,16 +423,16 @@ namespace gridtools {
            \param[in] end Please see field_descriptor, halo_descriptor or \link MULTI_DIM_ACCESS \endlink for details
            \param[in] t_len Please see field_descriptor, halo_descriptor or \link MULTI_DIM_ACCESS \endlink for details
         */
-        template < int DI >
+        template <int DI>
         void add_halo(int minus, int plus, int begin, int end, int t_len) {
 
-            hd.halo.add_halo(layout_map::template at< DI >(), minus, plus, begin, end, t_len);
+            hd.halo.add_halo(layout_map::template at<DI>(), minus, plus, begin, end, t_len);
         }
 
-        template < int DI >
+        template <int DI>
         void add_halo(halo_descriptor const &halo) {
 
-            hd.halo.add_halo(layout_map::template at< DI >(), halo);
+            hd.halo.add_halo(layout_map::template at<DI>(), halo);
         }
 
         /**
@@ -440,7 +440,7 @@ namespace gridtools {
 
            \param[in] _fields data fields to be packed
         */
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void pack(const FIELDS *... _fields) {
             hd.pack(_fields...);
         }
@@ -450,7 +450,7 @@ namespace gridtools {
 
            \param[in] _fields data fields where to unpack data
         */
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void unpack(FIELDS *... _fields) {
             hd.unpack(_fields...);
         }
@@ -460,7 +460,7 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be packed from
         */
-        void pack(std::vector< DataType * > const &fields) {
+        void pack(std::vector<DataType *> const &fields) {
 #ifdef GCL_TRACE
             double start_time = MPI_Wtime();
 #endif
@@ -470,7 +470,7 @@ namespace gridtools {
             cudaDeviceSynchronize();
 #endif
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
+            stats_collector<DIMS>::instance()->add_event(
                 ExchangeEvent(ee_pack, start_time, end_time, fields.size(), pattern_tag));
 #endif
         }
@@ -480,7 +480,7 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be unpacked into
         */
-        void unpack(std::vector< DataType * > const &fields) {
+        void unpack(std::vector<DataType *> const &fields) {
 #ifdef GCL_TRACE
             double start_time = MPI_Wtime();
 #endif
@@ -490,7 +490,7 @@ namespace gridtools {
             cudaDeviceSynchronize();
 #endif
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
+            stats_collector<DIMS>::instance()->add_event(
                 ExchangeEvent(ee_unpack, start_time, end_time, fields.size(), pattern_tag));
 #endif
         }
@@ -508,7 +508,7 @@ namespace gridtools {
             hd.exchange();
 #ifdef GCL_TRACE
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
+            stats_collector<DIMS>::instance()->add_event(
                 ExchangeEvent(ee_exchange, start_time, end_time, 0, pattern_tag));
 #endif
         }
@@ -520,7 +520,7 @@ namespace gridtools {
             hd.post_receives();
 #ifdef GCL_TRACE
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
+            stats_collector<DIMS>::instance()->add_event(
                 ExchangeEvent(ee_post_receives, start_time, end_time, 0, pattern_tag));
 #endif
         }
@@ -532,7 +532,7 @@ namespace gridtools {
             hd.do_sends();
 #ifdef GCL_TRACE
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
+            stats_collector<DIMS>::instance()->add_event(
                 ExchangeEvent(ee_do_sends, start_time, end_time, 0, pattern_tag));
 #endif
         }
@@ -550,7 +550,7 @@ namespace gridtools {
             hd.start_exchange();
 #ifdef GCL_TRACE
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
+            stats_collector<DIMS>::instance()->add_event(
                 ExchangeEvent(ee_start_exchange, start_time, end_time, 0, pattern_tag));
 #endif
         }
@@ -568,24 +568,23 @@ namespace gridtools {
             hd.wait();
 #ifdef GCL_TRACE
             double end_time = MPI_Wtime();
-            stats_collector< DIMS >::instance()->add_event(
-                ExchangeEvent(ee_wait, start_time, end_time, 0, pattern_tag));
+            stats_collector<DIMS>::instance()->add_event(ExchangeEvent(ee_wait, start_time, end_time, 0, pattern_tag));
 #endif
         }
 
         grid_type const &comm() const { return hd.comm(); }
     };
 
-    template < int I >
+    template <int I>
     struct pick_version;
 
     template <>
-    struct pick_version< 2 > {
+    struct pick_version<2> {
         static const int value = gridtools::version_mpi_pack;
     };
 
     template <>
-    struct pick_version< 3 > {
+    struct pick_version<3> {
         static const int value = gridtools::version_manual;
     };
 
@@ -614,10 +613,7 @@ namespace gridtools {
        \tparam GCL_ARCH Specification of the "architecture", that is the place where the data to be exchanged is.
        Possible coiches are defined in low-level/gcl_arch.h .
     */
-    template < typename layout2proc_map,
-        int DIMS,
-        typename Gcl_Arch = gcl_cpu,
-        int version = pick_version< DIMS >::value >
+    template <typename layout2proc_map, int DIMS, typename Gcl_Arch = gcl_cpu, int version = pick_version<DIMS>::value>
     class halo_exchange_generic_base {
 
       public:
@@ -626,16 +622,16 @@ namespace gridtools {
         /**
            Type of the computin grid associated to the pattern
         */
-        typedef typename _impl::get_grid< DIMS >::type grid_type;
+        typedef typename _impl::get_grid<DIMS>::type grid_type;
 
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.
            In the case the implementation is not using L3, the type is not available.
         */
-        typedef typename _impl::get_pattern< DIMS, grid_type, version >::type pattern_type;
+        typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
 
       private:
-        hndlr_generic< DIMS, pattern_type, layout2proc_map, Gcl_Arch, version > hd;
+        hndlr_generic<DIMS, pattern_type, layout2proc_map, Gcl_Arch, version> hd;
 
       public:
         /** constructor that takes the periodicity (matching the \link
@@ -651,7 +647,7 @@ namespace gridtools {
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
         explicit halo_exchange_generic_base(typename grid_type::period_type const &c, MPI_Comm comm)
-            : hd(grid_type(c.template permute< layout2proc_map >(), comm)) {}
+            : hd(grid_type(c.template permute<layout2proc_map>(), comm)) {}
 
         explicit halo_exchange_generic_base(grid_type const &g) : hd(g) {}
 
@@ -675,8 +671,8 @@ namespace gridtools {
            of the data exchange
            \param typesize Maximum, or sufficiently large, size fo the types of values to be exchanged.
         */
-        template < typename DataType, typename layomap, template < typename > class _traits >
-        void setup(int max_fields_n, field_on_the_fly< DataType, layomap, _traits > const &halo_example, int typesize) {
+        template <typename DataType, typename layomap, template <typename> class _traits>
+        void setup(int max_fields_n, field_on_the_fly<DataType, layomap, _traits> const &halo_example, int typesize) {
             hd.setup(max_fields_n, halo_example, typesize);
         }
 
@@ -685,7 +681,7 @@ namespace gridtools {
 
            \param[in] _fields data fields to be packed
         */
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void pack(const FIELDS &... _fields) const {
             hd.pack(_fields...);
         }
@@ -695,7 +691,7 @@ namespace gridtools {
 
            \param[in] _fields data fields where to unpack data
         */
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void unpack(const FIELDS &... _fields) const {
             hd.unpack(_fields...);
         }
@@ -706,8 +702,8 @@ namespace gridtools {
            \tparam array_of_fotf this should be an array of field_on_the_fly
            \param[in] fields vector with fields on the fly
         */
-        template < typename T1, typename T2, template < typename > class T3 >
-        void pack(std::vector< field_on_the_fly< T1, T2, T3 > > const &fields) {
+        template <typename T1, typename T2, template <typename> class T3>
+        void pack(std::vector<field_on_the_fly<T1, T2, T3>> const &fields) {
             hd.pack(fields);
         }
 
@@ -717,8 +713,8 @@ namespace gridtools {
            \tparam array_of_fotf this should be an array of field_on_the_fly
            \param[in] fields vector with fields on the fly
         */
-        template < typename T1, typename T2, template < typename > class T3 >
-        void unpack(std::vector< field_on_the_fly< T1, T2, T3 > > const &fields) {
+        template <typename T1, typename T2, template <typename> class T3>
+        void unpack(std::vector<field_on_the_fly<T1, T2, T3>> const &fields) {
             hd.unpack(fields);
         }
 
@@ -751,10 +747,10 @@ namespace gridtools {
         void wait() { hd.wait(); }
     };
 
-    template < typename layout2proc_map, int DIMS, typename Gcl_Arch = gcl_cpu, int version = version_manual >
-    class halo_exchange_generic : public halo_exchange_generic_base< layout2proc_map, DIMS, Gcl_Arch, version > {
+    template <typename layout2proc_map, int DIMS, typename Gcl_Arch = gcl_cpu, int version = version_manual>
+    class halo_exchange_generic : public halo_exchange_generic_base<layout2proc_map, DIMS, Gcl_Arch, version> {
 
-        typedef halo_exchange_generic_base< layout2proc_map, DIMS, Gcl_Arch, version > base_type;
+        typedef halo_exchange_generic_base<layout2proc_map, DIMS, Gcl_Arch, version> base_type;
         //    typedef typename layout_transform<layout_map, layout2proc_map_abs>::type layout2proc_map;
 
       public:
@@ -762,10 +758,10 @@ namespace gridtools {
 
         typedef typename base_type::pattern_type pattern_type;
 
-        template < typename DT >
+        template <typename DT>
         struct traits {
             static const int I = DIMS;
-            typedef empty_field< DT, I > base_field;
+            typedef empty_field<DT, I> base_field;
         };
 
         explicit halo_exchange_generic(typename grid_type::period_type const &c, MPI_Comm comm) : base_type(c, comm) {}
@@ -774,24 +770,24 @@ namespace gridtools {
     };
 
     // different traits are needed
-    template < typename layout2proc_map, int DIMS >
-    class halo_exchange_generic< layout2proc_map, DIMS, gcl_cpu, version_manual >
-        : public halo_exchange_generic_base< layout2proc_map, DIMS, gcl_cpu, version_manual > {
+    template <typename layout2proc_map, int DIMS>
+    class halo_exchange_generic<layout2proc_map, DIMS, gcl_cpu, version_manual>
+        : public halo_exchange_generic_base<layout2proc_map, DIMS, gcl_cpu, version_manual> {
 
         static const int version = version_manual;
         typedef gcl_cpu Gcl_Arch;
 
-        typedef halo_exchange_generic_base< layout2proc_map, DIMS, gcl_cpu, version_manual > base_type;
+        typedef halo_exchange_generic_base<layout2proc_map, DIMS, gcl_cpu, version_manual> base_type;
 
       public:
         typedef typename base_type::grid_type grid_type;
 
         typedef typename base_type::pattern_type pattern_type;
 
-        template < typename DT >
+        template <typename DT>
         struct traits {
             static const int I = DIMS;
-            typedef empty_field_no_dt< I > base_field;
+            typedef empty_field_no_dt<I> base_field;
         };
 
         explicit halo_exchange_generic(typename grid_type::period_type const &c, MPI_Comm comm) : base_type(c, comm) {}
@@ -800,30 +796,30 @@ namespace gridtools {
     };
 
     // different traits are needed
-    template < typename layout2proc_map >
-    class halo_exchange_generic< layout2proc_map, 3, gcl_gpu, version_manual >
-        : public halo_exchange_generic_base< layout2proc_map, 3, gcl_gpu, version_manual > {
+    template <typename layout2proc_map>
+    class halo_exchange_generic<layout2proc_map, 3, gcl_gpu, version_manual>
+        : public halo_exchange_generic_base<layout2proc_map, 3, gcl_gpu, version_manual> {
         static const int DIMS = 3;
 
         static const int version = version_manual;
         typedef gcl_gpu Gcl_Arch;
-        typedef halo_exchange_generic_base< layout2proc_map, DIMS, gcl_gpu, version_manual > base_type;
+        typedef halo_exchange_generic_base<layout2proc_map, DIMS, gcl_gpu, version_manual> base_type;
 
       public:
         typedef typename base_type::grid_type grid_type;
 
         typedef typename base_type::pattern_type pattern_type;
 
-        template < typename DT >
+        template <typename DT>
         struct traits {
             static const int I = DIMS;
-            typedef empty_field_no_dt_gpu< I > base_field;
+            typedef empty_field_no_dt_gpu<I> base_field;
         };
 
         explicit halo_exchange_generic(typename grid_type::period_type const &c, MPI_Comm comm) : base_type(c, comm) {}
 
         explicit halo_exchange_generic(grid_type const &g) : base_type(g) {}
     };
-}
+} // namespace gridtools
 
 #endif
