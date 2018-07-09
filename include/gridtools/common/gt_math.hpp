@@ -75,7 +75,7 @@ namespace gridtools {
 
     namespace math {
 
-#ifdef __INTEL_COMPILER
+#if defined(__INTEL_COMPILER) && (__INTEL_COMPILER <= 1800)
         // Intel compiler produces wrong optimized code in some rare cases in stencil functors when using const
         // references as return types, so we return value types instead of references for arithmetic types
 
