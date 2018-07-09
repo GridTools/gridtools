@@ -41,7 +41,6 @@
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_mic.hpp"
-#include "run_esf_functor_mic.hpp"
 
 #ifdef STRUCTURED_GRIDS
 #include "../structured_grids/backend_mic/execute_kernel_functor_mic.hpp"
@@ -117,9 +116,6 @@ namespace gridtools {
 #else
         using mss_fuse_esfs_strategy = std::false_type;
 #endif
-
-        // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_mic> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>

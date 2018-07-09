@@ -41,6 +41,7 @@
 #include "../../basic_token_execution.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
+#include "./run_esf_functor_mic.hpp"
 #include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
@@ -85,7 +86,7 @@ namespace gridtools {
                     using run_functor_arguments_t = GT_META_CALL(meta::replace,
                         (RunFunctorArguments, typename RunFunctorArguments::color_t, color_type<(uint_t)Index::value>));
 
-                    run_functors_on_interval<run_functor_arguments_t>(m_it_domain, m_grid);
+                    run_functors_on_interval<run_functor_arguments_t, run_esf_functor_mic>(m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
                 }

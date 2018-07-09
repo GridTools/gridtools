@@ -41,7 +41,6 @@
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_host.hpp"
-#include "run_esf_functor_host.hpp"
 #include "strategy_host.hpp"
 
 #ifdef ENABLE_METERS
@@ -54,12 +53,6 @@
 @brief type definitions and structures specific for the Host backend
 */
 namespace gridtools {
-    namespace _impl_host {
-        /**forward declaration*/
-        template <typename Arguments>
-        struct run_functor_host;
-    } // namespace _impl_host
-
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
     struct backend_traits_from_id<enumtype::Host> {
@@ -72,11 +65,6 @@ namespace gridtools {
             auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
             template <typename S, uint_t... N>
             auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
-        };
-
-        template <typename Arguments>
-        struct execute_traits {
-            typedef _impl_host::run_functor_host<Arguments> run_functor_t;
         };
 
         template <uint_t Id>
@@ -116,9 +104,6 @@ namespace gridtools {
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
          */
         typedef std::false_type mss_fuse_esfs_strategy;
-
-        // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>

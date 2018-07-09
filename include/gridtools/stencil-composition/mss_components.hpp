@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "./linearize_mss_functions.hpp"
+#include "computation_grammar.hpp"
 #include "esf_metafunctions.hpp"
 #include "functor_decorator.hpp"
 #include "mss.hpp"

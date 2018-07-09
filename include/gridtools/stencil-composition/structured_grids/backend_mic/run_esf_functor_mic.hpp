@@ -35,8 +35,12 @@
 */
 #pragma once
 
+#include <boost/mpl/has_key.hpp>
+
+#include "../../../common/generic_metafunctions/type_traits.hpp"
 #include "../../functor_decorator.hpp"
 #include "../../run_esf_functor.hpp"
+#include "../../run_functor_arguments.hpp"
 #include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
@@ -47,35 +51,43 @@ namespace gridtools {
      * @tparam Interval interval where the functor gets executed
      */
     template <typename RunFunctorArguments, typename Interval>
-    struct run_esf_functor_mic : public run_esf_functor<run_esf_functor_mic<RunFunctorArguments, Interval>> // CRTP
-    {
+    struct run_esf_functor_mic {
         GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
-        typedef run_esf_functor<run_esf_functor_mic<RunFunctorArguments, Interval>> super;
-        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
-        GT_FUNCTION
-        explicit run_esf_functor_mic(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
+        template <class Index, class ItDomain>
+        GT_FUNCTION void operator()(Index, ItDomain &it_domain) const {
 
+            typedef esf_arguments<RunFunctorArguments, Index> esf_arguments_t;
+
+            typedef typename esf_arguments_t::interval_map_t interval_map_t;
+            typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
+
+            if (boost::mpl::has_key<interval_map_t, Interval>::value) {
+                typedef typename boost::mpl::at<interval_map_t, Interval>::type interval_type;
+                do_impl<interval_type, esf_arguments_t>(it_domain);
+            }
+        }
         /*
          * @brief main functor implemenation that executes (for Mic) the user functor of an ESF
          *      (specialization for non reduction operations)
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template <typename IntervalType, typename EsfArguments>
-        GT_FUNCTION void do_impl(
-            typename boost::disable_if<typename EsfArguments::is_reduction_t, int>::type = 0) const {
+        template <class IntervalType,
+            class EsfArguments,
+            class ItDomain,
+            enable_if_t<!EsfArguments::is_reduction_t::value, int> = 0>
+        GT_FUNCTION void do_impl(ItDomain &it_domain) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
             using functor_t = typename EsfArguments::functor_t;
 
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
 
             using iterate_domain_remapper_t =
-                typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type;
-            iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
+                typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type;
+            iterate_domain_remapper_t iterate_domain_remapper(it_domain);
 
-            _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
-                call_do_method(iterate_domain_remapper);
+            call_repeated<functor_t, IntervalType>(iterate_domain_remapper);
         }
 
         /*
@@ -86,9 +98,11 @@ namespace gridtools {
 
          TODO: reduction at the current state will not work with expandable parameters and default interval
          */
-        template <typename IntervalType, typename EsfArguments>
-        GT_FUNCTION void do_impl(
-            typename boost::enable_if<typename EsfArguments::is_reduction_t, int>::type = 0) const {
+        template <typename IntervalType,
+            typename EsfArguments,
+            class ItDomain,
+            enable_if_t<EsfArguments::is_reduction_t::value, int> = 0>
+        GT_FUNCTION void do_impl(ItDomain &it_domain) const {
             using functor_t = typename EsfArguments::functor_t;
             using bin_op_t = typename EsfArguments::reduction_data_t::bin_op_t;
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
@@ -97,9 +111,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((sfinae::has_two_args<typename functor_t::f_type>::value),
                 "API with a default interval is not implemented for the reduction stages");
             using iterate_domain_remapper_t =
-                typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type;
-            iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
-            this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
+                typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type;
+            iterate_domain_remapper_t iterate_domain_remapper(it_domain);
+            it_domain.set_reduction_value(bin_op_t()(it_domain.reduction_value(),
                 functor_t::f_type::template Do<decltype(iterate_domain_remapper) &>(
                     iterate_domain_remapper, IntervalType())));
         }

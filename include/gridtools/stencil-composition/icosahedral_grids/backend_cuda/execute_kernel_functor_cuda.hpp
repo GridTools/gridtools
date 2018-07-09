@@ -44,6 +44,7 @@
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
+#include "./run_esf_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -173,7 +174,7 @@ namespace gridtools {
             it_domain.set_block_pos(iblock, jblock);
 
             // execute the k interval functors
-            run_functors_on_interval<RunFunctorArguments>(it_domain, grid);
+            run_functors_on_interval<RunFunctorArguments, run_esf_functor_cuda>(it_domain, grid);
         }
 
     } // namespace _impl_iccuda

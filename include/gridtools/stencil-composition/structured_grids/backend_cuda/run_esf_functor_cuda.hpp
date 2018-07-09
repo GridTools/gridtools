@@ -34,10 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <boost/mpl/at.hpp>
+
 #include "../../functor_decorator.hpp"
 #include "../../run_esf_functor.hpp"
 #include "../iterate_domain_remapper.hpp"
-#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
     /*
@@ -45,52 +47,35 @@ namespace gridtools {
      * @tparam RunFunctorArguments run functor arguments
      * @tparam Interval interval where the functor gets executed
      */
-    template <typename RunFunctorArguments, typename Interval>
-    struct run_esf_functor_cuda : public run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval>> // CRTP
-    {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
-        // TODOCOSUNA This type here is not an interval, is a pair<int_, int_ >
-        // BOOST_STATIC_ASSERT((is_interval<Interval>::value));
-
-        typedef run_esf_functor<run_esf_functor_cuda<RunFunctorArguments, Interval>> super;
-        typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-
-        using super::m_iterate_domain;
-
-        GT_FUNCTION
-        explicit run_esf_functor_cuda(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
-
+    struct run_esf_functor_cuda {
         /*
          * @brief main functor implemenation that executes (for CUDA) the user functor of an ESF
          * @tparam IntervalType interval where the functor gets executed
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
-        template <typename IntervalType, typename EsfArguments>
-        GT_FUNCTION void do_impl() const {
+        template <class IntervalType, class EsfArguments, class ItDomain>
+        GT_FUNCTION void operator()(ItDomain &it_domain) const {
 // To remove a compilation error (calling __device__ from __host__ __device__) I had to add __host__ __device__
 // decorators. However this function is device only and contains device only functions, therefore we have to hide it
 // from host.
 #ifdef __CUDA_ARCH__
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
 
-            // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
-            // position in the iterate domain
-            typedef typename get_iterate_domain_remapper<iterate_domain_t, typename EsfArguments::esf_args_map_t>::type
-                iterate_domain_remapper_t;
-
-            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
-
-            typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
-
-            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
+            typedef typename EsfArguments::functor_t functor_t;
 
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
-            if (m_iterate_domain.template is_thread_in_domain<extent_t>()) {
+            if (it_domain.template is_thread_in_domain<extent_t>()) {
+                // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
+                // position in the iterate domain
+                typedef typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type
+                    iterate_domain_remapper_t;
+
+                iterate_domain_remapper_t iterate_domain_remapper(it_domain);
+
                 // call the user functor at the core of the block
-                _impl::call_repeated<functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType>::
-                    call_do_method(iterate_domain_remapper);
+                call_repeated<functor_t, IntervalType>(iterate_domain_remapper);
             }
 
             // synchronize threads if not independent esf

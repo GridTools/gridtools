@@ -48,6 +48,7 @@
 #include "../../iteration_policy.hpp"
 #include "./execinfo_mic.hpp"
 #include "./iterate_domain_mic.hpp"
+#include "./run_esf_functor_mic.hpp"
 
 namespace gridtools {
 
@@ -138,15 +139,11 @@ namespace gridtools {
              */
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
-                using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
                 using iteration_policy_t = ::gridtools::_impl::
                     iteration_policy<interval_from_t, interval_to_t, execution_type_t::type::iteration>;
-
-                using run_esf_functor_t =
-                    typename backend_traits_t::run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type;
 
                 const int_t k_first = m_grid.template value_at<typename iteration_policy_t::from>();
                 const int_t k_last = m_grid.template value_at<typename iteration_policy_t::to>();
@@ -156,7 +153,7 @@ namespace gridtools {
                 if (Index::value == 0)
                     m_it_domain.set_prefetch_distance(k_first <= k_last ? 2 : -2);
 
-                run_esf_functor_t run_esf(m_it_domain);
+                run_esf_functor_mic<RunFunctorArguments, Interval> run_esf;
                 for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
                     m_it_domain.set_k_block_index(k);
 #ifdef NDEBUG
@@ -165,7 +162,7 @@ namespace gridtools {
 #endif
                     for (int_t i = m_i_vecfirst; i < m_i_veclast; ++i) {
                         m_it_domain.set_i_block_index(i);
-                        run_esf(index);
+                        run_esf(index, m_it_domain);
                     }
                 }
 
@@ -206,15 +203,11 @@ namespace gridtools {
              */
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
-                using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
                 using iteration_policy_t = ::gridtools::_impl::
                     iteration_policy<interval_from_t, interval_to_t, execution_type_t::type::iteration>;
-
-                using run_esf_functor_t =
-                    typename backend_traits_t::run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type;
 
                 using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
                 using extent_t = typename boost::mpl::at<extent_sizes_t, Index>::type;
@@ -226,7 +219,7 @@ namespace gridtools {
                 const int_t k_first = m_grid.template value_at<typename iteration_policy_t::from>();
                 const int_t k_last = m_grid.template value_at<typename iteration_policy_t::to>();
 
-                run_esf_functor_t run_esf(m_it_domain);
+                run_esf_functor_mic<RunFunctorArguments, Interval> run_esf;
                 m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
@@ -239,7 +232,7 @@ namespace gridtools {
 #endif
                         for (int_t i = i_first; i < i_last; ++i) {
                             m_it_domain.set_i_block_index(i);
-                            run_esf(index);
+                            run_esf(index, m_it_domain);
                         }
                     }
                 }
@@ -275,9 +268,6 @@ namespace gridtools {
              */
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
-                using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
-                using run_esf_functor_t =
-                    typename backend_traits_t::run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type;
                 using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
                 using extent_t = typename boost::mpl::at<extent_sizes_t, Index>::type;
 
@@ -286,7 +276,7 @@ namespace gridtools {
                 const int_t j_first = extent_t::jminus::value;
                 const int_t j_last = m_execution_info.j_block_size + extent_t::jplus::value;
 
-                run_esf_functor_t run_esf(m_it_domain);
+                run_esf_functor_mic<RunFunctorArguments, Interval> run_esf;
                 m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
                 m_it_domain.set_k_block_index(m_execution_info.k);
                 for (int_t j = j_first; j < j_last; ++j) {
@@ -297,7 +287,7 @@ namespace gridtools {
 #endif
                     for (int_t i = i_first; i < i_last; ++i) {
                         m_it_domain.set_i_block_index(i);
-                        run_esf(index);
+                        run_esf(index, m_it_domain);
                     }
                 }
             }

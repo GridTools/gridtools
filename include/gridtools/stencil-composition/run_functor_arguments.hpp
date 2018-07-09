@@ -230,13 +230,12 @@ namespace gridtools {
     struct esf_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef typename boost::mpl::at<typename RunFunctorArguments::functor_list_t, Index>::type functor_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::extent_sizes_t, Index>::type extent_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::esf_sequence_t, Index>::type esf_t;
+        typedef typename boost::mpl::at_c<typename RunFunctorArguments::functor_list_t, Index::value>::type functor_t;
+        typedef typename boost::mpl::at_c<typename RunFunctorArguments::extent_sizes_t, Index::value>::type extent_t;
+        typedef
+            typename boost::mpl::at_c<typename RunFunctorArguments::functors_map_t, Index::value>::type interval_map_t;
+        typedef typename boost::mpl::at_c<typename RunFunctorArguments::esf_sequence_t, Index::value>::type esf_t;
         typedef typename RunFunctorArguments::template generate_esf_args_map<esf_t>::type esf_args_map_t;
-
-        //        using fuck = typename esf_args_map_t::fuck;
 
         // global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
@@ -246,6 +245,7 @@ namespace gridtools {
             typename boost::mpl::deref<typename boost::mpl::find_if<typename RunFunctorArguments::loop_intervals_t,
                 boost::mpl::has_key<interval_map_t, boost::mpl::_1>>::type>::type::first>::type first_hit_t;
         typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
+        typedef typename RunFunctorArguments::color_t color_t;
     };
 
     template <typename T>

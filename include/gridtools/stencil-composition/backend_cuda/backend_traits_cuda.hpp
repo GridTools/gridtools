@@ -51,7 +51,6 @@
 #include "../run_functor_arguments_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "iterate_domain_cache.hpp"
-#include "run_esf_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS
@@ -124,9 +123,6 @@ namespace gridtools {
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
          */
         typedef std::true_type mss_fuse_esfs_strategy;
-
-        // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
