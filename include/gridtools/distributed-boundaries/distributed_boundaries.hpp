@@ -44,12 +44,21 @@
 #include "../common/halo_descriptor.hpp"
 #include "../gridtools.hpp"
 #include "../stencil-composition/stencil-composition.hpp"
+#ifdef _GCL_MPI_
 #include "../communication/GCL.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
 #include "../communication/halo_exchange.hpp"
-#include "../boundary-conditions/predicate.hpp"
+#else
+#include "./proc_grid_mock.hpp"
+#endif
+//#include "../boundary-conditions/predicate.hpp"
+#include "./grid_predicate.hpp"
 
 namespace gridtools {
+
+#ifdef _GCL_MPI_
+
+#endif
 
     namespace _workaround {
         /** \internal Workaround for NVCC that has troubles with tuple_cat */
@@ -117,19 +126,23 @@ namespace gridtools {
     template < typename CTraits >
     struct distributed_boundaries {
 
-        using pattern_type = halo_exchange_dynamic_ut< typename CTraits::data_layout,
-            typename CTraits::proc_layout,
-            typename CTraits::value_type,
-            typename CTraits::proc_grid_type,
-            typename CTraits::comm_arch_type,
-            CTraits::version >;
+#ifdef _GCL_MPI_
+        using namespace gridtools::mock_;
 
+        using pattern_type = halo_exchange_dynamic_ut< typename CTraits::data_layout,
+                                                       typename CTraits::proc_layout,
+                                                       typename CTraits::value_type,
+                                                       typename CTraits::proc_grid_type,
+                                                       typename CTraits::comm_arch_type,
+                                                       CTraits::version >;
+#endif
       private:
         array< halo_descriptor, 3 > m_halos;
         array< int_t, 3 > m_sizes;
         uint_t m_max_stores;
+#ifdef _GCL_MPI_
         pattern_type m_he;
-
+#endif
       public:
         /**
             @brief Constructor of distributed_boundaries.
@@ -143,19 +156,24 @@ namespace gridtools {
             \param CartComm MPI communicator to use in the halo update operation.
         */
         distributed_boundaries(
-            array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)
-            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm, m_sizes) {
-            m_he.template add_halo< 0 >(
-                m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
+                               array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)
+            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}
+#ifdef _GCL_MPI_
+            , m_he(period, CartComm, m_sizes) {
+                m_he.template add_halo< 0 >(
+                                            m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
 
-            m_he.template add_halo< 1 >(
-                m_halos[1].minus(), m_halos[1].plus(), m_halos[1].begin(), m_halos[1].end(), m_halos[1].total_length());
+                m_he.template add_halo< 1 >(
+                                            m_halos[1].minus(), m_halos[1].plus(), m_halos[1].begin(), m_halos[1].end(), m_halos[1].total_length());
 
-            m_he.template add_halo< 2 >(
-                m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
+                m_he.template add_halo< 2 >(
+                                            m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
 
-            m_he.setup(m_max_stores);
-        }
+                m_he.setup(m_max_stores);
+#else
+                {
+#endif
+                }
 
         /**
             @brief Member function to perform boundary condition only
@@ -203,6 +221,7 @@ namespace gridtools {
 
             using execute_in_order = int[];
             (void)execute_in_order{(apply_boundary(jobs), 0)...};
+#ifdef _GCL_MPI_
             call_pack(all_stores_for_exc,
                 typename make_gt_integer_sequence< uint_t,
                           std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
@@ -210,9 +229,14 @@ namespace gridtools {
             call_unpack(all_stores_for_exc,
                 typename make_gt_integer_sequence< uint_t,
                             std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
+#endif
         }
 
+#ifdef _GCL_MPI_
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
+#else
+        typename CTraits::proc_grid_type proc_grid() const { return MPI_3D_process_grid_t<3>{}; }
+#endif
 
       private:
         template < typename BoundaryApply, typename ArgsTuple, uint_t... Ids >
@@ -228,7 +252,11 @@ namespace gridtools {
                            CTraits::compute_arch,
                            proc_grid_predicate< typename CTraits::proc_grid_type > >(m_halos,
                            bcapply.boundary_to_apply(),
+#ifdef _GCL_MPI_
                            proc_grid_predicate< typename CTraits::proc_grid_type >(m_he.comm())),
+#else
+                       proc_grid_predicate< typename CTraits::proc_grid_type >(MPI_3D_process_grid_t<3>{})),
+#endif
                 bcapply.stores(),
                 typename make_gt_integer_sequence< uint_t,
                            std::tuple_size< typename BCApply::stores_type >::value >::type{});
@@ -253,6 +281,7 @@ namespace gridtools {
             return std::make_tuple(first_job);
         }
 
+#ifdef _GCL_MPI_
         template < typename Stores, uint_t... Ids >
         void call_pack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
             m_he.pack(advanced::get_address_of(_impl::proper_view< CTraits::compute_arch,
@@ -274,6 +303,7 @@ namespace gridtools {
 
         template < typename Stores, uint_t... Ids >
         static void call_unpack(Stores const &stores, gt_integer_sequence< uint_t >) {}
+#endif
     };
 
     /** @} */

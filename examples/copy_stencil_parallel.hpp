@@ -38,6 +38,8 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <communication/low-level/proc_grids_3D.hpp>
 
+#include <distributed-boundaries/grid_predicate.hpp>
+
 #include <boundary-conditions/boundary.hpp>
 
 #include <communication/halo_exchange.hpp>
