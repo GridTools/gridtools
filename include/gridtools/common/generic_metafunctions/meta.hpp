@@ -1009,6 +1009,37 @@ namespace gridtools {
 
             template <class... Lists>
             GT_META_DEFINE_ALIAS(cartesian_product, lfold, (cartesian_product_step_impl, list<list<>>, list<Lists...>));
+
+            template <class>
+            struct reverse;
+
+            template <template <class...> class L>
+            struct reverse<L<>> {
+                using type = L<>;
+            };
+            template <template <class...> class L, class T>
+            struct reverse<L<T>> {
+                using type = L<T>;
+            };
+            template <template <class...> class L, class T0, class T1>
+            struct reverse<L<T0, T1>> {
+                using type = L<T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2>
+            struct reverse<L<T0, T1, T2>> {
+                using type = L<T2, T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2, class T3>
+            struct reverse<L<T0, T1, T2, T3>> {
+                using type = L<T3, T2, T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2, class T3, class T4>
+            struct reverse<L<T0, T1, T2, T3, T4>> {
+                using type = L<T4, T3, T2, T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2, class T3, class T4, class... Ts>
+            struct reverse<L<T0, T1, T2, T3, T4, Ts...>>
+                : push_back<typename reverse<L<Ts...>>::type, T4, T3, T2, T1, T0> {};
         }
 
         /**
@@ -1095,6 +1126,8 @@ namespace gridtools {
         using replace_at_c = typename lazy::replace_at_c<List, N, New>::type;
         template <class... Lists>
         using cartesian_product = typename lazy::cartesian_product<Lists...>::type;
+        template <class List>
+        using reverse = typename lazy::reverse<List>::type;
 #endif
     } // namespace meta
     /** @} */

@@ -68,7 +68,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
-        typedef IterateDomain iterate_domain_t;
 
         // user protections
         template <typename... T>

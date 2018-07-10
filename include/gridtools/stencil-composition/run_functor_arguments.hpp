@@ -151,16 +151,6 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef IsIndependentSeq async_esf_map_t;
-        typedef typename backend_traits_from_id<backend_ids_t::s_backend_id>::template select_iterate_domain<
-            iterate_domain_arguments<BackendIds,
-                LocalDomain,
-                EsfSequence,
-                ExtentSizes,
-                max_extent_t,
-                CacheSequence,
-                Grid,
-                IsReduction,
-                typename ReductionData::reduction_type_t>>::type iterate_domain_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id = backend_ids_t::s_strategy_id;

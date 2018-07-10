@@ -43,6 +43,15 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
 
+#ifdef BACKEND_HOST
+#include <gridtools/stencil-composition/structured_grids/backend_host/iterate_domain_host.hpp>
+#include <gridtools/stencil-composition/structured_grids/iterate_domain.hpp>
+#endif
+
+#ifdef BACKEND_MIC
+#include <gridtools/stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp>
+#endif
+
 #include "backend_select.hpp"
 
 namespace test_iterate_domain {
@@ -106,16 +115,23 @@ namespace test_iterate_domain {
 
         typedef decltype(gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out())) esf_t;
 
-        typedef typename backend_traits_t::select_iterate_domain<
-            iterate_domain_arguments<backend_ids<Host, GRIDBACKEND, Naive>,
-                decltype(local_domain1),
-                boost::mpl::vector1<esf_t>,
-                boost::mpl::vector1<extent<0, 0, 0, 0>>,
-                extent<0, 0, 0, 0>,
-                boost::mpl::vector0<>,
-                gridtools::grid<gridtools::axis<1>::axis_interval_t>,
-                boost::mpl::false_,
-                notype>>::type it_domain_t;
+        using iterate_domain_arguments_t = iterate_domain_arguments<backend_ids<Host, GRIDBACKEND, Naive>,
+            decltype(local_domain1),
+            boost::mpl::vector1<esf_t>,
+            boost::mpl::vector1<extent<0, 0, 0, 0>>,
+            extent<0, 0, 0, 0>,
+            boost::mpl::vector0<>,
+            gridtools::grid<gridtools::axis<1>::axis_interval_t>,
+            boost::mpl::false_,
+            notype>;
+
+#ifdef BACKEND_MIC
+        using it_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
+#endif
+
+#ifdef BACKEND_HOST
+        using it_domain_t = iterate_domain_host<iterate_domain, iterate_domain_arguments_t>;
+#endif
 
         it_domain_t it_domain(local_domain1, 0);
 

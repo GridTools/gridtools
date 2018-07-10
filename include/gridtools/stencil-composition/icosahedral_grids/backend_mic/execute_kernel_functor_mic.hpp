@@ -36,11 +36,11 @@
 #pragma once
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../..//icosahedral_grids/esf_metafunctions.hpp"
-#include "../../backend_mic/iterate_domain_mic.hpp"
 #include "../../basic_token_execution.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
+#include "../esf_metafunctions.hpp"
+#include "./iterate_domain_mic.hpp"
 #include "./run_esf_functor_mic.hpp"
 #include <boost/utility/enable_if.hpp>
 
@@ -154,7 +154,18 @@ namespace gridtools {
                 typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
                 GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), GT_INTERNAL_ERROR);
 
-                typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+                using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                    local_domain_t,
+                    typename RunFunctorArguments::esf_sequence_t,
+                    typename RunFunctorArguments::extent_sizes_t,
+                    typename RunFunctorArguments::max_extent_t,
+                    typename RunFunctorArguments::cache_sequence_t,
+                    grid_t,
+                    typename RunFunctorArguments::is_reduction_t,
+                    typename RunFunctorArguments::reduction_data_t::reduction_type_t>;
+
+                using iterate_domain_t = iterate_domain_mic<iterate_domain, iterate_domain_arguments_t>;
+
                 typedef backend_traits_from_id<enumtype::Mic> backend_traits_t;
 
                 typename iterate_domain_t::data_ptr_cached_t data_pointer;

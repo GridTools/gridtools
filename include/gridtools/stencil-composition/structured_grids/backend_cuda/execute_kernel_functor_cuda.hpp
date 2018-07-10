@@ -36,6 +36,7 @@
 #pragma once
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
@@ -43,6 +44,7 @@
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "../grid_traits.hpp"
+#include "../iterate_domain.hpp"
 #include "./iterate_domain_cuda.hpp"
 #include "./run_esf_functor_cuda.hpp"
 
@@ -63,7 +65,21 @@ namespace gridtools {
 
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+
+            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                typename RunFunctorArguments::local_domain_t,
+                typename RunFunctorArguments::esf_sequence_t,
+                typename RunFunctorArguments::extent_sizes_t,
+                typename RunFunctorArguments::max_extent_t,
+                typename RunFunctorArguments::cache_sequence_t,
+                typename RunFunctorArguments::grid_t,
+                typename RunFunctorArguments::is_reduction_t,
+                typename RunFunctorArguments::reduction_data_t::reduction_type_t>;
+
+            using iterate_domain_t =
+                typename conditional_t<local_domain_is_stateful<typename RunFunctorArguments::local_domain_t>::value,
+                    meta::lazy::id<iterate_domain_cuda<positional_iterate_domain, iterate_domain_arguments_t>>,
+                    meta::lazy::id<iterate_domain_cuda<iterate_domain, iterate_domain_arguments_t>>>::type;
 
             typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
@@ -83,7 +99,6 @@ namespace gridtools {
             // number of grid points that a cuda block covers
             static constexpr uint_t ntx = block_i_size(backend);
             static constexpr uint_t nty = block_j_size(backend);
-            ;
 
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;

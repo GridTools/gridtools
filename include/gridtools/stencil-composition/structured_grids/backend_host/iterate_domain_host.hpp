@@ -60,7 +60,6 @@ namespace gridtools {
 
       public:
         using super::operator();
-        typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;

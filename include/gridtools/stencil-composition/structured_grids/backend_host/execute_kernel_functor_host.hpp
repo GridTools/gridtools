@@ -41,11 +41,13 @@
  */
 
 #pragma once
-#include "../../backend_host/iterate_domain_host.hpp"
 #include "../../basic_token_execution.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
+#include "../iterate_domain.hpp"
+#include "../positional_iterate_domain.hpp"
+#include "./iterate_domain_host.hpp"
 #include "./run_esf_functor_host.hpp"
 
 namespace gridtools {
@@ -71,7 +73,20 @@ namespace gridtools {
             typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
             GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                local_domain_t,
+                typename RunFunctorArguments::esf_sequence_t,
+                typename RunFunctorArguments::extent_sizes_t,
+                typename RunFunctorArguments::max_extent_t,
+                typename RunFunctorArguments::cache_sequence_t,
+                grid_t,
+                typename RunFunctorArguments::is_reduction_t,
+                reduction_type_t>;
+
+            using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
+                meta::lazy::id<iterate_domain_host<positional_iterate_domain, iterate_domain_arguments_t>>,
+                meta::lazy::id<iterate_domain_host<iterate_domain, iterate_domain_arguments_t>>>::type;
+
             typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 
             typedef typename iterate_domain_t::strides_cached_t strides_t;

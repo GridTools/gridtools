@@ -131,38 +131,6 @@ namespace gridtools {
             typedef strategy_from_id_cuda<BackendIds::s_strategy_id> type;
         };
 
-        /**
-         * @brief metafunction that returns the right iterate domain for this backend
-         * (depending on whether the local domain is positional or not)
-         * @tparam IterateDomainArguments the iterate domain arguments
-         * @return the iterate domain type for this backend
-         */
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
-            // indirection in order to avoid instantiation of both types of the eval_if
-            template <typename _IterateDomainArguments>
-            struct select_positional_iterate_domain {
-// TODO to do this properly this should belong to a arch_grid_trait (i.e. a trait dispatching types depending
-// on the comp architecture and the grid.
-#ifdef STRUCTURED_GRIDS
-                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
-#else
-                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
-#endif
-            };
-
-            template <typename _IterateDomainArguments>
-            struct select_basic_iterate_domain {
-                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
-            };
-
-            typedef
-                typename boost::mpl::eval_if<local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-                    select_positional_iterate_domain<IterateDomainArguments>,
-                    select_basic_iterate_domain<IterateDomainArguments>>::type type;
-        };
-
         template <typename IterateDomainArguments>
         struct select_iterate_domain_cache {
             typedef iterate_domain_cache<IterateDomainArguments> type;

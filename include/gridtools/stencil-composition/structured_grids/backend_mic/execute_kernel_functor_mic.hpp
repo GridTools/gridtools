@@ -54,6 +54,19 @@ namespace gridtools {
 
     namespace _impl {
 
+        template <class RunFunctorArguments>
+        GT_META_DEFINE_ALIAS(get_iterate_domain_type,
+            meta::id,
+            (iterate_domain_mic<iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                    typename RunFunctorArguments::local_domain_t,
+                    typename RunFunctorArguments::esf_sequence_t,
+                    typename RunFunctorArguments::extent_sizes_t,
+                    typename RunFunctorArguments::max_extent_t,
+                    typename RunFunctorArguments::cache_sequence_t,
+                    typename RunFunctorArguments::grid_t,
+                    typename RunFunctorArguments::is_reduction_t,
+                    typename RunFunctorArguments::reduction_data_t::reduction_type_t>>));
+
         /**
          * @brief Simplified copy of boost::mpl::for_each for looping over loop_intervals. Needed because ICC can not
          * vectorize the original boost::mpl::for_each.
@@ -189,7 +202,7 @@ namespace gridtools {
             execinfo_block_kserial_mic,
             typename std::enable_if<!enable_inner_k_fusion<RunFunctorArguments>::value>::type> {
             using grid_t = typename RunFunctorArguments::grid_t;
-            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
             GT_FUNCTION inner_functor_mic(
@@ -254,7 +267,7 @@ namespace gridtools {
         template <typename RunFunctorArguments, typename Interval>
         class inner_functor_mic<RunFunctorArguments, Interval, execinfo_block_kparallel_mic, void> {
             using grid_t = typename RunFunctorArguments::grid_t;
-            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
             GT_FUNCTION inner_functor_mic(
@@ -313,7 +326,7 @@ namespace gridtools {
             execinfo_block_kserial_mic,
             typename std::enable_if<enable_inner_k_fusion<RunFunctorArguments>::value>::type> {
             using grid_t = typename RunFunctorArguments::grid_t;
-            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
             GT_FUNCTION interval_functor_mic(
@@ -362,7 +375,7 @@ namespace gridtools {
             execinfo_block_kserial_mic,
             typename std::enable_if<!enable_inner_k_fusion<RunFunctorArguments>::value>::type> {
             using grid_t = typename RunFunctorArguments::grid_t;
-            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
             GT_FUNCTION interval_functor_mic(
@@ -394,7 +407,7 @@ namespace gridtools {
         template <typename RunFunctorArguments, typename Enable>
         class interval_functor_mic<RunFunctorArguments, execinfo_block_kparallel_mic, Enable> {
             using grid_t = typename RunFunctorArguments::grid_t;
-            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
             GT_FUNCTION interval_functor_mic(
@@ -452,7 +465,7 @@ namespace gridtools {
 
             template <class ExecutionInfo>
             GT_FUNCTION void operator()(const ExecutionInfo &execution_info) const {
-                using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+                using iterate_domain_t = GT_META_CALL(gridtools::_impl::get_iterate_domain_type, RunFunctorArguments);
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
