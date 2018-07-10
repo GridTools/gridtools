@@ -95,6 +95,231 @@ bool from_neighbor(int dir_i, int dir_j, int dir_k, PGrid const &pg) {
     return pg.proc(dir_i, dir_j, dir_k) != -1;
 }
 
+TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
+
+#ifdef __CUDACC__
+    using comm_arch = gridtools::gcl_gpu;
+#else
+    using comm_arch = gridtools::gcl_cpu;
+#endif
+    using storage_tr = gridtools::storage_traits< backend_t::s_backend_id >;
+
+    using namespace gridtools;
+
+    using storage_info_t = storage_tr::storage_info_t< 0, 3, halo< 2, 2, 0 > >;
+    using storage_type = storage_tr::data_store_t< triplet, storage_info_t >;
+
+    const uint_t halo_size = 2;
+    uint_t d1 = 6;
+    uint_t d2 = 7;
+    uint_t d3 = 2;
+
+    storage_info_t storage_info(d1, d2, d3);
+
+    using cabc_t = distributed_boundaries< comm_traits< storage_type, comm_arch > >;
+
+    halo_descriptor di{
+        halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.padded_length< 0 >()};
+    halo_descriptor dj{
+        halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length< 1 >()};
+    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim< 2 >()};
+    array< halo_descriptor, 3 > halos{di, dj, dk};
+
+    cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
+
+    int pi, pj, pk;
+    cabc.proc_grid().coords(pi, pj, pk);
+    int PI, PJ, PK;
+    cabc.proc_grid().dims(PI, PJ, PK);
+
+    storage_type a(storage_info,
+        [=](int i, int j, int k) {
+            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 100,
+                               j + pj * ((int)d2 - 2 * (int)halo_size) + 100,
+                               k + pk * ((int)d3 - 2 * (int)halo_size) + 100}
+                         : triplet{0, 0, 0};
+        },
+        "a");
+    storage_type b(storage_info,
+        [=](int i, int j, int k) {
+            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 1000,
+                               j + pj * ((int)d2 - 2 * (int)halo_size) + 1000,
+                               k + pk * ((int)d3 - 2 * (int)halo_size) + 1000}
+                         : triplet{0, 0, 0};
+        },
+        "b");
+    storage_type c(storage_info,
+        [=](int i, int j, int k) {
+            return triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 10000,
+                j + pj * ((int)d2 - 2 * (int)halo_size) + 10000,
+                k + pk * ((int)d3 - 2 * (int)halo_size) + 10000};
+        },
+        "c");
+    storage_type d(storage_info,
+        [=](int i, int j, int k) {
+            bool inner = i >= halo_size and j >= halo_size and i < d1 - halo_size and j < d2 - halo_size;
+            return inner ? triplet{i + pi * ((int)d1 - 2 * (int)halo_size) + 100000,
+                               j + pj * ((int)d2 - 2 * (int)halo_size) + 100000,
+                               k + pk * ((int)d3 - 2 * (int)halo_size) + 100000}
+                         : triplet{0, 0, 0};
+        },
+        "d");
+
+    using namespace std::placeholders;
+
+    cabc.boundary_only(
+        bind_bc(value_boundary< triplet >{triplet{42, 42, 42}}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
+
+    a.sync();
+    b.sync();
+    c.sync();
+    d.sync();
+
+    bool ok = true;
+    for (int i = 0; i < d1; ++i) {
+        for (int j = 0; j < d2; ++j) {
+            for (int k = 0; k < d3; ++k) {
+                if ((i + pi * d1) < halo_size or (j + pj * d2) < halo_size or (i + pi * d1) >= PI * d1 - halo_size or
+                    (j + pj * d2) >= PJ * d2 - halo_size) {
+                    // At the border
+                    if (from_neighbor(region(i, d1, halo_size),
+                            region(j, d2, halo_size),
+                            region(k, d3, halo_size),
+                            cabc.proc_grid())) {
+                        ok = ok and
+                            make_host_view(a)(i, j, k) == triplet{0,0,0};
+                        if (make_host_view(a)(i, j, k) != triplet{0,0,0}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "edge a comm ----------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(a)(i, j, k)
+                                      << " == " << triplet{0,0,0}
+                                      << "\n";
+                        }
+
+                        ok = ok and
+                            make_host_view(b)(i, j, k) == triplet{0,0,0};
+                        if (make_host_view(b)(i, j, k) != triplet{0,0,0}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "edge b comm ----------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(b)(i, j, k)
+                                      << " == " << triplet{0,0,0}
+                                      << "\n";
+                        }
+
+                        ok = ok and
+                            make_host_view(d)(i, j, k) == triplet{0,0,0};
+                        if (make_host_view(d)(i, j, k) != triplet{0,0,0}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "edge b comm ----------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(d)(i, j, k)
+                                      << " == " << triplet{0,0,0}
+                                      << "\n";
+                        }
+
+                    } else {
+                        ok = ok and make_host_view(a)(i, j, k) == triplet{42, 42, 42};
+                        if (make_host_view(a)(i, j, k) != triplet{42, 42, 42}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "edge a==42 -----------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(a)(i, j, k) << " == " << triplet{42, 42, 42} << "\n";
+                        }
+                        ok = ok and make_host_view(b)(i, j, k) == make_host_view(c)(i, j, k);
+                        if (make_host_view(b)(i, j, k) != make_host_view(c)(i, j, k)) {
+                            std::cout << gridtools::PID << ": "
+                                      << "edge b==c ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(b)(i, j, k) << " == " << make_host_view(c)(i, j, k) << "\n";
+                        }
+                    }
+                } else {
+                    // In the core
+                    if (region(i,d1,halo_size) == 0 and region(j,d2,halo_size) == 0) { // core-core
+                        ok = ok and
+                            make_host_view(a)(i, j, k) == triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
+                                                                  j + pj * (int)(d2 - 2 * halo_size) + 100,
+                                                                  k + pk * (int)(d3 - 2 * halo_size) + 100};
+                        if (make_host_view(a)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
+                                    j + pj * (int)(d2 - 2 * halo_size) + 100,
+                                    k + pk * (int)(d3 - 2 * halo_size) + 100}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "core a==x ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(a)(i, j, k)
+                                      << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
+                                    j + pj * (int)(d2 - 2 * halo_size) + 100,
+                                    k + pk * (int)(d3 - 2 * halo_size) + 100}
+                            << "\n";
+                        }
+                        ok = ok and
+                            make_host_view(b)(i, j, k) == triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
+                                                                  j + pj * (int)(d2 - 2 * halo_size) + 1000,
+                                                                  k + pk * (int)(d3 - 2 * halo_size) + 1000};
+                        if (make_host_view(b)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
+                                    j + pj * (int)(d2 - 2 * halo_size) + 1000,
+                                    k + pk * (int)(d3 - 2 * halo_size) + 1000}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "core b==x ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(b)(i, j, k)
+                                      << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
+                                    j + pj * (int)(d2 - 2 * halo_size) + 1000,
+                                    k + pk * (int)(d3 - 2 * halo_size) + 1000}
+                            << "\n";
+                        }
+                        ok = ok and
+                            make_host_view(d)(i, j, k) == triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
+                                                                  j + pj * (int)(d2 - 2 * halo_size) + 100000,
+                                                                  k + pk * (int)(d3 - 2 * halo_size) + 100000};
+                        if (make_host_view(d)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
+                                    j + pj * (int)(d2 - 2 * halo_size) + 100000,
+                                    k + pk * (int)(d3 - 2 * halo_size) + 100000}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "core d==x ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(d)(i, j, k)
+                                      << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
+                                    j + pj * (int)(d2 - 2 * halo_size) + 100000,
+                                    k + pk * (int)(d3 - 2 * halo_size) + 100000}
+                            << "\n";
+                        }
+                    } else { // core boundary
+                        ok = ok and
+                            make_host_view(a)(i, j, k) == triplet{0,0,0};
+                        if (make_host_view(a)(i, j, k) != triplet{0,0,0}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "core a==x ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(a)(i, j, k)
+                                      << " == " << triplet{0,0,0}
+                            << "\n";
+                        }
+                        ok = ok and
+                            make_host_view(b)(i, j, k) == triplet{0,0,0};
+                        if (make_host_view(b)(i, j, k) != triplet{0,0,0}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "core b==x ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(b)(i, j, k)
+                                      << " == " << triplet{0,0,0}
+                            << "\n";
+                        }
+                        ok = ok and
+                            make_host_view(d)(i, j, k) == triplet{0,0,0};
+                        if (make_host_view(d)(i, j, k) != triplet{0,0,0}) {
+                            std::cout << gridtools::PID << ": "
+                                      << "core d==x ------------> " << i << ", " << j << ", " << k << " "
+                                      << make_host_view(d)(i, j, k)
+                                      << " == " << triplet{0,0,0}
+                            << "\n";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    EXPECT_TRUE(ok);
+
+    // This should not throw
+    cabc.boundary_only(a, b, c, d);
+}
+
 TEST(DistributedBoundaries, Test) {
 
 #ifdef __CUDACC__
@@ -195,7 +420,8 @@ TEST(DistributedBoundaries, Test) {
                         if (make_host_view(a)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
                                                               j + pj * (int)(d2 - 2 * halo_size) + 100,
                                                               i + pk * (int)(d3 - 2 * halo_size) + 100}) {
-                            std::cout << "a comm ----------> " << i << ", " << j << ", " << k << " "
+                            std::cout << gridtools::PID << ": "
+                                      << "a comm ----------> " << i << ", " << j << ", " << k << " "
                                       << make_host_view(a)(i, j, k)
                                       << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
                                                        j + pj * (int)(d2 - 2 * halo_size) + 100,
@@ -210,7 +436,8 @@ TEST(DistributedBoundaries, Test) {
                         if (make_host_view(b)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
                                                               j + pj * (int)(d2 - 2 * halo_size) + 1000,
                                                               i + pk * (int)(d3 - 2 * halo_size) + 1000}) {
-                            std::cout << "b comm ----------> " << i << ", " << j << ", " << k << " "
+                            std::cout << gridtools::PID << ": "
+                                      << "b comm ----------> " << i << ", " << j << ", " << k << " "
                                       << make_host_view(b)(i, j, k)
                                       << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
                                                        j + pj * (int)(d2 - 2 * halo_size) + 1000,
@@ -225,7 +452,8 @@ TEST(DistributedBoundaries, Test) {
                         if (make_host_view(d)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
                                                               j + pj * (int)(d2 - 2 * halo_size) + 100000,
                                                               i + pk * (int)(d3 - 2 * halo_size) + 100000}) {
-                            std::cout << "b comm ----------> " << i << ", " << j << ", " << k << " "
+                            std::cout << gridtools::PID << ": "
+                                      << "b comm ----------> " << i << ", " << j << ", " << k << " "
                                       << make_host_view(d)(i, j, k)
                                       << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
                                                        j + pj * (int)(d2 - 2 * halo_size) + 100000,
@@ -236,12 +464,14 @@ TEST(DistributedBoundaries, Test) {
                     } else {
                         ok = ok and make_host_view(a)(i, j, k) == triplet{42, 42, 42};
                         if (make_host_view(a)(i, j, k) != triplet{42, 42, 42}) {
-                            std::cout << "a==42 -----------> " << i << ", " << j << ", " << k << " "
+                            std::cout << gridtools::PID << ": "
+                                      << "a==42 -----------> " << i << ", " << j << ", " << k << " "
                                       << make_host_view(a)(i, j, k) << " == " << triplet{42, 42, 42} << "\n";
                         }
                         ok = ok and make_host_view(b)(i, j, k) == make_host_view(c)(i, j, k);
                         if (make_host_view(b)(i, j, k) != make_host_view(c)(i, j, k)) {
-                            std::cout << "b==c ------------> " << i << ", " << j << ", " << k << " "
+                            std::cout << gridtools::PID << ": "
+                                      << "b==c ------------> " << i << ", " << j << ", " << k << " "
                                       << make_host_view(b)(i, j, k) << " == " << make_host_view(c)(i, j, k) << "\n";
                         }
                     }
@@ -254,7 +484,8 @@ TEST(DistributedBoundaries, Test) {
                     if (make_host_view(a)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
                                                           j + pj * (int)(d2 - 2 * halo_size) + 100,
                                                           k + pk * (int)(d3 - 2 * halo_size) + 100}) {
-                        std::cout << "a==x ------------> " << i << ", " << j << ", " << k << " "
+                        std::cout << gridtools::PID << ": "
+                                  << "core a==x ------------> " << i << ", " << j << ", " << k << " "
                                   << make_host_view(a)(i, j, k)
                                   << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 100,
                                                    j + pj * (int)(d2 - 2 * halo_size) + 100,
@@ -268,7 +499,8 @@ TEST(DistributedBoundaries, Test) {
                     if (make_host_view(b)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
                                                           j + pj * (int)(d2 - 2 * halo_size) + 1000,
                                                           k + pk * (int)(d3 - 2 * halo_size) + 1000}) {
-                        std::cout << "b==x ------------> " << i << ", " << j << ", " << k << " "
+                        std::cout << gridtools::PID << ": "
+                                  << "core b==x ------------> " << i << ", " << j << ", " << k << " "
                                   << make_host_view(b)(i, j, k)
                                   << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 1000,
                                                    j + pj * (int)(d2 - 2 * halo_size) + 1000,
@@ -282,7 +514,8 @@ TEST(DistributedBoundaries, Test) {
                     if (make_host_view(d)(i, j, k) != triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
                                                           j + pj * (int)(d2 - 2 * halo_size) + 100000,
                                                           k + pk * (int)(d3 - 2 * halo_size) + 100000}) {
-                        std::cout << "d==x ------------> " << i << ", " << j << ", " << k << " "
+                        std::cout << gridtools::PID << ": "
+                                  << "core d==x ------------> " << i << ", " << j << ", " << k << " "
                                   << make_host_view(d)(i, j, k)
                                   << " == " << triplet{i + pi * (int)(d1 - 2 * halo_size) + 100000,
                                                    j + pj * (int)(d2 - 2 * halo_size) + 100000,
