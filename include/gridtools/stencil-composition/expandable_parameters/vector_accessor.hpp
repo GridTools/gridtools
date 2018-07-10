@@ -36,7 +36,7 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/vector_accessor.hpp"
+#include "../structured_grids/vector_accessor.hpp"
 #else
-#include "stencil-composition/icosahedral_grids/vector_accessor.hpp"
+#include "../icosahedral_grids/vector_accessor.hpp"
 #endif

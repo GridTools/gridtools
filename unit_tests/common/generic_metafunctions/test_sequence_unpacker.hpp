@@ -34,16 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "common/generic_metafunctions/sequence_unpacker.hpp"
+#include <gridtools/common/generic_metafunctions/sequence_unpacker.hpp>
 
 using namespace gridtools;
 
 void test_sequence_unpacker(bool *result) {
     *result = true;
 
-    using test_type = boost::mpl::vector4< int, float, char, double >;
+    using test_type = boost::mpl::vector4<int, float, char, double>;
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< sequence_unpacker< test_type >::type, variadic_typedef< int, float, char, double > >::value),
+        (boost::is_same<sequence_unpacker<test_type>::type, variadic_typedef<int, float, char, double>>::value),
         "Error");
 }

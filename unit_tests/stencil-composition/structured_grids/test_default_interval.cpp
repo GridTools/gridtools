@@ -35,27 +35,27 @@
 */
 
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 
 using namespace gridtools;
 struct func {
-    using p1 = accessor< 0, enumtype::in >;
-    using p2 = accessor< 1, enumtype::inout >;
-    using arg_list = boost::mpl::vector2< p1, p2 >;
+    using p1 = accessor<0, enumtype::in>;
+    using p2 = accessor<1, enumtype::inout>;
+    using arg_list = boost::mpl::vector2<p1, p2>;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     void Do(Evaluation &eval) {}
 };
 
 struct func_call {
-    using p1 = accessor< 0, enumtype::in >;
-    using p2 = accessor< 1, enumtype::inout >;
-    using arg_list = boost::mpl::vector2< p1, p2 >;
+    using p1 = accessor<0, enumtype::in>;
+    using p2 = accessor<1, enumtype::inout>;
+    using arg_list = boost::mpl::vector2<p1, p2>;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     void Do(Evaluation &eval) {
-        call< func >::with(eval);
+        call<func>::with(eval);
     }
 };
 
@@ -66,6 +66,6 @@ struct storage_stub {
 
 TEST(default_interval, test) {
 
-    auto s1 = make_stage< func >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
-    auto s2 = make_stage< func_call >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+    auto s1 = make_stage<func>(arg<0, storage_stub>(), arg<1, storage_stub>());
+    auto s2 = make_stage<func_call>(arg<0, storage_stub>(), arg<1, storage_stub>());
 }

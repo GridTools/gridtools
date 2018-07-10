@@ -35,12 +35,12 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/pack_get_elem.hpp>
+#include <gridtools/common/generic_metafunctions/pack_get_elem.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 using namespace gridtools;
 
 TEST(pack_get_elem, test) {
-    GRIDTOOLS_STATIC_ASSERT((pack_get_elem< 2 >::apply(3, 6, 7) == 7), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((pack_get_elem< 1 >::apply(-3, -6, 7) == -6), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((pack_get_elem<2>::apply(3, 6, 7) == 7), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((pack_get_elem<1>::apply(-3, -6, 7) == -6), "ERROR");
 }

@@ -34,25 +34,25 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../computation_grammar.hpp"
 #include "case_type.hpp"
 #include "condition_tree.hpp"
-#include "../computation_grammar.hpp"
 /**@file*/
 
 namespace gridtools {
     /**@brief interface for specifying a case from whithin a @ref gridtools::switch_ statement
      */
-    template < typename T, typename Mss >
-    case_type< T, Mss > case_(T val_, Mss mss_) {
-        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of< Mss, is_computation_token >::value), GT_INTERNAL_ERROR);
-        return case_type< T, Mss >(val_, mss_);
+    template <typename T, typename Mss>
+    case_type<T, Mss> case_(T val_, Mss mss_) {
+        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of<Mss, is_computation_token>::value), GT_INTERNAL_ERROR);
+        return case_type<T, Mss>(val_, mss_);
     }
 
     /**@brief interface for specifying a default case from whithin a @ref gridtools::switch_ statement
      */
-    template < typename Mss >
-    default_type< Mss > default_(Mss mss_) {
-        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of< Mss, is_computation_token >::value), GT_INTERNAL_ERROR);
-        return default_type< Mss >(mss_);
+    template <typename Mss>
+    default_type<Mss> default_(Mss mss_) {
+        GRIDTOOLS_STATIC_ASSERT((is_condition_tree_of<Mss, is_computation_token>::value), GT_INTERNAL_ERROR);
+        return default_type<Mss>(mss_);
     }
 } // namespace gridtools

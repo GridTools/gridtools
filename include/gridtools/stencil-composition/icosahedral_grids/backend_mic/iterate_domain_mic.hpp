@@ -35,23 +35,23 @@
 */
 #pragma once
 
-#include "stencil-composition/iterate_domain.hpp"
-#include "stencil-composition/iterate_domain_fwd.hpp"
-#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_metafunctions.hpp"
+#include "../../iterate_domain_fwd.hpp"
+#include "../../iterate_domain_impl_metafunctions.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
+#include "../iterate_domain.hpp"
 
 namespace gridtools {
     /**
- * @brief iterate domain class for the Mic backend
- */
-    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+     * @brief iterate domain class for the Mic backend
+     */
+    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
     class iterate_domain_mic
-        : public IterateDomainBase< iterate_domain_mic< IterateDomainBase, IterateDomainArguments > > // CRTP
+        : public IterateDomainBase<iterate_domain_mic<IterateDomainBase, IterateDomainArguments>> // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_mic);
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef IterateDomainBase< iterate_domain_mic< IterateDomainBase, IterateDomainArguments > > super;
+        typedef IterateDomainBase<iterate_domain_mic<IterateDomainBase, IterateDomainArguments>> super;
 
       public:
         typedef iterate_domain_mic iterate_domain_t;
@@ -95,66 +95,57 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        template < ushort_t Coordinate, typename Execution >
-        GT_FUNCTION void increment_impl() {}
-
-        template < ushort_t Coordinate >
-        GT_FUNCTION void increment_impl(int_t steps) {}
-
-        template < ushort_t Coordinate >
-        GT_FUNCTION void initialize_impl() {}
-
-        template < typename ReturnType, typename Accessor, typename StoragePointer >
+        template <typename ReturnType, typename Accessor, typename StoragePointer>
         GT_FUNCTION ReturnType get_value_impl(
             StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
 
-            return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
         }
 
         /**
          * caches are not currently used in mic backend
          */
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
          * caches are not currently used in mic backend
          */
-        template < typename IterationPolicy, typename Grid >
+        template <typename IterationPolicy, typename Grid>
         GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
         }
 
         /**
          * caches are not currently used in mic backend
          */
-        template < typename IterationPolicy, typename Grid >
+        template <typename IterationPolicy, typename Grid>
         GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
         }
 
         /**
          * caches are not currently used in mic backend
          */
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void final_flush() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
          * caches are not currently used in mic backend
          */
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void begin_fill() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
-        template < typename Extent >
+        template <typename Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
             return true;
         }
@@ -164,8 +155,8 @@ namespace gridtools {
         strides_cached_t *RESTRICT m_strides;
     };
 
-    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
-    struct is_iterate_domain< iterate_domain_mic< IterateDomainBase, IterateDomainArguments > >
-        : public boost::mpl::true_ {};
+    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
+    struct is_iterate_domain<iterate_domain_mic<IterateDomainBase, IterateDomainArguments>> : public boost::mpl::true_ {
+    };
 
 } // namespace gridtools

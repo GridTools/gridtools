@@ -33,36 +33,36 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "common/defs.hpp"
-#include "common/gt_math.hpp"
-#include "tools/verifier.hpp"
 #include "gtest/gtest.h"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gt_math.hpp>
+#include <gridtools/tools/verifier.hpp>
 using namespace gridtools;
 
-template < typename Value >
+template <typename Value>
 struct test_pow {
     static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::pow(val, val), result); }
 };
 
-template < typename Value >
+template <typename Value>
 struct test_log {
     static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::log(val), result); }
 };
 
-template < typename Value >
+template <typename Value>
 struct test_exp {
     static bool GT_FUNCTION Do(Value val, Value result) { return compare_below_threshold(math::exp(val), result); }
 };
 
 struct test_fabs {
     static bool GT_FUNCTION Do() {
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::fabs(4.0f)), float >::value), "Should return float.");
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::fabs(4.0)), double >::value), "Should return double.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0f)), float>::value), "Should return float.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0)), double>::value), "Should return double.");
 #ifndef __CUDA_ARCH__
         GRIDTOOLS_STATIC_ASSERT(
-            (std::is_same< decltype(math::fabs((long double)4)), long double >::value), "Should return long double.");
+            (std::is_same<decltype(math::fabs((long double)4)), long double>::value), "Should return long double.");
 #endif
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::fabs((int)4)), double >::value), "Should return double.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::fabs((int)4)), double>::value), "Should return double.");
 
         if (!compare_below_threshold(math::fabs(5.6), 5.6, 1e-14))
             return false;
@@ -84,18 +84,18 @@ struct test_fabs {
 struct test_abs {
     static GT_FUNCTION bool Do() {
         // float overloads
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs(4.0f)), float >::value), "Should return float.");
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs(4.0)), double >::value), "Should return double.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0f)), float>::value), "Should return float.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0)), double>::value), "Should return double.");
 #ifndef __CUDA_ARCH__
         GRIDTOOLS_STATIC_ASSERT(
-            (std::is_same< decltype(math::abs((long double)4)), long double >::value), "Should return long double.");
+            (std::is_same<decltype(math::abs((long double)4)), long double>::value), "Should return long double.");
 #endif
 
         // int overloads
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs((int)4)), int >::value), "Should return int.");
-        GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs((long)4)), long >::value), "Should return long.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs((int)4)), int>::value), "Should return int.");
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs((long)4)), long>::value), "Should return long.");
         GRIDTOOLS_STATIC_ASSERT(
-            (std::is_same< decltype(math::abs((long long)4)), long long >::value), "Should return long long.");
+            (std::is_same<decltype(math::abs((long long)4)), long long>::value), "Should return long long.");
 
         if (math::abs(5.6) != 5.6)
             return false;
@@ -115,7 +115,14 @@ TEST(math, test_min) {
     EXPECT_TRUE(math::min(5, -1) == -1);
 
     ASSERT_REAL_EQ(math::min(5.3, 22.0, 7.7), 5.3);
+}
 
+#ifdef __INTEL_COMPILER
+// test disabled due to Intel compiler bug (see gt_math.hpp)
+TEST(math, DISABLED_test_min_ref) {
+#else
+TEST(math, test_min_ref) {
+#endif
     // checking returned by const &
     double a = 3.5;
     double b = 2.3;
@@ -130,6 +137,14 @@ TEST(math, test_max) {
     EXPECT_TRUE(math::max(5, -1) == 5);
 
     ASSERT_REAL_EQ(math::max(5.3, 22.0, 7.7), 22.0);
+}
+
+#ifdef __INTEL_COMPILER
+// test disabled due to Intel compiler bug (see gt_math.hpp)
+TEST(math, DISABLED_test_max_ref) {
+#else
+TEST(math, test_max_ref) {
+#endif
     // checking returned by const &
     double a = 3.5;
     double b = 2.3;
@@ -145,16 +160,28 @@ TEST(math, test_fabs) { EXPECT_TRUE(test_fabs::Do()); }
 TEST(math, test_abs) { EXPECT_TRUE(test_abs::Do()); }
 
 TEST(math, test_log) {
-    EXPECT_TRUE(test_log< double >::Do(2.3, std::log(2.3)));
-    EXPECT_TRUE(test_log< float >::Do(2.3f, std::log(2.3f)));
+    EXPECT_TRUE(test_log<double>::Do(2.3, std::log(2.3)));
+    EXPECT_TRUE(test_log<float>::Do(2.3f, std::log(2.3f)));
 }
 
 TEST(math, test_exp) {
-    EXPECT_TRUE(test_exp< double >::Do(2.3, std::exp(2.3)));
-    EXPECT_TRUE(test_exp< float >::Do(2.3f, std::exp(2.3f)));
+    EXPECT_TRUE(test_exp<double>::Do(2.3, std::exp(2.3)));
+    EXPECT_TRUE(test_exp<float>::Do(2.3f, std::exp(2.3f)));
 }
 
 TEST(math, test_pow) {
-    EXPECT_TRUE(test_pow< double >::Do(2.3, std::pow(2.3, 2.3)));
-    EXPECT_TRUE(test_pow< float >::Do(2.3f, std::pow(2.3f, 2.3f)));
+    EXPECT_TRUE(test_pow<double>::Do(2.3, std::pow(2.3, 2.3)));
+    EXPECT_TRUE(test_pow<float>::Do(2.3f, std::pow(2.3f, 2.3f)));
+}
+
+TEST(math, test_fmod) {
+    EXPECT_FLOAT_EQ(math::fmod(3.7f, 1.2f), std::fmod(3.7f, 1.2f));
+    EXPECT_DOUBLE_EQ(math::fmod(3.7, 1.2), std::fmod(3.7, 1.2));
+    EXPECT_DOUBLE_EQ(math::fmod(3.7l, 1.2l), std::fmod(3.7l, 1.2l));
+}
+
+TEST(math, test_trunc) {
+    EXPECT_FLOAT_EQ(math::trunc(3.7f), std::trunc(3.7f));
+    EXPECT_DOUBLE_EQ(math::trunc(3.7), std::trunc(3.7));
+    EXPECT_DOUBLE_EQ(math::trunc(3.7l), std::trunc(3.7l));
 }

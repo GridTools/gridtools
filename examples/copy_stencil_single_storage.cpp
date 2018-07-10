@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "copy_stencil_single_storage.hpp"
 #include "Options.hpp"
+#include "gtest/gtest.h"
 
 int main(int argc, char **argv) {
     // Pass command line arguments to googltest

@@ -39,20 +39,20 @@
 
 namespace gridtools {
     namespace cuda_util {
-        template < class >
+        template <class>
         struct is_cloneable;
 
 #ifndef __INTEL_COMPILER
-        template < class T >
-        struct is_cloneable : std::is_trivially_copyable< T > {};
+        template <class T>
+        struct is_cloneable : std::is_trivially_copyable<T> {};
 #endif
-    }
-}
+    } // namespace cuda_util
+} // namespace gridtools
 
 #ifdef __CUDACC__
 
-#include <memory>
 #include <cuda_runtime.h>
+#include <memory>
 
 #include "defs.hpp"
 #include "gt_assert.hpp"
@@ -66,23 +66,23 @@ namespace gridtools {
     namespace cuda_util {
         namespace _impl {
             struct deleter_f {
-                template < class T >
+                template <class T>
                 void operator()(T *ptr) const {
                     cudaFree(ptr);
                 }
             };
-        }
+        } // namespace _impl
 
-        template < class T, class Res = std::unique_ptr< T, _impl::deleter_f > >
+        template <class T, class Res = std::unique_ptr<T, _impl::deleter_f>>
         Res make_clone(T const &src) {
-            GRIDTOOLS_STATIC_ASSERT(is_cloneable< T >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_cloneable<T>::value, GT_INTERNAL_ERROR);
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T)));
             Res res{ptr};
             GT_CUDA_CHECK(cudaMemcpy(ptr, &src, sizeof(T), cudaMemcpyHostToDevice));
             return res;
         }
-    }
-}
+    } // namespace cuda_util
+} // namespace gridtools
 
 #endif

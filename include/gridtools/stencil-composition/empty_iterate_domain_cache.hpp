@@ -47,7 +47,4 @@ namespace gridtools {
         typedef boost::mpl::set0<> all_caches_t;
         typedef boost::mpl::set0<> bypass_caches_set_t;
     };
-
-    template <>
-    struct is_iterate_domain_cache< empty_iterate_domain_cache > : boost::mpl::true_ {};
-}
+} // namespace gridtools

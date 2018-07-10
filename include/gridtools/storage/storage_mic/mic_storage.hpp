@@ -57,8 +57,8 @@ namespace gridtools {
      * gridtools pattern and we clearly want to avoid virtual
      * methods, etc.
      */
-    template < typename DataType >
-    struct mic_storage : storage_interface< mic_storage< DataType > > {
+    template <typename DataType>
+    struct mic_storage : storage_interface<mic_storage<DataType>> {
         typedef DataType data_t;
         typedef data_t *ptrs_t;
         typedef state_machine state_machine_t;
@@ -77,10 +77,10 @@ namespace gridtools {
          * risk of L1 cache set conflicts.
          * @param size defines the size of the storage and the allocated space.
          */
-        template < uint_t Align = 1 >
-        mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{}) {
+        template <uint_t Align = 1>
+        mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{}) {
             // New will align addresses according to the size(data_t)
-            static std::atomic< uint_t > s_data_offset(64);
+            static std::atomic<uint_t> s_data_offset(64);
             uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
             uint_t data_type_offset = 0;
             uint_t next_data_offset;
@@ -91,13 +91,13 @@ namespace gridtools {
                     next_data_offset = 64;
             } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
 
-            if (posix_memalign(reinterpret_cast< void ** >(&m_allocated_ptr),
+            if (posix_memalign(reinterpret_cast<void **>(&m_allocated_ptr),
                     2 * 1024 * 1024,
                     (size + (data_type_offset + Align)) * sizeof(data_t)))
                 throw std::bad_alloc();
 
             uint_t delta =
-                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
+                ((reinterpret_cast<std::uintptr_t>(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
             m_cpu_ptr = (delta == 0) ? m_allocated_ptr + data_type_offset
                                      : m_allocated_ptr + (data_type_offset + Align - delta);
@@ -121,9 +121,8 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        template < typename Funct, uint_t Align = 1 >
-        mic_storage(
-            uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment< Align > a = alignment< 1u >{})
+        template <typename Funct, uint_t Align = 1>
+        mic_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
             : mic_storage(size, offset_to_align, a) {
             for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer(i);
@@ -210,9 +209,9 @@ namespace gridtools {
     };
 
     // simple metafunction to check if a type is a mic storage
-    template < typename T >
+    template <typename T>
     struct is_mic_storage : boost::mpl::false_ {};
 
-    template < typename T >
-    struct is_mic_storage< mic_storage< T > > : boost::mpl::true_ {};
-}
+    template <typename T>
+    struct is_mic_storage<mic_storage<T>> : boost::mpl::true_ {};
+} // namespace gridtools

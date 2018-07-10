@@ -45,17 +45,17 @@ namespace gridtools {
        \tparam DIMS Number of dimensions of the array
        \tparam layoutmap Specification of the layout map of the data (as in halo_exchange_dynamic)
      */
-    template < typename DataType, typename _t_layoutmap, template < typename > class Traits >
-    struct field_on_the_fly : public Traits< DataType >::base_field {
-        typedef typename reverse_map< _t_layoutmap >::type inner_layoutmap; // This is necessary since the internals of
-                                                                            // gcl use "increasing stride order" instead
-                                                                            // of "decreasing stride order"
+    template <typename DataType, typename _t_layoutmap, template <typename> class Traits>
+    struct field_on_the_fly : public Traits<DataType>::base_field {
+        typedef typename reverse_map<_t_layoutmap>::type inner_layoutmap; // This is necessary since the internals of
+                                                                          // gcl use "increasing stride order" instead
+                                                                          // of "decreasing stride order"
         typedef _t_layoutmap outer_layoutmap;
-        static const int DIMS = Traits< DataType >::I;
+        static const int DIMS = Traits<DataType>::I;
 
-        typedef typename Traits< DataType >::base_field base_type;
+        typedef typename Traits<DataType>::base_field base_type;
 
-        typedef field_on_the_fly< DataType, _t_layoutmap, Traits > this_type;
+        typedef field_on_the_fly<DataType, _t_layoutmap, Traits> this_type;
 
         typedef DataType value_type;
 
@@ -65,16 +65,16 @@ namespace gridtools {
          */
         field_on_the_fly(){};
 
-        template < typename T1 >
-        field_on_the_fly< T1, _t_layoutmap, Traits > &retarget() {
+        template <typename T1>
+        field_on_the_fly<T1, _t_layoutmap, Traits> &retarget() {
             void *tmp = this;
-            return *(reinterpret_cast< field_on_the_fly< T1, _t_layoutmap, Traits > * >(tmp));
+            return *(reinterpret_cast<field_on_the_fly<T1, _t_layoutmap, Traits> *>(tmp));
         }
 
-        template < typename T1 >
-        field_on_the_fly< T1, _t_layoutmap, Traits > copy() const {
+        template <typename T1>
+        field_on_the_fly<T1, _t_layoutmap, Traits> copy() const {
             const void *tmp = this;
-            return *(reinterpret_cast< const field_on_the_fly< T1, _t_layoutmap, Traits > * >(tmp));
+            return *(reinterpret_cast<const field_on_the_fly<T1, _t_layoutmap, Traits> *>(tmp));
         }
 
         void set_pointer(DataType *pointer) { ptr = pointer; }
@@ -90,7 +90,7 @@ namespace gridtools {
            \param p Pointer to the array containing the data
            \param halos Array (gridtools::array) of array halos
          */
-        field_on_the_fly(DataType *p, array< halo_descriptor, DIMS > const &halos) : ptr(p) {
+        field_on_the_fly(DataType *p, array<halo_descriptor, DIMS> const &halos) : ptr(p) {
             //        std::cout << "FOF                                          " << t_layoutmap() << " " <<
             //        layoutmap() << std::endl;
 
@@ -114,7 +114,7 @@ namespace gridtools {
            \param p Pointer to the array containing the data
            \param halos Array (gridtools::array) of array halos
          */
-        void create(DataType *p, array< halo_descriptor, DIMS > const &halos) {
+        void create(DataType *p, array<halo_descriptor, DIMS> const &halos) {
             ptr = p;
             for (int i = 0; i < DIMS; ++i) {
                 base_type::add_halo(inner_layoutmap::at(i),
@@ -138,10 +138,10 @@ namespace gridtools {
         const DataType *the_pointer() const { return ptr; }
     };
 
-    template < typename DataType, typename layoutmap, template < typename > class Traits >
-    std::ostream &operator<<(std::ostream &s, field_on_the_fly< DataType, layoutmap, Traits > const &fot) {
-        return s << static_cast< typename field_on_the_fly< DataType, layoutmap, Traits >::base_type >(fot) << " -> "
-                 << reinterpret_cast< void const * >(fot.the_pointer());
+    template <typename DataType, typename layoutmap, template <typename> class Traits>
+    std::ostream &operator<<(std::ostream &s, field_on_the_fly<DataType, layoutmap, Traits> const &fot) {
+        return s << static_cast<typename field_on_the_fly<DataType, layoutmap, Traits>::base_type>(fot) << " -> "
+                 << reinterpret_cast<void const *>(fot.the_pointer());
     }
 
     // /**
@@ -214,6 +214,6 @@ namespace gridtools {
     //   }
 
     // };
-}
+} // namespace gridtools
 
 #endif

@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "curl.hpp"
 #include "../Options.hpp"
+#include "gtest/gtest.h"
 
 int main(int argc, char **argv) {
 

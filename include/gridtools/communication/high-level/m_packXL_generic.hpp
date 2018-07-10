@@ -33,13 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "../../common/halo_descriptor.hpp"
 #include "wrap_argument.hpp"
 
-template < typename value_type >
+template <typename value_type>
 __global__ void m_packXLKernel_generic(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
     const wrap_argument d_msgsize,
-    const gridtools::array< gridtools::halo_descriptor, 3 > halo /*_g*/,
+    const gridtools::array<gridtools::halo_descriptor, 3> halo /*_g*/,
     int const ny,
     int const nz,
     const int field_index) {
@@ -97,7 +98,7 @@ __global__ void m_packXLKernel_generic(const value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t >
+template <typename array_t>
 void m_packXL_generic(array_t const &fields, typename array_t::value_type::value_type **d_msgbufTab, int *d_msgsize)
 //                      const gridtools::field_on_the_fly<T1,T2,T3> * halo_d)
 {

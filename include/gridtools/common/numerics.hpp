@@ -50,35 +50,26 @@ namespace gridtools {
         /** @brief Compute 3^I at compile time
             \tparam I Exponent
         */
-        template < uint_t I >
+        template <uint_t I>
         struct static_pow3;
 
         template <>
-        struct static_pow3< 0 > {
+        struct static_pow3<0> {
             static const int value = 1;
         };
 
         template <>
-        struct static_pow3< 1 > {
+        struct static_pow3<1> {
             static const int value = 3;
         };
 
-        template < uint_t I >
+        template <uint_t I>
         struct static_pow3 {
-            static const int value = 3 * static_pow3< I - 1 >::value;
+            static const int value = 3 * static_pow3<I - 1>::value;
         };
-
-        /** @brief provide a constexpr version of std::ceil
-            \param num Float numner to ceil
-         */
-        GT_FUNCTION constexpr int static_ceil(float num) {
-            return (static_cast< float >(static_cast< int >(num)) == num)
-                       ? static_cast< int >(num)
-                       : static_cast< int >(num) + ((num > 0) ? 1 : 0);
-        }
         /** @} */
         /** @} */
-    }
-}
+    } // namespace _impl
+} // namespace gridtools
 
 #endif

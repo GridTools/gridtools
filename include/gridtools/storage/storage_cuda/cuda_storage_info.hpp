@@ -54,35 +54,34 @@ namespace gridtools {
      * @tparam Halo information about the halo sizes (by default no halo is set)
      * @tparam Alignment information about the alignment (cuda_storage_info is aligned to 32 by default)
      */
-    template < uint_t Id,
+    template <uint_t Id,
         typename Layout,
-        typename Halo = zero_halo< Layout::masked_length >,
-        typename Alignment = alignment< 32 > >
-    struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
+        typename Halo = zero_halo<Layout::masked_length>,
+        typename Alignment = alignment<32>>
+    struct cuda_storage_info : storage_info_interface<Id, Layout, Halo, Alignment> {
       private:
-        mutable cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
-        GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
-        GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
+        mutable cuda_storage_info<Id, Layout, Halo, Alignment> *m_gpu_ptr;
+        GRIDTOOLS_STATIC_ASSERT((is_halo<Halo>::value), "Given type is not a halo type.");
+        GRIDTOOLS_STATIC_ASSERT((is_alignment<Alignment>::value), "Given type is not an alignment type.");
 
       public:
-        static constexpr uint_t ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
+        static constexpr uint_t ndims = storage_info_interface<Id, Layout, Halo, Alignment>::ndims;
         /*
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims,
-            typename std::enable_if< sizeof...(Dims) == ndims && is_all_integral_or_enum< Dims... >::value,
-                int >::type = 0 >
+        template <typename... Dims,
+            typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
         explicit constexpr cuda_storage_info(Dims... dims_)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {}
+            : storage_info_interface<Id, Layout, Halo, Alignment>(dims_...), m_gpu_ptr(nullptr) {}
 
         /*
          * @brief cuda_storage_info constructor.
          * @param dims the dimensionality (e.g., 128x128x80)
          * @param strides the strides used to describe a layout the data in memory
          */
-        constexpr cuda_storage_info(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides), m_gpu_ptr(nullptr) {}
+        constexpr cuda_storage_info(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
+            : storage_info_interface<Id, Layout, Halo, Alignment>(dims, strides), m_gpu_ptr(nullptr) {}
 
         /*
          * @brief cuda_storage_info destructor.
@@ -94,13 +93,13 @@ namespace gridtools {
          * to a kernel.
          * @return a storage info device pointer
          */
-        cuda_storage_info< Id, Layout, Halo, Alignment > *get_gpu_ptr() const {
+        cuda_storage_info<Id, Layout, Halo, Alignment> *get_gpu_ptr() const {
             if (!m_gpu_ptr) {
-                cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >));
+                cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info<Id, Layout, Halo, Alignment>));
                 ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
                 err = cudaMemcpy((void *)m_gpu_ptr,
                     (void *)this,
-                    sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >),
+                    sizeof(cuda_storage_info<Id, Layout, Halo, Alignment>),
                     cudaMemcpyHostToDevice);
                 ASSERT_OR_THROW((err == cudaSuccess), "failed to clone storage_info to the device.");
             }
@@ -108,13 +107,13 @@ namespace gridtools {
         }
     };
 
-    template < typename T >
+    template <typename T>
     struct is_cuda_storage_info : boost::mpl::false_ {};
 
-    template < uint_t Id, typename Layout, typename Halo, typename Alignment >
-    struct is_cuda_storage_info< cuda_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
+    template <uint_t Id, typename Layout, typename Halo, typename Alignment>
+    struct is_cuda_storage_info<cuda_storage_info<Id, Layout, Halo, Alignment>> : boost::mpl::true_ {};
 
     /**
      * @}
      */
-}
+} // namespace gridtools

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "c_bindings/generator.hpp"
+#include <gridtools/c_bindings/generator.hpp>
 
 #include <cassert>
 
@@ -42,7 +42,7 @@ namespace gridtools {
     namespace c_bindings {
         namespace {
             class fortran_generics {
-                std::map< char const *, std::vector< const char * >, _impl::c_string_less > m_procedures;
+                std::map<char const *, std::vector<const char *>, _impl::c_string_less> m_procedures;
 
               public:
                 void add(char const *generic_name, char const *concrete_name) {
@@ -70,15 +70,15 @@ namespace gridtools {
                 static fortran_generics obj;
                 return obj;
             }
-        }
+        } // namespace
 
         namespace _impl {
-            void declarations::add(char const *name, generator_t generator) {
+            void entities::add(char const *name, generator_t generator) {
                 bool ok = m_generators.emplace(name, std::move(generator)).second;
                 assert(ok);
             }
 
-            std::ostream &operator<<(std::ostream &strm, declarations const &obj) {
+            std::ostream &operator<<(std::ostream &strm, entities const &obj) {
                 for (auto &&item : obj.m_generators)
                     item.second(strm, item.first);
                 return strm;
@@ -89,32 +89,56 @@ namespace gridtools {
             }
 
             template <>
-            char const fortran_kind_name< bool >::value[] = "c_bool";
+            char const fortran_kind_name<bool>::value[] = "c_bool";
             template <>
-            char const fortran_kind_name< int >::value[] = "c_int";
+            char const fortran_kind_name<int>::value[] = "c_int";
             template <>
-            char const fortran_kind_name< short >::value[] = "c_short";
+            char const fortran_kind_name<short>::value[] = "c_short";
             template <>
-            char const fortran_kind_name< long >::value[] = "c_long";
+            char const fortran_kind_name<long>::value[] = "c_long";
             template <>
-            char const fortran_kind_name< long long >::value[] = "c_long_long";
+            char const fortran_kind_name<long long>::value[] = "c_long_long";
             template <>
-            char const fortran_kind_name< float >::value[] = "c_float";
+            char const fortran_kind_name<float>::value[] = "c_float";
             template <>
-            char const fortran_kind_name< double >::value[] = "c_double";
+            char const fortran_kind_name<double>::value[] = "c_double";
             template <>
-            char const fortran_kind_name< long double >::value[] = "c_long_double";
+            char const fortran_kind_name<long double>::value[] = "c_long_double";
             template <>
-            char const fortran_kind_name< signed char >::value[] = "c_signed_char";
-        }
+            char const fortran_kind_name<signed char>::value[] = "c_signed_char";
+
+            std::string fortran_array_element_type_name(gt_fortran_array_kind kind) {
+                switch (kind) {
+                case gt_fk_Bool:
+                    return fortran_type_name<bool>();
+                case gt_fk_Int:
+                    return fortran_type_name<int>();
+                case gt_fk_Short:
+                    return fortran_type_name<short>();
+                case gt_fk_Long:
+                    return fortran_type_name<long>();
+                case gt_fk_LongLong:
+                    return fortran_type_name<long long>();
+                case gt_fk_Float:
+                    return fortran_type_name<float>();
+                case gt_fk_Double:
+                    return fortran_type_name<double>();
+                case gt_fk_LongDouble:
+                    return fortran_type_name<long double>();
+                case gt_fk_SignedChar:
+                    return fortran_type_name<signed char>();
+                }
+            }
+        } // namespace _impl
 
         void generate_c_interface(std::ostream &strm) {
             strm << "\n#pragma once\n\n";
-            strm << "#include <c_bindings/handle.h>\n\n";
+            strm << "#include <gridtools/c_bindings/array_descriptor.h>\n";
+            strm << "#include <gridtools/c_bindings/handle.h>\n\n";
             strm << "#ifdef __cplusplus\n";
             strm << "extern \"C\" {\n";
             strm << "#endif\n\n";
-            strm << _impl::get_declarations< _impl::c_traits >();
+            strm << _impl::get_entities<_impl::c_bindings_traits>();
             strm << "\n#ifdef __cplusplus\n";
             strm << "}\n";
             strm << "#endif\n";
@@ -124,10 +148,12 @@ namespace gridtools {
             strm << "\nmodule " << module_name << "\n";
             strm << "implicit none\n";
             strm << "  interface\n\n";
-            strm << _impl::get_declarations< _impl::fortran_traits >();
+            strm << _impl::get_entities<_impl::fortran_bindings_traits>();
             strm << "\n  end interface\n";
             strm << get_fortran_generics();
+            strm << "contains\n";
+            strm << _impl::get_entities<_impl::fortran_wrapper_traits>();
             strm << "end\n";
         }
-    }
-}
+    } // namespace c_bindings
+} // namespace gridtools

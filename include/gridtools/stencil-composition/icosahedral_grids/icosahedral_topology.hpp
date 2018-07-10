@@ -36,36 +36,35 @@
 #pragma once
 
 #include <boost/fusion/adapted/mpl.hpp>
+#include <boost/fusion/include/as_set.hpp>
+#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/fusion/view/zip_view.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/as_set.hpp>
 
+#include <boost/fusion/adapted/mpl.hpp>
+#include <boost/fusion/container/generation/make_vector.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/container/vector/vector_fwd.hpp>
 #include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/at_c.hpp>
+#include <boost/fusion/include/io.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/size.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/vector_fwd.hpp>
+#include <boost/fusion/sequence/io.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/fusion/include/size.hpp>
-#include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/container/vector/vector_fwd.hpp>
-#include <boost/fusion/include/vector_fwd.hpp>
-#include <boost/fusion/container/generation/make_vector.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/sequence/io.hpp>
-#include <boost/fusion/include/io.hpp>
 
 #include "../../common/array.hpp"
-#include "../../common/gt_assert.hpp"
-#include "../position_offset_type.hpp"
-#include "../location_type.hpp"
 #include "../../common/array_addons.hpp"
-#include "../../common/generic_metafunctions/pack_get_elem.hpp"
-#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
+#include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/gt_assert.hpp"
+#include "../location_type.hpp"
+#include "../position_offset_type.hpp"
 
 #include "icosahedral_topology_metafunctions.hpp"
 
@@ -74,100 +73,98 @@ namespace gridtools {
     // TODO this is duplicated below
 
     namespace {
-        using cells = location_type< 0, 2 >;
-        using edges = location_type< 1, 3 >;
-        using vertices = location_type< 2, 1 >;
-    }
+        using cells = location_type<0, 2>;
+        using edges = location_type<1, 3>;
+        using vertices = location_type<2, 1>;
+    } // namespace
 
     namespace impl {
-        template < typename StorageInfo, typename Array, unsigned N = tuple_size< Array >::value, typename... Rest >
-        constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
+        template <typename StorageInfo, typename Array, unsigned N = tuple_size<Array>::value, typename... Rest>
+        constexpr typename boost::enable_if_c<(N == 0), StorageInfo>::type get_storage_info_from_array(
             Array arr, Rest... r) {
-            GRIDTOOLS_STATIC_ASSERT(
-                is_array< Array >::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
+            GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
             return StorageInfo(r...);
         }
 
-        template < typename StorageInfo, typename Array, unsigned N = tuple_size< Array >::value, typename... Rest >
-        constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
+        template <typename StorageInfo, typename Array, unsigned N = tuple_size<Array>::value, typename... Rest>
+        constexpr typename boost::enable_if_c<(N > 0), StorageInfo>::type get_storage_info_from_array(
             Array arr, Rest... r) {
-            GRIDTOOLS_STATIC_ASSERT(
-                is_array< Array >::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
+            GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
             typedef typename StorageInfo::halo_t halo_t;
-            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(arr, arr[N - 1], r...);
+            return get_storage_info_from_array<StorageInfo, Array, N - 1>(arr, arr[N - 1], r...);
         }
-    }
+    } // namespace impl
 
-    template < typename T, typename ValueType >
+    template <typename T, typename ValueType>
     struct return_type {
-        typedef array< ValueType, 0 > type;
+        typedef array<ValueType, 0> type;
     };
 
     // static triple dispatch
-    template < typename Location1 >
+    template <typename Location1>
     struct from {
-        template < typename Location2 >
+        template <typename Location2>
         struct to {
-            template < typename Color >
+            template <typename Color>
             struct with_color;
         };
     };
 
-    template < typename ValueType >
-    struct return_type< from< cells >::template to< cells >, ValueType > {
-        typedef array< ValueType, 3 > type;
+    template <typename ValueType>
+    struct return_type<from<cells>::template to<cells>, ValueType> {
+        typedef array<ValueType, 3> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< cells >::template to< edges >, ValueType > {
-        typedef array< ValueType, 3 > type;
+    template <typename ValueType>
+    struct return_type<from<cells>::template to<edges>, ValueType> {
+        typedef array<ValueType, 3> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< cells >::template to< vertices >, ValueType > {
-        typedef array< ValueType, 3 > type;
+    template <typename ValueType>
+    struct return_type<from<cells>::template to<vertices>, ValueType> {
+        typedef array<ValueType, 3> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< edges >::template to< edges >, ValueType > {
-        typedef array< ValueType, 4 > type;
+    template <typename ValueType>
+    struct return_type<from<edges>::template to<edges>, ValueType> {
+        typedef array<ValueType, 4> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< edges >::template to< cells >, ValueType > {
-        typedef array< ValueType, 2 > type;
+    template <typename ValueType>
+    struct return_type<from<edges>::template to<cells>, ValueType> {
+        typedef array<ValueType, 2> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< edges >::template to< vertices >, ValueType > {
-        typedef array< ValueType, 2 > type;
+    template <typename ValueType>
+    struct return_type<from<edges>::template to<vertices>, ValueType> {
+        typedef array<ValueType, 2> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< vertices >::template to< vertices >, ValueType > {
-        typedef array< ValueType, 6 > type;
+    template <typename ValueType>
+    struct return_type<from<vertices>::template to<vertices>, ValueType> {
+        typedef array<ValueType, 6> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< vertices >::template to< cells >, ValueType > {
-        typedef array< ValueType, 6 > type;
+    template <typename ValueType>
+    struct return_type<from<vertices>::template to<cells>, ValueType> {
+        typedef array<ValueType, 6> type;
     };
 
-    template < typename ValueType >
-    struct return_type< from< vertices >::template to< edges >, ValueType > {
-        typedef array< ValueType, 6 > type;
+    template <typename ValueType>
+    struct return_type<from<vertices>::template to<edges>, ValueType> {
+        typedef array<ValueType, 6> type;
     };
 
-    template < uint_t SourceColor >
+    template <uint_t SourceColor>
     struct get_connectivity_offset {
 
-        template < int Idx >
+        template <int Idx>
         struct get_element {
             GT_FUNCTION
             constexpr get_element() {}
 
-            template < typename Offsets >
-            GT_FUNCTION constexpr static position_offset_type apply(array< uint_t, 3 > const &i, Offsets offsets) {
+            template <typename Offsets>
+            GT_FUNCTION constexpr static position_offset_type apply(array<uint_t, 3> const &i, Offsets offsets) {
                 return {i[0] + offsets[Idx][0],
                     SourceColor + offsets[Idx][1],
                     i[1] + offsets[Idx][2],
@@ -176,7 +173,7 @@ namespace gridtools {
         };
     };
 
-    template < typename T >
+    template <typename T>
     struct is_grid_topology;
 
     /**
@@ -223,10 +220,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< cells >::with_color< static_uint< 1 > > {
+    struct from<cells>::to<cells>::with_color<static_uint<1>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< cells >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<cells>::to<cells>, ValueType>::type;
 
         /*
          * neighbors order
@@ -242,18 +239,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< cells >::to< cells >::with_color< static_uint< 0 > > {
+    struct from<cells>::to<cells>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< cells >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<cells>::to<cells>, ValueType>::type;
 
         /*
          * neighbors order
@@ -268,18 +265,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< vertices >::to< vertices >::with_color< static_uint< 0 > > {
+    struct from<vertices>::to<vertices>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< vertices >::to< vertices >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<vertices>::to<vertices>, ValueType>::type;
 
         /*
          * neighbors order
@@ -297,8 +294,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{
                 {{0, 0, -1, 0}, {-1, 0, 0, 0}, {-1, 0, 1, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}, {1, 0, -1, 0}}};
         }
     };
@@ -306,10 +303,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< edges >::with_color< static_uint< 0 > > {
+    struct from<edges>::to<edges>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<edges>, ValueType>::type;
 
         /*
          * neighbors order
@@ -324,18 +321,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, 2, -1, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}, {1, 1, -1, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, 2, -1, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}, {1, 1, -1, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< edges >::with_color< static_uint< 1 > > {
+    struct from<edges>::to<edges>::with_color<static_uint<1>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<edges>, ValueType>::type;
 
         /*
          * neighbors order
@@ -352,18 +349,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{-1, 1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {0, -1, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{-1, 1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {0, -1, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< edges >::with_color< static_uint< 2 > > {
+    struct from<edges>::to<edges>::with_color<static_uint<2>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< edges >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<edges>, ValueType>::type;
 
         /*
          * neighbors order
@@ -378,18 +375,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, -2, 0, 0}, {0, -1, 0, 0}, {0, -2, 1, 0}, {1, -1, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, -2, 0, 0}, {0, -1, 0, 0}, {0, -2, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< cells >::to< edges >::with_color< static_uint< 1 > > {
+    struct from<cells>::to<edges>::with_color<static_uint<1>> {
 
-        template < typename ValueType = int_t >
-        using return_t = typename return_type< from< cells >::to< edges >, ValueType >::type;
+        template <typename ValueType = int_t>
+        using return_t = typename return_type<from<cells>::to<edges>, ValueType>::type;
 
         /*
          * neighbors order
@@ -403,18 +400,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< cells >::to< edges >::with_color< static_uint< 0 > > {
+    struct from<cells>::to<edges>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< edges >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<cells>::to<edges>, ValueType>::type;
 
         /*
          * neighbors order
@@ -429,18 +426,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, 1, 0, 0}, {0, 2, 0, 0}, {0, 0, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, 1, 0, 0}, {0, 2, 0, 0}, {0, 0, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertices >::with_color< static_uint< 0 > > {
+    struct from<cells>::to<vertices>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< vertices >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<cells>::to<vertices>, ValueType>::type;
 
         /*
          * neighbors order
@@ -456,18 +453,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertices >::with_color< static_uint< 1 > > {
+    struct from<cells>::to<vertices>::with_color<static_uint<1>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< vertices >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<cells>::to<vertices>, ValueType>::type;
 
         /*
          * neighbors order
@@ -483,18 +480,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, -1, 1, 0}, {1, -1, 1, 0}, {1, -1, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, -1, 1, 0}, {1, -1, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< cells >::with_color< static_uint< 0 > > {
+    struct from<edges>::to<cells>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<cells>, ValueType>::type;
 
         /*
          * neighbors order
@@ -508,18 +505,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, 1, -1, 0}, {0, 0, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, 1, -1, 0}, {0, 0, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< cells >::with_color< static_uint< 1 > > {
+    struct from<edges>::to<cells>::with_color<static_uint<1>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<cells>, ValueType>::type;
 
         /*
          * neighbors order
@@ -536,18 +533,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{-1, 0, 0, 0}, {0, -1, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{-1, 0, 0, 0}, {0, -1, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< cells >::with_color< static_uint< 2 > > {
+    struct from<edges>::to<cells>::with_color<static_uint<2>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< cells >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<cells>, ValueType>::type;
 
         /*
          * neighbors order
@@ -561,18 +558,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, -1, 0, 0}, {0, -2, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, -1, 0, 0}, {0, -2, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertices >::with_color< static_uint< 0 > > {
+    struct from<edges>::to<vertices>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<vertices>, ValueType>::type;
 
         /*
          * neighbors order
@@ -588,18 +585,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{1, 0, 0, 0}, {0, 0, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{1, 0, 0, 0}, {0, 0, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertices >::with_color< static_uint< 1 > > {
+    struct from<edges>::to<vertices>::with_color<static_uint<1>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<vertices>, ValueType>::type;
 
         /*
          * neighbors order
@@ -616,18 +613,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, -1, 0, 0}, {0, -1, 1, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, -1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertices >::with_color< static_uint< 2 > > {
+    struct from<edges>::to<vertices>::with_color<static_uint<2>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<edges>::to<vertices>, ValueType>::type;
 
         /*
          * neighbors order
@@ -643,18 +640,18 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{{{0, -2, 1, 0}, {1, -2, 0, 0}}};
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{{{0, -2, 1, 0}, {1, -2, 0, 0}}};
         }
     };
 
     template <>
     template <>
     template <>
-    struct from< vertices >::to< cells >::with_color< static_uint< 0 > > {
+    struct from<vertices>::to<cells>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< vertices >::to< cells >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<vertices>::to<cells>, ValueType>::type;
 
         /*
          * neighbors order
@@ -671,8 +668,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{
                 {{-1, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 1, 0, 0}, {0, 0, 0, 0}, {0, 1, -1, 0}, {0, 0, -1, 0}}};
         }
     };
@@ -680,10 +677,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertices >::to< edges >::with_color< static_uint< 0 > > {
+    struct from<vertices>::to<edges>::with_color<static_uint<0>> {
 
-        template < typename ValueType >
-        using return_t = typename return_type< from< vertices >::to< edges >, ValueType >::type;
+        template <typename ValueType>
+        using return_t = typename return_type<from<vertices>::to<edges>, ValueType>::type;
 
         /*
          * neighbors order
@@ -700,118 +697,110 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< position_offset_type > offsets() {
-            return return_t< position_offset_type >{
+        constexpr static return_t<position_offset_type> offsets() {
+            return return_t<position_offset_type>{
                 {{0, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 2, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 2, -1, 0}}};
         }
     };
 
-    template < typename SrcLocation, typename DestLocation, uint_t Color >
+    template <typename SrcLocation, typename DestLocation, uint_t Color>
     struct connectivity {
 
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< SrcLocation >::value), "Error: unknown src location type");
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error: unknown dst location type");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type<SrcLocation>::value), "Error: unknown src location type");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type<DestLocation>::value), "Error: unknown dst location type");
 
         GRIDTOOLS_STATIC_ASSERT(
-            (!boost::is_same< SrcLocation, cells >::value || Color < 2), "Error: Color index beyond color length");
+            (!boost::is_same<SrcLocation, cells>::value || Color < 2), "Error: Color index beyond color length");
         GRIDTOOLS_STATIC_ASSERT(
-            (!boost::is_same< SrcLocation, edges >::value || Color < 3), "Error: Color index beyond color length");
+            (!boost::is_same<SrcLocation, edges>::value || Color < 3), "Error: Color index beyond color length");
         GRIDTOOLS_STATIC_ASSERT(
-            (!boost::is_same< SrcLocation, vertices >::value || Color < 1), "Error: Color index beyond color length");
+            (!boost::is_same<SrcLocation, vertices>::value || Color < 1), "Error: Color index beyond color length");
 
         GT_FUNCTION
-        constexpr static typename return_type< typename from< SrcLocation >::template to< DestLocation >,
-            position_offset_type >::type
-        offsets() {
-            return from< SrcLocation >::template to< DestLocation >::template with_color<
-                static_uint< Color > >::offsets();
+        constexpr static
+            typename return_type<typename from<SrcLocation>::template to<DestLocation>, position_offset_type>::type
+            offsets() {
+            return from<SrcLocation>::template to<DestLocation>::template with_color<static_uint<Color>>::offsets();
         }
     };
 
     /**
-    */
-    template < typename Backend >
+     */
+    template <typename Backend>
     class icosahedral_topology {
       public:
         using cells = enumtype::cells;
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
-        // default 4d layout map (matching the chosen architecture by the Backend)
-        using default_4d_layout_map_t = typename Backend::layout_map_t;
-        using type = icosahedral_topology< Backend >;
+        using type = icosahedral_topology<Backend>;
 
         // returns a layout map with ordering specified by the Backend but where
         // the user can specify the active dimensions
-        template < typename Selector >
-        using layout_t = typename Backend::template select_layout< Selector >::type;
+        template <typename Selector>
+        using layout_t = typename Backend::template select_layout<Selector>::type;
 
-        template < typename LocationType,
-            typename Halo = halo< 0, 0, 0, 0 >,
-            typename Selector = selector< 1, 1, 1, 1 > >
-        using meta_storage_t =
-            typename Backend::template storage_info_t< impl::compute_uuid< LocationType::value, Selector >::value,
-                layout_t< Selector >,
-                Halo >;
+        template <typename LocationType, typename Halo = halo<0, 0, 0, 0>, typename Selector = selector<1, 1, 1, 1>>
+        using meta_storage_t = typename Backend::
+            template storage_info_t<impl::compute_uuid<LocationType::value, Selector>::value, layout_t<Selector>, Halo>;
 
-        template < typename LocationType,
+        template <typename LocationType,
             typename ValueType,
-            typename Halo = halo< 0, 0, 0, 0 >,
-            typename Selector = selector< 1, 1, 1, 1 > >
+            typename Halo = halo<0, 0, 0, 0>,
+            typename Selector = selector<1, 1, 1, 1>>
         using data_store_t =
-            typename Backend::template data_store_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
+            typename Backend::template data_store_t<ValueType, meta_storage_t<LocationType, Halo, Selector>>;
 
-        array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
+        array<uint_t, 3> m_dims; // Sizes as cells in a multi-dimensional Cell array
 
       public:
-        template < typename... UInt >
+        template <typename... UInt>
 
-        GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
-            : m_dims{idim, jdim, kdim} {}
+        GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim) : m_dims{idim, jdim, kdim} {}
 
-        template < typename LocationType,
+        template <typename LocationType,
             typename ValueType,
-            typename Halo = halo< 0, 0, 0, 0 >,
-            typename Selector = selector< 1, 1, 1, 1 >,
+            typename Halo = halo<0, 0, 0, 0>,
+            typename Selector = selector<1, 1, 1, 1>,
             typename... IntTypes,
-            typename std::enable_if< is_all_integral< IntTypes... >::value, int >::type = 0 >
-        data_store_t< LocationType, ValueType, Halo, Selector > make_storage(
+            typename std::enable_if<is_all_integral<IntTypes...>::value, int>::type = 0>
+        data_store_t<LocationType, ValueType, Halo, Selector> make_storage(
             char const *name, IntTypes... extra_dims) const {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
-            GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
+            GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "ERROR: location type is wrong");
+            GRIDTOOLS_STATIC_ASSERT((is_selector<Selector>::value), "ERROR: dimension selector is wrong");
 
             GRIDTOOLS_STATIC_ASSERT(
                 (Selector::size == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
 
-            using meta_storage_type = meta_storage_t< LocationType, Halo, Selector >;
+            using meta_storage_type = meta_storage_t<LocationType, Halo, Selector>;
             GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::masked_length),
                 "ERROR: Mismatch between Selector and space dimensions");
 
-            array< uint_t, meta_storage_type::layout_t::masked_length > metastorage_sizes =
-                impl::array_dim_initializers< uint_t,
+            array<uint_t, meta_storage_type::layout_t::masked_length> metastorage_sizes =
+                impl::array_dim_initializers<uint_t,
                     meta_storage_type::layout_t::masked_length,
                     LocationType,
-                    Selector >::apply(m_dims, extra_dims...);
-            auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
+                    Selector>::apply(m_dims, extra_dims...);
+            auto ameta = impl::get_storage_info_from_array<meta_storage_type>(metastorage_sizes);
             return {ameta, name};
         }
 
-        template < typename LocationType >
-        GT_FUNCTION array< int_t, 4 > ll_indices(array< int_t, 3 > const &i, LocationType) const {
-            auto out = array< int_t, 4 >{i[0],
-                i[1] % static_cast< int_t >(LocationType::n_colors::value),
-                i[1] / static_cast< int >(LocationType::n_colors::value),
+        template <typename LocationType>
+        GT_FUNCTION array<int_t, 4> ll_indices(array<int_t, 3> const &i, LocationType) const {
+            auto out = array<int_t, 4>{i[0],
+                i[1] % static_cast<int_t>(LocationType::n_colors::value),
+                i[1] / static_cast<int>(LocationType::n_colors::value),
                 i[2]};
-            return array< int_t, 4 >{i[0],
-                i[1] % static_cast< int_t >(LocationType::n_colors::value),
-                i[1] / static_cast< int >(LocationType::n_colors::value),
+            return array<int_t, 4>{i[0],
+                i[1] % static_cast<int_t>(LocationType::n_colors::value),
+                i[1] / static_cast<int>(LocationType::n_colors::value),
                 i[2]};
         }
     };
 
-    template < typename T >
+    template <typename T>
     struct is_grid_topology : boost::mpl::false_ {};
 
-    template < typename Backend >
-    struct is_grid_topology< icosahedral_topology< Backend > > : boost::mpl::true_ {};
+    template <typename Backend>
+    struct is_grid_topology<icosahedral_topology<Backend>> : boost::mpl::true_ {};
 
 } // namespace gridtools

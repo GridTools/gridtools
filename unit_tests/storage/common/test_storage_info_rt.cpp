@@ -36,53 +36,53 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/common/storage_info_rt.hpp"
-#include "storage/storage-facility.hpp"
+#include <gridtools/storage/common/storage_info_rt.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
 #include "backend_select.hpp"
 
 using namespace gridtools;
 
 TEST(StorageInfoRT, Make3D) {
-    using storage_info_t = storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
+    using storage_info_t = storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3>;
     storage_info_t si(4, 5, 6);
 
     auto storage_info_rt_ = make_storage_info_rt(si);
 
     auto dims = storage_info_rt_.dims();
-    ASSERT_EQ(si.dim< 0 >(), dims[0]);
-    ASSERT_EQ(si.dim< 1 >(), dims[1]);
-    ASSERT_EQ(si.dim< 2 >(), dims[2]);
+    ASSERT_EQ(si.dim<0>(), dims[0]);
+    ASSERT_EQ(si.dim<1>(), dims[1]);
+    ASSERT_EQ(si.dim<2>(), dims[2]);
 
     auto unaligned_dims = storage_info_rt_.unaligned_dims();
-    ASSERT_EQ(si.total_length< 0 >(), unaligned_dims[0]);
-    ASSERT_EQ(si.total_length< 1 >(), unaligned_dims[1]);
-    ASSERT_EQ(si.total_length< 2 >(), unaligned_dims[2]);
+    ASSERT_EQ(si.total_length<0>(), unaligned_dims[0]);
+    ASSERT_EQ(si.total_length<1>(), unaligned_dims[1]);
+    ASSERT_EQ(si.total_length<2>(), unaligned_dims[2]);
 
     auto strides = storage_info_rt_.strides();
-    ASSERT_EQ(si.stride< 0 >(), strides[0]);
-    ASSERT_EQ(si.stride< 1 >(), strides[1]);
-    ASSERT_EQ(si.stride< 2 >(), strides[2]);
+    ASSERT_EQ(si.stride<0>(), strides[0]);
+    ASSERT_EQ(si.stride<1>(), strides[1]);
+    ASSERT_EQ(si.stride<2>(), strides[2]);
 }
 
 TEST(StorageInfoRT, Make3Dmasked) {
-    using storage_info_t = storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 0, 1 > >;
+    using storage_info_t = storage_traits<backend_t::s_backend_id>::special_storage_info_t<0, selector<1, 0, 1>>;
     storage_info_t si(4, 5, 6);
 
     auto storage_info_rt_ = make_storage_info_rt(si);
 
     auto dims = storage_info_rt_.dims();
-    ASSERT_EQ(si.dim< 0 >(), dims[0]);
-    ASSERT_EQ(si.dim< 1 >(), dims[1]);
-    ASSERT_EQ(si.dim< 2 >(), dims[2]);
+    ASSERT_EQ(si.dim<0>(), dims[0]);
+    ASSERT_EQ(si.dim<1>(), dims[1]);
+    ASSERT_EQ(si.dim<2>(), dims[2]);
 
     auto unaligned_dims = storage_info_rt_.unaligned_dims();
-    ASSERT_EQ(si.total_length< 0 >(), unaligned_dims[0]);
-    ASSERT_EQ(si.total_length< 1 >(), unaligned_dims[1]);
-    ASSERT_EQ(si.total_length< 2 >(), unaligned_dims[2]);
+    ASSERT_EQ(si.total_length<0>(), unaligned_dims[0]);
+    ASSERT_EQ(si.total_length<1>(), unaligned_dims[1]);
+    ASSERT_EQ(si.total_length<2>(), unaligned_dims[2]);
 
     auto strides = storage_info_rt_.strides();
-    ASSERT_EQ(si.stride< 0 >(), strides[0]);
-    ASSERT_EQ(si.stride< 1 >(), strides[1]);
-    ASSERT_EQ(si.stride< 2 >(), strides[2]);
+    ASSERT_EQ(si.stride<0>(), strides[0]);
+    ASSERT_EQ(si.stride<1>(), strides[1]);
+    ASSERT_EQ(si.stride<2>(), strides[2]);
 }

@@ -43,10 +43,10 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits.hpp>
 
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/layout_map.hpp"
 #include "../../common/selector.hpp"
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
 
@@ -57,33 +57,33 @@ namespace gridtools {
     namespace _impl {
         /* Layout map extender, takes a given layout and extends it by n dimensions (ascending and descending version)
          */
-        template < uint_t Dim, uint_t Current, typename Layout >
+        template <uint_t Dim, uint_t Current, typename Layout>
         struct layout_map_ext_asc;
 
-        template < uint_t Dim, uint_t Current, int... Dims >
-        struct layout_map_ext_asc< Dim, Current, layout_map< Dims... > >
-            : layout_map_ext_asc< Dim - 1, Current + 1, layout_map< Dims..., Current > > {};
+        template <uint_t Dim, uint_t Current, int... Dims>
+        struct layout_map_ext_asc<Dim, Current, layout_map<Dims...>>
+            : layout_map_ext_asc<Dim - 1, Current + 1, layout_map<Dims..., Current>> {};
 
-        template < uint_t Current, int... Dims >
-        struct layout_map_ext_asc< 0, Current, layout_map< Dims... > > {
-            typedef layout_map< Dims... > type;
+        template <uint_t Current, int... Dims>
+        struct layout_map_ext_asc<0, Current, layout_map<Dims...>> {
+            typedef layout_map<Dims...> type;
         };
 
-        template < uint_t Ext, typename Layout >
+        template <uint_t Ext, typename Layout>
         struct layout_map_ext_dsc;
 
-        template < uint_t Ext, int... Dims >
-        struct layout_map_ext_dsc< Ext, layout_map< Dims... > >
-            : layout_map_ext_dsc< Ext - 1, layout_map< Dims..., Ext - 1 > > {};
+        template <uint_t Ext, int... Dims>
+        struct layout_map_ext_dsc<Ext, layout_map<Dims...>>
+            : layout_map_ext_dsc<Ext - 1, layout_map<Dims..., Ext - 1>> {};
 
-        template < int... Dims >
-        struct layout_map_ext_dsc< 0, layout_map< Dims... > > {
-            typedef layout_map< Dims... > type;
+        template <int... Dims>
+        struct layout_map_ext_dsc<0, layout_map<Dims...>> {
+            typedef layout_map<Dims...> type;
         };
     } // namespace _impl
 
     /* get a standard layout_map (n-dimensional and ascending or descending) */
-    template < uint_t Dim, bool Asc >
+    template <uint_t Dim, bool Asc>
     struct get_layout;
 
     // get a multidimensional layout in ascending order (e.g., host backend)
@@ -97,10 +97,10 @@ namespace gridtools {
      * is because of the gridtools execution model. The CPU backend will give best
      * performance (in most cases) when using the provided layout.
      */
-    template < uint_t Dim >
-    struct get_layout< Dim, true > {
+    template <uint_t Dim>
+    struct get_layout<Dim, true> {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
-        typedef typename _impl::layout_map_ext_asc< Dim - 3, 0, layout_map< Dim - 3, Dim - 2, Dim - 1 > >::type type;
+        typedef typename _impl::layout_map_ext_asc<Dim - 3, 0, layout_map<Dim - 3, Dim - 2, Dim - 1>>::type type;
     };
 
     // get a multidimensional layout in descending order (e.g., gpu backend)
@@ -114,41 +114,41 @@ namespace gridtools {
      * is because of the gridtools execution model. The GPU backend will give best
      * performance (in most cases) when using the provided layout.
      */
-    template < uint_t Dim >
-    struct get_layout< Dim, false > {
+    template <uint_t Dim>
+    struct get_layout<Dim, false> {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, GT_INTERNAL_ERROR_MSG("Zero dimensional layout makes no sense."));
-        typedef typename _impl::layout_map_ext_dsc< Dim - 1, layout_map< Dim - 1 > >::type type;
+        typedef typename _impl::layout_map_ext_dsc<Dim - 1, layout_map<Dim - 1>>::type type;
     };
 
     /* specializations up to 3-dimensional for both i-first and k-first layouts */
     template <>
-    struct get_layout< 1, true > {
-        typedef layout_map< 0 > type;
+    struct get_layout<1, true> {
+        typedef layout_map<0> type;
     };
 
     template <>
-    struct get_layout< 1, false > {
-        typedef layout_map< 0 > type;
+    struct get_layout<1, false> {
+        typedef layout_map<0> type;
     };
 
     template <>
-    struct get_layout< 2, true > {
-        typedef layout_map< 0, 1 > type;
+    struct get_layout<2, true> {
+        typedef layout_map<0, 1> type;
     };
 
     template <>
-    struct get_layout< 2, false > {
-        typedef layout_map< 1, 0 > type;
+    struct get_layout<2, false> {
+        typedef layout_map<1, 0> type;
     };
 
     template <>
-    struct get_layout< 3, true > {
-        typedef layout_map< 0, 1, 2 > type;
+    struct get_layout<3, true> {
+        typedef layout_map<0, 1, 2> type;
     };
 
     template <>
-    struct get_layout< 3, false > {
-        typedef layout_map< 2, 1, 0 > type;
+    struct get_layout<3, false> {
+        typedef layout_map<2, 1, 0> type;
     };
 
     /* special layout construction mechanisms */
@@ -160,7 +160,7 @@ namespace gridtools {
      * @tparam Dim integer
      * @tparam Bit either true or false
      */
-    template < int Dim, bool Bit >
+    template <int Dim, bool Bit>
     struct select_dimension {
         const static int value = (Bit) ? Dim : -1;
     };
@@ -170,7 +170,7 @@ namespace gridtools {
      * @tparam Dim integer
      * @tparam Bit either true or false
      */
-    template < int Dim, bool Bit >
+    template <int Dim, bool Bit>
     struct select_non_dimension {
         const static int value = (!Bit) ? Dim : -1;
     };
@@ -182,16 +182,16 @@ namespace gridtools {
      * @tparam Vec selector
      * @tparam T the layout_map type
      */
-    template < typename Vec, typename T >
+    template <typename Vec, typename T>
     struct fix_values;
 
-    template < typename ValueVec, int... D >
-    struct fix_values< ValueVec, layout_map< D... > > {
-        typedef layout_map< boost::mpl::if_< boost::is_same< boost::mpl::int_< -1 >, boost::mpl::int_< D > >,
-            boost::mpl::int_< -1 >,
-            boost::mpl::int_< (int)(
-                D - (int)boost::mpl::count_if< ValueVec,
-                        boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::value) > >::type::value... >
+    template <typename ValueVec, int... D>
+    struct fix_values<ValueVec, layout_map<D...>> {
+        typedef layout_map<boost::mpl::if_<boost::is_same<boost::mpl::int_<-1>, boost::mpl::int_<D>>,
+            boost::mpl::int_<-1>,
+            boost::mpl::int_<(int)(D - (int)boost::mpl::count_if<ValueVec,
+                                           boost::mpl::less<boost::mpl::_, boost::mpl::int_<D>>>::type::value)>>::type::
+                value...>
             type;
     };
 
@@ -201,27 +201,27 @@ namespace gridtools {
      * @tparam T the layout_map type
      * @tparam Selector the selector type
      */
-    template < typename T, typename Selector >
+    template <typename T, typename Selector>
     struct get_special_layout;
 
-    template < int... Dims, bool... Bitmask >
-    struct get_special_layout< layout_map< Dims... >, selector< Bitmask... > > {
+    template <int... Dims, bool... Bitmask>
+    struct get_special_layout<layout_map<Dims...>, selector<Bitmask...>> {
         // <1,1,0,0,1,1>
-        typedef typename variadic_to_vector< boost::mpl::int_< Bitmask >... >::type bitmask_vec;
+        typedef typename variadic_to_vector<boost::mpl::int_<Bitmask>...>::type bitmask_vec;
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::count_if< bitmask_vec, boost::is_same< boost::mpl::int_< -1 >, boost::mpl::_1 > >::value <
+            (boost::mpl::count_if<bitmask_vec, boost::is_same<boost::mpl::int_<-1>, boost::mpl::_1>>::value <
                 sizeof...(Dims)),
             GT_INTERNAL_ERROR_MSG("Masking out all dimensions makes no sense."));
         // <1,2,3,4,5,0>
-        typedef typename variadic_to_vector< boost::mpl::int_< Dims >... >::type dims_vec;
+        typedef typename variadic_to_vector<boost::mpl::int_<Dims>...>::type dims_vec;
         // <3,4>
         typedef typename boost::mpl::remove<
-            typename variadic_to_vector< boost::mpl::int_< select_non_dimension< Dims, Bitmask >::value >... >::type,
-            boost::mpl::int_< -1 > >::type masked_vec;
-        typedef typename fix_values< masked_vec, layout_map< select_dimension< Dims, Bitmask >::value... > >::type type;
+            typename variadic_to_vector<boost::mpl::int_<select_non_dimension<Dims, Bitmask>::value>...>::type,
+            boost::mpl::int_<-1>>::type masked_vec;
+        typedef typename fix_values<masked_vec, layout_map<select_dimension<Dims, Bitmask>::value...>>::type type;
     };
 
     /**
      * @}
      */
-}
+} // namespace gridtools

@@ -37,11 +37,11 @@
 
 #include <cstdint>
 
-#include <stencil-composition/stencil-composition.hpp>
 #include "backend_select.hpp"
 #include "benchmarker.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-typedef gridtools::halo< 2, 2, 2 > halo_t;
+typedef gridtools::halo<2, 2, 2> halo_t;
 
 /**
   @file
@@ -49,18 +49,18 @@ typedef gridtools::halo< 2, 2, 2 > halo_t;
   in which a misaligned storage is aligned
 */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace aligned_copy_stencil {
 
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo_t> meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -73,7 +73,7 @@ namespace aligned_copy_stencil {
             \param it_domain iterate domain, used to get the pointers and offsets
             \param alignment ordinal number identifying the alignment
         */
-        template < typename Ptr >
+        template <typename Ptr>
         GT_FUNCTION static bool check_pointer_alignment(Ptr const *ptr, uint_t alignment) {
             bool result_ = true;
             if (threadIdx.x == 0) {
@@ -83,11 +83,11 @@ namespace aligned_copy_stencil {
         }
 #endif
 
-        typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > in;
-        typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> in;
+        typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>, 3> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
 
 #ifdef __CUDACC__
@@ -105,7 +105,7 @@ namespace aligned_copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        meta_data_t meta_data_(d1 + 2 * halo_t::at< 0 >(), d2 + 2 * halo_t::at< 1 >(), d3 + 2 * halo_t::at< 2 >());
+        meta_data_t meta_data_(d1 + 2 * halo_t::at<0>(), d2 + 2 * halo_t::at<1>(), d3 + 2 * halo_t::at<2>());
 
         // Definition of the actual data fields that are used for input/output
         storage_t out(meta_data_, (float_type)-1., "out");
@@ -114,22 +114,22 @@ namespace aligned_copy_stencil {
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
 
-        typedef arg< 0, storage_t > p_in;
-        typedef arg< 1, storage_t > p_out;
+        typedef arg<0, storage_t> p_in;
+        typedef arg<1, storage_t> p_out;
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
-        halo_descriptor di{halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
-        halo_descriptor dj{halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
+        halo_descriptor di{halo_t::at<0>(), 0, halo_t::at<0>(), d1 + halo_t::at<0>() - 1, d1 + halo_t::at<0>()};
+        halo_descriptor dj{halo_t::at<1>(), 0, halo_t::at<1>(), d2 + halo_t::at<1>() - 1, d2 + halo_t::at<1>()};
 
-        grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >()});
+        grid<axis<1>::axis_interval_t> grid(di, dj, {halo_t::at<2>(), d3 + halo_t::at<2>()});
 
-        auto copy = gridtools::make_positional_computation< backend_t >(grid,
+        auto copy = gridtools::make_positional_computation<backend_t>(grid,
             p_in() = in,
             p_out() = out,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+            gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
 
         copy.run();
         copy.sync_bound_data_stores();
@@ -146,9 +146,9 @@ namespace aligned_copy_stencil {
 
         // check values
         bool success = true;
-        for (uint_t i = halo_t::at< 0 >(); i < d1 + halo_t::at< 0 >(); ++i)
-            for (uint_t j = halo_t::at< 1 >(); j < d2 + halo_t::at< 1 >(); ++j)
-                for (uint_t k = halo_t::at< 2 >(); k < d3 + halo_t::at< 2 >(); ++k) {
+        for (uint_t i = halo_t::at<0>(); i < d1 + halo_t::at<0>(); ++i)
+            for (uint_t j = halo_t::at<1>(); j < d2 + halo_t::at<1>(); ++j)
+                for (uint_t k = halo_t::at<2>(); k < d3 + halo_t::at<2>(); ++k) {
                     if (inv(i, j, k) != outv(i, j, k) || outv(i, j, k) != i + j + k) {
                         std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                   << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;

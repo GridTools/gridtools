@@ -34,23 +34,21 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/shorten.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/generic_metafunctions/shorten.hpp>
+#include <gridtools/common/gt_assert.hpp>
 
 using namespace gridtools;
 
-template < int_t... Vars >
+template <int_t... Vars>
 struct aex {};
 
 TEST(shorten, 4) {
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< shorten< int_t, aex< 3, 4, 5, 6, 8, 9 >, 3 >::type, aex< 3, 4, 5 > >::value), "ERROR");
+        (boost::is_same<shorten<int_t, aex<3, 4, 5, 6, 8, 9>, 3>::type, aex<3, 4, 5>>::value), "ERROR");
+
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same<shorten<int_t, aex<3, 4, 5, 6, 8, 9>, 1>::type, aex<3>>::value), "ERROR");
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< shorten< int_t, aex< 3, 4, 5, 6, 8, 9 >, 1 >::type, aex< 3 > >::value), "ERROR");
-
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< shorten< int_t, aex< 3, 4, 5, 6, 8, 9 >, 6 >::type, aex< 3, 4, 5, 6, 8, 9 > >::value),
-        "ERROR");
+        (boost::is_same<shorten<int_t, aex<3, 4, 5, 6, 8, 9>, 6>::type, aex<3, 4, 5, 6, 8, 9>>::value), "ERROR");
 }

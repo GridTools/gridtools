@@ -34,33 +34,33 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "timer.hpp"
 #include <string>
-#include "stencil-composition/timer.hpp"
 
 namespace gridtools {
 
     /**
-    * @class TimerDummy
-    * Dummy timer implementation doing nothing in order to avoid runtime overhead
-    */
-    class timer_dummy : public timer< timer_dummy > // CRTP
+     * @class TimerDummy
+     * Dummy timer implementation doing nothing in order to avoid runtime overhead
+     */
+    class timer_dummy : public timer<timer_dummy> // CRTP
     {
       public:
-        GT_FUNCTION_HOST timer_dummy(std::string name) : timer< timer_dummy >(name) {}
+        GT_FUNCTION_HOST timer_dummy(std::string name) : timer<timer_dummy>(name) {}
 
         /**
-        * Reset counters
-        */
+         * Reset counters
+         */
         GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
 
         /**
-        * Start the stop watch
-        */
+         * Start the stop watch
+         */
         GT_FUNCTION_HOST void start_impl() {}
 
         /**
-        * Pause the stop watch
-        */
+         * Pause the stop watch
+         */
         GT_FUNCTION_HOST double pause_impl() { return 0.0; }
     };
-}
+} // namespace gridtools

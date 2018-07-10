@@ -35,21 +35,21 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "horizontal_diffusion_repository.hpp"
-#include <tools/verifier.hpp>
-#include "benchmarker.hpp"
 #include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "horizontal_diffusion_repository.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 /**
   @file
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
@@ -59,14 +59,14 @@ using namespace expressions;
 namespace shorizontal_diffusion {
     // These are the stencil operators that compose the multistage stencil in this test
     struct wlap_function {
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
-        typedef accessor< 2, enumtype::in > crlato;
-        typedef accessor< 3, enumtype::in > crlatu;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in, extent<-1, 1, -1, 1>> in;
+        typedef accessor<2, enumtype::in> crlato;
+        typedef accessor<3, enumtype::in> crlatu;
 
-        typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
+        typedef boost::mpl::vector<out, in, crlato, crlatu> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in(1, 0, 0)) + eval(in(-1, 0, 0)) - (gridtools::float_type)2 * eval(in()) +
                           eval(crlato()) * (eval(in(0, 1, 0)) - eval(in())) +
@@ -76,15 +76,15 @@ namespace shorizontal_diffusion {
 
     struct divflux_function {
 
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in > in;
-        typedef accessor< 2, enumtype::in, extent< -1, 1, -1, 1 > > lap;
-        typedef accessor< 3, enumtype::in > crlato;
-        typedef accessor< 4, enumtype::in > coeff;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1, enumtype::in> in;
+        typedef accessor<2, enumtype::in, extent<-1, 1, -1, 1>> lap;
+        typedef accessor<3, enumtype::in> crlato;
+        typedef accessor<4, enumtype::in> coeff;
 
-        typedef boost::mpl::vector< out, in, lap, crlato, coeff > arg_list;
+        typedef boost::mpl::vector<out, in, lap, crlato, coeff> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             gridtools::float_type fluxx = eval(lap(1, 0, 0)) - eval(lap());
             gridtools::float_type fluxx_m = eval(lap(0, 0, 0)) - eval(lap(-1, 0, 0));
@@ -126,12 +126,12 @@ namespace shorizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef tmp_arg< 0, storage_type > p_lap;
-        typedef arg< 1, storage_type > p_coeff;
-        typedef arg< 2, storage_type > p_in;
-        typedef arg< 3, storage_type > p_out;
-        typedef arg< 4, j_storage_type > p_crlato;
-        typedef arg< 5, j_storage_type > p_crlatu;
+        typedef tmp_arg<0, storage_type> p_lap;
+        typedef arg<1, storage_type> p_coeff;
+        typedef arg<2, storage_type> p_in;
+        typedef arg<3, storage_type> p_out;
+        typedef arg<4, j_storage_type> p_crlato;
+        typedef arg<5, j_storage_type> p_crlatu;
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -142,18 +142,17 @@ namespace shorizontal_diffusion {
 
         auto grid = make_grid(di, dj, d3);
 
-        auto simple_hori_diff = gridtools::make_computation< backend_t >(
-            grid,
+        auto simple_hori_diff = gridtools::make_computation<backend_t>(grid,
             p_coeff() = coeff,
             p_in() = in,
             p_out() = out,
             p_crlato() = crlato,
             p_crlatu() = crlatu,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                define_caches(cache< IJ, cache_io_policy::local >(p_lap())),
-                gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
-                gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
+            (execute<forward>(),
+                define_caches(cache<IJ, cache_io_policy::local>(p_lap())),
+                gridtools::make_stage<wlap_function>(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
+                gridtools::make_stage<divflux_function>(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
         simple_hori_diff.run();
 
@@ -166,7 +165,7 @@ namespace shorizontal_diffusion {
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+            array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
         }
 #ifdef BENCHMARK
@@ -175,4 +174,4 @@ namespace shorizontal_diffusion {
         return result; /// lapse_time.wall<5000000 &&
     }
 
-} // namespace simple_hori_diff
+} // namespace shorizontal_diffusion
