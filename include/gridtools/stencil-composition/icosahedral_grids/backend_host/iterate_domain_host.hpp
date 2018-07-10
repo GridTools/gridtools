@@ -35,7 +35,6 @@
 */
 #pragma once
 
-#include "../../iterate_domain.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
@@ -95,15 +94,6 @@ namespace gridtools {
             assert(strides);
             m_strides = strides;
         }
-
-        template <ushort_t Coordinate, typename Execution>
-        GT_FUNCTION void increment_impl() {}
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment_impl(int_t steps) {}
-
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize_impl() {}
 
         template <typename ReturnType, typename Accessor, typename StoragePointer>
         GT_FUNCTION ReturnType get_value_impl(

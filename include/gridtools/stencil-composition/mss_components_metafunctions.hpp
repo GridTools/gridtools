@@ -41,6 +41,7 @@
 
 #include "../common/gt_assert.hpp"
 #include "./reductions/reduction_descriptor.hpp"
+#include "compute_extents_metafunctions.hpp"
 #include "functor_decorator.hpp"
 #include "grid.hpp"
 #include "mss_components.hpp"

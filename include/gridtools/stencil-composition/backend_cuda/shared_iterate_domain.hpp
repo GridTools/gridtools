@@ -38,14 +38,16 @@
    that will be allocated in shared memory
  */
 #pragma once
-#include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "../../common/generic_metafunctions/void_if_empty.hpp"
-#include "../../stencil-composition/accessor.hpp"
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/sequence/intrinsic/at_key.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/map.hpp>
+
+#include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "../../common/generic_metafunctions/void_if_empty.hpp"
+#include "../accessor.hpp"
+#include "../iterate_domain_aux.hpp"
 
 namespace gridtools {
 

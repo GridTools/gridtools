@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "./independent_esf.hpp"
 #include "./mss.hpp"
 #include "./reductions/reduction_descriptor.hpp"
 

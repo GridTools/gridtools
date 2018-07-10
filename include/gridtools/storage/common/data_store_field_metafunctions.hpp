@@ -48,6 +48,9 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/utility.hpp>
 
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
+
 namespace gridtools {
 
     /** \ingroup storage

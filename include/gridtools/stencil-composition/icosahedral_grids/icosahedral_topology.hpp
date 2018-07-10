@@ -732,8 +732,6 @@ namespace gridtools {
         using cells = enumtype::cells;
         using edges = enumtype::edges;
         using vertices = enumtype::vertices;
-        // default 4d layout map (matching the chosen architecture by the Backend)
-        using default_4d_layout_map_t = typename Backend::layout_map_t;
         using type = icosahedral_topology<Backend>;
 
         // returns a layout map with ordering specified by the Backend but where

@@ -34,8 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../../common/defs.hpp"
 #include "../extent.hpp"
-#include "../iterate_domain.hpp"
+#include "../icosahedral_grids/accessor.hpp"
+#include "../icosahedral_grids/vector_accessor.hpp"
 
 /** @file
     iterate_domain for expandable parameters
@@ -103,12 +106,6 @@ namespace gridtools {
             return super::operator()(static_cast<const accessor<ACC_ID, Intent, LocationType, Extent, Size>>(tmp_));
         }
     };
-
-    template <typename T>
-    struct is_iterate_domain_expandable_parameters : boost::mpl::false_ {};
-
-    template <typename T, ushort_t Val>
-    struct is_iterate_domain_expandable_parameters<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};
 
     template <typename T, ushort_t Val>
     struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};

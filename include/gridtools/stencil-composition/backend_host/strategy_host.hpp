@@ -34,10 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../backend_traits_fwd.hpp"
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../backend_ids.hpp"
+#include "../block.hpp"
+#include "../grid.hpp"
+#include "../mss_components.hpp"
 #include "../mss_functor.hpp"
-#include "../tile.hpp"
-#include "execute_kernel_functor_host.hpp"
+#include "../reductions/reduction_data.hpp"
+#include "./execute_kernel_functor_host.hpp"
 
 namespace gridtools {
 
@@ -56,12 +62,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_host<enumtype::Naive> {
-        // default block size for Naive strategy
-        typedef block_size<0, 0, 0> block_size_t;
-        static const uint_t BI = block_size_t::i_size_t::value;
-        static const uint_t BJ = block_size_t::j_size_t::value;
-        static const uint_t BK = 0;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -85,7 +85,7 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execution_info_host>(local_domain_lists, grid, reduction_data, {0, 0}));
+                    execution_info_host>{local_domain_lists, grid, reduction_data, {0, 0}});
             }
         };
 
@@ -107,17 +107,20 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-                typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
-                typedef typename grid_traits_t::template with_arch<enumtype::Host>::type arch_grid_traits_t;
-
                 // getting the architecture and grid dependent traits
-                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type
-                    kernel_functor_executor_t;
+                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
-                kernel_functor_executor_t(local_domain, grid, reduction_data)();
+
+                kernel_functor_executor_t{local_domain,
+                    grid,
+                    reduction_data,
+                    grid.i_high_bound() - grid.i_low_bound() + 1,
+                    grid.j_high_bound() - grid.j_low_bound() + 1,
+                    0,
+                    0}();
             }
         };
     };
@@ -128,13 +131,6 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_host<enumtype::Block> {
-        // default block size for Block strategy
-        typedef block_size<GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1> block_size_t;
-
-        static const uint_t BI = block_size_t::i_size_t::value;
-        static const uint_t BJ = block_size_t::j_size_t::value;
-        static const uint_t BK = 0;
-
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -156,8 +152,8 @@ namespace gridtools {
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
 
-                uint_t NBI = n / BI;
-                uint_t NBJ = m / BJ;
+                uint_t NBI = n / block_i_size(BackendIds{});
+                uint_t NBJ = m / block_j_size(BackendIds{});
 
 #pragma omp parallel
                 {
@@ -196,45 +192,25 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-                typedef grid_traits_from_id<backend_ids_t::s_grid_type_id> grid_traits_t;
-                typedef typename grid_traits_t::template with_arch<enumtype::Host>::type arch_grid_traits_t;
-
-                typedef typename arch_grid_traits_t::template kernel_functor_executor<RunFunctorArgs>::type
-                    kernel_functor_executor_t;
+                typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR);
 
-                uint_t n = grid.i_high_bound() - grid.i_low_bound();
-                uint_t m = grid.j_high_bound() - grid.j_low_bound();
+                auto block_size_f = [](uint_t total, uint_t block_size, uint_t block_no) {
+                    auto n = (total + block_size - 1) / block_size;
+                    return block_no == n - 1 ? total - block_no * block_size : block_size;
+                };
+                auto total_i = grid.i_high_bound() - grid.i_low_bound() + 1;
+                auto total_j = grid.j_high_bound() - grid.j_low_bound() + 1;
 
-                uint_t NBI = n / BI;
-                uint_t NBJ = m / BJ;
-
-                uint_t first_i = execution_info.bi * BI + grid.i_low_bound();
-                uint_t first_j = execution_info.bj * BJ + grid.j_low_bound();
-
-                uint_t last_i = BI - 1;
-                uint_t last_j = BJ - 1;
-
-                if (execution_info.bi == NBI && execution_info.bj == NBJ) {
-                    last_i = n - NBI * BI;
-                    last_j = m - NBJ * BJ;
-                } else if (execution_info.bi == NBI) {
-                    last_i = n - NBI * BI;
-                } else if (execution_info.bj == NBJ) {
-                    last_j = m - NBJ * BJ;
-                }
-
-                kernel_functor_executor_t(local_domain,
+                kernel_functor_executor_t{local_domain,
                     grid,
                     reduction_data,
-                    first_i,
-                    first_j,
-                    last_i,
-                    last_j,
+                    block_size_f(total_i, block_i_size(backend_ids_t{}), execution_info.bi),
+                    block_size_f(total_j, block_j_size(backend_ids_t{}), execution_info.bj),
                     execution_info.bi,
-                    execution_info.bj)();
+                    execution_info.bj}();
             }
         };
     };

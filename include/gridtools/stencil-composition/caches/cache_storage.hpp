@@ -34,14 +34,18 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <boost/mpl/at.hpp>
+
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../storage/data_store_field.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../iterate_domain_aux.hpp"
 #include "../iteration_policy_fwd.hpp"
 #include "../offset_computation.hpp"
 #include "cache_storage_metafunctions.hpp"
@@ -171,9 +175,8 @@ namespace gridtools {
         template <uint_t Color, typename Accessor>
         GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
 
-            using accessor_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
             GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor<accessor_t>::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
+                (is_accessor<Accessor>::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
             typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
             typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
@@ -193,9 +196,8 @@ namespace gridtools {
          * @brief retrieve value in a cache given an accessor for a k cache
          * @param accessor_ the accessor that contains the offsets being accessed
          */
-        template <typename Accessor>
-        GT_FUNCTION value_type &RESTRICT at(
-            Accessor const &accessor_, typename boost::enable_if_c<is_acc_k_cache<Accessor>::value, int>::type = 0) {
+        template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
+        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
             check_kcache_access(accessor_);
 
             const int_t index_ =
@@ -212,9 +214,8 @@ namespace gridtools {
          * @brief retrieve value in a cache given an accessor for a k cache
          * @param accessor_ the accessor that contains the offsets being accessed
          */
-        template <typename Accessor>
-        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_,
-            typename boost::enable_if_c<is_acc_k_cache<Accessor>::value, int>::type = 0) const {
+        template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
+        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
             check_kcache_access(accessor_);
 
             const int_t index_ =
@@ -260,12 +261,10 @@ namespace gridtools {
                    "Out of bounds access in cache");
         }
 
-        template <typename Accessor>
-        GT_FUNCTION static void check_kcache_access(
-            Accessor const &accessor, typename boost::enable_if_c<is_acc_k_cache<Accessor>::value, int>::type = 0) {
+        template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
+        GT_FUNCTION static void check_kcache_access(Accessor const &accessor) {
 
-            using accessor_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor_t>::value), "Error type is not accessor tuple");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Error type is not accessor tuple");
 
             typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
             typedef static_int<meta_t::template stride<1>()> check_constexpr_2;

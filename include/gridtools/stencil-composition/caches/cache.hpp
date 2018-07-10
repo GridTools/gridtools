@@ -52,6 +52,7 @@
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../accessor.hpp"
+#include "../arg.hpp"
 #include "../interval.hpp"
 #include "../location_type.hpp"
 #include "./cache_definitions.hpp"

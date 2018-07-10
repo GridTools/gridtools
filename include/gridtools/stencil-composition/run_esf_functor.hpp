@@ -41,6 +41,7 @@
 #include "icosahedral_grids/iterate_domain_expandable_parameters.hpp"
 #endif
 #include "functor_decorator.hpp"
+#include "hasdo.hpp"
 #include "run_functor_arguments.hpp"
 
 namespace gridtools {

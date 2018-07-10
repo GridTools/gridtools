@@ -39,11 +39,13 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/block_size.hpp>
 #include <gridtools/stencil-composition/caches/cache_metafunctions.hpp>
 #include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
 #include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/tile.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -87,14 +89,13 @@ typedef detail::cache_impl<K, p_out, cache_io_policy::local, x_interval> cache3_
 typedef detail::cache_impl<K, p_notin, cache_io_policy::local, x_interval> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
-using st_wrapper_in_t =
-    storage_wrapper<p_in, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+using st_wrapper_in_t = storage_wrapper<p_in, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_buff_t =
-    storage_wrapper<p_buff, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_buff, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_notin_t =
-    storage_wrapper<p_notin, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_notin, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 using st_wrapper_out_t =
-    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0, 0>, tile<0, 0, 0>>;
+    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_notin(), p_out())) esf2k_t;
@@ -125,8 +126,6 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis>,
         boost::mpl::false_,
         notype>
@@ -156,8 +155,6 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis>,
         boost::mpl::false_,
         notype>
@@ -191,8 +188,6 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis>,
         boost::mpl::false_,
         notype>
@@ -237,8 +232,6 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
         extents_t,
         max_extent_t,
         caches_t,
-        block_size<32, 4, 1>,
-        block_size<32, 4, 1>,
         gridtools::grid<axis>,
         boost::mpl::false_,
         notype>
