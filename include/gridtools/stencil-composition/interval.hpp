@@ -75,18 +75,21 @@ namespace gridtools {
         interval(TFromLevel){};
 
         static void static_info() {
-            printf("level \"from\": splitter %d, offset %d \n", TFromLevel::Splitter::value, TFromLevel::Offset::value);
-            printf("level \"to\": splitter %d, offset %d \n", TToLevel::Splitter::value, TToLevel::Offset::value);
+            printf("level \"from\": splitter %d, offset %d \n", TFromLevel::splitter, TFromLevel::offset);
+            printf("level \"to\": splitter %d, offset %d \n", TToLevel::splitter, TToLevel::offset);
         }
         // check the parameters are of type level
         GRIDTOOLS_STATIC_ASSERT(is_level<TFromLevel>::value, "check the first template parameter is of type level");
         GRIDTOOLS_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level");
 
         // check the from level is lower or equal to the to level
-        GRIDTOOLS_STATIC_ASSERT((TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
-                                    (TFromLevel::Splitter::value == TToLevel::Splitter::value &&
-                                        TFromLevel::Offset::value <= TToLevel::Offset::value),
+        GRIDTOOLS_STATIC_ASSERT(
+            (TFromLevel::splitter < TToLevel::splitter) ||
+                (TFromLevel::splitter == TToLevel::splitter && TFromLevel::offset <= TToLevel::offset),
             "check the from level is lower or equal to the to level");
+        GRIDTOOLS_STATIC_ASSERT(
+            TFromLevel::offset_limit == TToLevel::offset_limit, "levels must have same offset limit");
+        static constexpr int_t offset_limit = TFromLevel::offset_limit;
 
         // define the from and to splitter indexes
         typedef TFromLevel FromLevel;
@@ -103,17 +106,17 @@ namespace gridtools {
          */
         template <int_t left, int_t right>
         struct modify_impl {
-            GRIDTOOLS_STATIC_ASSERT((_impl::add_offset(TFromLevel::Offset::value, left) >= -cLevelOffsetLimit &&
-                                        _impl::add_offset(TToLevel::Offset::value, right) <= cLevelOffsetLimit),
+            GRIDTOOLS_STATIC_ASSERT((_impl::add_offset(TFromLevel::offset, left) >= -TFromLevel::offset_limit &&
+                                        _impl::add_offset(TToLevel::offset, right) <= TFromLevel::offset_limit),
                 "You are trying to modify an interval to increase beyond its maximal offset.");
-            GRIDTOOLS_STATIC_ASSERT(((TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
-                                        (_impl::add_offset(TFromLevel::Offset::value, left) <=
-                                            _impl::add_offset(TToLevel::Offset::value, right))),
+            GRIDTOOLS_STATIC_ASSERT(
+                ((TFromLevel::splitter < TToLevel::splitter) ||
+                    (_impl::add_offset(TFromLevel::offset, left) <= _impl::add_offset(TToLevel::offset, right))),
                 "You are trying to modify an interval such that the result is an empty interval(left boundary > right "
                 "boundary).");
-            using type =
-                interval<level<TFromLevel::Splitter::value, _impl::add_offset(TFromLevel::Offset::value, left)>,
-                    level<TToLevel::Splitter::value, _impl::add_offset(TToLevel::Offset::value, right)>>;
+            using type = interval<
+                level<TFromLevel::splitter, _impl::add_offset(TFromLevel::offset, left), TFromLevel::offset_limit>,
+                level<TToLevel::splitter, _impl::add_offset(TToLevel::offset, right), TToLevel::offset_limit>>;
         };
         template <int_t left, int_t right>
         using modify = typename modify_impl<left, right>::type;

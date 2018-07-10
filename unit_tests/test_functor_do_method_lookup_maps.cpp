@@ -49,25 +49,30 @@
 
 using namespace gridtools;
 
+constexpr int level_offset_limit = 3;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
 // test functor 1
 struct Functor0 {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<3, -1>, level<3, -1>>) {}
+    static void Do(TArguments &args, interval<level_t<3, -1>, level_t<3, -1>>) {}
 };
 
 // test functor 1
 struct Functor1 {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<0, 1>, level<2, -1>>) {}
+    static void Do(TArguments &args, interval<level_t<0, 1>, level_t<2, -1>>) {}
 };
 
 // test functor 2
 struct Functor2 {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<0, 1>, level<1, -1>>) {}
+    static void Do(TArguments &args, interval<level_t<0, 1>, level_t<1, -1>>) {}
 
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<1, 1>, level<3, -1>>) {}
+    static void Do(TArguments &args, interval<level_t<1, 1>, level_t<3, -1>>) {}
 };
 
 // helper printing a do method lookup map entry
@@ -79,8 +84,8 @@ struct PrintLoopInterval {
         // print the loop interval
         typedef typename index_to_level<typename TLoopInterval::first>::type FromLevel;
         typedef typename index_to_level<typename TLoopInterval::second>::type ToLevel;
-        std::cout << "Loop (" << FromLevel::Splitter::value << "," << ToLevel::Offset::value << ") - "
-                  << "(" << FromLevel::Splitter::value << "," << ToLevel::Offset::value << ")\t->\t";
+        std::cout << "Loop (" << FromLevel::splitter << "," << ToLevel::offset << ") - "
+                  << "(" << FromLevel::splitter << "," << ToLevel::offset << ")\t->\t";
 
         // print the do method
         printDoInterval(static_cast<DoInterval *>(0));
@@ -91,10 +96,8 @@ struct PrintLoopInterval {
     void printDoInterval(boost::mpl::void_ *) { std::cout << "idle!" << std::endl; }
     template <typename TInterval>
     void printDoInterval(TInterval *) {
-        std::cout << "Do (" << TInterval::FromLevel::Splitter::value << "," << TInterval::FromLevel::Offset::value
-                  << ") - "
-                  << "(" << TInterval::ToLevel::Splitter::value << "," << TInterval::ToLevel::Offset::value << ")"
-                  << std::endl;
+        std::cout << "Do (" << TInterval::FromLevel::splitter << "," << TInterval::FromLevel::offset << ") - "
+                  << "(" << TInterval::ToLevel::splitter << "," << TInterval::ToLevel::offset << ")" << std::endl;
     }
 };
 
@@ -127,7 +130,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Functor Do Method Lookup Map" << std::endl << "============================" << std::endl;
 
     // define the axis search interval
-    typedef interval<level<0, -3>, level<3, 3>> AxisInterval;
+    typedef interval<level_t<0, -3>, level_t<3, 3>> AxisInterval;
 
     // define the functors
     typedef boost::mpl::vector<Functor0, Functor1, Functor2> Functors;

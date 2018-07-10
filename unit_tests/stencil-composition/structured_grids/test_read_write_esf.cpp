@@ -42,7 +42,8 @@ using namespace enumtype;
 
 namespace rw_test {
 
-    typedef gridtools::interval<level<0, -1>, level<1, -1>> x_interval;
+    constexpr int_t level_offset_limit = 1;
+    typedef gridtools::interval<level<0, -1, level_offset_limit>, level<1, -1, level_offset_limit>> x_interval;
 
     struct test_functor {
         typedef accessor<0, in, extent<0>> i0;

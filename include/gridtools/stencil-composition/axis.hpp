@@ -50,7 +50,7 @@ namespace gridtools {
      * the last or before the first splitter value) are needed. (Note that the default interval will span the whole
      * axis_interval_t.)
      */
-    template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0>
+    template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0, int_t LevelOffsetLimit = 2>
     class axis {
       private:
         template <size_t... IntervalIDs>
@@ -60,14 +60,15 @@ namespace gridtools {
             static constexpr size_t max_id = constexpr_max(IntervalIDs...);
             GRIDTOOLS_STATIC_ASSERT((max_id < NIntervals), "Interval ID out of bounds for this axis.");
 
-            using type = interval<level<min_id, 1>, level<max_id + 1, -1>>;
+            using type = interval<level<min_id, 1, LevelOffsetLimit>, level<max_id + 1, -1, LevelOffsetLimit>>;
         };
 
       public:
-        using axis_interval_t = interval<level<0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval)>,
-            level<NIntervals, _impl::add_offset(1, ExtraOffsetsAroundFullInterval)>>;
+        using axis_interval_t =
+            interval<level<0, _impl::add_offset(1, -ExtraOffsetsAroundFullInterval), LevelOffsetLimit>,
+                level<NIntervals, _impl::add_offset(1, ExtraOffsetsAroundFullInterval), LevelOffsetLimit>>;
 
-        using full_interval = interval<level<0, 1>, level<NIntervals, -1>>;
+        using full_interval = interval<level<0, 1, LevelOffsetLimit>, level<NIntervals, -1, LevelOffsetLimit>>;
 
         template <typename... IntervalSizes,
             typename std::enable_if<sizeof...(IntervalSizes) == NIntervals && is_all_integral<IntervalSizes...>::value,
@@ -79,6 +80,8 @@ namespace gridtools {
 
         template <size_t... IntervalIDs>
         using get_interval = typename interval_impl<IntervalIDs...>::type;
+
+        static constexpr int_t level_offset_limit = LevelOffsetLimit;
 
       private:
         array<uint_t, NIntervals> interval_sizes_;

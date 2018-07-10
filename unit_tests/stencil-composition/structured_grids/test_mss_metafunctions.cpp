@@ -41,8 +41,11 @@
 using namespace gridtools;
 using namespace enumtype;
 
+constexpr int_t level_offset_limit = 1;
+
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> x_interval;
+typedef gridtools::interval<gridtools::level<0, -1, level_offset_limit>, gridtools::level<1, -1, level_offset_limit>>
+    x_interval;
 
 struct functor1 {
     typedef accessor<0> in;
