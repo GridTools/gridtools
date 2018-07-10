@@ -35,25 +35,28 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include <boost/type_traits/is_arithmetic.hpp>
+
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
-#include "../positional_iterate_domain.hpp"
-#include <boost/type_traits/is_arithmetic.hpp>
+#include "../../iterate_domain_fwd.hpp"
+#include "../iterate_domain.hpp"
 
 namespace gridtools {
 
     /**
      * @brief iterate domain class for the CUDA backend
      */
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
+    template <typename IterateDomainArguments>
     class iterate_domain_cuda
-        : public IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>> // CRTP
+        : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>> super;
+        typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         typedef typename local_domain_t::esf_args local_domain_args_t;
 
@@ -337,12 +340,6 @@ namespace gridtools {
         array<int, 2> m_thread_pos;
     };
 
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>
-        : public boost::mpl::true_ {};
-
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    struct is_positional_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>
-        : is_positional_iterate_domain<
-              IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>> {};
+    template <typename IterateDomainArguments>
+    struct is_iterate_domain<iterate_domain_cuda<IterateDomainArguments>> : std::true_type {};
 } // namespace gridtools

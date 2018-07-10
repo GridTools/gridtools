@@ -172,18 +172,6 @@ namespace gridtools {
         };
     } // namespace strgrid
 
-    /** Metafunction to query an iterate domain if it's positional. Specialization for
-        iterate_domain_remapper
-    */
-    template <typename T, typename U>
-    struct is_positional_iterate_domain<strgrid::iterate_domain_remapper<T, U>> : boost::false_type {};
-
-    /** Metafunction to query an iterate domain if it's positional. Specialization for
-        positional_iterate_domain_remapper
-    */
-    template <typename T, typename U>
-    struct is_positional_iterate_domain<strgrid::positional_iterate_domain_remapper<T, U>> : boost::true_type {};
-
     /** Metafunction to query a type is an iterate domain.
      */
     template <typename T, typename U>

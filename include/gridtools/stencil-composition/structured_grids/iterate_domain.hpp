@@ -43,7 +43,6 @@
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
-#include "../iterate_domain_impl_metafunctions.hpp"
 #include "../pos3.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
 /**@file
@@ -101,11 +100,10 @@ namespace gridtools {
        the computation/increment of the useful addresses in memory, given the iteration point,
        the storage placeholders/metadatas and their offsets.
      */
-    template <typename IterateDomainImpl>
-    struct iterate_domain
-        : public iterate_domain_reduction<typename iterate_domain_impl_arguments<IterateDomainImpl>::type> {
+    template <typename IterateDomainImpl, class IterateDomainArguments>
+    struct iterate_domain : iterate_domain_reduction<IterateDomainArguments> {
         // *************** internal type definitions **************
-        typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+        typedef IterateDomainArguments iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
         typedef iterate_domain_reduction<iterate_domain_arguments_t> iterate_domain_reduction_t;
         typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
@@ -140,7 +138,7 @@ namespace gridtools {
         /**
          * metafunction that computes the return type of all operator() of an accessor.
          *
-         * If the temaplate argument is not an accessor `type` is mpl::void_
+         * If the template argument is not an accessor `type` is mpl::void_
          *
          */
         template <typename Accessor>
@@ -475,13 +473,15 @@ namespace gridtools {
        \tparam DirectGMemAccess selects a direct access to main memory for the given accessor, ignoring if the
            parameter is being cached using software managed cache syntax
     */
-    template <typename IterateDomainImpl>
+    template <typename IterateDomainImpl, typename IterateDomainArguments>
     template <bool DirectGMemAccess, typename Accessor>
-    GT_FUNCTION typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type
-    iterate_domain<IterateDomainImpl>::get_value(Accessor const &accessor, void *RESTRICT storage_pointer) const {
+    GT_FUNCTION typename iterate_domain<IterateDomainImpl,
+        IterateDomainArguments>::template accessor_return_type<Accessor>::type
+    iterate_domain<IterateDomainImpl, IterateDomainArguments>::get_value(
+        Accessor const &accessor, void *RESTRICT storage_pointer) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-        typedef typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type return_t;
+        typedef typename accessor_return_type<Accessor>::type return_t;
 
         // getting information about the storage
         typedef typename Accessor::index_t index_t;

@@ -44,7 +44,6 @@
 #include "../../pos3.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../grid_traits.hpp"
-#include "../iterate_domain.hpp"
 #include "./iterate_domain_host.hpp"
 #include "./run_esf_functor_host.hpp"
 
@@ -130,11 +129,9 @@ namespace gridtools {
                 typename RunFunctorArguments::extent_sizes_t,
                 typename RunFunctorArguments::max_extent_t,
                 typename RunFunctorArguments::cache_sequence_t,
-                grid_t,
-                typename RunFunctorArguments::is_reduction_t,
-                typename RunFunctorArguments::reduction_data_t::reduction_type_t>;
+                grid_t>;
 
-            using iterate_domain_t = iterate_domain_host<iterate_domain, iterate_domain_arguments_t>;
+            using iterate_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
 
             typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;

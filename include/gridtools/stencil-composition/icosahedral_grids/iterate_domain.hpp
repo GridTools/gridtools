@@ -46,7 +46,6 @@
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
-#include "../iterate_domain_impl_metafunctions.hpp"
 #include "../location_type.hpp"
 #include "../position_offset_type.hpp"
 #include "accessor_metafunctions.hpp"
@@ -58,12 +57,9 @@ namespace gridtools {
        This class is basically the iterate domain. It contains the
        ways to access data and the implementation of iterating on neighbors.
      */
-    // template <typename PlcVector, typename GridType, typename LocationType>
-    template <typename IterateDomainImpl>
+    template <typename IterateDomainImpl, typename IterateDomainArguments>
     struct iterate_domain {
-        typedef iterate_domain<IterateDomainImpl> type;
-
-        typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
+        typedef IterateDomainArguments iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
@@ -382,10 +378,8 @@ namespace gridtools {
                 boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<
-                    typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type,
-                    Accessor,
-                    data_t *>(real_storage_pointer, pointer_offset);
+                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor, data_t *>(
+                    real_storage_pointer, pointer_offset);
         }
 
         template <typename Accessor, typename StoragePointer>
@@ -409,10 +403,8 @@ namespace gridtools {
                 offset));
 
             return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<
-                    typename iterate_domain<IterateDomainImpl>::template accessor_return_type<Accessor>::type,
-                    Accessor,
-                    data_t *>(real_storage_pointer, offset);
+                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor, data_t *>(
+                    real_storage_pointer, offset);
         }
 
         /**

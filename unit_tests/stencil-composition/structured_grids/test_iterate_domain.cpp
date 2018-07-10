@@ -45,7 +45,6 @@
 
 #ifdef BACKEND_HOST
 #include <gridtools/stencil-composition/structured_grids/backend_host/iterate_domain_host.hpp>
-#include <gridtools/stencil-composition/structured_grids/iterate_domain.hpp>
 #endif
 
 #ifdef BACKEND_MIC
@@ -130,7 +129,7 @@ namespace test_iterate_domain {
 #endif
 
 #ifdef BACKEND_HOST
-        using it_domain_t = iterate_domain_host<iterate_domain, iterate_domain_arguments_t>;
+        using it_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
 #endif
 
         it_domain_t it_domain(local_domain1, 0);

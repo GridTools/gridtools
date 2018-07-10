@@ -39,15 +39,13 @@
 #include "../extent.hpp"
 #include "../icosahedral_grids/accessor.hpp"
 #include "../icosahedral_grids/vector_accessor.hpp"
+#include "../iterate_domain_fwd.hpp"
 
 /** @file
     iterate_domain for expandable parameters
 */
 
 namespace gridtools {
-
-    template <typename T>
-    struct is_iterate_domain;
 
     /**
        @brief iterate_domain specific for when expandable parameters are used

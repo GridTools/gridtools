@@ -160,11 +160,9 @@ namespace gridtools {
                     typename RunFunctorArguments::extent_sizes_t,
                     typename RunFunctorArguments::max_extent_t,
                     typename RunFunctorArguments::cache_sequence_t,
-                    grid_t,
-                    typename RunFunctorArguments::is_reduction_t,
-                    typename RunFunctorArguments::reduction_data_t::reduction_type_t>;
+                    grid_t>;
 
-                using iterate_domain_t = iterate_domain_mic<iterate_domain, iterate_domain_arguments_t>;
+                using iterate_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
 
                 typedef backend_traits_from_id<enumtype::Mic> backend_traits_t;
 

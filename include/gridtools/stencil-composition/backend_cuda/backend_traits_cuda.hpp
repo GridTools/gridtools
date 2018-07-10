@@ -48,7 +48,6 @@
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
-#include "../run_functor_arguments_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "iterate_domain_cache.hpp"
 #include "strategy_cuda.hpp"
@@ -62,17 +61,6 @@
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
 namespace gridtools {
-
-    /**forward declaration*/
-
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    class iterate_domain_cuda;
-
-    template <typename IterateDomainImpl>
-    struct positional_iterate_domain;
-
-    template <typename IterateDomainImpl>
-    struct iterate_domain;
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>

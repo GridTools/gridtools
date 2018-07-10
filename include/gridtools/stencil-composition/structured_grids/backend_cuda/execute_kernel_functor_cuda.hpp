@@ -44,7 +44,7 @@
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "../grid_traits.hpp"
-#include "../iterate_domain.hpp"
+#include "../positional_iterate_domain.hpp"
 #include "./iterate_domain_cuda.hpp"
 #include "./run_esf_functor_cuda.hpp"
 
@@ -72,14 +72,12 @@ namespace gridtools {
                 typename RunFunctorArguments::extent_sizes_t,
                 typename RunFunctorArguments::max_extent_t,
                 typename RunFunctorArguments::cache_sequence_t,
-                typename RunFunctorArguments::grid_t,
-                typename RunFunctorArguments::is_reduction_t,
-                typename RunFunctorArguments::reduction_data_t::reduction_type_t>;
-
+                typename RunFunctorArguments::grid_t>;
+            using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
             using iterate_domain_t =
                 typename conditional_t<local_domain_is_stateful<typename RunFunctorArguments::local_domain_t>::value,
-                    meta::lazy::id<iterate_domain_cuda<positional_iterate_domain, iterate_domain_arguments_t>>,
-                    meta::lazy::id<iterate_domain_cuda<iterate_domain, iterate_domain_arguments_t>>>::type;
+                    meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
+                    meta::lazy::id<iterate_domain_cuda_t>>::type;
 
             typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;

@@ -113,9 +113,8 @@ namespace gridtools {
             using iterate_domain_remapper_t =
                 typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type;
             iterate_domain_remapper_t iterate_domain_remapper(it_domain);
-            it_domain.set_reduction_value(bin_op_t()(it_domain.reduction_value(),
-                functor_t::f_type::template Do<decltype(iterate_domain_remapper) &>(
-                    iterate_domain_remapper, IntervalType())));
+            it_domain.set_reduction_value(bin_op_t{}(
+                it_domain.reduction_value(), functor_t::f_type::Do(iterate_domain_remapper, IntervalType{})));
         }
     };
 } // namespace gridtools

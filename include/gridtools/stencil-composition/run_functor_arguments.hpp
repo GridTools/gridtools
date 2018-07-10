@@ -59,8 +59,8 @@ namespace gridtools {
         typename MaxExtent,
         typename CacheSequence,
         typename Grid,
-        typename IsReduction,
-        typename FunctorReturnType>
+        typename IsReduction = std::false_type,
+        typename FunctorReturnType = notype>
     struct iterate_domain_arguments {
 
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);

@@ -52,7 +52,6 @@
 #include "../../caches/cache_metafunctions.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../offset_computation.hpp"
 #include "../../reductions/iterate_domain_reduction.hpp"
@@ -537,8 +536,5 @@ namespace gridtools {
 
     template <typename IterateDomainArguments>
     struct is_iterate_domain<iterate_domain_mic<IterateDomainArguments>> : boost::mpl::true_ {};
-
-    template <typename IterateDomainArguments>
-    struct is_positional_iterate_domain<iterate_domain_mic<IterateDomainArguments>> : boost::mpl::true_ {};
 
 } // namespace gridtools

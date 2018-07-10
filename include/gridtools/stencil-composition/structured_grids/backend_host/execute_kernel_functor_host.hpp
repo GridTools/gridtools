@@ -45,7 +45,6 @@
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
-#include "../iterate_domain.hpp"
 #include "../positional_iterate_domain.hpp"
 #include "./iterate_domain_host.hpp"
 #include "./run_esf_functor_host.hpp"
@@ -82,10 +81,10 @@ namespace gridtools {
                 grid_t,
                 typename RunFunctorArguments::is_reduction_t,
                 reduction_type_t>;
-
+            using iterate_domain_host_t = iterate_domain_host<iterate_domain_arguments_t>;
             using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
-                meta::lazy::id<iterate_domain_host<positional_iterate_domain, iterate_domain_arguments_t>>,
-                meta::lazy::id<iterate_domain_host<iterate_domain, iterate_domain_arguments_t>>>::type;
+                meta::lazy::id<positional_iterate_domain<iterate_domain_host_t>>,
+                meta::lazy::id<iterate_domain_host_t>>::type;
 
             typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
 
