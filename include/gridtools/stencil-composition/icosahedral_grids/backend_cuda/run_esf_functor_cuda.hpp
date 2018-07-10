@@ -35,53 +35,37 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include <boost/mpl/at.hpp>
+
 #include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/type_traits.hpp"
+#include "../../../common/host_device.hpp"
 #include "../../functor_decorator.hpp"
+#include "../../location_type.hpp"
 #include "../../run_esf_functor.hpp"
 #include "../../run_functor_arguments.hpp"
 #include "../esf.hpp"
-#include "../grid_traits.hpp"
 #include "../iterate_domain_remapper.hpp"
-#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 
     template <typename Esf>
-    struct esf_has_color {
+    struct esf_has_color : bool_constant<!std::is_same<typename Esf::color_t, nocolor>::value> {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-        typedef typename boost::mpl::not_<typename boost::is_same<typename Esf::color_t, nocolor>::type>::type type;
-        static const bool value = type::value;
-    };
-
-    template <typename Esf>
-    struct esf_color_range {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-        template <typename Esf_>
-        struct build_range_ {
-            typedef boost::mpl::range_c<uint_t, Esf_::color_t::color_t::value, Esf_::color_t::color_t::value> type;
-        };
-        template <typename Esf_>
-        struct build_full_range_ {
-            typedef boost::mpl::range_c<uint_t, 0, esf_get_location_type<Esf_>::type::n_colors::value> type;
-        };
-
-        typedef typename boost::mpl::eval_if<esf_has_color<Esf>, build_range_<Esf>, build_full_range_<Esf>>::type type;
     };
 
     template <typename IterateDomain, typename EsfArguments, typename EsfLocationType, typename IntervalType>
     struct color_functor {
         GRIDTOOLS_STATIC_ASSERT((is_location_type<EsfLocationType>::value), GT_INTERNAL_ERROR);
 
-      private:
         IterateDomain &m_iterate_domain;
 
-      public:
-        GT_FUNCTION
-        color_functor(IterateDomain &iterate_domain) : m_iterate_domain(iterate_domain) {}
-
         template <typename Index>
-        GT_FUNCTION void operator()(Index const &) {
+        GT_FUNCTION void operator()(Index) const {
 
             typedef typename get_iterate_domain_remapper<IterateDomain,
                 typename EsfArguments::esf_args_map_t,
@@ -91,8 +75,6 @@ namespace gridtools {
             typedef typename EsfArguments::esf_t esf_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
-
-            // typedef typename esf_t::template esf_function< Index::value > functor_t;
 
             typedef typename EsfArguments::functor_t original_functor_t;
             typedef typename esf_t::template esf_function<Index::value> colored_functor_t;
@@ -119,8 +101,7 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template <class IntervalType, class EsfArguments, class ItDomain>
-        GT_FUNCTION void operator()(ItDomain &it_domain) const {
-#ifdef __CUDA_ARCH__
+        GT_FUNCTION_DEVICE void operator()(ItDomain &it_domain) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
 
             typedef typename EsfArguments::functor_t functor_t;
@@ -128,15 +109,13 @@ namespace gridtools {
 
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
-            if (it_domain.template is_thread_in_domain<extent_t>()) {
+            if (it_domain.template is_thread_in_domain<extent_t>())
                 // loop over colors excuting user funtor for each color
                 color_loop<IntervalType, EsfArguments>(it_domain);
-            }
 
             // synchronize threads if not independent esf
             if (!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
                 __syncthreads();
-#endif
         }
 
       private:
@@ -146,7 +125,7 @@ namespace gridtools {
             typename EsfArguments,
             typename ItDomain,
             enable_if_t<esf_has_color<typename EsfArguments::esf_t>::value, int> = 0>
-        GT_FUNCTION_DEVICE void color_loop(ItDomain &it_domain) const {
+        GT_FUNCTION_DEVICE static void color_loop(ItDomain &it_domain) {
 
             typedef typename EsfArguments::esf_t::color_t::color_t color_t;
             typedef typename esf_get_location_type<typename EsfArguments::esf_t>::type location_type_t;
@@ -161,10 +140,6 @@ namespace gridtools {
             typedef typename EsfArguments::esf_t esf_t;
             typedef typename esf_t::template esf_function<color_t::value> functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
-
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
-
             // TODO we could identify if previous ESF was in the same color and avoid this iterator operations
             it_domain.template increment_c<color_t::value>();
 
@@ -178,19 +153,14 @@ namespace gridtools {
         template <typename IntervalType,
             typename EsfArguments,
             typename ItDomain,
-            enable_if_t<!esf_has_color<typename EsfArguments::esf_t>::value, int> = 0>
-        GT_FUNCTION_DEVICE void color_loop(ItDomain &it_domain) const {
-
-            typedef typename esf_get_location_type<typename EsfArguments::esf_t>::type location_type_t;
-
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
-
-            typedef typename esf_color_range<typename EsfArguments::esf_t>::type color_range_t;
-
-            boost::mpl::for_each<color_range_t>(
-                color_functor<ItDomain, EsfArguments, location_type_t, IntervalType>(it_domain));
-
-            it_domain.template increment_c<-location_type_t::n_colors::value>();
+            typename Esf = typename EsfArguments::esf_t,
+            enable_if_t<!esf_has_color<Esf>::value, int> = 0>
+        GT_FUNCTION_DEVICE static void color_loop(ItDomain &it_domain) {
+            using location_type_t = typename esf_get_location_type<Esf>::type;
+            static constexpr auto NColors = location_type_t::n_colors::value;
+            gridtools::for_each<GT_META_CALL(meta::make_indices_c, NColors)>(
+                color_functor<ItDomain, EsfArguments, location_type_t, IntervalType>{it_domain});
+            it_domain.template increment_c<-NColors>();
         }
     };
 } // namespace gridtools
