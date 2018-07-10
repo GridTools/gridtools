@@ -36,26 +36,26 @@
 
 #include "gtest/gtest.h"
 
-#include <storage/data_store.hpp>
-#include <common/gt_assert.hpp>
-#include <common/variadic_pack_metafunctions.hpp>
-#include <storage/storage_cuda/cuda_storage.hpp>
-#include <storage/storage_cuda/cuda_storage_info.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/common/variadic_pack_metafunctions.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage.hpp>
+#include <gridtools/storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
-typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
+typedef cuda_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
 
 __global__ void mul2(double *s) {
     s[0] *= 2.0;
     s[1] *= 2.0;
 }
 
-template < typename StorageInfo >
+template <typename StorageInfo>
 __global__ void check_vals(double *s, StorageInfo const *si) {
-    for (uint_t i = 0; i < si->template total_length< 0 >(); ++i)
-        for (uint_t j = 0; j < si->template total_length< 1 >(); ++j)
-            for (uint_t k = 0; k < si->template total_length< 2 >(); ++k) {
+    for (uint_t i = 0; i < si->template total_length<0>(); ++i)
+        for (uint_t j = 0; j < si->template total_length<1>(); ++j)
+            for (uint_t k = 0; k < si->template total_length<2>(); ++k) {
                 int x = si->index(i, j, k);
                 if (s[x] > 3.141499 && s[x] < 3.141501) {
                     s[x] = 1.0;
@@ -65,11 +65,11 @@ __global__ void check_vals(double *s, StorageInfo const *si) {
             }
 }
 
-template < typename StorageInfo >
+template <typename StorageInfo>
 __global__ void check_vals_lambda(double *s, StorageInfo const *si) {
-    for (uint_t i = 0; i < si->template total_length< 0 >(); ++i)
-        for (uint_t j = 0; j < si->template total_length< 1 >(); ++j)
-            for (uint_t k = 0; k < si->template total_length< 2 >(); ++k) {
+    for (uint_t i = 0; i < si->template total_length<0>(); ++i)
+        for (uint_t j = 0; j < si->template total_length<1>(); ++j)
+            for (uint_t k = 0; k < si->template total_length<2>(); ++k) {
                 int x = si->index(i, j, k);
                 if (s[x] == i + j + k) {
                     s[x] = i + j + k + 1.0;
@@ -80,39 +80,39 @@ __global__ void check_vals_lambda(double *s, StorageInfo const *si) {
 }
 
 TEST(DataStoreTest, Simple) {
-    using data_store_t = data_store< cuda_storage< double >, storage_info_t >;
+    using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
     storage_info_t si(3, 3, 3);
-    constexpr storage_info_interface< 0, layout_map< 2, 1, 0 > > csi(3, 3, 3);
-    constexpr storage_info_interface< 1, layout_map< 2, 1, 0 >, halo< 2, 1, 0 > > csih(7, 5, 3);
-    constexpr storage_info_interface< 2, layout_map< 2, 1, 0 >, halo< 2, 1, 0 >, alignment< 16 > > csiha(7, 5, 3);
+    constexpr storage_info_interface<0, layout_map<2, 1, 0>> csi(3, 3, 3);
+    constexpr storage_info_interface<1, layout_map<2, 1, 0>, halo<2, 1, 0>> csih(7, 5, 3);
+    constexpr storage_info_interface<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
     // check sizes, strides, and alignment
-    GRIDTOOLS_STATIC_ASSERT(csi.dim< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.dim< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csi.dim<0>() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csi.dim<1>() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csi.dim<2>() == 3, "dimension check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csi.stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.stride< 2 >() == 9, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csi.stride<0>() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csi.stride<1>() == 3, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csi.stride<2>() == 9, "stride check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csih.dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csih.dim<0>() == 7, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csih.dim<1>() == 5, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csih.dim<2>() == 3, "dimension check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csih.stride< 0 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.stride< 1 >() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.stride< 2 >() == 35, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
 
-    EXPECT_EQ(csiha.dim< 0 >(), 7);
-    EXPECT_EQ(csiha.dim< 1 >(), 5);
-    EXPECT_EQ(csiha.dim< 2 >(), 3);
+    EXPECT_EQ(csiha.dim<0>(), 7);
+    EXPECT_EQ(csiha.dim<1>(), 5);
+    EXPECT_EQ(csiha.dim<2>(), 3);
 
-    EXPECT_EQ(csiha.padded_length< 0 >(), 16);
-    EXPECT_EQ(csiha.padded_length< 1 >(), 5);
-    EXPECT_EQ(csiha.padded_length< 2 >(), 3);
+    EXPECT_EQ(csiha.padded_length<0>(), 16);
+    EXPECT_EQ(csiha.padded_length<1>(), 5);
+    EXPECT_EQ(csiha.padded_length<2>(), 3);
 
-    EXPECT_EQ(csiha.stride< 0 >(), 1);
-    EXPECT_EQ(csiha.stride< 1 >(), 16);
-    EXPECT_EQ(csiha.stride< 2 >(), 16 * 5);
+    EXPECT_EQ(csiha.stride<0>(), 1);
+    EXPECT_EQ(csiha.stride<1>(), 16);
+    EXPECT_EQ(csiha.stride<2>(), 16 * 5);
 
     // create unallocated data_store
     data_store_t ds;
@@ -142,7 +142,7 @@ TEST(DataStoreTest, Simple) {
 
     // clone to device
     datast.clone_to_device();
-    mul2<<< 1, 1 >>>(datast.get_storage_ptr()->get_gpu_ptr());
+    mul2<<<1, 1>>>(datast.get_storage_ptr()->get_gpu_ptr());
 
     // check again
     datast.get_storage_ptr()->get_cpu_ptr()[0] = 200;
@@ -153,8 +153,8 @@ TEST(DataStoreTest, Simple) {
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[1]), 400);
 
     // test some copy assignment operations
-    data_store< cuda_storage< double >, storage_info_t > ds_cpy_ass1(si);
-    data_store< cuda_storage< double >, storage_info_t > ds_cpy_ass2;
+    data_store<cuda_storage<double>, storage_info_t> ds_cpy_ass1(si);
+    data_store<cuda_storage<double>, storage_info_t> ds_cpy_ass2;
     ds_cpy_ass2 = ds_cpy_ass1;
     ASSERT_TRUE(ds_cpy_ass2.get_storage_ptr()->get_cpu_ptr() == ds_cpy_ass1.get_storage_ptr()->get_cpu_ptr());
     ASSERT_TRUE(ds_cpy_ass2.get_storage_ptr()->get_gpu_ptr() == ds_cpy_ass1.get_storage_ptr()->get_gpu_ptr());
@@ -162,7 +162,7 @@ TEST(DataStoreTest, Simple) {
 }
 
 TEST(DataStoreTest, States) {
-    using data_store_t = data_store< cuda_storage< double >, storage_info_t >;
+    using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
     storage_info_t si(3, 3, 3);
     // create and allocate data_store
     data_store_t ds(si);
@@ -194,8 +194,8 @@ TEST(DataStoreTest, States) {
 
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(12, 12, 8);
-    data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
-    check_vals<<< 1, 1 >>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    data_store<cuda_storage<double>, storage_info_t> ds(si, 3.1415);
+    check_vals<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
     ds.clone_from_device();
     for (uint_t i = 0; i < 12; ++i)
         for (uint_t j = 0; j < 12; ++j)
@@ -205,8 +205,8 @@ TEST(DataStoreTest, Initializer) {
 
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
-    data_store< cuda_storage< double >, storage_info_t > ds(si, [](int i, int j, int k) { return i + j + k; });
-    check_vals_lambda<<< 1, 1 >>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    data_store<cuda_storage<double>, storage_info_t> ds(si, [](int i, int j, int k) { return i + j + k; });
+    check_vals_lambda<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
     ds.clone_from_device();
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 11; ++j)
@@ -217,20 +217,20 @@ TEST(DataStoreTest, LambdaInitializer) {
 TEST(DataStoreTest, Naming) {
     storage_info_t si(10, 11, 12);
     // no naming
-    data_store< cuda_storage< double >, storage_info_t > ds1_nn;
-    data_store< cuda_storage< double >, storage_info_t > ds2_nn(si);
-    data_store< cuda_storage< double >, storage_info_t > ds3_nn(si, 1.0);
-    data_store< cuda_storage< double >, storage_info_t > ds4_nn(si, [](int i, int j, int k) { return i + j + k; });
+    data_store<cuda_storage<double>, storage_info_t> ds1_nn;
+    data_store<cuda_storage<double>, storage_info_t> ds2_nn(si);
+    data_store<cuda_storage<double>, storage_info_t> ds3_nn(si, 1.0);
+    data_store<cuda_storage<double>, storage_info_t> ds4_nn(si, [](int i, int j, int k) { return i + j + k; });
     EXPECT_EQ(ds1_nn.name(), "");
     EXPECT_EQ(ds2_nn.name(), "");
     EXPECT_EQ(ds3_nn.name(), "");
     EXPECT_EQ(ds4_nn.name(), "");
 
     // test naming
-    data_store< cuda_storage< double >, storage_info_t > ds1("empty storage");
-    data_store< cuda_storage< double >, storage_info_t > ds2(si, "standard storage");
-    data_store< cuda_storage< double >, storage_info_t > ds3(si, 1.0, "value init. storage");
-    data_store< cuda_storage< double >, storage_info_t > ds4(
+    data_store<cuda_storage<double>, storage_info_t> ds1("empty storage");
+    data_store<cuda_storage<double>, storage_info_t> ds2(si, "standard storage");
+    data_store<cuda_storage<double>, storage_info_t> ds3(si, 1.0, "value init. storage");
+    data_store<cuda_storage<double>, storage_info_t> ds4(
         si, [](int i, int j, int k) { return i + j + k; }, "lambda init. storage");
     EXPECT_EQ(ds1.name(), "empty storage");
     EXPECT_EQ(ds2.name(), "standard storage");
@@ -250,10 +250,10 @@ TEST(DataStoreTest, ExternalPointer) {
     storage_info_t si(10, 10, 10);
     double *external_ptr = new double[si.padded_total_length()];
     // create a data_store with externally managed storage
-    data_store< cuda_storage< double >, storage_info_t > ds(si, external_ptr, ownership::ExternalCPU);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, external_ptr, ownership::ExternalCPU);
     ds.sync();
     // create a copy (double free checks)
-    data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
+    data_store<cuda_storage<double>, storage_info_t> ds_cpy = ds;
     // check values
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 10; ++j)
@@ -268,11 +268,11 @@ TEST(DataStoreTest, ExternalPointer) {
 
 TEST(DataStoreTest, DimAndSizeInterface) {
     storage_info_t si(128, 128, 80);
-    data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, 3.1415);
     ASSERT_TRUE((ds.padded_total_length() == si.padded_total_length()));
-    ASSERT_TRUE((ds.dim< 0 >() == si.dim< 0 >()));
-    ASSERT_TRUE((ds.dim< 1 >() == si.dim< 1 >()));
-    ASSERT_TRUE((ds.dim< 2 >() == si.dim< 2 >()));
+    ASSERT_TRUE((ds.dim<0>() == si.dim<0>()));
+    ASSERT_TRUE((ds.dim<1>() == si.dim<1>()));
+    ASSERT_TRUE((ds.dim<2>() == si.dim<2>()));
 }
 
 TEST(DataStoreTest, ExternalGPUPointer) {
@@ -294,15 +294,15 @@ TEST(DataStoreTest, ExternalGPUPointer) {
         cudaMemcpyHostToDevice);
     ASSERT_TRUE((err == cudaSuccess));
     // create a data_store with externally managed storage
-    data_store< cuda_storage< double >, storage_info_t > ds(si, external_gpu_ptr, ownership::ExternalGPU);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, external_gpu_ptr, ownership::ExternalGPU);
     ds.sync();
     // create some copies
-    data_store< cuda_storage< double >, storage_info_t > ds_cpy_1(ds);
-    data_store< cuda_storage< double >, storage_info_t > ds_cpy_2 = ds_cpy_1;
+    data_store<cuda_storage<double>, storage_info_t> ds_cpy_1(ds);
+    data_store<cuda_storage<double>, storage_info_t> ds_cpy_2 = ds_cpy_1;
     EXPECT_EQ(ds_cpy_1.get_storage_ptr()->get_cpu_ptr(), ds_cpy_2.get_storage_ptr()->get_cpu_ptr());
     EXPECT_EQ(ds_cpy_2.get_storage_ptr()->get_cpu_ptr(), ds.get_storage_ptr()->get_cpu_ptr());
     // create a copy (double free checks)
-    data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
+    data_store<cuda_storage<double>, storage_info_t> ds_cpy = ds;
     // check values
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 10; ++j)

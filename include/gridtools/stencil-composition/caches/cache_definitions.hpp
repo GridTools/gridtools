@@ -41,9 +41,9 @@
 
 namespace gridtools {
     /**
-    * @enum cache_io_policy
-    * Enum listing the cache IO policies
-    */
+     * @enum cache_io_policy
+     * Enum listing the cache IO policies
+     */
     enum class cache_io_policy {
         fill_and_flush, /**< Read values from the cached field and write the result back */
         fill,           /**< Read values form the cached field but do not write back */
@@ -67,4 +67,4 @@ namespace gridtools {
         IJK,   // IJK caches is an extension to 3rd dimension of IJ caches. GPU backend uses shared memory
         bypass // bypass the cache for read only parameters
     };
-}
+} // namespace gridtools

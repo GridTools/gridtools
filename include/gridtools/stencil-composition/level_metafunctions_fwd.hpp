@@ -36,12 +36,12 @@
 #pragma once
 
 namespace gridtools {
-    template < uint_t VSplitter, int_t VOffset >
+    template <uint_t VSplitter, int_t VOffset>
     struct level;
 
-    template < typename TLevel >
+    template <typename TLevel>
     struct level_to_index;
 
-    template < typename TIndex >
+    template <typename TIndex>
     struct index_to_level;
 } // namespace gridtools

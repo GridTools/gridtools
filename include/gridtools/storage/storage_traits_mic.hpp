@@ -36,98 +36,98 @@
 
 #pragma once
 
-#include "common/selector.hpp"
-#include "common/gt_assert.hpp"
-#include "storage/common/definitions.hpp"
-#include "storage/common/storage_traits_metafunctions.hpp"
-#include "storage/storage_mic/data_field_view_helpers.hpp"
-#include "storage/storage_mic/data_view_helpers.hpp"
-#include "storage/storage_mic/mic_storage.hpp"
-#include "storage/storage_mic/mic_storage_info.hpp"
+#include "../common/gt_assert.hpp"
+#include "../common/selector.hpp"
+#include "./common/definitions.hpp"
+#include "./common/storage_traits_metafunctions.hpp"
+#include "./storage_mic/data_field_view_helpers.hpp"
+#include "./storage_mic/data_view_helpers.hpp"
+#include "./storage_mic/mic_storage.hpp"
+#include "./storage_mic/mic_storage_info.hpp"
 
 namespace gridtools {
-    template < enumtype::platform T >
+    template <enumtype::platform T>
     struct storage_traits_from_id;
 
     namespace impl {
-        template < class LayoutMap >
+        template <class LayoutMap>
         struct layout_swap_mic {
             using type = LayoutMap;
         };
 
-        template < int Dim0, int Dim1, int Dim2, int... Dims >
-        struct layout_swap_mic< layout_map< Dim0, Dim1, Dim2, Dims... > > {
-            using type = layout_map< Dim0, Dim2, Dim1, Dims... >;
+        template <int Dim0, int Dim1, int Dim2, int... Dims>
+        struct layout_swap_mic<layout_map<Dim0, Dim1, Dim2, Dims...>> {
+            using type = layout_map<Dim0, Dim2, Dim1, Dims...>;
         };
     } // namespace impl
 
     /** @brief storage traits for the Mic backend*/
     template <>
-    struct storage_traits_from_id< enumtype::Mic > {
+    struct storage_traits_from_id<enumtype::Mic> {
 
-        template < typename ValueType >
+        template <typename ValueType>
         struct select_storage {
-            using type = mic_storage< ValueType >;
+            using type = mic_storage<ValueType>;
         };
 
-        template < uint_t Id, uint_t Dims, typename Halo >
+        template <uint_t Id, uint_t Dims, typename Halo>
         struct select_storage_info {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
 #ifdef STRUCTURED_GRIDS
-            using layout = typename impl::layout_swap_mic< typename get_layout< Dims, false >::type >::type;
+            using layout = typename impl::layout_swap_mic<typename get_layout<Dims, false>::type>::type;
 #else
-            using layout = typename get_layout< Dims, true >::type;
+            using layout = typename get_layout<Dims, true>::type;
 #endif
-            using type = mic_storage_info< Id, layout, Halo >;
+            using type = mic_storage_info<Id, layout, Halo>;
         };
 
-        template < uint_t Id, typename Layout, typename Halo >
+        template <uint_t Id, typename Layout, typename Halo>
         struct select_custom_layout_storage_info {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "Given type is not a layout map type.");
-            using type = mic_storage_info< Id, Layout, Halo >;
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
+            using type = mic_storage_info<Id, Layout, Halo>;
         };
 
-        template < uint_t Id, typename Selector, typename Halo >
+        template <uint_t Id, typename Selector, typename Halo>
         struct select_special_storage_info {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            GRIDTOOLS_STATIC_ASSERT(is_selector< Selector >::value, "Given type is not a selector type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
 #ifdef STRUCTURED_GRIDS
-            using layout = typename impl::layout_swap_mic< typename get_layout< Selector::size, false >::type >::type;
+            using layout = typename impl::layout_swap_mic<typename get_layout<Selector::size, false>::type>::type;
 #else
-            using layout = typename get_layout< Selector::size, true >::type;
+            using layout = typename get_layout<Selector::size, true>::type;
 #endif
-            using type = mic_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo >;
+            using type = mic_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo>;
         };
 
-        template < uint_t Id, uint_t Dims, typename Halo, typename Align >
+        template <uint_t Id, uint_t Dims, typename Halo, typename Align>
         struct select_storage_info_align {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
 #ifdef STRUCTURED_GRIDS
-            using layout = typename impl::layout_swap_mic< typename get_layout< Dims, false >::type >::type;
+            using layout = typename impl::layout_swap_mic<typename get_layout<Dims, false>::type>::type;
 #else
-            using layout = typename get_layout< Dims, true >::type;
+            using layout = typename get_layout<Dims, true>::type;
 #endif
-            using type = mic_storage_info< Id, layout, Halo, Align >;
+            using type = mic_storage_info<Id, layout, Halo, Align>;
         };
 
-        template < uint_t Id, typename Layout, typename Halo, typename Align >
+        template <uint_t Id, typename Layout, typename Halo, typename Align>
         struct select_custom_layout_storage_info_align {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "Given type is not a layout map type.");
-            using type = mic_storage_info< Id, Layout, Halo, Align >;
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
+            using type = mic_storage_info<Id, Layout, Halo, Align>;
         };
 
-        template < uint_t Id, typename Selector, typename Halo, typename Align >
+        template <uint_t Id, typename Selector, typename Halo, typename Align>
         struct select_special_storage_info_align {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            GRIDTOOLS_STATIC_ASSERT(is_selector< Selector >::value, "Given type is not a selector type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
 #ifdef STRUCTURED_GRIDS
-            using layout = typename impl::layout_swap_mic< typename get_layout< Selector::size, false >::type >::type;
+            using layout = typename impl::layout_swap_mic<typename get_layout<Selector::size, false>::type>::type;
 #else
-            using layout = typename get_layout< Selector::size, true >::type;
+            using layout = typename get_layout<Selector::size, true>::type;
 #endif
-            using type = mic_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo, Align >;
+            using type = mic_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align>;
         };
     };
-}
+} // namespace gridtools

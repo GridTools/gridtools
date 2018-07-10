@@ -35,8 +35,11 @@
 */
 
 #pragma once
-#include "../iterate_domain.hpp"
-#include "../sfinae.hpp"
+
+#include "../../common/defs.hpp"
+#include "../expressions/expr_base.hpp"
+#include "../structured_grids/accessor.hpp"
+#include "../structured_grids/vector_accessor.hpp"
 
 /** @file
     iterate_domain for expandable parameters
@@ -44,7 +47,7 @@
 
 namespace gridtools {
 
-    template < typename T >
+    template <typename T>
     struct is_iterate_domain;
 
     /**
@@ -60,23 +63,22 @@ namespace gridtools {
        \tparam IterateDomain base iterate_domain class. Might be e.g. iterate_domain_host or iterate_domain_cuda
        \tparam Position the current position in the expandable parameters list
      */
-    template < typename IterateDomain, ushort_t Position >
+    template <typename IterateDomain, ushort_t Position>
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
         // user protections
-        template < typename... T >
-        GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_)
-            : super(other_...) {
+        template <typename... T>
+        GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_) : super(other_...) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(T) == 1), "The eval() is called with the wrong arguments");
         }
 
-        template < typename T, ushort_t Val >
-        GT_FUNCTION iterate_domain_expandable_parameters(iterate_domain_expandable_parameters< T, Val > const &other_)
+        template <typename T, ushort_t Val>
+        GT_FUNCTION iterate_domain_expandable_parameters(iterate_domain_expandable_parameters<T, Val> const &other_)
             : super(other_) {
             GRIDTOOLS_STATIC_ASSERT((sizeof(T)),
                 "The \'eval\' argument to the Do() method gets copied somewhere! You have to pass it by reference.");
@@ -85,25 +87,18 @@ namespace gridtools {
         using super::operator();
 
         /**
-       @brief set the offset in the storage_list and forward to the base class
-
-       when the vector_accessor is passed to the iterate_domain we know we are accessing an
-       expandable parameters list. Accepts rvalue arguments (accessors constructed in-place)
-
-       \param arg the vector accessor
-     */
-        // rvalue
-        template < uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size >
-        GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
-            accessor< ACC_ID, Intent, Extent, Size > >::type
-        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {
-            typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
-                return_t;
-            // check that if the storage is written the accessor is inout
-
-            accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
-            tmp_.template set< 0 >(ID);
-
+         * @brief Set the offset in the storage_list and forward to the base class.
+         *
+         * When the vector_accessor is passed to the iterate_domain we know we are accessing an expandable parameters
+         * list. Accepts rvalue arguments (accessors constructed in-place).
+         *
+         * @param arg The vector accessor.
+         */
+        template <uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size>
+        GT_FUNCTION typename super::template accessor_return_type<accessor<ACC_ID, Intent, Extent, Size>>::type
+        operator()(vector_accessor<ACC_ID, Intent, Extent, Size> const &arg) {
+            accessor<ACC_ID, Intent, Extent, Size> tmp_(arg);
+            tmp_.template set<0>(ID);
             return super::operator()(tmp_);
         }
 
@@ -111,18 +106,11 @@ namespace gridtools {
 
             Overload of the operator() for expressions.
         */
-        template < class Op, class... Args >
-        GT_FUNCTION auto operator()(expr< Op, Args... > const &arg)
+        template <class Op, class... Args>
+        GT_FUNCTION auto operator()(expr<Op, Args...> const &arg)
             GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
     };
 
-    template < typename T >
-    struct is_iterate_domain_expandable_parameters : boost::mpl::false_ {};
-
-    template < typename T, ushort_t Val >
-    struct is_iterate_domain_expandable_parameters< iterate_domain_expandable_parameters< T, Val > >
-        : boost::mpl::true_ {};
-
-    template < typename T, ushort_t Val >
-    struct is_iterate_domain< iterate_domain_expandable_parameters< T, Val > > : boost::mpl::true_ {};
-}
+    template <typename T, ushort_t Val>
+    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};
+} // namespace gridtools

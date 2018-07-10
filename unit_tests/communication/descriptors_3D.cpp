@@ -33,19 +33,19 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <communication/GCL.hpp>
-#include <mpi.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <communication/high-level/descriptors.hpp>
-#include <string>
 #include <common/boollist.hpp>
+#include <communication/GCL.hpp>
+#include <communication/high-level/descriptors.hpp>
+#include <fstream>
+#include <iostream>
+#include <mpi.h>
+#include <sstream>
+#include <string>
 
 #define DIM 10
 
-using gridtools::uint_t;
 using gridtools::int_t;
+using gridtools::uint_t;
 
 struct triple_t {
     uint_t x, y, z;
@@ -98,10 +98,10 @@ int main(int argc, char **argv) {
 
     MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
-    typedef gridtools::MPI_3D_process_grid_t< 3 > grid_type;
+    typedef gridtools::MPI_3D_process_grid_t<3> grid_type;
 
-    gridtools::hndlr_descriptor_ut< triple_t, 3, gridtools::Halo_Exchange_3D< grid_type > > hd(
-        gridtools::boollist< 3 >(false, false, false), CartComm);
+    gridtools::hndlr_descriptor_ut<triple_t, 3, gridtools::Halo_Exchange_3D<grid_type>> hd(
+        gridtools::boollist<3>(false, false, false), CartComm);
 
     I = hd.register_field(a);
     hd.register_halo(I, 2, 2, 1, 3, 6, DIM);

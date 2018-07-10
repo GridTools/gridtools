@@ -37,6 +37,6 @@
 #pragma once
 namespace gridtools {
 
-    template < typename T >
+    template <typename T>
     struct is_vector_accessor;
 }

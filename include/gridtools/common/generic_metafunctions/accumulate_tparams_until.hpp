@@ -43,26 +43,26 @@ namespace gridtools {
     namespace impl {
 
         /**@brief accumulator recursive implementation*/
-        template < typename Value, typename BinaryOp, typename LogicalOp, typename... PairVals >
+        template <typename Value, typename BinaryOp, typename LogicalOp, typename... PairVals>
         GT_FUNCTION static constexpr bool accumulate_tparams_until_(
-            BinaryOp op, LogicalOp logical_op, ushort_t limit, ushort_t cnt, pair< Value, Value > pair_) {
+            BinaryOp op, LogicalOp logical_op, ushort_t limit, ushort_t cnt, pair<Value, Value> pair_) {
 
             return (cnt < limit) ? BinaryOp()(pair_.first, pair_.second) : true;
         }
 
         /**@brief accumulator recursive implementation*/
-        template < typename Value, typename BinaryOp, typename LogicalOp, typename... PairVals >
+        template <typename Value, typename BinaryOp, typename LogicalOp, typename... PairVals>
         GT_FUNCTION static constexpr bool accumulate_tparams_until_(BinaryOp op,
             LogicalOp logical_op,
             ushort_t limit,
             ushort_t cnt,
-            pair< Value, Value > first_pair,
+            pair<Value, Value> first_pair,
             PairVals... pair_vals) {
             return (cnt < limit) ? LogicalOp()(BinaryOp()(first_pair.first, first_pair.second),
                                        impl::accumulate_tparams_until_(op, logical_op, limit, cnt + 1, pair_vals...))
                                  : true;
         }
-    }
+    } // namespace impl
 
     /** \ingroup common
         @{
@@ -87,20 +87,20 @@ namespace gridtools {
      * @tparam Second second operand containing a list of template parameters (subject to this algorithm)
      * @tparam Limit limit number of template parameters being accumulated
      */
-    template < typename BinaryOp, typename LogicalOp, typename First, typename Second, ushort_t Limit >
+    template <typename BinaryOp, typename LogicalOp, typename First, typename Second, ushort_t Limit>
     struct accumulate_tparams_until;
 
-    template < typename BinaryOp,
+    template <typename BinaryOp,
         typename LogicalOp,
         int_t... FirstVals,
         int_t... SecondVals,
-        template < int_t... > class EnvClass,
-        ushort_t Limit >
-    struct accumulate_tparams_until< BinaryOp, LogicalOp, EnvClass< FirstVals... >, EnvClass< SecondVals... >, Limit > {
+        template <int_t...> class EnvClass,
+        ushort_t Limit>
+    struct accumulate_tparams_until<BinaryOp, LogicalOp, EnvClass<FirstVals...>, EnvClass<SecondVals...>, Limit> {
         static constexpr bool value = impl::accumulate_tparams_until_(
-            BinaryOp(), LogicalOp(), Limit, 0, pair< int_t, int_t >(FirstVals, SecondVals)...);
+            BinaryOp(), LogicalOp(), Limit, 0, pair<int_t, int_t>(FirstVals, SecondVals)...);
     };
     /** @} */
     /** @} */
     /** @} */
-}
+} // namespace gridtools

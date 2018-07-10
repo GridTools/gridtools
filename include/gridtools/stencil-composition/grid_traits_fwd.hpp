@@ -35,8 +35,10 @@
 */
 #pragma once
 
+#include "../common/defs.hpp"
+
 namespace gridtools {
-    template < enumtype::grid_type GridId >
-    struct grid_traits_from_id;
+    template <class BackendIds, class Args>
+    struct kernel_functor_executor;
 
 } // namespace gridtools

@@ -34,15 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
 
-#include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
 #include "Options.hpp"
 #include "backend_select.hpp"
+#include <gridtools/gridtools.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -54,13 +54,13 @@ Contains the stencil operators that compose the multistage stencil in this test
 */
 struct lap_function {
 
-    typedef accessor< 0, inout, extent<>, 3 > out_acc;
+    typedef accessor<0, inout, extent<>, 3> out_acc;
 
-    typedef accessor< 1, in, extent< -1, 1, -1, 1 >, 3 > in_acc;
+    typedef accessor<1, in, extent<-1, 1, -1, 1>, 3> in_acc;
 
-    typedef boost::mpl::vector< out_acc, in_acc > arg_list;
+    typedef boost::mpl::vector<out_acc, in_acc> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
 
         eval(out_acc()) = 4 * eval(in_acc()) - (eval(in_acc(1, 0, 0)) + eval(in_acc(0, 1, 0)) + eval(in_acc(-1, 0, 0)) +
@@ -86,8 +86,8 @@ TEST(Laplace, test) {
        - definition of the storage type, depending on the backend_t which is set as a macro. \todo find another strategy
        for the backend (policy pattern)?
     */
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3> storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
 
     /**
         - Instantiation of the actual data fields that are used for input/output
@@ -101,8 +101,8 @@ TEST(Laplace, test) {
        especially the non-temporary ones, in the construction of the domain.
        A placeholder only contains a static const index and a storage type
     */
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
 
     /**
        - Definition of the physical dimensions of the problem.
@@ -114,10 +114,10 @@ TEST(Laplace, test) {
 
     auto grid = make_grid(di, dj, d3);
 
-    auto laplace = make_computation< backend_t >(grid,
+    auto laplace = make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        make_multistage(execute< forward >(), make_stage< lap_function >(p_out(), p_in())));
+        make_multistage(execute<forward>(), make_stage<lap_function>(p_out(), p_in())));
 
     /**
        Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the
@@ -145,7 +145,7 @@ TEST(Laplace, test) {
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
     bool result = verif.verify(grid, ref, out, halos);
 
 #ifdef BENCHMARK

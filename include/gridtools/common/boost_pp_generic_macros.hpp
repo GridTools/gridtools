@@ -48,9 +48,9 @@
     "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
 #endif
 
-#include <boost/variant.hpp>
 #include <boost/preprocessor/seq.hpp>
 #include <boost/preprocessor/tuple.hpp>
+#include <boost/variant.hpp>
 
 /**
  * @def GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(seq)
@@ -93,17 +93,17 @@
 
 /** @cond */
 #define GRIDTOOLS_PP_MAKE_VARIANT_conversion(r, data, tuple) \
-    operator BOOST_PP_TUPLE_ELEM(0, tuple)() const { return boost::get< BOOST_PP_TUPLE_ELEM(0, tuple) >(*this); }
+    operator BOOST_PP_TUPLE_ELEM(0, tuple)() const { return boost::get<BOOST_PP_TUPLE_ELEM(0, tuple)>(*this); }
 
 #define GRIDTOOLS_PP_MAKE_VARIANT_conversions_loop(types) \
     BOOST_PP_SEQ_FOR_EACH(GRIDTOOLS_PP_MAKE_VARIANT_conversion, ~, types)
 /** @endcond */
 
-#define GRIDTOOLS_PP_MAKE_VARIANT(variant_name, types)                                                 \
-    class variant_name : public boost::variant< GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, types) > { \
-      public:                                                                                          \
-        using boost::variant< GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, types) >::variant;           \
-        GRIDTOOLS_PP_MAKE_VARIANT_conversions_loop(types)                                              \
+#define GRIDTOOLS_PP_MAKE_VARIANT(variant_name, types)                                               \
+    class variant_name : public boost::variant<GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, types)> { \
+      public:                                                                                        \
+        using boost::variant<GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, types)>::variant;           \
+        GRIDTOOLS_PP_MAKE_VARIANT_conversions_loop(types)                                            \
     };
 
 /**

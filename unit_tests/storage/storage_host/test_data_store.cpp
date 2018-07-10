@@ -36,83 +36,83 @@
 
 #include "gtest/gtest.h"
 
-#include <common/gt_assert.hpp>
-#include <storage/data_store.hpp>
-#include <storage/storage_host/host_storage.hpp>
-#include <storage/storage_host/host_storage_info.hpp>
+#include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/data_store.hpp>
+#include <gridtools/storage/storage_host/host_storage.hpp>
+#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
-typedef host_storage_info< 0, layout_map< 0, 1, 2 > > storage_info_t;
-typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 > > storage_info_halo_t;
-typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 >, alignment< 16 > > storage_info_halo_aligned_t;
+typedef host_storage_info<0, layout_map<0, 1, 2>> storage_info_t;
+typedef host_storage_info<0, layout_map<0, 1, 2>, halo<2, 1, 0>> storage_info_halo_t;
+typedef host_storage_info<0, layout_map<0, 1, 2>, halo<2, 1, 0>, alignment<16>> storage_info_halo_aligned_t;
 
 TEST(DataStoreTest, Simple) {
-    constexpr storage_info_t si(3, 3, 3);
-    constexpr storage_info_halo_t si_halo(7, 5, 3);
-    constexpr storage_info_halo_aligned_t si_halo_al(7, 5, 3);
+    storage_info_t si(3, 3, 3);
+    storage_info_halo_t si_halo(7, 5, 3);
+    storage_info_halo_aligned_t si_halo_al(7, 5, 3);
     // check sizes, strides, and alignment
-    GRIDTOOLS_STATIC_ASSERT(si.template dim< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template dim< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template padded_length< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template padded_length< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template padded_length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template total_length< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template total_length< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template total_length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template length< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template length< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template stride< 0 >() == 9, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.template stride< 2 >() == 1, "stride check failed.");
+    ASSERT_EQ(si.template dim<0>(), 3);
+    ASSERT_EQ(si.template dim<1>(), 3);
+    ASSERT_EQ(si.template dim<2>(), 3);
+    ASSERT_EQ(si.template padded_length<0>(), 3);
+    ASSERT_EQ(si.template padded_length<1>(), 3);
+    ASSERT_EQ(si.template padded_length<2>(), 3);
+    ASSERT_EQ(si.template total_length<0>(), 3);
+    ASSERT_EQ(si.template total_length<1>(), 3);
+    ASSERT_EQ(si.template total_length<2>(), 3);
+    ASSERT_EQ(si.template length<0>(), 3);
+    ASSERT_EQ(si.template length<1>(), 3);
+    ASSERT_EQ(si.template length<2>(), 3);
+    ASSERT_EQ(si.template stride<0>(), 9);
+    ASSERT_EQ(si.template stride<1>(), 3);
+    ASSERT_EQ(si.template stride<2>(), 1);
 
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template padded_length< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template padded_length< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template padded_length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template total_length< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template total_length< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template total_length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template length< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template length< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 0 >() == 15, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 1 >() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 2 >() == 1, "stride check failed.");
+    ASSERT_EQ(si_halo.template dim<0>(), 7);
+    ASSERT_EQ(si_halo.template dim<1>(), 5);
+    ASSERT_EQ(si_halo.template dim<2>(), 3);
+    ASSERT_EQ(si_halo.template padded_length<0>(), 7);
+    ASSERT_EQ(si_halo.template padded_length<1>(), 5);
+    ASSERT_EQ(si_halo.template padded_length<2>(), 3);
+    ASSERT_EQ(si_halo.template total_length<0>(), 7);
+    ASSERT_EQ(si_halo.template total_length<1>(), 5);
+    ASSERT_EQ(si_halo.template total_length<2>(), 3);
+    ASSERT_EQ(si_halo.template length<0>(), 3);
+    ASSERT_EQ(si_halo.template length<1>(), 3);
+    ASSERT_EQ(si_halo.template length<2>(), 3);
+    ASSERT_EQ(si_halo.template stride<0>(), 15);
+    ASSERT_EQ(si_halo.template stride<1>(), 3);
+    ASSERT_EQ(si_halo.template stride<2>(), 1);
 
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template padded_length< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template padded_length< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template padded_length< 2 >() == 16, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template total_length< 0 >() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template total_length< 1 >() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template total_length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template length< 0 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template length< 1 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.template length< 2 >() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 0 >() == 80, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 1 >() == 16, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 2 >() == 1, "stride check failed.");
+    ASSERT_EQ(si_halo_al.template dim<0>(), 7);
+    ASSERT_EQ(si_halo_al.template dim<1>(), 5);
+    ASSERT_EQ(si_halo_al.template padded_length<0>(), 7);
+    ASSERT_EQ(si_halo_al.template padded_length<1>(), 5);
+    ASSERT_EQ(si_halo_al.template padded_length<2>(), 16);
+    ASSERT_EQ(si_halo_al.template total_length<0>(), 7);
+    ASSERT_EQ(si_halo.template total_length<1>(), 5);
+    ASSERT_EQ(si_halo.template total_length<2>(), 3);
+    ASSERT_EQ(si_halo.template length<0>(), 3);
+    ASSERT_EQ(si_halo.template length<1>(), 3);
+    ASSERT_EQ(si_halo.template length<2>(), 3);
+    ASSERT_EQ(si_halo_al.template stride<0>(), 80);
+    ASSERT_EQ(si_halo_al.template stride<1>(), 16);
+    ASSERT_EQ(si_halo_al.template stride<2>(), 1);
 
     // create unallocated data_store
-    data_store< host_storage< double >, storage_info_t > ds;
+    data_store<host_storage<double>, storage_info_t> ds;
     // allocate space
     ds.allocate(si);
-    data_store< host_storage< double >, storage_info_t > ds_tmp_1(si);
-    data_store< host_storage< double >, storage_info_t > ds_tmp_2 = ds; // copy construct
-    ds_tmp_1 = ds;                                                      // copy assign
-    data_store< host_storage< double >, storage_info_t > ds1;
+    data_store<host_storage<double>, storage_info_t> ds_tmp_1(si);
+    data_store<host_storage<double>, storage_info_t> ds_tmp_2 = ds; // copy construct
+    ds_tmp_1 = ds;                                                  // copy assign
+    data_store<host_storage<double>, storage_info_t> ds1;
     ds1.allocate(si);
     ds1.reset(); // destroy the data_store
 
     // create a copy of a data_store and check equivalence
-    data_store< host_storage< double >, storage_info_t > datast(si, 5.3);
-    data_store< host_storage< double >, storage_info_t > datast_cpy(datast);
+    data_store<host_storage<double>, storage_info_t> datast(si, 5.3);
+    data_store<host_storage<double>, storage_info_t> datast_cpy(datast);
     EXPECT_EQ(datast.get_storage_info_ptr().get(), datast_cpy.get_storage_info_ptr().get());
     EXPECT_EQ(datast.get_storage_ptr().get(), datast_cpy.get_storage_ptr().get());
     // modify the data and check if the copy can see the changes
@@ -129,8 +129,8 @@ TEST(DataStoreTest, Simple) {
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[1]), 200);
 
     // test some copy assignment operations
-    data_store< host_storage< double >, storage_info_t > ds_cpy_ass1(si);
-    data_store< host_storage< double >, storage_info_t > ds_cpy_ass2;
+    data_store<host_storage<double>, storage_info_t> ds_cpy_ass1(si);
+    data_store<host_storage<double>, storage_info_t> ds_cpy_ass2;
     ds_cpy_ass2 = ds_cpy_ass1;
     ASSERT_TRUE(ds_cpy_ass2.get_storage_ptr()->get_cpu_ptr() == ds_cpy_ass1.get_storage_ptr()->get_cpu_ptr());
     ASSERT_TRUE(*ds_cpy_ass2.get_storage_info_ptr() == *ds_cpy_ass1.get_storage_info_ptr());
@@ -138,7 +138,7 @@ TEST(DataStoreTest, Simple) {
 
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(128, 128, 80);
-    data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
+    data_store<host_storage<double>, storage_info_t> ds(si, 3.1415);
     for (uint_t i = 0; i < 128; ++i)
         for (uint_t j = 0; j < 128; ++j)
             for (uint_t k = 0; k < 80; ++k)
@@ -147,7 +147,7 @@ TEST(DataStoreTest, Initializer) {
 
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
-    data_store< host_storage< double >, storage_info_t > ds(si, [](int i, int j, int k) { return i + j + k; });
+    data_store<host_storage<double>, storage_info_t> ds(si, [](int i, int j, int k) { return i + j + k; });
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 11; ++j)
             for (uint_t k = 0; k < 12; ++k)
@@ -157,20 +157,20 @@ TEST(DataStoreTest, LambdaInitializer) {
 TEST(DataStoreTest, Naming) {
     storage_info_t si(10, 11, 12);
     // no naming
-    data_store< host_storage< double >, storage_info_t > ds1_nn;
-    data_store< host_storage< double >, storage_info_t > ds2_nn(si);
-    data_store< host_storage< double >, storage_info_t > ds3_nn(si, 1.0);
-    data_store< host_storage< double >, storage_info_t > ds4_nn(si, [](int i, int j, int k) { return i + j + k; });
+    data_store<host_storage<double>, storage_info_t> ds1_nn;
+    data_store<host_storage<double>, storage_info_t> ds2_nn(si);
+    data_store<host_storage<double>, storage_info_t> ds3_nn(si, 1.0);
+    data_store<host_storage<double>, storage_info_t> ds4_nn(si, [](int i, int j, int k) { return i + j + k; });
     EXPECT_EQ(ds1_nn.name(), "");
     EXPECT_EQ(ds2_nn.name(), "");
     EXPECT_EQ(ds3_nn.name(), "");
     EXPECT_EQ(ds4_nn.name(), "");
 
     // test naming
-    data_store< host_storage< double >, storage_info_t > ds1("empty storage");
-    data_store< host_storage< double >, storage_info_t > ds2(si, "standard storage");
-    data_store< host_storage< double >, storage_info_t > ds3(si, 1.0, "value init. storage");
-    data_store< host_storage< double >, storage_info_t > ds4(
+    data_store<host_storage<double>, storage_info_t> ds1("empty storage");
+    data_store<host_storage<double>, storage_info_t> ds2(si, "standard storage");
+    data_store<host_storage<double>, storage_info_t> ds3(si, 1.0, "value init. storage");
+    data_store<host_storage<double>, storage_info_t> ds4(
         si, [](int i, int j, int k) { return i + j + k; }, "lambda init. storage");
     EXPECT_EQ(ds1.name(), "empty storage");
     EXPECT_EQ(ds2.name(), "standard storage");
@@ -192,28 +192,28 @@ TEST(DataStoreTest, InvalidSize) {
 
 TEST(DataStoreTest, DimAndSizeInterface) {
     storage_info_t si(128, 128, 80);
-    data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
+    data_store<host_storage<double>, storage_info_t> ds(si, 3.1415);
     ASSERT_TRUE((ds.padded_total_length() == si.padded_total_length()));
-    ASSERT_TRUE((ds.dim< 0 >() == si.dim< 0 >()));
-    ASSERT_TRUE((ds.dim< 1 >() == si.dim< 1 >()));
-    ASSERT_TRUE((ds.dim< 2 >() == si.dim< 2 >()));
+    ASSERT_TRUE((ds.dim<0>() == si.dim<0>()));
+    ASSERT_TRUE((ds.dim<1>() == si.dim<1>()));
+    ASSERT_TRUE((ds.dim<2>() == si.dim<2>()));
 }
 
 TEST(DataStoreTest, ExternalPointer) {
     double *external_ptr = new double[10 * 10 * 10];
     storage_info_t si(10, 10, 10);
     // create a data_store with externally managed storage
-    data_store< host_storage< double >, storage_info_t > ds(si, external_ptr);
+    data_store<host_storage<double>, storage_info_t> ds(si, external_ptr);
     // create some copies
-    data_store< host_storage< double >, storage_info_t > ds_cpy_1(ds);
-    data_store< host_storage< double >, storage_info_t > ds_cpy_2 = ds_cpy_1;
+    data_store<host_storage<double>, storage_info_t> ds_cpy_1(ds);
+    data_store<host_storage<double>, storage_info_t> ds_cpy_2 = ds_cpy_1;
     EXPECT_EQ(ds_cpy_1.get_storage_ptr()->get_cpu_ptr(), ds_cpy_2.get_storage_ptr()->get_cpu_ptr());
     EXPECT_EQ(ds_cpy_2.get_storage_ptr()->get_cpu_ptr(), ds.get_storage_ptr()->get_cpu_ptr());
     // check that external gpu pointer is not possible when using host_storage
-    EXPECT_THROW((data_store< host_storage< double >, storage_info_t >(si, external_ptr, ownership::ExternalGPU)),
+    EXPECT_THROW((data_store<host_storage<double>, storage_info_t>(si, external_ptr, ownership::ExternalGPU)),
         std::runtime_error);
     // create a copy (double free checks)
-    data_store< host_storage< double >, storage_info_t > ds_cpy = ds;
+    data_store<host_storage<double>, storage_info_t> ds_cpy = ds;
     // check values
     int z = 0;
     for (uint_t i = 0; i < 10; ++i)

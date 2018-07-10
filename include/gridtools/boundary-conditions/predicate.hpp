@@ -51,7 +51,7 @@ namespace gridtools {
     /** @brief Default predicate that returns always true, so that the boundary conditions are applied everywhere
      */
     struct default_predicate {
-        template < typename Direction >
+        template <typename Direction>
         bool operator()(Direction) const {
             return true;
         }

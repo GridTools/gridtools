@@ -48,21 +48,21 @@ namespace gridtools {
      * does not properly unpack the last arg of Args... when building the vector. We can eliminate this
      * metafunction once the vector<Args...> works
      */
-    template < typename... Args >
+    template <typename... Args>
     struct variadic_to_vector;
 
-    template < class T, typename... Args >
-    struct variadic_to_vector< T, Args... > {
-        typedef typename boost::mpl::push_front< typename variadic_to_vector< Args... >::type, T >::type type;
+    template <class T, typename... Args>
+    struct variadic_to_vector<T, Args...> {
+        typedef typename boost::mpl::push_front<typename variadic_to_vector<Args...>::type, T>::type type;
     };
 
-    template < class T >
-    struct variadic_to_vector< T > {
-        typedef boost::mpl::vector1< T > type;
+    template <class T>
+    struct variadic_to_vector<T> {
+        typedef boost::mpl::vector1<T> type;
     };
 
     template <>
     struct variadic_to_vector<> {
         typedef boost::mpl::vector0<> type;
     };
-}
+} // namespace gridtools

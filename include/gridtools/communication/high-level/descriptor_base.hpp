@@ -40,7 +40,7 @@ namespace gridtools {
     /**
        This defines the start_exchange, do_sends, etc, for all descriptors
     */
-    template < typename HaloExch >
+    template <typename HaloExch>
     struct descriptor_base {
         /**
            Type of the Level 3 pattern used. This is available only if the pattern uses a Level 3 pattern.

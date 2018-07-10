@@ -36,13 +36,13 @@
 
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../../common/gt_math.hpp"
 #include "../../common/array.hpp"
-#include "../location_type.hpp"
-#include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/gt_math.hpp"
 #include "../../storage/storage-facility.hpp"
+#include "../location_type.hpp"
 
 namespace gridtools {
     namespace impl {
@@ -50,7 +50,7 @@ namespace gridtools {
         /**
          * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
          */
-        template < uint_t Pos >
+        template <uint_t Pos>
         GT_FUNCTION constexpr long long compute_uuid_selector(int cnt) {
             return 0;
         }
@@ -58,12 +58,13 @@ namespace gridtools {
         /**
          * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
          */
-        template < uint_t Pos, typename... Int >
+        template <uint_t Pos, typename... Int>
         GT_FUNCTION constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
-            return (cnt == 4) ? 0 : ((val0 == 1)
-                                            ? gt_pow< Pos >::apply((long long)2) +
-                                                  compute_uuid_selector< Pos + 1 >(cnt + 1, val...)
-                                            : compute_uuid_selector< Pos + 1 >(cnt + 1, val...));
+            return (cnt == 4)
+                       ? 0
+                       : ((val0 == 1)
+                                 ? gt_pow<Pos>::apply((long long)2) + compute_uuid_selector<Pos + 1>(cnt + 1, val...)
+                                 : compute_uuid_selector<Pos + 1>(cnt + 1, val...));
         }
 
         /**
@@ -72,42 +73,42 @@ namespace gridtools {
          * Only the first 4 dimension of the selector are considered, since the iteration space of the backend
          * does not make use of indices beyond the space dimensions
          */
-        template < int_t LocationTypeIndex, typename Selector >
+        template <int_t LocationTypeIndex, typename Selector>
         struct compute_uuid {};
 
-        template < int_t LocationTypeIndex, bool... B >
-        struct compute_uuid< LocationTypeIndex, selector< B... > > {
+        template <int_t LocationTypeIndex, bool... B>
+        struct compute_uuid<LocationTypeIndex, selector<B...>> {
             static constexpr ushort_t value =
-                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector< 2 >(0, B...);
+                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector<2>(0, B...);
         };
 
         /**
          * helper that initializes arrays of dimensions given an array of space dimensions and the rest of
          * extra dimensions of a storage
          */
-        template < typename UInt, typename LocationType >
+        template <typename UInt, typename LocationType>
         struct array_elem_initializer {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: expected a location type");
+            GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: expected a location type");
 
-            template < int Idx >
+            template <int Idx>
             struct init_elem {
                 GT_FUNCTION
                 constexpr init_elem() {}
 
-                GT_FUNCTION constexpr static UInt apply(const array< uint_t, 3 > space_dims) {
+                GT_FUNCTION constexpr static UInt apply(const array<uint_t, 3> space_dims) {
                     GRIDTOOLS_STATIC_ASSERT((Idx < 4), GT_INTERNAL_ERROR);
                     // cast to size_t to suppress a warning
                     return ((Idx == 0) ? space_dims[0]
                                        : ((Idx == 1) ? LocationType::n_colors::value : space_dims[(size_t)(Idx - 1)]));
                 }
 
-                template < typename... ExtraInts >
-                GT_FUNCTION constexpr static UInt apply(const array< uint_t, 3 > space_dims, ExtraInts... extra_dims) {
+                template <typename... ExtraInts>
+                GT_FUNCTION constexpr static UInt apply(const array<uint_t, 3> space_dims, ExtraInts... extra_dims) {
                     // cast to size_t to suppress a warning
                     return ((Idx == 0) ? space_dims[0]
                                        : ((Idx == 1) ? LocationType::n_colors::value
                                                      : (Idx < 4 ? space_dims[(size_t)(Idx - 1)]
-                                                                : pack_get_elem< Idx - 4 >::apply(extra_dims...))));
+                                                                : pack_get_elem<Idx - 4>::apply(extra_dims...))));
                 }
             };
         };
@@ -123,21 +124,21 @@ namespace gridtools {
               (the size of the color dimension is added from the location type (cells) specified
 
          */
-        template < typename Uint, size_t ArraySize, typename LocationType, typename Selector >
+        template <typename Uint, size_t ArraySize, typename LocationType, typename Selector>
         struct array_dim_initializers;
 
-        template < typename UInt, size_t ArraySize, typename LocationType, bool... B >
-        struct array_dim_initializers< UInt, ArraySize, LocationType, selector< B... > > {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: expected a location type");
+        template <typename UInt, size_t ArraySize, typename LocationType, bool... B>
+        struct array_dim_initializers<UInt, ArraySize, LocationType, selector<B...>> {
+            GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: expected a location type");
 
-            template < typename... ExtraInts >
-            GT_FUNCTION static constexpr array< UInt, ArraySize > apply(
-                const array< uint_t, 3 > space_dims, ExtraInts... extra_dims) {
-                using seq = apply_gt_integer_sequence< typename make_gt_integer_sequence< int, ArraySize >::type >;
+            template <typename... ExtraInts>
+            GT_FUNCTION static constexpr array<UInt, ArraySize> apply(
+                const array<uint_t, 3> space_dims, ExtraInts... extra_dims) {
+                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int, ArraySize>::type>;
 
-                return seq::template apply< array< UInt, ArraySize >,
-                    array_elem_initializer< UInt, LocationType >::template init_elem >(space_dims, extra_dims...);
+                return seq::template apply<array<UInt, ArraySize>,
+                    array_elem_initializer<UInt, LocationType>::template init_elem>(space_dims, extra_dims...);
             }
         };
-    }
-}
+    } // namespace impl
+} // namespace gridtools

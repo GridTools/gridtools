@@ -37,34 +37,31 @@
 
 #include <boost/type_traits/conditional.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
-#include "extended_4D_verify.hpp"
 #include "backend_select.hpp"
+#include "extended_4D_verify.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-using layout_map_t = typename boost::conditional< backend_t::s_backend_id == Host,
-    layout_map< 3, 4, 5, 0, 1, 2 >,
-    layout_map< 5, 4, 3, 2, 1, 0 > >::type;
-using layout_map_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
-    layout_map< 1, 2, 3, 0 >,
-    layout_map< 3, 2, 1, 0 > >::type;
+using layout_map_t = typename boost::
+    conditional<backend_t::s_backend_id == Host, layout_map<3, 4, 5, 0, 1, 2>, layout_map<5, 4, 3, 2, 1, 0>>::type;
+using layout_map_quad_t =
+    typename boost::conditional<backend_t::s_backend_id == Host, layout_map<1, 2, 3, 0>, layout_map<3, 2, 1, 0>>::type;
 
-template < unsigned Id, typename Layout >
-using special_storage_info_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< Id,
-    Layout,
-    zero_halo< Layout::masked_length > >::type;
+template <unsigned Id, typename Layout>
+using special_storage_info_t = typename backend_t::storage_traits_t::
+    select_custom_layout_storage_info<Id, Layout, zero_halo<Layout::masked_length>>::type;
 
-using storage_info_t = special_storage_info_t< 0, layout_map_t >;
-using storage_info_global_quad_t = special_storage_info_t< 1, layout_map_quad_t >;
-using storage_info_local_quad_t = special_storage_info_t< 2, layout_map_quad_t >;
+using storage_info_t = special_storage_info_t<0, layout_map_t>;
+using storage_info_global_quad_t = special_storage_info_t<1, layout_map_quad_t>;
+using storage_info_local_quad_t = special_storage_info_t<2, layout_map_quad_t>;
 
-using storage_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_t >;
-using storage_global_quad_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_global_quad_t >;
-using storage_local_quad_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_local_quad_t >;
+using storage_t = backend_t::storage_traits_t::data_store_t<float_type, storage_info_t>;
+using storage_global_quad_t = backend_t::storage_traits_t::data_store_t<float_type, storage_info_global_quad_t>;
+using storage_local_quad_t = backend_t::storage_traits_t::data_store_t<float_type, storage_info_local_quad_t>;
 
 /**
   @file
@@ -104,10 +101,10 @@ namespace assembly {
     /**this is a user-defined class which will be used from within the user functor
      by calling its  operator(). It can represent in this case values which are local to the elements
      e.g. values of the basis functions in the quad points. */
-    template < typename ValueType, typename Layout, uint_t... Dims >
+    template <typename ValueType, typename Layout, uint_t... Dims>
     struct elemental {
         typedef ValueType value_type;
-        typedef meta_storage_cache< Layout, Dims... > meta_t;
+        typedef meta_storage_cache<Layout, Dims...> meta_t;
 
         // default constructor useless, but required in the storage implementation
         GT_FUNCTION
@@ -119,7 +116,7 @@ namespace assembly {
                 m_values[i] = init_;
         }
 
-        template < typename... Ints >
+        template <typename... Ints>
         GT_FUNCTION value_type const &operator()(Ints &&... args_) const {
             return m_values[meta_t{}.index(args_...)];
         }
@@ -128,21 +125,21 @@ namespace assembly {
     };
 
     struct integration {
-        typedef global_accessor< 0 > phi_t;
-        typedef global_accessor< 1 > psi_t;
-        typedef in_accessor< 2, extent<>, 4 > jac;
-        typedef in_accessor< 3, extent<>, 6 > f;
-        typedef inout_accessor< 4, extent<>, 6 > result;
-        typedef boost::mpl::vector< phi_t, psi_t, jac, f, result > arg_list;
-        using quad = dimension< 4 >;
-        template < typename Evaluation >
+        typedef global_accessor<0> phi_t;
+        typedef global_accessor<1> psi_t;
+        typedef in_accessor<2, extent<>, 4> jac;
+        typedef in_accessor<3, extent<>, 6> f;
+        typedef inout_accessor<4, extent<>, 6> result;
+        typedef boost::mpl::vector<phi_t, psi_t, jac, f, result> arg_list;
+        using quad = dimension<4>;
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
-            dimension< 1 > i;
-            dimension< 2 > j;
-            dimension< 3 > k;
-            dimension< 4 > di;
-            dimension< 5 > dj;
-            dimension< 6 > dk;
+            dimension<1> i;
+            dimension<2> j;
+            dimension<3> k;
+            dimension<4> di;
+            dimension<5> dj;
+            dimension<6> dk;
             quad qp;
             phi_t phi;
             psi_t psi;
@@ -184,8 +181,8 @@ namespace assembly {
         static const uint_t b2 = 2;
         static const uint_t b3 = 2;
         // basis functions available in a 2x2x2 cell, because of P1 FE
-        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi(10.);
-        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi(11.);
+        elemental<double, layout_map<0, 1, 2, 3>, b1, b2, b3, nbQuadPt> phi(10.);
+        elemental<double, layout_map<0, 1, 2, 3>, b1, b2, b3, nbQuadPt> psi(11.);
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
@@ -199,11 +196,11 @@ namespace assembly {
         storage_t f(meta_, (float_type)1.3, "f");
         storage_t result(meta_, (float_type)0., "result");
 
-        typedef arg< 0, decltype(g_phi) > p_phi;
-        typedef arg< 1, decltype(g_psi) > p_psi;
-        typedef arg< 2, decltype(jac) > p_jac;
-        typedef arg< 3, decltype(f) > p_f;
-        typedef arg< 4, decltype(result) > p_result;
+        typedef arg<0, decltype(g_phi)> p_phi;
+        typedef arg<1, decltype(g_psi)> p_psi;
+        typedef arg<2, decltype(jac)> p_jac;
+        typedef arg<3, decltype(f)> p_f;
+        typedef arg<4, decltype(result)> p_result;
 
         /**
            - Definition of the physical dimensions of the problem.
@@ -214,21 +211,20 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp =
-            make_computation< backend_t >(grid,
-                p_phi{} = g_phi,
-                p_psi{} = g_psi,
-                p_jac{} = jac,
-                p_f{} = f,
-                p_result{} = result,
-                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
-                (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                                              make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+        auto fe_comp = make_computation<backend_t>(grid,
+            p_phi{} = g_phi,
+            p_psi{} = g_psi,
+            p_jac{} = jac,
+            p_f{} = f,
+            p_result{} = result,
+            make_multistage      //! \todo all the arguments in the call to make_mss are actually dummy.
+            (execute<forward>(), //!\todo parameter used only for overloading purpose?
+                make_stage<integration>(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp.run();
         fe_comp.sync_bound_data_stores();
 
-        return do_verification< storage_local_quad_t, storage_global_quad_t >(d1, d2, d3, result, grid);
+        return do_verification<storage_local_quad_t, storage_global_quad_t>(d1, d2, d3, result, grid);
     }
 
-}; // namespace extended_4d
+}; // namespace assembly

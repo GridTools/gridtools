@@ -33,20 +33,20 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
+#include <ctime>
 #include <fstream>
-#include <ctime>
+#include <iostream>
 
-#include <gridtools.hpp>
-#include <common/defs.hpp>
 #include <ctime>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/gridtools.hpp>
 
 #define offs_(i, j, k, n, m, l) ((i) * (m) * (l) + (j) * (l) + (k))
 
-using gridtools::uint_t;
 using gridtools::int_t;
+using gridtools::uint_t;
 
-template < typename Stream >
+template <typename Stream>
 void print(double *that, uint_t n, uint_t m, uint_t l, Stream &stream) {
     // std::cout << "Printing " << name << std::endl;
     stream << "(" << n << "x" << m << "x" << l << ")" << std::endl;

@@ -35,31 +35,31 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
-#include <storage/storage-facility.hpp>
 #include "backend_select.hpp"
+#include <gridtools/gridtools.hpp>
+#include <gridtools/storage/storage-facility.hpp>
 
 namespace horizontal_diffusion {
 
-    using storage_tr = gridtools::storage_traits< backend_t::s_backend_id >;
+    using storage_tr = gridtools::storage_traits<backend_t::s_backend_id>;
 
-    using gridtools::uint_t;
     using gridtools::int_t;
+    using gridtools::uint_t;
 
-    using storage_info_ijk_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;
+    using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gridtools::halo<2, 2, 0>>;
     using storage_info_ij_t =
-        storage_tr::special_storage_info_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 2, 2, 0 > >;
+        storage_tr::special_storage_info_t<1, gridtools::selector<1, 1, 0>, gridtools::halo<2, 2, 0>>;
     using storage_info_j_t =
-        storage_tr::special_storage_info_t< 2, gridtools::selector< 0, 1, 0 >, gridtools::halo< 0, 0, 0 > >;
+        storage_tr::special_storage_info_t<2, gridtools::selector<0, 1, 0>, gridtools::halo<0, 0, 0>>;
     using storage_info_scalar_t =
-        storage_tr::special_storage_info_t< 3, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 > >;
+        storage_tr::special_storage_info_t<3, gridtools::selector<0, 0, 0>, gridtools::halo<0, 0, 0>>;
 
     class repository {
       public:
-        using storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_ijk_t >;
-        using ij_storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_ij_t >;
-        using j_storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_j_t >;
-        using scalar_storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_scalar_t >;
+        using storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ijk_t>;
+        using ij_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ij_t>;
+        using j_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_j_t>;
+        using scalar_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_scalar_t>;
 
         storage_info_ijk_t m_storage_info_ijk;
         storage_info_j_t m_storage_info_j;
@@ -129,11 +129,11 @@ namespace horizontal_diffusion {
             v_crlato(0, j_begin, 0) = v_crlat1(0, j_begin, 0) / v_crlat0(0, j_begin, 0);
         }
 
-        template < typename TStorage_type, typename TValue_type >
+        template <typename TStorage_type, typename TValue_type>
         void init_field_to_value(TStorage_type field, TValue_type value) {
-            const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_;
-            const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_;
-            const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_;
+            const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at<0>() == -1) ? 1 : idim_;
+            const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at<1>() == -1) ? 1 : jdim_;
+            const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at<2>() == -1) ? 1 : kdim_;
 
             auto v = make_host_view(field);
             for (uint_t k = 0; k < dim2; ++k) {
@@ -187,9 +187,8 @@ namespace horizontal_diffusion {
                 for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
                     for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
                         v_out_ref(i, j, k) =
-                            v_in(i, j, k) -
-                            v_coeff(i, j, k) * (v_flx(i, j, (uint_t)0) - v_flx(i - 1, j, (uint_t)0) +
-                                                   v_fly(i, j, (uint_t)0) - v_fly(i, j - 1, (uint_t)0));
+                            v_in(i, j, k) - v_coeff(i, j, k) * (v_flx(i, j, (uint_t)0) - v_flx(i - 1, j, (uint_t)0) +
+                                                                   v_fly(i, j, (uint_t)0) - v_fly(i, j - 1, (uint_t)0));
                     }
                 }
             }
@@ -241,4 +240,4 @@ namespace horizontal_diffusion {
 
         storage_info_ijk_t &storage_info_ijk() { return m_storage_info_ijk; }
     };
-}
+} // namespace horizontal_diffusion

@@ -36,29 +36,27 @@
 #pragma once
 namespace gridtools {
 
-    template < uint_t Tile, uint_t Minus, uint_t Plus >
+    template <uint_t Minus, uint_t Plus>
     struct tile {
         static const uint_t s_minus = Minus;
         static const uint_t s_plus = Plus;
-        static const uint_t s_tile = Tile;
-        typedef static_uint< s_minus > s_minus_t;
-        typedef static_uint< s_plus > s_plus_t;
-        typedef static_uint< s_tile > s_tile_t;
+        typedef static_uint<s_minus> s_minus_t;
+        typedef static_uint<s_plus> s_plus_t;
     };
 
-    template < typename T >
+    template <typename T>
     struct get_minus_t_from_tile {
         typedef typename T::s_minus_t type;
     };
 
-    template < typename T >
+    template <typename T>
     struct get_plus_t_from_tile {
         typedef typename T::s_plus_t type;
     };
 
-    template < typename T >
+    template <typename T>
     struct is_tile : boost::mpl::false_ {};
 
-    template < uint_t Tile, uint_t Minus, uint_t Plus >
-    struct is_tile< tile< Tile, Minus, Plus > > : boost::mpl::true_ {};
-}
+    template <uint_t Minus, uint_t Plus>
+    struct is_tile<tile<Minus, Plus>> : boost::mpl::true_ {};
+} // namespace gridtools

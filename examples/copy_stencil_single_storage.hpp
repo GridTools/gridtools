@@ -35,18 +35,18 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
 #include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 /**
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 using namespace gridtools;
 using namespace enumtype;
@@ -55,12 +55,12 @@ namespace copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
-        typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 > in;
-        typedef boost::mpl::vector< in > arg_list;
+        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 5> in;
+        typedef boost::mpl::vector<in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            eval(in()) = eval(in(dimension< 5 >(1)));
+            eval(in()) = eval(in(dimension<5>(1)));
         }
     };
 
@@ -77,16 +77,16 @@ namespace copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_t, 2 >
+        typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<backend_t::s_backend_id>::data_store_field_t<float_type, storage_info_t, 2>
             data_store_field_t;
         storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
         data_store_field_t in(meta_data_);
         auto inv = make_field_host_view(in);
-        auto inv00 = inv.get< 0, 0 >();
-        auto inv01 = inv.get< 0, 1 >();
+        auto inv00 = inv.get<0, 0>();
+        auto inv01 = inv.get<0, 1>();
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
@@ -96,7 +96,7 @@ namespace copy_stencil {
             }
         }
 
-        typedef arg< 0, data_store_field_t > p_in;
+        typedef arg<0, data_store_field_t> p_in;
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -107,9 +107,9 @@ namespace copy_stencil {
 
         auto grid = make_grid(d1, d2, d3);
 
-        auto copy = gridtools::make_computation< backend_t >(grid,
+        auto copy = gridtools::make_computation<backend_t>(grid,
             p_in() = in,
-            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
+            gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_in())));
 
         copy.run();
 

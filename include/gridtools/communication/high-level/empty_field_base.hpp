@@ -37,23 +37,23 @@
 #define _EMPTY_FIELD_BASE_H_
 
 #include "../../common/boollist.hpp"
-#include "../../common/ndloops.hpp"
-#include "../low-level/data_types_mapping.hpp"
-#include "../../common/numerics.hpp"
 #include "../../common/halo_descriptor.hpp"
+#include "../../common/ndloops.hpp"
+#include "../../common/numerics.hpp"
+#include "../low-level/data_types_mapping.hpp"
 
 namespace gridtools {
     namespace _impl {
-        template < typename value_type >
+        template <typename value_type>
         struct make_datatype_outin {
 
           public:
-            static MPI_Datatype type() { return compute_type< value_type >().value; }
+            static MPI_Datatype type() { return compute_type<value_type>().value; }
 
-            template < typename arraytype, typename arraytype2 >
-            static std::pair< MPI_Datatype, bool > outside(arraytype const &halo, arraytype2 const &eta) {
+            template <typename arraytype, typename arraytype2>
+            static std::pair<MPI_Datatype, bool> outside(arraytype const &halo, arraytype2 const &eta) {
                 const int d = halo.size();
-                std::vector< int > sizes(d), subsizes(d), starts(d);
+                std::vector<int> sizes(d), subsizes(d), starts(d);
 
                 int ssz = 1;
                 for (int i = 0; i < d; ++i) {
@@ -78,10 +78,10 @@ namespace gridtools {
                 return std::make_pair(res, true);
             }
 
-            template < typename arraytype, typename arraytype2 >
-            static std::pair< MPI_Datatype, bool > inside(arraytype const &halo, arraytype2 const &eta) {
+            template <typename arraytype, typename arraytype2>
+            static std::pair<MPI_Datatype, bool> inside(arraytype const &halo, arraytype2 const &eta) {
                 const int d = halo.size();
-                std::vector< int > sizes(d), subsizes(d), starts(d);
+                std::vector<int> sizes(d), subsizes(d), starts(d);
 
                 int ssz = 1;
                 for (int i = 0; i < d; ++i) {
@@ -107,7 +107,7 @@ namespace gridtools {
             }
         };
 
-        template < typename Array >
+        template <typename Array>
         int neigh_idx(Array const &tuple) {
             int idx = 0;
             for (std::size_t i = 0; i < tuple.size(); ++i) {
@@ -120,37 +120,37 @@ namespace gridtools {
             return idx;
         }
 
-        template < typename DataType, typename HALO_t, typename MPDT_t >
+        template <typename DataType, typename HALO_t, typename MPDT_t>
         struct set_mpdt {
             MPDT_t &mpdt_out;
             MPDT_t &mpdt_in;
             HALO_t const &halo;
             set_mpdt(HALO_t const &h, MPDT_t &t, MPDT_t &e) : mpdt_out(t), mpdt_in(e), halo(h) {}
 
-            template < typename Tuple >
+            template <typename Tuple>
             void operator()(Tuple const &tuple) {
                 int idx = neigh_idx(tuple);
-                mpdt_out[idx] = _impl::make_datatype_outin< DataType >::outside(halo, tuple);
-                mpdt_in[idx] = _impl::make_datatype_outin< DataType >::inside(halo, tuple);
+                mpdt_out[idx] = _impl::make_datatype_outin<DataType>::outside(halo, tuple);
+                mpdt_in[idx] = _impl::make_datatype_outin<DataType>::inside(halo, tuple);
             }
         };
-    }
+    } // namespace _impl
 
-    template < typename DataType, int DIMS >
+    template <typename DataType, int DIMS>
     class empty_field_base {
-        typedef array< halo_descriptor, DIMS > HALO_t;
+        typedef array<halo_descriptor, DIMS> HALO_t;
 
       public:
-        array< halo_descriptor, DIMS > halos;
-        typedef array< std::pair< MPI_Datatype, bool >, _impl::static_pow3< DIMS >::value > MPDT_t;
+        array<halo_descriptor, DIMS> halos;
+        typedef array<std::pair<MPI_Datatype, bool>, _impl::static_pow3<DIMS>::value> MPDT_t;
         MPDT_t MPDT_OUTSIDE;
         MPDT_t MPDT_INSIDE;
 
       private:
         void generate_datatypes() {
-            array< int, DIMS > tuple;
-            _impl::set_mpdt< DataType, HALO_t, MPDT_t > set_function(halos, MPDT_OUTSIDE, MPDT_INSIDE);
-            neigh_loop< DIMS > nl;
+            array<int, DIMS> tuple;
+            _impl::set_mpdt<DataType, HALO_t, MPDT_t> set_function(halos, MPDT_OUTSIDE, MPDT_INSIDE);
+            neigh_loop<DIMS> nl;
             nl(set_function, tuple);
         }
 
@@ -178,11 +178,11 @@ namespace gridtools {
 
         void setup() { generate_datatypes(); }
 
-        std::pair< MPI_Datatype, bool > mpdt_inside(gridtools::array< int, DIMS > const &eta) const {
+        std::pair<MPI_Datatype, bool> mpdt_inside(gridtools::array<int, DIMS> const &eta) const {
             return MPDT_INSIDE[_impl::neigh_idx(eta)];
         }
 
-        std::pair< MPI_Datatype, bool > mpdt_outside(gridtools::array< int, DIMS > const &eta) const {
+        std::pair<MPI_Datatype, bool> mpdt_outside(gridtools::array<int, DIMS> const &eta) const {
             return MPDT_OUTSIDE[_impl::neigh_idx(eta)];
         }
 
@@ -193,7 +193,7 @@ namespace gridtools {
 
             \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
         */
-        int send_buffer_size(gridtools::array< int, DIMS > const &eta) const {
+        int send_buffer_size(gridtools::array<int, DIMS> const &eta) const {
             int S = 1;
             for (int i = 0; i < DIMS; ++i) {
                 S *= halos[i].s_length(eta[i]);
@@ -208,7 +208,7 @@ namespace gridtools {
 
             \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
         */
-        int recv_buffer_size(gridtools::array< int, DIMS > const &eta) const {
+        int recv_buffer_size(gridtools::array<int, DIMS> const &eta) const {
             int S = 1;
             for (int i = 0; i < DIMS; ++i) {
                 S *= halos[i].r_length(eta[i]);
@@ -216,5 +216,5 @@ namespace gridtools {
             return S;
         }
     };
-}
+} // namespace gridtools
 #endif

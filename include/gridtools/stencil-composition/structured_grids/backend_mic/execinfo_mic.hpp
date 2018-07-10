@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "common/defs.hpp"
+#include "../../../common/defs.hpp"
 
 namespace gridtools {
 
@@ -71,7 +71,7 @@ namespace gridtools {
         using block_kserial_t = execinfo_block_kserial_mic;
         using block_kparallel_t = execinfo_block_kparallel_mic;
 
-        template < class Grid >
+        template <class Grid>
         GT_FUNCTION execinfo_mic(const Grid &grid)
             : m_i_grid_size(grid.i_high_bound() - grid.i_low_bound() + 1),
               m_j_grid_size(grid.j_high_bound() - grid.j_low_bound() + 1), m_i_low_bound(grid.i_low_bound()),

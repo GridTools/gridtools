@@ -43,20 +43,20 @@
 
 #include "gtest/gtest.h"
 
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/zip_view.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/at.hpp>
 
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "common/defs.hpp"
-#include "common/gpu_clone.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/common/gpu_clone.hpp>
 
-using gridtools::uint_t;
 using gridtools::int_t;
+using gridtools::uint_t;
 
 namespace gpu_clone_test {
 
@@ -69,13 +69,13 @@ namespace gpu_clone_test {
     BUT NEED TO BE CLONED ON GPU
     *********************************************************/
 
-    struct A : public gridtools::clonable_to_gpu< A > {
-        typedef boost::fusion::vector< int, double > v_type;
+    struct A : public gridtools::clonable_to_gpu<A> {
+        typedef boost::fusion::vector<int, double> v_type;
         v_type v1;
         v_type v2;
 
-        typedef boost::fusion::vector< v_type &, v_type & > support_t;
-        typedef boost::fusion::zip_view< support_t > zip_view_t;
+        typedef boost::fusion::vector<v_type &, v_type &> support_t;
+        typedef boost::fusion::zip_view<support_t> zip_view_t;
 
         zip_view_t zip_view;
 
@@ -109,7 +109,7 @@ namespace gpu_clone_test {
         };
 
         struct print_zip {
-            template < typename V >
+            template <typename V>
             GT_FUNCTION void operator()(V const &v) const {
                 boost::fusion::for_each(v, print_elements());
                 printf("\n");
@@ -119,7 +119,7 @@ namespace gpu_clone_test {
 
     /** class to test gpu_clonable data-members
      */
-    struct B : public gridtools::clonable_to_gpu< B > {
+    struct B : public gridtools::clonable_to_gpu<B> {
         A a;
 
         B(typename A::v_type const &v1, typename A::v_type const &v2) : a(v1, v2) {
@@ -132,17 +132,17 @@ namespace gpu_clone_test {
     };
 
     struct mul2_f {
-        template < typename U >
+        template <typename U>
         GT_FUNCTION void operator()(U &u) const {
             u *= 2;
         }
     };
 
     struct mul2_fz {
-        template < typename U >
+        template <typename U>
         GT_FUNCTION void operator()(U const &u) const {
-            boost::fusion::at_c< 0 >(u) *= 2;
-            boost::fusion::at_c< 1 >(u) *= 2;
+            boost::fusion::at_c<0>(u) *= 2;
+            boost::fusion::at_c<1>(u) *= 2;
         }
     };
 
@@ -159,7 +159,7 @@ namespace gpu_clone_test {
     // }
 
     struct minus1_f {
-        template < typename T >
+        template <typename T>
         GT_FUNCTION // Avoid warning
             void
             operator()(T &x) const {
@@ -194,13 +194,13 @@ namespace gpu_clone_test {
         boost::fusion::for_each(a2.v2, mul2_f());
 
         bool equal = true;
-        if (boost::fusion::at_c< 0 >(a1.v1) != boost::fusion::at_c< 0 >(a2.v1))
+        if (boost::fusion::at_c<0>(a1.v1) != boost::fusion::at_c<0>(a2.v1))
             equal = false;
-        if (boost::fusion::at_c< 1 >(a1.v1) != boost::fusion::at_c< 1 >(a2.v1))
+        if (boost::fusion::at_c<1>(a1.v1) != boost::fusion::at_c<1>(a2.v1))
             equal = false;
-        if (boost::fusion::at_c< 0 >(a1.v2) != boost::fusion::at_c< 0 >(a2.v2))
+        if (boost::fusion::at_c<0>(a1.v2) != boost::fusion::at_c<0>(a2.v2))
             equal = false;
-        if (boost::fusion::at_c< 1 >(a1.v2) != boost::fusion::at_c< 1 >(a2.v2))
+        if (boost::fusion::at_c<1>(a1.v2) != boost::fusion::at_c<1>(a2.v2))
             equal = false;
 
         typename A::v_type bw1(m * 8, m * 1.23456789);
@@ -222,13 +222,13 @@ namespace gpu_clone_test {
         boost::fusion::for_each(b2.a.v1, minus1_f());
         boost::fusion::for_each(b2.a.v2, minus1_f());
 
-        if (boost::fusion::at_c< 0 >(b1.a.v1) != boost::fusion::at_c< 0 >(b2.a.v1))
+        if (boost::fusion::at_c<0>(b1.a.v1) != boost::fusion::at_c<0>(b2.a.v1))
             equal = false;
-        if (boost::fusion::at_c< 1 >(b1.a.v1) != boost::fusion::at_c< 1 >(b2.a.v1))
+        if (boost::fusion::at_c<1>(b1.a.v1) != boost::fusion::at_c<1>(b2.a.v1))
             equal = false;
-        if (boost::fusion::at_c< 0 >(b1.a.v2) != boost::fusion::at_c< 0 >(b2.a.v2))
+        if (boost::fusion::at_c<0>(b1.a.v2) != boost::fusion::at_c<0>(b2.a.v2))
             equal = false;
-        if (boost::fusion::at_c< 1 >(b1.a.v2) != boost::fusion::at_c< 1 >(b2.a.v2))
+        if (boost::fusion::at_c<1>(b1.a.v2) != boost::fusion::at_c<1>(b2.a.v2))
             equal = false;
 
         return equal;

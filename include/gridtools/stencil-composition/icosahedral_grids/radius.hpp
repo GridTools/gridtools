@@ -37,7 +37,7 @@
 
 namespace gridtools {
 
-    template < int R >
+    template <int R>
     struct radius {
         static const int value = R;
     };

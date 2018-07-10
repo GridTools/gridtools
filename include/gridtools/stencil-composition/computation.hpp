@@ -40,45 +40,45 @@
 #include <utility>
 
 #include <boost/fusion/include/invoke.hpp>
-#include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/vector.hpp>
 
-#include "arg.hpp"
 #include "../common/defs.hpp"
-#include "../common/permute_to.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
+#include "../common/permute_to.hpp"
+#include "arg.hpp"
 
 namespace gridtools {
 
     namespace _impl {
         namespace computation_detail {
 
-            template < class ReturnType, class Obj >
+            template <class ReturnType, class Obj>
             struct run_f {
                 Obj &m_obj;
 
-                template < class... Args >
+                template <class... Args>
                 ReturnType operator()(Args &&... args) const {
-                    return m_obj.run(std::forward< Args >(args)...);
+                    return m_obj.run(std::forward<Args>(args)...);
                 }
                 using result_type = ReturnType;
             };
-            template < class Obj >
-            struct run_f< void, Obj > {
+            template <class Obj>
+            struct run_f<void, Obj> {
                 Obj &m_obj;
 
-                template < class... Args >
+                template <class... Args>
                 void operator()(Args &&... args) const {
-                    m_obj.run(std::forward< Args >(args)...);
+                    m_obj.run(std::forward<Args>(args)...);
                 }
                 using result_type = void;
             };
-            template < class ReturnType, class Obj, class Args >
+            template <class ReturnType, class Obj, class Args>
             ReturnType invoke_run(Obj &obj, Args const &args) {
-                return boost::fusion::invoke(run_f< ReturnType, Obj >{obj}, args);
+                return boost::fusion::invoke(run_f<ReturnType, Obj>{obj}, args);
             }
-        }
-    }
+        } // namespace computation_detail
+    }     // namespace _impl
 
     /**
      * Type erasure for computations (the objects that are produced by make_computation)
@@ -87,63 +87,66 @@ namespace gridtools {
      * @tparam ReturnType what is returned by run method
      * @tparam Args placeholders that should be passed to run as corespondent arg_storage_pairs
      */
-    template < class ReturnType, class... Args >
+    template <class ReturnType, class... Args>
     class computation {
-        GRIDTOOLS_STATIC_ASSERT(conjunction< is_arg< Args >... >::value, "template parameters should be args");
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "template parameters should be args");
 
         using arg_storage_pair_crefs_t =
-            boost::fusion::vector< arg_storage_pair< Args, typename Args::data_store_t > const &... >;
+            boost::fusion::vector<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 
         struct iface {
             virtual ~iface() = default;
             virtual ReturnType run(arg_storage_pair_crefs_t const &) = 0;
             virtual void sync_bound_data_stores() = 0;
             virtual std::string print_meter() const = 0;
-            virtual double get_meter() const = 0;
+            virtual double get_time() const = 0;
+            virtual size_t get_count() const = 0;
             virtual void reset_meter() = 0;
         };
 
-        template < class Obj >
+        template <class Obj>
         struct impl : iface {
             Obj m_obj;
 
             impl(Obj &&obj) : m_obj{std::move(obj)} {}
 
             ReturnType run(arg_storage_pair_crefs_t const &args) override {
-                return _impl::computation_detail::invoke_run< ReturnType >(m_obj, args);
+                return _impl::computation_detail::invoke_run<ReturnType>(m_obj, args);
             }
             void sync_bound_data_stores() override { m_obj.sync_bound_data_stores(); }
             std::string print_meter() const override { return m_obj.print_meter(); }
-            double get_meter() const override { return m_obj.get_meter(); }
-            void reset_meter() override { return m_obj.reset_meter(); }
+            double get_time() const override { return m_obj.get_time(); }
+            size_t get_count() const override { return m_obj.get_count(); }
+            void reset_meter() override { m_obj.reset_meter(); }
         };
 
-        std::unique_ptr< iface > m_impl;
+        std::unique_ptr<iface> m_impl;
 
       public:
         computation() = default;
 
-        template < class Obj >
-        computation(Obj obj)
-            : m_impl(new impl< Obj >{std::move(obj)}) {
-            GRIDTOOLS_STATIC_ASSERT((!std::is_same< typename std::decay< Obj >::type, computation >::value),
+        template <class Obj>
+        computation(Obj obj) : m_impl(new impl<Obj>{std::move(obj)}) {
+            GRIDTOOLS_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
                 GT_INTERNAL_ERROR_MSG("computation move ctor got shadowed"));
             // TODO(anstaf): Check that Obj satisfies computation concept here.
         }
 
         explicit operator bool() const { return !!m_impl; }
 
-        template < class... SomeArgs, class... SomeDataStores >
-        typename std::enable_if< sizeof...(SomeArgs) == sizeof...(Args), ReturnType >::type run(
-            arg_storage_pair< SomeArgs, SomeDataStores > const &... args) {
-            return m_impl->run(permute_to< arg_storage_pair_crefs_t >(boost::fusion::make_vector(std::cref(args)...)));
+        template <class... SomeArgs, class... SomeDataStores>
+        typename std::enable_if<sizeof...(SomeArgs) == sizeof...(Args), ReturnType>::type run(
+            arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
+            return m_impl->run(permute_to<arg_storage_pair_crefs_t>(boost::fusion::make_vector(std::cref(args)...)));
         }
 
         void sync_bound_data_stores() { m_impl->sync_bound_data_stores(); }
 
         std::string print_meter() const { return m_impl->print_meter(); }
 
-        double get_meter() const { return m_impl->get_meter(); }
+        double get_time() const { return m_impl->get_time(); }
+
+        size_t get_count() const { return m_impl->get_count(); }
 
         void reset_meter() { m_impl->reset_meter(); }
     };
