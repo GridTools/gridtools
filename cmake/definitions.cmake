@@ -165,7 +165,11 @@ endif()
 ## mpi ##
 if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
-  find_package(MPI REQUIRED)
+  find_package(MPI)
+  # only test for C++, Fortran MPI is not required
+  if (NOT MPI_CXX_FOUND)
+    message(FATAL_ERROR "Could not find MPI")
+  endif()
   if ( MPI_CXX_INCLUDE_PATH )
       include_directories( "${MPI_CXX_INCLUDE_PATH}" )
   endif()
