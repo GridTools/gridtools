@@ -73,8 +73,8 @@ namespace shallow_water {
     using level_t = level<Splitter, Offset, level_offset_limit>;
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval<level<0, -1>, level<1, -1>> x_interval;
-    typedef gridtools::interval<level<0, -2>, level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     struct functor_traits {
         //#if  !((defined(__GNUC__)) && (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 9))
