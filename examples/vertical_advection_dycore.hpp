@@ -56,7 +56,7 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
-    using axis_t = axis<1, 0, 3>;
+    using axis_t = axis<1>::with_offset_limit<3>;
     using kbody = axis_t::full_interval::modify<1, -1>;
     using kbody_low = axis_t::full_interval::modify<0, -1>;
     using kfull = axis_t::full_interval;
