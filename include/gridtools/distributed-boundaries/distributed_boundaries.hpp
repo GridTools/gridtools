@@ -136,13 +136,6 @@ namespace gridtools {
             typename CTraits::proc_grid_type,
             typename CTraits::comm_arch_type,
             CTraits::version>;
-
-        using pattern_type = halo_exchange_dynamic_ut<typename CTraits::data_layout,
-            typename CTraits::proc_layout,
-            typename CTraits::value_type,
-            typename CTraits::proc_grid_type,
-            typename CTraits::comm_arch_type,
-            CTraits::version>;
 #endif
       private:
         array<halo_descriptor, 3> m_halos;
