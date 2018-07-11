@@ -176,9 +176,8 @@ namespace gridtools {
             "cache<K, ... > construct requires an interval (unless the IO policy is local)");
 
         GRIDTOOLS_STATIC_ASSERT((!(boost::is_same<KWindow, boost::mpl::void_>::value) ||
-                                    !(cacheType == K && (cacheIOPolicy == cache_io_policy::bpfill ||
-                                                            cacheIOPolicy == cache_io_policy::epflush))),
-            "cache<K, ... > construct requires a k window for bpfill and epflush");
+                                    !(cacheType == K && cacheIOPolicy != cache_io_policy::local)),
+            "cache<K, ... > construct requires a k window for (bp)fill and (ep)flush");
 
         GRIDTOOLS_STATIC_ASSERT((boost::is_same<Interval, boost::mpl::void_>::value || is_interval<Interval>::value),
             "Invalid Interval type passed to cache construct");
