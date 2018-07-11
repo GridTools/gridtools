@@ -67,6 +67,11 @@ using namespace enumtype;
 using namespace expressions;
 
 namespace shallow_water {
+    constexpr int level_offset_limit = 2;
+
+    template <uint_t Splitter, int_t Offset>
+    using level_t = level<Splitter, Offset, level_offset_limit>;
+
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval<level<0, -1>, level<1, -1>> x_interval;
     typedef gridtools::interval<level<0, -2>, level<1, 1>> axis;
