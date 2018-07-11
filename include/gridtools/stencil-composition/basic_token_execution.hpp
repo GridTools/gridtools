@@ -111,6 +111,8 @@ namespace gridtools {
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
 
+                run_esf_functor_helper<ItDomain, RunFunctorArguments, Interval, RunEsfFunctor> fun{m_domain};
+
                 if (in_domain)
                     m_domain.template begin_fill<IterationPolicy>();
 
@@ -121,7 +123,7 @@ namespace gridtools {
                     }
 
                     gridtools::for_each<GT_META_CALL(meta::make_indices_c, boost::mpl::size<functor_list_t>::value)>(
-                        run_esf_functor_helper<ItDomain, RunFunctorArguments, Interval, RunEsfFunctor>{m_domain});
+                        fun);
 
                     if (in_domain) {
 
