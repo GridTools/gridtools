@@ -46,9 +46,14 @@ using namespace enumtype;
 
 namespace test_iterate_domain {
 
+    constexpr int level_offset_limit = 2;
+
+    template <uint_t Splitter, int_t Offset>
+    using level_t = level<Splitter, Offset, level_offset_limit>;
+
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> x_interval;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis_t;
+    typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis_t;
 
     typedef layout_map<2, 1, 0> layout_ijk_t;
     typedef layout_map<0, 1, 2> layout_kji_t;

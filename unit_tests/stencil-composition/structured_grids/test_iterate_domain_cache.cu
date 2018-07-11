@@ -48,12 +48,17 @@
 using namespace gridtools;
 using namespace enumtype;
 
+constexpr int level_offset_limit = 2;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level<0, -1>, level<2, 1>> axis_t;
-typedef gridtools::interval<level<0, -1>, level<0, -1>> kminimum;
-typedef gridtools::interval<level<0, 1>, level<1, -1>> krange1;
-typedef gridtools::interval<level<1, 1>, level<2, -2>> krange2;
-typedef gridtools::interval<level<2, -1>, level<2, -1>> kmaximum;
+typedef gridtools::interval<level_t<0, -1>, level_t<2, 1>> axis_t;
+typedef gridtools::interval<level_t<0, -1>, level_t<0, -1>> kminimum;
+typedef gridtools::interval<level_t<0, 1>, level_t<1, -1>> krange1;
+typedef gridtools::interval<level_t<1, 1>, level_t<2, -2>> krange2;
+typedef gridtools::interval<level_t<2, -1>, level_t<2, -1>> kmaximum;
 
 typedef storage_traits<Host>::storage_info_t<0, 2> storage_info_ij_t;
 typedef storage_traits<Host>::data_store_t<float_type, storage_info_ij_t> storage_type;
@@ -105,9 +110,9 @@ struct functor2 {
     GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
 };
 
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> kmin_and_range1;
-typedef gridtools::interval<gridtools::level<1, 1>, gridtools::level<2, -1>> krange2_and_max;
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<2, -1>> kall;
+typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> kmin_and_range1;
+typedef gridtools::interval<level_t<1, 1>, level_t<2, -1>> krange2_and_max;
+typedef gridtools::interval<level_t<0, -1>, level_t<2, -1>> kall;
 
 typedef decltype(gridtools::make_stage<functor1>(p_in1(), p_in3(), p_in4(), p_out())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_in1(), p_in2(), p_in4(), p_out())) esf2k_t;

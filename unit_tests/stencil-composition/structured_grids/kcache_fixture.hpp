@@ -39,7 +39,7 @@
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-using axis_t = gridtools::axis<1, 1>;
+using axis_t = gridtools::axis<1, 1, 3>;
 using axis = axis_t::axis_interval_t;
 
 using kfull = axis_t::full_interval;
@@ -53,7 +53,7 @@ using kmaximumm1 = kmaximum::shift<-1>;
 using kbody_low = kfull::modify<0, -1>;
 using kbody = kfull::modify<1, -1>;
 
-using axis_b_t = gridtools::axis<2, 1>;
+using axis_b_t = gridtools::axis<2, 1, 3>;
 using axis_b = axis_b_t::axis_interval_t;
 
 using kfull_b = axis_b_t::full_interval;
