@@ -57,8 +57,11 @@
 
 namespace gridtools {
 
-#ifdef _GCL_MPI_
-
+#ifndef _GCL_MPI_
+    // This provides an processing grid that works on a single process
+    // to be used without periodic boundary conditions, this enables
+    // the grid predicate to work
+    using namespace mock_;
 #endif
 
     namespace _workaround {
@@ -127,9 +130,7 @@ namespace gridtools {
     template <typename CTraits>
     struct distributed_boundaries {
 
-#ifndef _GCL_MPI_
-        using namespace gridtools::mock_;
-#else
+#ifdef _GCL_MPI_
         using pattern_type = halo_exchange_dynamic_ut<typename CTraits::data_layout,
             typename CTraits::proc_layout,
             typename CTraits::value_type,

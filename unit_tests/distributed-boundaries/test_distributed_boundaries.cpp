@@ -37,7 +37,9 @@
 #include "gtest/gtest.h"
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 #include <iomanip>
+#ifdef _GCL_MPI_
 #include <mpi.h>
+#endif
 
 #include <gridtools/distributed-boundaries/comm_traits.hpp>
 #include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
