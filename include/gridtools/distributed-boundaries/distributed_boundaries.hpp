@@ -144,6 +144,8 @@ namespace gridtools {
         uint_t m_max_stores;
 #ifdef _GCL_MPI_
         pattern_type m_he;
+#else
+        mock_pattern m_he;
 #endif
       public:
         /**
@@ -175,9 +177,10 @@ namespace gridtools {
 
             m_he.setup(m_max_stores);
 #else
-        {
+            , m_he{period}
+            {
 #endif
-        }
+            }
 
         /**
             @brief Member function to perform boundary condition only
@@ -236,11 +239,7 @@ namespace gridtools {
 #endif
         }
 
-#ifdef _GCL_MPI_
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
-#else
-        typename CTraits::proc_grid_type proc_grid() const { return MPI_3D_process_grid_t<3>{}; }
-#endif
 
       private:
         template <typename BoundaryApply, typename ArgsTuple, uint_t... Ids>

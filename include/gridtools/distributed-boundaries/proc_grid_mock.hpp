@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include "../common/boollist.hpp"
+
 namespace gridtools {
     namespace mock_ {
         using MPI_Comm = int;
@@ -44,11 +46,11 @@ namespace gridtools {
         struct MPI_3D_process_grid_t {
 
             MPI_3D_process_grid_t() {}
-            template <typename A, typename B>
-            MPI_3D_process_grid_t(A const &, B const &) {}
+            template <typename Period, typename Comm>
+            MPI_3D_process_grid_t(Period const & a, Comm const &) {}
             MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other) = default;
-            template < typename A, typename B, typename C >
-            MPI_3D_process_grid_t(A const &c, B const &comm, C const &) {}
+            template < typename Period, typename Comm, typename Dims >
+            MPI_3D_process_grid_t(Period const &c, Comm const &comm, Dims const &) {}
 
             MPI_Comm communicator() const { return 0; }
             void dims(int &t_R, int &t_C, int &t_S) const {
@@ -82,5 +84,19 @@ namespace gridtools {
                 return 0;
             }
         };
-    }
-}
+
+        struct mock_pattern {
+            boollist<3> m_period;
+            MPI_3D_process_grid_t<3> m_comm;
+
+            mock_pattern(boollist<3> p) : m_period{p}, m_comm{p, 0} {
+                if ((m_period.value(0) != false) or (m_period.value(1) != false) or (m_period.value(2) != false)) {
+                    throw(std::runtime_error("To use distributed-boundaries without MPI the communication pattern should not be periodic"));
+                }
+            }
+
+            MPI_3D_process_grid_t<3> const& comm() const {return m_comm;}
+        };
+
+    } // namespace mock_
+} // namespace gridtools

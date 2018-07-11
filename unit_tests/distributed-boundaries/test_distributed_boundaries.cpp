@@ -124,6 +124,14 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
+#ifndef _GCL_MPI_
+    {
+        // If MPI is not defined, the communication cannot be periodic.
+        // This allows testing without MPI
+        EXPECT_THROW((cabc_t{halos, {false, true, false}, 3, GCL_WORLD}), std::runtime_error);
+    }
+#endif
+
     cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
 
     int pi, pj, pk;
