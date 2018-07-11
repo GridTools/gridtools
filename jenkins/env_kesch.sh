@@ -29,3 +29,6 @@ export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
 export FC=`which gfortran`
+export MAKE_THREADS=12
+export SRUN_BUILD_COMMAND="srun -p pp-short -c 12 --time=00:30:00"
+
