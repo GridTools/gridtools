@@ -41,9 +41,9 @@
 #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
-#include <stencil-composition/stencil-composition.hpp>
-#include <tools/verifier.hpp>
 #include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 namespace test_expandable_parameters {
 
@@ -52,12 +52,12 @@ namespace test_expandable_parameters {
 
     struct functor_exp {
 
-        typedef vector_accessor< 0, enumtype::inout > parameters_out;
-        typedef vector_accessor< 1, enumtype::in > parameters_in;
+        typedef vector_accessor<0, enumtype::inout> parameters_out;
+        typedef vector_accessor<1, enumtype::in> parameters_in;
 
-        typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
+        typedef boost::mpl::vector<parameters_out, parameters_in> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(parameters_out{}) = eval(parameters_in{});
         }
@@ -65,8 +65,8 @@ namespace test_expandable_parameters {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -82,23 +82,23 @@ namespace test_expandable_parameters {
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
 
-        std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
-        std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
+        std::vector<storage_t> list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector<storage_t> list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         auto grid_ = make_grid(d1, d2, d3);
 
-        typedef arg< 0, std::vector< storage_t > > p_list_out;
-        typedef arg< 1, std::vector< storage_t > > p_list_in;
-        typedef tmp_arg< 2, std::vector< storage_t > > p_list_tmp;
+        typedef arg<0, std::vector<storage_t>> p_list_out;
+        typedef arg<1, std::vector<storage_t>> p_list_in;
+        typedef tmp_arg<2, std::vector<storage_t>> p_list_tmp;
 
-        auto comp_ = make_computation< backend_t >(expand_factor< 2 >(),
+        auto comp_ = make_computation<backend_t>(expand_factor<2>(),
             grid_,
             p_list_out{} = list_out_,
             p_list_in{} = list_in_,
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                                                       define_caches(cache< IJ, cache_io_policy::local >(p_list_tmp())),
-                                                       make_stage< functor_exp >(p_list_tmp(), p_list_in()),
-                                                       make_stage< functor_exp >(p_list_out(), p_list_tmp())));
+            make_multistage(enumtype::execute<enumtype::forward>(),
+                define_caches(cache<IJ, cache_io_policy::local>(p_list_tmp())),
+                make_stage<functor_exp>(p_list_tmp(), p_list_in()),
+                make_stage<functor_exp>(p_list_out(), p_list_tmp())));
 
         comp_.run();
         comp_.sync_bound_data_stores();

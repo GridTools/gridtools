@@ -33,7 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-template < typename value_type >
+#include "../../common/halo_descriptor.hpp"
+
+template <typename value_type>
 __global__ void m_packXUKernel(const value_type *__restrict__ d_data,
     value_type **__restrict__ d_msgbufTab,
     const int *d_msgsize,
@@ -97,7 +99,7 @@ __global__ void m_packXUKernel(const value_type *__restrict__ d_data,
     }
 }
 
-template < typename array_t, typename value_type >
+template <typename array_t, typename value_type>
 void m_packXU(array_t const &d_data_array,
     value_type **d_msgbufTab,
     int d_msgsize[27],
@@ -179,13 +181,13 @@ void m_packXU(array_t const &d_data_array,
 #endif
 }
 
-template < typename Blocks,
+template <typename Blocks,
     typename Threads,
     typename Bytes,
     typename Pointer,
     typename MsgbufTab,
     typename Msgsize,
-    typename Halo >
+    typename Halo>
 int call_kernel_XU(Blocks blocks,
     Threads threads,
     Bytes b,
@@ -196,7 +198,7 @@ int call_kernel_XU(Blocks blocks,
     int nx,
     int ny,
     unsigned int i) {
-    m_packXUKernel<<< blocks, threads, b, XU_stream >>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
+    m_packXUKernel<<<blocks, threads, b, XU_stream>>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
 
 #ifdef CUDAMSG
     int err = cudaGetLastError();
@@ -209,13 +211,13 @@ int call_kernel_XU(Blocks blocks,
     return 0;
 }
 
-template < typename value_type, typename datas, unsigned int... Ids >
+template <typename value_type, typename datas, unsigned int... Ids>
 void m_packXU_variadic(value_type **d_msgbufTab,
     int d_msgsize[27],
     const gridtools::halo_descriptor halo[3],
     const gridtools::halo_descriptor halo_d[3],
     datas const &d_datas,
-    gridtools::gt_integer_sequence< unsigned int, Ids... >) {
+    gridtools::gt_integer_sequence<unsigned int, Ids...>) {
     // threads per block. Should be at least one warp in x, could be wider in y
     const int ntx = 1;
     const int nty = 32;
@@ -254,12 +256,12 @@ void m_packXU_variadic(value_type **d_msgbufTab,
     cudaEventRecord(start, 0);
 #endif
 
-    const int niter = std::tuple_size< datas >::value;
+    const int niter = std::tuple_size<datas>::value;
 
     int nothing[niter] = {call_kernel_XU(blocks,
         threads,
         0,
-        static_cast< value_type const * >(std::get< Ids >(d_datas)),
+        static_cast<value_type const *>(std::get<Ids>(d_datas)),
         d_msgbufTab,
         d_msgsize,
         halo_d,

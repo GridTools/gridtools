@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "Options.hpp"
-#include "common/defs.hpp"
 #include "advection_pdbott_prepare_tracers.hpp"
+#include "Options.hpp"
+#include "gtest/gtest.h"
+#include <gridtools/common/defs.hpp>
 
 int main(int argc, char **argv) {
 

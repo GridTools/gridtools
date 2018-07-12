@@ -36,8 +36,8 @@
 #pragma once
 
 #include <memory>
-#include <typeinfo>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 
 #include "defs.hpp"
@@ -58,26 +58,25 @@ namespace gridtools {
             virtual ~iface() = default;
             virtual std::type_info const &type() const noexcept = 0;
         };
-        template < class T >
+        template <class T>
         struct impl : iface {
             T m_obj;
             impl(T const &obj) : m_obj(obj) {}
             impl(T &&obj) : m_obj(std::move(obj)) {}
             std::type_info const &type() const noexcept override { return typeid(T); }
         };
-        std::unique_ptr< iface > m_impl;
+        std::unique_ptr<iface> m_impl;
 
       public:
         any_moveable() = default;
 
-        template < class Arg, class Decayed = typename std::decay< Arg >::type >
-        any_moveable(Arg &&arg)
-            : m_impl(new impl< Decayed >(std::forward< Arg >(arg))) {}
+        template <class Arg, class Decayed = typename std::decay<Arg>::type>
+        any_moveable(Arg &&arg) : m_impl(new impl<Decayed>(std::forward<Arg>(arg))) {}
         any_moveable(any_moveable &&) = default;
 
-        template < class Arg, class Decayed = typename std::decay< Arg >::type >
+        template <class Arg, class Decayed = typename std::decay<Arg>::type>
         any_moveable &operator=(Arg &&obj) {
-            m_impl.reset(new impl< Decayed >(std::forward< Arg >(obj)));
+            m_impl.reset(new impl<Decayed>(std::forward<Arg>(obj)));
             return *this;
         }
         any_moveable &operator=(any_moveable &&) = default;
@@ -85,38 +84,37 @@ namespace gridtools {
         bool has_value() const noexcept { return !!m_impl; }
         std::type_info const &type() const noexcept { return m_impl->type(); }
 
-        template < class T >
+        template <class T>
         friend T *any_cast(any_moveable *src) noexcept {
-            return src && src->type() == typeid(T) ? &static_cast< impl< T > * >(src->m_impl.get())->m_obj : nullptr;
+            return src && src->type() == typeid(T) ? &static_cast<impl<T> *>(src->m_impl.get())->m_obj : nullptr;
         }
     };
 
-    template < class T >
+    template <class T>
     T const *any_cast(any_moveable const *src) noexcept {
-        return any_cast< T >(const_cast< any_moveable * >(src));
+        return any_cast<T>(const_cast<any_moveable *>(src));
     }
 
-    template < class T >
+    template <class T>
     T any_cast(any_moveable &src) {
-        auto *ptr = any_cast< typename std::remove_reference< T >::type >(&src);
+        auto *ptr = any_cast<typename std::remove_reference<T>::type>(&src);
         if (!ptr)
             throw bad_any_cast{};
-        using ref_t = typename std::conditional< std::is_reference< T >::value,
-            T,
-            typename std::add_lvalue_reference< T >::type >::type;
-        return static_cast< ref_t >(*ptr);
+        using ref_t = typename std::
+            conditional<std::is_reference<T>::value, T, typename std::add_lvalue_reference<T>::type>::type;
+        return static_cast<ref_t>(*ptr);
     }
 
-    template < class T >
+    template <class T>
     T any_cast(any_moveable const &src) {
-        return any_cast< T >(const_cast< any_moveable & >(src));
+        return any_cast<T>(const_cast<any_moveable &>(src));
     }
 
-    template < class T >
+    template <class T>
     T any_cast(any_moveable &&src) {
-        GRIDTOOLS_STATIC_ASSERT(std::is_rvalue_reference< T && >::value ||
-                                    std::is_const< typename std::remove_reference< T >::type >::value,
+        GRIDTOOLS_STATIC_ASSERT(
+            std::is_rvalue_reference<T &&>::value || std::is_const<typename std::remove_reference<T>::type>::value,
             "any_cast shall not be used for getting nonconst references to temporary objects");
-        return any_cast< T >(src);
+        return any_cast<T>(src);
     }
-}
+} // namespace gridtools

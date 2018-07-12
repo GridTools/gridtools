@@ -35,13 +35,13 @@
 */
 #if !BOOST_PP_IS_ITERATING
 
-#include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
 
 // clang-format off
-#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, <communication/high-level/call_generic.hpp>))
+#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, <gridtools/communication/high-level/call_generic.hpp>))
 // clang-format on
 #include BOOST_PP_ITERATE()
 
@@ -59,10 +59,10 @@
     (*filep) << "fieldx " << field##m << "\n" << sizeof(typename FOTF_T##m::value_type) << std::endl;
 #define print_FIELDS(m) BOOST_PP_REPEAT(m, _print_FIELDS, nil)
 
-template < BOOST_PP_ENUM_PARAMS(noi, typename FOTF_T) >
+template <BOOST_PP_ENUM_PARAMS(noi, typename FOTF_T)>
 void PACK_F_NAME(KERNEL_TYPE)(
     BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &field), void **d_msgbufTab, const int *d_msgsize) {
-// print_FIELDS(noi);
+    // print_FIELDS(noi);
 
 #define QUOTE(x) #x
 #define _QUOTE(x) QUOTE(x)
@@ -79,7 +79,7 @@ void PACK_F_NAME(KERNEL_TYPE)(
 
 #define MSTR(x) #x
 
-template < BOOST_PP_ENUM_PARAMS(noi, typename FOTF_T) >
+template <BOOST_PP_ENUM_PARAMS(noi, typename FOTF_T)>
 void UNPACK_F_NAME(KERNEL_TYPE)(
     BOOST_PP_ENUM_BINARY_PARAMS(noi, FOTF_T, const &field), void **d_msgbufTab_r, int *d_msgsize_r) {
 

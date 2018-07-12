@@ -35,6 +35,10 @@ class JobError(Error):
     pass
 
 
+class JobSchedulingError(JobError):
+    pass
+
+
 logger = logging.getLogger(__name__)
 
 loghandler = logging.StreamHandler()

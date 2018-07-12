@@ -37,14 +37,14 @@
 #pragma once
 #include "../../common/defs.hpp"
 #include "../../common/dimension.hpp"
-#include "../../common/host_device.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/host_device.hpp"
 #include "../accessor_fwd.hpp"
 #include "../accessor_metafunctions.hpp"
 
 namespace gridtools {
 
-    template < ushort_t, int_t >
+    template <ushort_t, int_t>
     struct pair_;
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
@@ -53,40 +53,38 @@ namespace gridtools {
        queried dimension is not found it looks up in the dynamic dimensions. Note that this
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
-    template < class Base, class... Pairs >
+    template <class Base, class... Pairs>
     struct accessor_mixed;
 
-    template < class Base, ushort_t... Inxs, int_t... Vals >
-    struct accessor_mixed< Base, pair_< Inxs, Vals >... > : Base {
-        template < class... Ts >
-        GT_FUNCTION explicit constexpr accessor_mixed(Ts... args)
-            : Base(dimension< Inxs >(Vals)..., args...) {}
-        template < class OtherBase >
-        GT_FUNCTION constexpr accessor_mixed(accessor_mixed< OtherBase, pair_< Inxs, Vals >... > const &src)
-            : Base(src) {}
+    template <class Base, ushort_t... Inxs, int_t... Vals>
+    struct accessor_mixed<Base, pair_<Inxs, Vals>...> : Base {
+        template <class... Ts>
+        GT_FUNCTION explicit constexpr accessor_mixed(Ts... args) : Base(dimension<Inxs>(Vals)..., args...) {}
+        template <class OtherBase>
+        GT_FUNCTION constexpr accessor_mixed(accessor_mixed<OtherBase, pair_<Inxs, Vals>...> const &src) : Base(src) {}
 
       private:
-        template < ushort_t I >
-        using key_t = std::integral_constant< ushort_t, I >;
+        template <ushort_t I>
+        using key_t = std::integral_constant<ushort_t, I>;
 
-        template < int_t Val >
-        using val_t = std::integral_constant< int_t, Val >;
+        template <int_t Val>
+        using val_t = std::integral_constant<int_t, Val>;
 
-        using offset_map_t = meta::list< meta::list< key_t< Base::n_dimensions - Inxs >, val_t< Vals > >... >;
+        using offset_map_t = meta::list<meta::list<key_t<Base::n_dimensions - Inxs>, val_t<Vals>>...>;
 
-        template < int_t I >
-        using find_t = GT_META_CALL(meta::mp_find, (offset_map_t, key_t< I >));
+        template <int_t I>
+        using find_t = GT_META_CALL(meta::mp_find, (offset_map_t, key_t<I>));
 
       public:
         // An overload for the statically linked dimensions. No lookup is done.
-        template < ushort_t I, class Found = find_t< I > >
-        GT_FUNCTION constexpr typename std::enable_if< !std::is_void< Found >::value, int_t >::type get() const {
-            return meta::lazy::second< Found >::type::value;
+        template <ushort_t I, class Found = find_t<I>>
+        GT_FUNCTION constexpr typename std::enable_if<!std::is_void<Found>::value, int_t>::type get() const {
+            return meta::lazy::second<Found>::type::value;
         }
         // An overload for the dynamically linked dimensions. Lookup is delegated to the Base.
-        template < ushort_t I, class Found = find_t< I > >
-        GT_FUNCTION constexpr typename std::enable_if< std::is_void< Found >::value, int_t >::type get() const {
-            return Base::template get< I >();
+        template <ushort_t I, class Found = find_t<I>>
+        GT_FUNCTION constexpr typename std::enable_if<std::is_void<Found>::value, int_t>::type get() const {
+            return Base::template get<I>();
         }
     };
 
@@ -108,12 +106,12 @@ alias<arg_t, dimension<3> > field1(-3); //records the offset -3 as dynamic value
        NOTE: noone checks that you did not specify the same dimension twice. If that happens, the first occurrence of
 the dimension is chosen
     */
-    template < typename AccessorType, typename... Known >
+    template <typename AccessorType, typename... Known>
     struct alias;
 
-    template < typename AccessorType, ushort_t... Inxs >
-    struct alias< AccessorType, dimension< Inxs >... > {
-        GRIDTOOLS_STATIC_ASSERT(is_accessor< AccessorType >::value,
+    template <typename AccessorType, ushort_t... Inxs>
+    struct alias<AccessorType, dimension<Inxs>...> {
+        GRIDTOOLS_STATIC_ASSERT(is_accessor<AccessorType>::value,
             "wrong type. If you want to generalize the alias "
             "to something more generic than an offset_tuple "
             "remove this assert.");
@@ -124,18 +122,18 @@ the dimension is chosen
            This type alias allows to embed some of the offsets directly inside the type of the accessor placeholder.
            For a usage example check the examples folder
         */
-        template < int_t... Args >
-        using set = accessor_mixed< AccessorType, pair_< Inxs, Args >... >;
+        template <int_t... Args>
+        using set = accessor_mixed<AccessorType, pair_<Inxs, Args>...>;
     };
 
-    template < typename... Types >
-    struct is_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
+    template <typename... Types>
+    struct is_accessor<accessor_mixed<Types...>> : boost::mpl::true_ {};
 
-    template < typename... Types >
-    struct is_grid_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
+    template <typename... Types>
+    struct is_grid_accessor<accessor_mixed<Types...>> : boost::mpl::true_ {};
 
-    template < typename Accessor, typename ArgsMap, typename... Pairs >
-    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
-        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
+    template <typename Accessor, typename ArgsMap, typename... Pairs>
+    struct remap_accessor_type<accessor_mixed<Accessor, Pairs...>, ArgsMap> {
+        typedef accessor_mixed<typename remap_accessor_type<Accessor, ArgsMap>::type, Pairs...> type;
     };
-}
+} // namespace gridtools

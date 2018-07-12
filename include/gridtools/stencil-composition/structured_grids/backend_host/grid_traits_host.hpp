@@ -35,19 +35,14 @@
 */
 #pragma once
 
-#include "execute_kernel_functor_host_fwd.hpp"
-#include "../../run_functor_arguments_fwd.hpp"
+#include "../../../common/defs.hpp"
+#include "../../backend_ids.hpp"
+#include "../../grid_traits_fwd.hpp"
+#include "./execute_kernel_functor_host_fwd.hpp"
 
 namespace gridtools {
-
-    namespace strgrid {
-        template <>
-        struct grid_traits_arch< enumtype::Host > {
-            template < typename RunFunctorArguments >
-            struct kernel_functor_executor {
-                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-                typedef execute_kernel_functor_host< RunFunctorArguments > type;
-            };
-        };
-    }
-}
+    template <enumtype::strategy Strategy, class Args>
+    struct kernel_functor_executor<backend_ids<enumtype::Host, enumtype::structured, Strategy>, Args> {
+        using type = strgrid::execute_kernel_functor_host<Args>;
+    };
+} // namespace gridtools

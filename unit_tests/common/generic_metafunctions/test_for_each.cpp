@@ -34,37 +34,37 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/generic_metafunctions/for_each.hpp>
+#include <gridtools/common/generic_metafunctions/for_each.hpp>
 
 #include <type_traits>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <common/host_device.hpp>
+#include <gridtools/common/host_device.hpp>
 
 namespace gridtools {
 
     struct f {
         int *&dst;
 
-        template < class T >
+        template <class T>
         GT_FUNCTION_WARNING void operator()(T) const {
             *(dst++) = T::value;
         }
     };
 
-    template < class... >
+    template <class...>
     struct lst;
 
-    template < int I >
-    using int_t = std::integral_constant< int, I >;
+    template <int I>
+    using int_t = std::integral_constant<int, I>;
 
     TEST(for_each, functional) {
         int vals[3];
         int *cur = vals;
-        for_each< lst< int_t< 0 >, int_t< 42 >, int_t< 3 > > >(f{cur});
+        for_each<lst<int_t<0>, int_t<42>, int_t<3>>>(f{cur});
         EXPECT_EQ(cur, vals + 3);
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
-}
+} // namespace gridtools

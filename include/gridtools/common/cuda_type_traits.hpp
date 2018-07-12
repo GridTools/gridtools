@@ -34,15 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "defs.hpp"
+#include "generic_metafunctions/gt_remove_qualifiers.hpp"
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/type_traits.hpp>
-#include "generic_metafunctions/gt_remove_qualifiers.hpp"
-#include "defs.hpp"
 
 namespace gridtools {
     namespace _impl {
-        typedef boost::mpl::set< char,
+        typedef boost::mpl::set<char,
             short,
             int,
             long long unsigned char,
@@ -57,13 +57,14 @@ namespace gridtools {
             float2,
             float4,
             double,
-            double2 > texture_types;
+            double2>
+            texture_types;
     } // namespace _impl
 
-    template < typename T >
-    struct is_texture_type : boost::mpl::has_key< _impl::texture_types, typename remove_qualifiers< T >::type > {};
+    template <typename T>
+    struct is_texture_type : boost::mpl::has_key<_impl::texture_types, typename remove_qualifiers<T>::type> {};
 
-    template < typename T >
-    using is_texture_type_t = typename is_texture_type< T >::type;
+    template <typename T>
+    using is_texture_type_t = typename is_texture_type<T>::type;
 
 } // namespace gridtools

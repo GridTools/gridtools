@@ -6,10 +6,10 @@ import subprocess
 import tempfile
 import time
 
-from perftest import config, JobError, logger
+from perftest import config, JobError, JobSchedulingError, logger
 
 
-def run(commands, conf=None, job_limit=None):
+def run(commands, conf=None, job_limit=None, retry=5):
     """Runs the given command(s) using SLURM and the given configuration.
 
     `conf` must be a valid argument for `perftest.config.get`.
@@ -45,13 +45,40 @@ def run(commands, conf=None, job_limit=None):
         # Submit jobs if less than `job_limit` are running
         while len(running) < job_limit and commands:
             index, command = commands.pop()
-            task_id, outfile = _submit(command, conf)
+            # Try to submit job `retry` times
+            for _ in range(retry):
+                try:
+                    task_id, outfile = _submit(command, conf)
+                    break
+                except JobSchedulingError:
+                    time.sleep(1)
+            else:
+                # Raise error if all attempts failed
+                raise JobSchedulingError(f'Failed to run command "{command}", '
+                                         f'all {retry} attempts failed')
             running.add((index, task_id, outfile))
             # Wait a bit to avoid overloading SLURM
             time.sleep(0.1)
 
         # Poll SLURM to get finished jobs
-        finished_ids = _poll([task_id for _, task_id, _ in running])
+        try:
+            finished_ids = _poll([task_id for _, task_id, _ in running])
+        except JobError as e:
+            # Cancel all (possibly still running) jobs
+            for _, task_id, _ in running:
+                subprocess.call(['scancel', '--full', str(task_id)],
+                                env=conf.env)
+            # Wait a few more seconds for buffered output
+            time.sleep(10)
+            # Print all current job outputs on job failure
+            for _, task_id, outfile in running:
+                with open(outfile, 'r') as f:
+                    output = f.read()
+                logger.debug(f'Current output of job {task_id}:', output)
+                os.remove(outfile)
+            # Re-raise job error
+            raise e
+
         logger.debug('Finished jobs: ' + ', '.join(finished_ids))
         time.sleep(10)
 
@@ -105,15 +132,12 @@ def _submit(command, conf):
         out.close()
 
         # Run sbatch to start the job and specify job output file
-        sbatch_command = ['sbatch', '-o', out.name, sbatch.name]
+        sbatch_command = ['sbatch', '-o', out.name, '--requeue', sbatch.name]
         try:
             sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
         except subprocess.CalledProcessError as e:
-            logger.warning('Submitting job failed the first time with output:',
-                           e.output)
-            # If the command fails, we wait a bit and retry once
-            time.sleep(1)
-            sbatch_out = subprocess.check_output(sbatch_command, env=conf.env)
+            raise JobSchedulingError(f'Submitting job "{command}" failed '
+                                     f'with output: {e.output}')
 
         # Parse the task ID from the sbatch stdout
         task_id = re.match(r'Submitted batch job (\d+)',
@@ -166,9 +190,9 @@ def _poll(task_ids):
             if state == 'CANCELLED':
                 raise JobError(f'Job {jobid} ({jobname}) was cancelled')
             elif state == 'COMPLETED':
-                # There might be additional internal subtasks in the output, that
-                # we do not want to add to the set of finished jobs so we have
-                # to check the ID here
+                # There might be additional internal subtasks in the output,
+                # that we do not want to add to the set of finished jobs so we
+                # have to check the ID here
                 if jobid in task_ids:
                     finished.add(jobid)
             elif state == 'FAILED':
@@ -176,10 +200,14 @@ def _poll(task_ids):
                 raise JobError(f'Job {jobid} ({jobname}) failed with exitcode '
                                f'{exitcode}')
             elif state == 'NODE_FAIL':
-                raise JobError(f'Node failure for job {jobid} ({jobname})')
+                # Ignore node failures, job should be automatically rescheduled
+                # by SLURM here as we use the --requeue flag on submission
+                pass
             elif state == 'TIMEOUT':
                 raise JobError(f'Job {jobid} ({jobname}) timed out, consider '
                                f'increasing the time limit')
-
+            else:
+                raise JobError(f'Job {jobid} ({jobname}) failed with state '
+                               f'{state}')
 
     return finished

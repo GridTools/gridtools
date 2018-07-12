@@ -64,6 +64,6 @@ namespace gridtools {
         Note: Not supported, placed here only for illustration.
      */
     struct gcl_mic {}; // Not supported, placed here only for illustration.
-}
+} // namespace gridtools
 
 #endif

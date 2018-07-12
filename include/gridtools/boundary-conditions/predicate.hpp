@@ -51,7 +51,7 @@ namespace gridtools {
     /** @brief Default predicate that returns always true, so that the boundary conditions are applied everywhere
      */
     struct default_predicate {
-        template < typename Direction >
+        template <typename Direction>
         bool operator()(Direction) const {
             return true;
         }
@@ -59,15 +59,15 @@ namespace gridtools {
 
     /** @brief predicate returning whether I am or not at the global boundary, based on a processor grid
      */
-    template < typename ProcGrid >
+    template <typename ProcGrid>
     struct proc_grid_predicate {
         ProcGrid const &m_grid;
 
         proc_grid_predicate(ProcGrid const &g) : m_grid{g} {}
 
-        template < sign I, sign J, sign K >
-        bool operator()(direction< I, J, K >) const {
-            return (m_grid.template proc< I, J, K >() == -1);
+        template <sign I, sign J, sign K>
+        bool operator()(direction<I, J, K>) const {
+            return (m_grid.template proc<I, J, K>() == -1);
         }
     };
 

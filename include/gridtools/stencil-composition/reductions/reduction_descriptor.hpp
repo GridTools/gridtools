@@ -48,15 +48,15 @@ namespace gridtools {
      * @tparam EsfDescrSequence sequence of esf descriptor (should contain only one esf
      *      with the reduction functor)
      */
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
     struct reduction_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< EsfDescrSequence >::value == 1), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<EsfDescrSequence>::value == 1), GT_INTERNAL_ERROR);
 
         typedef ReductionType reduction_type_t;
         typedef EsfDescrSequence esf_sequence_t;
         typedef boost::mpl::vector0<> cache_sequence_t;
-        typedef static_bool< true > is_reduction_t;
+        typedef static_bool<true> is_reduction_t;
         typedef BinOp bin_op_t;
 
       private:
@@ -67,46 +67,45 @@ namespace gridtools {
         constexpr reduction_type_t get() const { return m_initial_value; }
     };
 
-    template < typename Reduction >
+    template <typename Reduction>
     struct is_reduction_descriptor : boost::mpl::false_ {};
 
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct is_reduction_descriptor< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > >
-        : boost::mpl::true_ {};
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+    struct is_reduction_descriptor<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> : boost::mpl::true_ {};
 
-    template < typename T >
+    template <typename T>
     struct mss_descriptor_esf_sequence;
-    template < typename T >
+    template <typename T>
     struct mss_descriptor_cache_sequence;
-    template < typename T >
+    template <typename T>
     struct mss_descriptor_execution_engine;
-    template < typename T >
+    template <typename T>
     struct mss_descriptor_is_reduction;
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct mss_descriptor_esf_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+    struct mss_descriptor_esf_sequence<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
         typedef EsfDescrSequence type;
     };
 
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct mss_descriptor_cache_sequence< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+    struct mss_descriptor_cache_sequence<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
         typedef boost::mpl::vector0<> type;
     };
 
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct mss_descriptor_execution_engine< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
-        typedef enumtype::execute< enumtype::forward > type;
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+    struct mss_descriptor_execution_engine<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
+        typedef enumtype::execute<enumtype::forward> type;
     };
 
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct mss_descriptor_is_reduction< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
-        typedef static_bool< true > type;
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+    struct mss_descriptor_is_reduction<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
+        typedef static_bool<true> type;
     };
 
-    template < typename Reduction >
+    template <typename Reduction>
     struct reduction_descriptor_type;
 
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
-    struct reduction_descriptor_type< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
+    struct reduction_descriptor_type<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
         typedef ReductionType type;
     };
 

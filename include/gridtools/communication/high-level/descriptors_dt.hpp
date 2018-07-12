@@ -37,29 +37,29 @@
 #define _DESCRIPTORS_DT_H_
 
 #include "../../common/array.hpp"
-#include <vector>
-#include "../low-level/proc_grids_3D.hpp"
-#include "../low-level/Halo_Exchange_3D.hpp"
-#include "../../common/make_array.hpp"
-#include <common/gt_assert.hpp>
 #include "../../common/boollist.hpp"
-#include "../../common/ndloops.hpp"
-#include "../low-level/data_types_mapping.hpp"
-#include "gcl_parameters.hpp"
-#include "../../common/numerics.hpp"
-#include "empty_field_base.hpp"
+#include "../../common/gt_assert.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
+#include "../../common/make_array.hpp"
+#include "../../common/ndloops.hpp"
+#include "../../common/numerics.hpp"
+#include "../low-level/Halo_Exchange_3D.hpp"
+#include "../low-level/data_types_mapping.hpp"
+#include "../low-level/proc_grids_3D.hpp"
+#include "empty_field_base.hpp"
+#include "gcl_parameters.hpp"
+#include <vector>
 
+#include "access.hpp"
+#include "descriptor_base.hpp"
+#include "descriptors_fwd.hpp"
+#include "helpers_impl.hpp"
 #include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include "descriptors_fwd.hpp"
-#include "descriptor_base.hpp"
-#include "helpers_impl.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
-#include "access.hpp"
 
 namespace gridtools {
 
@@ -83,9 +83,9 @@ namespace gridtools {
         \tparam DIMS the number of dimensions of the data field
 
     */
-    template < typename DataType, int DIMS >
-    class empty_field : public empty_field_base< DataType, DIMS > {
-        typedef empty_field_base< DataType, DIMS > base_type;
+    template <typename DataType, int DIMS>
+    class empty_field : public empty_field_base<DataType, DIMS> {
+        typedef empty_field_base<DataType, DIMS> base_type;
 
       public:
         /**
@@ -106,8 +106,8 @@ namespace gridtools {
             \param[in] field_ptr iterator pointing to data field data
             \param[in,out] it iterator pointing to the data.
         */
-        template < typename iterator_in, typename iterator_out >
-        void pack(gridtools::array< int, DIMS > const &eta, iterator_in const &field_ptr, iterator_out &it) const {
+        template <typename iterator_in, typename iterator_out>
+        void pack(gridtools::array<int, DIMS> const &eta, iterator_in const &field_ptr, iterator_out &it) const {
             if (base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].second) {
                 int ss2;
                 MPI_Pack_size(1, base_type::MPDT_INSIDE[_impl::neigh_idx(eta)].first, gridtools::GCL_WORLD, &ss2);
@@ -123,8 +123,7 @@ namespace gridtools {
 
                 it +=
                     I /
-                    sizeof(
-                        typename boost::remove_pointer< typename boost::remove_reference< iterator_out >::type >::type);
+                    sizeof(typename boost::remove_pointer<typename boost::remove_reference<iterator_out>::type>::type);
             } else {
                 // nothing here
             }
@@ -142,8 +141,8 @@ namespace gridtools {
             \param[in] field_ptr iterator pointing to data field data
             \param[in,out] it iterator pointing to the data in buffers.
         */
-        template < typename iterator_in, typename iterator_out >
-        void unpack(gridtools::array< int, DIMS > const &eta, iterator_in const &field_ptr, iterator_out &it) const {
+        template <typename iterator_in, typename iterator_out>
+        void unpack(gridtools::array<int, DIMS> const &eta, iterator_in const &field_ptr, iterator_out &it) const {
             if (base_type::MPDT_OUTSIDE[_impl::neigh_idx(eta)].second) {
                 int I = 0;
 
@@ -157,15 +156,14 @@ namespace gridtools {
 
                 it +=
                     I /
-                    sizeof(
-                        typename boost::remove_pointer< typename boost::remove_reference< iterator_out >::type >::type);
+                    sizeof(typename boost::remove_pointer<typename boost::remove_reference<iterator_out>::type>::type);
             } else {
                 // nothing here
             }
         }
 
-        template < typename iterator >
-        void pack_all(gridtools::array< int, DIMS > const &, iterator &it) const {}
+        template <typename iterator>
+        void pack_all(gridtools::array<int, DIMS> const &, iterator &it) const {}
 
         /**
            This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -179,15 +177,15 @@ namespace gridtools {
            \param[in] field the first data field to be processed
            \param[in] args the rest of the list of data fields to be packed (they may have different datatypes).
          */
-        template < typename iterator, typename FIRST, typename... FIELDS >
+        template <typename iterator, typename FIRST, typename... FIELDS>
         void pack_all(
-            gridtools::array< int, DIMS > const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
+            gridtools::array<int, DIMS> const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
             pack(eta, field, it);
             pack_all(eta, it, args...);
         }
 
-        template < typename iterator >
-        void unpack_all(gridtools::array< int, DIMS > const &, iterator &it) const {}
+        template <typename iterator>
+        void unpack_all(gridtools::array<int, DIMS> const &, iterator &it) const {}
 
         /**
            This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
@@ -203,16 +201,16 @@ namespace gridtools {
            different
            datatypes).
          */
-        template < typename iterator, typename FIRST, typename... FIELDS >
+        template <typename iterator, typename FIRST, typename... FIELDS>
         void unpack_all(
-            gridtools::array< int, DIMS > const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
+            gridtools::array<int, DIMS> const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
             unpack(eta, field, it);
             unpack_all(eta, it, args...);
         }
     };
 
-    template < typename T, int I >
-    std::ostream &operator<<(std::ostream &s, empty_field< T, I > const &ef) {
+    template <typename T, int I>
+    std::ostream &operator<<(std::ostream &s, empty_field<T, I> const &ef) {
         s << "empty_field ";
         for (int i = 0; i < I; ++i)
             s << ef.raw_array()[i] << ", ";
@@ -237,11 +235,11 @@ namespace gridtools {
         \tparam DataType type of lements of the datafield
         \tparam DIMS the number of dimensions of the data field
     */
-    template < typename DataType, int DIMS >
-    class field_descriptor : public empty_field< DataType, DIMS > {
+    template <typename DataType, int DIMS>
+    class field_descriptor : public empty_field<DataType, DIMS> {
         DataType *fieldptr; // Pointer to the data field
 
-        typedef empty_field< DataType, DIMS > base_type;
+        typedef empty_field<DataType, DIMS> base_type;
 
       public:
         /**
@@ -259,8 +257,8 @@ namespace gridtools {
             \param[in] eta the eta parameter as indicated in \link MULTI_DIM_ACCESS \endlink
             \param[in,out] it iterator pointing to the data.
         */
-        template < typename iterator >
-        void pack(gridtools::array< int, DIMS > const &eta, iterator &it) const {
+        template <typename iterator>
+        void pack(gridtools::array<int, DIMS> const &eta, iterator &it) const {
             base_type::pack(eta, fieldptr, it);
         }
 
@@ -273,8 +271,8 @@ namespace gridtools {
             \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
             \param[in,out] it iterator pointing to the data in buffers.
         */
-        template < typename iterator >
-        void unpack(gridtools::array< int, DIMS > const &eta, iterator &it) const {
+        template <typename iterator>
+        void unpack(gridtools::array<int, DIMS> const &eta, iterator &it) const {
             base_type::unpack(eta, fieldptr, it);
         }
     };
@@ -295,25 +293,25 @@ namespace gridtools {
         \tparam Gcl_Arch Specification of architecture used to indicate where the data is L3/include/gcl_arch.h file
        reference
     */
-    template < typename DataType,
+    template <typename DataType,
         typename GridType,
         typename HaloExch,
-        typename proc_layout = typename default_layout_map< GridType::ndims >::type,
+        typename proc_layout = typename default_layout_map<GridType::ndims>::type,
         typename Gcl_Arch = gridtools::gcl_cpu,
-        int VERSION = 0 >
-    class hndlr_dynamic_ut : public descriptor_base< HaloExch > {
-        typedef hndlr_dynamic_ut< DataType, GridType, HaloExch, proc_layout, Gcl_Arch, VERSION > this_type;
+        int VERSION = 0>
+    class hndlr_dynamic_ut : public descriptor_base<HaloExch> {
+        typedef hndlr_dynamic_ut<DataType, GridType, HaloExch, proc_layout, Gcl_Arch, VERSION> this_type;
         static const int DIMS = GridType::ndims;
 
       public:
-        empty_field< DataType, DIMS > halo;
+        empty_field<DataType, DIMS> halo;
 
       private:
-        gridtools::array< DataType *, _impl::static_pow3< DIMS >::value > send_buffer; // One entry will not be used...
-        gridtools::array< DataType *, _impl::static_pow3< DIMS >::value > recv_buffer;
+        gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
+        gridtools::array<DataType *, _impl::static_pow3<DIMS>::value> recv_buffer;
 
       public:
-        typedef descriptor_base< HaloExch > base_type;
+        typedef descriptor_base<HaloExch> base_type;
         typedef base_type pattern_type;
 
         /** Architecture type
@@ -328,7 +326,7 @@ namespace gridtools {
         /**
            Type of the translation used to map dimensions to buffer addresses
          */
-        typedef translate_t< DIMS, typename default_layout_map< DIMS >::type > translate;
+        typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
       private:
         hndlr_dynamic_ut(hndlr_dynamic_ut const &) {}
@@ -345,7 +343,7 @@ namespace gridtools {
            \param[in] comm MPI communicator (typically MPI_Comm_world)
            \param[in] dimensions array of dimensions of the process grid
         */
-        template < typename Array >
+        template <typename Array>
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm comm, Array const *dimensions)
             : base_type(c, comm, dimensions), halo() {}
 
@@ -354,24 +352,24 @@ namespace gridtools {
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
-            destroy< DIMS, 0 >::doit(*this);
+            destroy<DIMS, 0>::doit(*this);
         }
 
-        template < int D, int N >
+        template <int D, int N>
         struct destroy;
 
-        template < int N >
-        struct destroy< 3, N > {
-            template < typename T >
+        template <int N>
+        struct destroy<3, N> {
+            template <typename T>
             static void doit(T &descriptor) {
                 for (int i = -1; i <= 1; ++i)
                     for (int j = -1; j <= 1; ++j)
                         for (int k = -1; k <= 1; ++k) {
                             if (!descriptor.send_buffer[translate()(i, j, k)])
-                                _impl::gcl_alloc< DataType, arch_type >::free(
+                                _impl::gcl_alloc<DataType, arch_type>::free(
                                     descriptor.send_buffer[translate()(i, j, k)]);
                             if (!descriptor.recv_buffer[translate()(i, j, k)])
-                                _impl::gcl_alloc< DataType, arch_type >::free(
+                                _impl::gcl_alloc<DataType, arch_type>::free(
                                     descriptor.recv_buffer[translate()(i, j, k)]);
                         }
             }
@@ -410,7 +408,7 @@ namespace gridtools {
         */
         void setup(int max_fields_n) {
             halo.setup();
-            _impl::allocation_service< this_type >()(this, max_fields_n);
+            _impl::allocation_service<this_type>()(this, max_fields_n);
         }
 
         /**
@@ -418,9 +416,9 @@ namespace gridtools {
 
            \param[in] _fields data fields to be packed
         */
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void pack(const FIELDS &... _fields) const {
-            pack_dims< DIMS, 0 >()(*this, _fields...);
+            pack_dims<DIMS, 0>()(*this, _fields...);
         }
 
         /**
@@ -428,9 +426,9 @@ namespace gridtools {
 
            \param[in] _fields data fields where to unpack data
         */
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void unpack(const FIELDS &... _fields) const {
-            unpack_dims< DIMS, 0 >()(*this, _fields...);
+            unpack_dims<DIMS, 0>()(*this, _fields...);
         }
 
         /**
@@ -438,36 +436,36 @@ namespace gridtools {
 
            \param[in] fields vector with data fields pointers to be packed from
         */
-        void pack(std::vector< DataType * > const &fields) { pack_vector_dims< DIMS, 0 >()(*this, fields); }
+        void pack(std::vector<DataType *> const &fields) { pack_vector_dims<DIMS, 0>()(*this, fields); }
 
         /**
            Function to unpack received data
 
            \param[in] fields vector with data fields pointers to be unpacked into
         */
-        void unpack(std::vector< DataType * > const &fields) { unpack_vector_dims< DIMS, 0 >()(*this, fields); }
+        void unpack(std::vector<DataType *> const &fields) { unpack_vector_dims<DIMS, 0>()(*this, fields); }
 
         /// Utilities
 
         // FRIENDING
-        friend struct _impl::allocation_service< this_type >;
+        friend struct _impl::allocation_service<this_type>;
 
       private:
-        template < int I, int dummy >
+        template <int I, int dummy>
         struct pack_dims {};
 
-        template < int dummy >
-        struct pack_dims< 3, dummy > {
-            template < typename T, typename... FIELDS >
+        template <int dummy>
+        struct pack_dims<3, dummy> {
+            template <typename T, typename... FIELDS>
             void operator()(const T &hm, const FIELDS &... _fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -479,21 +477,21 @@ namespace gridtools {
             }
         };
 
-        template < int I, int dummy >
+        template <int I, int dummy>
         struct unpack_dims {};
 
-        template < int dummy >
-        struct unpack_dims< 3, dummy > {
-            template < typename T, typename... FIELDS >
+        template <int dummy>
+        struct unpack_dims<3, dummy> {
+            template <typename T, typename... FIELDS>
             void operator()(const T &hm, const FIELDS &... _fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -505,21 +503,21 @@ namespace gridtools {
             }
         };
 
-        template < int I, int dummy >
+        template <int I, int dummy>
         struct pack_vector_dims {};
 
-        template < int dummy >
-        struct pack_vector_dims< 3, dummy > {
-            template < typename T >
-            void operator()(const T &hm, std::vector< DataType * > const &fields) const {
+        template <int dummy>
+        struct pack_vector_dims<3, dummy> {
+            template <typename T>
+            void operator()(const T &hm, std::vector<DataType *> const &fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -533,21 +531,21 @@ namespace gridtools {
             }
         };
 
-        template < int I, int dummy >
+        template <int I, int dummy>
         struct unpack_vector_dims {};
 
-        template < int dummy >
-        struct unpack_vector_dims< 3, dummy > {
-            template < typename T >
-            void operator()(const T &hm, std::vector< DataType * > const &fields) const {
+        template <int dummy>
+        struct unpack_vector_dims<3, dummy> {
+            template <typename T>
+            void operator()(const T &hm, std::vector<DataType *> const &fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
                 for (int ii = -1; ii <= 1; ++ii) {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                            const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -571,9 +569,9 @@ namespace gridtools {
         \tparam DIMS Number of dimensions of the grids.
         \tparam HaloExch pattern type used in communication.
     */
-    template < typename DataType, int DIMS, typename HaloExch >
+    template <typename DataType, int DIMS, typename HaloExch>
     class handler_manager_ut {
-        hndlr_descriptor_ut< DataType, DIMS, HaloExch > *h;
+        hndlr_descriptor_ut<DataType, DIMS, HaloExch> *h;
 
       public:
         /**
@@ -583,10 +581,10 @@ namespace gridtools {
            \param[in] c The object of the class used to specify periodicity in each dimension
            \param arg  Value of the argument
         */
-        template < typename ARG >
-        hndlr_descriptor_ut< DataType, DIMS, HaloExch > &create_handler(
+        template <typename ARG>
+        hndlr_descriptor_ut<DataType, DIMS, HaloExch> &create_handler(
             typename HaloExch::grid_type::period_type const &c, ARG const &arg) {
-            h = new hndlr_descriptor_ut< DataType, DIMS, HaloExch >(c, arg);
+            h = new hndlr_descriptor_ut<DataType, DIMS, HaloExch>(c, arg);
             return *h;
         }
 
@@ -599,10 +597,10 @@ namespace gridtools {
            \param arg0  Value of the argument
            \param arg1  Value of the argument
         */
-        template < typename ARG0, typename ARG1 >
-        hndlr_descriptor_ut< DataType, DIMS, HaloExch > &create_handler(
+        template <typename ARG0, typename ARG1>
+        hndlr_descriptor_ut<DataType, DIMS, HaloExch> &create_handler(
             typename HaloExch::grid_type::period_type const &c, ARG0 const &arg0, ARG1 const &arg1) {
-            h = new hndlr_descriptor_ut< DataType, DIMS, HaloExch >(c, arg0, arg1);
+            h = new hndlr_descriptor_ut<DataType, DIMS, HaloExch>(c, arg0, arg1);
             return *h;
         }
 
@@ -610,21 +608,21 @@ namespace gridtools {
            Destroy the handler created by create_handler which cannot be reused
            after this function returns.
         */
-        void destroy_handler(hndlr_descriptor_ut< DataType, DIMS, HaloExch > &h) { delete (&h); }
+        void destroy_handler(hndlr_descriptor_ut<DataType, DIMS, HaloExch> &h) { delete (&h); }
     };
 
-    template < typename HaloExch, typename proc_layout_abs, typename Gcl_Arch, int version >
-    class hndlr_generic< 3, HaloExch, proc_layout_abs, Gcl_Arch, version > : public descriptor_base< HaloExch > {
+    template <typename HaloExch, typename proc_layout_abs, typename Gcl_Arch, int version>
+    class hndlr_generic<3, HaloExch, proc_layout_abs, Gcl_Arch, version> : public descriptor_base<HaloExch> {
         static const int DIMS = 3;
-        gridtools::array< char *, _impl::static_pow3< DIMS >::value > send_buffer; // One entry will not be used...
-        gridtools::array< char *, _impl::static_pow3< DIMS >::value > recv_buffer;
-        gridtools::array< int, _impl::static_pow3< DIMS >::value > send_buffer_size; // One entry will not be used...
-        gridtools::array< int, _impl::static_pow3< DIMS >::value > recv_buffer_size;
+        gridtools::array<char *, _impl::static_pow3<DIMS>::value> send_buffer; // One entry will not be used...
+        gridtools::array<char *, _impl::static_pow3<DIMS>::value> recv_buffer;
+        gridtools::array<int, _impl::static_pow3<DIMS>::value> send_buffer_size; // One entry will not be used...
+        gridtools::array<int, _impl::static_pow3<DIMS>::value> recv_buffer_size;
 
         typedef Gcl_Arch arch_type;
 
       public:
-        typedef descriptor_base< HaloExch > base_type;
+        typedef descriptor_base<HaloExch> base_type;
         typedef typename base_type::pattern_type pattern_type;
 
         /**
@@ -635,7 +633,7 @@ namespace gridtools {
         /**
            Type of the translation used to map dimensions to buffer addresses
          */
-        typedef translate_t< DIMS, typename default_layout_map< DIMS >::type > translate;
+        typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
         hndlr_generic(grid_type const &g) : base_type(g) {}
 
@@ -648,9 +646,9 @@ namespace gridtools {
                 for (int j = -1; j <= 1; ++j)
                     for (int k = -1; k <= 1; ++k) {
                         if (!send_buffer[translate()(i, j, k)])
-                            _impl::gcl_alloc< char, arch_type >::free(send_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<char, arch_type>::free(send_buffer[translate()(i, j, k)]);
                         if (!recv_buffer[translate()(i, j, k)])
-                            _impl::gcl_alloc< char, arch_type >::free(recv_buffer[translate()(i, j, k)]);
+                            _impl::gcl_alloc<char, arch_type>::free(recv_buffer[translate()(i, j, k)]);
                     }
         }
 
@@ -668,12 +666,12 @@ namespace gridtools {
            \param[in] typesize In case the DataType of the halo_example is not the same as the maximum data type used in
            the computation, this parameter can be given
          */
-        template < typename DataType, typename _layomap, template < typename > class traits >
+        template <typename DataType, typename _layomap, template <typename> class traits>
         void setup(int max_fields_n,
-            field_on_the_fly< DataType, _layomap, traits > const &halo_example,
+            field_on_the_fly<DataType, _layomap, traits> const &halo_example,
             int typesize = sizeof(DataType)) {
-            typedef typename field_on_the_fly< DataType, _layomap, traits >::inner_layoutmap layomap;
-            gridtools::array< int, DIMS > eta;
+            typedef typename field_on_the_fly<DataType, _layomap, traits>::inner_layoutmap layomap;
+            gridtools::array<int, DIMS> eta;
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
                     for (int k = -1; k <= 1; ++k) {
@@ -686,9 +684,9 @@ namespace gridtools {
                             int R = 1;
                             R = halo_example.recv_buffer_size(eta);
                             send_buffer[translate()(i, j, k)] =
-                                _impl::gcl_alloc< char, arch_type >::alloc(S * max_fields_n * typesize);
+                                _impl::gcl_alloc<char, arch_type>::alloc(S * max_fields_n * typesize);
                             recv_buffer[translate()(i, j, k)] =
-                                _impl::gcl_alloc< char, arch_type >::alloc(R * max_fields_n * typesize);
+                                _impl::gcl_alloc<char, arch_type>::alloc(R * max_fields_n * typesize);
                             send_buffer_size[translate()(i, j, k)] = (S * max_fields_n * typesize);
                             recv_buffer_size[translate()(i, j, k)] = (R * max_fields_n * typesize);
 
@@ -696,10 +694,10 @@ namespace gridtools {
                             // printf("%d %d %d -> send %d, recv %d\n", i,j,k, send_buffer_size[translate()(i,j,k)],
                             // recv_buffer_size[translate()(i,j,k)]);
 
-                            typedef typename layout_transform< layomap, proc_layout_abs >::type proc_layout;
-                            const int i_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(i, j, k);
-                            const int j_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(i, j, k);
-                            const int k_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(i, j, k);
+                            typedef typename layout_transform<layomap, proc_layout_abs>::type proc_layout;
+                            const int i_P = pack_get_elem<proc_layout::template at<0>()>::apply(i, j, k);
+                            const int j_P = pack_get_elem<proc_layout::template at<1>()>::apply(i, j, k);
+                            const int k_P = pack_get_elem<proc_layout::template at<2>()>::apply(i, j, k);
 
                             base_type::m_haloexch.register_send_to_buffer(
                                 &(send_buffer[translate()(i, j, k)][0]), S * max_fields_n * typesize, i_P, j_P, k_P);
@@ -721,23 +719,23 @@ namespace gridtools {
 
            \param[in] buffer_size_list Array (gridtools::array) with the sizes of the buffers associated with the halos.
          */
-        template < typename DataType, typename layomap >
-        void setup(gridtools::array< size_t, _impl::static_pow3< DIMS >::value > const &buffer_size_list) {
+        template <typename DataType, typename layomap>
+        void setup(gridtools::array<size_t, _impl::static_pow3<DIMS>::value> const &buffer_size_list) {
             for (int i = -1; i <= 1; ++i) {
                 for (int j = -1; j <= 1; ++j) {
                     for (int k = -1; k <= 1; ++k) {
                         if (i != 0 || j != 0 || k != 0) {
                             send_buffer[translate()(i, j, k)] =
-                                _impl::gcl_alloc< char, arch_type >::alloc(buffer_size_list[translate()(i, j, k)]);
+                                _impl::gcl_alloc<char, arch_type>::alloc(buffer_size_list[translate()(i, j, k)]);
                             recv_buffer[translate()(i, j, k)] =
-                                _impl::gcl_alloc< char, arch_type >::alloc(buffer_size_list[translate()(i, j, k)]);
+                                _impl::gcl_alloc<char, arch_type>::alloc(buffer_size_list[translate()(i, j, k)]);
                             send_buffer_size[translate()(i, j, k)] = (buffer_size_list[translate()(i, j, k)]);
                             recv_buffer_size[translate()(i, j, k)] = (buffer_size_list[translate()(i, j, k)]);
 
-                            typedef typename layout_transform< layomap, proc_layout_abs >::type proc_layout;
-                            const int i_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(i, j, k);
-                            const int j_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(i, j, k);
-                            const int k_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(i, j, k);
+                            typedef typename layout_transform<layomap, proc_layout_abs>::type proc_layout;
+                            const int i_P = pack_get_elem<proc_layout::template at<0>()>::apply(i, j, k);
+                            const int j_P = pack_get_elem<proc_layout::template at<1>()>::apply(i, j, k);
+                            const int k_P = pack_get_elem<proc_layout::template at<2>()>::apply(i, j, k);
 
                             base_type::m_haloexch.register_send_to_buffer(&(send_buffer[translate()(i, j, k)][0]),
                                 buffer_size_list[translate()(i, j, k)],
@@ -756,25 +754,25 @@ namespace gridtools {
             }
         }
 
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void pack(const FIELDS &... _fields) const {
             for (int ii = -1; ii <= 1; ++ii) {
                 for (int jj = -1; jj <= 1; ++jj) {
                     for (int kk = -1; kk <= 1; ++kk) {
-                        char *it = reinterpret_cast< char * >(&(send_buffer[translate()(ii, jj, kk)][0]));
-                        pack_dims< DIMS, 0 >()(*this, /*make_array(*/ ii, jj, kk /*)*/, it, _fields...);
+                        char *it = reinterpret_cast<char *>(&(send_buffer[translate()(ii, jj, kk)][0]));
+                        pack_dims<DIMS, 0>()(*this, /*make_array(*/ ii, jj, kk /*)*/, it, _fields...);
                     }
                 }
             }
         }
 
-        template < typename... FIELDS >
+        template <typename... FIELDS>
         void unpack(const FIELDS &... _fields) const {
             for (int ii = -1; ii <= 1; ++ii) {
                 for (int jj = -1; jj <= 1; ++jj) {
                     for (int kk = -1; kk <= 1; ++kk) {
-                        char *it = reinterpret_cast< char * >(&(recv_buffer[translate()(ii, jj, kk)][0]));
-                        unpack_dims< DIMS, 0 >()(*this, ii, jj, kk, it, _fields...);
+                        char *it = reinterpret_cast<char *>(&(recv_buffer[translate()(ii, jj, kk)][0]));
+                        unpack_dims<DIMS, 0>()(*this, ii, jj, kk, it, _fields...);
                     }
                 }
             }
@@ -786,13 +784,13 @@ namespace gridtools {
            \tparam array_of_fotf this should be an array of field_on_the_fly
            \param[in] fields vector with fields on the fly
         */
-        template < typename T1, typename T2, template < typename > class T3 >
-        void pack(std::vector< field_on_the_fly< T1, T2, T3 > > const &fields) {
+        template <typename T1, typename T2, template <typename> class T3>
+        void pack(std::vector<field_on_the_fly<T1, T2, T3>> const &fields) {
             for (int ii = -1; ii <= 1; ++ii) {
                 for (int jj = -1; jj <= 1; ++jj) {
                     for (int kk = -1; kk <= 1; ++kk) {
-                        char *it = reinterpret_cast< char * >(&(send_buffer[translate()(ii, jj, kk)][0]));
-                        pack_vector_dims< DIMS, 0 >()(*this, ii, jj, kk, it, fields);
+                        char *it = reinterpret_cast<char *>(&(send_buffer[translate()(ii, jj, kk)][0]));
+                        pack_vector_dims<DIMS, 0>()(*this, ii, jj, kk, it, fields);
                     }
                 }
             }
@@ -804,36 +802,36 @@ namespace gridtools {
            \tparam array_of_fotf this should be an array of field_on_the_fly
            \param[in] fields vector with fields on the fly
         */
-        template < typename T1, typename T2, template < typename > class T3 >
-        void unpack(std::vector< field_on_the_fly< T1, T2, T3 > > const &fields) {
+        template <typename T1, typename T2, template <typename> class T3>
+        void unpack(std::vector<field_on_the_fly<T1, T2, T3>> const &fields) {
             for (int ii = -1; ii <= 1; ++ii) {
                 for (int jj = -1; jj <= 1; ++jj) {
                     for (int kk = -1; kk <= 1; ++kk) {
-                        char *it = reinterpret_cast< char * >(&(recv_buffer[translate()(ii, jj, kk)][0]));
-                        unpack_vector_dims< DIMS, 0 >()(*this, ii, jj, kk, it, fields);
+                        char *it = reinterpret_cast<char *>(&(recv_buffer[translate()(ii, jj, kk)][0]));
+                        unpack_vector_dims<DIMS, 0>()(*this, ii, jj, kk, it, fields);
                     }
                 }
             }
         }
 
       private:
-        template < int, int >
+        template <int, int>
         struct pack_dims {};
 
-        template < int dummy >
-        struct pack_dims< 3, dummy > {
+        template <int dummy>
+        struct pack_dims<3, dummy> {
 
-            template < typename T, typename iterator >
+            template <typename T, typename iterator>
             void operator()(const T &, int, int, int, iterator &) const {}
 
-            template < typename T, typename iterator, typename FIRST, typename... FIELDS >
+            template <typename T, typename iterator, typename FIRST, typename... FIELDS>
             void operator()(
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                 const {
-                typedef typename layout_transform< typename FIRST::inner_layoutmap, proc_layout_abs >::type proc_layout;
-                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
+                typedef typename layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>::type proc_layout;
+                const int ii_P = pack_get_elem<proc_layout::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<proc_layout::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<proc_layout::template at<2>()>::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     first.pack(make_array(ii, jj, kk), first.ptr, it);
                     operator()(hm, ii, jj, kk, it, _fields...);
@@ -841,23 +839,23 @@ namespace gridtools {
             }
         };
 
-        template < int, int >
+        template <int, int>
         struct unpack_dims {};
 
-        template < int dummy >
-        struct unpack_dims< 3, dummy > {
+        template <int dummy>
+        struct unpack_dims<3, dummy> {
 
-            template < typename T, typename iterator >
+            template <typename T, typename iterator>
             void operator()(const T &, int, int, int, iterator &) const {}
 
-            template < typename T, typename iterator, typename FIRST, typename... FIELDS >
+            template <typename T, typename iterator, typename FIRST, typename... FIELDS>
             void operator()(
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                 const {
-                typedef typename layout_transform< typename FIRST::inner_layoutmap, proc_layout_abs >::type proc_layout;
-                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
+                typedef typename layout_transform<typename FIRST::inner_layoutmap, proc_layout_abs>::type proc_layout;
+                const int ii_P = pack_get_elem<proc_layout::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<proc_layout::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<proc_layout::template at<2>()>::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     first.unpack(make_array(ii, jj, kk), first.ptr, it);
                     operator()(hm, ii, jj, kk, it, _fields...);
@@ -865,19 +863,19 @@ namespace gridtools {
             }
         };
 
-        template < int, int >
+        template <int, int>
         struct pack_vector_dims {};
 
-        template < int dummy >
-        struct pack_vector_dims< 3, dummy > {
+        template <int dummy>
+        struct pack_vector_dims<3, dummy> {
 
-            template < typename T, typename iterator, typename array_of_fotf >
+            template <typename T, typename iterator, typename array_of_fotf>
             void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
-                typedef typename layout_transform< typename array_of_fotf::value_type::inner_layoutmap,
-                    proc_layout_abs >::type proc_layout;
-                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
+                typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap,
+                    proc_layout_abs>::type proc_layout;
+                const int ii_P = pack_get_elem<proc_layout::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<proc_layout::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<proc_layout::template at<2>()>::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     for (unsigned int fi = 0; fi < _fields.size(); ++fi) {
                         _fields[fi].pack(make_array(ii, jj, kk), _fields[fi].ptr, it);
@@ -886,19 +884,19 @@ namespace gridtools {
             }
         };
 
-        template < int, int >
+        template <int, int>
         struct unpack_vector_dims {};
 
-        template < int dummy >
-        struct unpack_vector_dims< 3, dummy > {
+        template <int dummy>
+        struct unpack_vector_dims<3, dummy> {
 
-            template < typename T, typename iterator, typename array_of_fotf >
+            template <typename T, typename iterator, typename array_of_fotf>
             void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
-                typedef typename layout_transform< typename array_of_fotf::value_type::inner_layoutmap,
-                    proc_layout_abs >::type proc_layout;
-                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
-                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
-                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
+                typedef typename layout_transform<typename array_of_fotf::value_type::inner_layoutmap,
+                    proc_layout_abs>::type proc_layout;
+                const int ii_P = pack_get_elem<proc_layout::template at<0>()>::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem<proc_layout::template at<1>()>::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem<proc_layout::template at<2>()>::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     for (unsigned int fi = 0; fi < _fields.size(); ++fi) {
                         _fields[fi].unpack(make_array(ii, jj, kk), _fields[fi].ptr, it);
@@ -908,5 +906,5 @@ namespace gridtools {
         };
     };
 
-} // namespace
+} // namespace gridtools
 #endif

@@ -60,7 +60,7 @@ struct TestTransporter {
     __host__ __device__ TestTransporter() : evaluateInt(0), evaluateFloat(0){};
 };
 
-template < typename T >
+template <typename T>
 static __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, T expected, T actual);
 
 template <>
@@ -109,7 +109,7 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
 
 #define TESTKERNELCALL(test_case_name, test_name)             \
     CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name) test; \
-    CUDA_TEST_CLASS_NAME_(test_case_name, test_name)<<< 1, 1 >>>(test, dTestTransporter)
+    CUDA_TEST_CLASS_NAME_(test_case_name, test_name)<<<1, 1>>>(test, dTestTransporter)
 
 #define CUDA_ASSERT_EQ(expected, actual) setTestTransporterValue(testTransporter, expected, actual);
 
@@ -132,7 +132,7 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
 
 #define CUDA_TEST(test_case_name, test_name)                                                            \
     struct CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name) {                                        \
-        __host__ __device__ void operator()(TestTransporter * testTransporter);                         \
+        __host__ __device__ void operator()(TestTransporter *testTransporter);                          \
     };                                                                                                  \
     __global__ void CUDA_TEST_CLASS_NAME_(test_case_name, test_name)(                                   \
         CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name) test, TestTransporter * testTransporter);   \
@@ -149,7 +149,7 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
         cudaMemcpy(dTestTransporter, testTransporter, sizeof(TestTransporter), cudaMemcpyHostToDevice); \
         CUDA_LAST_ERROR("memcopyhosttodevice");                                                         \
         CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name) test;                                       \
-        CUDA_TEST_CLASS_NAME_(test_case_name, test_name)<<< 1, 1 >>>(test, dTestTransporter);       \
+        CUDA_TEST_CLASS_NAME_(test_case_name, test_name)<<<1, 1>>>(test, dTestTransporter);             \
         CUDA_LAST_ERROR("kernel call");                                                                 \
         cudaMemcpy(testTransporter, dTestTransporter, sizeof(TestTransporter), cudaMemcpyDeviceToHost); \
         CUDA_LAST_ERROR("memcopydevicetohost");                                                         \
@@ -163,7 +163,7 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
         test(testTransporter);                                                                          \
     }                                                                                                   \
     __host__ __device__ void CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name)::operator()(           \
-        TestTransporter * testTransporter)
+        TestTransporter *testTransporter)
 #else
 #define CUDA_TEST(test_case_name, test_name) TEST(test_case_name, test_name)
 #endif

@@ -33,21 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <mpi.h>
-#include <communication/GCL.hpp>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <communication/low-level/proc_grids_3D.hpp>
 #include <common/boollist.hpp>
+#include <communication/GCL.hpp>
+#include <communication/low-level/proc_grids_3D.hpp>
+#include <fstream>
+#include <iostream>
+#include <mpi.h>
+#include <sstream>
 
-#define OUT(I, J, K) << "( " << I << ", " << J << ", " << K << ") " << pg.proc< I, J, K >() << " - "
+#define OUT(I, J, K) << "( " << I << ", " << J << ", " << K << ") " << pg.proc<I, J, K>() << " - "
 
 std::ostream *filep;
 
 int MPImain(MPI_Comm &comm) {
 
-    gridtools::MPI_3D_process_grid_t< 3 > pg(gridtools::boollist< 3 >(true, true, true), comm);
+    gridtools::MPI_3D_process_grid_t<3> pg(gridtools::boollist<3>(true, true, true), comm);
 
     int R_, C_, S_;
     pg.dims(R_, C_, S_);

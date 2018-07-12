@@ -35,11 +35,11 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
-#include "common/defs.hpp"
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
 #include "gtest/gtest.h"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
 #include <iostream>
 
 namespace test_iterate_domain {
@@ -48,85 +48,85 @@ namespace test_iterate_domain {
 
     // This is the definition of the special regions in the "vertical" direction
     struct stage1 {
-        typedef accessor< 0, enumtype::in, extent< 42, 42, 42, 42 >, 6 > in;
-        typedef accessor< 1, enumtype::inout, extent<>, 4 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::in, extent<42, 42, 42, 42>, 6> in;
+        typedef accessor<1, enumtype::inout, extent<>, 4> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 
     struct stage2 {
-        typedef accessor< 0, enumtype::in, extent< 42, 42, 42, 42 >, 6 > in;
-        typedef accessor< 1, enumtype::inout, extent<>, 4 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::in, extent<42, 42, 42, 42>, 6> in;
+        typedef accessor<1, enumtype::inout, extent<>, 4> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 } // namespace test_iterate_domain
 
 TEST(testdomain, iterate_domain_with_extents) {
     using namespace test_iterate_domain;
-    typedef backend< enumtype::Host, enumtype::structured, enumtype::Naive > backend_t;
+    typedef backend<enumtype::Host, enumtype::structured, enumtype::Naive> backend_t;
 
-    typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+    typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
+    typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
 
-    typedef arg< 0, data_store_t > p_in;
-    typedef arg< 1, data_store_t > p_out;
+    typedef arg<0, data_store_t> p_in;
+    typedef arg<1, data_store_t> p_out;
 
     halo_descriptor di = {0, 0, 0, 2, 5};
     halo_descriptor dj = {0, 0, 0, 2, 5};
 
     auto grid = gridtools::make_grid(di, dj, 3);
     {
-        auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()));
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss_);
+        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
+        auto computation_ = make_computation<backend<Host, GRIDBACKEND, Naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
-            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
+            std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
-            make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in()));
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss_);
+        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
+            make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
+        auto computation_ = make_computation<backend<Host, GRIDBACKEND, Naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
-            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
+            std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
-            make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in()));
+        auto mss1_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
+            make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
 
-        auto mss2_ = make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
-            make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
+        auto mss2_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
+            make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss1_, mss2_);
+        auto computation_ = make_computation<backend<Host, GRIDBACKEND, Naive>>(grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
-            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
+            std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
-            make_independent(make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
-                                         make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in())));
+        auto mss1_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_independent(make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
+                make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in())));
 
-        auto mss2_ = make_multistage(enumtype::execute< enumtype::forward >(),
-            make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
-            make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
+        auto mss2_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
+            make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
-        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(grid, mss1_, mss2_);
+        auto computation_ = make_computation<backend<Host, GRIDBACKEND, Naive>>(grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
-            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
+            std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
 }

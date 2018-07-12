@@ -32,13 +32,23 @@ if [[ ${COMPILER} == "gcc" ]]; then
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
+  case ${VERSION} in
+    "18")
+      module swap intel/18.0.2.199
+      ;;
+    "17")
+      module swap intel/17.0.4.196
+      ;;
+    *)
+      module swap intel/18.0.2.199
+  esac
   export HOST_COMPILER=`which icpc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
 fi
 
-export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0 #since it is header only we can use the kesch installation
+export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0 #since it is header only we can use the kesch installation
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export LAUNCH_MPI_TEST="srun"
@@ -48,6 +58,5 @@ export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
-export USE_MPI_COMPILER=OFF
 export MAKE_THREADS=16
 

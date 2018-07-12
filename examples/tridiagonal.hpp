@@ -35,13 +35,13 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
+#include <gridtools/gridtools.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <tools/verifier.hpp>
+#include <gridtools/stencil-composition/interval.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 #include "backend_select.hpp"
 
@@ -59,10 +59,10 @@
   the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
  */
 
-using gridtools::level;
 using gridtools::accessor;
-using gridtools::extent;
 using gridtools::arg;
+using gridtools::extent;
+using gridtools::level;
 
 namespace tridiagonal {
 
@@ -72,39 +72,39 @@ namespace tridiagonal {
     using namespace expressions;
 
     // This is the definition of the special regions in the "vertical" direction
-    using axis_t = axis< 1 >;
-    using x_internal = axis_t::full_interval::modify< 1, -1 >;
+    using axis_t = axis<1>;
+    using x_internal = axis_t::full_interval::modify<1, -1>;
     using x_first = axis_t::full_interval::first_level;
     using x_last = axis_t::full_interval::last_level;
 
-    typedef dimension< 3 > z;
+    typedef dimension<3> z;
 
     struct forward_thomas {
         // four vectors: output, and the 3 diagonals
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1 > inf;                  // a
-        typedef accessor< 2 > diag;                 // b
-        typedef accessor< 3, enumtype::inout > sup; // c
-        typedef accessor< 4, enumtype::inout > rhs; // d
-        typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1> inf;                  // a
+        typedef accessor<2> diag;                 // b
+        typedef accessor<3, enumtype::inout> sup; // c
+        typedef accessor<4, enumtype::inout> rhs; // d
+        typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void shared_kernel(Evaluation &eval) {
             eval(sup{}) = eval(sup{} / (diag{} - sup{z{-1}} * inf{}));
             eval(rhs{}) = eval((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
             shared_kernel(eval);
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_last) {
             shared_kernel(eval);
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_first) {
             eval(sup()) = eval(sup()) / eval(diag());
             eval(rhs()) = eval(rhs()) / eval(diag());
@@ -112,29 +112,29 @@ namespace tridiagonal {
     };
 
     struct backward_thomas {
-        typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1 > inf;                  // a
-        typedef accessor< 2 > diag;                 // b
-        typedef accessor< 3, enumtype::inout > sup; // c
-        typedef accessor< 4, enumtype::inout > rhs; // d
-        typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
+        typedef accessor<0, enumtype::inout> out;
+        typedef accessor<1> inf;                  // a
+        typedef accessor<2> diag;                 // b
+        typedef accessor<3, enumtype::inout> sup; // c
+        typedef accessor<4, enumtype::inout> rhs; // d
+        typedef boost::mpl::vector<out, inf, diag, sup, rhs> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void shared_kernel(Evaluation &eval) {
             eval(out()) = eval(rhs{} - sup{} * out{0, 0, 1});
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
             shared_kernel(eval);
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_first) {
             shared_kernel(eval);
         }
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_last) {
             eval(out()) = eval(rhs());
         }
@@ -151,8 +151,8 @@ namespace tridiagonal {
                       << std::endl;
         d3 = 6;
 
-        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_t;
-        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
+        typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_t;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, meta_t> storage_type;
 
         // Definition of the actual data fields that are used for input/output
         meta_t meta_(d1, d2, d3);
@@ -175,11 +175,11 @@ namespace tridiagonal {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type > p_inf;  // a
-        typedef arg< 1, storage_type > p_diag; // b
-        typedef arg< 2, storage_type > p_sup;  // c
-        typedef arg< 3, storage_type > p_rhs;  // d
-        typedef arg< 4, storage_type > p_out;
+        typedef arg<0, storage_type> p_inf;  // a
+        typedef arg<1, storage_type> p_diag; // b
+        typedef arg<2, storage_type> p_sup;  // c
+        typedef arg<3, storage_type> p_rhs;  // d
+        typedef arg<4, storage_type> p_out;
 
         auto grid = make_grid(d1, d2, axis_t(d3));
 
@@ -193,20 +193,19 @@ namespace tridiagonal {
           3) The actual domain dimensions
          */
 
-        auto solver = gridtools::make_computation< backend_t >(
-            grid,
+        auto solver = gridtools::make_computation<backend_t>(grid,
             p_inf() = inf,
             p_diag() = diag,
             p_sup() = sup,
             p_rhs() = rhs,
             p_out() = out,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< forward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+            (execute<forward>(),
+                gridtools::make_stage<forward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ),
             gridtools::make_multistage // mss_descriptor
-            (execute< backward >(),
-                gridtools::make_stage< backward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+            (execute<backward>(),
+                gridtools::make_stage<backward_thomas>(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
                 ));
 
         solver.run();
@@ -222,7 +221,7 @@ namespace tridiagonal {
 #else
         verifier verif(1e-12);
 #endif
-        array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+        array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
         return verif.verify(grid, solution, out, halos);
     }
 } // namespace tridiagonal
