@@ -130,23 +130,19 @@ namespace gridtools {
     template <typename CTraits>
     struct distributed_boundaries {
 
-#ifdef _GCL_MPI_
         using pattern_type = halo_exchange_dynamic_ut<typename CTraits::data_layout,
             typename CTraits::proc_layout,
             typename CTraits::value_type,
             typename CTraits::proc_grid_type,
             typename CTraits::comm_arch_type,
             CTraits::version>;
-#endif
+
       private:
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;
         uint_t m_max_stores;
-#ifdef _GCL_MPI_
         pattern_type m_he;
-#else
-        mock_pattern m_he;
-#endif
+
       public:
         /**
             @brief Constructor of distributed_boundaries.
@@ -164,7 +160,6 @@ namespace gridtools {
             : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores {
             max_stores
         }
-#ifdef _GCL_MPI_
         , m_he(period, CartComm, m_sizes) {
             m_he.template add_halo<0>(
                 m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
@@ -176,10 +171,6 @@ namespace gridtools {
                 m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
 
             m_he.setup(m_max_stores);
-#else
-            , m_he{period}
-            {
-#endif
             }
 
         /**

@@ -85,7 +85,8 @@ namespace gridtools {
             }
         };
 
-        struct mock_pattern {
+        template <typename ...>
+        struct halo_exchange_dynamic_ut_ {
             boollist<3> m_period;
             MPI_3D_process_grid_t<3> m_comm;
 
@@ -96,6 +97,11 @@ namespace gridtools {
             }
 
             MPI_3D_process_grid_t<3> const& comm() const {return m_comm;}
+
+            template <int, typename As...>
+            void add_halo(As...) {}
+
+            void setup(uint_t) {};
         };
 
     } // namespace mock_
