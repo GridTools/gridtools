@@ -47,7 +47,7 @@
 #include "../communication/halo_exchange.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
 #else
-#include "./proc_grid_mock.hpp"
+#include "./mock_pattern.hpp"
 #endif
 #include "./grid_predicate.hpp"
 
