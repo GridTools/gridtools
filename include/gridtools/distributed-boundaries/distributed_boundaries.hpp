@@ -158,6 +158,24 @@ namespace gridtools {
         }
 
         /**
+            @brief Member function to perform boundary condition only
+            on a list of jobs.  A job is either a
+            gridtools::data_store to be used during communication (so
+            it is skipped by this function) or a
+            gridtools::bound_bc to apply boundary conditions. The
+            synthax is the same as the
+            distributed_boundaries::exchange, but the communication is
+            not performed.
+
+            \param jobs Variadic list of jobs
+        */
+        template <typename... Jobs>
+        void boundary_only(Jobs const &... jobs) {
+            using execute_in_order = int[];
+            (void)execute_in_order{(apply_boundary(jobs), 0)...};
+        }
+
+        /**
             @brief Member function to perform boundary condition and communication on a list of jobs.
             A job is either a gridtools::data_store to be used during communication or a gridtools::bound_bc
             to apply boundary conditions and halo_update operations for the data_stores that are not input-only
@@ -181,8 +199,8 @@ namespace gridtools {
                 throw std::runtime_error(err);
             }
 
-            using execute_in_order = int[];
-            (void)execute_in_order{(apply_boundary(jobs), 0)...};
+            boundary_only(jobs...);
+
             call_pack(all_stores_for_exc,
                 typename make_gt_integer_sequence<uint_t,
                     std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
