@@ -41,18 +41,18 @@
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
-
 #include "../../storage/data_store_field.hpp"
-
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../iteration_policy_fwd.hpp"
 #include "../offset_computation.hpp"
-
 #include "cache_storage_metafunctions.hpp"
 #include "cache_traits.hpp"
 #include "meta_storage_cache.hpp"
+#include <boost/mpl/min_max.hpp>
+#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 
@@ -87,10 +87,48 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes<Tiles...>::value), GT_INTERNAL_ERROR);
 
+        template <typename Tile, typename KWindow>
+        struct get_kminus_bound {
+            using type = typename boost::mpl::min<typename boost::mpl::at_c<typename Tile::type, 2>::type,
+                static_int<KWindow::m_>>::type;
+        };
+
+        template <typename Tile, typename KWindow>
+        struct get_kplus_bound {
+            using type = typename boost::mpl::max<typename boost::mpl::at_c<typename Tile::type, 2>::type,
+                static_int<KWindow::p_>>::type;
+        };
+
+        template <typename Seq, typename KWindow>
+        struct min_enclosing_extent;
+
+        template <typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow>
+        struct min_enclosing_extent<variadic_to_vector<Arg0, Arg1, Arg2, Args...>, KWindow> {
+            using type =
+                variadic_to_vector<Arg0, Arg1, typename boost::mpl::min<Arg2, static_int<KWindow::m_>>::type, Args...>;
+        };
+
+        template <typename Seq, typename KWindow>
+        struct max_enclosing_extent;
+
+        template <typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow>
+        struct max_enclosing_extent<variadic_to_vector<Arg0, Arg1, Arg2, Args...>, KWindow> {
+            using type =
+                variadic_to_vector<Arg0, Arg1, typename boost::mpl::max<Arg2, static_int<KWindow::p_>>::type, Args...>;
+        };
+
       public:
         using cache_t = Cache;
-        typedef typename unzip<variadic_to_vector<static_short<ExtentBounds>...>>::first minus_t;
-        typedef typename unzip<variadic_to_vector<static_short<ExtentBounds>...>>::second plus_t;
+
+        typedef typename unzip<variadic_to_vector<static_short<ExtentBounds>...>>::first minus_extents_t;
+        typedef typename unzip<variadic_to_vector<static_short<ExtentBounds>...>>::second plus_extents_t;
+
+        using minus_t = typename boost::mpl::eval_if<boost::mpl::is_void_<typename cache_t::kwindow_t>,
+            boost::mpl::identity<minus_extents_t>,
+            min_enclosing_extent<minus_extents_t, typename cache_t::kwindow_t>>::type;
+        using plus_t = typename boost::mpl::eval_if<boost::mpl::is_void_<typename cache_t::kwindow_t>,
+            boost::mpl::identity<plus_extents_t>,
+            max_enclosing_extent<plus_extents_t, typename cache_t::kwindow_t>>::type;
         typedef variadic_to_vector<static_int<Tiles>...> tiles_t;
 
         static constexpr int tiles_block = accumulate(multiplies(), Tiles...);

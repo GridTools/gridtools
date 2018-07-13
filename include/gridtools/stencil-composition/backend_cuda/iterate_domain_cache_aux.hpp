@@ -52,9 +52,9 @@ namespace gridtools {
 
         /**
          * @struct flush_mem_accessor
-         * functor that will synchronize a cache with main memory
-         * \tparam AccIndex index of the accessor
-         * \tparam ExecutionPolicy : forward, backward
+         * functor that will synchronize the last level of the cache ring-buffer with main memory, before iteration goes
+         * to the next k-level
+         * \tparam AccIndex index of the accessor \tparam ExecutionPolicy : forward, backward
          * \tparam InitialOffset additional offset to be applied to the accessor
          */
         template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
@@ -70,6 +70,7 @@ namespace gridtools {
                  * @brief apply the functor
                  * @param it_domain iterate domain
                  * @param cache_st cache storage
+                 * @return dummy int (ignored) required by apply_gt_integer_sequence
                  */
                 template <typename IterateDomain, typename CacheStorage>
                 GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
@@ -87,8 +88,48 @@ namespace gridtools {
         };
 
         /**
+         * @struct flush_mem_accessor_end
+         * functor that will synchronize a window of the cache with main memory at the end of a vertical looping
+         * \tparam AccIndex index of the accessor
+         * \tparam ExecutionPolicy : forward, backward
+         * \tparam InitialOffset additional offset to be applied to the accessor
+         */
+        template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
+        struct flush_mem_accessor_end {
+            /**
+             * Apply struct of the functor
+             *
+             * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+             */
+            template <int_t Offset>
+            struct apply_t {
+                /**
+                 * @brief apply the functor
+                 * @param it_domain iterate domain
+                 * @param cache_st cache storage
+                 * @return dummy int (ignored) required by apply_gt_integer_sequence
+                 */
+                template <typename IterateDomain, typename CacheStorage>
+                GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
+                    typedef accessor<AccIndex::value,
+                        enumtype::inout,
+                        extent<0,
+                            0,
+                            0,
+                            0,
+                            ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0),
+                            ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset))>>
+                        acc_t;
+                    constexpr acc_t acc_(0, 0, (Offset + InitialOffset));
+                    it_domain.get_gmem_value(acc_) = cache_st.at(acc_);
+                    return 0;
+                }
+            };
+        };
+
+        /**
          * @struct fill_mem_accessor
-         * functor that prefill a kcache (before starting the vertical iteration) with initial values from main memory
+         * functor that prefill the next k level being executed with values from main memory
          * \tparam AccIndex index of the accessor
          * \tparam ExecutionPolicy : forward, backward
          * \tparam InitialOffset additional offset to be applied to the accessor
@@ -98,6 +139,7 @@ namespace gridtools {
             /**
              * Apply struct of the functor
              * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+             * @return dummy int (ignored) required by apply_gt_integer_sequence
              */
             template <int_t Offset>
             struct apply_t {
@@ -117,6 +159,47 @@ namespace gridtools {
                         0,
                         (ExecutionPolicy == enumtype::backward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
                     cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
+
+                    return 0;
+                }
+            };
+        };
+
+        /**
+         * @struct fill_mem_accessor_begin
+         * functor that prefill a window of a kcache (before starting the vertical iteration) with initial values from
+         * main memory \tparam AccIndex index of the accessor \tparam ExecutionPolicy : forward, backward \tparam
+         * InitialOffset additional offset to be applied to the accessor
+         */
+        template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
+        struct fill_mem_accessor_begin {
+            /**
+             * Apply struct of the functor
+             * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+             * @return dummy int (ignored) required by apply_gt_integer_sequence
+             */
+            template <int_t Offset>
+            struct apply_t {
+                /**
+                 * @brief apply the functor
+                 * @param it_domain iterate domain
+                 * @param cache_st cache storage
+                 */
+                template <typename IterateDomain, typename CacheStorage>
+                GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage &cache_st) {
+
+                    typedef accessor<AccIndex::value,
+                        enumtype::in,
+                        extent<0,
+                            0,
+                            0,
+                            0,
+                            ((Offset + InitialOffset < 0) ? (Offset + InitialOffset) : 0),
+                            ((Offset + InitialOffset > 0) ? 0 : (Offset + InitialOffset))>>
+                        acc_t;
+                    constexpr acc_t acc_(0, 0, (Offset + InitialOffset));
+                    cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
+
                     return 0;
                 }
             };
@@ -138,6 +221,25 @@ namespace gridtools {
             using type = flush_mem_accessor<AccIndex, ExecutionPolicy, InitialOffset>;
         };
 
+        /**
+         * struct to dispatch the corresponding IO operator for caches
+         */
+        template <typename AccIndex,
+            enumtype::execution ExecutionPolicy,
+            cache_io_policy CacheIOPolicy,
+            int_t InitialOffset = 0>
+        struct io_operator_end;
+
+        template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset>
+        struct io_operator_end<AccIndex, ExecutionPolicy, cache_io_policy::fill, InitialOffset> {
+            using type = fill_mem_accessor_begin<AccIndex, ExecutionPolicy, InitialOffset>;
+        };
+
+        template <typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset>
+        struct io_operator_end<AccIndex, ExecutionPolicy, cache_io_policy::flush, InitialOffset> {
+            using type = flush_mem_accessor_end<AccIndex, ExecutionPolicy, InitialOffset>;
+        };
+
         enum class cache_section { head, tail };
 
         /**
@@ -157,6 +259,8 @@ namespace gridtools {
          */
         template <typename IterationPolicy, typename CacheStorage>
         GT_FUNCTION constexpr uint_t compute_section_kcache_to_sync_with_mem(cache_io_policy cache_io_policy_) {
+            // synchronization of the kcache with main memory requires that the kcache window includes center of the
+            // gridpoint, i.e. <2,3> is not a valid condition
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::at_c<typename CacheStorage::minus_t::type, 2>::type::value <= 0 &&
                                         boost::mpl::at_c<typename CacheStorage::plus_t::type, 2>::type::value >= 0),
                 GT_INTERNAL_ERROR);
@@ -164,6 +268,22 @@ namespace gridtools {
             return (compute_kcache_front<IterationPolicy>(cache_io_policy_) == cache_section::tail)
                        ? (uint_t)-boost::mpl::at_c<typename CacheStorage::minus_t::type, 2>::type::value
                        : (uint_t)boost::mpl::at_c<typename CacheStorage::plus_t::type, 2>::type::value;
+        }
+
+        /**
+         * computes the base position of the window of the kcache that needs to be synchronized to main memory.
+         * Depending on the loop direction we will need to synchronize either the head or the tail of the kcache,
+         * therefore the base of the window will be either kminus (tail) or 0 (head).
+         */
+        template <typename IterationPolicy, typename CacheStorage>
+        GT_FUNCTION constexpr int_t compute_section_kcache_base_to_sync_with_mem(cache_io_policy cache_io_policy_) {
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::at_c<typename CacheStorage::minus_t::type, 2>::type::value <= 0 &&
+                                        boost::mpl::at_c<typename CacheStorage::plus_t::type, 2>::type::value >= 0),
+                GT_INTERNAL_ERROR);
+
+            return (compute_kcache_front<IterationPolicy>(cache_io_policy_) == cache_section::tail)
+                       ? boost::mpl::at_c<typename CacheStorage::minus_t::type, 2>::type::value + 1
+                       : 0;
         }
 
         /**
@@ -259,20 +379,35 @@ namespace gridtools {
                                                 kcache_t::ccacheIOPolicy != cache_io_policy::epflush)),
                     "bpfill and epflush policies can not be used with a kparallel iteration strategy");
 
-                // compute the maximum offset of all levels that we need to prefill or final flush
                 constexpr uint_t koffset =
                     compute_section_kcache_to_sync_with_mem<IterationPolicy, k_cache_storage_t>(CacheIOPolicy);
+                // compute the maximum offset of all levels that we need to prefill or final flush
 
-                // compute the sequence of all offsets that we need to prefill or final flush
-                using seq = gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int_t,
-                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ? koffset + 1 : koffset>::type>;
-                constexpr int_t additional_offset = (kcache_t::ccacheIOPolicy == cache_io_policy::flush ||
-                                                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush ||
-                                                        kcache_t::ccacheIOPolicy == cache_io_policy::fill_and_flush)
-                                                        ? (int_t)1
-                                                        : 0;
+                constexpr int_t kbase =
+                    compute_section_kcache_base_to_sync_with_mem<IterationPolicy, k_cache_storage_t>(CacheIOPolicy);
+
+                constexpr uint_t kwindow_size = boost::mpl::eval_if<boost::mpl::is_void_<typename kcache_t::kwindow_t>,
+                    boost::mpl::identity<static_int<koffset>>,
+                    kcache_compute_window_size_to_sync<kcache_t::ccacheIOPolicy,
+                        typename kcache_t::kwindow_t>>::type::value;
+
+                constexpr int_t kwindow_min = boost::mpl::eval_if<boost::mpl::is_void_<typename kcache_t::kwindow_t>,
+                    boost::mpl::identity<static_int<kbase>>,
+                    window_get_min<kcache_t::ccacheIOPolicy, IterationPolicy, typename kcache_t::kwindow_t>>::type::
+                    value;
+
+                using seq = gridtools::apply_gt_integer_sequence<
+                    typename gridtools::make_gt_integer_sequence<int_t, kwindow_size>::type>;
+
+                // The flush operation happens after the slide, i.e. the grid point iterator is placed one grid point
+                // beyond the one we need to flush. We need to correct this offset
+                constexpr int_t additional_offset =
+                    kwindow_min + ((CacheIOPolicy == cache_io_policy::fill)
+                                          ? 0
+                                          : ((IterationPolicy::value == enumtype::forward) ? -1 : 1));
+
                 using io_op_t =
-                    typename io_operator<Idx, IterationPolicy::value, CacheIOPolicy, additional_offset>::type;
+                    typename io_operator_end<Idx, IterationPolicy::value, CacheIOPolicy, additional_offset>::type;
 
                 auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
                 seq::template apply_void_lambda<io_op_t::apply_t>(m_it_domain, cache_st);

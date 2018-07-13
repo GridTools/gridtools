@@ -52,7 +52,8 @@ namespace test_multidimensional_caches {
         typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
         typedef storage_wrapper<arg<0, storage_t>, data_view<storage_t>, gridtools::tile<0, 0>, gridtools::tile<0, 0>>
             sw1_t;
-        typedef detail::cache_impl<IJ, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_> cache_t;
+        typedef detail::cache_impl<IJ, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_, boost::mpl::void_>
+            cache_t;
 
         typedef cache_storage<cache_t, block_size<8, 3, 1, 1, 1>, extent<-1, 1, -2, 2, 0, 0, 0, 2, -1, 0>, sw1_t>
             cache_storage_t;
@@ -118,7 +119,8 @@ namespace test_multidimensional_caches {
         typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
         typedef storage_wrapper<arg<0, storage_t>, data_view<storage_t>, gridtools::tile<0, 0>, gridtools::tile<0, 0>>
             sw1_t;
-        typedef detail::cache_impl<K, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_> cache_t;
+        typedef detail::cache_impl<K, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_, boost::mpl::void_>
+            cache_t;
 
         typedef cache_storage<cache_t, block_size<1, 1, 1, 1, 1>, extent<0, 0, 0, 0, -3, 2, 0, 1, 0, 3>, sw1_t>
             cache_storage_t;

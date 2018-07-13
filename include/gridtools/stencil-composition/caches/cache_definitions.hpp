@@ -38,8 +38,8 @@
    @file
    @brief File containing all definitions and enums required by the cache implementations
 */
-
 namespace gridtools {
+
     /**
      * @enum cache_io_policy
      * Enum listing the cache IO policies

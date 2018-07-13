@@ -59,6 +59,49 @@
 
 namespace gridtools {
 
+    /**
+     * @brief class to store the bounds of a window used in caches
+     */
+    template <int M, int P>
+    struct window {
+        static constexpr int m_ = M;
+        static constexpr int p_ = P;
+        GRIDTOOLS_STATIC_ASSERT((m_ == 0 || p_ == 0),
+            "One of the bounds of the cache window has to be 0, (upper bound for a forward loop or lower bound for a "
+            "backward loop) since it does not make sense to flush the head of the cache nor fill the tail.");
+    };
+
+    template <typename T>
+    struct is_window : boost::mpl::false_ {};
+
+    template <int M, int P>
+    struct is_window<window<M, P>> : boost::mpl::true_ {};
+
+    /**
+     * @brief computes the window size of a kcache that needs to be sync with mem memory
+     */
+    template <cache_io_policy CacheIOPolicy, typename T>
+    struct kcache_compute_window_size_to_sync;
+
+    /**
+     * @brief computes the window size of a kcache that needs to be sync with mem memory
+     * in case of an end-point flush, the synchronization happens after the last (regular, i.e. in every klevel
+     * iteration) flush operation, and therefore one klevel less than usual specified within the kcache type is required
+     */
+    template <cache_io_policy CacheIOPolicy, int M, int P>
+    struct kcache_compute_window_size_to_sync<CacheIOPolicy, window<M, P>> {
+        using type = static_int<P - M + 1 + ((CacheIOPolicy == cache_io_policy::epflush) ? (-1) : 0)>;
+    };
+
+    template <cache_io_policy CacheIOPolicy, typename IterationPolicy, typename T>
+    struct window_get_min;
+
+    template <cache_io_policy CacheIOPolicy, typename IterationPolicy, int M, int P>
+    struct window_get_min<CacheIOPolicy, IterationPolicy, window<M, P>> {
+        using type = static_int<
+            (IterationPolicy::value == enumtype::forward && CacheIOPolicy == cache_io_policy::epflush) ? M + 1 : M>;
+    };
+
     namespace detail {
         /**
          * @struct cache_impl
@@ -75,8 +118,14 @@ namespace gridtools {
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
          * @tparam Interval vertical interval of validity of the cache
+         * @tparam KWindow window of the cache for IO synchronizations (only used for IO policies that synchronize with
+         * main mem)
          */
-        template <cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval>
+        template <cache_type cacheType,
+            typename Arg,
+            cache_io_policy cacheIOPolicy,
+            typename Interval,
+            typename KWindow>
         struct cache_impl {
             GRIDTOOLS_STATIC_ASSERT((is_arg<Arg>::value), "argument passed to ij cache is not of the right arg<> type");
             typedef Arg arg_t;
@@ -86,6 +135,7 @@ namespace gridtools {
                 "args in irregular grids require a location type");
 #endif
             typedef Interval interval_t;
+            using kwindow_t = KWindow;
             typedef enumtype::enum_type<cache_type, cacheType> cache_type_t;
             static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
@@ -93,11 +143,11 @@ namespace gridtools {
         /**
          * @brief helper metafunction class that is used to force the resolution of an mpl placeholder type
          */
-        template <cache_type cacheType, cache_io_policy cacheIOPolicy, typename Interval>
+        template <cache_type cacheType, cache_io_policy cacheIOPolicy, typename Interval, typename KWindow>
         struct force_arg_resolution {
             template <typename T>
             struct apply {
-                typedef cache_impl<cacheType, T, cacheIOPolicy, Interval> type;
+                typedef cache_impl<cacheType, T, cacheIOPolicy, Interval, KWindow> type;
             };
         };
     } // namespace detail
@@ -113,9 +163,10 @@ namespace gridtools {
     template <cache_type cacheType,
         cache_io_policy cacheIOPolicy,
         typename Interval = boost::mpl::void_,
+        typename KWindow = boost::mpl::void_,
         typename... Args>
     constexpr typename boost::mpl::transform<boost::mpl::vector<Args...>,
-        detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval>>::type
+        detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval, KWindow>>::type
     cache(Args &&...) {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
         GRIDTOOLS_STATIC_ASSERT(((boost::is_same<Interval, boost::mpl::void_>::value) || cacheType == K),
@@ -124,10 +175,18 @@ namespace gridtools {
                                     cacheIOPolicy == cache_io_policy::local),
             "cache<K, ... > construct requires an interval (unless the IO policy is local)");
 
+        GRIDTOOLS_STATIC_ASSERT((!(boost::is_same<KWindow, boost::mpl::void_>::value) ||
+                                    !(cacheType == K && (cacheIOPolicy == cache_io_policy::bpfill ||
+                                                            cacheIOPolicy == cache_io_policy::epflush))),
+            "cache<K, ... > construct requires a k window for bpfill and epflush");
+
         GRIDTOOLS_STATIC_ASSERT((boost::is_same<Interval, boost::mpl::void_>::value || is_interval<Interval>::value),
             "Invalid Interval type passed to cache construct");
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same<KWindow, boost::mpl::void_>::value || is_window<KWindow>::value),
+            "Invalid k-window type passed to cache construct");
+
         typedef typename boost::mpl::transform<boost::mpl::vector<Args...>,
-            detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval>>::type res_ty;
+            detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval, KWindow>>::type res_ty;
         return res_ty();
     }
 } // namespace gridtools

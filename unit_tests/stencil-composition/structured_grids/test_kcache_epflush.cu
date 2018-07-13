@@ -73,16 +73,16 @@ struct shift_acc_backward_epflush {
     typedef boost::mpl::vector<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
         eval(out()) = eval(in()) + eval(out(0, 0, 1));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_b) {
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_low_m1) {
         eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2)) + eval(in());
     }
 };
@@ -99,7 +99,7 @@ TEST_F(kcachef, epflush_forward) {
 
             for (uint_t k = 2; k < m_d3; ++k) {
                 auxv(i, j, k) = auxv(i, j, k - 1) + auxv(i, j, k - 2) + m_inv(i, j, k);
-                if (k >= m_d3 - 2) {
+                if (k >= m_d3 - 1) {
                     m_refv(i, j, k) = auxv(i, j, k);
                 }
             }
@@ -114,7 +114,7 @@ TEST_F(kcachef, epflush_forward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_out())),
+            define_caches(cache<K, cache_io_policy::epflush, kfull, window<-1, 0>>(p_out())),
             make_stage<shift_acc_forward_epflush>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -146,7 +146,7 @@ TEST_F(kcachef, epflush_backward) {
 
             for (int_t k = m_d3 - 3; k >= 0; --k) {
                 auxv(i, j, k) = auxv(i, j, k + 1) + auxv(i, j, k + 2) + m_inv(i, j, k);
-                if (k < 2) {
+                if (k < 1) {
                     m_refv(i, j, k) = auxv(i, j, k);
                 }
             }
@@ -156,12 +156,12 @@ TEST_F(kcachef, epflush_backward) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto kcache_stencil = make_computation<backend_t>(m_gridb,
+    auto kcache_stencil = make_computation<backend_t>(m_grid,
         p_out() = m_out,
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::epflush, kfull_b>(p_out())),
+            define_caches(cache<K, cache_io_policy::epflush, kfull, window<0, 1>>(p_out())),
             make_stage<shift_acc_backward_epflush>(p_in() // esf_descriptor
                 ,
                 p_out())));
