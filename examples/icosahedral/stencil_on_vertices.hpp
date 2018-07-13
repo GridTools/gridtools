@@ -33,30 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "backend_select.hpp"
+#include "benchmarker.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
-#include "benchmarker.hpp"
-#include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace sov {
 
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    using x_interval = axis< 1 >::full_interval;
+    using x_interval = axis<1>::full_interval;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct test_on_vertices_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::vertices, extent< -1, 1, -1, 1 > > in;
-        typedef inout_accessor< 1, icosahedral_topology_t::vertices > out;
-        typedef boost::mpl::vector2< in, out > arg_list;
+        typedef in_accessor<0, icosahedral_topology_t::vertices, extent<-1, 1, -1, 1>> in;
+        typedef inout_accessor<1, icosahedral_topology_t::vertices> out;
+        typedef boost::mpl::vector2<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
 
@@ -76,20 +76,18 @@ namespace sov {
         constexpr uint_t halo_nc = 1;
         constexpr uint_t halo_mc = 1;
 
-        using vertex_storage_type = typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices,
-            double,
-            halo< halo_nc, 0, halo_mc, 0 > >;
+        using vertex_storage_type = typename icosahedral_topology_t::
+            data_store_t<icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0>>;
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         auto in_vertices =
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
-                "in");
+            icosahedral_grid.make_storage<icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0>>("in");
         auto out_vertices =
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+            icosahedral_grid.make_storage<icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0>>(
                 "out");
         auto ref_vertices =
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, halo< halo_nc, 0, halo_mc, 0 > >(
+            icosahedral_grid.make_storage<icosahedral_topology_t::vertices, double, halo<halo_nc, 0, halo_mc, 0>>(
                 "ref");
         auto inv = make_host_view(in_vertices);
         auto outv = make_host_view(out_vertices);
@@ -107,23 +105,22 @@ namespace sov {
             }
         }
 
-        typedef arg< 0, vertex_storage_type, enumtype::vertices > p_in_vertices;
-        typedef arg< 1, vertex_storage_type, enumtype::vertices > p_out_vertices;
+        typedef arg<0, vertex_storage_type, enumtype::vertices> p_in_vertices;
+        typedef arg<1, vertex_storage_type, enumtype::vertices> p_out_vertices;
 
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
         auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
-        auto stencil_ = gridtools::make_computation< backend_t >(
-            grid_,
+        auto stencil_ = gridtools::make_computation<backend_t>(grid_,
             p_in_vertices() = in_vertices,
             p_out_vertices() = out_vertices,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< test_on_vertices_functor,
+            (execute<forward>(),
+                gridtools::make_stage<test_on_vertices_functor,
                     icosahedral_topology_t,
-                    icosahedral_topology_t::vertices >(p_in_vertices(), p_out_vertices())));
+                    icosahedral_topology_t::vertices>(p_in_vertices(), p_out_vertices())));
         stencil_.run();
 
         out_vertices.sync();
@@ -136,8 +133,9 @@ namespace sov {
                 for (uint_t c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
                     for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
-                            auto neighbours = ugrid.neighbours_of< icosahedral_topology_t::vertices,
-                                icosahedral_topology_t::vertices >({i, c, j, k});
+                            auto neighbours =
+                                ugrid.neighbours_of<icosahedral_topology_t::vertices, icosahedral_topology_t::vertices>(
+                                    {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
                                 refv(i, c, j, k) += inv((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                             }
@@ -152,7 +150,7 @@ namespace sov {
             verifier ver(1e-10);
 #endif
 
-            array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0, 0}}};
+            array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0, 0}}};
             result = ver.verify(grid_, ref_vertices, out_vertices, halos);
         }
 #ifdef BENCHMARK

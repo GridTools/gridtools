@@ -40,7 +40,7 @@
 
 #ifdef _USE_GPU_
 /* device_binding added by Devendar Bureddy, OSU */
-void device_binding() {
+inline void device_binding() {
 
     int local_rank = 0 /*, num_local_procs*/;
     int dev_count, use_dev_count, my_dev_id;

@@ -44,8 +44,8 @@
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 #endif
-#include "storage_traits_mic.hpp"
 #include "storage_traits_host.hpp"
+#include "storage_traits_mic.hpp"
 
 /**
  * \defgroup storage Storage
@@ -62,45 +62,45 @@ namespace gridtools {
      * Additionally to the default types, specialized and custom storage_info types can be retrieved
      * @tparam T used platform (e.g., Cuda or Host)
      */
-    template < enumtype::platform T >
-    struct storage_traits : gridtools::storage_traits_from_id< T > {
+    template <enumtype::platform T>
+    struct storage_traits : gridtools::storage_traits_from_id<T> {
       private:
-        template < typename ValueType >
-        using storage_t = typename gridtools::storage_traits_from_id< T >::template select_storage< ValueType >::type;
+        template <typename ValueType>
+        using storage_t = typename gridtools::storage_traits_from_id<T>::template select_storage<ValueType>::type;
 
       public:
-        template < uint_t Id, uint_t Dims, typename Halo = zero_halo< Dims > >
+        template <uint_t Id, uint_t Dims, typename Halo = zero_halo<Dims>>
         using storage_info_t =
-            typename gridtools::storage_traits_from_id< T >::template select_storage_info< Id, Dims, Halo >::type;
+            typename gridtools::storage_traits_from_id<T>::template select_storage_info<Id, Dims, Halo>::type;
 
-        template < uint_t Id, typename LayoutMap, typename Halo = zero_halo< LayoutMap::masked_length > >
+        template <uint_t Id, typename LayoutMap, typename Halo = zero_halo<LayoutMap::masked_length>>
         using custom_layout_storage_info_t = typename gridtools::storage_traits_from_id<
-            T >::template select_custom_layout_storage_info< Id, LayoutMap, Halo >::type;
+            T>::template select_custom_layout_storage_info<Id, LayoutMap, Halo>::type;
 
-        template < uint_t Id, typename Selector, typename Halo = zero_halo< Selector::size > >
+        template <uint_t Id, typename Selector, typename Halo = zero_halo<Selector::size>>
         using special_storage_info_t = typename gridtools::storage_traits_from_id<
-            T >::template select_special_storage_info< Id, Selector, Halo >::type;
+            T>::template select_special_storage_info<Id, Selector, Halo>::type;
 
-        template < typename ValueType, typename StorageInfo >
-        using data_store_t = data_store< storage_t< ValueType >, StorageInfo >;
+        template <typename ValueType, typename StorageInfo>
+        using data_store_t = data_store<storage_t<ValueType>, StorageInfo>;
 
-        template < typename ValueType, typename StorageInfo, uint_t... N >
-        using data_store_field_t = data_store_field< data_store_t< ValueType, StorageInfo >, N... >;
+        template <typename ValueType, typename StorageInfo, uint_t... N>
+        using data_store_field_t = data_store_field<data_store_t<ValueType, StorageInfo>, N...>;
 
-        template < uint_t Id, uint_t Dims, typename Halo, typename Align >
+        template <uint_t Id, uint_t Dims, typename Halo, typename Align>
         using storage_info_align_t = typename gridtools::storage_traits_from_id<
-            T >::template select_storage_info_align< Id, Dims, Halo, Align >::type;
+            T>::template select_storage_info_align<Id, Dims, Halo, Align>::type;
 
-        template < uint_t Id, typename LayoutMap, typename Halo, typename Align >
+        template <uint_t Id, typename LayoutMap, typename Halo, typename Align>
         using custom_layout_storage_info_align_t = typename gridtools::storage_traits_from_id<
-            T >::template select_custom_layout_storage_info_align< Id, LayoutMap, Halo, Align >::type;
+            T>::template select_custom_layout_storage_info_align<Id, LayoutMap, Halo, Align>::type;
 
-        template < uint_t Id, typename Selector, typename Halo, typename Align >
+        template <uint_t Id, typename Selector, typename Halo, typename Align>
         using special_storage_info_align_t = typename gridtools::storage_traits_from_id<
-            T >::template select_special_storage_info_align< Id, Selector, Halo, Align >::type;
+            T>::template select_special_storage_info_align<Id, Selector, Halo, Align>::type;
     };
 
     /**
      * @}
      */
-}
+} // namespace gridtools

@@ -33,29 +33,29 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "stencil-composition/stencil-composition.hpp"
 #include "kcache_fixture.hpp"
-#include "tools/verifier.hpp"
+#include "gtest/gtest.h"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 
 struct shif_acc_forward {
 
-    typedef accessor< 0, ::in, extent<> > in;
-    typedef accessor< 1, ::inout, extent<> > out;
-    typedef accessor< 2, ::inout, extent< 0, 0, 0, 0, -1, 0 > > buff;
+    typedef accessor<0, ::in, extent<>> in;
+    typedef accessor<1, ::inout, extent<>> out;
+    typedef accessor<2, ::inout, extent<0, 0, 0, 0, -1, 0>> buff;
 
-    typedef boost::mpl::vector< in, out, buff > arg_list;
+    typedef boost::mpl::vector<in, out, buff> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(buff()) = eval(in());
         eval(out()) = eval(buff());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
 
         eval(buff()) = eval(buff(0, 0, -1)) + eval(in());
@@ -65,32 +65,32 @@ struct shif_acc_forward {
 
 struct biside_large_kcache_forward {
 
-    typedef accessor< 0, ::in, extent<> > in;
-    typedef accessor< 1, ::inout, extent<> > out;
-    typedef accessor< 2, ::inout, extent< 0, 0, 0, 0, -2, 1 > > buff;
+    typedef accessor<0, ::in, extent<>> in;
+    typedef accessor<1, ::inout, extent<>> out;
+    typedef accessor<2, ::inout, extent<0, 0, 0, 0, -2, 1>> buff;
 
-    typedef boost::mpl::vector< in, out, buff > arg_list;
+    typedef boost::mpl::vector<in, out, buff> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(buff()) = eval(in());
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25;
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1m1) {
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25 + eval(buff(0, 0, -2)) * (float_type)0.12;
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25 + eval(buff(0, 0, -2)) * (float_type)0.12;
     }
@@ -98,32 +98,32 @@ struct biside_large_kcache_forward {
 
 struct biside_large_kcache_backward {
 
-    typedef accessor< 0, ::in, extent<> > in;
-    typedef accessor< 1, ::inout, extent<> > out;
-    typedef accessor< 2, ::inout, extent< 0, 0, 0, 0, -1, 2 > > buff;
+    typedef accessor<0, ::in, extent<>> in;
+    typedef accessor<1, ::inout, extent<>> out;
+    typedef accessor<2, ::inout, extent<0, 0, 0, 0, -1, 2>> buff;
 
-    typedef boost::mpl::vector< in, out, buff > arg_list;
+    typedef boost::mpl::vector<in, out, buff> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
         eval(buff()) = eval(in());
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25;
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_lowp1_b) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum_b) {
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
@@ -131,19 +131,19 @@ struct biside_large_kcache_backward {
 
 struct shif_acc_backward {
 
-    typedef accessor< 0, ::in, extent<> > in;
-    typedef accessor< 1, ::inout, extent<> > out;
-    typedef accessor< 2, ::inout, extent< 0, 0, 0, 0, 0, 1 > > buff;
+    typedef accessor<0, ::in, extent<>> in;
+    typedef accessor<1, ::inout, extent<>> out;
+    typedef accessor<2, ::inout, extent<0, 0, 0, 0, 0, 1>> buff;
 
-    typedef boost::mpl::vector< in, out, buff > arg_list;
+    typedef boost::mpl::vector<in, out, buff> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(buff()) = eval(in());
         eval(out()) = eval(buff());
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
         eval(buff()) = eval(buff(0, 0, 1)) + eval(in());
         eval(out()) = eval(buff());
@@ -162,23 +162,22 @@ TEST_F(kcachef, local_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_buff;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_buff;
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-            gridtools::make_stage< shif_acc_forward >(p_in(), p_out(), p_buff())));
+        (execute<forward>(),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_buff())),
+            gridtools::make_stage<shif_acc_forward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -190,7 +189,7 @@ TEST_F(kcachef, local_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -206,18 +205,17 @@ TEST_F(kcachef, local_backward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_buff;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
-        (execute< backward >(),
-            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-            gridtools::make_stage< shif_acc_backward >(p_in(), p_out(), p_buff())));
+        (execute<backward>(),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_buff())),
+            gridtools::make_stage<shif_acc_backward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -229,7 +227,7 @@ TEST_F(kcachef, local_backward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -256,18 +254,17 @@ TEST_F(kcachef, biside_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_buff;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_buff;
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-            gridtools::make_stage< biside_large_kcache_forward >(p_in() // esf_descriptor
+        (execute<forward>(),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_buff())),
+            gridtools::make_stage<biside_large_kcache_forward>(p_in() // esf_descriptor
                 ,
                 p_out(),
                 p_buff())));
@@ -282,7 +279,7 @@ TEST_F(kcachef, biside_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -310,23 +307,22 @@ TEST_F(kcachef, biside_backward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_buff;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_buff;
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
     // while the vertical ones are set according the the axis property soon after
     // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_gridb,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_gridb,
         p_in() = m_in,
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
-        (execute< backward >(),
-            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
-            gridtools::make_stage< biside_large_kcache_backward >(p_in(), p_out(), p_buff())));
+        (execute<backward>(),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_buff())),
+            gridtools::make_stage<biside_large_kcache_backward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -338,7 +334,7 @@ TEST_F(kcachef, biside_backward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }

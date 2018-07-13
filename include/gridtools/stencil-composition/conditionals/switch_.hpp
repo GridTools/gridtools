@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../common/defs.hpp"
 #include <functional>
 #include <type_traits>
-#include "../../common/defs.hpp"
 /**@file
-*/
+ */
 
 namespace gridtools {
     /**@brief API for a runtime switch between several multi stage stencils
@@ -83,32 +83,32 @@ computation->finalize();
 @endverbatim
     */
 
-    template < typename Fun, typename Val >
+    template <typename Fun, typename Val>
     struct case_adapter {
         Fun m_fun;
         Val m_val;
         bool operator()() const { return m_fun() == m_val; }
     };
-    template < typename Fun, typename Val >
-    case_adapter< Fun, Val > make_case_adapter(Fun const &fun, Val val) {
+    template <typename Fun, typename Val>
+    case_adapter<Fun, Val> make_case_adapter(Fun const &fun, Val val) {
         return {fun, val};
     }
 
     /**@brief recursion anchor*/
-    template < typename Cond, typename Default >
+    template <typename Cond, typename Default>
     typename Default::mss_t switch_(Cond const & /*cond_*/, Default const &last_) {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_default_type< Default >::value), "the last entry in a switch_ statement must be a default_ statement");
+            (is_default_type<Default>::value), "the last entry in a switch_ statement must be a default_ statement");
         return last_.mss(); // default_ value
     }
 
-    template < typename Cond, typename First, typename... Cases >
+    template <typename Cond, typename First, typename... Cases>
     auto switch_(Cond const &cond_, First const &first_, Cases const &... cases_)
         -> decltype(if_(make_case_adapter(cond_, first_.value()), first_.mss(), switch_(cond_, cases_...))) {
-        GRIDTOOLS_STATIC_ASSERT((std::is_convertible< Cond, std::function< int() > >::value),
+        GRIDTOOLS_STATIC_ASSERT((std::is_convertible<Cond, std::function<int()>>::value),
             "switch_ argument should be a nullary integer functor");
         GRIDTOOLS_STATIC_ASSERT(
-            (is_case_type< First >::value), "the entries in a switch_ statement must be case_ statements");
+            (is_case_type<First>::value), "the entries in a switch_ statement must be case_ statements");
         return if_(make_case_adapter(cond_, first_.value()), first_.mss(), switch_(cond_, cases_...));
     }
 } // namespace gridtools

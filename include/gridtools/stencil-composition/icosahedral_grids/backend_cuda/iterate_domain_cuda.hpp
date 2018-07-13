@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include "../../backend_cuda/iterate_domain_cache.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../grid_traits.hpp"
 
@@ -45,14 +43,14 @@ namespace gridtools {
     /**
      * @brief iterate domain class for the CUDA backend
      */
-    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
     class iterate_domain_cuda
-        : public IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > // CRTP
+        : public IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>> // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > super;
+        typedef IterateDomainBase<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>> super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
 
         typedef typename local_domain_t::esf_args local_domain_args_t;
@@ -66,26 +64,27 @@ namespace gridtools {
       private:
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-        typedef shared_iterate_domain< data_ptr_cached_t,
+        typedef shared_iterate_domain<data_ptr_cached_t,
             strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
-            typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
+            typename iterate_domain_cache_t::ij_caches_tuple_t>
+            shared_iterate_domain_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
-
-        //    using super::get_value;
-        //    using super::get_data_pointer;
 
       private:
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
 
+        using super::increment_i;
+        using super::increment_j;
+
       public:
-        template < typename Accessor >
+        template <typename Accessor>
         struct accessor_return_type {
-            typedef typename super::template accessor_return_type< Accessor >::type type;
+            typedef typename super::template accessor_return_type<Accessor>::type type;
         };
 
         GT_FUNCTION
@@ -95,20 +94,12 @@ namespace gridtools {
             const uint_t block_size_j)
             : super(local_domain, grid_topology), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
-        GT_FUNCTION
-        uint_t thread_position_x() const { return threadIdx.x; }
-
-        template < int_t minus, int_t plus >
-        GT_FUNCTION uint_t thread_position_y() const {
-            return threadIdx.y;
-        }
-
         /**
          * @brief determines whether the current (i,j) position is within the block size
          */
-        template < typename Extent >
+        template <typename Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
-            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
             return (m_thread_pos[0] >= Extent::iminus::value &&
                     m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
                     m_thread_pos[1] >= Extent::jminus::value &&
@@ -116,40 +107,10 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_block_pos(const int_t ipos, const int_t jpos) {
+        void set_block_pos(int_t ipos, int_t jpos) {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
         }
-
-        /**
-         * @brief determines whether the current (i,j) position + an offset is within the block size
-         */
-        template < typename Extent >
-        GT_FUNCTION bool is_thread_in_domain(const int_t i_offset, const int_t j_offset) const {
-            return is_thread_in_domain_x< Extent::iminus::value, Extent::iplus::value >(i_offset) &&
-                   is_thread_in_domain_y< Extent::jminus::value, Extent::jplus::value >(j_offset);
-        }
-
-        /**
-         * @brief determines whether the current (i) position + an offset is within the block size
-         */
-        template < int_t minus, int_t plus >
-        GT_FUNCTION bool is_thread_in_domain_x(const int_t i_offset) const {
-            return m_thread_pos[0] + i_offset >= minus && m_thread_pos[0] + i_offset < (int)m_block_size_i + plus;
-        }
-
-        /**
-         * @brief determines whether the current (j) position is within the block size
-         */
-        template < int_t minus, int_t plus >
-        GT_FUNCTION bool is_thread_in_domain_y(const int_t j_offset) const {
-            return m_thread_pos[1] + j_offset >= minus && m_thread_pos[1] + j_offset < (int)m_block_size_j + plus;
-        }
-
-        GT_FUNCTION
-        uint_t block_size_i() { return m_block_size_i; }
-        GT_FUNCTION
-        uint_t block_size_j() { return m_block_size_j; }
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
@@ -177,158 +138,118 @@ namespace gridtools {
             return m_pshared_iterate_domain->strides();
         }
 
-        template < ushort_t Coordinate, typename Execution >
-        GT_FUNCTION void increment_impl() {
-            if (Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value &&
-                Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value)
-                return;
-
-            if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value)
-                m_thread_pos[Coordinate] += Execution::value;
-            else if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value)
-                m_thread_pos[1] += Execution::value;
-        }
-
-        template < ushort_t Coordinate >
-        GT_FUNCTION void increment_impl(const int_t steps) {
-            // TODO provide this return at compile time
-            if (Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value &&
-                Coordinate != grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value)
-                return;
-
-            if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value)
-                m_thread_pos[0] += steps;
-            else if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value)
-                m_thread_pos[1] += steps;
-        }
-
-        template < ushort_t Coordinate >
-        GT_FUNCTION void initialize_impl() {
-
-            if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value)
-                m_thread_pos[0] = threadIdx.x;
-            else if (Coordinate == grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value)
-                m_thread_pos[1] = threadIdx.y;
-        }
-
         /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs
-        */
-        template < typename Accessor >
+         */
+        template <typename Accessor>
         struct accessor_points_to_readonly_arg {
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
 
-            typedef typename boost::mpl::at< local_domain_args_t,
-                boost::mpl::integral_c< int, Accessor::index_t::value > >::type arg_t;
+            typedef typename boost::mpl::at<local_domain_args_t,
+                boost::mpl::integral_c<int, Accessor::index_t::value>>::type arg_t;
 
-            typedef typename boost::mpl::has_key< readonly_args_indices_t,
-                boost::mpl::integral_c< int, arg_index< arg_t >::value > >::type type;
+            typedef typename boost::mpl::has_key<readonly_args_indices_t,
+                boost::mpl::integral_c<int, arg_index<arg_t>::value>>::type type;
         };
 
         /**
-        * @brief metafunction that determines if an accessor has to be read from texture memory
-        */
-        template < typename Accessor >
+         * @brief metafunction that determines if an accessor has to be read from texture memory
+         */
+        template <typename Accessor>
         struct accessor_read_from_texture {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::and_<
-                typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
-                    typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
-                        static_uint< Accessor::index_t::value > >::type >::type >::type,
-                typename boost::is_arithmetic< typename accessor_return_type< Accessor >::type > >::type type;
+                typename boost::mpl::and_<typename accessor_points_to_readonly_arg<Accessor>::type,
+                    typename boost::mpl::not_<typename boost::mpl::has_key<bypass_caches_set_t,
+                        static_uint<Accessor::index_t::value>>::type>::type>::type,
+                typename boost::is_arithmetic<typename accessor_return_type<Accessor>::type>>::type type;
         };
 
         /** @brief return a value that was cached
-        * specialization where cache is not explicitly disabled by user
-        */
-        template < uint_t Color, typename ReturnType, typename Accessor >
-        GT_FUNCTION typename boost::disable_if<
-            boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_t::value > >,
-            ReturnType >::type
-        get_cache_value_impl(Accessor const &_accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+         * specialization where cache is not explicitly disabled by user
+         */
+        template <uint_t Color, typename ReturnType, typename Accessor>
+        GT_FUNCTION
+            typename boost::disable_if<boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_t::value>>,
+                ReturnType>::type
+            get_cache_value_impl(Accessor const &_accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             //        assert(m_pshared_iterate_domain);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< Accessor::index_t::value > >()
-                .template at< Color >(m_thread_pos, _accessor);
+            return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_t::value>>()
+                .template at<Color>(m_thread_pos, _accessor);
         }
 
         /** @brief return a value that was cached
-        * specialization where cache is explicitly disabled by user
-        */
-        template < typename ReturnType, typename Accessor >
-        GT_FUNCTION typename boost::enable_if<
-            boost::mpl::has_key< bypass_caches_set_t, static_uint< Accessor::index_t::value > >,
-            ReturnType >::type
-        get_cache_value_impl(Accessor const &_accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
-            return super::template get_value< Accessor, void * RESTRICT >(
-                _accessor, super::template get_data_pointer< Accessor >(_accessor));
+         * specialization where cache is explicitly disabled by user
+         */
+        template <typename ReturnType, typename Accessor>
+        GT_FUNCTION
+            typename boost::enable_if<boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_t::value>>,
+                ReturnType>::type
+            get_cache_value_impl(Accessor const &_accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
+            return super::template get_value<Accessor, void * RESTRICT>(
+                _accessor, super::template get_data_pointer<Accessor>(_accessor));
         }
 
         /** @brief return a the value in memory pointed to by an accessor
-        * specialization where the accessor points to an arg which is readonly for all the ESFs in all MSSs
-        * Value is read via texture system
-        */
-        template < typename ReturnType, typename Accessor, typename StoragePointer >
-        GT_FUNCTION typename boost::enable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
+         * specialization where the accessor points to an arg which is readonly for all the ESFs in all MSSs
+         * Value is read via texture system
+         */
+        template <typename ReturnType, typename Accessor, typename StoragePointer>
+        GT_FUNCTION typename boost::enable_if<typename accessor_read_from_texture<Accessor>::type, ReturnType>::type
         get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
 #if __CUDA_ARCH__ >= 350
             // on Kepler use ldg to read directly via read only cache
             return __ldg(storage_pointer + pointer_offset);
 #else
-            return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
 #endif
         }
 
         /** @brief return a the value in memory pointed to by an accessor
-        * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
-        */
-        template < typename ReturnType, typename Accessor, typename StoragePointer >
-        GT_FUNCTION
-            typename boost::disable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
-            get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
-            return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+         * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
+         */
+        template <typename ReturnType, typename Accessor, typename StoragePointer>
+        GT_FUNCTION typename boost::disable_if<typename accessor_read_from_texture<Accessor>::type, ReturnType>::type
+        get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
+            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
         }
 
         // kcaches not yet implemented
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
-        template < typename IterationPolicy, typename Grid >
+        template <typename IterationPolicy, typename Grid>
         GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
         }
-        template < typename IterationPolicy, typename Grid >
+        template <typename IterationPolicy, typename Grid>
         GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
         }
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void final_flush() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
-        template < typename IterationPolicy >
+        template <typename IterationPolicy>
         GT_FUNCTION void begin_fill() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
       private:
         // array storing the (i,j) position of the current thread within the block
-        array< int, 2 > m_thread_pos;
+        array<int, 2> m_thread_pos;
     };
 
-    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
-    struct is_iterate_domain< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > >
+    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
+    struct is_iterate_domain<iterate_domain_cuda<IterateDomainBase, IterateDomainArguments>>
         : public boost::mpl::true_ {};
-
-    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
-    struct is_positional_iterate_domain< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > >
-        : is_positional_iterate_domain<
-              IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > > {};
-}
+} // namespace gridtools

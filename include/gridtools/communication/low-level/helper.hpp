@@ -40,12 +40,12 @@
 namespace gridtools {
     namespace _impl {
         enum alloc_type { host_normal, host_page_locked };
-        template < typename T, alloc_type >
+        template <typename T, alloc_type>
         struct helper_alloc {};
 
         // manage page locked memory on the host
-        template < typename T >
-        struct helper_alloc< T, host_page_locked > {
+        template <typename T>
+        struct helper_alloc<T, host_page_locked> {
 
             static T *alloc(size_t sz) {
                 if (sz) {
@@ -75,8 +75,8 @@ namespace gridtools {
         };
 
         // manage normal memory on the host
-        template < typename T >
-        struct helper_alloc< T, host_normal > {
+        template <typename T>
+        struct helper_alloc<T, host_normal> {
 
             static T *alloc(size_t sz) {
                 if (sz) {

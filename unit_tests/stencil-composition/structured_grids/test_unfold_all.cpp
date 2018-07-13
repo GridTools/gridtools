@@ -33,19 +33,19 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "backend_select.hpp"
-#include <gridtools.hpp>
-#include <stencil-composition/stencil-composition.hpp>
+#include "gtest/gtest.h"
+#include <gridtools/gridtools.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-template < gridtools::uint_t Id >
+template <gridtools::uint_t Id>
 struct functor {
 
-    typedef gridtools::accessor< 0, gridtools::enumtype::inout > a0;
-    typedef gridtools::accessor< 1, gridtools::enumtype::in > a1;
-    typedef boost::mpl::vector2< a0, a1 > arg_list;
+    typedef gridtools::accessor<0, gridtools::enumtype::inout> a0;
+    typedef gridtools::accessor<1, gridtools::enumtype::in> a1;
+    typedef boost::mpl::vector2<a0, a1> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
@@ -57,29 +57,27 @@ TEST(unfold_all, test) {
 
     auto grid = make_grid(2, 2, 3);
 
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;
 
-    typedef arg< 0, storage_t > p0;
-    typedef arg< 1, storage_t > p1;
+    typedef arg<0, storage_t> p0;
+    typedef arg<1, storage_t> p1;
 
-    auto mss1 = make_multistage(
-        enumtype::execute< enumtype::forward >(),
-        make_stage< functor< 0 > >(p0(), p1()),
-        make_stage< functor< 1 > >(p0(), p1()),
-        make_stage< functor< 2 > >(p0(), p1()),
-        make_independent(make_stage< functor< 3 > >(p0(), p1()),
-            make_stage< functor< 4 > >(p0(), p1()),
-            make_independent(make_stage< functor< 5 > >(p0(), p1()), make_stage< functor< 6 > >(p0(), p1()))));
+    auto mss1 = make_multistage(enumtype::execute<enumtype::forward>(),
+        make_stage<functor<0>>(p0(), p1()),
+        make_stage<functor<1>>(p0(), p1()),
+        make_stage<functor<2>>(p0(), p1()),
+        make_independent(make_stage<functor<3>>(p0(), p1()),
+            make_stage<functor<4>>(p0(), p1()),
+            make_independent(make_stage<functor<5>>(p0(), p1()), make_stage<functor<6>>(p0(), p1()))));
 
-    auto mss2 = make_multistage(
-        enumtype::execute< enumtype::forward >(),
-        make_stage< functor< 7 > >(p0(), p1()),
-        make_stage< functor< 8 > >(p0(), p1()),
-        make_stage< functor< 9 > >(p0(), p1()),
-        make_independent(make_stage< functor< 10 > >(p0(), p1()),
-            make_stage< functor< 11 > >(p0(), p1()),
-            make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
+    auto mss2 = make_multistage(enumtype::execute<enumtype::forward>(),
+        make_stage<functor<7>>(p0(), p1()),
+        make_stage<functor<8>>(p0(), p1()),
+        make_stage<functor<9>>(p0(), p1()),
+        make_independent(make_stage<functor<10>>(p0(), p1()),
+            make_stage<functor<11>>(p0(), p1()),
+            make_independent(make_stage<functor<12>>(p0(), p1()), make_stage<functor<13>>(p0(), p1()))));
 
-    make_computation< backend_t >(grid, if_(predicate, mss1, mss2));
+    make_computation<backend_t>(grid, if_(predicate, mss1, mss2));
 }

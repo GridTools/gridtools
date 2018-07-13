@@ -35,15 +35,15 @@
 */
 
 #pragma once
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 //#include <utility>
 
-#include <cstddef>
 #include "../../common/gt_assert.hpp"
+#include "../common/alignment.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
-#include "../common/alignment.hpp"
+#include <cstddef>
 namespace gridtools {
 
     /** \ingroup storage
@@ -62,8 +62,8 @@ namespace gridtools {
      * gridtools pattern and we clearly want to avoid virtual
      * methods, etc.
      */
-    template < typename DataType >
-    struct host_storage : storage_interface< host_storage< DataType > > {
+    template <typename DataType>
+    struct host_storage : storage_interface<host_storage<DataType>> {
         typedef DataType data_t;
         typedef data_t *ptrs_t;
         typedef state_machine state_machine_t;
@@ -80,12 +80,12 @@ namespace gridtools {
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.
          */
-        template < uint_t Align = 1 >
-        host_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
+        template <uint_t Align = 1>
+        host_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{})
             : m_allocated_ptr(new data_t[size + Align - 1]), m_cpu_ptr(nullptr) {
             // New will align addresses according to the size(data_t)
             uint_t delta =
-                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
+                ((reinterpret_cast<std::uintptr_t>(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
             m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
         }
@@ -109,9 +109,8 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        template < typename Funct, uint_t Align = 1 >
-        host_storage(
-            uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment< Align > a = alignment< 1u >{})
+        template <typename Funct, uint_t Align = 1>
+        host_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
             : host_storage(size, offset_to_align, a) {
             for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer(i);
@@ -196,13 +195,13 @@ namespace gridtools {
     };
 
     // simple metafunction to check if a type is a host storage
-    template < typename T >
+    template <typename T>
     struct is_host_storage : boost::mpl::false_ {};
 
-    template < typename T >
-    struct is_host_storage< host_storage< T > > : boost::mpl::true_ {};
+    template <typename T>
+    struct is_host_storage<host_storage<T>> : boost::mpl::true_ {};
 
     /**
      * @}
      */
-}
+} // namespace gridtools

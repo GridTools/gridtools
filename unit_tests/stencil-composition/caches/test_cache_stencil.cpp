@@ -38,11 +38,11 @@
 
 #include "gtest/gtest.h"
 
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "tools/verifier.hpp"
 #include "backend_select.hpp"
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/make_computation.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 constexpr int halo_size = 1;
 
@@ -52,22 +52,22 @@ namespace test_cache_stencil {
     using namespace enumtype;
 
     struct functor1 {
-        typedef accessor< 0, enumtype::in > in;
-        typedef accessor< 1, enumtype::inout > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
 
     struct functor2 {
-        typedef accessor< 0, enumtype::in, extent< -1, 1, -1, 1 > > in;
-        typedef accessor< 1, enumtype::inout > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::in, extent<-1, 1, -1, 1>> in;
+        typedef accessor<1, enumtype::inout> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) =
                 (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
@@ -75,25 +75,25 @@ namespace test_cache_stencil {
     };
 
     struct functor3 {
-        typedef accessor< 0, enumtype::in > in;
-        typedef accessor< 1, enumtype::inout > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        typedef accessor<0, enumtype::in> in;
+        typedef accessor<1, enumtype::inout> out;
+        typedef boost::mpl::vector<in, out> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in()) + 1;
         }
     };
 
-    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
-    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo<halo_size, halo_size, 0>> storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_buff;
-    typedef tmp_arg< 3, storage_t > p_buff_2;
-    typedef tmp_arg< 4, storage_t > p_buff_3;
-}
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_buff;
+    typedef tmp_arg<3, storage_t> p_buff_2;
+    typedef tmp_arg<4, storage_t> p_buff_3;
+} // namespace test_cache_stencil
 
 using namespace gridtools;
 using namespace enumtype;
@@ -105,7 +105,7 @@ class cache_stencil : public ::testing::Test {
 
     halo_descriptor m_di, m_dj;
 
-    gridtools::grid< axis< 1 >::axis_interval_t > m_grid;
+    gridtools::grid<axis<1>::axis_interval_t> m_grid;
     storage_info_t m_meta;
     storage_t m_in, m_out;
 
@@ -131,14 +131,14 @@ class cache_stencil : public ::testing::Test {
 TEST_F(cache_stencil, ij_cache) {
     SetUp();
 
-    auto stencil = make_computation< backend_t >(m_grid,
+    auto stencil = make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute< parallel >(),
-                                                     define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                     make_stage< functor1 >(p_in(), p_buff()),
-                                                     make_stage< functor1 >(p_buff(), p_out())));
+        (execute<parallel>(),
+            define_caches(cache<IJ, cache_io_policy::local>(p_buff())),
+            make_stage<functor1>(p_in(), p_buff()),
+            make_stage<functor1>(p_buff(), p_out())));
 
     stencil.run();
 
@@ -149,7 +149,7 @@ TEST_F(cache_stencil, ij_cache) {
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, m_in, m_out, halos));
 }
 
@@ -168,15 +168,15 @@ TEST_F(cache_stencil, ij_cache_offset) {
         }
     }
 
-    auto stencil = make_computation< backend_t >(m_grid,
+    auto stencil = make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute< parallel >(),
-                                                     // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
-                                                     make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                     make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-                                                     ));
+        (execute<parallel>(),
+            // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+            make_stage<functor1>(p_in(), p_buff()), // esf_descriptor
+            make_stage<functor2>(p_buff(), p_out()) // esf_descriptor
+            ));
 
     stencil.run();
 
@@ -187,7 +187,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
 }
 
@@ -206,27 +206,26 @@ TEST_F(cache_stencil, multi_cache) {
         }
     }
 
-    auto stencil =
-        make_computation< backend_t >(m_grid,
-            p_in() = m_in,
-            p_out() = m_out,
-            make_multistage // mss_descriptor
-            (execute< parallel >(),
-                                          // test if define_caches works properly with multiple vectors of caches.
-                                          // in this toy example two vectors are passed (IJ cache vector for p_buff
-                                          // and p_buff_2, IJ cache vector for p_buff_3)
-                                          define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
-                                              cache< IJ, cache_io_policy::local >(p_buff_3())),
-                                          make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
-                                          make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-                                          make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-                                          make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
-                                          ));
+    auto stencil = make_computation<backend_t>(m_grid,
+        p_in() = m_in,
+        p_out() = m_out,
+        make_multistage // mss_descriptor
+        (execute<parallel>(),
+            // test if define_caches works properly with multiple vectors of caches.
+            // in this toy example two vectors are passed (IJ cache vector for p_buff
+            // and p_buff_2, IJ cache vector for p_buff_3)
+            define_caches(
+                cache<IJ, cache_io_policy::local>(p_buff(), p_buff_2()), cache<IJ, cache_io_policy::local>(p_buff_3())),
+            make_stage<functor3>(p_in(), p_buff()),       // esf_descriptor
+            make_stage<functor3>(p_buff(), p_buff_2()),   // esf_descriptor
+            make_stage<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor
+            make_stage<functor3>(p_buff_3(), p_out())     // esf_descriptor
+            ));
     stencil.run();
 
     stencil.sync_bound_data_stores();
 
     verifier verif(1e-13);
-    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
 }

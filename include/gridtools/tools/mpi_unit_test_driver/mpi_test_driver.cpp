@@ -33,18 +33,18 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <mpi.h>
 #include "./check_flags.hpp"
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <mpi.h>
 #ifdef __CUDACC__
 #include <cuda.h>
 #endif
 #include "gtest/gtest.h"
 
 #include "../../communication/GCL.hpp"
-#include "./mpi_listener.hpp"
 #include "./device_binding.hpp"
+#include "./mpi_listener.hpp"
 
 int main(int argc, char **argv) {
 

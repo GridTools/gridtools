@@ -69,9 +69,9 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/tuple_util.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../common/tuple_util.hpp"
 
 #include "condition.hpp"
 
@@ -79,140 +79,139 @@ namespace gridtools {
     namespace _impl {
         namespace condition_tree {
 
-            template < typename ComposeLeafs >
+            template <typename ComposeLeafs>
             struct compose_trees_f {
 
-                template < typename >
+                template <typename>
                 struct result;
 
-                template < typename... Args >
-                using res_t = typename result< compose_trees_f(Args const &...) >::type;
+                template <typename... Args>
+                using res_t = typename result<compose_trees_f(Args const &...)>::type;
 
                 // This is needed only to make nvcc happy.
-                template < typename Lhs, typename Rhs >
-                struct result< compose_trees_f(Lhs &, Rhs &) > : result< compose_trees_f(Lhs const &, Rhs const &) > {};
+                template <typename Lhs, typename Rhs>
+                struct result<compose_trees_f(Lhs &, Rhs &)> : result<compose_trees_f(Lhs const &, Rhs const &)> {};
 
-                template < typename Lhs, typename Rhs >
-                struct result< compose_trees_f(Lhs const &, Rhs const &) >
-                    : std::result_of< ComposeLeafs(Lhs const &, Rhs const &) > {};
+                template <typename Lhs, typename Rhs>
+                struct result<compose_trees_f(Lhs const &, Rhs const &)>
+                    : std::result_of<ComposeLeafs(Lhs const &, Rhs const &)> {};
 
-                template < typename LLhs, typename LRhs, typename LC, typename Rhs >
-                struct result< compose_trees_f(condition< LLhs, LRhs, LC > const &, Rhs const &) > {
-                    using type = condition< res_t< LLhs, Rhs >, res_t< LRhs, Rhs >, LC >;
+                template <typename LLhs, typename LRhs, typename LC, typename Rhs>
+                struct result<compose_trees_f(condition<LLhs, LRhs, LC> const &, Rhs const &)> {
+                    using type = condition<res_t<LLhs, Rhs>, res_t<LRhs, Rhs>, LC>;
                 };
 
-                template < typename Lhs, typename RLhs, typename RRhs, typename RC >
-                struct result< compose_trees_f(Lhs const &, condition< RLhs, RRhs, RC > const &) > {
-                    using type = condition< res_t< Lhs, RLhs >, res_t< Lhs, RRhs >, RC >;
+                template <typename Lhs, typename RLhs, typename RRhs, typename RC>
+                struct result<compose_trees_f(Lhs const &, condition<RLhs, RRhs, RC> const &)> {
+                    using type = condition<res_t<Lhs, RLhs>, res_t<Lhs, RRhs>, RC>;
                 };
 
-                template < typename LLhs, typename LRhs, typename LC, typename RLhs, typename RRhs, typename RC >
-                struct result< compose_trees_f(
-                    condition< LLhs, LRhs, LC > const &, condition< RLhs, RRhs, RC > const &) > {
-                    using rhs_t = condition< RLhs, RRhs, RC >;
-                    using type = condition< res_t< LLhs, rhs_t >, res_t< LRhs, rhs_t >, LC >;
+                template <typename LLhs, typename LRhs, typename LC, typename RLhs, typename RRhs, typename RC>
+                struct result<compose_trees_f(condition<LLhs, LRhs, LC> const &, condition<RLhs, RRhs, RC> const &)> {
+                    using rhs_t = condition<RLhs, RRhs, RC>;
+                    using type = condition<res_t<LLhs, rhs_t>, res_t<LRhs, rhs_t>, LC>;
                 };
 
                 ComposeLeafs m_compose_leafs;
 
-                template < typename Lhs, typename Rhs >
-                res_t< Lhs, Rhs > operator()(Lhs const &lhs, Rhs const &rhs) const {
+                template <typename Lhs, typename Rhs>
+                res_t<Lhs, Rhs> operator()(Lhs const &lhs, Rhs const &rhs) const {
                     return m_compose_leafs(lhs, rhs);
                 }
 
-                template < typename LLhs, typename LRhs, typename LC, typename Rhs >
-                res_t< condition< LLhs, LRhs, LC >, Rhs > operator()(
-                    condition< LLhs, LRhs, LC > const &lhs, Rhs const &rhs) const {
+                template <typename LLhs, typename LRhs, typename LC, typename Rhs>
+                res_t<condition<LLhs, LRhs, LC>, Rhs> operator()(
+                    condition<LLhs, LRhs, LC> const &lhs, Rhs const &rhs) const {
                     return {lhs.m_value, this->operator()(lhs.m_first, rhs), this->operator()(lhs.m_second, rhs)};
                 }
 
-                template < typename Lhs, typename RLhs, typename RRhs, typename RC >
-                res_t< Lhs, condition< RLhs, RRhs, RC > > operator()(
-                    Lhs const &lhs, condition< RLhs, RRhs, RC > const &rhs) const {
+                template <typename Lhs, typename RLhs, typename RRhs, typename RC>
+                res_t<Lhs, condition<RLhs, RRhs, RC>> operator()(
+                    Lhs const &lhs, condition<RLhs, RRhs, RC> const &rhs) const {
                     return {rhs.m_value, this->operator()(lhs, rhs.m_first), this->operator()(lhs, rhs.m_second)};
                 }
 
-                template < typename LLhs, typename LRhs, typename LC, typename RLhs, typename RRhs, typename RC >
-                res_t< condition< LLhs, LRhs, LC >, condition< RLhs, RRhs, RC > > operator()(
-                    condition< LLhs, LRhs, LC > const &lhs, condition< RLhs, RRhs, RC > const &rhs) const {
+                template <typename LLhs, typename LRhs, typename LC, typename RLhs, typename RRhs, typename RC>
+                res_t<condition<LLhs, LRhs, LC>, condition<RLhs, RRhs, RC>> operator()(
+                    condition<LLhs, LRhs, LC> const &lhs, condition<RLhs, RRhs, RC> const &rhs) const {
                     return {lhs.m_value, this->operator()(lhs.m_first, rhs), this->operator()(lhs.m_second, rhs)};
                 }
             };
 
             struct compose_leafs_f {
-                template < typename S, typename T >
+                template <typename S, typename T>
                 auto operator()(S &&seq, T &&elem) const GT_AUTO_RETURN(
-                    tuple_util::deep_copy(tuple_util::push_back(std::forward< S >(seq), std::forward< T >(elem))));
+                    tuple_util::deep_copy(tuple_util::push_back(std::forward<S>(seq), std::forward<T>(elem))));
             };
 
-            template < typename Trees >
+            template <typename Trees>
             auto make_tree_from_forest(Trees &&trees) GT_AUTO_RETURN(
-                tuple_util::fold(compose_trees_f< compose_leafs_f >{}, std::tuple<>{}, std::forward< Trees >(trees)));
+                tuple_util::fold(compose_trees_f<compose_leafs_f>{}, std::tuple<>{}, std::forward<Trees>(trees)));
 
-            template < typename TransformLeaf >
+            template <typename TransformLeaf>
             struct transform_f {
-                template < typename >
+                template <typename>
                 struct result;
 
-                template < typename T >
-                using res_t = typename result< transform_f(T const &) >::type;
+                template <typename T>
+                using res_t = typename result<transform_f(T const &)>::type;
 
-                template < typename T >
-                struct result< transform_f(T const &) > {
-                    using type = typename std::result_of< TransformLeaf(T const &) >::type;
+                template <typename T>
+                struct result<transform_f(T const &)> {
+                    using type = typename std::result_of<TransformLeaf(T const &)>::type;
                 };
 
-                template < typename Lhs, typename Rhs, typename C >
-                struct result< transform_f(condition< Lhs, Rhs, C > const &) > {
-                    using type = condition< res_t< Lhs >, res_t< Rhs >, C >;
+                template <typename Lhs, typename Rhs, typename C>
+                struct result<transform_f(condition<Lhs, Rhs, C> const &)> {
+                    using type = condition<res_t<Lhs>, res_t<Rhs>, C>;
                 };
 
                 TransformLeaf m_transform_leaf;
 
-                template < typename T >
-                res_t< T > operator()(T const &src) const {
+                template <typename T>
+                res_t<T> operator()(T const &src) const {
                     return m_transform_leaf(src);
                 }
 
-                template < typename Lhs, typename Rhs, typename C >
-                res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > const &src) const {
+                template <typename Lhs, typename Rhs, typename C>
+                res_t<condition<Lhs, Rhs, C>> operator()(condition<Lhs, Rhs, C> const &src) const {
                     return {src.m_value, this->operator()(src.m_first), this->operator()(src.m_second)};
                 }
             };
 
-            template < typename Fun >
+            template <typename Fun>
             struct apply_with_tree_f {
-                template < typename >
+                template <typename>
                 struct result;
 
-                template < typename T >
-                using res_t = typename result< apply_with_tree_f(T const &) >::type;
+                template <typename T>
+                using res_t = typename result<apply_with_tree_f(T const &)>::type;
 
-                template < typename T >
-                struct result< apply_with_tree_f(T const &) > {
-                    using type = typename std::result_of< Fun(T const &) >::type;
+                template <typename T>
+                struct result<apply_with_tree_f(T const &)> {
+                    using type = typename std::result_of<Fun(T const &)>::type;
                 };
 
-                template < typename Lhs, typename Rhs, typename C >
-                struct result< apply_with_tree_f(condition< Lhs, Rhs, C > const &) > {
-                    using type = typename std::common_type< res_t< Lhs >, res_t< Rhs > >::type;
+                template <typename Lhs, typename Rhs, typename C>
+                struct result<apply_with_tree_f(condition<Lhs, Rhs, C> const &)> {
+                    using type = typename std::common_type<res_t<Lhs>, res_t<Rhs>>::type;
                 };
 
                 Fun m_fun;
 
-                template < typename T >
-                res_t< T > operator()(T const &leaf) const {
+                template <typename T>
+                res_t<T> operator()(T const &leaf) const {
                     return m_fun(leaf);
                 }
 
-                template < typename Lhs, typename Rhs, typename C >
-                res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > const &node) const {
+                template <typename Lhs, typename Rhs, typename C>
+                res_t<condition<Lhs, Rhs, C>> operator()(condition<Lhs, Rhs, C> const &node) const {
                     return node.m_value() ? this->operator()(node.m_first) : this->operator()(node.m_second);
                 }
             };
 
-            template < typename Fun >
-            apply_with_tree_f< typename std::decay< Fun >::type > apply_with_tree(Fun &&fun) {
+            template <typename Fun>
+            apply_with_tree_f<typename std::decay<Fun>::type> apply_with_tree(Fun &&fun) {
                 return {fun};
             }
 
@@ -220,41 +219,41 @@ namespace gridtools {
             inline
 #endif
                 namespace lazy {
-                template < typename T >
+                template <typename T>
                 struct all_leaves_in_tree {
-                    using type = std::tuple< decay_t< T > >;
+                    using type = std::tuple<decay_t<T>>;
                 };
 
-                template < typename Lhs, typename Rhs, typename Cond >
-                struct all_leaves_in_tree< condition< Lhs, Rhs, Cond > >
-                    : meta::lazy::concat< typename all_leaves_in_tree< Lhs >::type,
-                          typename all_leaves_in_tree< Rhs >::type > {};
-            }
+                template <typename Lhs, typename Rhs, typename Cond>
+                struct all_leaves_in_tree<condition<Lhs, Rhs, Cond>>
+                    : meta::lazy::concat<typename all_leaves_in_tree<Lhs>::type,
+                          typename all_leaves_in_tree<Rhs>::type> {};
+            } // namespace lazy
 #if !GT_BROKEN_TEMPLATE_ALIASES
-            template < class T >
-            using all_leaves_in_tree = typename lazy::all_leaves_in_tree< T >::type;
+            template <class T>
+            using all_leaves_in_tree = typename lazy::all_leaves_in_tree<T>::type;
 #endif
 
-            template < typename... Trees >
+            template <typename... Trees>
             GT_META_DEFINE_ALIAS(all_leaves_in_forest,
                 meta::flatten,
-                (GT_META_CALL(meta::transform, (all_leaves_in_tree, std::tuple< Trees... >))));
-        }
-    }
+                (GT_META_CALL(meta::transform, (all_leaves_in_tree, std::tuple<Trees...>))));
+        } // namespace condition_tree
+    }     // namespace _impl
 
     /// Check that the object is a condition tree and all leafs satisfy the given predicate.
-    template < typename Leaf, template < typename > class Pred >
-    struct is_condition_tree_of : Pred< Leaf > {};
+    template <typename Leaf, template <typename> class Pred>
+    struct is_condition_tree_of : Pred<Leaf> {};
 
-    template < typename Lhs, typename Rhs, typename Condition, template < typename > class Pred >
-    struct is_condition_tree_of< condition< Lhs, Rhs, Condition >, Pred >
-        : conjunction< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
+    template <typename Lhs, typename Rhs, typename Condition, template <typename> class Pred>
+    struct is_condition_tree_of<condition<Lhs, Rhs, Condition>, Pred>
+        : conjunction<is_condition_tree_of<Lhs, Pred>, is_condition_tree_of<Rhs, Pred>> {};
 
     /// Transforms the condition tree by applying to all leaves the given functor
-    template < typename Tree, typename Fun >
+    template <typename Tree, typename Fun>
     auto condition_tree_transform(Tree &&tree, Fun &&fun)
-        GT_AUTO_RETURN(_impl::condition_tree::transform_f< typename std::decay< Fun >::type >{std::forward< Fun >(fun)}(
-            std::forward< Tree >(tree)));
+        GT_AUTO_RETURN(_impl::condition_tree::transform_f<typename std::decay<Fun>::type>{std::forward<Fun>(fun)}(
+            std::forward<Tree>(tree)));
 
     /**
      *  A helper for runtime dispatch on a sequence of condition trees.
@@ -268,19 +267,18 @@ namespace gridtools {
      *
      * @tparam Trees - condition trees
      */
-    template < typename... Trees >
+    template <typename... Trees>
     class branch_selector {
-        using tree_t = decltype(_impl::condition_tree::make_tree_from_forest(std::declval< std::tuple< Trees... > >()));
+        using tree_t = decltype(_impl::condition_tree::make_tree_from_forest(std::declval<std::tuple<Trees...>>()));
         tree_t m_tree;
 
       public:
         /// An std  tuple containing all leaves of all trees. I.e. the flat view for all trees.
         using all_leaves_t = GT_META_CALL(_impl::condition_tree::all_leaves_in_forest, Trees...);
 
-        template < class Seq >
-        branch_selector(Seq &&seq)
-            : m_tree(_impl::condition_tree::make_tree_from_forest(std::forward< Seq >(seq))) {
-            static_assert(meta::length< Seq >::value == sizeof...(Trees), "");
+        template <class Seq>
+        branch_selector(Seq &&seq) : m_tree(_impl::condition_tree::make_tree_from_forest(std::forward<Seq>(seq))) {
+            static_assert(meta::length<Seq>::value == sizeof...(Trees), "");
         }
 
         /**
@@ -314,9 +312,9 @@ namespace gridtools {
          * @return - what `fun` invocation actually returns. The result type is calculated as a std::common_type
          *           functor invocations return values for all possible branches.
          */
-        template < typename Fun, typename... Args >
+        template <typename Fun, typename... Args>
         auto apply(Fun &&fun, Args &&... args) const GT_AUTO_RETURN((_impl::condition_tree::apply_with_tree(
-            std::bind(std::forward< Fun >(fun), std::placeholders::_1, std::forward< Args >(args)...))(m_tree)));
+            std::bind(std::forward<Fun>(fun), std::placeholders::_1, std::forward<Args>(args)...))(m_tree)));
     };
 
     /// Empty case specialization.
@@ -327,14 +325,14 @@ namespace gridtools {
 
         branch_selector(std::tuple<> &&) {}
 
-        template < typename Fun, typename... Args >
+        template <typename Fun, typename... Args>
         auto apply(Fun &&fun, Args &&... args) const
-            GT_AUTO_RETURN((std::forward< Fun >(fun)(std::tuple<>{}, std::forward< Args >(args)...)));
+            GT_AUTO_RETURN((std::forward<Fun>(fun)(std::tuple<>{}, std::forward<Args>(args)...)));
     };
 
     /// Generator for branch_selector
-    template < typename... Trees >
-    branch_selector< decay_t< Trees >... > make_branch_selector(Trees &&... trees) {
-        return std::make_tuple(std::forward< Trees >(trees)...);
+    template <typename... Trees>
+    branch_selector<decay_t<Trees>...> make_branch_selector(Trees &&... trees) {
+        return std::make_tuple(std::forward<Trees>(trees)...);
     };
-}
+} // namespace gridtools

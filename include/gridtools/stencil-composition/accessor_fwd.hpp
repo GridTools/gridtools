@@ -36,21 +36,21 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/accessor_fwd.hpp"
+#include "./structured_grids/accessor_fwd.hpp"
 #else
-#include "stencil-composition/icosahedral_grids/accessor_fwd.hpp"
+#include "./icosahedral_grids/accessor_fwd.hpp"
 #endif
 
 namespace gridtools {
-    template < typename T >
+    template <typename T>
     struct is_accessor;
 
-    template < typename T >
+    template <typename T>
     struct is_grid_accessor;
 
     /**
      * Struct to test if an argument is a temporary
      */
-    template < typename T >
+    template <typename T>
     struct is_tmp_arg;
-}
+} // namespace gridtools

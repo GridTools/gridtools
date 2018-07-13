@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "expandable_parameters_single_kernel.hpp"
 #include "Options.hpp"
 #include "gtest/gtest.h"
-#include "expandable_parameters_single_kernel.hpp"
 
 int main(int argc, char **argv) {
 

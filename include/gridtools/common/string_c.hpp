@@ -53,14 +53,14 @@ namespace gridtools {
     compile-time operations.
     */
 
-    template < char const *S >
+    template <char const *S>
     struct static_string {
         static const constexpr char *value = S;
     };
 
     /**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
      */
-    template < typename Callable, typename... Known >
+    template <typename Callable, typename... Known>
     struct string {
 
         GT_FUNCTION
@@ -73,7 +73,7 @@ namespace gridtools {
 
     /**@brief this struct allows to perform operations on static char arrays (e.g. print them as concatenated strings)
      */
-    template < typename Callable, char const *... Known >
+    template <typename Callable, char const *... Known>
     struct string_c {
 
         GT_FUNCTION
@@ -86,19 +86,19 @@ namespace gridtools {
     };
 
     /** apply the given operator to all strings recursively*/
-    template < typename First, typename... Strings >
+    template <typename First, typename... Strings>
     struct concatenate {
 
         GT_FUNCTION
         static void apply() {
             First::to_string::apply();
-            concatenate< Strings... >::apply();
+            concatenate<Strings...>::apply();
         }
     };
 
     /** apply the given operator to all strings recursively*/
-    template < typename String >
-    struct concatenate< String > {
+    template <typename String>
+    struct concatenate<String> {
 
         GT_FUNCTION
         static void apply() { String::to_string::apply(); }
@@ -109,23 +109,23 @@ namespace gridtools {
 
         static void apply() {}
 
-        template < typename... S >
+        template <typename... S>
         GT_FUNCTION static void apply(const char *first, S... s) {
             printf("%s", first);
             apply(s...);
         }
 
-        template < typename IntType,
+        template <typename IntType,
             typename... S,
-            typename std::enable_if< std::is_integral< IntType >::value, int >::type = 0 >
+            typename std::enable_if<std::is_integral<IntType>::value, int>::type = 0>
         GT_FUNCTION static void apply(IntType first, S... s) {
             printf("%d", first);
             apply(s...);
         }
 
-        template < typename FloatType,
+        template <typename FloatType,
             typename... S,
-            typename std::enable_if< std::is_floating_point< FloatType >::value, int >::type = 0 >
+            typename std::enable_if<std::is_floating_point<FloatType>::value, int>::type = 0>
         GT_FUNCTION static void apply(FloatType first, S... s) {
             printf("%f", first);
             apply(s...);

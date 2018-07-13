@@ -15,8 +15,8 @@ export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
-export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_66_0
-export BOOST_INCLUDE=/project/c14/install/kesch/boost/boost_1_66_0/include/
+export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0
+export BOOST_INCLUDE=/project/c14/install/kesch/boost/boost_1_67_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
@@ -25,7 +25,10 @@ export JOB_ENV_COMMON="export CUDA_AUTO_BOOST=0;export GCLOCK=875; export LD_PRE
 export JOB_ENV="${JOB_ENV_COMMON}; export G2G=1"
 export MPI_HOST_JOB_ENV=""
 export MPI_CUDA_JOB_ENV="${JOB_ENV_COMMON}; export G2G=2; export MV2_USE_GPUDIRECT=0; export MV2_USE_RDMA_FAST_PATH=0"
-export USE_MPI_COMPILER=ON
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
+export FC=`which gfortran`
+export MAKE_THREADS=12
+export SRUN_BUILD_COMMAND="srun -p pp-short -c 12 --time=00:30:00"
+

@@ -55,7 +55,7 @@ else
   exit_if_error 444
 fi
 
-export BOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_66_0
+export BOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
@@ -69,7 +69,6 @@ export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_R
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
-export USE_MPI_COMPILER=OFF
 export MAKE_THREADS=24
 export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:15:00"
 

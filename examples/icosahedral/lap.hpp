@@ -36,35 +36,36 @@
 
 #pragma once
 
-#include <tools/verifier.hpp>
+#include "../benchmarker.hpp"
 #include "curl_functors.hpp"
 #include "div_functors.hpp"
 #include "grad_functors.hpp"
 #include "operators_repository.hpp"
-#include "../benchmarker.hpp"
+#include <gridtools/tools/verifier.hpp>
 
 namespace ico_operators {
 
-    using x_interval = axis< 1 >::full_interval;
+    using x_interval = axis<1>::full_interval;
 
-    template < uint_t Color >
+    template <uint_t Color>
     struct lap_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< -1, 0, -1, 0 > > in_cells;
-        typedef in_accessor< 1, icosahedral_topology_t::edges > dual_edge_length_reciprocal;
-        typedef in_accessor< 2, icosahedral_topology_t::vertices, extent< 0, 1, 0, 1 > > in_vertices;
-        typedef in_accessor< 3, icosahedral_topology_t::edges > edge_length_reciprocal;
-        typedef inout_accessor< 4, icosahedral_topology_t::edges > out_edges;
+        typedef in_accessor<0, icosahedral_topology_t::cells, extent<-1, 0, -1, 0>> in_cells;
+        typedef in_accessor<1, icosahedral_topology_t::edges> dual_edge_length_reciprocal;
+        typedef in_accessor<2, icosahedral_topology_t::vertices, extent<0, 1, 0, 1>> in_vertices;
+        typedef in_accessor<3, icosahedral_topology_t::edges> edge_length_reciprocal;
+        typedef inout_accessor<4, icosahedral_topology_t::edges> out_edges;
         typedef boost::mpl::
-            vector< in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges > arg_list;
+            vector<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>
+                arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            constexpr auto neighbors_offsets_cell = connectivity< edges, cells, Color >::offsets();
+            constexpr auto neighbors_offsets_cell = connectivity<edges, cells, Color>::offsets();
 
             float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
                               eval(dual_edge_length_reciprocal())};
 
-            constexpr auto neighbors_offsets_vertex = connectivity< edges, vertices, Color >::offsets();
+            constexpr auto neighbors_offsets_vertex = connectivity<edges, vertices, Color>::offsets();
             float_type grad_tau{
                 (eval(in_vertices(neighbors_offsets_vertex[1])) - eval(in_vertices(neighbors_offsets_vertex[0]))) *
                 eval(edge_length_reciprocal())};
@@ -87,7 +88,7 @@ namespace ico_operators {
         const uint_t halo_mc = repository.halo_mc;
         const uint_t halo_k = repository.halo_k;
 
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t;
+        typedef gridtools::layout_map<2, 1, 0> layout_t;
 
         halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -113,26 +114,26 @@ namespace ico_operators {
         auto &edge_length = repository.edge_length();
         // for div weights
         auto &orientation_of_normal = repository.orientation_of_normal();
-        auto div_weights = icosahedral_grid.make_storage< icosahedral_topology_t::cells,
+        auto div_weights = icosahedral_grid.make_storage<icosahedral_topology_t::cells,
             float_type,
             typename repository::halo_5d_t,
-            selector< 1, 1, 1, 1, 1 > >("weights", 3);
+            selector<1, 1, 1, 1, 1>>("weights", 3);
         // for curl
         auto &dual_area_reciprocal = repository.dual_area_reciprocal();
         auto &dual_edge_length = repository.dual_edge_length();
         // for curl weights
         auto &edge_orientation = repository.edge_orientation();
-        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage< icosahedral_topology_t::vertices,
+        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage<icosahedral_topology_t::vertices,
                                               float_type,
                                               typename repository::halo_5d_t,
-                                              selector< 1, 1, 1, 1, 1 > >("curl_weights", 6));
+                                              selector<1, 1, 1, 1, 1>>("curl_weights", 6));
         // for lap
         auto &dual_edge_length_reciprocal = repository.dual_edge_length_reciprocal();
         auto &edge_length_reciprocal = repository.edge_length_reciprocal();
 
         auto &in_edges = repository.u();
         auto out_edges =
-            icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, typename repository::halo_t >(
+            icosahedral_grid.make_storage<icosahedral_topology_t::edges, float_type, typename repository::halo_t>(
                 "out");
         auto &ref_edges = repository.lap_ref();
 
@@ -142,7 +143,7 @@ namespace ico_operators {
 #else
         verifier ver(1e-9);
 #endif
-        array< array< uint_t, 2 >, 4 > halos = {
+        array<array<uint_t, 2>, 4> halos = {
             {{halo_nc + 1, halo_nc + 1}, {0, 0}, {halo_mc + 1, halo_mc + 1}, {halo_k, halo_k}}};
 
         /*
@@ -150,19 +151,18 @@ namespace ico_operators {
          */
         {
             // div
-            typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
-            typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type, enumtype::cells > p_orientation_of_normal;
-            typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
+            typedef arg<0, edge_2d_storage_type, enumtype::edges> p_edge_length;
+            typedef arg<1, cell_2d_storage_type, enumtype::cells> p_cell_area_reciprocal;
+            typedef arg<2, edges_of_cells_storage_type, enumtype::cells> p_orientation_of_normal;
+            typedef arg<3, cells_4d_storage_type, enumtype::cells> p_div_weights;
 
             // curl
-            typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
-            typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef arg< 6, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 7, edges_of_vertices_storage_type, enumtype::vertices > p_edge_orientation;
+            typedef arg<4, vertex_2d_storage_type, enumtype::vertices> p_dual_area_reciprocal;
+            typedef arg<5, edge_2d_storage_type, enumtype::edges> p_dual_edge_length;
+            typedef arg<6, vertices_4d_storage_type, enumtype::vertices> p_curl_weights;
+            typedef arg<7, edges_of_vertices_storage_type, enumtype::vertices> p_edge_orientation;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_edge_length{} = edge_length,
                 p_cell_area_reciprocal{} = cell_area_reciprocal,
                 p_orientation_of_normal{} = orientation_of_normal,
@@ -172,12 +172,10 @@ namespace ico_operators {
                 p_curl_weights{} = curl_weights,
                 p_edge_orientation{} = edge_orientation,
                 gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                (execute<forward>(),
+                    gridtools::make_stage<div_prep_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                         p_edge_length(), p_cell_area_reciprocal(), p_orientation_of_normal(), p_div_weights()),
-                    gridtools::make_stage< curl_prep_functor,
-                        icosahedral_topology_t,
-                        icosahedral_topology_t::vertices >(
+                    gridtools::make_stage<curl_prep_functor, icosahedral_topology_t, icosahedral_topology_t::vertices>(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
             stencil_.run();
             stencil_.sync_bound_data_stores();
@@ -188,39 +186,37 @@ namespace ico_operators {
          */
         {
             // input
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
 
             // fields for div
-            typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
-            typedef tmp_arg< 2, cell_storage_type, enumtype::cells > p_div_on_cells;
+            typedef arg<1, cells_4d_storage_type, enumtype::cells> p_div_weights;
+            typedef tmp_arg<2, cell_storage_type, enumtype::cells> p_div_on_cells;
 
             // fields for curl
-            typedef arg< 3, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef tmp_arg< 4, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
+            typedef arg<3, vertices_4d_storage_type, enumtype::vertices> p_curl_weights;
+            typedef tmp_arg<4, vertex_storage_type, enumtype::vertices> p_curl_on_vertices;
 
             // fields for lap
-            typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
-            typedef arg< 6, edge_2d_storage_type, enumtype::edges > p_edge_length_reciprocal;
+            typedef arg<5, edge_2d_storage_type, enumtype::edges> p_dual_edge_length_reciprocal;
+            typedef arg<6, edge_2d_storage_type, enumtype::edges> p_edge_length_reciprocal;
 
             // output
-            typedef arg< 7, edge_storage_type, enumtype::edges > p_out_edges;
+            typedef arg<7, edge_storage_type, enumtype::edges> p_out_edges;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_div_weights{} = div_weights,
                 p_curl_weights{} = curl_weights,
                 p_dual_edge_length_reciprocal{} = dual_edge_length_reciprocal,
                 p_edge_length_reciprocal{} = edge_length_reciprocal,
                 p_out_edges{} = out_edges,
-                gridtools::make_multistage(
-                    execute< forward >(),
-                    make_stage< div_functor_reduction_into_scalar,
+                gridtools::make_multistage(execute<forward>(),
+                    make_stage<div_functor_reduction_into_scalar,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::cells >(p_in_edges(), p_div_weights(), p_div_on_cells()),
-                    make_stage< curl_functor_weights, icosahedral_topology_t, icosahedral_topology_t::vertices >(
+                        icosahedral_topology_t::cells>(p_in_edges(), p_div_weights(), p_div_on_cells()),
+                    make_stage<curl_functor_weights, icosahedral_topology_t, icosahedral_topology_t::vertices>(
                         p_in_edges(), p_curl_weights(), p_curl_on_vertices()),
-                    make_stage< lap_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(p_div_on_cells(),
+                    make_stage<lap_functor, icosahedral_topology_t, icosahedral_topology_t::edges>(p_div_on_cells(),
                         p_dual_edge_length_reciprocal(),
                         p_curl_on_vertices(),
                         p_edge_length_reciprocal(),
@@ -246,27 +242,26 @@ namespace ico_operators {
          */
         {
             // input
-            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+            typedef arg<0, edge_storage_type, enumtype::edges> p_in_edges;
 
             // fields for div
-            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
-            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef tmp_arg< 3, cell_storage_type, enumtype::cells > p_div_on_cells;
+            typedef arg<1, edge_2d_storage_type, enumtype::edges> p_edge_length;
+            typedef arg<2, cell_2d_storage_type, enumtype::cells> p_cell_area_reciprocal;
+            typedef tmp_arg<3, cell_storage_type, enumtype::cells> p_div_on_cells;
 
             // fields for curl
-            typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
-            typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef tmp_arg< 6, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
+            typedef arg<4, vertex_2d_storage_type, enumtype::vertices> p_dual_area_reciprocal;
+            typedef arg<5, edge_2d_storage_type, enumtype::edges> p_dual_edge_length;
+            typedef tmp_arg<6, vertex_storage_type, enumtype::vertices> p_curl_on_vertices;
 
             // fields for lap
-            typedef arg< 7, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
-            typedef arg< 8, edge_2d_storage_type, enumtype::edges > p_edge_length_reciprocal;
+            typedef arg<7, edge_2d_storage_type, enumtype::edges> p_dual_edge_length_reciprocal;
+            typedef arg<8, edge_2d_storage_type, enumtype::edges> p_edge_length_reciprocal;
 
             // output
-            typedef arg< 9, edge_storage_type, enumtype::edges > p_out_edges;
+            typedef arg<9, edge_storage_type, enumtype::edges> p_out_edges;
 
-            auto stencil_ = gridtools::make_computation< backend_t >(
-                grid_,
+            auto stencil_ = gridtools::make_computation<backend_t>(grid_,
                 p_in_edges{} = in_edges,
                 p_edge_length{} = edge_length,
                 p_cell_area_reciprocal{} = cell_area_reciprocal,
@@ -275,18 +270,15 @@ namespace ico_operators {
                 p_dual_edge_length_reciprocal{} = dual_edge_length_reciprocal,
                 p_edge_length_reciprocal{} = edge_length_reciprocal,
                 p_out_edges{} = out_edges,
-                gridtools::make_multistage(
-                    execute< forward >(),
-                    define_caches(cache< IJ, cache_io_policy::local >(p_div_on_cells())), // p_curl_on_vertices())),
-                    make_stage< div_functor_flow_convention_connectivity,
+                gridtools::make_multistage(execute<forward>(),
+                    define_caches(cache<IJ, cache_io_policy::local>(p_div_on_cells())), // p_curl_on_vertices())),
+                    make_stage<div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::cells >(
+                        icosahedral_topology_t::cells>(
                         p_in_edges(), p_edge_length(), p_cell_area_reciprocal(), p_div_on_cells()),
-                    make_stage< curl_functor_flow_convention,
-                        icosahedral_topology_t,
-                        icosahedral_topology_t::vertices >(
+                    make_stage<curl_functor_flow_convention, icosahedral_topology_t, icosahedral_topology_t::vertices>(
                         p_in_edges(), p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_on_vertices()),
-                    make_stage< lap_functor, icosahedral_topology_t, icosahedral_topology_t::edges >(p_div_on_cells(),
+                    make_stage<lap_functor, icosahedral_topology_t, icosahedral_topology_t::edges>(p_div_on_cells(),
                         p_dual_edge_length_reciprocal(),
                         p_curl_on_vertices(),
                         p_edge_length_reciprocal(),
@@ -307,4 +299,4 @@ namespace ico_operators {
 
         return result;
     }
-}
+} // namespace ico_operators

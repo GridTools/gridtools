@@ -36,15 +36,16 @@
 #ifndef _HELPERS_IMPL_H_
 #define _HELPERS_IMPL_H_
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "descriptors_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {
 
-        template < typename T, typename arch /*=gcl_cpu*/ >
+        template <typename T, typename arch /*=gcl_cpu*/>
         struct gcl_alloc;
 
-        template < typename T >
-        struct gcl_alloc< T, gcl_cpu > {
+        template <typename T>
+        struct gcl_alloc<T, gcl_cpu> {
 
             static T *alloc(size_t sz) {
                 if (sz)
@@ -61,8 +62,8 @@ namespace gridtools {
         };
 
 #ifdef _GCL_GPU_
-        template < typename T >
-        struct gcl_alloc< T, gcl_gpu > {
+        template <typename T>
+        struct gcl_alloc<T, gcl_gpu> {
 
             static T *alloc(size_t sz) {
                 if (sz) {
@@ -86,22 +87,22 @@ namespace gridtools {
         };
 #endif
 
-        template < typename T >
+        template <typename T>
         struct allocation_service;
 
-        template < typename Datatype, typename T2 >
-        struct allocation_service< hndlr_descriptor_ut< Datatype, 3, T2 > > {
-            void operator()(hndlr_descriptor_ut< Datatype, 3, T2 > *hm) const {
-                typedef typename hndlr_descriptor_ut< Datatype, 3, T2 >::pattern_type::translate_type translate;
+        template <typename Datatype, typename T2>
+        struct allocation_service<hndlr_descriptor_ut<Datatype, 3, T2>> {
+            void operator()(hndlr_descriptor_ut<Datatype, 3, T2> *hm) const {
+                typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 // std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " <<
                                 // hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
-                                hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc< Datatype, gcl_cpu >::alloc(
+                                hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(
                                     hm->total_pack_size(make_array(ii, jj, kk)));
-                                hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc< Datatype, gcl_cpu >::alloc(
+                                hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, gcl_cpu>::alloc(
                                     hm->total_unpack_size(make_array(ii, jj, kk)));
 
                                 hm->m_haloexch.register_send_to_buffer(&(hm->send_buffer[translate()(ii, jj, kk)][0]),
@@ -120,16 +121,16 @@ namespace gridtools {
             }
         };
 
-        template < typename Datatype,
+        template <typename Datatype,
             typename T2,
             typename procmap,
             typename arch,
             int V,
-            template < int Ndim > class GridType >
-        struct allocation_service< hndlr_dynamic_ut< Datatype, GridType< 3 >, T2, procmap, arch, V > > {
-            void operator()(hndlr_dynamic_ut< Datatype, GridType< 3 >, T2, procmap, arch, V > *hm, int mf) const {
-                typedef translate_t< 3, default_layout_map< 3 >::type > translate;
-                typedef translate_t< 3, procmap > translate_P;
+            template <int Ndim> class GridType>
+        struct allocation_service<hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch, V>> {
+            void operator()(hndlr_dynamic_ut<Datatype, GridType<3>, T2, procmap, arch, V> *hm, int mf) const {
+                typedef translate_t<3, default_layout_map<3>::type> translate;
+                typedef translate_t<3, procmap> translate_P;
 
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
@@ -137,15 +138,15 @@ namespace gridtools {
                             if (ii != 0 || jj != 0 || kk != 0) {
                                 // std::cout << hm->total_pack_size(make_array(ii,jj,kk)) << " " <<
                                 // hm->total_unpack_size(make_array(ii,jj,kk)) << "\n";
-                                hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc< Datatype, arch >::alloc(
+                                hm->send_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, arch>::alloc(
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * mf);
-                                hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc< Datatype, arch >::alloc(
+                                hm->recv_buffer[translate()(ii, jj, kk)] = _impl::gcl_alloc<Datatype, arch>::alloc(
                                     hm->halo.recv_buffer_size(make_array(ii, jj, kk)) * mf);
 
                                 typedef typename translate_P::map_type map_type;
-                                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
-                                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
-                                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
+                                const int ii_P = pack_get_elem<map_type::template at<0>()>::apply(ii, jj, kk);
+                                const int jj_P = pack_get_elem<map_type::template at<1>()>::apply(ii, jj, kk);
+                                const int kk_P = pack_get_elem<map_type::template at<2>()>::apply(ii, jj, kk);
 
                                 hm->m_haloexch.register_send_to_buffer(&(hm->send_buffer[translate()(ii, jj, kk)][0]),
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * sizeof(Datatype) * mf,
@@ -163,13 +164,13 @@ namespace gridtools {
             }
         };
 
-        template < typename T >
+        template <typename T>
         struct pack_service;
 
-        template < typename Datatype, typename T2 >
-        struct pack_service< hndlr_descriptor_ut< Datatype, 3, T2 > > {
-            void operator()(hndlr_descriptor_ut< Datatype, 3, T2 > const *hm) const {
-                typedef typename hndlr_descriptor_ut< Datatype, 3, T2 >::pattern_type::translate_type translate;
+        template <typename Datatype, typename T2>
+        struct pack_service<hndlr_descriptor_ut<Datatype, 3, T2>> {
+            void operator()(hndlr_descriptor_ut<Datatype, 3, T2> const *hm) const {
+                typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)
@@ -181,13 +182,13 @@ namespace gridtools {
             }
         };
 
-        template < typename T >
+        template <typename T>
         struct unpack_service;
 
-        template < typename Datatype, typename T2 >
-        struct unpack_service< hndlr_descriptor_ut< Datatype, 3, T2 > > {
-            void operator()(hndlr_descriptor_ut< Datatype, 3, T2 > const *hm) const {
-                typedef typename hndlr_descriptor_ut< Datatype, 3, T2 >::pattern_type::translate_type translate;
+        template <typename Datatype, typename T2>
+        struct unpack_service<hndlr_descriptor_ut<Datatype, 3, T2>> {
+            void operator()(hndlr_descriptor_ut<Datatype, 3, T2> const *hm) const {
+                typedef typename hndlr_descriptor_ut<Datatype, 3, T2>::pattern_type::translate_type translate;
                 for (int ii = -1; ii <= 1; ++ii)
                     for (int jj = -1; jj <= 1; ++jj)
                         for (int kk = -1; kk <= 1; ++kk)

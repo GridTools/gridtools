@@ -36,8 +36,8 @@
 #pragma once
 
 #include <functional>
-#include <utility>
 #include <type_traits>
+#include <utility>
 
 #include "../../common/defs.hpp"
 
@@ -50,12 +50,12 @@ namespace gridtools {
        possibly containing other conditionals themselves. One branch or the other will be eventually
        executed, depending on the content of the m_value member variable.
      */
-    template < typename Mss1, typename Mss2, typename Condition >
+    template <typename Mss1, typename Mss2, typename Condition>
     struct condition {
-        GRIDTOOLS_STATIC_ASSERT((std::is_convertible< Condition, std::function< bool() > >::value),
+        GRIDTOOLS_STATIC_ASSERT((std::is_convertible<Condition, std::function<bool()>>::value),
             "Condition should be nullary boolean functor.");
         Condition m_value;
         Mss1 m_first;
         Mss2 m_second;
     };
-}
+} // namespace gridtools
