@@ -310,9 +310,9 @@ namespace gridtools {
         */
         template <typename ReturnType, typename Accessor, bool DirectGMemAccess, typename DataPointer>
         GT_FUNCTION typename boost::enable_if_c<!DirectGMemAccess, ReturnType>::type get_value_dispatch(
-            DataPointer *RESTRICT real_storage_pointer, const int pointer_offset) const {
-            return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<ReturnType, Accessor, DataPointer *>(real_storage_pointer, pointer_offset);
+            DataPointer *RESTRICT real_storage_pointer, int pointer_offset) const {
+            return static_cast<const IterateDomainImpl *>(this)->template get_value_impl<ReturnType, Accessor>(
+                real_storage_pointer, pointer_offset);
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -401,19 +401,6 @@ namespace gridtools {
             auto storage_ = boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second;
             return tuple_to_container(
                 **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
-        }
-
-        /** @brief return a the value in gmem pointed to by a base storage pointer and an offset
-         * \param storage_pointer base address to gmem
-         * \param pointer_offset to compose the address being access
-         *
-         * control your instincts:
-         * changing the following int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-         */
-        template <typename ReturnType, typename StorageType>
-        GT_FUNCTION ReturnType get_gmem_value(StorageType *RESTRICT pointer, const int_t offset) const {
-            assert(pointer);
-            return *(pointer + offset);
         }
 
         // some aliases to ease the notation

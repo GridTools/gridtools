@@ -104,6 +104,8 @@ namespace gridtools {
             ItDomain &m_domain;
             Grid const &m_grid;
 
+            // TODO(anstaf): refactor k-caches related code to make it more self descriptive. All caches in the context
+            // of this function are k-caches.
             template <typename IterationPolicy, typename Interval>
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
                 assert(to >= from);

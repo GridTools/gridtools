@@ -127,7 +127,7 @@ namespace gridtools {
 
     template <typename EsfF>
     struct esf_get_w_temps_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), GT_INTERNAL_ERROR);
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
         typedef typename boost::mpl::fold<iter_range,
             boost::mpl::vector0<>,

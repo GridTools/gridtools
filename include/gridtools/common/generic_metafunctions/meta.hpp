@@ -1010,6 +1010,14 @@ namespace gridtools {
             template <class... Lists>
             GT_META_DEFINE_ALIAS(cartesian_product, lfold, (cartesian_product_step_impl, list<list<>>, list<Lists...>));
 
+            /**
+             *   reverse algorithm.
+             *   Complexity is O(N)
+             *   Making specializations for the first M allows to divide complexity by M.
+             *   At a moment M = 4 (in boost::mp11 implementation it is 10).
+             *   For the optimizers: fill free to add more specializations if needed.
+             */
+
             template <class>
             struct reverse;
 

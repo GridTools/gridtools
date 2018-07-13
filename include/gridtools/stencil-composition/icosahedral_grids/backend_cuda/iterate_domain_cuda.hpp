@@ -202,26 +202,26 @@ namespace gridtools {
          * specialization where the accessor points to an arg which is readonly for all the ESFs in all MSSs
          * Value is read via texture system
          */
-        template <typename ReturnType, typename Accessor, typename StoragePointer>
+        template <typename ReturnType, typename Accessor, typename StorageType>
         GT_FUNCTION typename boost::enable_if<typename accessor_read_from_texture<Accessor>::type, ReturnType>::type
-        get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+        get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
 #if __CUDA_ARCH__ >= 350
             // on Kepler use ldg to read directly via read only cache
             return __ldg(storage_pointer + pointer_offset);
 #else
-            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
+            return *(storage_pointer + pointer_offset);
 #endif
         }
 
         /** @brief return a the value in memory pointed to by an accessor
          * specialization where the accessor points to an arg which is not readonly for all the ESFs in all MSSs
          */
-        template <typename ReturnType, typename Accessor, typename StoragePointer>
+        template <typename ReturnType, typename Accessor, typename StorageType>
         GT_FUNCTION typename boost::disable_if<typename accessor_read_from_texture<Accessor>::type, ReturnType>::type
-        get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+        get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
+            return *(storage_pointer + pointer_offset);
         }
 
         // kcaches not yet implemented

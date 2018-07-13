@@ -331,17 +331,6 @@ namespace gridtools {
             return get_value(accessor_, get_data_pointer(accessor_));
         }
 
-        /** @brief return a the value in gmem pointed to by an accessor
-         */
-        template <typename ReturnType, typename StoragePointer>
-        GT_FUNCTION ReturnType get_gmem_value(StoragePointer RESTRICT &storage_pointer
-            // control your instincts: changing the following
-            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-            ,
-            const int_t pointer_offset) const {
-            return *(storage_pointer + pointer_offset);
-        }
-
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
            placeholder
            \param accessor accessor proxying the storage ID and the offsets
@@ -378,13 +367,13 @@ namespace gridtools {
                 boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor, data_t *>(
+                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
                     real_storage_pointer, pointer_offset);
         }
 
-        template <typename Accessor, typename StoragePointer>
+        template <typename Accessor, typename StorageType>
         GT_FUNCTION typename accessor_return_type<Accessor>::type get_raw_value(
-            Accessor const &accessor, StoragePointer &RESTRICT storage_pointer, const uint_t offset) const {
+            Accessor const &accessor, StorageType *RESTRICT storage_pointer, int_t offset) const {
             // getting information about the storage
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -403,7 +392,7 @@ namespace gridtools {
                 offset));
 
             return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor, data_t *>(
+                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
                     real_storage_pointer, offset);
         }
 
