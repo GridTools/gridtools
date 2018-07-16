@@ -42,7 +42,7 @@
 #ifdef _GCL_MPI_
 #include "../communication/low-level/proc_grids_3D.hpp"
 #else
-#include "./proc_grid_mock.hpp"
+#include "./mock_pattern.hpp"
 #endif
 
 #include "../stencil-composition/stencil-composition.hpp"
