@@ -99,7 +99,7 @@ namespace gridtools {
     template <typename Level>
     struct level_to_index {
       private:
-        static_assert(is_level<Level>::value, "metafunction input must be a level");
+        GRIDTOOLS_STATIC_ASSERT(is_level<Level>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be a level"));
 
         static constexpr int_t splitter_index = Level::splitter;
         static constexpr int_t offset_index =
@@ -116,7 +116,8 @@ namespace gridtools {
     template <typename Index>
     struct index_to_level {
       private:
-        static_assert(is_level_index<Index>::value, "metafunction input must be an index");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_level_index<Index>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
 
         static constexpr uint_t splitter = Index::value / (2 * Index::offset_limit);
         static constexpr int_t offset_index = Index::value % (2 * Index::offset_limit) - Index::offset_limit;
@@ -133,8 +134,10 @@ namespace gridtools {
     template <typename FromIndex, typename ToIndex>
     struct make_range {
       private:
-        static_assert(is_level_index<FromIndex>::value, "metafunction input must be an index");
-        static_assert(is_level_index<ToIndex>::value, "metafunction input must be an index");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_level_index<FromIndex>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
+        GRIDTOOLS_STATIC_ASSERT(
+            is_level_index<ToIndex>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
 
         typedef boost::mpl::range_c<int_t, FromIndex::value, ToIndex::value + 1> range_type;
         typedef
