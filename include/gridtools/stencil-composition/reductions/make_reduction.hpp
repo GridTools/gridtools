@@ -34,16 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include <tuple>
+
 #include "../esf.hpp"
-#include <boost/make_shared.hpp>
+#include "../reductions/reduction_descriptor.hpp"
 
 namespace gridtools {
 
     template <typename RedFunctor, typename BinOp, typename ReductionType, typename... ExtraArgs>
-    reduction_descriptor<ReductionType,
-        BinOp,
-        boost::mpl::vector1<esf_descriptor<RedFunctor, typename variadic_to_vector<ExtraArgs...>::type>>>
+    reduction_descriptor<ReductionType, BinOp, std::tuple<esf_descriptor<RedFunctor, std::tuple<ExtraArgs...>>>>
     make_reduction(const ReductionType initial_value, ExtraArgs...) {
 #ifndef STRUCTURED_GRIDS
         GRIDTOOLS_STATIC_ASSERT((false), "Reductions are not yet supported for non structured grids");
@@ -51,10 +50,7 @@ namespace gridtools {
 #ifdef __CUDACC__
         GRIDTOOLS_STATIC_ASSERT((false), "Reductions are not yet supported for GPU backend");
 #endif
-        return reduction_descriptor<ReductionType,
-            BinOp,
-            boost::mpl::vector1<esf_descriptor<RedFunctor, typename variadic_to_vector<ExtraArgs...>::type>>>(
-            initial_value);
+        return {initial_value};
     }
 
 } // namespace gridtools

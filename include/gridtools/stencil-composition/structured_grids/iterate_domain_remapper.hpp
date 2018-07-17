@@ -80,7 +80,6 @@ namespace gridtools {
           public:
             typedef typename _impl::iterate_domain_remapper_base_iterate_domain<IterateDomainEvaluatorImpl>::type
                 iterate_domain_t;
-            static const uint_t N_DATA_POINTERS = iterate_domain_t::N_DATA_POINTERS;
 
           protected:
             iterate_domain_t &m_iterate_domain;
@@ -119,20 +118,7 @@ namespace gridtools {
                 accessor_mixed<typename remap_accessor_type<Accessor, esf_args_map_t>::type, Pairs...>(arg))) {
                 typedef accessor_mixed<typename remap_accessor_type<Accessor, esf_args_map_t>::type, Pairs...>
                     remap_accessor_t;
-                // const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(remap_accessor_t(arg));
-            }
-
-            /**@brief returns the dimension of the storage corresponding to the given accessor
-
-               Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
-               NOTE: shifting the IDs of the placeholders and forwarding to the iterate_domain () operator
-            */
-            template <ushort_t Coordinate, typename Accessor>
-            GT_FUNCTION uint_t get_storage_dim(Accessor acc_) const {
-                GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, GT_INTERNAL_ERROR);
-                typedef typename remap_accessor_type<Accessor, esf_args_map_t>::type remap_accessor_t;
-                return m_iterate_domain.get_storage_dim<Coordinate>(remap_accessor_t(acc_));
             }
         };
 
@@ -185,18 +171,6 @@ namespace gridtools {
             uint_t k() const { return this->m_iterate_domain.k(); }
         };
     } // namespace strgrid
-
-    /** Metafunction to query an iterate domain if it's positional. Specialization for
-        iterate_domain_remapper
-    */
-    template <typename T, typename U>
-    struct is_positional_iterate_domain<strgrid::iterate_domain_remapper<T, U>> : boost::false_type {};
-
-    /** Metafunction to query an iterate domain if it's positional. Specialization for
-        positional_iterate_domain_remapper
-    */
-    template <typename T, typename U>
-    struct is_positional_iterate_domain<strgrid::positional_iterate_domain_remapper<T, U>> : boost::true_type {};
 
     /** Metafunction to query a type is an iterate domain.
      */

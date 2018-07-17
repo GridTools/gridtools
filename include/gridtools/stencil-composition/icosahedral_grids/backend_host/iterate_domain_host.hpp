@@ -35,23 +35,24 @@
 */
 #pragma once
 
+#include <type_traits>
+
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_impl_metafunctions.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
+#include "../iterate_domain.hpp"
 
 namespace gridtools {
 
     /**
      * @brief iterate domain class for the Host backend
      */
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
+    template <typename IterateDomainArguments>
     class iterate_domain_host
-        : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments>> // CRTP
+        : public iterate_domain<iterate_domain_host<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments>> super;
+        typedef iterate_domain<iterate_domain_host<IterateDomainArguments>, IterateDomainArguments> super;
 
       public:
         typedef iterate_domain_host iterate_domain_t;
@@ -95,12 +96,10 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        template <typename ReturnType, typename Accessor, typename StoragePointer>
-        GT_FUNCTION ReturnType get_value_impl(
-            StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+        template <typename ReturnType, typename Accessor, typename StorageType>
+        GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-
-            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
+            return *(storage_pointer + pointer_offset);
         }
 
         /**
@@ -155,16 +154,7 @@ namespace gridtools {
         strides_cached_t *RESTRICT m_strides;
     };
 
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_host<IterateDomainBase, IterateDomainArguments>>
-        : public boost::mpl::true_ {};
-
-    //    template<
-    //            template<class> class IterateDomainBase,
-    //            typename IterateDomainArguments
-    //            >
-    //    struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, IterateDomainArguments> > :
-    //            is_positional_iterate_domain<IterateDomainBase<iterate_domain_host<IterateDomainBase,
-    //            IterateDomainArguments> > > {};
+    template <typename IterateDomainArguments>
+    struct is_iterate_domain<iterate_domain_host<IterateDomainArguments>> : std::true_type {};
 
 } // namespace gridtools
