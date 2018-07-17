@@ -39,10 +39,6 @@
 #include <string>
 #include <utility>
 
-#include <boost/fusion/include/invoke.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/permute_to.hpp"
@@ -75,7 +71,7 @@ namespace gridtools {
             };
             template <class ReturnType, class Obj, class Args>
             ReturnType invoke_run(Obj &obj, Args const &args) {
-                return boost::fusion::invoke(run_f<ReturnType, Obj>{obj}, args);
+                return tuple_util::apply(run_f<ReturnType, Obj>{obj}, args);
             }
         } // namespace computation_detail
     }     // namespace _impl
@@ -91,8 +87,7 @@ namespace gridtools {
     class computation {
         GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "template parameters should be args");
 
-        using arg_storage_pair_crefs_t =
-            boost::fusion::vector<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
+        using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 
         struct iface {
             virtual ~iface() = default;
@@ -137,7 +132,7 @@ namespace gridtools {
         template <class... SomeArgs, class... SomeDataStores>
         typename std::enable_if<sizeof...(SomeArgs) == sizeof...(Args), ReturnType>::type run(
             arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
-            return m_impl->run(permute_to<arg_storage_pair_crefs_t>(boost::fusion::make_vector(std::cref(args)...)));
+            return m_impl->run(permute_to<arg_storage_pair_crefs_t>(std::make_tuple(std::cref(args)...)));
         }
 
         void sync_bound_data_stores() { m_impl->sync_bound_data_stores(); }
