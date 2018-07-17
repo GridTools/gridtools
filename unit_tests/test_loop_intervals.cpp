@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "test_helper.hpp"
 #include "gtest/gtest.h"
 
 #include <boost/mpl/for_each.hpp>
@@ -71,29 +72,6 @@ struct Functor2 {
     static void Do(TArguments &args, interval<level_t<1, 1>, level_t<3, -1>>) {}
 };
 
-using index_pair = std::pair<int, int>;
-using index_pair_vector = std::vector<std::pair<index_pair, index_pair>>;
-
-// helper printing the loop index pairs
-struct GetIndexPairs {
-    GetIndexPairs(index_pair_vector &index_pairs) : index_pairs(index_pairs) {}
-
-    template <typename TIndexPair>
-    void operator()(TIndexPair) {
-        // extract the level information
-        typedef typename index_to_level<typename boost::mpl::first<TIndexPair>::type>::type FromLevel;
-        typedef typename index_to_level<typename boost::mpl::second<TIndexPair>::type>::type ToLevel;
-        static constexpr int from_splitter = FromLevel::splitter;
-        static constexpr int from_offset = FromLevel::offset;
-        static constexpr int to_splitter = ToLevel::splitter;
-        static constexpr int to_offset = ToLevel::offset;
-
-        index_pairs.emplace_back(index_pair(from_splitter, from_offset), index_pair(to_splitter, to_offset));
-    }
-
-    index_pair_vector &index_pairs;
-};
-
 // test method computing loop intervals
 TEST(test_loop_intervals, test_compute_functor_do_methods) {
     // define the axis search interval
@@ -103,17 +81,29 @@ TEST(test_loop_intervals, test_compute_functor_do_methods) {
     typedef boost::mpl::transform<boost::mpl::vector<Functor0, Functor1, Functor2>,
         compute_functor_do_methods<boost::mpl::_, AxisInterval>>::type FunctorDoMethods;
 
-    index_pair_vector index_pairs;
-    boost::mpl::for_each<compute_loop_intervals<FunctorDoMethods, AxisInterval>::type>(GetIndexPairs(index_pairs));
+    using loop_intervals = typename compute_loop_intervals<FunctorDoMethods, AxisInterval>::type;
 
-    // verfify intervals
-    ASSERT_EQ(index_pairs.size(), 4);
-    EXPECT_EQ(index_pairs.at(0).first, index_pair(0, 1));
-    EXPECT_EQ(index_pairs.at(0).second, index_pair(1, -1));
-    EXPECT_EQ(index_pairs.at(1).first, index_pair(1, 1));
-    EXPECT_EQ(index_pairs.at(1).second, index_pair(2, -1));
-    EXPECT_EQ(index_pairs.at(2).first, index_pair(2, 1));
-    EXPECT_EQ(index_pairs.at(2).second, index_pair(3, -2));
-    EXPECT_EQ(index_pairs.at(3).first, index_pair(3, -1));
-    EXPECT_EQ(index_pairs.at(3).second, index_pair(3, -1));
+    using interval0 = typename boost::mpl::at_c<loop_intervals, 0>::type;
+    using from0 = typename index_to_level<typename interval0::first>::type;
+    using to0 = typename index_to_level<typename interval0::second>::type;
+    ASSERT_TYPE_EQ<from0, level_t<0, 1>>();
+    ASSERT_TYPE_EQ<to0, level_t<1, -1>>();
+
+    using interval1 = typename boost::mpl::at_c<loop_intervals, 1>::type;
+    using from1 = typename index_to_level<typename interval1::first>::type;
+    using to1 = typename index_to_level<typename interval1::second>::type;
+    ASSERT_TYPE_EQ<from1, level_t<1, 1>>();
+    ASSERT_TYPE_EQ<to1, level_t<2, -1>>();
+
+    using interval2 = typename boost::mpl::at_c<loop_intervals, 2>::type;
+    using from2 = typename index_to_level<typename interval2::first>::type;
+    using to2 = typename index_to_level<typename interval2::second>::type;
+    ASSERT_TYPE_EQ<from2, level_t<2, 1>>();
+    ASSERT_TYPE_EQ<to2, level_t<3, -2>>();
+
+    using interval3 = typename boost::mpl::at_c<loop_intervals, 3>::type;
+    using from3 = typename index_to_level<typename interval3::first>::type;
+    using to3 = typename index_to_level<typename interval3::second>::type;
+    ASSERT_TYPE_EQ<from3, level_t<3, -1>>();
+    ASSERT_TYPE_EQ<to3, level_t<3, -1>>();
 }
