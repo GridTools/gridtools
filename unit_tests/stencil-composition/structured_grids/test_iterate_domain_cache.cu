@@ -51,7 +51,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-using axis_t = axis<2>;
+using axis_t = axis<2>::with_extra_offsets<1>;
 using kminimum = axis_t::full_interval::first_level::shift<-1>;
 using krange1 = axis_t::get_interval<0>;
 using krange2 = axis_t::get_interval<1>::modify<0, -1>;
@@ -96,9 +96,9 @@ struct functor2 {
     GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
 };
 
-typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> kmin_and_range1;
-typedef gridtools::interval<level_t<1, 1>, level_t<2, -1>> krange2_and_max;
-typedef gridtools::interval<level_t<0, -1>, level_t<2, -1>> kall;
+using kmin_and_range1 = krange1::modify<-1, 0>;
+using krange2_and_max = krange2::modify<0, 1>;
+using kall = axis_t::full_interval::modify<-1, 0>;
 
 typedef decltype(gridtools::make_stage<functor1>(p_in1(), p_in3(), p_in4(), p_out())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_in1(), p_in2(), p_in4(), p_out())) esf2k_t;
