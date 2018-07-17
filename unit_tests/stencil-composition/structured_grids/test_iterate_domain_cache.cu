@@ -50,17 +50,12 @@
 using namespace gridtools;
 using namespace enumtype;
 
-constexpr int level_offset_limit = 2;
-
-template <uint_t Splitter, int_t Offset>
-using level_t = level<Splitter, Offset, level_offset_limit>;
-
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level_t<0, -1>, level_t<2, 1>> axis_t;
-typedef gridtools::interval<level_t<0, -1>, level_t<0, -1>> kminimum;
-typedef gridtools::interval<level_t<0, 1>, level_t<1, -1>> krange1;
-typedef gridtools::interval<level_t<1, 1>, level_t<2, -2>> krange2;
-typedef gridtools::interval<level_t<2, -1>, level_t<2, -1>> kmaximum;
+using axis_t = axis<2>;
+using kminimum = axis_t::full_interval::first_level::shift<-1>;
+using krange1 = axis_t::get_interval<0>;
+using krange2 = axis_t::get_interval<1>::modify<0, -1>;
+using kmaximum = axis_t::full_interval::last_level;
 
 typedef storage_traits<Host>::storage_info_t<0, 2> storage_info_ij_t;
 typedef storage_traits<Host>::data_store_t<float_type, storage_info_ij_t> storage_type;

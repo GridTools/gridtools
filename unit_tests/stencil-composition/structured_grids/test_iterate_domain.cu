@@ -46,14 +46,7 @@ using namespace enumtype;
 
 namespace test_iterate_domain {
 
-    constexpr int level_offset_limit = 2;
-
-    template <uint_t Splitter, int_t Offset>
-    using level_t = level<Splitter, Offset, level_offset_limit>;
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
-    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis_t;
+    using axis_t = axis<1>;
 
     typedef layout_map<2, 1, 0> layout_ijk_t;
     typedef layout_map<0, 1, 2> layout_kji_t;
@@ -87,7 +80,7 @@ namespace test_iterate_domain {
             arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 
     std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
@@ -124,9 +117,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     halo_descriptor di{4, 4, 4, d1 - 4 - 1, d1};
     halo_descriptor dj{4, 4, 4, d2 - 4 - 1, d2};
 
-    gridtools::grid<axis_t> grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 1;
+    auto grid = make_grid(di, dj, axis_t(d3));
 
     using caches_t = decltype(define_caches(cache<bypass, cache_io_policy::local>(p_read_only_bypass_arg()),
         cache<IJ, cache_io_policy::local>(p_shared_mem_arg()),
