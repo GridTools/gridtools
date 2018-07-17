@@ -34,9 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/defs.hpp"
 #include <functional>
 #include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "./case_type.hpp"
+#include "./if_.hpp"
 /**@file
  */
 

@@ -35,12 +35,21 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
+#include <tuple>
+
 #include "gtest/gtest.h"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-#include <iostream>
+
+#ifdef BACKEND_HOST
+#include <gridtools/stencil-composition/structured_grids/backend_host/iterate_domain_host.hpp>
+#endif
+
+#ifdef BACKEND_MIC
+#include <gridtools/stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp>
+#endif
 
 #include "backend_select.hpp"
 
@@ -101,33 +110,31 @@ namespace test_iterate_domain {
             (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out()));
         auto computation_ = make_computation<gridtools::backend<Host, GRIDBACKEND, Naive>>(
             grid, p_in() = in, p_buff() = buff, p_out() = out, mss_);
+        auto local_domain1 = std::get<0>(computation_.local_domains());
 
         typedef decltype(gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out())) esf_t;
 
-        typedef std::decay<decltype(computation_)>::type intermediate_t;
-        typedef intermediate_mss_local_domains<intermediate_t> mss_local_domains_t;
+        using iterate_domain_arguments_t = iterate_domain_arguments<backend_ids<Host, GRIDBACKEND, Naive>,
+            decltype(local_domain1),
+            boost::mpl::vector1<esf_t>,
+            boost::mpl::vector1<extent<0, 0, 0, 0>>,
+            extent<0, 0, 0, 0>,
+            boost::mpl::vector0<>,
+            gridtools::grid<gridtools::axis<1>::axis_interval_t>,
+            boost::mpl::false_,
+            notype>;
 
-        typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
+#ifdef BACKEND_MIC
+        using it_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
+#endif
 
-        typedef typename backend_traits_t::select_iterate_domain<
-            iterate_domain_arguments<backend_ids<Host, GRIDBACKEND, Naive>,
-                boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
-                boost::mpl::vector1<esf_t>,
-                boost::mpl::vector1<extent<0, 0, 0, 0>>,
-                extent<0, 0, 0, 0>,
-                boost::mpl::vector0<>,
-                gridtools::grid<gridtools::axis<1>::axis_interval_t>,
-                boost::mpl::false_,
-                notype>>::type it_domain_t;
+#ifdef BACKEND_HOST
+        using it_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
+#endif
 
-        mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c<0>(computation_.mss_local_domain_list());
-        auto local_domain1 = boost::fusion::at_c<0>(mss_local_domain1.local_domain_list);
         it_domain_t it_domain(local_domain1, 0);
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
-
-        GRIDTOOLS_STATIC_ASSERT(
-            it_domain_t::N_DATA_POINTERS == 23, "bug in iterate domain, incorrect number of data pointers");
 
 #ifdef BACKEND_MIC
         auto const &data_pointer = it_domain.data_pointer();

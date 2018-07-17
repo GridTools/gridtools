@@ -83,35 +83,29 @@ namespace gridtools {
        from false_type) at a given index in the list of placeholders, or mpl::pair of
        placeholder and extent (if Pred derives from true_type)
      */
-    template <typename Esf, typename Pred>
+    template <typename Esf, typename Pred, typename Index>
     struct esf_get_arg_at {
-        template <typename Index>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-            GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
-            typedef typename boost::mpl::at<typename Esf::args_t, Index>::type placeholder_type;
-            typedef typename boost::mpl::if_<Pred,
-                typename boost::mpl::pair<placeholder_type,
-                    typename boost::mpl::at<typename Esf::args_with_extents, placeholder_type>::type>::type,
-                typename boost::mpl::at<typename Esf::args_t, Index>::type>::type type;
-        };
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        typedef typename boost::mpl::at<typename Esf::args_t, Index>::type placeholder_type;
+        typedef typename boost::mpl::if_<Pred,
+            typename boost::mpl::pair<placeholder_type,
+                typename boost::mpl::at<typename Esf::args_with_extents, placeholder_type>::type>::type,
+            placeholder_type>::type type;
     };
 
     /** Provide true_type if the placeholder, which index is Index in the list of placeholders of
         Esf, corresponds to a temporary that is written.
      */
-    template <typename Esf>
+    template <typename Esf, typename Index>
     struct is_written_temp {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        template <typename Index>
-        struct apply {
-            typedef typename esf_arg_list<Esf>::type arg_list_t;
-            typedef typename boost::mpl::if_<is_tmp_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
-                typename boost::mpl::if_<is_accessor_readonly<typename boost::mpl::at<arg_list_t, Index>::type>,
-                    boost::false_type,
-                    boost::true_type>::type,
-                boost::false_type>::type type;
-        };
+        typedef typename esf_arg_list<Esf>::type arg_list_t;
+        typedef typename boost::mpl::if_<is_tmp_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
+            typename boost::mpl::if_<is_accessor_readonly<typename boost::mpl::at<arg_list_t, Index>::type>,
+                boost::false_type,
+                boost::true_type>::type,
+            boost::false_type>::type type;
     };
 
     /** Provide true_type if the placeholder, which index is Index in the list of placeholders of
@@ -131,44 +125,15 @@ namespace gridtools {
         };
     };
 
-    /**
-        If Pred derives from false_type, `type` provide a mpl::vector of placeholders
-        that corresponds to temporary fields that are written by EsfF.
-
-        If Pred derives from true_type, `type` provide a mpl::vector of pairs of
-        placeholders and extents that corresponds to temporary fields that are written by EsfF.
-     */
-    template <typename EsfF, typename Pred = boost::false_type>
+    template <typename EsfF>
     struct esf_get_w_temps_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), GT_INTERNAL_ERROR);
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
         typedef typename boost::mpl::fold<iter_range,
             boost::mpl::vector0<>,
-            boost::mpl::if_<typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<boost::mpl::_1,
-                    typename esf_get_arg_at<EsfF, Pred>::template apply<boost::mpl::_2>>,
+            boost::mpl::if_<is_written_temp<EsfF, boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::at<typename EsfF::args_t, boost::mpl::_2>>,
                 boost::mpl::_1>>::type type;
-    };
-
-    /**
-        If Pred derives from false_type, `type` provide a mpl::vector of placeholders
-        that corresponds to fields that are read by EsfF.
-
-        If Pred derives from true_type, `type` provide a mpl::vector of pairs of
-        placeholders and extents that corresponds to fields that are read by EsfF.
-     */
-    template <typename EsfF, typename Pred = boost::false_type>
-    struct esf_get_r_temps_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
-        typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> range;
-        typedef typename boost::mpl::fold<range,
-            boost::mpl::vector0<>,
-            boost::mpl::if_<typename is_written_temp<EsfF>::template apply<boost::mpl::_2>,
-                boost::mpl::_1,
-                boost::mpl::push_back<boost::mpl::_1,
-                    typename esf_get_arg_at<EsfF, Pred>::template apply<boost::mpl::_2>>>>::type type;
     };
 
     /**
@@ -187,8 +152,7 @@ namespace gridtools {
         typedef typename boost::mpl::fold<range,
             boost::mpl::vector0<>,
             boost::mpl::if_<typename is_written<EsfF>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<boost::mpl::_1,
-                    typename esf_get_arg_at<EsfF, Pred>::template apply<boost::mpl::_2>>,
+                boost::mpl::push_back<boost::mpl::_1, esf_get_arg_at<EsfF, Pred, boost::mpl::_2>>,
                 boost::mpl::_1>>::type type;
     };
 
@@ -224,8 +188,7 @@ namespace gridtools {
             boost::mpl::vector0<>,
             boost::mpl::if_<typename is_written<EsfF>::template apply<boost::mpl::_2>,
                 boost::mpl::_1,
-                boost::mpl::push_back<boost::mpl::_1,
-                    typename esf_get_arg_at<EsfF, Pred>::template apply<boost::mpl::_2>>>>::type type;
+                boost::mpl::push_back<boost::mpl::_1, esf_get_arg_at<EsfF, Pred, boost::mpl::_2>>>>::type type;
     };
 
     /**

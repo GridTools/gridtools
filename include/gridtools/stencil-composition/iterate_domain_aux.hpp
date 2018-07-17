@@ -73,11 +73,11 @@
 namespace gridtools {
 
     /* data structure that can be used to store the data pointers of a given list of storages */
-    template <typename StorageWrapperList, int I = boost::mpl::size<StorageWrapperList>::value - 1>
-    struct data_ptr_cached /** @cond */ : data_ptr_cached<StorageWrapperList, I - 1> /** @endcond */ {
-        typedef data_ptr_cached<StorageWrapperList, I - 1> super;
-        typedef typename boost::mpl::at_c<StorageWrapperList, I>::type storage_wrapper_t;
-        typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
+    template <typename Args, int I = boost::mpl::size<Args>::value - 1>
+    struct data_ptr_cached /** @cond */ : data_ptr_cached<Args, I - 1> /** @endcond */ {
+        typedef data_ptr_cached<Args, I - 1> super;
+        typedef typename boost::mpl::at_c<Args, I>::type arg_t;
+        typedef void *data_ptr_t[arg_t::data_store_t::num_of_storages];
 
         constexpr static int index = I;
 
@@ -98,10 +98,10 @@ namespace gridtools {
         }
     };
 
-    template <typename StorageWrapperList>
-    struct data_ptr_cached<StorageWrapperList, 0> {
-        typedef typename boost::mpl::at_c<StorageWrapperList, 0>::type storage_wrapper_t;
-        typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
+    template <typename Args>
+    struct data_ptr_cached<Args, 0> {
+        typedef typename boost::mpl::at_c<Args, 0>::type arg_t;
+        typedef void *data_ptr_t[arg_t::data_store_t::num_of_storages];
 
         constexpr static int index = 0;
 
@@ -124,8 +124,8 @@ namespace gridtools {
     template <typename T>
     struct is_data_ptr_cached : boost::mpl::false_ {};
 
-    template <typename StorageWrapperList, int ID>
-    struct is_data_ptr_cached<data_ptr_cached<StorageWrapperList, ID>> : boost::mpl::true_ {};
+    template <typename Args, int ID>
+    struct is_data_ptr_cached<data_ptr_cached<Args, ID>> : boost::mpl::true_ {};
 
     /**
        @brief struct to allocate recursively all the strides with the proper dimension
@@ -209,8 +209,7 @@ namespace gridtools {
         struct is_dummy_coordinate : bool_constant<(Mapped < 0)> {};
 
         template <class StorageInfo, class LocalDomain>
-        struct get_index
-            : boost::mpl::find<typename LocalDomain::storage_info_ptr_list, const StorageInfo *>::type::pos {};
+        struct get_index : meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *> {};
 
         template <uint_t Coordinate,
             class LayoutMap,
@@ -270,7 +269,7 @@ namespace gridtools {
         GT_FUNCTION void operator()(const StorageInfo *) const {}
 
         template <typename StorageInfo,
-            uint_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
+            size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
@@ -341,14 +340,14 @@ namespace gridtools {
         pos3<int_t> m_pos_in_block;
         ArrayIndex &RESTRICT m_index_array;
 
-        template <typename StorageInfo, uint_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
+        template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            using max_extent_t = typename LocalDomain::max_i_extent_t;
+            using max_extent_t = typename LocalDomain::max_extent_for_tmp_t;
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                boost::mpl::at<typename LocalDomain::storage_info_tmp_info_t, StorageInfo>::type::value;
+                meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
             m_index_array[I] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
                 make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
                     _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
@@ -378,14 +377,10 @@ namespace gridtools {
         template <typename FusionPair>
         GT_FUNCTION void operator()(FusionPair const &sw) const {
             typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
-            typedef typename storage_wrapper_elem<arg_t, typename LocalDomain::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef
-                typename boost::mpl::find<typename LocalDomain::storage_wrapper_list_t, storage_wrapper_t>::type::pos
-                    pos_in_storage_wrapper_list_t;
-            for (uint_t i = 0; i < storage_wrapper_t::num_of_storages; ++i)
-                BackendTraits::template once_per_block<pos_in_storage_wrapper_list_t::value>::assign(
-                    m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i], sw.second[i]);
+            using pos_in_args_t = meta::st_position<typename LocalDomain::esf_args, arg_t>;
+            for (uint_t i = 0; i < arg_t::data_store_t::num_of_storages; ++i)
+                BackendTraits::template once_per_block<pos_in_args_t::value>::assign(
+                    m_data_ptr_cached.template get<pos_in_args_t::value>()[i], sw.second[i]);
         }
     };
 
@@ -421,8 +416,7 @@ namespace gridtools {
             GT_FUNCTION typename boost::enable_if_c<(Coordinate::value < SInfo::layout_t::unmasked_length), void>::type
             operator()(Coordinate) const {
                 typedef typename SInfo::layout_t layout_map_t;
-                typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list, const SInfo *>::type::pos
-                    index_t;
+                using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, const SInfo *>;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(
@@ -491,7 +485,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size<typename LocalDomain::data_ptr_fusion_map>::value > Accessor::index_t::value),
             GT_INTERNAL_ERROR);
-        typedef typename LocalDomain::template get_data_store<typename Accessor::index_t>::type type;
+        typedef typename LocalDomain::template get_arg<typename Accessor::index_t>::type::data_store_t type;
     };
 
     /**
