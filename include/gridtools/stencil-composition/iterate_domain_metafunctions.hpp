@@ -35,26 +35,23 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+
 namespace gridtools {
 
-    template <typename T>
-    struct iterate_domain;
+    template <class>
+    struct is_iterate_domain : std::false_type {};
 
-    template <typename T>
-    struct positional_iterate_domain;
+    template <class, class = void>
+    struct is_positional_iterate_domain : std::false_type {};
 
-    template <typename T>
-    struct is_iterate_domain : boost::mpl::false_ {};
-
-    template <typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain<IterateDomainArguments>> : boost::mpl::true_ {};
-
-    template <typename IterateDomainArguments>
-    struct is_iterate_domain<positional_iterate_domain<IterateDomainArguments>> : boost::mpl::true_ {};
-
-    template <typename T>
-    struct is_positional_iterate_domain : boost::mpl::false_ {};
-
-    template <typename IterateDomainArguments>
-    struct is_positional_iterate_domain<positional_iterate_domain<IterateDomainArguments>> : boost::mpl::true_ {};
+    template <class T>
+    struct is_positional_iterate_domain<T,
+        enable_if_t<is_iterate_domain<T>::value &&
+                    std::is_convertible<decltype(std::declval<T const>().i()), int_t>::value &&
+                    std::is_convertible<decltype(std::declval<T const>().j()), int_t>::value &&
+                    std::is_convertible<decltype(std::declval<T const>().k()), int_t>::value>> : std::true_type {};
 } // namespace gridtools

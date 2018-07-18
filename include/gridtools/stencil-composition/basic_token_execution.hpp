@@ -33,42 +33,57 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
+/**
+@file
+Implementation of the k loop execution policy
+The policies which are currently considered are
+ - forward: the k loop is executed upward, increasing the value of the iterator on k. This is the option to be used when
+the stencil operations at level k depend on the fields at level k-1 (forward substitution).
+ - backward: the k loop is executed downward, decreasing the value of the iterator on k. This is the option to be used
+when the stencil operations at level k depend on the fields at level k+1 (backward substitution).
+ - parallel: the operations on each k level are executed in parallel. This is feasable only if there are no dependencies
+between levels.
+*/
+
 #pragma once
+
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/has_key.hpp>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+
 #include "grid_traits_fwd.hpp"
 #include "interval.hpp"
 #include "iteration_policy.hpp"
 #include "level.hpp"
-#include <boost/mpl/has_key.hpp>
 
 namespace gridtools {
     namespace _impl {
 
-        namespace {
-            /**
-               @brief generic forward declaration of the execution_policy struct.
-            */
-            template <typename RunF>
-            struct run_f_on_interval_esf_arguments;
+        template <class ItDomain, class RunFunctorArguments, class Interval, class Impl>
+        struct run_esf_functor_helper {
+            GRIDTOOLS_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArguments>::value, GT_INTERNAL_ERROR);
 
-            template <typename RunF>
-            struct run_f_on_interval_run_functor_arguments;
+            template <class Index>
+            using has_interval =
+                boost::mpl::has_key<typename esf_arguments<RunFunctorArguments, Index>::interval_map_t, Interval>;
 
-            template <typename RunF>
-            struct run_f_on_interval_execution_engine;
+            ItDomain &m_domain;
 
-            /**
-               @brief forward declaration of the execution_policy struct
-            */
-            template <typename ExecutionEngine, typename RunFunctorArguments, template <typename, typename> class Impl>
-            struct run_f_on_interval_run_functor_arguments<Impl<ExecutionEngine, RunFunctorArguments>> {
-                typedef RunFunctorArguments type;
-            };
-            template <typename ExecutionEngine, typename RunFunctorArguments, template <typename, typename> class Impl>
-            struct run_f_on_interval_execution_engine<Impl<ExecutionEngine, RunFunctorArguments>> {
-                typedef ExecutionEngine type;
-            };
+            template <class Index>
+            GT_FUNCTION enable_if_t<has_interval<Index>::value> operator()(Index) const {
+                using esf_arguments_t = esf_arguments<RunFunctorArguments, Index>;
+                using interval_map_t = typename esf_arguments_t::interval_map_t;
+                using interval_type = typename boost::mpl::at<interval_map_t, Interval>::type;
+                Impl{}.template operator()<interval_type, esf_arguments_t>(m_domain);
+            }
 
-        } // unnamed namespace
+            template <class Index>
+            GT_FUNCTION enable_if_t<!has_interval<Index>::value> operator()(Index) const {}
+        };
 
         /**
            @brief basic token of execution responsible of handling the discretization over the vertical dimension. This
@@ -76,20 +91,53 @@ namespace gridtools {
            execution_policy defined in the multi-stage stencil. The base class is then specialized using the CRTP
            pattern for the different policies.
         */
-        template <typename RunFOnIntervalImpl>
-        struct run_f_on_interval_base {
-            /**\brief necessary because the Derived class is an incomplete type at the moment of the instantiation of
-             * the base class*/
-            typedef typename run_f_on_interval_run_functor_arguments<RunFOnIntervalImpl>::type run_functor_arguments_t;
-            typedef typename run_f_on_interval_execution_engine<RunFOnIntervalImpl>::type execution_engine;
+        /**
+           @brief   Execution kernel containing the loop over k levels
+        */
+        template <typename RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
+        struct run_f_on_interval {
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
-            typedef typename run_functor_arguments_t::local_domain_t local_domain_t;
-            typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
-            typedef typename run_functor_arguments_t::grid_t grid_t;
+            typedef typename RunFunctorArguments::execution_type_t::type execution_engine;
+            typedef typename RunFunctorArguments::functor_list_t functor_list_t;
 
-            GT_FUNCTION
-            explicit run_f_on_interval_base(iterate_domain_t &domain, grid_t const &grid)
-                : m_grid(grid), m_domain(domain) {}
+            ItDomain &m_domain;
+            Grid const &m_grid;
+
+            // TODO(anstaf): refactor k-caches related code to make it more self descriptive. All caches in the context
+            // of this function are k-caches.
+            template <typename IterationPolicy, typename Interval>
+            GT_FUNCTION void k_loop(int_t from, int_t to) const {
+                assert(to >= from);
+
+                const bool in_domain =
+                    m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
+
+                run_esf_functor_helper<ItDomain, RunFunctorArguments, Interval, RunEsfFunctor> fun{m_domain};
+
+                if (in_domain)
+                    m_domain.template begin_fill<IterationPolicy>();
+
+                for (int_t k = from; k <= to; ++k, IterationPolicy::increment(m_domain)) {
+                    if (in_domain) {
+                        const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;
+                        m_domain.template fill_caches<IterationPolicy>(lev, m_grid);
+                    }
+
+                    gridtools::for_each<GT_META_CALL(meta::make_indices_c, boost::mpl::size<functor_list_t>::value)>(
+                        fun);
+
+                    if (in_domain) {
+
+                        const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;
+
+                        m_domain.template flush_caches<IterationPolicy>(lev, m_grid);
+                        m_domain.template slide_caches<IterationPolicy>();
+                    }
+                }
+                if (in_domain)
+                    m_domain.template final_flush<IterationPolicy>();
+            }
 
             template <typename Interval>
             GT_FUNCTION void operator()(Interval const &) const {
@@ -98,22 +146,24 @@ namespace gridtools {
 
                 // check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
-                    (level_to_index<typename grid_t::axis_type::FromLevel>::value <= Interval::first::value &&
-                        level_to_index<typename grid_t::axis_type::ToLevel>::value >= Interval::second::value),
+                    (level_to_index<typename Grid::axis_type::FromLevel>::value <= Interval::first::value &&
+                        level_to_index<typename Grid::axis_type::ToLevel>::value >= Interval::second::value),
                     "the k interval exceeds the axis you specified for the grid instance");
 
-                typedef iteration_policy<from_t, to_t, execution_engine::type::iteration> iteration_policy_t;
+                typedef iteration_policy<from_t, to_t, execution_engine::iteration> iteration_policy_t;
 
                 uint_t const from = m_grid.template value_at<from_t>();
                 uint_t const to = m_grid.template value_at<to_t>();
 
-                static_cast<RunFOnIntervalImpl const *>(this)->template k_loop<iteration_policy_t, Interval>(from, to);
+                k_loop<iteration_policy_t, Interval>(from, to);
             }
-
-          protected:
-            grid_t const &m_grid;
-            iterate_domain_t &m_domain;
         };
-
     } // namespace _impl
+
+    template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
+    GT_FUNCTION void run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
+        boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
+            _impl::run_f_on_interval<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{it_domain, grid});
+    }
+
 } // namespace gridtools

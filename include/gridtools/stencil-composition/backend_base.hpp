@@ -53,9 +53,7 @@
 #include "./accessor.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
-#include "./mss_local_domain.hpp"
 #include "./mss_metafunctions.hpp"
-#include "./storage_wrapper.hpp"
 
 /**
    @file
@@ -166,21 +164,21 @@ namespace gridtools {
          * the loop over the functors list is unrolled at compile-time using the for_each construct.
          * @tparam MssArray  meta array of mss
          * \tparam Grid Coordinate class with domain sizes and splitter grid
-         * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
+         * \tparam LocalDomains sequence of local domains
          */
         template <typename MssComponents,
             typename Grid,
-            typename MssLocalDomains,
+            typename LocalDomains,
             typename ReductionData> // List of local domain to be pbassed to functor at<i>
         static void
-        run(Grid const &grid, MssLocalDomains const &mss_local_domain_list, ReductionData &reduction_data) {
-            // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomains, is_mss_local_domain>::value), GT_INTERNAL_ERROR);
+        run(Grid const &grid, LocalDomains const &local_domains, ReductionData &reduction_data) {
+            // TODO: I would swap the arguments coords and local_domains, for consistency
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t, ReductionData>::run(
-                mss_local_domain_list, grid, reduction_data);
+                local_domains, grid, reduction_data);
         }
     };
 

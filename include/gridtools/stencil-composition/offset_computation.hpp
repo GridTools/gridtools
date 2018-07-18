@@ -87,14 +87,14 @@ namespace gridtools {
      * @return The offset stored in the given accessor for the given axis.
      */
     template <int_t Coordinate, typename Accessor>
-    GT_FUNCTION constexpr typename std::enable_if<!is_position_offset_type<Accessor>::value, int_t>::type
-    accessor_offset(Accessor const &accessor) {
+    GT_FUNCTION constexpr enable_if_t<!is_position_offset_type<Accessor>::value, int_t> accessor_offset(
+        Accessor const &accessor) {
         return accessor.template get<Accessor::n_dimensions - 1 - Coordinate>();
     }
 
     template <int_t Coordinate, typename Accessor>
-    GT_FUNCTION constexpr typename std::enable_if<is_position_offset_type<Accessor>::value, int_t>::type
-    accessor_offset(Accessor const &accessor) {
+    GT_FUNCTION constexpr enable_if_t<is_position_offset_type<Accessor>::value, int_t> accessor_offset(
+        Accessor const &accessor) {
         return accessor.template get<Coordinate>();
     }
 

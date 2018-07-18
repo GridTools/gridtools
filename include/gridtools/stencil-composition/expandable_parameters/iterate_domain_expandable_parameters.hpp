@@ -38,6 +38,7 @@
 
 #include "../../common/defs.hpp"
 #include "../expressions/expr_base.hpp"
+#include "../iterate_domain_fwd.hpp"
 #include "../structured_grids/accessor.hpp"
 #include "../structured_grids/vector_accessor.hpp"
 
@@ -46,9 +47,6 @@
 */
 
 namespace gridtools {
-
-    template <typename T>
-    struct is_iterate_domain;
 
     /**
        @brief iterate_domain specific for when expandable parameters are used
@@ -69,7 +67,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
-        typedef IterateDomain iterate_domain_t;
 
         // user protections
         template <typename... T>
@@ -112,5 +109,5 @@ namespace gridtools {
     };
 
     template <typename T, ushort_t Val>
-    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};
+    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : std::true_type {};
 } // namespace gridtools

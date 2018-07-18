@@ -39,15 +39,26 @@
  *  Created on: Apr 9, 2015
  *      Author: carlosos
  */
+#include <tuple>
+#include <type_traits>
 
-#include "gtest/gtest.h"
-#include <boost/fusion/include/vector.hpp>
-#include <boost/mpl/equal.hpp>
-#include <gridtools/gridtools.hpp>
+#include <boost/mpl/vector.hpp>
+#include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/common/generic_metafunctions/meta.hpp>
+#include <gridtools/common/host_device.hpp>
+#include <gridtools/common/layout_map.hpp>
+#include <gridtools/stencil-composition/accessor.hpp>
+#include <gridtools/stencil-composition/arg.hpp>
+#include <gridtools/stencil-composition/axis.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/grid.hpp>
+#include <gridtools/stencil-composition/intermediate.hpp>
+#include <gridtools/stencil-composition/make_stage.hpp>
+#include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -85,29 +96,19 @@ typedef intermediate<1,
             make_stage<dummy_functor>(p_buff(), p_out())))>>
     intermediate_t;
 
-typedef intermediate_mss_local_domains<intermediate_t> mss_local_domains_t;
+using local_domains_t = intermediate_local_domains<intermediate_t>;
 
-BOOST_STATIC_ASSERT((boost::mpl::size<mss_local_domains_t>::value == 2));
+static_assert(meta::length<local_domains_t>{} == 2, "");
 
-typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
+using local_domain1_t = GT_META_CALL(meta::first, local_domains_t);
 
-BOOST_STATIC_ASSERT((boost::mpl::size<mss_local_domain1_t::unfused_local_domain_sequence_t>::value == 1));
-BOOST_STATIC_ASSERT((boost::mpl::size<mss_local_domain1_t::fused_local_domain_sequence_t>::value == 1));
+// local domain should contain the args used by all the esfs
+static_assert(std::is_same<typename local_domain1_t::esf_args, std::tuple<p_in, p_buff>>{}, "");
 
-// the merged local domain should contain the args used by all the esfs
-BOOST_STATIC_ASSERT((boost::mpl::equal<
-    local_domain_esf_args<boost::mpl::front<mss_local_domain1_t::unfused_local_domain_sequence_t>::type>::type,
-    boost::mpl::vector2<p_in, p_buff>>::value));
+using local_domain2_t = GT_META_CALL(meta::second, local_domains_t);
 
-typedef boost::mpl::at<mss_local_domains_t, boost::mpl::int_<1>>::type mss_local_domain2_t;
-
-BOOST_STATIC_ASSERT((boost::mpl::size<mss_local_domain2_t::unfused_local_domain_sequence_t>::value == 1));
-BOOST_STATIC_ASSERT((boost::mpl::size<mss_local_domain2_t::fused_local_domain_sequence_t>::value == 1));
-
-// the merged local domain should contain the args used by all the esfs
-BOOST_STATIC_ASSERT((boost::mpl::equal<
-    local_domain_esf_args<boost::mpl::front<mss_local_domain2_t::unfused_local_domain_sequence_t>::type>::type,
-    boost::mpl::vector2<p_buff, p_out>>::value));
+// local domain should contain the args used by all the esfs
+static_assert(std::is_same<typename local_domain2_t::esf_args, std::tuple<p_buff, p_out>>{}, "");
 
 // icc build fails to build unit tests without a single test.
 TEST(dummy, dummy) {}
