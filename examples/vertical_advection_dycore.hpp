@@ -237,9 +237,9 @@ namespace vertical_advection_dycore {
                 (execute<forward>(),
                     define_caches(cache<K, cache_io_policy::local, kfull>(p_acol()),
                         cache<K, cache_io_policy::local, kfull>(p_bcol()),
-                        cache<K, cache_io_policy::flush, kfull, window<0, 0>>(p_ccol()),
-                        cache<K, cache_io_policy::flush, kfull, window<0, 0>>(p_dcol()),
-                        cache<K, cache_io_policy::fill, kfull, window<0, 0>>(p_u_stage())),
+                        cache<K, cache_io_policy::flush, kfull>(p_ccol()),
+                        cache<K, cache_io_policy::flush, kfull>(p_dcol()),
+                        cache<K, cache_io_policy::fill, kfull>(p_u_stage())),
                     gridtools::make_stage<u_forward_function<float_type>>(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -300,9 +300,9 @@ namespace vertical_advection_dycore {
                 p_dtr_stage{} = repository.dtr_stage(),
                 gridtools::make_multistage // mss_descriptor
                 (execute<forward>(),
-                    define_caches(cache<K, cache_io_policy::flush, kfull, window<0, 0>>(p_ccol()),
-                        cache<K, cache_io_policy::flush, kfull, window<0, 0>>(p_dcol()),
-                        cache<K, cache_io_policy::fill, kfull, window<0, 0>>(p_u_stage())),
+                    define_caches(cache<K, cache_io_policy::flush, kfull>(p_ccol()),
+                        cache<K, cache_io_policy::flush, kfull>(p_dcol()),
+                        cache<K, cache_io_policy::fill, kfull>(p_u_stage())),
                     gridtools::make_stage_with_extent<u_forward_function<float_type>, extent<0>>(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -315,7 +315,7 @@ namespace vertical_advection_dycore {
                         p_dcol()) // esf_descriptor
                     ),
                 gridtools::make_multistage(execute<backward>(),
-                    define_caches(cache<K, cache_io_policy::flush, kfull, window<0, 0>>(p_data_col())),
+                    define_caches(cache<K, cache_io_policy::flush, kfull>(p_data_col())),
                     gridtools::make_stage_with_extent<u_backward_function<float_type>, extent<0>>(
                         p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
