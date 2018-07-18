@@ -93,7 +93,8 @@ namespace gridtools {
                     typename run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type run_esf_functor_t;
 
                 if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
-                    super::m_domain.template begin_fill<IterationPolicy>();
+                    const int_t lev = (IterationPolicy::value == enumtype::backward) ? to : from;
+                    super::m_domain.template begin_fill<IterationPolicy>(lev, super::m_grid);
                 }
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
                     if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
@@ -112,7 +113,8 @@ namespace gridtools {
                     }
                 }
                 if (super::m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>()) {
-                    super::m_domain.template final_flush<IterationPolicy>();
+                    const int_t lev = (IterationPolicy::value == enumtype::backward) ? from - 1 : to + 1;
+                    super::m_domain.template final_flush<IterationPolicy>(lev, super::m_grid);
                 }
             }
         };

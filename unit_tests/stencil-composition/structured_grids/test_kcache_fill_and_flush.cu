@@ -87,6 +87,18 @@ struct copy_fill {
     }
 };
 
+struct scale_fill {
+
+    typedef accessor<0, enumtype::inout> in;
+
+    typedef boost::mpl::vector<in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+        eval(in()) = 2 * eval(in());
+    }
+};
+
 TEST_F(kcachef, fill_and_flush_forward) {
 
     for (uint_t i = 0; i < m_d1; ++i) {
@@ -182,6 +194,38 @@ TEST_F(kcachef, fill_copy_forward) {
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
 }
+
+TEST_F(kcachef, fill_scale_forward) {
+
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            for (uint_t k = 0; k < m_d3; ++k) {
+                m_refv(i, j, k) = 2 * m_inv(i, j, k);
+            }
+        }
+    }
+
+    typedef arg<0, storage_t> p_in;
+
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
+        p_in{} = m_in,
+        gridtools::make_multistage(execute<forward>(),
+            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull, window<0, 0>>(p_in())),
+            gridtools::make_stage<scale_fill>(p_in())));
+
+    kcache_stencil.run();
+
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
+
+    m_in.sync();
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
+}
+
 struct do_nothing {
 
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 1>> in;

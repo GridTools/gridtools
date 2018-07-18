@@ -66,9 +66,6 @@ namespace gridtools {
     struct window {
         static constexpr int m_ = M;
         static constexpr int p_ = P;
-        GRIDTOOLS_STATIC_ASSERT((m_ == 0 || p_ == 0),
-            "One of the bounds of the cache window has to be 0, (upper bound for a forward loop or lower bound for a "
-            "backward loop) since it does not make sense to flush the head of the cache nor fill the tail.");
     };
 
     template <typename T>
@@ -76,31 +73,6 @@ namespace gridtools {
 
     template <int M, int P>
     struct is_window<window<M, P>> : boost::mpl::true_ {};
-
-    /**
-     * @brief computes the window size of a kcache that needs to be sync with mem memory
-     */
-    template <cache_io_policy CacheIOPolicy, typename T>
-    struct kcache_compute_window_size_to_sync;
-
-    /**
-     * @brief computes the window size of a kcache that needs to be sync with mem memory
-     * in case of an end-point flush, the synchronization happens after the last (regular, i.e. in every klevel
-     * iteration) flush operation, and therefore one klevel less than usual specified within the kcache type is required
-     */
-    template <cache_io_policy CacheIOPolicy, int M, int P>
-    struct kcache_compute_window_size_to_sync<CacheIOPolicy, window<M, P>> {
-        using type = static_int<P - M + 1 + ((CacheIOPolicy == cache_io_policy::epflush) ? (-1) : 0)>;
-    };
-
-    template <cache_io_policy CacheIOPolicy, typename IterationPolicy, typename T>
-    struct window_get_min;
-
-    template <cache_io_policy CacheIOPolicy, typename IterationPolicy, int M, int P>
-    struct window_get_min<CacheIOPolicy, IterationPolicy, window<M, P>> {
-        using type = static_int<
-            (IterationPolicy::value == enumtype::forward && CacheIOPolicy == cache_io_policy::epflush) ? M + 1 : M>;
-    };
 
     namespace detail {
         /**

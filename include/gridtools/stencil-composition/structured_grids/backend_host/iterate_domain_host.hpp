@@ -138,16 +138,16 @@ namespace gridtools {
         /**
          * caches are not currently used in host backend
          */
-        template <typename IterationPolicy>
-        GT_FUNCTION void final_flush() {
+        template <typename IterationPolicy, typename Grid>
+        GT_FUNCTION void final_flush(const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
          * caches are not currently used in host backend
          */
-        template <typename IterationPolicy>
-        GT_FUNCTION void begin_fill() {
+        template <typename IterationPolicy, typename Grid>
+        GT_FUNCTION void begin_fill(const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
