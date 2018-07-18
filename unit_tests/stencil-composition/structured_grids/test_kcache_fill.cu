@@ -184,7 +184,7 @@ TEST_F(kcachef, fill_forward_shifted_bounds) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill, kfull::modify<-1, 0>, window<1, 0>>(p_in())),
+            define_caches(cache<K, cache_io_policy::fill, kfull::modify<-1, 0>>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill_shifted_bounds>(p_in() // esf_descriptor
                 ,
                 p_out())));

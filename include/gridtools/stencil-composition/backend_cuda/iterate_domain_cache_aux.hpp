@@ -100,7 +100,7 @@ namespace gridtools {
             return io_action_t(it_domain, cache_storage);
         }
 
-        template <class CacheStorage>
+        template <typename CacheStorage>
         GT_FUNCTION constexpr int_t clamp_to_storage_krange(int_t index) {
             return index < CacheStorage::kminus_t::value
                        ? CacheStorage::kminus_t::value
@@ -199,7 +199,9 @@ namespace gridtools {
             GT_FUNCTION void operator()(Idx const &) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
                 using kcache_t = typename kcache_storage_t::cache_t;
-                using window_t = typename kcache_t::kwindow_t;
+                using window_t = typename std::conditional<is_window<typename kcache_t::kwindow_t>::value,
+                    typename kcache_t::kwindow_t,
+                    window<0, 0>>::type;
                 GRIDTOOLS_STATIC_ASSERT(((IterationPolicy::value != enumtype::parallel) ||
                                             (kcache_t::ccacheIOPolicy != cache_io_policy::bpfill &&
                                                 kcache_t::ccacheIOPolicy != cache_io_policy::epflush)),
@@ -213,8 +215,10 @@ namespace gridtools {
                                                             ? 0
                                                             : (IterationPolicy::value == enumtype::forward) ? -1 : 1;
 
-                const int_t from =
-                    m_grid.template value_at<typename kcache_storage_t::cache_t::interval_t::FromLevel>();
+                // TODO(fthaler): use proper storage bounds checks
+                const int_t from = math::max(
+                    (int_t)m_grid.template value_at<typename kcache_storage_t::cache_t::interval_t::FromLevel>(),
+                    (int_t)0);
                 const int_t to = m_grid.template value_at<typename kcache_storage_t::cache_t::interval_t::ToLevel>();
                 assert(from <= to);
                 const int_t kplus_limit = endpoint_only ? window_t::p_ + endpoint_flush_offset : to - m_klevel;
