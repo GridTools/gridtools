@@ -52,7 +52,8 @@ namespace gridtools {
             template <typename Src>
             Res<Elems...> operator()(Src &&src) {
                 using src_t = typename std::decay<Src>::type;
-                return {tuple_util::get<meta::st_position<src_t, Elems>::value>(std::forward<Src>(src))...};
+                return Res<Elems...>{
+                    tuple_util::get<meta::st_position<src_t, Elems>::value>(std::forward<Src>(src))...};
             }
         };
     } // namespace impl_
@@ -86,6 +87,6 @@ namespace gridtools {
 
     template <typename Res, typename Src>
     Res permute_to(Src &&src) {
-        return impl_::permute_to_impl<Res>{}(src);
+        return impl_::permute_to_impl<Res>{}(std::forward<Src>(src));
     }
 } // namespace gridtools
