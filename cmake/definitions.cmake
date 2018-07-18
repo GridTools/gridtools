@@ -31,7 +31,7 @@ find_package( Boost 1.58 REQUIRED )
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
   foreach(dir ${Boost_INCLUDE_DIRS})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${dir}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -idirafter${dir}")
   endforeach()
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
