@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <boost/fusion/container/map.hpp>
+
 #include "../../common/gt_assert.hpp"
 
 #include "../../storage/data_field_view.hpp"
@@ -339,7 +341,14 @@ namespace gridtools {
 
             typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
-            return data_pointer().template get<index_t::value>()[0];
+
+            using arg_t = typename local_domain_t::template get_arg<index_t>::type;
+            //            typename decltype(local_domain.m_local_data_ptrs)::bla tmp;
+            //            typename arg_t::bla tmp;
+
+            //            return data_pointer().template get<index_t::value>()[0];
+
+            return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[0];
         }
 
         /** @brief method returning the data pointer of an accessor
