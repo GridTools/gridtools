@@ -35,6 +35,7 @@
 */
 #pragma once
 #include <boost/mpl/map.hpp>
+#include <boost/mpl/set.hpp>
 
 namespace gridtools {
 

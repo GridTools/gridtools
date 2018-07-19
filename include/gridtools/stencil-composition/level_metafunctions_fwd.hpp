@@ -36,7 +36,7 @@
 #pragma once
 
 namespace gridtools {
-    template <uint_t VSplitter, int_t VOffset>
+    template <uint_t VSplitter, int_t VOffset, int_t OffsetLimit>
     struct level;
 
     template <typename TLevel>

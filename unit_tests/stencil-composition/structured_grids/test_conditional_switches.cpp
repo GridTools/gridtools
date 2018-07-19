@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include <gridtools/stencil-composition/conditionals/case_.hpp>
+#include <gridtools/stencil-composition/conditionals/switch_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include "backend_select.hpp"

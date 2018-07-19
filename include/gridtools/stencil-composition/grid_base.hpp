@@ -69,11 +69,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_interval<Axis>::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
 
-        typedef typename boost::mpl::plus<
-            boost::mpl::minus<typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter>,
-            static_int<1>>::type size_type;
+        static constexpr int_t size = Axis::ToLevel::splitter - Axis::FromLevel::splitter + 1;
 
-        array<uint_t, size_type::value> value_list;
+        array<uint_t, size> value_list;
 
       private:
         halo_descriptor m_direction_i;
@@ -94,7 +92,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
-            const array<uint_t, size_type::value> &value_list)
+            const array<uint_t, size> &value_list)
             : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
 
         DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
@@ -114,16 +112,16 @@ namespace gridtools {
         GT_FUNCTION
         uint_t j_high_bound() const { return m_direction_j.end(); }
 
-        template <class Level, int_t Offset = Level::Offset::value>
+        template <class Level, int_t Offset = Level::offset>
         GT_FUNCTION enable_if_t<(Offset > 0), uint_t> value_at() const {
             GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
-            return value_list[Level::Splitter::value] + Offset - 1;
+            return value_list[Level::splitter] + Offset - 1;
         }
 
-        template <class Level, int_t Offset = Level::Offset::value>
+        template <class Level, int_t Offset = Level::offset>
         GT_FUNCTION enable_if_t<(Offset <= 0), uint_t> value_at() const {
             GRIDTOOLS_STATIC_ASSERT((is_level<Level>::value), GT_INTERNAL_ERROR);
-            return value_list[Level::Splitter::value] - static_cast<uint_t>(-Offset);
+            return value_list[Level::splitter] - static_cast<uint_t>(-Offset);
         }
 
         GT_FUNCTION uint_t k_min() const { return value_at<typename Axis::FromLevel>(); }

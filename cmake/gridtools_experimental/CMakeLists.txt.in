@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.0)
+
+project(gridtools_experimental_download NONE)
+
+include(ExternalProject)
+ExternalProject_Add(gridtools_experimental
+    GIT_REPOSITORY git@github.com:eth-cscs/gridtools_experimental.git
+    GIT_TAG master
+    SOURCE_DIR "${GRIDTOOLS_EXPERIMENTAL_DIR}"
+    BINARY_DIR "${GRIDTOOLS_EXPERIMENTAL_DIR}"
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND ""
+    INSTALL_COMMAND ""
+    TEST_COMMAND ""
+)

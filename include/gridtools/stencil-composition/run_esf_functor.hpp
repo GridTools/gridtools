@@ -34,7 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/at.hpp>
+
+#include <type_traits>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+
 #ifdef STRUCTURED_GRIDS
 #include "expandable_parameters/iterate_domain_expandable_parameters.hpp"
 #else
@@ -42,109 +47,41 @@
 #endif
 #include "functor_decorator.hpp"
 #include "hasdo.hpp"
-#include "run_functor_arguments.hpp"
 
 namespace gridtools {
     namespace _impl {
-        template <typename RunEsfFunctorImpl>
-        struct run_esf_functor_run_functor_arguments;
-
-        template <typename RunEsfFunctorImpl>
-        struct run_esf_functor_interval;
-
-        template <typename RunFunctorArguments, typename Interval, template <typename, typename> class Impl>
-        struct run_esf_functor_run_functor_arguments<Impl<RunFunctorArguments, Interval>> {
-            typedef RunFunctorArguments type;
-        };
-        template <typename RunFunctorArguments, typename Interval, template <typename, typename> class Impl>
-        struct run_esf_functor_interval<Impl<RunFunctorArguments, Interval>> {
-            typedef Interval type;
-        };
-
-        template <ushort_t ID, typename Functor, typename IterateDomain, typename Interval>
+        template <ushort_t ID, typename Functor, typename Interval>
         struct call_repeated {
-          public:
-            GT_FUNCTION
-            static void call_do_method(IterateDomain &it_domain_) {
+            template <class IterateDomain>
+            GT_FUNCTION static void call_do_method(IterateDomain &it_domain) {
 
-                typedef typename boost::mpl::if_<typename boost::is_same<Interval,
-                                                     typename Functor::f_with_default_interval::default_interval>::type,
-                    typename boost::mpl::if_<typename has_do<typename Functor::f_type, Interval>::type,
+                typedef conditional_t<
+                    std::is_same<Interval, typename Functor::f_with_default_interval::default_interval>::value,
+                    conditional_t<has_do<typename Functor::f_type, Interval>::value,
                         typename Functor::f_type,
-                        typename Functor::f_with_default_interval>::type,
-                    typename Functor::f_type>::type functor_t;
+                        typename Functor::f_with_default_interval>,
+                    typename Functor::f_type>
+                    functor_t;
 
                 functor_t::template Do<iterate_domain_expandable_parameters<IterateDomain, ID> &>(
-                    *static_cast<iterate_domain_expandable_parameters<IterateDomain, ID> *>(&it_domain_), Interval());
+                    *static_cast<iterate_domain_expandable_parameters<IterateDomain, ID> *>(&it_domain), Interval{});
 
-                call_repeated<ID - 1, Functor, IterateDomain, Interval>::call_do_method(it_domain_);
+                call_repeated<ID - 1, Functor, Interval>::call_do_method(it_domain);
             }
         };
 
-        template <typename Functor, typename IterateDomain, typename Interval>
-        struct call_repeated<0, Functor, IterateDomain, Interval> {
-          public:
-            GT_FUNCTION
-            static void call_do_method(IterateDomain &it_domain_) {}
+        template <typename Functor, typename Interval>
+        struct call_repeated<0, Functor, Interval> {
+            template <class T>
+            GT_FUNCTION static void call_do_method(T &&) {}
         };
     } // namespace _impl
 
-    /**
-       \brief "base" struct for all the backend
-       This class implements static polimorphism by means of the CRTP pattern. It contains all what is common for all
-       the backends.
-    */
-    template <typename RunEsfFunctorImpl>
-    struct run_esf_functor {
-        typedef typename _impl::run_esf_functor_run_functor_arguments<RunEsfFunctorImpl>::type run_functor_arguments_t;
-        typedef typename _impl::run_esf_functor_interval<RunEsfFunctorImpl>::type interval_t;
+    template <class FunctorDecorator, class Interval, class IterateDomain>
+    GT_FUNCTION void call_repeated(IterateDomain &iterate_domain) {
+        GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<FunctorDecorator>::value, GT_INTERNAL_ERROR);
+        _impl::call_repeated<FunctorDecorator::repeat_t::value, FunctorDecorator, Interval>::call_do_method(
+            iterate_domain);
+    }
 
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<run_functor_arguments_t>::value), GT_INTERNAL_ERROR);
-        typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
-        typedef typename run_functor_arguments_t::functor_list_t run_functor_list_t;
-
-        GT_FUNCTION
-        explicit run_esf_functor(iterate_domain_t &iterate_domain) : m_iterate_domain(iterate_domain) {}
-
-        /**
-         * \brief given the index of a functor in the functors
-         * list, it calls a kernel on the GPU executing the
-         * operations defined on that functor.
-         */
-        template <typename Index>
-        GT_FUNCTION void operator()(Index const &) const {
-
-            typedef esf_arguments<run_functor_arguments_t, Index> esf_arguments_t;
-
-            typedef typename esf_arguments_t::interval_map_t interval_map_t;
-            typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
-
-            if (boost::mpl::has_key<interval_map_t, interval_t>::type::value) {
-                typedef typename boost::mpl::at<interval_map_t, interval_t>::type interval_type;
-
-                // check that the number of placeholders passed to the elementary stencil function
-                //(constructed during the computation) is the same as the number of arguments referenced
-                // in the functor definition (in the high level interface). This means that we cannot
-                // (although in theory we could) pass placeholders to the computation which are not
-                // also referenced in the functor.
-
-#ifdef PEDANTIC // we might want to use the same placeholder twice?
-                GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size<esf_args_map_t>::value ==
-                        boost::mpl::size<
-                            typename boost::mpl::at<run_functor_list_t, Index>::type::f_type::arg_list>::value),
-                    "check that the number of placeholders passed to the elementary stencil function\n \
-	            (constructed during the computation) is the same as the number of arguments referenced\n \
-	            in the functor definition (in the high level interface). This means that we cannot\n \
-	            (although in theory we could) pass placeholders to the computation which are not\n \
-	            also referenced in the functor. You get this error if you specify twice the same placeholder");
-#endif
-
-                static_cast<const RunEsfFunctorImpl *>(this)->template do_impl<interval_type, esf_arguments_t>();
-            }
-        }
-
-      protected:
-        iterate_domain_t &m_iterate_domain;
-    };
 } // namespace gridtools

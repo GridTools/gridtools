@@ -35,8 +35,16 @@
 */
 #pragma once
 
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../mss_metafunctions.hpp"
+#include <tuple>
+
+#ifdef PEDANTIC
+#include <boost/mpl/size.hpp>
+#endif
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../arg.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
 
@@ -69,39 +77,36 @@ namespace gridtools {
        tight bounds on blocks to be used by backends
      */
 
-    template <typename ESF, typename... ExtraArgs>
-    esf_descriptor<ESF, boost::mpl::vector<ExtraArgs...>> make_stage(ExtraArgs &&... /*args_*/) {
-        GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg<ExtraArgs>::value...)), "Malformed make_stage");
+    template <typename ESF, typename... Args>
+    esf_descriptor<ESF, std::tuple<Args...>> make_stage(Args...) {
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
 #ifdef PEDANTIC // find a way to enable this check also with generic accessors
-        GRIDTOOLS_STATIC_ASSERT((sizeof...(ExtraArgs) == boost::mpl::size<typename ESF::arg_list>::value),
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) == boost::mpl::size<typename ESF::arg_list>::value,
             "wrong number of arguments passed to the make_esf");
 #endif
-        return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs...>>();
+        return {};
     }
 
-    template <typename ESF, typename Staggering, typename... ExtraArgs>
-    esf_descriptor<ESF, boost::mpl::vector<ExtraArgs...>, Staggering> make_stage(ExtraArgs &&... args_) {
-        GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg<ExtraArgs>::value...)), "Malformed make_stage");
-        return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs...>, Staggering>();
+    template <typename ESF, typename Staggering, typename... Args>
+    esf_descriptor<ESF, std::tuple<Args...>, Staggering> make_stage(Args...) {
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
+        return {};
     }
 
-    template <typename ESF, typename Extent, typename... ExtraArgs>
-    esf_descriptor_with_extent<ESF, Extent, boost::mpl::vector<ExtraArgs...>> make_stage_with_extent(
-        ExtraArgs &&... /*args_*/) {
-
-        GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg<ExtraArgs>::value...)), "Malformed make_stage");
+    template <typename ESF, typename Extent, typename... Args>
+    esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>> make_stage_with_extent(Args...) {
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
 #ifdef PEDANTIC // find a way to enable this check also with generic accessors
-        GRIDTOOLS_STATIC_ASSERT((sizeof...(ExtraArgs) == boost::mpl::size<typename ESF::arg_list>::value),
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args) == boost::mpl::size<typename ESF::arg_list>::value),
             "wrong number of arguments passed to the make_esf");
 #endif
-        return esf_descriptor_with_extent<ESF, Extent, boost::mpl::vector<ExtraArgs...>>();
+        return {};
     }
 
-    template <typename ESF, typename Extent, typename Staggering, typename... ExtraArgs>
-    esf_descriptor_with_extent<ESF, Extent, boost::mpl::vector<ExtraArgs...>, Staggering> make_stage_with_extent(
-        ExtraArgs &&... args_) {
-        GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg<ExtraArgs>::value...)), "Malformed make_stage");
-        return esf_descriptor_with_extent<ESF, Extent, boost::mpl::vector<ExtraArgs...>, Staggering>();
+    template <typename ESF, typename Extent, typename Staggering, typename... Args>
+    esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>, Staggering> make_stage_with_extent(Args...) {
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
+        return {};
     }
 
 } // namespace gridtools
