@@ -35,21 +35,16 @@
 */
 #pragma once
 
+#include "../common/host_device.hpp"
+
 namespace gridtools {
-    namespace _impl {
-        /**@brief wrap type to simplify specialization based on mpl::vectors */
-        template <typename MplArray>
-        struct wrap_type {
-            typedef MplArray type;
-        };
+    template <class T>
+    struct pos3 {
+        T i, j, k;
+    };
 
-        /**
-         * @brief compile-time boolean operator returning true if the template argument is a wrap_type
-         * */
-        template <typename T>
-        struct is_wrap_type : boost::false_type {};
-
-        template <typename T>
-        struct is_wrap_type<wrap_type<T>> : boost::true_type {};
-    } // namespace _impl
+    template <class T>
+    GT_FUNCTION constexpr pos3<T> make_pos3(T const &i, T const &j, T const &k) {
+        return {i, j, k};
+    }
 } // namespace gridtools

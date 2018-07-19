@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../common/generic_metafunctions/reversed_range.hpp"
 #include "storage_wrapper.hpp"
 
 namespace gridtools {

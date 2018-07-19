@@ -34,17 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "run_functor_arguments_fwd.hpp"
+
+#include "../common/defs.hpp"
+#include "run_functor_arguments.hpp"
 
 namespace gridtools {
-    template <typename T>
-    struct iterate_domain_local_domain;
-
-    template <typename T>
-    struct is_iterate_domain;
-
-    template <typename T>
-    struct iterate_domain_impl_ij_caches_map;
 
     template <typename Impl>
     struct iterate_domain_impl_arguments;

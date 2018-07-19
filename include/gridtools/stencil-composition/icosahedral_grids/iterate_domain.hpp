@@ -39,11 +39,15 @@
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
+
+#include "../../storage/data_field_view.hpp"
+
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_impl_metafunctions.hpp"
 #include "../location_type.hpp"
 #include "../position_offset_type.hpp"
+#include "../total_storages.hpp"
 #include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 #include <boost/type_traits/remove_reference.hpp>
@@ -63,12 +67,8 @@ namespace gridtools {
         typedef typename iterate_domain_impl_arguments<IterateDomainImpl>::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
-        typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
-
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
-        typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
-        typedef typename grid_topology_t::default_4d_layout_map_t default_4d_layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
@@ -97,7 +97,6 @@ namespace gridtools {
         typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
-        using grid_position_t = array<uint_t, 4>;
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get
          * compiled (generating sometimes a compile-time overflow) */
@@ -170,7 +169,6 @@ namespace gridtools {
         grid_topology_t const &m_grid_topology;
         // TODOMEETING do we need m_index?
         array_index_t m_index;
-        grid_position_t m_grid_position;
 
       public:
         /**@brief constructor of the iterate_domain struct
@@ -179,7 +177,7 @@ namespace gridtools {
            the data fields (for all the data_fields present in the
            current evaluation), and the indexes to access the data
            fields (one index per storage instance, so that one index
-           might be shared among several data fileds)
+           might be shared among several data fields)
         */
         GT_FUNCTION
         iterate_domain(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
@@ -225,11 +223,7 @@ namespace gridtools {
         template <typename BackendType>
         GT_FUNCTION void assign_storage_pointers() {
             boost::fusion::for_each(m_local_domain.m_local_data_ptrs,
-                assign_storage_ptrs<BackendType,
-                    data_ptr_cached_t,
-                    local_domain_t,
-                    processing_elements_block_size_t,
-                    grid_traits_t>(data_pointer(), m_local_domain.m_local_storage_info_ptrs));
+                assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t>{data_pointer()});
         }
 
         /**
@@ -242,64 +236,54 @@ namespace gridtools {
         template <typename BackendType, typename Strides>
         GT_FUNCTION void assign_stride_pointers() {
             boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t, processing_elements_block_size_t>(
-                    strides()));
+                assign_strides<BackendType, strides_cached_t, local_domain_t>(strides()));
         }
 
         /**@brief method for initializing the index */
-        template <ushort_t Coordinate>
-        GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
+        GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
+            using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
             boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                initialize_index_functor<Coordinate,
-                    strides_cached_t,
-                    local_domain_t,
-                    array_index_t,
-                    processing_elements_block_size_t,
-                    grid_traits_t>(strides(), initial_pos, block, m_index));
-            static_cast<IterateDomainImpl *>(this)->template initialize_impl<Coordinate>();
-            m_grid_position[Coordinate] = initial_pos;
+                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
+                    strides(), begin, block_no, pos_in_block, m_index});
         }
 
-        /**@brief method for incrementing by 1 the index when moving forward along the given direction
-           \tparam Coordinate dimension being incremented
-           \tparam Execution the policy for the increment (e.g. forward/backward)
-         */
-        template <ushort_t Coordinate, typename Steps>
+      private:
+        template <uint_t Coordinate, int_t Step>
         GT_FUNCTION void increment() {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                increment_index_functor<local_domain_t, Coordinate, strides_cached_t, array_index_t>(
-                    Steps::value, m_index, strides()));
-            static_cast<IterateDomainImpl *>(this)->template increment_impl<Coordinate, Steps>();
-            m_grid_position[Coordinate] =
-                (uint_t)((int_t)m_grid_position[Coordinate] + Steps::value); // suppress warning
+            do_increment<Coordinate, Step>(m_local_domain, strides(), m_index);
+        }
+        template <uint_t Coordinate>
+        GT_FUNCTION void increment(int_t step) {
+            do_increment<Coordinate>(step, m_local_domain, strides(), m_index);
         }
 
-        /**@brief method for incrementing the index when moving forward along the given direction
-
-           \param steps_ the increment
-           \tparam Coordinate dimension being incremented
-         */
-        template <ushort_t Coordinate>
-        GT_FUNCTION void increment(int_t steps_) {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                increment_index_functor<local_domain_t, Coordinate, strides_cached_t, array_index_t>(
-                    steps_, m_index, strides()));
-            static_cast<IterateDomainImpl *>(this)->template increment_impl<Coordinate>(steps_);
-            m_grid_position[Coordinate] += steps_;
+      public:
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_i() {
+            increment<0, Step>();
         }
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_c() {
+            increment<1, Step>();
+        }
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_j() {
+            increment<2, Step>();
+        }
+        template <int_t Step = 1>
+        GT_FUNCTION void increment_k() {
+            increment<3, Step>();
+        }
+
+        GT_FUNCTION void increment_i(int_t step) { increment<0>(step); }
+        GT_FUNCTION void increment_c(int_t step) { increment<1>(step); }
+        GT_FUNCTION void increment_j(int_t step) { increment<2>(step); }
+        GT_FUNCTION void increment_k(int_t step) { increment<3>(step); }
 
         GT_FUNCTION
         array_index_t const &index() const { return m_index; }
 
-        GT_FUNCTION
-        grid_position_t const &position() const { return m_grid_position; }
-
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
-
-        GT_FUNCTION void reset_index() { m_index = array_index_t{}; }
-
-        GT_FUNCTION
-        void set_position(grid_position_t const &position) { m_grid_position = position; }
 
         template <typename Accessor>
         GT_FUNCTION
@@ -427,13 +411,7 @@ namespace gridtools {
                 m_index[storage_info_index_t::value] +
                 compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
 
-#ifndef NDEBUG
-            assert((pointer_oob_check<backend_traits_t,
-                processing_elements_block_size_t,
-                local_domain_t,
-                arg_t,
-                grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
-#endif
+            assert(pointer_oob_check(storage_info, pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<
@@ -465,11 +443,7 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at<storage_info_index_t>(m_local_domain.m_local_storage_info_ptrs);
 
-            assert((pointer_oob_check<backend_traits_t,
-                processing_elements_block_size_t,
-                local_domain_t,
-                arg_t,
-                grid_traits_t>(storage_info, real_storage_pointer, offset)));
+            assert(pointer_oob_check(storage_info, offset));
 #endif
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<

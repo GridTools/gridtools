@@ -115,7 +115,14 @@ TEST(math, test_min) {
     EXPECT_TRUE(math::min(5, -1) == -1);
 
     ASSERT_REAL_EQ(math::min(5.3, 22.0, 7.7), 5.3);
+}
 
+#ifdef __INTEL_COMPILER
+// test disabled due to Intel compiler bug (see gt_math.hpp)
+TEST(math, DISABLED_test_min_ref) {
+#else
+TEST(math, test_min_ref) {
+#endif
     // checking returned by const &
     double a = 3.5;
     double b = 2.3;
@@ -130,6 +137,14 @@ TEST(math, test_max) {
     EXPECT_TRUE(math::max(5, -1) == 5);
 
     ASSERT_REAL_EQ(math::max(5.3, 22.0, 7.7), 22.0);
+}
+
+#ifdef __INTEL_COMPILER
+// test disabled due to Intel compiler bug (see gt_math.hpp)
+TEST(math, DISABLED_test_max_ref) {
+#else
+TEST(math, test_max_ref) {
+#endif
     // checking returned by const &
     double a = 3.5;
     double b = 2.3;

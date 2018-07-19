@@ -53,15 +53,3 @@ TEST(numerics, pow3) {
     EXPECT_EQ(x3, 27);
     EXPECT_EQ(x4, 81);
 }
-
-TEST(numerics, static_ceil) {
-    constexpr float x = 3.1415;
-    constexpr auto r1 = _impl::static_ceil(x / 1.0);
-    constexpr auto r2 = _impl::static_ceil(x / -1.0);
-    constexpr auto r3 = _impl::static_ceil(x / -2.0);
-    constexpr auto r4 = _impl::static_ceil(x / 2.0);
-    EXPECT_EQ(r1, std::ceil(x / 1.0));
-    EXPECT_EQ(r2, std::ceil(x / -1.0));
-    EXPECT_EQ(r3, std::ceil(x / -2.0));
-    EXPECT_EQ(r4, std::ceil(x / 2.0));
-}

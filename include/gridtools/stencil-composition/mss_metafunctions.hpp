@@ -43,7 +43,6 @@
 #pragma once
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "./caches/cache.hpp"
-#include "./caches/cache_metafunctions.hpp"
 #include "./caches/cache_traits.hpp"
 #include "./computation_grammar.hpp"
 #include "./esf.hpp"

@@ -39,10 +39,14 @@
 
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../block_size.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 #include "iterate_domain_mic.hpp"
 #include "run_esf_functor_mic.hpp"
+
+#ifdef STRUCTURED_GRIDS
+#include "../structured_grids/backend_mic/execute_kernel_functor_mic.hpp"
+#endif
+
 #include "strategy_mic.hpp"
 
 #ifdef ENABLE_METERS
@@ -69,99 +73,13 @@ namespace gridtools {
             auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
-#ifndef STRUCTURED_GRIDS
-        static uint_t processing_element_i() { return omp_get_thread_num(); }
-#endif
-
-        template <uint_t Id, typename BlockSize>
+        template <uint_t Id>
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), "Error: wrong type");
-
             template <typename Left, typename Right>
-            GT_FUNCTION // inline
-                static void
-                assign(Left &l, Right const &r) {
-                l = (Left)r;
+            GT_FUNCTION static void assign(Left &l, Right const &r) {
+                l = r;
             }
         };
-
-        template <class MaxExtent, class StorageWrapper, class GridTraits, enumtype::strategy>
-        struct tmp_storage_size_f;
-
-#ifdef STRUCTURED_GRIDS
-        template <class MaxExtent, class StorageWrapper, class GridTraits>
-        struct tmp_storage_size_f<MaxExtent, StorageWrapper, GridTraits, enumtype::Block> {
-            using storage_info_t = typename StorageWrapper::storage_info_t;
-            using halo_t = typename storage_info_t::halo_t;
-            static constexpr uint_t halo_i = halo_t::template at<GridTraits::dim_i_t::value>();
-            static constexpr uint_t halo_j = halo_t::template at<GridTraits::dim_j_t::value>();
-            static constexpr uint_t alignment = storage_info_t::alignment_t::value;
-
-            template <class Grid>
-            std::array<uint_t, 3> operator()(Grid const &grid) const {
-                execinfo_mic exinfo(grid);
-                auto threads = omp_get_max_threads();
-                auto i_size = ((exinfo.i_block_size() + 2 * halo_i + alignment - 1) / alignment) * alignment;
-                auto j_size = (exinfo.j_block_size() + 2 * halo_j) * threads;
-                auto k_size = grid.k_total_length();
-                return {i_size, j_size, k_size};
-            }
-        };
-#else
-        template <class MaxExtent, class StorageWrapper, class GridTraits>
-        struct tmp_storage_size_f<MaxExtent, StorageWrapper, GridTraits, enumtype::Block> {
-            using storage_info_t = typename StorageWrapper::storage_info_t;
-            using halo_t = typename storage_info_t::halo_t;
-            static constexpr uint_t halo_i = halo_t::template at<GridTraits::dim_i_t::value>();
-            static constexpr uint_t halo_j = halo_t::template at<GridTraits::dim_j_t::value>();
-
-            template <class Grid>
-            std::array<uint_t, 3> operator()(Grid const &grid) const {
-                auto threads = omp_get_max_threads();
-                auto i_size = (StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads;
-                auto j_size = StorageWrapper::tileJ_t::s_tile + 2 * halo_j;
-                auto k_size = grid.k_max() + 1;
-                return {i_size, j_size, k_size};
-            }
-        };
-#endif
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage. In addition to this each OpenMP thread stores an integer that indicates the offset of this
-           pointer. For temporaries we use an oversized storage in order to have private halo
-           regions for each thread. This method calculates the offset for temporaries and takes the private halo and
-           alignment information into account.
-        */
-        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
-        static typename boost::enable_if_c<Arg::is_temporary, int>::type fields_offset(StorageInfo const *sinfo) {
-#ifdef STRUCTURED_GRIDS
-            const int thread = omp_get_thread_num();
-            const int total_threads = omp_get_max_threads();
-            const int thread_offset = (sinfo->padded_total_length()) * thread / total_threads;
-            return thread_offset;
-#else
-            using grid_traits_t = GridTraits;
-            // get the thread ID
-            const uint_t i = processing_element_i();
-            // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at<grid_traits_t::dim_i_t::value>();
-            // compute the blocksize
-            constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
-            // return the field offset
-            const int stride_i = sinfo->template stride<grid_traits_t::dim_i_t::value>();
-            return stride_i * (i * blocksize + halo_i);
-#endif
-        }
-
-        /**
-           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
-           storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
-           the offset of this pointer. This function computes the field offset for non temporary storages.
-        */
-        template <typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo>
-        static typename boost::enable_if_c<!Arg::is_temporary, int>::type fields_offset(StorageInfo const *sinfo) {
-            return 0;
-        }
 
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
@@ -208,11 +126,6 @@ namespace gridtools {
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_mic<BackendIds::s_strategy_id> type;
-        };
-
-        template <enumtype::strategy StrategyId>
-        struct get_block_size {
-            typedef typename strategy_from_id_mic<StrategyId>::block_size_t type;
         };
 
         /**

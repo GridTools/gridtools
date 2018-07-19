@@ -45,7 +45,6 @@ namespace gridtools {
         typedef backend_base<BackendId, enumtype::structured, StrategyType> base_t;
 
         using typename base_t::backend_traits_t;
-        using typename base_t::grid_traits_t;
         using typename base_t::strategy_traits_t;
     };
 

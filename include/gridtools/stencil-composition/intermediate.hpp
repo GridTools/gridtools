@@ -60,6 +60,7 @@
 #include "backend_traits_fwd.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "conditionals/condition_tree.hpp"
+#include "coordinate.hpp"
 #include "esf.hpp"
 #include "functor_do_method_lookup_maps.hpp"
 #include "functor_do_methods.hpp"
@@ -73,7 +74,7 @@
 #include "mss_local_domain.hpp"
 #include "reductions/reduction_data.hpp"
 #include "storage_wrapper.hpp"
-#include "wrap_type.hpp"
+#include "tile.hpp"
 
 #include "computation_grammar.hpp"
 #include "extract_placeholders.hpp"
@@ -111,10 +112,10 @@ namespace gridtools {
         using type = typename _impl::get_view<typename get_data_store_from_arg<Placeholder>::type>::type;
     };
 
-    template <typename Backend, typename Placeholders, typename MssComponentsArray>
+    template <typename Placeholders, typename MssComponentsArray>
     struct create_storage_wrapper_list {
         // handle all tmps, obtain the storage_wrapper_list for written tmps
-        typedef typename _impl::obtain_storage_wrapper_list_t<Backend, Placeholders, MssComponentsArray>::type all_tmps;
+        typedef typename _impl::obtain_storage_wrapper_list_t<Placeholders, MssComponentsArray>::type all_tmps;
 
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
@@ -123,7 +124,7 @@ namespace gridtools {
         typedef typename boost::mpl::transform_view<Placeholders,
             boost::mpl::if_<is_tmp_arg<boost::mpl::_>,
                 storage_wrapper_elem<boost::mpl::_, all_tmps>,
-                storage_wrapper<boost::mpl::_, create_view<boost::mpl::_>, tile<0, 0, 0>, tile<0, 0, 0>>>>::type
+                storage_wrapper<boost::mpl::_, create_view<boost::mpl::_>, tile<0, 0>, tile<0, 0>>>>::type
             complete_list;
         // filter the list
         typedef typename boost::mpl::filter_view<complete_list, is_storage_wrapper<boost::mpl::_1>>::type filtered_list;
@@ -200,7 +201,7 @@ namespace gridtools {
             return true;
         }
 
-        template <class GridTraits, class Grid>
+        template <class Backend, class Grid>
         struct storage_info_fits_grid_f {
             Grid const &grid;
 
@@ -223,9 +224,9 @@ namespace gridtools {
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                return storage_info_dim_fits<GridTraits::dim_k_t::value>(src, grid.k_max()) &&
-                       storage_info_dim_fits<GridTraits::dim_j_t::value>(src, grid.j_high_bound()) &&
-                       storage_info_dim_fits<GridTraits::dim_i_t::value>(src, grid.i_high_bound());
+                return storage_info_dim_fits<coord_k<Backend>::value>(src, grid.k_max()) &&
+                       storage_info_dim_fits<coord_j<Backend>::value>(src, grid.j_high_bound()) &&
+                       storage_info_dim_fits<coord_i<Backend>::value>(src, grid.i_high_bound());
             }
         };
 
@@ -237,8 +238,8 @@ namespace gridtools {
      *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
      *   \tparam Grid The Grid
      */
-    template <class GridTraits, class Grid>
-    _impl::storage_info_fits_grid_f<GridTraits, Grid> storage_info_fits_grid(Grid const &grid) {
+    template <class BackendIds, class Grid>
+    _impl::storage_info_fits_grid_f<BackendIds, Grid> storage_info_fits_grid(Grid const &grid) {
         return {grid};
     }
 
@@ -340,8 +341,8 @@ namespace gridtools {
         typedef convert_to_mss_components_array_t<all_mss_descriptors_t> mss_components_array_t;
 
         // create storage_wrapper_list
-        typedef typename create_storage_wrapper_list<Backend, placeholders_t, mss_components_array_t>::type
-            storage_wrapper_list_t;
+        typedef
+            typename create_storage_wrapper_list<placeholders_t, mss_components_array_t>::type storage_wrapper_list_t;
 
         // get the maximum extent (used to retrieve the size of the temporaries)
         typedef typename max_i_extent_from_storage_wrapper_list<storage_wrapper_list_t>::type max_i_extent_t;
@@ -407,17 +408,12 @@ namespace gridtools {
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               // that ensures, that only
-              m_tmp_arg_storage_pair_tuple(dedup_storage_info(_impl::make_tmp_arg_storage_pairs<max_i_extent_t,
-                  Backend,
-                  storage_wrapper_list_t,
-                  tmp_arg_storage_pair_tuple_t>(grid))),
+              m_tmp_arg_storage_pair_tuple(dedup_storage_info(
+                  _impl::make_tmp_arg_storage_pairs<max_i_extent_t, Backend, tmp_arg_storage_pair_tuple_t>(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
                 m_meter.reset(new performance_meter_t{"NoName"});
-
-            // check_grid_against_extents< all_extents_vecs_t >(grid);
-            // check_fields_sizes< grid_traits_t >(grid, domain);
 
             // Here we make views (actually supplemental view_info structures are made) from both temporary and bound
             // storages, concatenate them together and pass to `update_local_domains`
