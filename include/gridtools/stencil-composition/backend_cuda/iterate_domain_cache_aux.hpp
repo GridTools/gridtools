@@ -52,9 +52,17 @@ namespace gridtools {
 
     namespace _impl {
 
+        /**
+         * @brief Performs cache fill and flush operations from and to main memory.
+         * @tparam CacheIOPolicy fill or flush
+         * @tparam AccIndex accessor index
+         * @tparam BaseOffset base offset along k-axis
+         * @tparam IterateDomain iterate domain to access main device memory
+         * @tparam CacheStorage cache storage to use
+         */
         template <cache_io_policy CacheIOPolicy,
             typename AccIndex,
-            int_t InitialOffset,
+            int_t BaseOffset,
             typename IterateDomain,
             typename CacheStorage>
         struct io_operator {
@@ -63,14 +71,19 @@ namespace gridtools {
 
             template <typename Offset>
             GT_FUNCTION void operator()(Offset) const {
-                constexpr int_t offset = (int_t)Offset::value + InitialOffset;
+                constexpr int_t offset = BaseOffset + (int_t)Offset::value;
+
                 using acc_t = accessor<AccIndex::value, enumtype::inout, extent<0, 0, 0, 0, offset, offset>>;
                 constexpr acc_t acc(0, 0, offset);
-                if (m_it_domain.in_gmem_bounds(acc)) {
+
+                // perform an out-of-bounds check
+                auto mem_ptr = m_it_domain.get_gmem_ptr_in_bounds(acc);
+                if (mem_ptr) {
+                    // fill or flush cache
                     if (CacheIOPolicy == cache_io_policy::fill)
-                        m_cache_storage.at(acc) = m_it_domain.get_gmem_value(acc);
+                        m_cache_storage.at(acc) = *mem_ptr;
                     else
-                        m_it_domain.get_gmem_value(acc) = m_cache_storage.at(acc);
+                        *mem_ptr = m_cache_storage.at(acc);
                 }
             }
 
@@ -80,32 +93,19 @@ namespace gridtools {
 
         template <cache_io_policy CacheIOPolicy,
             typename AccIndex,
-            int_t InitialOffset,
+            int_t BaseOffset,
             typename IterateDomain,
             typename CacheStorage>
-        GT_FUNCTION io_operator<CacheIOPolicy, AccIndex, InitialOffset, IterateDomain, CacheStorage> make_io_operator(
+        GT_FUNCTION io_operator<CacheIOPolicy, AccIndex, BaseOffset, IterateDomain, CacheStorage> make_io_operator(
             IterateDomain const &it_domain, CacheStorage &cache_storage) {
             return {it_domain, cache_storage};
         }
 
         template <typename CacheStorage>
-        GT_FUNCTION constexpr int_t clamp_to_storage_krange(int_t index) {
+        GT_FUNCTION constexpr int_t clamp_to_cache_krange(int_t index) {
             return index < CacheStorage::kminus_t::value
                        ? CacheStorage::kminus_t::value
                        : index > CacheStorage::kplus_t::value ? CacheStorage::kplus_t::value : index;
-        }
-
-        enum class cache_section { head, tail };
-
-        /**
-         * compute the section of the kcache that is at the front according to the iteration policy
-         */
-        template <typename IterationPolicy>
-        GT_FUNCTION constexpr cache_section compute_kcache_front(cache_io_policy cache_io_policy_) {
-            return ((IterationPolicy::value == enumtype::backward) && (cache_io_policy_ == cache_io_policy::fill) ||
-                       ((IterationPolicy::value == enumtype::forward) && (cache_io_policy_ == cache_io_policy::flush)))
-                       ? cache_section::tail
-                       : cache_section::head;
         }
 
         /**
@@ -117,16 +117,22 @@ namespace gridtools {
          * @tparam IterationPolicy: forward, backward
          * @tparam Grid grid type
          * @tparam CacheIOPolicy the cache io policy: fill, flush
+         * @tparam AtBeginOrEndPoint true if the performed operation is performed at a cache begin- or endpoint
          */
         template <typename KCachesTuple,
             typename KCachesMap,
             typename IterateDomain,
             typename IterationPolicy,
             cache_io_policy CacheIOPolicy,
-            bool Endpoint = false>
+            bool AtBeginOrEndPoint = false>
         struct io_cache_functor {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(
+                IterationPolicy::value == enumtype::forward || IterationPolicy::value == enumtype::backward,
+                "k-caches only support forward and backward iteration");
+            GRIDTOOLS_STATIC_ASSERT(CacheIOPolicy == cache_io_policy::fill || CacheIOPolicy == cache_io_policy::flush,
+                "io policy must be either fill or flush");
 
             GT_FUNCTION
             io_cache_functor(IterateDomain const &it_domain, KCachesTuple &kcaches, const int_t klevel)
@@ -143,34 +149,50 @@ namespace gridtools {
                 using window_t = typename std::conditional<is_window<typename kcache_t::kwindow_t>::value,
                     typename kcache_t::kwindow_t,
                     window<0, 0>>::type;
-                GRIDTOOLS_STATIC_ASSERT(((IterationPolicy::value != enumtype::parallel) ||
-                                            (kcache_t::ccacheIOPolicy != cache_io_policy::bpfill &&
-                                                kcache_t::ccacheIOPolicy != cache_io_policy::epflush)),
-                    "bpfill and epflush policies can not be used with a kparallel iteration strategy");
 
-                constexpr bool tail = compute_kcache_front<IterationPolicy>(CacheIOPolicy) == cache_section::tail;
-                constexpr int_t endpoint_flush_offset = (CacheIOPolicy == cache_io_policy::fill)
-                                                            ? 0
-                                                            : (IterationPolicy::value == enumtype::forward) ? -1 : 1;
+                // shortcurts for forward backward iteration policy
+                constexpr bool forward = IterationPolicy::value == enumtype::forward;
+                constexpr bool backward = !forward;
 
-                auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
+                // shortcuts for fill and flush io policy
+                constexpr bool fill = CacheIOPolicy == cache_io_policy::fill;
+                constexpr bool flush = !fill;
 
+                // `tail` is true if we have to fill or flush the tail (kminus side) of the cache, false if we have to
+                // fill or flush the head (kplus side) of the cache.
+                constexpr bool tail = (backward && fill) || (forward && flush);
+
+                // lowest index in cache storage
                 constexpr int_t kminus = kcache_storage_t::kminus_t::value;
+                // highest index in cache storage
                 constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
-                constexpr int_t endpoint_sync_start =
-                    clamp_to_storage_krange<kcache_storage_t>((tail ? kminus : window_t::m_) + endpoint_flush_offset);
-                constexpr int_t endpoint_sync_end =
-                    clamp_to_storage_krange<kcache_storage_t>((tail ? window_t::p_ : kplus) + endpoint_flush_offset);
+                // endpoint flushes happen after the last slide, so we need to use add an additional offset in this case
+                constexpr int_t endpoint_flush_offset = fill ? 0 : forward ? -1 : 1;
 
+                // cache index of first element to sync in case of an (bpfill/epflush) operation
+                // this is only used if `AtBeginOrEndPoint` == true
+                constexpr int_t endpoint_sync_start =
+                    clamp_to_cache_krange<kcache_storage_t>((tail ? kminus : window_t::m_) + endpoint_flush_offset);
+                // cache index of last element to sync in case of an endpoint (bpfill/epflush) operation
+                // this is only used if `AtBeginOrEndPoint` == true
+                constexpr int_t endpoint_sync_end =
+                    clamp_to_cache_krange<kcache_storage_t>((tail ? window_t::p_ : kplus) + endpoint_flush_offset);
+
+                // cache index (single element) in case of a center (normal fill/flush) operation
+                // this is only used if `AtBeginOrEndPoint` == false
                 constexpr int_t center_sync_point = tail ? kminus : kplus;
 
-                constexpr int_t sync_start = Endpoint ? endpoint_sync_start : center_sync_point;
-                constexpr int_t sync_end = Endpoint ? endpoint_sync_end : center_sync_point;
+                // select correct sync range according to this cache_io_functor type
+                constexpr int_t sync_start = AtBeginOrEndPoint ? endpoint_sync_start : center_sync_point;
+                constexpr int_t sync_end = AtBeginOrEndPoint ? endpoint_sync_end : center_sync_point;
 
+                // number of elements to sync with main memory
                 constexpr uint_t sync_size = (uint_t)(sync_end - sync_start + 1);
 
+                // perform synchronization for the given range
                 using range = GT_META_CALL(meta::make_indices_c, sync_size);
+                auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
                 gridtools::for_each<range>(make_io_operator<CacheIOPolicy, Idx, sync_start>(m_it_domain, cache_st));
             }
         };

@@ -442,14 +442,25 @@ namespace gridtools {
         }
 
         template <typename Accessor, typename = typename boost::enable_if_c<is_accessor<Accessor>::type::value>::type>
-        GT_FUNCTION bool in_gmem_bounds(Accessor const &accessor) const {
+        GT_FUNCTION typename get_arg_value_type_from_accessor<Accessor, IterateDomainArguments>::type *
+        get_gmem_ptr_in_bounds(Accessor const &accessor) const {
+            using return_t = typename accessor_return_type<Accessor>::type;
+            using data_t = typename get_arg_value_type_from_accessor<Accessor, IterateDomainArguments>::type;
             using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
             using storage_info_index_t = typename meta::st_position<typename local_domain_t::storage_info_ptr_list,
                 storage_info_t const *>::type;
 
+            data_t *RESTRICT real_storage_pointer = static_cast<data_t *>(get_data_pointer(accessor));
+
+            // control your instincts: changing the following
+            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset = get_pointer_offset(accessor);
-            return pointer_oob_check(
-                boost::fusion::at<storage_info_index_t>(local_domain.m_local_storage_info_ptrs), pointer_offset);
+            if (pointer_oob_check(
+                    boost::fusion::at<storage_info_index_t>(local_domain.m_local_storage_info_ptrs), pointer_offset)) {
+                return real_storage_pointer + pointer_offset;
+            } else {
+                return nullptr;
+            }
         }
 
         /**
