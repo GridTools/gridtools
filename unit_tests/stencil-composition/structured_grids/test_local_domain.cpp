@@ -45,7 +45,6 @@
 #include <boost/mpl/vector.hpp>
 #include <gtest/gtest.h>
 
-#include <gridtools/backend_host.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/generic_metafunctions/meta.hpp>
 #include <gridtools/common/host_device.hpp>
@@ -74,13 +73,13 @@ struct dummy_functor {
     GT_FUNCTION static void Do(Evaluation &eval);
 };
 
-typedef backend<platform_host, GRIDBACKEND, Naive> backend_t;
+typedef backend<enumtype::platform_host, enumtype::GRIDBACKEND, enumtype::strategy_naive> backend_t;
 typedef layout_map<2, 1, 0> layout_ijk_t;
 typedef layout_map<0, 1, 2> layout_kji_t;
 typedef host_storage_info<0, layout_ijk_t> meta_ijk_t;
 typedef host_storage_info<0, layout_kji_t> meta_kji_t;
-typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, meta_ijk_t> storage_t;
-typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, meta_kji_t> storage_buff_t;
+typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_ijk_t> storage_t;
+typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_kji_t> storage_buff_t;
 
 typedef arg<0, storage_t> p_in;
 typedef arg<1, storage_buff_t> p_buff;
@@ -88,7 +87,7 @@ typedef arg<2, storage_t> p_out;
 
 typedef intermediate<1,
     false,
-    backend<platform_host, GRIDBACKEND, Naive>,
+    backend<enumtype::platform_host, enumtype::GRIDBACKEND, enumtype::strategy_naive>,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor

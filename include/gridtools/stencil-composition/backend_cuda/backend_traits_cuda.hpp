@@ -116,7 +116,7 @@ namespace gridtools {
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_cuda<BackendIds::s_strategy_id> type;
+            typedef strategy_from_id_cuda<BackendIds::strategy_id_t> type;
         };
 
         template <typename IterateDomainArguments>

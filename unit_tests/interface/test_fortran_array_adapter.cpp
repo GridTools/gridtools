@@ -40,11 +40,10 @@
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-#include <gridtools/backend_host.hpp>
-
-using IJKStorageInfo = typename gridtools::storage_traits<gridtools::platform_host>::storage_info_t<0, 3>;
+using IJKStorageInfo = typename gridtools::storage_traits<gridtools::enumtype::platform_host>::storage_info_t<0, 3>;
 using IJKDataStore =
-    typename gridtools::storage_traits<gridtools::platform_host>::data_store_t<gridtools::float_type, IJKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::enumtype::platform_host>::data_store_t<gridtools::float_type,
+        IJKStorageInfo>;
 
 TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;

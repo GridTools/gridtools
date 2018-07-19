@@ -40,7 +40,7 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-    template <class BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyType>
+    template <class BackendId, class GridId, class StrategyType>
     struct backend;
 
     // traits for backend

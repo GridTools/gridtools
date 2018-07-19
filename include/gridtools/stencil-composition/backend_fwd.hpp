@@ -38,6 +38,6 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-    template <class BackendType, enumtype::grid_type GridType, enumtype::strategy StrategyType>
+    template <class BackendType, class GridType, class StrategyType>
     struct backend;
 }

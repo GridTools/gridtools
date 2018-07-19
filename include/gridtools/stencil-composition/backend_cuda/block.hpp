@@ -35,18 +35,19 @@
 */
 #pragma once
 
-#include "../../backend_cuda.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../backend_ids.hpp"
 
 namespace gridtools {
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<platform_cuda, GridType, enumtype::Block> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_i_size(
+        backend_ids<enumtype::platform_cuda, GridType, enumtype::strategy_block> const &) {
         return GT_DEFAULT_TILE_I;
     }
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<platform_cuda, GridType, enumtype::Block> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_j_size(
+        backend_ids<enumtype::platform_cuda, GridType, enumtype::strategy_block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 } // namespace gridtools

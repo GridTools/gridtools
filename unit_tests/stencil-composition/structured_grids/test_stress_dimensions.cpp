@@ -45,15 +45,15 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-using layout_map_t = typename boost::conditional<std::is_same<backend_t::s_backend_id, gridtools::platform_host>::value,
+using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, enumtype::platform_host>::value,
     layout_map<3, 4, 5, 0, 1, 2>,
     layout_map<5, 4, 3, 2, 1, 0>>::type;
 using layout_map_global_quad_t =
-    typename boost::conditional<std::is_same<backend_t::s_backend_id, platform_host>::value,
+    typename boost::conditional<std::is_same<backend_t::backend_id_t, enumtype::platform_host>::value,
         layout_map<1, 2, 3, 0>,
         layout_map<3, 2, 1, 0>>::type;
 using layout_map_local_quad_t =
-    typename boost::conditional<std::is_same<backend_t::s_backend_id, gridtools::platform_host>::value,
+    typename boost::conditional<std::is_same<backend_t::backend_id_t, enumtype::platform_host>::value,
         layout_map<-1, -1, -1, 1, 2, 3, 0>,
         layout_map<-1, -1, -1, 3, 2, 1, 0>>::type;
 

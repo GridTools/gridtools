@@ -177,11 +177,17 @@ namespace gridtools {
            @section enumtypes Gridtools enumeration types
            @{
          */
+        struct platform_cuda {};
+        struct platform_host {};
+        struct platform_mic {};
 
-        enum strategy { Naive, Block };
+        /** tags specifying the strategy to use */
+        struct strategy_naive {};
+        struct strategy_block {};
 
-        /** enum specifying the type of grid to use */
-        enum grid_type { structured, icosahedral };
+        /** tags specifying the type of grid to use */
+        struct grid_structured {};
+        struct grid_icosahedral {};
 
         /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
         template <typename EnumType, EnumType T>
@@ -232,9 +238,9 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND structured
+#define GRIDBACKEND grid_structured
 #else
-#define GRIDBACKEND icosahedral
+#define GRIDBACKEND grid_icosahedral
 #endif
 
     template <typename T>

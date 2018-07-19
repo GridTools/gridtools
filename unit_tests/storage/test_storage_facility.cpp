@@ -39,9 +39,6 @@
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits.hpp>
 
-#include <gridtools/backend_cuda.hpp>
-#include <gridtools/backend_host.hpp>
-#include <gridtools/backend_mic.hpp>
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
@@ -56,8 +53,8 @@ struct static_type_tests {
 
 #ifdef __CUDACC__
 // static type tests for Cuda backend
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_type_tests<backend<gridtools::platform_cuda, GridBackend, Strategy>> {
+template <class GridBackend, class Strategy>
+struct static_type_tests<backend<platform_cuda, GridBackend, Strategy>> {
     using storage_traits_t = storage_traits<gridtools::platform_cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
@@ -99,9 +96,9 @@ struct static_type_tests<backend<gridtools::platform_cuda, GridBackend, Strategy
 #endif
 
 // static type tests for Mic backend
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_type_tests<backend<gridtools::platform_mic, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<gridtools::platform_mic>;
+template <class GridBackend, class Strategy>
+struct static_type_tests<backend<enumtype::platform_mic, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<enumtype::platform_mic>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -153,9 +150,9 @@ struct static_type_tests<backend<gridtools::platform_mic, GridBackend, Strategy>
 };
 
 // static type tests for Host backend
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_type_tests<backend<gridtools::platform_host, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<gridtools::platform_host>;
+template <class GridBackend, class Strategy>
+struct static_type_tests<backend<enumtype::platform_host, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<enumtype::platform_host>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -207,9 +204,9 @@ __global__ void kernel(View v) {
 #endif
 
 TEST(StorageFacility, ViewTests) {
-    typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_ty;
-    typedef storage_traits<backend_t::s_backend_id>::data_store_t<double, storage_info_ty> data_store_t;
-    typedef storage_traits<backend_t::s_backend_id>::data_store_field_t<double, storage_info_ty, 1, 2, 3>
+    typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_ty;
+    typedef storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_ty> data_store_t;
+    typedef storage_traits<backend_t::backend_id_t>::data_store_field_t<double, storage_info_ty, 1, 2, 3>
         data_store_field_t;
 
     // create a data_store_t
@@ -548,37 +545,37 @@ struct static_layout_tests {
 };
 
 #ifdef __CUDACC__
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_layout_tests<backend<gridtools::platform_cuda, GridBackend, Strategy>>
-    : static_layout_tests_decreasing<gridtools::platform_cuda> {};
+template <class GridBackend, class Strategy>
+struct static_layout_tests<backend<enumtype::platform_cuda, GridBackend, Strategy>>
+    : static_layout_tests_decreasing<enumtype::platform_cuda> {};
 #endif
 
 #ifdef STRUCTURED_GRIDS
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_layout_tests<backend<gridtools::platform_mic, GridBackend, Strategy>>
-    : static_layout_tests_decreasing_swappedxy<gridtools::platform_mic> {};
+template <class GridBackend, class Strategy>
+struct static_layout_tests<backend<enumtype::platform_mic, GridBackend, Strategy>>
+    : static_layout_tests_decreasing_swappedxy<enumtype::platform_mic> {};
 #else
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_layout_tests<backend<gridtools::platform_mic, GridBackend, Strategy>>
-    : static_layout_tests_increasing<gridtools::platform_mic> {};
+template <class GridBackend, class Strategy>
+struct static_layout_tests<backend<enumtype::platform_mic, GridBackend, Strategy>>
+    : static_layout_tests_increasing<enumtype::platform_mic> {};
 #endif
 
-template <enumtype::grid_type GridBackend, enumtype::strategy Strategy>
-struct static_layout_tests<backend<gridtools::platform_host, GridBackend, Strategy>>
-    : static_layout_tests_increasing<gridtools::platform_host> {};
+template <class GridBackend, class Strategy>
+struct static_layout_tests<backend<enumtype::platform_host, GridBackend, Strategy>>
+    : static_layout_tests_increasing<enumtype::platform_host> {};
 
 template class static_layout_tests<backend_t>;
 
 TEST(StorageFacility, CustomLayoutTests) {
     typedef
-        typename storage_traits<backend_t::s_backend_id>::custom_layout_storage_info_t<0, layout_map<2, 1, 0>>::layout_t
+        typename storage_traits<backend_t::backend_id_t>::custom_layout_storage_info_t<0, layout_map<2, 1, 0>>::layout_t
             layout3_t;
     typedef
-        typename storage_traits<backend_t::s_backend_id>::custom_layout_storage_info_t<0, layout_map<1, 0>>::layout_t
+        typename storage_traits<backend_t::backend_id_t>::custom_layout_storage_info_t<0, layout_map<1, 0>>::layout_t
             layout2_t;
-    typedef typename storage_traits<backend_t::s_backend_id>::custom_layout_storage_info_t<0, layout_map<0>>::layout_t
+    typedef typename storage_traits<backend_t::backend_id_t>::custom_layout_storage_info_t<0, layout_map<0>>::layout_t
         layout1_t;
-    typedef typename storage_traits<backend_t::s_backend_id>::custom_layout_storage_info_t<0,
+    typedef typename storage_traits<backend_t::backend_id_t>::custom_layout_storage_info_t<0,
         layout_map<2, -1, 1, 0>>::layout_t layout4_t;
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<layout3_t, layout_map<2, 1, 0>>::value), "layout type is wrong");
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<layout2_t, layout_map<1, 0>>::value), "layout type is wrong");

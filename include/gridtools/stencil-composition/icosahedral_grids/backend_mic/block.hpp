@@ -35,18 +35,17 @@
 */
 #pragma once
 
-#include "../../../backend_mic.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
 #include "../../backend_ids.hpp"
 
 namespace gridtools {
     GT_FUNCTION constexpr uint_t block_i_size(
-        backend_ids<platform_mic, enumtype::icosahedral, enumtype::Block> const &) {
+        backend_ids<enumtype::platform_mic, enumtype::grid_icosahedral, enumtype::strategy_block> const &) {
         return GT_DEFAULT_TILE_I;
     }
     GT_FUNCTION constexpr uint_t block_j_size(
-        backend_ids<platform_mic, enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &) {
+        backend_ids<enumtype::platform_mic, enumtype::grid_icosahedral, enumtype::strategy_block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 } // namespace gridtools

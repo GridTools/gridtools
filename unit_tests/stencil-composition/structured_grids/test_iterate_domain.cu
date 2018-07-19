@@ -57,10 +57,10 @@ namespace test_iterate_domain {
     typedef gridtools::cuda_storage_info<0, layout_kji_t> meta_kji_t;
     typedef gridtools::cuda_storage_info<0, layout_ij_t> meta_ij_t;
 
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, meta_ijk_t> storage_t;
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, meta_kji_t> storage_buff_t;
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, meta_ij_t> storage_out_t;
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<bool, meta_ij_t> storage_bool_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_ijk_t> storage_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_kji_t> storage_buff_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_ij_t> storage_out_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<bool, meta_ij_t> storage_bool_t;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {

@@ -36,7 +36,6 @@
 
 #pragma once
 
-#include "../backend_mic.hpp"
 #include "../common/gt_assert.hpp"
 #include "../common/selector.hpp"
 #include "./common/definitions.hpp"
@@ -64,7 +63,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Mic backend*/
     template <>
-    struct storage_traits_from_id<platform_mic> {
+    struct storage_traits_from_id<enumtype::platform_mic> {
 
         template <typename ValueType>
         struct select_storage {

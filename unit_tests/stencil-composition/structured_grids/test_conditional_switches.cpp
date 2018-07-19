@@ -81,8 +81,8 @@ namespace test_conditional_switches {
 
         auto grid_ = make_grid(1, 1, 2);
 
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>
             data_store_t;
 
         storage_info_t meta_data_(8, 8, 8);

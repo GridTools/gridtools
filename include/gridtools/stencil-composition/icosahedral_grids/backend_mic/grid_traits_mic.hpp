@@ -35,7 +35,6 @@
 */
 #pragma once
 
-#include "../../../backend_mic.hpp"
 #include "../../../common/defs.hpp"
 #include "../../backend_ids.hpp"
 #include "../../grid_traits_fwd.hpp"
@@ -43,7 +42,9 @@
 
 namespace gridtools {
     template <class Args>
-    struct kernel_functor_executor<backend_ids<platform_mic, enumtype::icosahedral, enumtype::Block>, Args> {
+    struct kernel_functor_executor<
+        backend_ids<enumtype::platform_mic, enumtype::grid_icosahedral, enumtype::strategy_block>,
+        Args> {
         using type = icgrid::execute_kernel_functor_mic<Args>;
     };
 } // namespace gridtools

@@ -107,7 +107,7 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
         typedef iterate_domain_reduction<iterate_domain_arguments_t> iterate_domain_reduction_t;
         typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
-        typedef backend_traits_from_id<typename iterate_domain_arguments_t::backend_ids_t::s_backend_id>
+        typedef backend_traits_from_id<typename iterate_domain_arguments_t::backend_ids_t::backend_id_t>
             backend_traits_t;
         typedef typename backend_traits_t::template select_iterate_domain_cache<iterate_domain_arguments_t>::type
             iterate_domain_cache_t;

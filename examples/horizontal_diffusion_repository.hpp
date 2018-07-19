@@ -41,7 +41,7 @@
 
 namespace horizontal_diffusion {
 
-    using storage_tr = gridtools::storage_traits<backend_t::s_backend_id>;
+    using storage_tr = gridtools::storage_traits<backend_t::backend_id_t>;
 
     using gridtools::int_t;
     using gridtools::uint_t;

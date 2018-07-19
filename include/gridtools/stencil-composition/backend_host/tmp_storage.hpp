@@ -38,75 +38,86 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 
-#include "../../backend_host.hpp"
 #include "../backend_ids.hpp"
 #include "../coordinate.hpp"
 
 namespace gridtools {
     namespace tmp_storage {
-        // Naive specialisations
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
-        uint_t get_i_size(
-            backend_ids<platform_host, GridType, enumtype::Naive> const &, uint_t /*block_size*/, uint_t total_size) {
+        // strategy_naive specialisations
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
+        uint_t get_i_size(backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &,
+            uint_t /*block_size*/,
+            uint_t total_size) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_i<backend_ids<platform_host, GridType, enumtype::Naive>>::value>();
+                coord_i<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive>>::value>();
             return total_size + 2 * halo;
         }
 
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
         GT_FUNCTION int_t get_i_block_offset(
-            backend_ids<platform_host, GridType, enumtype::Naive> const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+            backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &,
+            uint_t /*block_size*/,
+            uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_i<backend_ids<platform_host, GridType, enumtype::Naive>>::value>();
+                coord_i<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive>>::value>();
             return halo;
         }
 
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
-        uint_t get_j_size(
-            backend_ids<platform_host, GridType, enumtype::Naive> const &, uint_t /*block_size*/, uint_t total_size) {
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
+        uint_t get_j_size(backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &,
+            uint_t /*block_size*/,
+            uint_t total_size) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_j<backend_ids<platform_host, GridType, enumtype::Naive>>::value>();
+                coord_j<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive>>::value>();
             return total_size + 2 * halo;
         }
 
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
         GT_FUNCTION int_t get_j_block_offset(
-            backend_ids<platform_host, GridType, enumtype::Naive> const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+            backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &,
+            uint_t /*block_size*/,
+            uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_j<backend_ids<platform_host, GridType, enumtype::Naive>>::value>();
+                coord_j<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive>>::value>();
             return halo;
         }
 
         // Block specialisations
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
-        uint_t get_i_size(
-            backend_ids<platform_host, GridType, enumtype::Block> const &, uint_t block_size, uint_t /*total_size*/) {
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
+        uint_t get_i_size(backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block> const &,
+            uint_t block_size,
+            uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_i<backend_ids<platform_host, GridType, enumtype::Block>>::value>();
+                coord_i<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block>>::value>();
             return (block_size + 2 * halo) * omp_get_max_threads();
         }
 
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
         GT_FUNCTION int_t get_i_block_offset(
-            backend_ids<platform_host, GridType, enumtype::Block> const &, uint_t block_size, uint_t /*block_no*/) {
+            backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block> const &,
+            uint_t block_size,
+            uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_i<backend_ids<platform_host, GridType, enumtype::Block>>::value>();
+                coord_i<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block>>::value>();
             return (block_size + 2 * halo) * omp_get_thread_num() + halo;
         }
 
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
-        uint_t get_j_size(
-            backend_ids<platform_host, GridType, enumtype::Block> const &, uint_t block_size, uint_t /*total_size*/) {
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
+        uint_t get_j_size(backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block> const &,
+            uint_t block_size,
+            uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_j<backend_ids<platform_host, GridType, enumtype::Block>>::value>();
+                coord_j<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block>>::value>();
             return block_size + 2 * halo;
         }
 
-        template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>
+        template <class StorageInfo, class /*MaxExtent*/, class GridType>
         GT_FUNCTION int_t get_j_block_offset(
-            backend_ids<platform_host, GridType, enumtype::Block> const &, uint_t /*block_size*/, uint_t /*block_no*/) {
+            backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block> const &,
+            uint_t /*block_size*/,
+            uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<
-                coord_j<backend_ids<platform_host, GridType, enumtype::Block>>::value>();
+                coord_j<backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block>>::value>();
             return halo;
         }
     } // namespace tmp_storage

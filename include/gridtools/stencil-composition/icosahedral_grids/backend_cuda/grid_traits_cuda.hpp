@@ -42,7 +42,9 @@
 
 namespace gridtools {
     template <class Args>
-    struct kernel_functor_executor<backend_ids<platform_cuda, enumtype::icosahedral, enumtype::Block>, Args> {
+    struct kernel_functor_executor<
+        backend_ids<enumtype::platform_cuda, enumtype::grid_icosahedral, enumtype::strategy_block>,
+        Args> {
         using type = icgrid::execute_kernel_functor_cuda<Args>;
     };
 } // namespace gridtools

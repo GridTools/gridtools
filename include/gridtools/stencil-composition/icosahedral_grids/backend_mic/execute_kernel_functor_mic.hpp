@@ -164,7 +164,7 @@ namespace gridtools {
 
                 using iterate_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
 
-                typedef backend_traits_from_id<platform_mic> backend_traits_t;
+                typedef backend_traits_from_id<enumtype::platform_mic> backend_traits_t;
 
                 typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;

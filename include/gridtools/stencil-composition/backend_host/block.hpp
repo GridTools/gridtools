@@ -35,38 +35,43 @@
 */
 #pragma once
 
-#include "../../backend_host.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../backend_ids.hpp"
 #include "../grid.hpp"
 
 namespace gridtools {
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<platform_host, GridType, enumtype::Block> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_i_size(
+        backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block> const &) {
         return GT_DEFAULT_TILE_I;
     }
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<platform_host, GridType, enumtype::Block> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_j_size(
+        backend_ids<enumtype::platform_host, GridType, enumtype::strategy_block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<platform_host, GridType, enumtype::Naive> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_i_size(
+        backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &) {
         return 0;
     }
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<platform_host, GridType, enumtype::Naive> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_j_size(
+        backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &) {
         return 0;
     }
 
-    template <enumtype::grid_type GridType, class Grid>
-    uint_t block_i_size(backend_ids<platform_host, GridType, enumtype::Naive> const &, Grid const &grid) {
+    template <class GridType, class Grid>
+    uint_t block_i_size(
+        backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.i_high_bound() - grid.i_low_bound() + 1;
     }
-    template <enumtype::grid_type GridType, class Grid>
-    uint_t block_j_size(backend_ids<platform_host, GridType, enumtype::Naive> const &, Grid const &grid) {
+    template <class GridType, class Grid>
+    uint_t block_j_size(
+        backend_ids<enumtype::platform_host, GridType, enumtype::strategy_naive> const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.j_high_bound() - grid.j_low_bound() + 1;
     }

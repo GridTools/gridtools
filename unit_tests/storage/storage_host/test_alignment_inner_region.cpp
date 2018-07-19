@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/backend_host.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/storage_info_extender.hpp>
 #include <gridtools/storage/storage-facility.hpp>
@@ -53,7 +52,7 @@ void run() {
     constexpr gt::uint_t h2 = 4;
     constexpr gt::uint_t h3 = 5;
     using info = gt::host_storage_info<0, Layout, gt::halo<h1, h2, h3>, gt::alignment<a>>;
-    using store = gt::storage_traits<gridtools::platform_host>::data_store_t<ValueType, info>;
+    using store = gt::storage_traits<gridtools::enumtype::platform_host>::data_store_t<ValueType, info>;
 
     info i(12, 34, 12);
     store s(i);
@@ -77,7 +76,7 @@ void run_multi() {
     constexpr gt::uint_t h2 = 4;
     constexpr gt::uint_t h3 = 5;
     using info = gt::host_storage_info<0, Layout, gt::halo<h1, h2, h3>, gt::alignment<a>>;
-    using store = gt::storage_traits<gridtools::platform_host>::data_store_t<ValueType, info>;
+    using store = gt::storage_traits<gridtools::enumtype::platform_host>::data_store_t<ValueType, info>;
 
     info i(10, 10, 12);
     store s(i, (ValueType)1, "name");

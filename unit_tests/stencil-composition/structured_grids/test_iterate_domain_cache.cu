@@ -57,8 +57,8 @@ using krange1 = axis_t::get_interval<0>;
 using krange2 = axis_t::get_interval<1>::modify<0, -1>;
 using kmaximum = axis_t::full_interval::last_level;
 
-typedef storage_traits<platform_host>::storage_info_t<0, 2> storage_info_ij_t;
-typedef storage_traits<platform_host>::data_store_t<float_type, storage_info_ij_t> storage_type;
+typedef storage_traits<enumtype::platform_host>::storage_info_t<0, 2> storage_info_ij_t;
+typedef storage_traits<enumtype::platform_host>::data_store_t<float_type, storage_info_ij_t> storage_type;
 
 typedef arg<0, storage_type> p_in1;
 typedef arg<1, storage_type> p_in2;

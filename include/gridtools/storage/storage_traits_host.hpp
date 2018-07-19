@@ -36,7 +36,6 @@
 
 #pragma once
 
-#include "../backend_host.hpp"
 #include "../common/gt_assert.hpp"
 #include "../common/selector.hpp"
 #include "./common/definitions.hpp"
@@ -56,7 +55,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Host backend*/
     template <>
-    struct storage_traits_from_id<platform_host> {
+    struct storage_traits_from_id<enumtype::platform_host> {
 
         template <typename ValueType>
         struct select_storage {

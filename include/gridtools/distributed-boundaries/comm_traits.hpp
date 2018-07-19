@@ -60,12 +60,12 @@ namespace gridtools {
     struct comm_traits {
         template <typename GCLArch, typename = void>
         struct compute_arch_of {
-            using type = platform_host;
+            using type = enumtype::platform_host;
         };
 
         template <typename T>
         struct compute_arch_of<gcl_gpu, T> {
-            using type = platform_cuda;
+            using type = enumtype::platform_cuda;
         };
 
         using proc_layout = gridtools::layout_map<0, 1, 2>;
