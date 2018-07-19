@@ -42,14 +42,27 @@
 #include "../boundary-conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
+#ifdef _GCL_MPI_
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
+#else
+#include "./mock_pattern.hpp"
+#endif
+#include "./grid_predicate.hpp"
+
 #include "../gridtools.hpp"
 #include "../stencil-composition/stencil-composition.hpp"
 #include "./bound_bc.hpp"
 
 namespace gridtools {
+
+#ifndef _GCL_MPI_
+    // This provides an processing grid that works on a single process
+    // to be used without periodic boundary conditions, this enables
+    // the grid predicate to work
+    using namespace mock_;
+#endif
 
     namespace _workaround {
         /** \internal Workaround for NVCC that has troubles with tuple_cat */

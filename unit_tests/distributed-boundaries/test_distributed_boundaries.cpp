@@ -37,7 +37,6 @@
 #include "gtest/gtest.h"
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 #include <iomanip>
-#include <mpi.h>
 
 #include <gridtools/distributed-boundaries/comm_traits.hpp>
 #include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
@@ -53,9 +52,9 @@ template <typename View>
 void show_view(View const &view) {
     std::cout << "--------------------------------------------\n";
 
-    std::cout << "lenth-end<i> : " << view.template length<0>() << ":" << view.template total_length<0>() << ", ";
-    std::cout << "lenth-end<j> : " << view.template length<1>() << ":" << view.template total_length<1>() << ", ";
-    std::cout << "lenth-end<k> : " << view.template length<2>() << ":" << view.template total_length<2>() << std::endl;
+    std::cout << "length-end<i> : " << view.template length<0>() << ":" << view.template total_length<0>() << ", ";
+    std::cout << "length-end<j> : " << view.template length<1>() << ":" << view.template total_length<1>() << ", ";
+    std::cout << "length-end<k> : " << view.template length<2>() << ":" << view.template total_length<2>() << std::endl;
 
     std::cout << "i : " << view.template total_begin<0>() << ":" << view.template total_end<0>() << ", ";
     std::cout << "j : " << view.template total_begin<1>() << ":" << view.template total_end<1>() << ", ";
@@ -121,6 +120,14 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length<1>()};
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
+
+#ifndef _GCL_MPI_
+    {
+        // If MPI is not defined, the communication cannot be periodic.
+        // This allows testing without MPI
+        EXPECT_THROW((cabc_t{halos, {false, true, false}, 3, GCL_WORLD}), std::runtime_error);
+    }
+#endif
 
     cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
 

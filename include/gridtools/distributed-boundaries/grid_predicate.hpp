@@ -34,29 +34,21 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "direction.hpp"
 
-/**
-@file
-@brief This file contains the most common predicates used for the boundary condition assignment.
-The predicates identify a regoin given a @ref gridtools::direction and its data members.
-*/
+#include "../boundary-conditions/direction.hpp"
 
 namespace gridtools {
-
-    /** \ingroup Boundary-Conditions
-     * @{
+    /** @brief predicate returning whether I am or not at the global boundary, based on a processor grid
      */
+    template < typename ProcGrid >
+    struct proc_grid_predicate {
+        ProcGrid const &m_grid;
 
-    /** @brief Default predicate that returns always true, so that the boundary conditions are applied everywhere
-     */
-    struct default_predicate {
-        template <typename Direction>
-        bool operator()(Direction) const {
-            return true;
+        proc_grid_predicate(ProcGrid const &g) : m_grid{g} {}
+
+        template < sign I, sign J, sign K >
+        bool operator()(direction< I, J, K >) const {
+            return (m_grid.template proc< I, J, K >() == -1);
         }
     };
-
-    /** @} */
-
-} // namespace gridtools
+}
