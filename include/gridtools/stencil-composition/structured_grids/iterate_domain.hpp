@@ -221,6 +221,7 @@ namespace gridtools {
         */
         template <typename BackendType>
         GT_FUNCTION void assign_storage_pointers() {
+            // TODO remove
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t>{data_pointer()});
         }
@@ -329,9 +330,9 @@ namespace gridtools {
         GT_FUNCTION
             typename boost::disable_if<typename accessor_holds_data_field<Accessor>::type, void * RESTRICT>::type
             get_data_pointer(Accessor const &accessor) const {
-            typedef typename Accessor::index_t index_t;
-            typedef
-                typename local_domain_t::template get_arg<index_t>::type::data_store_t::storage_info_t storage_info_t;
+            using index_t = typename Accessor::index_t;
+            using arg_t = typename local_domain_t::template get_arg<index_t>::type;
+            using storage_info_t = typename arg_t::data_store_t::storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
@@ -342,13 +343,7 @@ namespace gridtools {
             typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
 
-            using arg_t = typename local_domain_t::template get_arg<index_t>::type;
-            //            typename decltype(local_domain.m_local_data_ptrs)::bla tmp;
-            //            typename arg_t::bla tmp;
-
-            //            return data_pointer().template get<index_t::value>()[0];
-
-            return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[0];
+            return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[0]; // TODO descriptive name
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -363,10 +358,10 @@ namespace gridtools {
         GT_FUNCTION typename boost::enable_if<typename accessor_holds_data_field<Accessor>::type, void * RESTRICT>::type
         get_data_pointer(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            typedef typename Accessor::index_t index_t;
-            typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-            typedef typename arg_t::data_store_t data_store_t;
-            typedef typename data_store_t::storage_info_t storage_info_t;
+            using index_t = typename Accessor::index_t;
+            using arg_t = typename local_domain_t::template get_arg<index_t>::type;
+            using data_store_t = typename arg_t::data_store_t;
+            using storage_info_t = typename data_store_t::storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
                 "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
@@ -375,7 +370,8 @@ namespace gridtools {
             const int_t idx = get_datafield_offset<data_store_t>::get(accessor);
             assert(
                 idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
-            return data_pointer().template get<index_t::value>()[idx];
+
+            return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[idx]; // TODO descriptive name
         }
 
         /**@brief helper function that given an input in_ and a tuple t_ calls in_.operator() with the elements of the
@@ -422,7 +418,10 @@ namespace gridtools {
         */
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
-            return *static_cast<Res *>(data_pointer().template get<global_accessor<I>::index_t::value>()[0]);
+            using index_t = typename global_accessor<I>::index_t;
+            using arg_t = typename local_domain_t::template get_arg<index_t>::type;
+            return *static_cast<Res *>(
+                boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[0]); // TODO descriptive name
         }
 
         /** @brief method called in the Do methods of the functors.
