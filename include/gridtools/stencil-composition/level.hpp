@@ -38,31 +38,32 @@
 #include "../common/defs.hpp"
 #include <boost/config.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/copy.hpp>
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/static_assert.hpp>
 
 namespace gridtools {
-    // define the level offset limit
-    const short_t cLevelOffsetLimit = 4; // set to 4 because of the kcache tests
-
     /**
      * @struct Level
      * Structure defining an axis position relative to a splitter
      */
-    template <uint_t VSplitter, int_t VOffset>
+    template <uint_t Splitter, int_t Offset, int_t OffsetLimit>
     struct level {
         // check offset and splitter value ranges
         // (note that non negative splitter values simplify the index computation)
-        GRIDTOOLS_STATIC_ASSERT(VSplitter >= 0 && VOffset != 0, "check offset and splitter value ranges \n\
+        GRIDTOOLS_STATIC_ASSERT(Splitter >= 0 && Offset != 0, "check offset and splitter value ranges \n\
          (note that non negative splitter values simplify the index computation)");
         GRIDTOOLS_STATIC_ASSERT(
-            -cLevelOffsetLimit <= VOffset && VOffset <= cLevelOffsetLimit, "check offset and splitter value ranges \n\
+            -OffsetLimit <= Offset && Offset <= OffsetLimit, "check offset and splitter value ranges \n\
          (note that non negative splitter values simplify the index computation)");
 
-        // define splitter and level offset
-        typedef static_uint<VSplitter> Splitter;
-        typedef static_int<VOffset> Offset;
+        // define splitter, level offset and offset limit
+        static constexpr uint_t splitter = Splitter;
+        static constexpr int_t offset = Offset;
+        static constexpr int_t offset_limit = OffsetLimit;
     };
 
     /**
@@ -72,53 +73,89 @@ namespace gridtools {
     template <typename T>
     struct is_level : boost::mpl::false_ {};
 
-    template <uint_t VSplitter, int_t VOffset>
-    struct is_level<level<VSplitter, VOffset>> : boost::mpl::true_ {};
+    template <uint_t Splitter, int_t Offset, int_t OffsetLimit>
+    struct is_level<level<Splitter, Offset, OffsetLimit>> : boost::mpl::true_ {};
+
+    template <int_t Value, int_t OffsetLimit>
+    struct level_index {
+        static constexpr int_t value = Value;
+        static constexpr int_t offset_limit = OffsetLimit;
+        using type = level_index<Value, OffsetLimit>;
+
+        using next = level_index<Value + 1, OffsetLimit>;
+        using prior = level_index<Value - 1, OffsetLimit>;
+    };
+
+    template <typename T>
+    struct is_level_index : boost::mpl::false_ {};
+
+    template <int_t Index, int_t OffsetLimit>
+    struct is_level_index<level_index<Index, OffsetLimit>> : boost::mpl::true_ {};
 
     /**
      * @struct level_to_index
      * Meta function computing a unique index given a level
      */
-    template <typename TLevel>
+    template <typename Level>
     struct level_to_index {
-        // extract offset and splitter
-        typedef typename TLevel::Splitter Splitter;
-        typedef typename TLevel::Offset Offset;
+      private:
+        GRIDTOOLS_STATIC_ASSERT(is_level<Level>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be a level"));
 
-        typedef static_uint<2 * cLevelOffsetLimit * Splitter::value> SplitterIndex;
-        typedef static_int<(Offset::value < 0 ? Offset::value : Offset::value - 1) + cLevelOffsetLimit> OffsetIndex;
+        static constexpr int_t splitter_index = Level::splitter;
+        static constexpr int_t offset_index =
+            (Level::offset < 0 ? Level::offset : Level::offset - 1) + Level::offset_limit;
 
-        // define the index value
-        BOOST_STATIC_CONSTANT(int_t, value = SplitterIndex::value + OffsetIndex::value);
-        typedef static_int<value> type;
+      public:
+        using type = level_index<2 * Level::offset_limit * splitter_index + offset_index, Level::offset_limit>;
     };
 
     /**
      * @struct index_to_level
      * Meta function converting a unique index back into a level
      */
-    template <typename TIndex>
+    template <typename Index>
     struct index_to_level {
-        // define splitter and offset values
-        typedef static_uint<TIndex::value / (2 * cLevelOffsetLimit)> Splitter;
-        typedef static_int<TIndex::value % (2 * cLevelOffsetLimit) - cLevelOffsetLimit> OffsetIndex;
-        typedef static_int < OffsetIndex::value<0 ? OffsetIndex::value : OffsetIndex::value + 1> Offset;
+      private:
+        GRIDTOOLS_STATIC_ASSERT(
+            is_level_index<Index>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
 
-        // define the level
-        typedef level<Splitter::value, Offset::value> type;
+        static constexpr uint_t splitter = Index::value / (2 * Index::offset_limit);
+        static constexpr int_t offset_index = Index::value % (2 * Index::offset_limit) - Index::offset_limit;
+        static constexpr int_t offset = offset_index < 0 ? offset_index : offset_index + 1;
+
+      public:
+        using type = level<splitter, offset, Index::offset_limit>;
     };
 
     /**
      * @struct make_range
      * Meta function converting two level indexes into a range
      */
-    template <typename TFromIndex, typename TToIndex>
+    template <typename FromIndex, typename ToIndex>
     struct make_range {
-        typedef boost::mpl::range_c<int_t, TFromIndex::value, TToIndex::value + 1> type;
+      private:
+        GRIDTOOLS_STATIC_ASSERT(
+            is_level_index<FromIndex>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
+        GRIDTOOLS_STATIC_ASSERT(
+            is_level_index<ToIndex>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
+
+        typedef boost::mpl::range_c<int_t, FromIndex::value, ToIndex::value + 1> range_type;
+        typedef
+            typename boost::mpl::copy<range_type, boost::mpl::back_inserter<boost::mpl::vector<>>>::type vector_type;
+        struct index_wrap {
+            template <typename Integer>
+            struct apply {
+                using type = level_index<Integer::value, FromIndex::offset_limit>;
+            };
+        };
+
+      public:
+        typedef typename boost::mpl::transform<vector_type, index_wrap>::type type;
     };
 
-    template <uint_t F, int_t T>
-    std::ostream &operator<<(std::ostream &s, level<F, T> const &) {
-        return s << "(" << level<F, T>::Splitter::value << ", " << level<F, T>::Offset::value << ")";
+    template <uint_t F, int_t T, uint_t L>
+    std::ostream &operator<<(std::ostream &s, level<F, T, L> const &) {
+        return s << "(" << level<F, T, L>::Splitter::value << ", " << level<F, T, L>::Offset::value << ", "
+                 << level<F, T, L>::offset_limit << ")";
     }
 } // namespace gridtools

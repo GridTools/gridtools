@@ -41,16 +41,13 @@
 using namespace gridtools;
 using namespace enumtype;
 
-// This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> x_interval;
-
 struct functor1 {
     typedef accessor<0> in;
     typedef accessor<1> out;
     typedef boost::mpl::vector<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;

@@ -150,8 +150,8 @@ namespace gridtools {
 
                 // check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
-                    (level_to_index<typename Grid::axis_type::FromLevel>::value <= Interval::first::value &&
-                        level_to_index<typename Grid::axis_type::ToLevel>::value >= Interval::second::value),
+                    (level_to_index<typename Grid::axis_type::FromLevel>::type::value <= Interval::first::value &&
+                        level_to_index<typename Grid::axis_type::ToLevel>::type::value >= Interval::second::value),
                     "the k interval exceeds the axis you specified for the grid instance");
 
                 typedef iteration_policy<from_t, to_t, execution_engine::iteration> iteration_policy_t;

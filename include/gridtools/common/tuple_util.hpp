@@ -91,7 +91,6 @@ namespace gridtools {
      *  - extend concept to be applied to std::array's
      *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
      *  - supply all functions here with `GT_FUNCTION` variants.
-     *  - add apply (generic version of std::apply)
      *  - add push_front
      *  - add for_each_index
      *  - add filter
@@ -914,6 +913,33 @@ namespace gridtools {
          */
         template <class Tup>
         auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward<Tup>(tup)));
+
+        namespace _impl {
+            // in impl as it is not as powerful as std::invoke (does not support invoking member functions)
+            template <class Fun, class... Args>
+            auto invoke_impl(Fun &&f, Args &&... args)
+                GT_AUTO_RETURN(std::forward<Fun>(f)(std::forward<Args>(args)...));
+
+            template <class Fun, class Tup, std::size_t... Is>
+            constexpr auto apply_impl(Fun &&f, Tup &&tup, gt_index_sequence<Is...>)
+                GT_AUTO_RETURN(invoke_impl(std::forward<Fun>(f), get<Is>(std::forward<Tup>(tup))...));
+        } // namespace _impl
+
+        /**
+         * @brief Invoke callable f with tuple of arguments.
+         *
+         * @tparam Fun Functor type.
+         * @tparam Tup Tuple-like type.
+         * @param tup Tuple-like object containing arguments
+         * @param fun Function that should be called with the arguments in tup
+         *
+         * See std::apply (c++17), with the limitation that it only works for FunctionObjects (not for any Callable)
+         */
+        template <class Fun, class Tup>
+        constexpr auto apply(Fun &&fun, Tup &&tup) GT_AUTO_RETURN(_impl::apply_impl(std::forward<Fun>(fun),
+            std::forward<Tup>(tup),
+            make_gt_index_sequence<meta::length<decay_t<Tup>>::value>{}));
+
     } // namespace tuple_util
     /** @} */
     /** @} */

@@ -42,7 +42,12 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef interval<level<0, -1>, level<1, -1>> x_interval;
+constexpr int level_offset_limit = 1;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
+typedef interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct print_r {
     template <typename T>
     void operator()(T const &) const {

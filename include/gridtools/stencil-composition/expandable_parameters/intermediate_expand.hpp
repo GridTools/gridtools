@@ -46,20 +46,6 @@
 #include <boost/mpl/logical.hpp>
 #include <boost/mpl/transform.hpp>
 
-#include <boost/fusion/include/any.hpp>
-#include <boost/fusion/include/count.hpp>
-#include <boost/fusion/include/empty.hpp>
-#include <boost/fusion/include/filter_if.hpp>
-#include <boost/fusion/include/filter_view.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/front.hpp>
-#include <boost/fusion/include/invoke.hpp>
-#include <boost/fusion/include/make_fused.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/size.hpp>
-#include <boost/fusion/include/transform.hpp>
-#include <boost/fusion/include/zip_view.hpp>
-
 #include "../../common/defs.hpp"
 #include "../../common/functional.hpp"
 #include "../../common/vector_traits.hpp"
@@ -121,10 +107,9 @@ namespace gridtools {
             template <typename ArgStoragePairs>
             typename std::enable_if<!boost::mpl::empty<ArgStoragePairs>::value, size_t>::type get_expandable_size(
                 ArgStoragePairs const &src) {
-                namespace f = boost::fusion;
-                auto sizes = f::transform(src, get_value_size{});
-                size_t res = f::front(sizes);
-                assert(f::any(sizes, [=](size_t size) { return size == res; }));
+                auto sizes = tuple_util::transform(get_value_size{}, src);
+                size_t res = tuple_util::get<0>(sizes);
+                assert(tuple_util::fold([res](bool left, size_t size) { return left && size == res; })(true, sizes));
                 return res;
             }
 
@@ -191,7 +176,7 @@ namespace gridtools {
 
             template <class Intermediate, class Args>
             void invoke_run(Intermediate &intermediate, Args &&args) {
-                boost::fusion::invoke(run_f<Intermediate>{intermediate}, std::forward<Args>(args));
+                tuple_util::apply(run_f<Intermediate>{intermediate}, std::forward<Args>(args));
             }
 
             struct sync_f {

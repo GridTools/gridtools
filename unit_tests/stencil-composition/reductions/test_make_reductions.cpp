@@ -58,7 +58,8 @@ using namespace enumtype;
 
 namespace make_reduction_test {
 
-    using x_interval = gridtools::interval<level<0, -1>, level<1, -1>>;
+    constexpr int level_offset_limit = 1;
+    using x_interval = gridtools::interval<level<0, -1, level_offset_limit>, level<1, -1, level_offset_limit>>;
 
     struct test_functor {
         typedef accessor<0> in;

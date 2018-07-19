@@ -49,8 +49,13 @@
 using namespace gridtools;
 using namespace enumtype;
 
+constexpr int level_offset_limit = 2;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> x_interval;
+typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0>, 6> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>, 5> buff;
@@ -105,7 +110,7 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
     typedef local_domain<std::tuple<>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
@@ -134,7 +139,7 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
     typedef local_domain<std::tuple<>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
@@ -168,7 +173,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef iterate_domain_arguments<backend_ids<Cuda, GRIDBACKEND, Block>,
         local_domain_t,
@@ -200,7 +205,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     typedef local_domain<std::tuple<p_in, p_buff, p_notin, p_out>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
