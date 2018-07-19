@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "../test_helper.hpp"
 #include "gtest/gtest.h"
 
 #include <gridtools/stencil-composition/level.hpp>
@@ -41,50 +42,48 @@
 
 using namespace gridtools;
 
-TEST(test_level, leq) {
-    using lower_level = level<0, -1>;
-    using greater_level = level<1, 1>;
-
-    ASSERT_TRUE((level_leq<lower_level, greater_level>::value));
-    ASSERT_FALSE((level_leq<greater_level, lower_level>::value));
+TEST(test_level, level_to_index) {
+    ASSERT_TYPE_EQ<typename level_to_index<level<0, -2, 2>>::type, level_index<0, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<0, -1, 2>>::type, level_index<1, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<0, 1, 2>>::type, level_index<2, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<0, 2, 2>>::type, level_index<3, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<1, -2, 2>>::type, level_index<4, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<1, -1, 2>>::type, level_index<5, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<1, 1, 2>>::type, level_index<6, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<1, 2, 2>>::type, level_index<7, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<2, -2, 2>>::type, level_index<8, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<2, -1, 2>>::type, level_index<9, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<2, 1, 2>>::type, level_index<10, 2>>();
+    ASSERT_TYPE_EQ<typename level_to_index<level<2, 2, 2>>::type, level_index<11, 2>>();
 }
 
-TEST(test_level, leq_same_splitter) {
-    using lower_level = level<1, -1>;
-    using greater_level = level<1, 1>;
-
-    ASSERT_TRUE((level_leq<lower_level, greater_level>::value));
-    ASSERT_FALSE((level_leq<greater_level, lower_level>::value));
+TEST(test_level, index_to_level) {
+    ASSERT_TYPE_EQ<level<0, -2, 2>, typename index_to_level<level_index<0, 2>>::type>();
+    ASSERT_TYPE_EQ<level<0, -1, 2>, typename index_to_level<level_index<1, 2>>::type>();
+    ASSERT_TYPE_EQ<level<0, 1, 2>, typename index_to_level<level_index<2, 2>>::type>();
+    ASSERT_TYPE_EQ<level<0, 2, 2>, typename index_to_level<level_index<3, 2>>::type>();
+    ASSERT_TYPE_EQ<level<1, -2, 2>, typename index_to_level<level_index<4, 2>>::type>();
+    ASSERT_TYPE_EQ<level<1, -1, 2>, typename index_to_level<level_index<5, 2>>::type>();
+    ASSERT_TYPE_EQ<level<1, 1, 2>, typename index_to_level<level_index<6, 2>>::type>();
+    ASSERT_TYPE_EQ<level<1, 2, 2>, typename index_to_level<level_index<7, 2>>::type>();
+    ASSERT_TYPE_EQ<level<2, -2, 2>, typename index_to_level<level_index<8, 2>>::type>();
+    ASSERT_TYPE_EQ<level<2, -1, 2>, typename index_to_level<level_index<9, 2>>::type>();
+    ASSERT_TYPE_EQ<level<2, 1, 2>, typename index_to_level<level_index<10, 2>>::type>();
+    ASSERT_TYPE_EQ<level<2, 2, 2>, typename index_to_level<level_index<11, 2>>::type>();
 }
 
-TEST(test_level, leq_equal_levels) {
-    using level1 = level<1, -1>;
-    using level2 = level1;
+TEST(test_level, level_gt) {
+    using level_1 = level<0, -1, 3>;
+    using level_2 = level<0, 1, 3>;
+    using level_3 = level<1, 1, 3>;
 
-    ASSERT_TRUE((level_leq<level1, level2>::value));
-    ASSERT_TRUE((level_leq<level2, level1>::value));
-}
-
-TEST(test_level, lt) {
-    using lower_level = level<0, -1>;
-    using greater_level = level<1, 1>;
-
-    ASSERT_TRUE((level_lt<lower_level, greater_level>::value));
-    ASSERT_FALSE((level_lt<greater_level, lower_level>::value));
-}
-
-TEST(test_level, lt_equal_levels) {
-    using level1 = level<1, -1>;
-    using level2 = level1;
-
-    ASSERT_FALSE((level_lt<level1, level2>::value));
-    ASSERT_FALSE((level_lt<level2, level1>::value));
-}
-
-TEST(test_level, geq) {
-    using lower_level = level<0, -1>;
-    using greater_level = level<1, 1>;
-
-    ASSERT_TRUE((level_geq<greater_level, lower_level>::value));
-    ASSERT_FALSE((level_geq<lower_level, greater_level>::value));
+    static_assert(impl_::level_gt::apply<level_2, level_1>::value, "");
+    static_assert(impl_::level_gt::apply<level_3, level_2>::value, "");
+    static_assert(impl_::level_gt::apply<level_3, level_1>::value, "");
+    static_assert(!impl_::level_gt::apply<level_1, level_2>::value, "");
+    static_assert(!impl_::level_gt::apply<level_2, level_3>::value, "");
+    static_assert(!impl_::level_gt::apply<level_1, level_3>::value, "");
+    static_assert(!impl_::level_gt::apply<level_1, level_1>::value, "");
+    static_assert(!impl_::level_gt::apply<level_2, level_2>::value, "");
+    static_assert(!impl_::level_gt::apply<level_3, level_3>::value, "");
 }

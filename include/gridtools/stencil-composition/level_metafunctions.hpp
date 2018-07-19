@@ -40,59 +40,22 @@
 #include <boost/mpl/sort.hpp>
 
 namespace gridtools {
-    /**
-     * @brief Meta function to compare two levels: left <= right
-     */
-    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
-    struct level_leq : boost::mpl::false_ {};
 
-    template <typename TLevelLeft, typename TLevelRight>
-    struct level_leq<TLevelLeft,
-        TLevelRight,
-        typename std::enable_if<(level_to_index<TLevelLeft>::value <= level_to_index<TLevelRight>::value)>::type>
-        : boost::mpl::true_ {};
-
-    /**
-     * @brief Meta function to compare two levels: left < right
-     */
-    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
-    struct level_lt : boost::mpl::false_ {};
-
-    template <typename TLevelLeft, typename TLevelRight>
-    struct level_lt<TLevelLeft,
-        TLevelRight,
-        typename std::enable_if<(level_to_index<TLevelLeft>::value < level_to_index<TLevelRight>::value)>::type>
-        : boost::mpl::true_ {};
-
-    /**
-     * @brief Meta function to compare two levels: left >= right
-     */
-    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
-    struct level_geq : boost::mpl::false_ {};
-
-    template <typename TLevelLeft, typename TLevelRight>
-    struct level_geq<TLevelLeft,
-        TLevelRight,
-        typename std::enable_if<(level_to_index<TLevelLeft>::value >= level_to_index<TLevelRight>::value)>::type>
-        : boost::mpl::true_ {};
-
-    /**
-     * @brief Meta function to compare two levels: left > right
-     */
-    template <typename TLevelLeft, typename TLevelRight, typename Enable = void>
-    struct level_gt : boost::mpl::false_ {};
-
-    template <typename TLevelLeft, typename TLevelRight>
-    struct level_gt<TLevelLeft,
-        TLevelRight,
-        typename std::enable_if<(level_to_index<TLevelLeft>::value > level_to_index<TLevelRight>::value)>::type>
-        : boost::mpl::true_ {};
+    namespace impl_ {
+        /**
+         * @brief Meta function to compare two levels: left > right
+         */
+        struct level_gt {
+            template <typename Left, typename Right>
+            struct apply : boost::mpl::bool_<(Left::splitter > Right::splitter ||
+                                              (Left::splitter == Right::splitter && Left::offset > Right::offset))> {};
+        };
+    } // namespace impl_
 
     /**
      * @brief return sorted mpl::vector of levels (ascending order)
      */
     template <typename... Levels>
-    using sort_levels =
-        typename boost::mpl::sort<boost::mpl::vector<Levels...>, level_gt<boost::mpl::_, boost::mpl::_>>::type;
+    using sort_levels = typename boost::mpl::sort<boost::mpl::vector<Levels...>, impl_::level_gt>::type;
 
 } // namespace gridtools

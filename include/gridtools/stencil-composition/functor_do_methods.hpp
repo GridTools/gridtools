@@ -81,17 +81,6 @@ namespace gridtools {
         // define the do method
         typedef typename boost::mpl::back<DoMethods>::type DoMethod;
 
-        // define the do method level offsets
-        typedef typename index_to_level<typename boost::mpl::first<DoMethod>::type>::type::Offset FromOffset;
-        typedef typename index_to_level<typename boost::mpl::second<DoMethod>::type>::type::Offset ToOffset;
-
-        // check the do method from and to level offsets do not max out the level offset limits
-        // (otherwise we cannot guarantee a correct loop level computation afterwards)
-        GRIDTOOLS_STATIC_ASSERT(-cLevelOffsetLimit < FromOffset::value && FromOffset::value < cLevelOffsetLimit,
-            "Do method definition reaches level offset limit, you might want to increase cLevelOffsetLimit");
-        GRIDTOOLS_STATIC_ASSERT(-cLevelOffsetLimit < ToOffset::value && ToOffset::value < cLevelOffsetLimit,
-            "Do method definition reaches level offset limit, you might want to increase cLevelOffsetLimit");
-
         // return the do method pair holding the from and to indexes of the Do method
         typedef DoMethod type;
     };
@@ -110,8 +99,8 @@ namespace gridtools {
         // (check the index values are continuous and both indexes are associated to the same splitter)
         BOOST_STATIC_CONSTANT(bool,
             value = ((_impl::add_offset(DoMethod1ToIndex::value, 1) == DoMethod2FromIndex::value) &&
-                     (index_to_level<DoMethod1ToIndex>::type::Splitter::value ==
-                         index_to_level<DoMethod2FromIndex>::type::Splitter::value)));
+                     (index_to_level<DoMethod1ToIndex>::type::splitter ==
+                         index_to_level<DoMethod2FromIndex>::type::splitter)));
         typedef boost::mpl::integral_c<bool, value> type;
     };
 
