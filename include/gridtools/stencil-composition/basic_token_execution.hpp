@@ -118,13 +118,13 @@ namespace gridtools {
 
                 if (in_domain) {
                     const int_t lev = backward ? to : from;
-                    m_domain.template begin_fill<IterationPolicy>(lev, m_grid);
+                    m_domain.template begin_fill<IterationPolicy>(lev);
                 }
 
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(m_domain)) {
                     if (in_domain) {
                         const int_t lev = backward ? (to - k) + from : k;
-                        m_domain.template fill_caches<IterationPolicy>(lev, m_grid);
+                        m_domain.template fill_caches<IterationPolicy>(lev);
                     }
 
                     gridtools::for_each<GT_META_CALL(meta::make_indices_c, boost::mpl::size<functor_list_t>::value)>(
@@ -133,13 +133,13 @@ namespace gridtools {
                     if (in_domain) {
                         const int_t lev = backward ? (to - k) + from : k;
 
-                        m_domain.template flush_caches<IterationPolicy>(lev, m_grid);
+                        m_domain.template flush_caches<IterationPolicy>(lev);
                         m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
                 if (in_domain) {
                     const int_t lev = backward ? from - 1 : to + 1;
-                    m_domain.template final_flush<IterationPolicy>(lev, m_grid);
+                    m_domain.template final_flush<IterationPolicy>(lev);
                 }
             }
 

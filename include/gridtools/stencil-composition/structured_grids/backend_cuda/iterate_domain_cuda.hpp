@@ -290,12 +290,10 @@ namespace gridtools {
          * \param klevel current k level index
          * \param grid a grid with loop bounds information
          */
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
+        template <typename IterationPolicy>
+        GT_FUNCTION void fill_caches(const int_t klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
-
-            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, klevel, grid);
+            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, klevel);
         }
 
         /**
@@ -305,12 +303,10 @@ namespace gridtools {
          * \param klevel current k level index
          * \param grid a grid with loop bounds information
          */
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
+        template <typename IterationPolicy>
+        GT_FUNCTION void flush_caches(const int_t klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
-
-            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, klevel, grid);
+            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, klevel);
         }
 
         /**
@@ -318,10 +314,10 @@ namespace gridtools {
          * k levels of the cache with k > 0 (<0) for the backward (forward) iteration policy
          * \tparam IterationPolicy forward: backward
          */
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void final_flush(const int klevel, Grid const &grid) {
+        template <typename IterationPolicy>
+        GT_FUNCTION void final_flush(const int klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template final_flush<IterationPolicy>(*this, klevel, grid);
+            m_iterate_domain_cache.template final_flush<IterationPolicy>(*this, klevel);
         }
 
         /**
@@ -329,10 +325,10 @@ namespace gridtools {
          * of the cache with k > 0 (<0) for the forward (backward) iteration policy
          * \tparam IterationPolicy forward: backward
          */
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void begin_fill(const int klevel, Grid const &grid) {
+        template <typename IterationPolicy>
+        GT_FUNCTION void begin_fill(const int klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template begin_fill<IterationPolicy>(*this, klevel, grid);
+            m_iterate_domain_cache.template begin_fill<IterationPolicy>(*this, klevel);
         }
 
       private:
