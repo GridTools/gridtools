@@ -42,10 +42,18 @@
 
 using namespace gridtools;
 
+constexpr int level_offset_limit = 3;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
+template <int_t Value>
+using index_t = level_index<Value, level_offset_limit>;
+
 // test functor 1
 struct Functor0 {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<3, -1>, level<3, -1>>) {
+    static void Do(TArguments &args, interval<level_t<3, -1>, level_t<3, -1>>) {
         std::cout << "Functor0:Do(Interval<Level<3,-1>, Level<3,-1> >) called" << std::endl;
     }
 };
@@ -53,7 +61,7 @@ struct Functor0 {
 // test functor 1
 struct Functor1 {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<0, 1>, level<2, -1>>) {
+    static void Do(TArguments &args, interval<level_t<0, 1>, level_t<2, -1>>) {
         std::cout << "Functor1:Do(Interval<Level<0,1>, Level<2,-1> >) called" << std::endl;
     }
 };
@@ -61,12 +69,12 @@ struct Functor1 {
 // test functor 2
 struct Functor2 {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<0, 1>, level<1, -1>>) {
+    static void Do(TArguments &args, interval<level_t<0, 1>, level_t<1, -1>>) {
         std::cout << "Functor2:Do(Interval<Level<0,1>, Level<1,-1> >) called" << std::endl;
     }
 
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<1, 1>, level<3, -1>>) {
+    static void Do(TArguments &args, interval<level_t<1, 1>, level_t<3, -1>>) {
         std::cout << "Functor2:Do(Interval<Level<1,1>, Level<3,-1> >) called" << std::endl;
     }
 };
@@ -74,14 +82,14 @@ struct Functor2 {
 // illegal functor
 struct IllegalFunctor {
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<1, 1>, level<2, -1>>) {}
+    static void Do(TArguments &args, interval<level_t<1, 1>, level_t<2, -1>>) {}
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<1, 1>, level<3, -2>>) {}
+    static void Do(TArguments &args, interval<level_t<1, 1>, level_t<3, -2>>) {}
     template <typename TArguments>
-    static void Do(TArguments &args, interval<level<3, -1>, level<3, -1>>) {}
+    static void Do(TArguments &args, interval<level_t<3, -1>, level_t<3, -1>>) {}
 };
 
-// functor printing level and index
+// functor printing level_t and index
 struct PrintLevel {
     template <typename T>
     void operator()(T) {
@@ -89,7 +97,7 @@ struct PrintLevel {
         typedef typename level_to_index<Level>::type Index;
 
         std::cout << "Index: " << Index::value << "\t"
-                  << "Level(" << Level::Splitter::value << ", " << Level::Offset::value << ")" << std::endl;
+                  << "Level(" << Level::splitter << ", " << Level::offset << ")" << std::endl;
     }
 };
 
@@ -111,30 +119,29 @@ struct RunnerFunctor {
 int main(int argc, char *argv[]) {
     std::cout << "Functor Do Methods" << std::endl << "==================" << std::endl;
 
-    // test the level to index conversions be enumerating all levels in an range
+    // test the level_t to index conversions be enumerating all levels in an range
     // (for test purposes convert the range into levels and back into an index)
-    std::cout << "Verify the level index computation:" << std::endl;
-    boost::mpl::for_each<boost::mpl::range_c<int, 0, 20>>(PrintLevel());
+    std::cout << "Verify the level_t index computation:" << std::endl;
+    boost::mpl::for_each<typename make_range<index_t<0>, index_t<20>>::type>(PrintLevel());
     std::cout << "Done!" << std::endl;
 
-    const int has_do_functor0_index_expected = 2 * cLevelOffsetLimit * 3 - 1 + cLevelOffsetLimit;
+    const int has_do_functor0_index_expected = 2 * level_offset_limit * 3 - 1 + level_offset_limit;
 
     // // check has_do_simple on a few examples
     BOOST_STATIC_ASSERT((has_do<Functor0,
-        make_interval<level_to_index<level<3, -1>>::type, level_to_index<level<3, -1>>::type>::type>::value));
-    BOOST_STATIC_ASSERT((has_do<Functor0, level<3, -1>>::value));
-    BOOST_STATIC_ASSERT((!has_do<Functor0, level<3, -2>>::value));
-    BOOST_STATIC_ASSERT((has_do<Functor0, index_to_level<static_int<has_do_functor0_index_expected>>::type>::value));
-    BOOST_STATIC_ASSERT(
-        (!has_do<Functor0, index_to_level<static_int<has_do_functor0_index_expected + 1>>::type>::value));
+        make_interval<level_to_index<level_t<3, -1>>::type, level_to_index<level_t<3, -1>>::type>::type>::value));
+    BOOST_STATIC_ASSERT((has_do<Functor0, level_t<3, -1>>::value));
+    BOOST_STATIC_ASSERT((!has_do<Functor0, level_t<3, -2>>::value));
+    BOOST_STATIC_ASSERT((has_do<Functor0, index_to_level<index_t<has_do_functor0_index_expected>>::type>::value));
+    BOOST_STATIC_ASSERT((!has_do<Functor0, index_to_level<index_t<has_do_functor0_index_expected + 1>>::type>::value));
     // typedef index_to_level<static_int<20> >::type sss; // used these lines to find out the level index
     // typedef sss::ciao ciccio;                          // by trial and error
     BOOST_STATIC_ASSERT(
         (!has_do<Functor0,
-            make_interval<level_to_index<level<1, -1>>::type, level_to_index<level<3, 3>>::type>::type>::value));
+            make_interval<level_to_index<level_t<1, -1>>::type, level_to_index<level_t<3, 3>>::type>::type>::value));
 
     // define the axis search interval
-    typedef interval<level<0, -3>, level<3, 3>> AxisInterval;
+    typedef interval<level_t<0, -3>, level_t<3, 3>> AxisInterval;
 
     // run all methods of functor 0
     std::cout << "Print Functor0 Do methods:" << std::endl;

@@ -47,8 +47,13 @@ namespace nested_test {
 
     using icosahedral_topology_t = ::gridtools::icosahedral_topology<backend_t>;
 
-    typedef gridtools::interval<level<0, -1>, level<1, -1>> x_interval;
-    typedef gridtools::interval<level<0, -2>, level<1, 1>> axis;
+    constexpr int level_offset_limit = 2;
+
+    template <uint_t Splitter, int_t Offset>
+    using level_t = level<Splitter, Offset, level_offset_limit>;
+
+    typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     template <uint_t Color>
     struct nested_stencil {
