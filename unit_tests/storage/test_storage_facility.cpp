@@ -54,8 +54,8 @@ struct static_type_tests {
 #ifdef __CUDACC__
 // static type tests for Cuda backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<platform_cuda, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<gridtools::platform_cuda>;
+struct static_type_tests<backend<enumtype::platform_cuda, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<gridtools::enumtype::platform_cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check

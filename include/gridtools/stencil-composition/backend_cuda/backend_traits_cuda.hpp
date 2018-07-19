@@ -64,7 +64,7 @@ namespace gridtools {
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
-    struct backend_traits_from_id<platform_cuda> {
+    struct backend_traits_from_id<enumtype::platform_cuda> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
@@ -116,7 +116,7 @@ namespace gridtools {
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_cuda<BackendIds::strategy_id_t> type;
+            typedef strategy_from_id_cuda<typename BackendIds::strategy_id_t> type;
         };
 
         template <typename IterateDomainArguments>

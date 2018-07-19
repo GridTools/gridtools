@@ -123,7 +123,7 @@ TEST(iterate_domain_cache, flush) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform_cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -217,7 +217,7 @@ TEST(iterate_domain_cache, fill) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform_cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -308,7 +308,7 @@ TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::vector5<cachef1_t, cachef2_t, cachef3_t, cachef4_t, cachef5_t> cachesf_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform_cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -407,7 +407,7 @@ TEST(iterate_domain_cache, bpfill) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform_cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,

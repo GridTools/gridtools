@@ -84,8 +84,7 @@ TEST(testdomain, iterate_domain_with_extents) {
         auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
         auto computation_ =
-            make_computation<backend<enumtype::platform_host, enumtype::GRIDBACKEND, enumtype::strategy_naive>>(
-                grid, mss_);
+            make_computation<backend<enumtype::platform_host, GRIDBACKEND, enumtype::strategy_naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -96,8 +95,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
         auto computation_ =
-            make_computation<backend<enumtype::platform_host, enumtype::GRIDBACKEND, enumtype::strategy_naive>>(
-                grid, mss_);
+            make_computation<backend<enumtype::platform_host, GRIDBACKEND, enumtype::strategy_naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -112,9 +110,8 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
-        auto computation_ =
-            make_computation<backend<enumtype::platform_host, enumtype::GRIDBACKEND, enumtype::strategy_naive>>(
-                grid, mss1_, mss2_);
+        auto computation_ = make_computation<backend<enumtype::platform_host, GRIDBACKEND, enumtype::strategy_naive>>(
+            grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -129,9 +126,8 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
-        auto computation_ =
-            make_computation<backend<enumtype::platform_host, enumtype::GRIDBACKEND, enumtype::strategy_naive>>(
-                grid, mss1_, mss2_);
+        auto computation_ = make_computation<backend<enumtype::platform_host, GRIDBACKEND, enumtype::strategy_naive>>(
+            grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(

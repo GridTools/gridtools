@@ -35,7 +35,6 @@
 */
 #pragma once
 
-#include "../../../backend_cuda.hpp"
 #include "../../../common/defs.hpp"
 #include "../../backend_ids.hpp"
 #include "../../grid_traits_fwd.hpp"
@@ -43,7 +42,9 @@
 
 namespace gridtools {
     template <class Args>
-    struct kernel_functor_executor<backend_ids<platform_cuda, enumtype::structured, enumtype::Block>, Args> {
+    struct kernel_functor_executor<
+        backend_ids<enumtype::platform_cuda, enumtype::grid_structured, enumtype::strategy_block>,
+        Args> {
         using type = strgrid::execute_kernel_functor_cuda<Args>;
     };
 } // namespace gridtools

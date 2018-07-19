@@ -41,16 +41,16 @@
 #ifdef BACKEND_HOST
 using ARCH = gridtools::enumtype::platform_host;
 #ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::strategy_naive>;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_naive>;
 #else
-using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::strategy_block>;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_block>;
 #endif
 #elif defined(BACKEND_MIC)
 using ARCH = gridtools::enumtype::platform_mic;
-using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::strategy_block>;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_block>;
 #elif defined(BACKEND_CUDA)
 using ARCH = gridtools::enumtype::platform_cuda;
-using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::strategy_block>;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_block>;
 #else
 #error "no backend selected"
 #endif

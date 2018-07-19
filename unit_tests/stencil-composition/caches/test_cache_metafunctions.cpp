@@ -116,8 +116,7 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<
-        backend_ids<enumtype::platform_cuda, enumtype::GRIDBACKEND, enumtype::strategy_block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -146,8 +145,7 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<
-        backend_ids<enumtype::platform_cuda, enumtype::GRIDBACKEND, enumtype::strategy_block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -177,8 +175,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
 
     typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
-    typedef iterate_domain_arguments<
-        backend_ids<enumtype::platform_cuda, enumtype::GRIDBACKEND, enumtype::strategy_block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -214,8 +211,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<
-        backend_ids<enumtype::platform_cuda, enumtype::GRIDBACKEND, enumtype::strategy_block>,
+    typedef iterate_domain_arguments<backend_ids<enumtype::platform_cuda, GRIDBACKEND, enumtype::strategy_block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
