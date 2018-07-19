@@ -36,11 +36,12 @@
 #pragma once
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../..//icosahedral_grids/esf_metafunctions.hpp"
-#include "../../backend_mic/iterate_domain_mic.hpp"
-#include "../../execution_policy.hpp"
+#include "../../basic_token_execution.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
+#include "../esf_metafunctions.hpp"
+#include "./iterate_domain_mic.hpp"
+#include "./run_esf_functor_mic.hpp"
 #include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
@@ -85,8 +86,7 @@ namespace gridtools {
                     using run_functor_arguments_t = GT_META_CALL(meta::replace,
                         (RunFunctorArguments, typename RunFunctorArguments::color_t, color_type<(uint_t)Index::value>));
 
-                    boost::mpl::for_each<loop_intervals_t>(
-                        _impl::run_f_on_interval<execution_type_t, run_functor_arguments_t>(m_it_domain, m_grid));
+                    run_functors_on_interval<run_functor_arguments_t, run_esf_functor_mic>(m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
                 }
@@ -154,7 +154,16 @@ namespace gridtools {
                 typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
                 GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), GT_INTERNAL_ERROR);
 
-                typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+                using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                    local_domain_t,
+                    typename RunFunctorArguments::esf_sequence_t,
+                    typename RunFunctorArguments::extent_sizes_t,
+                    typename RunFunctorArguments::max_extent_t,
+                    typename RunFunctorArguments::cache_sequence_t,
+                    grid_t>;
+
+                using iterate_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
+
                 typedef backend_traits_from_id<platform_mic> backend_traits_t;
 
                 typename iterate_domain_t::data_ptr_cached_t data_pointer;

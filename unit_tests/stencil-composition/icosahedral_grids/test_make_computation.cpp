@@ -52,8 +52,12 @@
 using namespace gridtools;
 
 namespace make_computation_test {
+    constexpr int level_offset_limit = 1;
 
-    typedef gridtools::interval<level<0, -1>, level<1, -1>> axis;
+    template <uint_t Splitter, int_t Offset>
+    using level_t = level<Splitter, Offset, level_offset_limit>;
+
+    typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> axis;
     using backend_t = backend<platform_host, enumtype::icosahedral, enumtype::Block>;
     using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 

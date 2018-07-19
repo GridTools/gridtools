@@ -59,8 +59,8 @@ namespace gridtools {
         typename MaxExtent,
         typename CacheSequence,
         typename Grid,
-        typename IsReduction,
-        typename FunctorReturnType>
+        typename IsReduction = std::false_type,
+        typename FunctorReturnType = notype>
     struct iterate_domain_arguments {
 
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -111,25 +111,23 @@ namespace gridtools {
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
      * all functors involved in the execution of the mss
      */
-    template <typename BackendIds,   // id of the different backends
-        typename FunctorList,        // sequence of functors (one per ESF)
-        typename EsfSequence,        // sequence of ESF
-        typename EsfArgsMapSequence, // map of arg indices from local functor position to a merged
-                                     //    local domain
-        typename LoopIntervals,      // loop intervals
-        typename FunctorsMap,        // functors map
-        typename ExtentSizes,        // extents of each ESF
-        typename LocalDomain,        // local domain type
-        typename CacheSequence,      // sequence of user specified caches
-        typename IsIndependentSeq,   // sequence of boolenans (one per functor), stating if it is contained in a
-                                     // "make_independent" construct
-        typename Grid,               // the grid
-        typename ExecutionEngine,    // the execution engine
-        typename IsReduction,        // boolean stating if the operation to be applied at mss is a reduction
-        typename ReductionData,      // return type of functors of a mss: return type of reduction operations,
-                                     //        otherwise void
-        typename Color               // current color execution (not used for rectangular grids, or grids that dont have
-                                     // concept of a color
+    template <typename BackendIds, // id of the different backends
+        typename FunctorList,      // sequence of functors (one per ESF)
+        typename EsfSequence,      // sequence of ESF
+        typename LoopIntervals,    // loop intervals
+        typename FunctorsMap,      // functors map
+        typename ExtentSizes,      // extents of each ESF
+        typename LocalDomain,      // local domain type
+        typename CacheSequence,    // sequence of user specified caches
+        typename IsIndependentSeq, // sequence of boolenans (one per functor), stating if it is contained in a
+                                   // "make_independent" construct
+        typename Grid,             // the grid
+        typename ExecutionEngine,  // the execution engine
+        typename IsReduction,      // boolean stating if the operation to be applied at mss is a reduction
+        typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
+                                   //        otherwise void
+        typename Color             // current color execution (not used for rectangular grids, or grids that dont have
+                                   // concept of a color
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -144,7 +142,6 @@ namespace gridtools {
         typedef BackendIds backend_ids_t;
         typedef FunctorList functor_list_t;
         typedef EsfSequence esf_sequence_t;
-        typedef EsfArgsMapSequence esf_args_map_sequence_t;
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef ExtentSizes extent_sizes_t;
@@ -154,16 +151,6 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef IsIndependentSeq async_esf_map_t;
-        typedef typename backend_traits_from_id<typename backend_ids_t::s_backend_id>::template select_iterate_domain<
-            iterate_domain_arguments<BackendIds,
-                LocalDomain,
-                EsfSequence,
-                ExtentSizes,
-                max_extent_t,
-                CacheSequence,
-                Grid,
-                IsReduction,
-                typename ReductionData::reduction_type_t>>::type iterate_domain_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         static const enumtype::strategy s_strategy_id = backend_ids_t::s_strategy_id;
@@ -171,6 +158,26 @@ namespace gridtools {
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
         typedef Color color_t;
+
+      private:
+        template <typename Arg>
+        struct find_arg_position_in_local_domain {
+            using args_t = typename LocalDomain::esf_args;
+            typedef typename boost::mpl::find<args_t, Arg>::type pos;
+            typedef typename boost::mpl::distance<typename boost::mpl::begin<args_t>::type, pos>::type type;
+            BOOST_STATIC_CONSTANT(int, value = type::value);
+        };
+
+      public:
+        template <class Esf>
+        struct generate_esf_args_map {
+            using from_args_t = typename Esf::args_t;
+            using type = typename boost::mpl::fold<boost::mpl::range_c<int, 0, boost::mpl::size<from_args_t>::value>,
+                boost::mpl::map0<>,
+                boost::mpl::insert<boost::mpl::_1,
+                    boost::mpl::pair<boost::mpl::_2,
+                        find_arg_position_in_local_domain<boost::mpl::at<from_args_t, boost::mpl::_2>>>>>::type;
+        };
     };
 
     template <typename T>
@@ -179,7 +186,6 @@ namespace gridtools {
     template <typename BackendIds,
         typename FunctorList,
         typename EsfSequence,
-        typename EsfArgsMapSequence,
         typename LoopIntervals,
         typename FunctorsMap,
         typename ExtentSizes,
@@ -194,7 +200,6 @@ namespace gridtools {
     struct is_run_functor_arguments<run_functor_arguments<BackendIds,
         FunctorList,
         EsfSequence,
-        EsfArgsMapSequence,
         LoopIntervals,
         FunctorsMap,
         ExtentSizes,
@@ -215,12 +220,12 @@ namespace gridtools {
     struct esf_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef typename boost::mpl::at<typename RunFunctorArguments::functor_list_t, Index>::type functor_t;
+        typedef typename boost::mpl::at_c<typename RunFunctorArguments::functor_list_t, Index::value>::type functor_t;
+        typedef typename boost::mpl::at_c<typename RunFunctorArguments::extent_sizes_t, Index::value>::type extent_t;
         typedef
-            typename boost::mpl::at<typename RunFunctorArguments::esf_args_map_sequence_t, Index>::type esf_args_map_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::extent_sizes_t, Index>::type extent_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::functors_map_t, Index>::type interval_map_t;
-        typedef typename boost::mpl::at<typename RunFunctorArguments::esf_sequence_t, Index>::type esf_t;
+            typename boost::mpl::at_c<typename RunFunctorArguments::functors_map_t, Index::value>::type interval_map_t;
+        typedef typename boost::mpl::at_c<typename RunFunctorArguments::esf_sequence_t, Index::value>::type esf_t;
+        typedef typename RunFunctorArguments::template generate_esf_args_map<esf_t>::type esf_args_map_t;
 
         // global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
@@ -230,6 +235,7 @@ namespace gridtools {
             typename boost::mpl::deref<typename boost::mpl::find_if<typename RunFunctorArguments::loop_intervals_t,
                 boost::mpl::has_key<interval_map_t, boost::mpl::_1>>::type>::type::first>::type first_hit_t;
         typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
+        typedef typename RunFunctorArguments::color_t color_t;
     };
 
     template <typename T>

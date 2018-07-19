@@ -41,6 +41,7 @@
 #include "../../backend_cuda.hpp"
 #include "../backend_ids.hpp"
 #include "../coordinate.hpp"
+#include "../extent.hpp"
 
 namespace gridtools {
     namespace tmp_storage {
@@ -52,12 +53,13 @@ namespace gridtools {
             }
             template <class StorageInfo, class MaxExtent>
             GT_FUNCTION constexpr uint_t full_block_i_size(uint_t block_size) {
-                return align<StorageInfo>(block_size + 2 * MaxExtent::value);
+                return align<StorageInfo>(
+                    block_size + static_cast<uint_t>(MaxExtent::iplus::value - MaxExtent::iminus::value));
             }
             template <class StorageInfo,
                 class MaxExtent,
                 enumtype::grid_type GridType,
-                uint_t UsedHalo = MaxExtent::value,
+                int_t UsedHalo = -MaxExtent::iminus::value,
                 uint_t StorageHalo = StorageInfo::halo_t::template at<
                     coord_i<backend_ids<platform_cuda, GridType, enumtype::Block>>::value>()>
             GT_FUNCTION constexpr uint_t additional_i_offset() {
@@ -68,6 +70,7 @@ namespace gridtools {
         template <class StorageInfo, class MaxExtent, enumtype::grid_type GridType>
         uint_t get_i_size(
             backend_ids<platform_cuda, GridType, enumtype::Block> const &, uint_t block_size, uint_t total_size) {
+            GRIDTOOLS_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
             static constexpr auto additional_offset = _impl::additional_i_offset<StorageInfo, MaxExtent, GridType>();
             auto full_block_size = _impl::full_block_i_size<StorageInfo, MaxExtent>(block_size);
             auto num_blocks = (total_size + block_size + 1) / block_size;
@@ -77,9 +80,10 @@ namespace gridtools {
         template <class StorageInfo, class MaxExtent, enumtype::grid_type GridType>
         GT_FUNCTION int_t get_i_block_offset(
             backend_ids<platform_cuda, GridType, enumtype::Block> const &, uint_t block_size, uint_t block_no) {
+            GRIDTOOLS_STATIC_ASSERT(is_extent<MaxExtent>::value, GT_INTERNAL_ERROR);
             static constexpr auto additional_offset = _impl::additional_i_offset<StorageInfo, MaxExtent, GridType>();
             auto full_block_size = _impl::full_block_i_size<StorageInfo, MaxExtent>(block_size);
-            return block_no * full_block_size + MaxExtent::value + additional_offset;
+            return static_cast<int_t>(block_no * full_block_size) - MaxExtent::iminus::value + additional_offset;
         }
 
         template <class StorageInfo, class /*MaxExtent*/, enumtype::grid_type GridType>

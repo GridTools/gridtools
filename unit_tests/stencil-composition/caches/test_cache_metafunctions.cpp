@@ -47,13 +47,17 @@
 #include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/tile.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 
+constexpr int level_offset_limit = 2;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> x_interval;
+typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0>, 6> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>, 5> buff;
@@ -91,14 +95,6 @@ typedef detail::cache_impl<K, p_out, cache_io_policy::local, x_interval> cache3_
 typedef detail::cache_impl<K, p_notin, cache_io_policy::local, x_interval> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
-using st_wrapper_in_t = storage_wrapper<p_in, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_buff_t =
-    storage_wrapper<p_buff, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_notin_t =
-    storage_wrapper<p_notin, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_out_t =
-    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_notin(), p_out())) esf2k_t;
 
@@ -113,10 +109,10 @@ TEST(cache_metafunctions, cache_used_by_esfs) {
 }
 
 TEST(cache_metafunctions, extract_ij_extents_for_caches) {
-    typedef local_domain<boost::mpl::void_, boost::mpl::void_, false> local_domain_t;
+    typedef local_domain<std::tuple<>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
@@ -142,10 +138,10 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
 }
 
 TEST(cache_metafunctions, extract_k_extents_for_caches) {
-    typedef local_domain<boost::mpl::void_, boost::mpl::void_, false> local_domain_t;
+    typedef local_domain<std::tuple<>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
@@ -172,17 +168,14 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
 
 TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
 
-    typedef boost::mpl::vector3<st_wrapper_in_t, st_wrapper_buff_t, st_wrapper_out_t> storages_t;
-
-    typedef boost::mpl::vector3<p_in, p_buff, p_out> esf_args_t;
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<std::tuple<p_in, p_buff, p_out>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef iterate_domain_arguments<backend_ids<gridtools::platform_cuda, GRIDBACKEND, Block>,
         local_domain_t,
@@ -200,29 +193,21 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
     typedef get_cache_storage_tuple<IJ, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
-    // fusion::result_of::at_key<cache_storage_tuple_t, p_in::index_type> does not compile,
-    // therefore we convert into an mpl map and do all the metaprogramming operations on that map
-    typedef fusion_map_to_mpl_map<cache_storage_tuple_t>::type cache_storage_mpl_map_t;
-
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
-            boost::fusion::map<
-                boost::fusion::pair<static_uint<0>,
-                    cache_storage<cache1_t, block_size<32, 4, 1>, extent<-1, 2, -2, 1>, st_wrapper_in_t>>,
+            boost::fusion::map<boost::fusion::pair<static_uint<0>,
+                                   cache_storage<cache1_t, block_size<32, 4, 1>, extent<-1, 2, -2, 1>, p_in>>,
                 boost::fusion::pair<static_uint<1>,
-                    cache_storage<cache2_t, block_size<32, 4, 1>, extent<-2, 2, -3, 2>, st_wrapper_buff_t>>>>::value),
+                    cache_storage<cache2_t, block_size<32, 4, 1>, extent<-2, 2, -3, 2>, p_buff>>>>::value),
         "ERROR");
 }
 
 TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
-    typedef boost::mpl::vector4<st_wrapper_in_t, st_wrapper_buff_t, st_wrapper_notin_t, st_wrapper_out_t> storages_t;
-
-    typedef boost::mpl::vector4<p_in, p_buff, p_notin, p_out> esf_args_t;
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<std::tuple<p_in, p_buff, p_notin, p_out>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<gridtools::level<0, -2>, gridtools::level<1, 1>> axis;
+    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
     typedef
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
@@ -243,17 +228,12 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
     typedef get_cache_storage_tuple<K, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
-    // fusion::result_of::at_key<cache_storage_tuple_t, p_in::index_type> does not compile,
-    // therefore we convert into an mpl map and do all the metaprogramming operations on that map
-    typedef fusion_map_to_mpl_map<cache_storage_tuple_t>::type cache_storage_mpl_map_t;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
-            boost::fusion::map<
-                boost::fusion::pair<static_uint<3>,
-                    cache_storage<cache3_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, 0, 1>, st_wrapper_out_t>>,
+            boost::fusion::map<boost::fusion::pair<static_uint<3>,
+                                   cache_storage<cache3_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, 0, 1>, p_out>>,
                 boost::fusion::pair<static_uint<2>,
-                    cache_storage<cache4_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, -1, 1>, st_wrapper_notin_t>>>>::
-                value),
+                    cache_storage<cache4_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, -1, 1>, p_notin>>>>::value),
         "ERROR");
 }

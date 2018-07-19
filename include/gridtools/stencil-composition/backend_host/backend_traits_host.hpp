@@ -40,8 +40,6 @@
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
-#include "iterate_domain_host.hpp"
-#include "run_esf_functor_host.hpp"
 #include "strategy_host.hpp"
 
 #ifdef ENABLE_METERS
@@ -54,12 +52,6 @@
  * @brief type definitions and structures specific for the Host backend
  */
 namespace gridtools {
-    namespace _impl_host {
-        /**forward declaration*/
-        template <typename Arguments>
-        struct run_functor_host;
-    } // namespace _impl_host
-
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
     struct backend_traits_from_id<platform_host> {
@@ -72,11 +64,6 @@ namespace gridtools {
             auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
             template <typename S, uint_t... N>
             auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
-        };
-
-        template <typename Arguments>
-        struct execute_traits {
-            typedef _impl_host::run_functor_host<Arguments> run_functor_t;
         };
 
         template <uint_t Id>
@@ -98,8 +85,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ReductionData>
-            static void run(LocalDomain &local_domain,
-                const Grid &grid,
+            static void run(LocalDomain const &local_domain,
+                Grid const &grid,
                 ReductionData &reduction_data,
                 const execution_info_host &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
@@ -117,46 +104,11 @@ namespace gridtools {
          */
         typedef std::false_type mss_fuse_esfs_strategy;
 
-        // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_host> run_esf_functor_h_t;
-
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_host<BackendIds::s_strategy_id> type;
-        };
-
-        /**
-         * @brief metafunction that returns the right iterate domain
-         * (depending on whether the local domain is positional or not)
-         * @param IterateDomainArguments the iterate domain arguments
-         * @return the iterate domain type for this backend
-         */
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
-// indirection in order to avoid instantiation of both types of the eval_if
-#ifdef STRUCTURED_GRIDS
-            template <typename _IterateDomainArguments>
-            struct select_positional_iterate_domain {
-                typedef iterate_domain_host<positional_iterate_domain, _IterateDomainArguments> type;
-            };
-#endif
-
-            template <typename _IterateDomainArguments>
-            struct select_basic_iterate_domain {
-                typedef iterate_domain_host<iterate_domain, _IterateDomainArguments> type;
-            };
-
-            typedef
-                typename boost::mpl::eval_if<local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-#ifdef STRUCTURED_GRIDS
-                    select_positional_iterate_domain<IterateDomainArguments>,
-#else
-                    select_basic_iterate_domain<IterateDomainArguments>,
-#endif
-                    select_basic_iterate_domain<IterateDomainArguments>>::type type;
         };
 
         template <typename IterateDomainArguments>

@@ -56,7 +56,7 @@ namespace gridtools {
             typedef meta_storage_cache<Layout, D1, D2, Rest...> type;
         };
 
-        template <typename Layout, typename Plus, typename Minus, typename Tiles, typename StorageWrapper>
+        template <typename Layout, typename Plus, typename Minus, typename Tiles, typename Arg>
         struct compute_meta_storage;
 
         /**
@@ -79,13 +79,13 @@ namespace gridtools {
             typename T1,
             typename T2,
             typename... Tiles,
-            typename StorageWrapper>
+            typename Arg>
         struct compute_meta_storage<Layout,
             variadic_to_vector<P1, P2, Plus...>,
             variadic_to_vector<M1, M2, Minus...>,
             variadic_to_vector<T1, T2, Tiles...>,
-            StorageWrapper> {
-            typedef typename StorageWrapper::arg_t::location_t location_t;
+            Arg> {
+            typedef typename Arg::location_t location_t;
             static constexpr unsigned d1 = P1::value - M1::value + T1::value;
             static constexpr unsigned d2 = P2::value - M2::value + T2::value;
             typedef typename get_meta_storage<Layout,

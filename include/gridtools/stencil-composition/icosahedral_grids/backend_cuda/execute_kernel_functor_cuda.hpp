@@ -40,9 +40,11 @@
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
+#include "../../basic_token_execution.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
+#include "./run_esf_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -59,13 +61,22 @@ namespace gridtools {
             do_it_on_gpu(typename RunFunctorArguments::local_domain_t const l_domain,
                 typename RunFunctorArguments::grid_t const grid) {
 
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
             typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
 
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+
+            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                typename RunFunctorArguments::local_domain_t,
+                typename RunFunctorArguments::esf_sequence_t,
+                typename RunFunctorArguments::extent_sizes_t,
+                typename RunFunctorArguments::max_extent_t,
+                typename RunFunctorArguments::cache_sequence_t,
+                typename RunFunctorArguments::grid_t>;
+
+            using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
+
             typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
             typedef backend_traits_from_id<platform_cuda> backend_traits_t;
@@ -172,8 +183,7 @@ namespace gridtools {
             it_domain.set_block_pos(iblock, jblock);
 
             // execute the k interval functors
-            boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
-                _impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain, grid));
+            run_functors_on_interval<RunFunctorArguments, run_esf_functor_cuda>(it_domain, grid);
         }
 
     } // namespace _impl_iccuda

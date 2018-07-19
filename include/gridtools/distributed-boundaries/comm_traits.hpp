@@ -38,10 +38,20 @@
 
 #include "../gridtools.hpp"
 
+#include "../common/boollist.hpp"
+#ifdef _GCL_MPI_
 #include "../communication/low-level/proc_grids_3D.hpp"
+#else
+#include "./mock_pattern.hpp"
+#endif
+
 #include "../stencil-composition/stencil-composition.hpp"
 
 namespace gridtools {
+
+#ifndef _GCL_MPI_
+    using namespace mock_;
+#endif
 
     /** \ingroup Distributed-Boundaries
      * @{ */

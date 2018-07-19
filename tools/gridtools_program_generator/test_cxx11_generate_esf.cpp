@@ -75,7 +75,7 @@ struct prelude {
         code += "using namespace gridtools;\n";
         code += "using namespace enumtype;\n";
         code += "\n";
-        code += "typedef interval<level<0,-1>, level<1,-1> > x_interval;\n";
+        code += "typedef interval<level<0,-1, 1>, level<1,-1, 1> > x_interval;\n";
         code += "struct print_r {\n";
         code += "    template <typename T>\n";
         code += "    void operator()(T const& ) const {\n";
@@ -498,7 +498,7 @@ int main(int argc, char **argv) {
 
         program += "    uint_t di[5] = {1,1,1,3,5};\n";
         program += "    uint_t dj[5] = {1,1,1,3,5};\n";
-        program += "    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;\n";
+        program += "    typedef gridtools::interval< level< 0, -1, 1 >, level< 1, 1, 1 > > axis;\n";
         program += "    grid< axis > grid(di, dj);\n";
         program += "    grid.value_list[0] = 0;\n";
         program += "    grid.value_list[1] = 3;\n\n";

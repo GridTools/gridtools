@@ -71,10 +71,7 @@
 #include "local_domain.hpp"
 #include "loopintervals.hpp"
 #include "mss_components_metafunctions.hpp"
-#include "mss_local_domain.hpp"
 #include "reductions/reduction_data.hpp"
-#include "storage_wrapper.hpp"
-#include "tile.hpp"
 
 #include "computation_grammar.hpp"
 #include "extract_placeholders.hpp"
@@ -88,50 +85,6 @@
  * \brief this file contains mainly helper metafunctions which simplify the interface for the application developer
  * */
 namespace gridtools {
-
-    /**
-     * @brief metafunction that create the mss local domain type
-     */
-    template <class BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful>
-    struct create_mss_local_domains {
-
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-
-        struct get_the_mss_local_domain {
-            template <typename T>
-            struct apply {
-                typedef mss_local_domain<BackendId, T, StorageWrapperList, IsStateful> type;
-            };
-        };
-
-        typedef typename boost::mpl::transform<MssComponents, get_the_mss_local_domain>::type type;
-    };
-
-    template <typename Placeholder>
-    struct create_view {
-        using type = typename _impl::get_view<typename get_data_store_from_arg<Placeholder>::type>::type;
-    };
-
-    template <typename Placeholders, typename MssComponentsArray>
-    struct create_storage_wrapper_list {
-        // handle all tmps, obtain the storage_wrapper_list for written tmps
-        typedef typename _impl::obtain_storage_wrapper_list_t<Placeholders, MssComponentsArray>::type all_tmps;
-
-        // for every placeholder we push back an element that is either a new storage_wrapper type
-        // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
-        // if we find a read-only tmp void will be pushed back, but this will be filtered out in the
-        // last step.
-        typedef typename boost::mpl::transform_view<Placeholders,
-            boost::mpl::if_<is_tmp_arg<boost::mpl::_>,
-                storage_wrapper_elem<boost::mpl::_, all_tmps>,
-                storage_wrapper<boost::mpl::_, create_view<boost::mpl::_>, tile<0, 0>, tile<0, 0>>>>::type
-            complete_list;
-        // filter the list
-        typedef typename boost::mpl::filter_view<complete_list, is_storage_wrapper<boost::mpl::_1>>::type filtered_list;
-        typedef typename boost::mpl::fold<filtered_list,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>>::type type;
-    };
 
     template <typename MssDescs>
     struct need_to_compute_extents {
@@ -156,34 +109,6 @@ namespace gridtools {
             "computation should have all stages with extents or none.");
         using type = typename boost::mpl::not_<has_all_extents>::type;
     };
-
-    // function that checks if the given extents (I+- and J+-)
-    // are within the halo that was defined when creating the grid.
-    template <typename ExtentsVec, typename Grid>
-    void check_grid_against_extents(Grid const &grid) {
-        typedef ExtentsVec all_extents_vecs_t;
-        // get smallest i_minus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element<typename boost::mpl::transform<all_extents_vecs_t,
-                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<0>>>::type>::type>::type>::type IM_t;
-        // get smallest j_minus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element<typename boost::mpl::transform<all_extents_vecs_t,
-                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<2>>>::type>::type>::type>::type JM_t;
-        // get largest i_plus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element<typename boost::mpl::transform<all_extents_vecs_t,
-                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<1>>>::type>::type>::type>::type IP_t;
-        // get largest j_plus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element<typename boost::mpl::transform<all_extents_vecs_t,
-                boost::mpl::lambda<boost::mpl::at<boost::mpl::_1, boost::mpl::int_<3>>>::type>::type>::type>::type JP_t;
-        const bool check = (IM_t::value >= -static_cast<int>(grid.direction_i().minus())) &&
-                           (IP_t::value <= static_cast<int>(grid.direction_i().plus())) &&
-                           (JM_t::value >= -static_cast<int>(grid.direction_j().minus())) &&
-                           (JP_t::value <= static_cast<int>(grid.direction_j().plus()));
-        assert(check && "One of the stencil accessor extents is exceeding the halo region.");
-    }
 
     namespace _impl {
 
@@ -335,39 +260,28 @@ namespace gridtools {
       private:
         template <typename MssDescs>
         using convert_to_mss_components_array_t =
-            typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
-                MssDescs,
-                extent_map_t,
-                static_int<RepeatFunctor>,
-                typename Grid::axis_type>::type;
+            copy_into_variadic<typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
+                                   MssDescs,
+                                   extent_map_t,
+                                   static_int<RepeatFunctor>,
+                                   typename Grid::axis_type>::type,
+                std::tuple<>>;
 
-        typedef convert_to_mss_components_array_t<all_mss_descriptors_t> mss_components_array_t;
+        using mss_components_array_t = convert_to_mss_components_array_t<all_mss_descriptors_t>;
 
-        // create storage_wrapper_list
-        typedef
-            typename create_storage_wrapper_list<placeholders_t, mss_components_array_t>::type storage_wrapper_list_t;
-
-        // get the maximum extent (used to retrieve the size of the temporaries)
-        typedef typename max_i_extent_from_storage_wrapper_list<storage_wrapper_list_t>::type max_i_extent_t;
+        using max_extent_for_tmp_t = typename _impl::get_max_extent_for_tmp<mss_components_array_t>::type;
 
       public:
-        // creates an mpl sequence of local domains
-        typedef
-            typename create_mss_local_domains<BackendId, mss_components_array_t, storage_wrapper_list_t, IsStateful>::
-                type mss_local_domains_t;
+        // creates a tuple of local domains
+        using local_domains_t = GT_META_CALL(_impl::get_local_domains, (mss_components_array_t, IsStateful));
 
       private:
-        // creates a tuple of local domains
-        using mss_local_domain_list_t = copy_into_variadic<mss_local_domains_t, std::tuple<>>;
-
         struct run_f {
             template <typename MssDescs>
-            reduction_type<MssDescs> operator()(MssDescs const &mss_descriptors,
-                Grid const &grid,
-                mss_local_domain_list_t const &mss_local_domain_list) const {
+            reduction_type<MssDescs> operator()(
+                MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
                 auto reduction_data = make_reduction_data(mss_descriptors);
-                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(
-                    grid, mss_local_domain_list, reduction_data);
+                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(grid, local_domains, reduction_data);
                 return reduction_data.reduced_value();
             }
         };
@@ -394,9 +308,9 @@ namespace gridtools {
         //  Each item holds a storage and its view
         bound_arg_storage_pair_tuple_t m_bound_arg_storage_pair_tuple;
 
-        /// Here are local domains (structures with raw pointers for passing to backed.
+        /// Here are local domains (structures with raw pointers for passing to backend.
         //
-        mss_local_domain_list_t m_mss_local_domain_list;
+        local_domains_t m_local_domains;
 
       public:
         intermediate(Grid const &grid,
@@ -411,7 +325,8 @@ namespace gridtools {
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
               // that ensures, that only
               m_tmp_arg_storage_pair_tuple(dedup_storage_info(
-                  _impl::make_tmp_arg_storage_pairs<max_i_extent_t, Backend, tmp_arg_storage_pair_tuple_t>(grid))),
+                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(
+                      grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)
@@ -447,7 +362,7 @@ namespace gridtools {
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));
             // now local domains are fully set up.
             // branch selector calls run_f functor on the right branch of mss condition tree.
-            auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
+            auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_local_domains));
             if (m_meter)
                 m_meter->pause();
             return res;
@@ -473,7 +388,7 @@ namespace gridtools {
             m_meter->reset();
         }
 
-        mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
+        local_domains_t const &local_domains() const { return m_local_domains; }
 
       private:
         template <class Src>
@@ -482,7 +397,7 @@ namespace gridtools {
 
         template <class Views>
         void update_local_domains(Views const &views) {
-            _impl::update_local_domains(views, m_mss_local_domain_list);
+            _impl::update_local_domains(views, m_local_domains);
         }
 
         template <class Seq>
@@ -498,6 +413,6 @@ namespace gridtools {
      *  Probably the creation of local domains should be factored out into a separate component to resolve this issue.
      */
     template <typename Intermediate>
-    using intermediate_mss_local_domains = typename Intermediate::mss_local_domains_t;
+    using intermediate_local_domains = typename Intermediate::local_domains_t;
 
 } // namespace gridtools

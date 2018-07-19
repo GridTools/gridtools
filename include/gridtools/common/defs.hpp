@@ -152,6 +152,15 @@ namespace gridtools {
 #endif
 #endif
 
+// check boost::optional workaround for CUDA9.2
+#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
+#if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
+     not defined(BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE))
+#error \
+    "CUDA 9.2 has a problem with boost::optional, please define BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL and BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE prior to any include of boost/optional.hpp"
+#endif
+#endif
+
 /**
  * @brief Main namespace containing all the provided libraries and
  * functionalities

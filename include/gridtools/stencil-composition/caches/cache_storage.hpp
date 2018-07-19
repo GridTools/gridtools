@@ -77,13 +77,13 @@ namespace gridtools {
      * @tparam BlockSize physical block size (in IJ dims) that determines the size of the cache storage in the
      * scratchpad
      * @tparam Extent extent at which the cache is used (used also to determine the size of storage)
-     * @tparam StorageWrapper storage wrapper containing the storage of the arg being cached
+     * @tparam Arg arg being cached
      */
-    template <typename Cache, typename BlockSize, typename Extent, typename StorageWrapper>
+    template <typename Cache, typename BlockSize, typename Extent, typename Arg>
     struct cache_storage;
 
-    template <typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper>
-    struct cache_storage<Cache, block_size<Tiles...>, extent<ExtentBounds...>, StorageWrapper> {
+    template <typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Arg>
+    struct cache_storage<Cache, block_size<Tiles...>, extent<ExtentBounds...>, Arg> {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes<Tiles...>::value), GT_INTERNAL_ERROR);
 
@@ -97,7 +97,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(((tiles_block == 1) || !is_k_cache<cache_t>::value), GT_INTERNAL_ERROR);
 
-        typedef typename StorageWrapper::data_t value_type;
+        typedef typename Arg::data_store_t::data_t value_type;
 
 // TODO ICO_STORAGE in irregular grids we have one more dim for color
 #ifndef STRUCTURED_GRIDS
@@ -129,7 +129,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
-        typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, StorageWrapper>::type meta_t;
+        typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, Arg>::type meta_t;
 
         GT_FUNCTION
         static constexpr uint_t padded_total_length() { return meta_t::padded_total_length(); }
@@ -148,9 +148,9 @@ namespace gridtools {
                 (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
                 (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
                 (extra_dims)*Color * meta_t::template stride<1>() +
-                padded_total_length() * get_datafield_offset<typename StorageWrapper::data_store_t>::get(accessor_) +
+                padded_total_length() * get_datafield_offset<typename Arg::data_store_t>::get(accessor_) +
                 compute_offset_cache<meta_t>(accessor_);
-            assert((extra_) < (padded_total_length() * StorageWrapper::num_of_storages));
+            assert((extra_) < (padded_total_length() * Arg::data_store_t::num_of_storages));
             return m_values[extra_];
         }
 
@@ -163,11 +163,10 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const int_t index_ =
-                (int_t)padded_total_length() *
-                    (int_t)get_datafield_offset<typename StorageWrapper::data_store_t>::get(accessor_) +
+                (int_t)padded_total_length() * (int_t)get_datafield_offset<typename Arg::data_store_t>::get(accessor_) +
                 compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
             assert(index_ >= 0);
-            assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
+            assert(index_ < (padded_total_length() * Arg::data_store_t::num_of_storages));
 
             return m_values[index_];
         }
@@ -181,12 +180,11 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const int_t index_ =
-                (int_t)padded_total_length() *
-                    (int_t)get_datafield_offset<typename StorageWrapper::data_store_t>::get(accessor_) +
+                (int_t)padded_total_length() * (int_t)get_datafield_offset<typename Arg::data_store_t>::get(accessor_) +
                 compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
-            assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
+            assert(index_ < (padded_total_length() * Arg::data_store_t::num_of_storages));
 
             return m_values[index_];
         }
@@ -212,7 +210,7 @@ namespace gridtools {
         }
 
       private:
-        value_type m_values[padded_total_length() * StorageWrapper::num_of_storages];
+        value_type m_values[padded_total_length() * Arg::data_store_t::num_of_storages];
 
         template <typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION static void check_kcache_access_in_bounds(

@@ -43,7 +43,10 @@
 #include "./reductions/reduction_descriptor.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "functor_decorator.hpp"
+#include "functor_do_method_lookup_maps.hpp"
+#include "functor_do_methods.hpp"
 #include "grid.hpp"
+#include "loopintervals.hpp"
 #include "mss_components.hpp"
 #include "mss_metafunctions.hpp"
 #include "sfinae.hpp"
@@ -59,7 +62,7 @@ namespace gridtools {
 
     template <typename MssDescriptor>
     struct mss_split_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token<MssDescriptor>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_computation_token<MssDescriptor>::value, GT_INTERNAL_ERROR);
 
         using execution_engine_t = typename mss_descriptor_execution_engine<MssDescriptor>::type;
 
@@ -73,7 +76,7 @@ namespace gridtools {
 
         using type = typename boost::mpl::if_c<
             // if the number of esf contained in the mss is 1, there is no need to split
-            (boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value == 1),
+            boost::mpl::size<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type>::value == 1,
             boost::mpl::vector1<MssDescriptor>,
             mss_split_multiple_esf_t>::type;
     };
