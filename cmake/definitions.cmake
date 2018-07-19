@@ -86,12 +86,12 @@ if( ENABLE_CUDA )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=dupl_calling_convention")
+
+  # suppress because of a warning coming from gtest.h
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=implicit_return_from_non_void_function")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=calling_convention_not_allowed")
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=conflicting_calling_conventions")
+
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
+    # suppress because of boost::fusion::vector ctor
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=esa_on_defaulted_function_ignored")
   endif()
 
