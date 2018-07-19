@@ -41,6 +41,8 @@
 #include <gridtools/interface/repository/repository.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
+#include <gridtools/backend_host.hpp>
+
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
 GRIDTOOLS_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
@@ -118,13 +120,13 @@ TEST(extended_repo, inherited_functions) {
     ASSERT_EQ(10, repo.u().dim<0>());
 }
 
-using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::enumtype::Host>::storage_info_t<2, 3>;
+using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::platform_host>::storage_info_t<2, 3>;
 using IJKWDataStore =
-    typename gridtools::storage_traits<gridtools::enumtype::Host>::data_store_t<gridtools::float_type, IJKWStorageInfo>;
-using IKStorageInfo = typename gridtools::storage_traits<gridtools::enumtype::Host>::special_storage_info_t<2,
+    typename gridtools::storage_traits<gridtools::platform_host>::data_store_t<gridtools::float_type, IJKWStorageInfo>;
+using IKStorageInfo = typename gridtools::storage_traits<gridtools::platform_host>::special_storage_info_t<2,
     gridtools::selector<1, 0, 1>>;
 using IKDataStore =
-    typename gridtools::storage_traits<gridtools::enumtype::Host>::data_store_t<gridtools::float_type, IKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::platform_host>::data_store_t<gridtools::float_type, IKStorageInfo>;
 
 #define MY_FIELDTYPES \
     (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))

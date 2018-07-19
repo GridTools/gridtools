@@ -154,7 +154,7 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef IsIndependentSeq async_esf_map_t;
-        typedef typename backend_traits_from_id<backend_ids_t::s_backend_id>::template select_iterate_domain<
+        typedef typename backend_traits_from_id<typename backend_ids_t::s_backend_id>::template select_iterate_domain<
             iterate_domain_arguments<BackendIds,
                 LocalDomain,
                 EsfSequence,

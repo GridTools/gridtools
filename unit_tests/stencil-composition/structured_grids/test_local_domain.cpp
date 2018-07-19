@@ -45,6 +45,7 @@
 #include <boost/mpl/equal.hpp>
 #include <gridtools/gridtools.hpp>
 
+#include <gridtools/backend_host.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
@@ -62,7 +63,7 @@ struct dummy_functor {
     GT_FUNCTION static void Do(Evaluation &eval);
 };
 
-typedef backend<Host, GRIDBACKEND, Naive> backend_t;
+typedef backend<platform_host, GRIDBACKEND, Naive> backend_t;
 typedef layout_map<2, 1, 0> layout_ijk_t;
 typedef layout_map<0, 1, 2> layout_kji_t;
 typedef host_storage_info<0, layout_ijk_t> meta_ijk_t;
@@ -76,7 +77,7 @@ typedef arg<2, storage_t> p_out;
 
 typedef intermediate<1,
     false,
-    backend<Host, GRIDBACKEND, Naive>,
+    backend<platform_host, GRIDBACKEND, Naive>,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor

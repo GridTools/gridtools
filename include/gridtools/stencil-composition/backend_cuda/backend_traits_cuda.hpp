@@ -77,7 +77,7 @@ namespace gridtools {
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
-    struct backend_traits_from_id<enumtype::Cuda> {
+    struct backend_traits_from_id<platform_cuda> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view

@@ -54,7 +54,7 @@ namespace test_iterate_domain {
     typedef layout_map<0, 1, 2> layout_kji_t;
     typedef layout_map<0, 1> layout_ij_t;
 
-    typedef gridtools::backend<enumtype::Cuda, enumtype::structured, enumtype::Block> backend_t;
+    typedef gridtools::backend<platform_cuda, enumtype::structured, enumtype::Block> backend_t;
     typedef gridtools::cuda_storage_info<0, layout_ijk_t> meta_ijk_t;
     typedef gridtools::cuda_storage_info<0, layout_kji_t> meta_kji_t;
     typedef gridtools::cuda_storage_info<0, layout_ij_t> meta_ij_t;

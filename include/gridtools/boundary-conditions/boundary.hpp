@@ -44,6 +44,10 @@
 
 #include "./predicate.hpp"
 
+#include "../backend_cuda.hpp"
+#include "../backend_host.hpp"
+#include "../backend_mic.hpp"
+
 /** \defgroup Boundary-Conditions Boundary Conditions
  */
 
@@ -54,40 +58,40 @@ namespace gridtools {
          * @{
          */
 
-        template <enumtype::platform Arch, typename BoundaryFunction, typename Predicate>
+        template <class Arch, typename BoundaryFunction, typename Predicate>
         struct select_apply;
 
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<enumtype::Host, BoundaryFunction, Predicate> {
+        struct select_apply<platform_host, BoundaryFunction, Predicate> {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<enumtype::Mic, BoundaryFunction, Predicate> {
+        struct select_apply<platform_mic, BoundaryFunction, Predicate> {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
 #ifdef __CUDACC__
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<enumtype::Cuda, BoundaryFunction, Predicate>
+        struct select_apply<platform_cuda, BoundaryFunction, Predicate>
 
         {
             using type = boundary_apply_gpu<BoundaryFunction, Predicate>;
         };
 #endif
 
-        template <enumtype::platform Arch, access_mode AM, typename DataF>
+        template <class Arch, access_mode AM, typename DataF>
         struct proper_view;
 
         template <access_mode AM, typename DataF>
-        struct proper_view<enumtype::Host, AM, DataF> {
+        struct proper_view<platform_host, AM, DataF> {
             using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
         };
 
         template <access_mode AM, typename DataF>
-        struct proper_view<enumtype::Mic, AM, DataF> {
+        struct proper_view<platform_mic, AM, DataF> {
             using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
@@ -95,7 +99,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
         template <access_mode AM, typename DataF>
-        struct proper_view<enumtype::Cuda, AM, DataF> {
+        struct proper_view<platform_cuda, AM, DataF> {
             using proper_view_t = decltype(make_device_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_device_view<AM>(df); }
@@ -116,7 +120,7 @@ namespace gridtools {
        \tparam Predicate Runtime predicate for deciding if to apply boundary conditions or not on certain regions based
        on runtime values (useful to deal with non-priodic distributed examples
      */
-    template <typename BoundaryFunction, enumtype::platform Arch, typename Predicate = default_predicate>
+    template <typename BoundaryFunction, class Arch, typename Predicate = default_predicate>
     struct boundary {
         using bc_apply_t = typename _impl::select_apply<Arch, BoundaryFunction, Predicate>::type;
 

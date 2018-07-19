@@ -138,7 +138,8 @@ namespace gridtools {
              */
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
-                using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
+                using backend_traits_t =
+                    backend_traits_from_id<typename RunFunctorArguments::backend_ids_t::s_backend_id>;
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
@@ -206,7 +207,8 @@ namespace gridtools {
              */
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
-                using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
+                using backend_traits_t =
+                    backend_traits_from_id<typename RunFunctorArguments::backend_ids_t::s_backend_id>;
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
@@ -275,7 +277,8 @@ namespace gridtools {
              */
             template <typename Index>
             GT_FUNCTION void operator()(const Index &index) const {
-                using backend_traits_t = backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>;
+                using backend_traits_t =
+                    backend_traits_from_id<typename RunFunctorArguments::backend_ids_t::s_backend_id>;
                 using run_esf_functor_t =
                     typename backend_traits_t::run_esf_functor_h_t::template apply<RunFunctorArguments, Interval>::type;
                 using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;

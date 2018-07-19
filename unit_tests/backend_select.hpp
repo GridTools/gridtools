@@ -39,17 +39,20 @@
 #include <gridtools/stencil-composition/backend.hpp>
 
 #ifdef BACKEND_HOST
-constexpr auto ARCH = gridtools::enumtype::Host;
+#include <gridtools/backend_host.hpp>
+using ARCH = gridtools::platform_host;
 #ifdef BACKEND_STRATEGY_NAIVE
 using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive>;
 #else
 using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block>;
 #endif
 #elif defined(BACKEND_MIC)
-constexpr auto ARCH = gridtools::enumtype::Mic;
+#include <gridtools/backend_mic.hpp>
+using ARCH = gridtools::platform_mic;
 using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block>;
 #elif defined(BACKEND_CUDA)
-constexpr auto ARCH = gridtools::enumtype::Cuda;
+#include <gridtools/backend_cuda.hpp>
+using ARCH = gridtools::platform_cuda;
 using backend_t = gridtools::backend<ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block>;
 #else
 #error "no backend selected"

@@ -164,14 +164,10 @@ namespace gridtools {
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
-/**
-   @section enumtypes Gridtools enumeration types
-   @{
- */
-/** enum specifying the type of backend we use */
-#ifndef PLATFORM_GUARD
-        enum platform { Cuda, Host, Mic };
-#endif
+        /**
+           @section enumtypes Gridtools enumeration types
+           @{
+         */
 
         enum strategy { Naive, Block };
 

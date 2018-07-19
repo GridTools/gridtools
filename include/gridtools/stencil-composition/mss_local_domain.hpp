@@ -76,7 +76,7 @@ namespace gridtools {
         };
     } // namespace _impl
 
-    template <enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful>
+    template <class BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful>
     struct mss_local_domain {
 
         // This is to make cuda8 happy.
@@ -107,7 +107,7 @@ namespace gridtools {
     template <typename T>
     struct is_mss_local_domain : boost::mpl::false_ {};
 
-    template <enumtype::platform BackendId, typename MssType, typename StorageWrapperList, bool IsStateful>
+    template <class BackendId, typename MssType, typename StorageWrapperList, bool IsStateful>
     struct is_mss_local_domain<mss_local_domain<BackendId, MssType, StorageWrapperList, IsStateful>>
         : boost::mpl::true_ {};
 

@@ -33,11 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../common/defs.hpp"
-
 namespace gridtools {
-    template <class BackendType, enumtype::grid_type GridType, enumtype::strategy StrategyType>
-    struct backend;
-}
+    struct platform_host {};
+} // namespace gridtools

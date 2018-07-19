@@ -46,18 +46,18 @@
 namespace gridtools {
 
     namespace _impl {
-        template <enumtype::platform>
+        template <class>
         struct default_layout;
         template <>
-        struct default_layout<enumtype::Cuda> {
+        struct default_layout<platform_cuda> {
             using type = layout_map<3, 2, 1, 0>;
         };
         template <>
-        struct default_layout<enumtype::Host> {
+        struct default_layout<platform_host> {
             using type = layout_map<0, 1, 2, 3>;
         };
         template <>
-        struct default_layout<enumtype::Mic> {
+        struct default_layout<platform_mic> {
             using type = layout_map<0, 1, 2, 3>;
         };
     } // namespace _impl
@@ -65,7 +65,7 @@ namespace gridtools {
     /**
        The backend is, as usual, declaring what the storage types are
      */
-    template <enumtype::platform BackendId, enumtype::strategy StrategyType>
+    template <class BackendId, enumtype::strategy StrategyType>
     struct backend<BackendId, enumtype::icosahedral, StrategyType>
         : public backend_base<BackendId, enumtype::icosahedral, StrategyType> {
       public:

@@ -51,8 +51,8 @@
 #endif
 
 /**@file
-@brief type definitions and structures specific for the Host backend
-*/
+ * @brief type definitions and structures specific for the Host backend
+ */
 namespace gridtools {
     namespace _impl_host {
         /**forward declaration*/
@@ -62,7 +62,7 @@ namespace gridtools {
 
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
-    struct backend_traits_from_id<enumtype::Host> {
+    struct backend_traits_from_id<platform_host> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.

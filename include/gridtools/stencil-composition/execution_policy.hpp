@@ -71,9 +71,8 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
-            typedef
-                typename backend_traits_from_id<RunFunctorArguments::backend_ids_t::s_backend_id>::run_esf_functor_h_t
-                    run_esf_functor_h_t;
+            typedef typename backend_traits_from_id<
+                typename RunFunctorArguments::backend_ids_t::s_backend_id>::run_esf_functor_h_t run_esf_functor_h_t;
             typedef run_f_on_interval_base<
                 run_f_on_interval<typename enumtype::execute<IterationType>, RunFunctorArguments>>
                 super;

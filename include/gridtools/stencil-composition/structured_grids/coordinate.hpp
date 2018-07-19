@@ -45,18 +45,18 @@ namespace gridtools {
     template <class>
     struct coord_i;
 
-    template <enumtype::platform Platform, enumtype::strategy Strategy>
+    template <class Platform, enumtype::strategy Strategy>
     struct coord_i<backend_ids<Platform, enumtype::structured, Strategy>> : std::integral_constant<size_t, 0> {};
 
     template <class>
     struct coord_j;
 
-    template <enumtype::platform Platform, enumtype::strategy Strategy>
+    template <class Platform, enumtype::strategy Strategy>
     struct coord_j<backend_ids<Platform, enumtype::structured, Strategy>> : std::integral_constant<size_t, 1> {};
 
     template <class>
     struct coord_k;
 
-    template <enumtype::platform Platform, enumtype::strategy Strategy>
+    template <class Platform, enumtype::strategy Strategy>
     struct coord_k<backend_ids<Platform, enumtype::structured, Strategy>> : std::integral_constant<size_t, 2> {};
 } // namespace gridtools

@@ -92,7 +92,7 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template <enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful>
+    template <class BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful>
     struct create_mss_local_domains {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
@@ -263,17 +263,20 @@ namespace gridtools {
 
     template <uint_t RepeatFunctor,
         bool IsStateful,
-        class Backend,
+        class BackendId,
+        enumtype::grid_type GridId,
+        enumtype::strategy StrategyId,
         class Grid,
         class... BoundPlaceholders,
         class... BoundDataStores,
         class... MssDescriptors>
     class intermediate<RepeatFunctor,
         IsStateful,
-        Backend,
+        backend<BackendId, GridId, StrategyId>,
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
+        using Backend = backend<BackendId, GridId, StrategyId>;
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
@@ -349,10 +352,9 @@ namespace gridtools {
 
       public:
         // creates an mpl sequence of local domains
-        typedef typename create_mss_local_domains<backend_id<Backend>::value,
-            mss_components_array_t,
-            storage_wrapper_list_t,
-            IsStateful>::type mss_local_domains_t;
+        typedef
+            typename create_mss_local_domains<BackendId, mss_components_array_t, storage_wrapper_list_t, IsStateful>::
+                type mss_local_domains_t;
 
       private:
         // creates a tuple of local domains

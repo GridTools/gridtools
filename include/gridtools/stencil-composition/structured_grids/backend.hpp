@@ -39,7 +39,7 @@
 
 namespace gridtools {
 
-    template <enumtype::platform BackendId, enumtype::strategy StrategyType>
+    template <class BackendId, enumtype::strategy StrategyType>
     struct backend<BackendId, enumtype::structured, StrategyType>
         : public backend_base<BackendId, enumtype::structured, StrategyType> {
         typedef backend_base<BackendId, enumtype::structured, StrategyType> base_t;

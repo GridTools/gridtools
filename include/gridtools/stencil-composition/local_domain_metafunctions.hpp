@@ -149,7 +149,7 @@ namespace gridtools {
      * @tparam BackendId id of the backend
      * @tparam LocalDomainSequence sequence of local domains
      */
-    template <enumtype::platform BackendId, typename LocalDomainSequence, typename MssComponents, bool IsStateful>
+    template <class BackendId, typename LocalDomainSequence, typename MssComponents, bool IsStateful>
     struct fuse_mss_local_domains {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), GT_INTERNAL_ERROR);
         typedef typename boost::mpl::eval_if<typename backend_traits_from_id<BackendId>::mss_fuse_esfs_strategy,
@@ -166,7 +166,7 @@ namespace gridtools {
      * @tparam LocalDomainSequence sequence of local domains
      * @tparam MergedLocalDomainSequence sequence of merged local domains
      */
-    template <enumtype::platform BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
+    template <class BackendId, typename LocalDomainSequence, typename MergedLocalDomainSequence>
     struct generate_args_lookup_map {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomainSequence, is_local_domain>::value), GT_INTERNAL_ERROR);
 
@@ -182,8 +182,9 @@ namespace gridtools {
      */
     template <typename Index, typename BackendId>
     struct extract_local_domain_index {
-        typedef typename boost::mpl::if_<typename backend_traits_from_id<BackendId::value>::mss_fuse_esfs_strategy,
-            boost::mpl::int_<0>,
-            Index>::type type;
+        typedef
+            typename boost::mpl::if_<typename backend_traits_from_id<typename BackendId::value>::mss_fuse_esfs_strategy,
+                boost::mpl::int_<0>,
+                Index>::type type;
     };
 } // namespace gridtools

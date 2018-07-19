@@ -51,7 +51,7 @@ namespace gridtools {
     struct storage;
 
     /**forward declaration*/
-    template <enumtype::platform T>
+    template <typename T>
     struct backend_traits_from_id;
 
     /**

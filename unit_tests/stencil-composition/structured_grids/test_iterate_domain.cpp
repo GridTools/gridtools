@@ -36,6 +36,7 @@
 #define PEDANTIC_DISABLED // too stringent for this test
 
 #include "gtest/gtest.h"
+#include <gridtools/backend_host.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
@@ -99,7 +100,7 @@ namespace test_iterate_domain {
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out()));
-        auto computation_ = make_computation<gridtools::backend<Host, GRIDBACKEND, Naive>>(
+        auto computation_ = make_computation<gridtools::backend<gridtools::platform_host, GRIDBACKEND, Naive>>(
             grid, p_in() = in, p_buff() = buff, p_out() = out, mss_);
 
         typedef decltype(gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out())) esf_t;
@@ -110,7 +111,7 @@ namespace test_iterate_domain {
         typedef boost::mpl::front<mss_local_domains_t>::type mss_local_domain1_t;
 
         typedef typename backend_traits_t::select_iterate_domain<
-            iterate_domain_arguments<backend_ids<Host, GRIDBACKEND, Naive>,
+            iterate_domain_arguments<backend_ids<gridtools::platform_host, GRIDBACKEND, Naive>,
                 boost::mpl::at_c<typename mss_local_domain1_t::fused_local_domain_sequence_t, 0>::type,
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<extent<0, 0, 0, 0>>,
