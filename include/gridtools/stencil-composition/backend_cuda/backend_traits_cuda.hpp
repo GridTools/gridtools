@@ -48,10 +48,8 @@
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
-#include "../run_functor_arguments_fwd.hpp"
 #include "execute_kernel_functor_cuda.hpp"
 #include "iterate_domain_cache.hpp"
-#include "run_esf_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS
@@ -63,17 +61,6 @@
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
 namespace gridtools {
-
-    /**forward declaration*/
-
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    class iterate_domain_cuda;
-
-    template <typename IterateDomainImpl>
-    struct positional_iterate_domain;
-
-    template <typename IterateDomainImpl>
-    struct iterate_domain;
 
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
@@ -125,46 +112,11 @@ namespace gridtools {
          */
         typedef std::true_type mss_fuse_esfs_strategy;
 
-        // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_cuda> run_esf_functor_h_t;
-
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda<BackendIds::s_strategy_id> type;
-        };
-
-        /**
-         * @brief metafunction that returns the right iterate domain for this backend
-         * (depending on whether the local domain is positional or not)
-         * @tparam IterateDomainArguments the iterate domain arguments
-         * @return the iterate domain type for this backend
-         */
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
-            // indirection in order to avoid instantiation of both types of the eval_if
-            template <typename _IterateDomainArguments>
-            struct select_positional_iterate_domain {
-// TODO to do this properly this should belong to a arch_grid_trait (i.e. a trait dispatching types depending
-// on the comp architecture and the grid.
-#ifdef STRUCTURED_GRIDS
-                typedef iterate_domain_cuda<positional_iterate_domain, _IterateDomainArguments> type;
-#else
-                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
-#endif
-            };
-
-            template <typename _IterateDomainArguments>
-            struct select_basic_iterate_domain {
-                typedef iterate_domain_cuda<iterate_domain, _IterateDomainArguments> type;
-            };
-
-            typedef
-                typename boost::mpl::eval_if<local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-                    select_positional_iterate_domain<IterateDomainArguments>,
-                    select_basic_iterate_domain<IterateDomainArguments>>::type type;
         };
 
         template <typename IterateDomainArguments>

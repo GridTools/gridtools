@@ -52,11 +52,9 @@
 #include "../../caches/cache_metafunctions.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../offset_computation.hpp"
 #include "../../reductions/iterate_domain_reduction.hpp"
-#include "../../total_storages.hpp"
 
 namespace gridtools {
 
@@ -84,17 +82,12 @@ namespace gridtools {
             template <typename FusionPair>
             GT_FUNCTION void operator()(FusionPair const &sw) const {
                 typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
-                typedef typename storage_wrapper_elem<arg_t, typename LocalDomain::storage_wrapper_list_t>::type
-                    storage_wrapper_t;
-                typedef typename boost::mpl::find<typename LocalDomain::storage_wrapper_list_t,
-                    storage_wrapper_t>::type::pos pos_in_storage_wrapper_list_t;
-
-                typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list,
-                    const typename storage_wrapper_t::storage_info_t *>::type::pos si_index_t;
-
-                const int_t offset = fields_offset<arg_t>(boost::fusion::at<si_index_t>(m_storageinfo_fusion_list));
-                for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i)
-                    m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i] = sw.second[i] + offset;
+                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, arg_t>::value;
+                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
+                    typename arg_t::data_store_t::storage_info_t const *>::value;
+                const int_t offset = fields_offset<arg_t>(boost::fusion::at_c<si_index>(m_storageinfo_fusion_list));
+                for (unsigned i = 0; i < arg_t::data_store_t::num_of_storages; ++i)
+                    m_data_ptr_cached.template get<pos_in_args>()[i] = sw.second[i] + offset;
             }
         };
     } // namespace _impl
@@ -119,17 +112,17 @@ namespace gridtools {
         /* meta function to get storage info index in local domain */
         template <typename StorageInfo>
         using local_domain_storage_index =
-            typename boost::mpl::find<typename local_domain_t::storage_info_ptr_list, const StorageInfo *>::type::pos;
+            meta::st_position<typename local_domain_t::storage_info_ptr_list, const StorageInfo *>;
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
         using storage_is_tmp =
-            typename boost::mpl::at<typename local_domain_t::storage_info_tmp_info_t, StorageInfo>::type;
+            meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
 
         /* meta function to get the storage info type corresponding to an accessor */
         template <typename Accessor>
         using storage_info_from_accessor =
-            typename local_domain_t::template get_data_store<typename Accessor::index_t>::type::storage_info_t;
+            typename local_domain_t::template get_arg<typename Accessor::index_t>::type::data_store_t::storage_info_t;
 
         /* ij-cache types and meta functions */
         using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<IJ>>::type;
@@ -172,11 +165,8 @@ namespace gridtools {
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
-        // the total number of snapshot (one or several per storage)
-        static const uint_t N_DATA_POINTERS =
-            total_storages<typename local_domain_t::storage_wrapper_list_t, N_STORAGES>::type::value;
 
-        using data_ptr_cached_t = data_ptr_cached<typename local_domain_t::storage_wrapper_list_t>;
+        using data_ptr_cached_t = data_ptr_cached<typename local_domain_t::esf_args>;
         using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
         using array_index_t = array<int_t, N_META_STORAGES>;
         // *************** end of type definitions **************
@@ -261,11 +251,6 @@ namespace gridtools {
         /** @brief Enables ij-caches. */
         GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
 
-        template <typename T>
-        GT_FUNCTION void info(T const &x) const {
-            local_domain.info(x);
-        }
-
         /**
          * @brief Returns the value of the memory at the given address, plus the offset specified by the arg
          * placeholder.
@@ -319,11 +304,8 @@ namespace gridtools {
 
             using index_t = typename Accessor::index_t;
             using arg_t = typename local_domain_t::template get_arg<index_t>::type;
-            using storage_wrapper_t =
-                typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type;
-            using data_store_t = typename storage_wrapper_t::data_store_t;
-            using storage_info_t = typename storage_wrapper_t::storage_info_t;
-            using data_t = typename storage_wrapper_t::data_t;
+            using data_store_t = typename arg_t::data_store_t;
+            using storage_info_t = typename data_store_t::storage_info_t;
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
                 "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
                 "snapshot)");
@@ -333,19 +315,6 @@ namespace gridtools {
                 idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
 
             return m_data_pointer.template get<index_t::value>()[idx];
-        }
-
-        /**
-         * @brief Returns the dimension of the storage corresponding to the given accessor.
-         * Useful to determine the loop bounds, when looping over a dimension from whithin a kernel.
-         */
-        template <ushort_t Coordinate, typename Accessor>
-        GT_FUNCTION uint_t get_storage_dim(Accessor) const {
-            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, GT_INTERNAL_ERROR);
-            using storage_info_t = storage_info_from_accessor<Accessor>;
-            using storage_index_t = local_domain_storage_index<storage_info_t>;
-            return boost::fusion::at<storage_index_t>(local_domain.m_local_storage_info_ptrs)
-                ->template dim<Coordinate>();
         }
 
         /**
@@ -407,8 +376,8 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
-            using storage_index_t = local_domain_storage_index<StorageInfo>;
-            auto const &strides = m_strides.template get<storage_index_t::value>();
+            static constexpr auto storage_index = local_domain_storage_index<StorageInfo>::value;
+            auto const &strides = m_strides.template get<storage_index>();
             return stride<StorageInfo, Coordinate>(strides);
         }
 
@@ -541,21 +510,17 @@ namespace gridtools {
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
         // getting information about the storage
         using arg_t = typename local_domain_t::template get_arg<typename Accessor::index_t>::type;
+        using storage_info_t = typename arg_t::data_store_t::storage_info_t;
+        using data_t = typename arg_t::data_store_t::data_t;
 
-        using storage_wrapper_t =
-            typename storage_wrapper_elem<arg_t, typename local_domain_t::storage_wrapper_list_t>::type;
-        using storage_info_t = typename storage_wrapper_t::storage_info_t;
-        using data_t = typename storage_wrapper_t::data_t;
+        static constexpr auto storage_index = local_domain_storage_index<storage_info_t>::value;
 
-        using storage_index_t = local_domain_storage_index<storage_info_t>;
-
-        const storage_info_t *storage_info = boost::fusion::at<storage_index_t>(local_domain.m_local_storage_info_ptrs);
+        const storage_info_t *storage_info = boost::fusion::at_c<storage_index>(local_domain.m_local_storage_info_ptrs);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
         assert(storage_pointer);
         data_t *RESTRICT real_storage_pointer = static_cast<data_t *>(storage_pointer);
-        assert(real_storage_pointer);
 
         const int_t pointer_offset = compute_offset<storage_info_t>(accessor);
 
@@ -571,8 +536,5 @@ namespace gridtools {
 
     template <typename IterateDomainArguments>
     struct is_iterate_domain<iterate_domain_mic<IterateDomainArguments>> : boost::mpl::true_ {};
-
-    template <typename IterateDomainArguments>
-    struct is_positional_iterate_domain<iterate_domain_mic<IterateDomainArguments>> : boost::mpl::true_ {};
 
 } // namespace gridtools
