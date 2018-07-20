@@ -185,13 +185,6 @@ namespace gridtools {
             iterate_domain_mic const &m_it_domain;
         };
 
-      private:
-        /**
-         *  @brief returns the array of pointers to the raw data
-         *  dispatch to avoid coupling to the internals of local_domain everywhere
-         */
-        GT_FUNCTION auto local_data_ptrs() const GT_AUTO_RETURN(local_domain.m_local_data_ptrs);
-
       public:
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
@@ -247,7 +240,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second[0]);
+            return *static_cast<Res *>(boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second[0]);
         }
 
         /**
@@ -257,7 +250,7 @@ namespace gridtools {
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(**boost::fusion::at<typename Acc::index_t>(local_data_ptrs()).second.data()),
+                std::cref(**boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second.data()),
                 accessor.get_arguments())) /** @endcond */;
 
         /**
