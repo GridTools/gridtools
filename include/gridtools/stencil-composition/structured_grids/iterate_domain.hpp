@@ -36,8 +36,6 @@
 
 #pragma once
 
-#include <boost/fusion/container/map.hpp>
-
 #include "../../common/gt_assert.hpp"
 
 #include "../../storage/data_field_view.hpp"
