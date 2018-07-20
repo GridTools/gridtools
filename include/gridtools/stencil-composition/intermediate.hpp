@@ -188,20 +188,17 @@ namespace gridtools {
 
     template <uint_t RepeatFunctor,
         bool IsStateful,
-        class BackendId,
-        class GridId,
-        class StrategyId,
+        class Backend,
         class Grid,
         class... BoundPlaceholders,
         class... BoundDataStores,
         class... MssDescriptors>
     class intermediate<RepeatFunctor,
         IsStateful,
-        backend<BackendId, GridId, StrategyId>,
+        Backend,
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
-        using Backend = backend<BackendId, GridId, StrategyId>;
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
