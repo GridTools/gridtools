@@ -64,13 +64,13 @@ namespace gridtools {
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
-      private:
-        typedef typename super::readonly_args_indices_t readonly_args_indices_t;
-
         typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
+
+      private:
+        typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
