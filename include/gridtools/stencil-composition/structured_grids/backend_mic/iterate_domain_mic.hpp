@@ -241,15 +241,6 @@ namespace gridtools {
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
         /**
-         * @brief method returning the data pointer of an accessor
-         * dispatch to a shared function for all backends
-         */
-        template <typename Accessor>
-        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) const {
-            return aux::get_data_pointer(local_domain.m_local_data_ptrs, accessor);
-        }
-
-        /**
          * @brief Method called in the Do methods of the functors.
          * Specialization for the global accessors placeholders.
          */
@@ -282,7 +273,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
-            return get_value(accessor, get_data_pointer(accessor));
+            return get_value(accessor, aux::get_data_pointer(local_domain, accessor));
         }
 
         /** @brief Global i-index. */
