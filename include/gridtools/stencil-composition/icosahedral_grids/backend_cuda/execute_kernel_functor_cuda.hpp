@@ -82,8 +82,7 @@ namespace gridtools {
             typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
             typedef typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
-            typedef shared_iterate_domain<data_ptr_cached_t,
-                strides_t,
+            typedef shared_iterate_domain<strides_t,
                 max_extent_t,
                 typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t>
                 shared_iterate_domain_t;

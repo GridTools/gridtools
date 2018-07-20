@@ -71,25 +71,6 @@ namespace gridtools {
         GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
             return 0;
         }
-
-        template <typename DataPtrCached, typename LocalDomain>
-        struct assign_storage_ptrs_mic {
-            GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached<DataPtrCached>::value), GT_INTERNAL_ERROR);
-
-            DataPtrCached &RESTRICT m_data_ptr_cached;
-            typename LocalDomain::storage_info_ptr_fusion_list const &RESTRICT m_storageinfo_fusion_list;
-
-            template <typename FusionPair>
-            GT_FUNCTION void operator()(FusionPair const &sw) const {
-                typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
-                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, arg_t>::value;
-                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
-                    typename arg_t::data_store_t::storage_info_t const *>::value;
-                const int_t offset = fields_offset<arg_t>(boost::fusion::at_c<si_index>(m_storageinfo_fusion_list));
-                for (unsigned i = 0; i < arg_t::data_store_t::num_of_storages; ++i)
-                    m_data_ptr_cached.template get<pos_in_args>()[i] = sw.second[i] + offset;
-            }
-        };
     } // namespace _impl
 
     /**
@@ -166,7 +147,6 @@ namespace gridtools {
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
-        using data_ptr_cached_t = data_ptr_cached<typename local_domain_t::esf_args>;
         using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
         using array_index_t = array<int_t, N_META_STORAGES>;
         // *************** end of type definitions **************
@@ -174,7 +154,6 @@ namespace gridtools {
       protected:
         // *********************** members **********************
         local_domain_t const &local_domain;
-        data_ptr_cached_t m_data_pointer;
         strides_cached_t m_strides;
         int_t m_i_block_index;     /** Local i-index inside block. */
         int_t m_j_block_index;     /** Local j-index inside block. */
@@ -206,24 +185,23 @@ namespace gridtools {
             iterate_domain_mic const &m_it_domain;
         };
 
+      private:
+        /**
+         *  @brief returns the array of pointers to the raw data
+         *  dispatch to avoid coupling to the internals of local_domain everywhere
+         */
+        GT_FUNCTION auto local_data_ptrs() const GT_AUTO_RETURN(local_domain.m_local_data_ptrs);
+
       public:
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_i_block_index(0),
               m_j_block_index(0), m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
               m_enable_ij_caches(false) {
-            // assign storage pointers
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                _impl::assign_storage_ptrs_mic<data_ptr_cached_t, local_domain_t>{
-                    m_data_pointer, local_domain.m_local_storage_info_ptrs});
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
         }
-
-        /** @brief Returns the array of pointers to the raw data as const reference. */
-        GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer() const { return m_data_pointer; }
 
         /** @brief Sets the block start indices. */
         GT_FUNCTION void set_block_base(int_t i_block_base, int_t j_block_base) {
@@ -263,80 +241,32 @@ namespace gridtools {
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
         /**
-         * @brief Method returning the data pointer of an accessor.
-         * Specialization for the accessor placeholders for standard storages.
-         *
-         * This method is enabled only if the current placeholder dimension does not exceed the number of space
-         * dimensions of the storage class. I.e., if we are dealing with storages, not with storage lists or data fields
-         * (see concepts page for definitions)
+         * @brief method returning the data pointer of an accessor
+         * dispatch to a shared function for all backends
          */
         template <typename Accessor>
-        GT_FUNCTION
-            typename boost::disable_if<typename accessor_holds_data_field<Accessor>::type, void * RESTRICT>::type
-            get_data_pointer(Accessor const &accessor) const {
-            using index_t = typename Accessor::index_t;
-            using storage_info_t = storage_info_from_accessor<Accessor>;
-
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
-                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
-                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
-                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
-                "you here.");
-
-            using acc_t = typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
-            return m_data_pointer.template get<index_t::value>()[0];
-        }
-
-        /**
-         * @brief Method returning the data pointer of an accessor.
-         * Specialization for the accessor placeholder for extended storages,
-         * containg multiple snapshots of data fields with the same dimension and memory layout.
-         *
-         * This method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
-         * the storage class. I.e., if we are dealing with storage lists or data fields (see concepts page for
-         * definitions).
-         */
-        template <typename Accessor>
-        GT_FUNCTION typename boost::enable_if<typename accessor_holds_data_field<Accessor>::type, void * RESTRICT>::type
-        get_data_pointer(Accessor const &accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-
-            using index_t = typename Accessor::index_t;
-            using arg_t = typename local_domain_t::template get_arg<index_t>::type;
-            using data_store_t = typename arg_t::data_store_t;
-            using storage_info_t = typename data_store_t::storage_info_t;
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
-                "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
-                "snapshot)");
-
-            const int_t idx = get_datafield_offset<data_store_t>::get(accessor);
-            assert(
-                idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
-
-            return m_data_pointer.template get<index_t::value>()[idx];
+        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) const {
+            return aux::get_data_pointer<local_domain_t>(local_data_ptrs(), accessor);
         }
 
         /**
          * @brief Method called in the Do methods of the functors.
-         * Specialization for the generic accessors placeholders.
+         * Specialization for the global accessors placeholders.
          */
-        template <uint_t I>
-        GT_FUNCTION typename accessor_return_type<global_accessor<I>>::type operator()(
-            global_accessor<I> const &accessor) {
-            using return_t = typename accessor_return_type<global_accessor<I>>::type;
+        template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
+        GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<return_t *>(m_data_pointer.template get<index_t::value>()[0]);
+            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second[0]);
         }
 
         /**
-         * @brief Method called in the Do methods of the functors.
-         * Specialization for the generic accessors placeholders with arguments.
+         * @brief method called in the Do methods of the functors.
+         * Specialization for the global accessors placeholders with arguments.
          */
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(**boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second.data()),
+                std::cref(**boost::fusion::at<typename Acc::index_t>(local_data_ptrs()).second.data()),
                 accessor.get_arguments())) /** @endcond */;
 
         /**

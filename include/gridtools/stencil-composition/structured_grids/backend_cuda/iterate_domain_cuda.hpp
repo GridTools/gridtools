@@ -72,7 +72,6 @@ namespace gridtools {
             typedef typename super::template accessor_return_type<Accessor>::type type;
         };
 
-        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
@@ -80,8 +79,7 @@ namespace gridtools {
 
       private:
         // TODO there are two instantiations of these type.. Fix this
-        typedef shared_iterate_domain<data_ptr_cached_t,
-            strides_cached_t,
+        typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
@@ -129,18 +127,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
-
-        GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
-
-        GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
 
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides_impl() const {

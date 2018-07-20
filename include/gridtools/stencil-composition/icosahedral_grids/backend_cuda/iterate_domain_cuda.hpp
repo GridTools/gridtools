@@ -68,8 +68,7 @@ namespace gridtools {
       private:
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-        typedef shared_iterate_domain<data_ptr_cached_t,
-            strides_cached_t,
+        typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
@@ -118,18 +117,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
-
-        GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
-
-        GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
 
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides_impl() const {
