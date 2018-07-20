@@ -81,10 +81,6 @@ namespace gridtools {
 
             typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
-            typedef shared_iterate_domain<strides_t,
-                max_extent_t,
-                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t>
-                shared_iterate_domain_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
@@ -99,7 +95,7 @@ namespace gridtools {
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
 
-            __shared__ shared_iterate_domain_t shared_iterate_domain;
+            __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the iterate domain and assignment of pointers and strides
             // for the moment reductions are not supported so that the initial value is 0

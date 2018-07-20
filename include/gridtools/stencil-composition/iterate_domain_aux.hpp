@@ -506,5 +506,4 @@ namespace gridtools {
             return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[idx];
         }
     } // namespace aux
-
 } // namespace gridtools
