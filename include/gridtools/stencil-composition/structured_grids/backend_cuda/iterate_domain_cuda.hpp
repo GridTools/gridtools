@@ -89,7 +89,6 @@ namespace gridtools {
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
         typedef typename super::reduction_type_t reduction_type_t;
 
-        using super::get_data_pointer;
         using super::get_value;
         using super::increment_i;
         using super::increment_j;
@@ -223,7 +222,7 @@ namespace gridtools {
             get_cache_value_impl(Accessor const &accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             return super::template get_value<Accessor, void * RESTRICT>(
-                accessor_, super::template get_data_pointer<Accessor>(accessor_));
+                accessor_, aux::get_data_pointer<Accessor>(super::local_domain, accessor_));
         }
 
         /** @brief return a value that was cached

@@ -246,7 +246,7 @@ namespace gridtools {
          */
         template <typename Accessor>
         GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) const {
-            return aux::get_data_pointer<local_domain_t>(local_data_ptrs(), accessor);
+            return aux::get_data_pointer(local_domain.m_local_data_ptrs, accessor);
         }
 
         /**

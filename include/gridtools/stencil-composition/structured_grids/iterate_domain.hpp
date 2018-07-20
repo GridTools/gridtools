@@ -292,15 +292,6 @@ namespace gridtools {
                 real_storage_pointer, pointer_offset);
         }
 
-        /**
-         * @brief method returning the data pointer of an accessor
-         * dispatch to a shared function for all backends
-         */
-        template <typename Accessor>
-        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) const {
-            return aux::get_data_pointer<local_domain_t>(local_data_ptrs(), accessor);
-        }
-
         /**@brief helper function that given an input in_ and a tuple t_ calls in_.operator() with the elements of the
            tuple as arguments.
 
@@ -368,7 +359,7 @@ namespace gridtools {
          */
         template <typename Accessor, typename = typename boost::enable_if_c<is_accessor<Accessor>::type::value>::type>
         GT_FUNCTION typename accessor_return_type<Accessor>::type get_gmem_value(Accessor const &accessor) const {
-            return get_value<true>(accessor, aux::get_data_pointer<local_domain_t>(local_data_ptrs(), accessor));
+            return get_value<true>(accessor, aux::get_data_pointer(local_domain, accessor));
         }
 
         /**
@@ -381,7 +372,7 @@ namespace gridtools {
             boost::mpl::or_<cached<Accessor>, boost::mpl::not_<is_accessor<Accessor>>, is_global_accessor<Accessor>>,
             typename accessor_return_type<Accessor>::type>::type
         operator()(Accessor const &accessor) const {
-            return get_value<false>(accessor, aux::get_data_pointer<local_domain_t>(local_data_ptrs(), accessor));
+            return get_value<false>(accessor, aux::get_data_pointer(local_domain, accessor));
         }
     };
 
