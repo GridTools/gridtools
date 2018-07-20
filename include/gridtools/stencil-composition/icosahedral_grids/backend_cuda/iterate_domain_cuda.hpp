@@ -61,7 +61,6 @@ namespace gridtools {
 
       public:
         typedef typename super::grid_topology_t grid_topology_t;
-        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
@@ -182,7 +181,7 @@ namespace gridtools {
             get_cache_value_impl(Accessor const &_accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             return super::template get_value<Accessor, void * RESTRICT>(
-                _accessor, super::template get_data_pointer<Accessor>(_accessor));
+                _accessor, aux::get_data_pointer(super::m_local_domain, _accessor));
         }
 
         /** @brief return a the value in memory pointed to by an accessor
