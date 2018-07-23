@@ -71,7 +71,6 @@ namespace gridtools {
         GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
             return 0;
         }
-        // TODO FIXME assign_storage_ptr was doing something smart...
     } // namespace _impl
 
     /**
