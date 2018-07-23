@@ -168,10 +168,9 @@ namespace gridtools {
          */
         template <typename MssComponents,
             typename Grid,
-            typename LocalDomains,
-            typename ReductionData> // List of local domain to be pbassed to functor at<i>
-        static void
-        run(Grid const &grid, LocalDomains const &local_domains, ReductionData &reduction_data) {
+            typename LocalDomains, // List of local domain to be passed to functor at<i>
+            typename ReductionData>
+        static void run(Grid const &grid, LocalDomains const &local_domains, ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domains, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);

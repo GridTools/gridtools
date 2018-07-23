@@ -457,11 +457,13 @@ namespace gridtools {
          * I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for
          * definitions).
          */
-        template <typename LocalDomain, typename Accessor>
+        template <typename LocalDomain,
+            typename Accessor,
+            typename ReturnT = typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t>
         GT_FUNCTION typename boost::disable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
-            void * RESTRICT>::type
+            ReturnT * RESTRICT>::type
         get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
-            using arg_t = typename get_arg_from_accessor<Accessor, LocalDomain>::type;
+            using arg_t = typename get_arg_from_accessor<Accessor, LocalDomain>::type; // TODO cleanup
             using storage_info_t = typename arg_t::data_store_t::storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
@@ -486,9 +488,11 @@ namespace gridtools {
          * the storage class. I.e., if we are dealing with  storage lists or data fields (see concepts page for
          * definitions).
          */
-        template <typename LocalDomain, typename Accessor>
+        template <typename LocalDomain,
+            typename Accessor,
+            typename ReturnT = typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t>
         GT_FUNCTION typename boost::enable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
-            void * RESTRICT>::type
+            ReturnT * RESTRICT>::type
         get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
             using arg_t = typename get_arg_from_accessor<Accessor, LocalDomain>::type;

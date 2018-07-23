@@ -186,6 +186,25 @@ namespace gridtools {
             iterate_domain_mic const &m_it_domain;
         };
 
+      private:
+        /**
+         * @brief get data pointer, taking into account a possible offset in case of temporaries
+         */
+        template <typename LocalDomain,
+            typename Accessor,
+            typename Arg = typename get_arg_from_accessor<Accessor, LocalDomain>::type>
+        GT_FUNCTION void *RESTRICT get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
+            using data_store_t = typename Arg::data_store_t;
+
+            static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
+            static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
+                typename Arg::data_store_t::storage_info_t const *>::value;
+            // TODO this could have a performance penalty as we are calculating the offset on each access
+            const int_t offset =
+                _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(local_domain.m_local_storage_info_ptrs));
+            return aux::get_data_pointer(local_domain, accessor) + offset;
+        }
+
       public:
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
@@ -245,7 +264,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief method called in the Do methods of the functors.
+         * @brief Method called in the Do methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
         template <typename Acc, typename... Args>
@@ -267,7 +286,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
-            return get_value(accessor, aux::get_data_pointer(local_domain, accessor));
+            return get_value(accessor, get_data_pointer(local_domain, accessor));
         }
 
         /** @brief Global i-index. */
