@@ -459,12 +459,12 @@ namespace gridtools {
          */
         template <typename LocalDomain,
             typename Accessor,
-            typename ReturnT = typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t>
+            typename ArgT = typename get_arg_from_accessor<Accessor, LocalDomain>::type,
+            typename ReturnT = typename ArgT::type::data_store_t::data_t>
         GT_FUNCTION typename boost::disable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
             ReturnT * RESTRICT>::type
         get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
-            using arg_t = typename get_arg_from_accessor<Accessor, LocalDomain>::type; // TODO cleanup
-            using storage_info_t = typename arg_t::data_store_t::storage_info_t;
+            using storage_info_t = typename ArgT::data_store_t::storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
@@ -475,7 +475,7 @@ namespace gridtools {
             typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
 
-            return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[0];
+            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[0];
         }
 
         /**
@@ -490,24 +490,24 @@ namespace gridtools {
          */
         template <typename LocalDomain,
             typename Accessor,
-            typename ReturnT = typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t>
+            typename ArgT = typename get_arg_from_accessor<Accessor, LocalDomain>::type,
+            typename DataStoreT = typename ArgT::data_store_t,
+            typename ReturnT = typename DataStoreT::data_t>
         GT_FUNCTION typename boost::enable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
             ReturnT * RESTRICT>::type
         get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            using arg_t = typename get_arg_from_accessor<Accessor, LocalDomain>::type;
-            using data_store_t = typename arg_t::data_store_t;
-            using storage_info_t = typename data_store_t::storage_info_t;
+            using storage_info_t = typename DataStoreT::storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
                 "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
                 "snapshot)");
 
-            const int_t idx = get_datafield_offset<data_store_t>::get(accessor);
+            const int_t idx = get_datafield_offset<DataStoreT>::get(accessor);
             assert(
-                idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
+                idx < DataStoreT::num_of_storages && "Out of bounds access when accessing data store field element.");
 
-            return boost::fusion::at_key<arg_t>(local_domain.m_local_data_ptrs)[idx];
+            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[idx];
         }
     } // namespace aux
 } // namespace gridtools
