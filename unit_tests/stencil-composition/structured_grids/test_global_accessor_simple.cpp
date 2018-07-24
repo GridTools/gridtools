@@ -68,7 +68,8 @@ struct functor1 {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        eval(out()) = eval(global_acc()).value;
+        auto test = eval(global_acc());
+        eval(out()) = test.value;
     }
 };
 
