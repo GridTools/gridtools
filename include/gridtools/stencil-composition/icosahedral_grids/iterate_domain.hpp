@@ -202,19 +202,6 @@ namespace gridtools {
                 assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t>{data_pointer()});
         }
 
-        /**
-           @brief recursively assignes all the strides
-
-           copies them from the
-           local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
-         */
-        template <typename BackendType, typename Strides>
-        GT_FUNCTION void assign_stride_pointers() {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t>(strides()));
-        }
-
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;

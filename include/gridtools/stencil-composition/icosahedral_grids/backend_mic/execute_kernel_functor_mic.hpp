@@ -176,7 +176,6 @@ namespace gridtools {
                 it_domain.set_strides_pointer_impl(&strides);
 
                 it_domain.template assign_storage_pointers<backend_traits_t>();
-                it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;

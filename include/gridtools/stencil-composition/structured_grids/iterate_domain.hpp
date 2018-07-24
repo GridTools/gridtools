@@ -215,16 +215,6 @@ namespace gridtools {
                 assign_storage_ptrs<BackendType, data_ptr_cached_t, local_domain_t>{data_pointer()});
         }
 
-        /**
-           @brief recursively assignes all the strides
-
-           copies them from the
-           local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
-         */
-        template <typename BackendType, typename Strides>
-        GT_FUNCTION void assign_stride_pointers() {}
-
         GT_FUNCTION array_index_t const &index() const { return m_index; }
 
         /**@brief method for setting the index array

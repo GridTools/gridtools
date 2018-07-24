@@ -147,7 +147,6 @@ namespace test_iterate_domain {
         it_domain.set_strides_pointer_impl(&strides);
 
         it_domain.template assign_storage_pointers<backend_traits_t>();
-        it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 #endif
 
         // check data pointers initialization

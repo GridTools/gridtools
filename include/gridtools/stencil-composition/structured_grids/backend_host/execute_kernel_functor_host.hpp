@@ -130,7 +130,6 @@ namespace gridtools {
                 it_domain.set_strides_pointer_impl(&strides);
 
                 it_domain.template assign_storage_pointers<backend_traits_t>();
-                it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                     m_block_no,
