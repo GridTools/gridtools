@@ -181,27 +181,51 @@ namespace gridtools {
             }
 
           private:
-            array<int_t, N_META_STORAGES> &m_index_array;
             iterate_domain_mic const &m_it_domain;
+            array<int_t, N_META_STORAGES> &m_index_array;
         };
 
       private:
+        using data_ptrs_t =
+            array<void * RESTRICT, boost::fusion::result_of::size<decltype(local_domain.m_local_data_ptrs)>::value>;
+        data_ptrs_t m_data_ptrs;
+
+        template <typename LocalDomain>
+        struct assign_data_ptrs {
+            LocalDomain const &m_local_domain;
+            data_ptrs_t &m_data_ptrs;
+
+            template <class ArgDataPtrPair, class Arg = typename ArgDataPtrPair::first_type>
+            void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
+                using data_store_t = typename Arg::data_store_t;
+                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
+                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
+                    typename Arg::data_store_t::storage_info_t const *>::value;
+                const int_t offset =
+                    _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(m_local_domain.m_local_storage_info_ptrs));
+
+                m_data_ptrs[pos_in_args] = arg_data_ptr_pair.second[0] + offset; // only relevant for tmps
+            }
+        };
+
         /**
          * @brief get data pointer, taking into account a possible offset in case of temporaries
          */
         template <typename LocalDomain,
             typename Accessor,
             typename Arg = typename get_arg_from_accessor<Accessor, LocalDomain>::type>
-        GT_FUNCTION void *RESTRICT get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
-            using data_store_t = typename Arg::data_store_t;
-
+        GT_FUNCTION typename std::enable_if<is_tmp_arg<Arg>::value, void * RESTRICT>::type get_data_pointer(
+            LocalDomain const &local_domain, Accessor const &accessor) {
             static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
-            static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
-                typename Arg::data_store_t::storage_info_t const *>::value;
-            // TODO this could have a performance penalty as we are calculating the offset on each access
-            const int_t offset =
-                _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(local_domain.m_local_storage_info_ptrs));
-            return aux::get_data_pointer(local_domain, accessor) + offset;
+            return m_data_ptrs[pos_in_args];
+        }
+
+        template <typename LocalDomain,
+            typename Accessor,
+            typename Arg = typename get_arg_from_accessor<Accessor, LocalDomain>::type>
+        GT_FUNCTION typename std::enable_if<!is_tmp_arg<Arg>::value, void * RESTRICT>::type get_data_pointer(
+            LocalDomain const &local_domain, Accessor const &accessor) {
+            return aux::get_data_pointer(local_domain, accessor);
         }
 
       public:
@@ -213,6 +237,8 @@ namespace gridtools {
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
+            boost::fusion::for_each(
+                local_domain.m_local_data_ptrs, assign_data_ptrs<local_domain_t>{local_domain, m_data_ptrs});
         }
 
         /** @brief Sets the block start indices. */
