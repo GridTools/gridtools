@@ -60,9 +60,17 @@ between levels.
 #include "iteration_policy.hpp"
 #include "level.hpp"
 
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 40
-
 namespace gridtools {
+
+    template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_start(BackendIds, ExecutionEngine, Grid const &grid) {
+        return grid.template value_at<Interval>();
+    }
+    template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_end(BackendIds, ExecutionEngine, Grid const &grid) {
+        return grid.template value_at<Interval>();
+    }
+
     namespace _impl {
 
         template <class ItDomain, class RunFunctorArguments, class Interval, class Impl>
@@ -86,32 +94,6 @@ namespace gridtools {
             template <class Index>
             GT_FUNCTION enable_if_t<!has_interval<Index>::value> operator()(Index) const {}
         };
-
-        // TODO probably move to block.hpp?
-        template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
-        GT_FUNCTION int get_k_start(BackendIds, ExecutionEngine, Grid const &grid) {
-            return grid.template value_at<Interval>();
-        }
-        template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
-        GT_FUNCTION int get_k_end(BackendIds, ExecutionEngine, Grid const &grid) {
-            return grid.template value_at<Interval>();
-        }
-
-#ifdef __CUDACC__
-        // TODO move to backend, probably block.hpp?
-        template <class Interval, enumtype::grid_type GridBackend, class Grid>
-        GT_FUNCTION int get_k_start(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
-            enumtype::execute<enumtype::parallel>,
-            Grid const &) {
-            return blockIdx.z * GT_DEFAULT_VERTICAL_BLOCK_SIZE;
-        }
-        template <class Interval, enumtype::grid_type GridBackend, class Grid>
-        GT_FUNCTION int get_k_end(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
-            enumtype::execute<enumtype::parallel>,
-            Grid const &grid) {
-            return math::min((blockIdx.z + 1) * GT_DEFAULT_VERTICAL_BLOCK_SIZE - 1, grid.template value_at<Interval>());
-        }
-#endif
 
         /**
            @brief basic token of execution responsible of handling the discretization over the vertical dimension. This

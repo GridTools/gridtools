@@ -38,9 +38,9 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../backend_cuda/basic_token_execution.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
-#include "../../basic_token_execution.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "../grid_traits.hpp"
@@ -177,6 +177,7 @@ namespace gridtools {
             typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
 
             // initialize the indices
+            // TODO move GT_DEFAULT_VERTICAL_BLOCK_SIZE into execution_type
             const int kblock = execution_type_t::type::execution == enumtype::parallel_impl
                                    ? blockIdx.z * GT_DEFAULT_VERTICAL_BLOCK_SIZE
                                    : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
@@ -261,12 +262,8 @@ namespace gridtools {
                 // number of blocks required
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
-                static constexpr uint_t bnz =
-                    RunFunctorArguments::execution_type_t::type::execution == enumtype::parallel_impl
-                        ? GT_DEFAULT_VERTICAL_BLOCK_SIZE
-                        : 0;
                 const uint_t nbz = RunFunctorArguments::execution_type_t::type::execution == enumtype::parallel_impl
-                                       ? (nz + bnz - 1) / bnz
+                                       ? (nz + GT_DEFAULT_VERTICAL_BLOCK_SIZE - 1) / GT_DEFAULT_VERTICAL_BLOCK_SIZE
                                        : 1;
 
                 dim3 blocks(nbx, nby, nbz);
