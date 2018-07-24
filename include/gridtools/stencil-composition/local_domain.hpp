@@ -61,6 +61,20 @@ namespace gridtools {
             template <class Args>
             GT_META_DEFINE_ALIAS(
                 get_storage_info_ptrs, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info_ptr, Args))));
+
+            template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
+            GT_META_DEFINE_ALIAS(get_storage_info, meta::id, StorageInfo);
+
+            template <class Args>
+            GT_META_DEFINE_ALIAS(
+                get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
+
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(get_stride_array, meta::id, (array<uint_t, Arg::layout_t::unmasked_length>));
+
+            template <class Args>
+            GT_META_DEFINE_ALIAS(
+                get_stride_arrays, meta::id, (GT_META_CALL(meta::transform, (get_stride_array, Args))));
         } // namespace local_domain_details
     }     // namespace _impl
 
@@ -90,6 +104,9 @@ namespace gridtools {
 
         using storage_info_ptr_list = GT_META_CALL(_impl::local_domain_details::get_storage_info_ptrs, EsfArgs);
 
+        using storage_info_typelist = GT_META_CALL(_impl::local_domain_details::get_storage_infos, EsfArgs);
+        using stride_array_list = GT_META_CALL(_impl::local_domain_details::get_stride_arrays, storage_info_typelist);
+
         using tmp_storage_info_ptr_list = GT_META_CALL(
             _impl::local_domain_details::get_storage_info_ptrs, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
 
@@ -101,6 +118,9 @@ namespace gridtools {
 
         data_ptr_fusion_map m_local_data_ptrs;
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
+        using stride_array_fusion_list = typename boost::fusion::result_of::as_vector<stride_array_list>::type;
+
+        stride_array_fusion_list m_local_strides;
     };
 
     template <class>

@@ -240,7 +240,7 @@ namespace gridtools {
             int Max = LayoutMap::max(),
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
-            return strides.template get<I>()[Cur];
+            return boost::fusion::at_c<I>(strides)[Cur];
         }
     } // namespace _impl
 
@@ -256,7 +256,6 @@ namespace gridtools {
     */
     template <typename LocalDomain, uint_t Coordinate, typename StridesCached, typename ArrayIndex>
     struct increment_index_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
         const int_t m_increment;
@@ -332,7 +331,6 @@ namespace gridtools {
 
     template <class Strides, class LocalDomain, class ArrayIndex, class Backend>
     struct initialize_index_f {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
         Strides const &RESTRICT m_strides;
         pos3<uint_t> m_begin;
