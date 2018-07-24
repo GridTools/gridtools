@@ -138,7 +138,7 @@ namespace gridtools {
         };
 
         template <class DataStorage>
-        struct view_data {
+        struct data_view_info {
             using view_t = typename get_view<DataStorage>::type;
             using storage_info_t = typename DataStorage::storage_info_t;
 
@@ -178,7 +178,7 @@ namespace gridtools {
         };
 
         template <class Arg, class DataStorage>
-        using view_info_t = boost::fusion::pair<Arg, view_data<DataStorage>>;
+        using view_info_t = boost::fusion::pair<Arg, data_view_info<DataStorage>>;
 
         template <class Backend>
         struct make_view_info_f {
@@ -188,12 +188,12 @@ namespace gridtools {
                 if (storage.device_needs_update())
                     storage.sync();
 
-                return view_data<DataStorage>{
+                return data_view_info<DataStorage>{
                     boost::make_optional(typename Backend::make_view_f{}(storage)), *storage.get_storage_info_ptr()};
             }
             template <class Arg, class DataStorage>
             view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
-                return view_data<DataStorage>{
+                return data_view_info<DataStorage>{
                     src.template updated_view<Backend>(), *src.m_data_storage.get_storage_info_ptr()};
             }
         };
