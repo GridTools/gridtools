@@ -43,7 +43,7 @@
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../basic_token_execution.hpp"
+#include "../../backend_mic/basic_token_execution_mic.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "./execinfo_mic.hpp"

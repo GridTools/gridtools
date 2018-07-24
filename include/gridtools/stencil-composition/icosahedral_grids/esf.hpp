@@ -39,7 +39,6 @@
 #include "../arg.hpp"
 #include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
-#include "../execution_types.hpp"
 #include "../extent.hpp"
 #include "color.hpp"
 #include "grid.hpp"

@@ -62,14 +62,10 @@ between levels.
 
 namespace gridtools {
 
-    template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_start(BackendIds, ExecutionEngine, Grid const &grid) {
-        return grid.template value_at<Interval>();
-    }
-    template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_end(BackendIds, ExecutionEngine, Grid const &grid) {
-        return grid.template value_at<Interval>();
-    }
+    template <class Level, class BackendIds, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_start(BackendIds, ExecutionEngine, Grid const &grid);
+    template <class Level, class BackendIds, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_end(BackendIds, ExecutionEngine, Grid const &grid);
 
     namespace _impl {
 

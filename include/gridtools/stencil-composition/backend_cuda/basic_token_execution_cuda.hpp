@@ -41,16 +41,27 @@
 #include "../execution_types.hpp"
 
 namespace gridtools {
-    template <class Interval, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
+    template <class Level, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
     GT_FUNCTION int get_k_start(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
         enumtype::execute<enumtype::parallel, BlockSize>,
         Grid const &) {
         return blockIdx.z * BlockSize;
     }
-    template <class Interval, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
+    template <class Level, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
     GT_FUNCTION int get_k_end(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
         enumtype::execute<enumtype::parallel, BlockSize>,
         Grid const &grid) {
-        return math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<Interval>());
+        return math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<Level>());
+    }
+
+    template <class Level, enumtype::grid_type GridBackend, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_start(
+        backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>, ExecutionEngine, Grid const &grid) {
+        return grid.template value_at<Level>();
+    }
+    template <class Level, enumtype::grid_type GridBackend, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_end(
+        backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>, ExecutionEngine, Grid const &grid) {
+        return grid.template value_at<Level>();
     }
 } // namespace gridtools

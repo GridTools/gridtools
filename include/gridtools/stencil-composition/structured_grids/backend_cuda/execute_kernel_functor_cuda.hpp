@@ -38,7 +38,7 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
-#include "../../backend_cuda/basic_token_execution.hpp"
+#include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
@@ -242,7 +242,7 @@ namespace gridtools {
                 // number of threads
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
                 const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
-                const uint_t nz = (uint_t)(m_grid.k_max() - m_grid.k_min() + 1);
+                const uint_t nz = m_grid.k_total_length();
 
                 static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
 
