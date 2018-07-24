@@ -40,19 +40,17 @@
 #include "../basic_token_execution.hpp"
 #include "../execution_types.hpp"
 
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
-
 namespace gridtools {
-    template <class Interval, enumtype::grid_type GridBackend, class Grid>
+    template <class Interval, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
     GT_FUNCTION int get_k_start(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
-        enumtype::execute<enumtype::parallel>,
+        enumtype::execute<enumtype::parallel, BlockSize>,
         Grid const &) {
-        return blockIdx.z * GT_DEFAULT_VERTICAL_BLOCK_SIZE;
+        return blockIdx.z * BlockSize;
     }
-    template <class Interval, enumtype::grid_type GridBackend, class Grid>
+    template <class Interval, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
     GT_FUNCTION int get_k_end(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
-        enumtype::execute<enumtype::parallel>,
+        enumtype::execute<enumtype::parallel, BlockSize>,
         Grid const &grid) {
-        return math::min((blockIdx.z + 1) * GT_DEFAULT_VERTICAL_BLOCK_SIZE - 1, grid.template value_at<Interval>());
+        return math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<Interval>());
     }
 } // namespace gridtools

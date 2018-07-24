@@ -177,9 +177,8 @@ namespace gridtools {
             typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
 
             // initialize the indices
-            // TODO move GT_DEFAULT_VERTICAL_BLOCK_SIZE into execution_type
             const int kblock = execution_type_t::type::execution == enumtype::parallel_impl
-                                   ? blockIdx.z * GT_DEFAULT_VERTICAL_BLOCK_SIZE
+                                   ? blockIdx.z * execution_type_t::type::block_size
                                    : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
@@ -262,8 +261,9 @@ namespace gridtools {
                 // number of blocks required
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
-                const uint_t nbz = RunFunctorArguments::execution_type_t::type::execution == enumtype::parallel_impl
-                                       ? (nz + GT_DEFAULT_VERTICAL_BLOCK_SIZE - 1) / GT_DEFAULT_VERTICAL_BLOCK_SIZE
+                using execution_type_t = typename RunFunctorArguments::execution_type_t::type;
+                const uint_t nbz = execution_type_t::execution == enumtype::parallel_impl
+                                       ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
                                        : 1;
 
                 dim3 blocks(nbx, nby, nbz);

@@ -35,7 +35,10 @@
 */
 #pragma once
 
+#include "../common/defs.hpp"
 #include <type_traits>
+
+#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
 
 namespace gridtools {
     namespace enumtype {
@@ -43,20 +46,21 @@ namespace gridtools {
         enum isparallel { parallel_impl, serial };
         enum execution { forward, backward, parallel };
 
-        template <enumtype::isparallel T, enumtype::execution U = forward>
+        template <enumtype::isparallel T, uint_t BlockSize, enumtype::execution U = forward>
         struct execute_impl {
             static const enumtype::execution iteration = U;
             static const enumtype::isparallel execution = T;
+            static const uint_t block_size = BlockSize;
         };
 
-        template <enumtype::execution U>
+        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
         struct execute {
-            typedef execute_impl<serial, U> type;
+            typedef execute_impl<serial, BlockSize, U> type;
         };
 
-        template <>
-        struct execute<parallel> {
-            typedef execute_impl<parallel_impl, forward> type;
+        template <uint_t BlockSize>
+        struct execute<parallel, BlockSize> {
+            typedef execute_impl<parallel_impl, BlockSize, forward> type;
         };
     } // namespace enumtype
 
