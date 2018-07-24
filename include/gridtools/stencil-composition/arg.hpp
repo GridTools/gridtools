@@ -95,6 +95,57 @@ namespace gridtools {
     template <typename ArgType, typename DataStoreType>
     struct is_tmp_arg<arg_storage_pair<ArgType, DataStoreType>> : is_tmp_arg<ArgType> {};
 
+    template <typename T>
+    struct scalar_data_store {
+        using data_t = T;
+
+        const static uint_t num_of_storages = 1;
+        const static uint_t num_of_components = 1;
+
+        T m_value;
+
+        struct storage_info_t {
+            using layout_t = layout_map<0>;
+        };
+        struct storage_t {};
+
+        void sync(){};
+        bool device_needs_update() { return false; };
+    };
+
+    template <typename T>
+    struct my_wrap {};
+
+    template <typename T>
+    struct scalar_data_store_view {
+        T m_value;
+        //        T m_raw_ptrs[1]; // unused
+    };
+
+    namespace advanced {
+        template <typename T>
+        void copy_raw_pointers(scalar_data_store_view<T> const &src, array<T, 1> &dst) {
+            dst[0] = src.m_value;
+        }
+    } // namespace advanced
+
+    template <typename T>
+    bool check_consistency(scalar_data_store<T> &, scalar_data_store_view<T> &) {
+        return true;
+    }
+
+    namespace advanced {
+        template <typename T>
+        typename scalar_data_store<T>::storage_info_t *storage_info_raw_ptr(
+            const gridtools::scalar_data_store_view<T> &) {
+            return new typename scalar_data_store<T>::storage_info_t;
+        }
+    } // namespace advanced
+
+    template <typename T>
+    using wrap_if_not_datastore = typename std::
+        conditional<is_data_store<T>::value || is_data_store_field<T>::value, T, scalar_data_store<T>>::type;
+
     /**
      * Type to create placeholders for data fields.
      *
@@ -111,7 +162,7 @@ namespace gridtools {
     struct arg {
         GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value),
             "The third template argument of a placeholder must be a location_type");
-        typedef DataStoreType data_store_t;
+        using data_store_t = wrap_if_not_datastore<DataStoreType>;
 
         typedef LocationType location_t;
         typedef arg type;
@@ -119,8 +170,8 @@ namespace gridtools {
         constexpr static bool is_temporary = Temporary;
 
         template <typename Arg>
-        arg_storage_pair<arg, DataStoreType> operator=(Arg &&arg) {
-            return {std::forward<Arg>(arg)};
+        arg_storage_pair<arg, wrap_if_not_datastore<DataStoreType>> operator=(Arg &&arg) {
+            return wrap_if_not_datastore<DataStoreType>{std::forward<Arg>(arg)};
         }
 
         static void info(std::ostream &out_s) {

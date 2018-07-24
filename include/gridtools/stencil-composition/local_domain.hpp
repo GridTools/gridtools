@@ -50,10 +50,16 @@ namespace gridtools {
 
     namespace _impl {
         namespace local_domain_details {
+            template <typename DataStore>
+            using ptr_or_value =
+                typename std::conditional<is_data_store<DataStore>::value || is_data_store_field<DataStore>::value,
+                    typename DataStore::data_t *,
+                    typename DataStore::data_t>::type;
+
             template <class Arg, class DataStore = typename Arg::data_store_t>
             GT_META_DEFINE_ALIAS(get_data_ptrs_elem,
                 meta::id,
-                (boost::fusion::pair<Arg, array<typename DataStore::data_t *, DataStore::num_of_storages>>));
+                (boost::fusion::pair<Arg, array<ptr_or_value<DataStore>, DataStore::num_of_storages>>));
 
             template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
             GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, StorageInfo const *);
@@ -100,6 +106,9 @@ namespace gridtools {
         struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
 
         data_ptr_fusion_map m_local_data_ptrs;
+
+        //        typename data_ptr_fusion_map::bla tmp;
+
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
     };
 

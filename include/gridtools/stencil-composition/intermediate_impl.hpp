@@ -61,8 +61,18 @@ namespace gridtools {
         struct dedup_storage_info_f {
             StorageInfoMap &m_storage_info_map;
 
-            template <class Strorage, class StorageInfo>
-            data_store<Strorage, StorageInfo> operator()(data_store<Strorage, StorageInfo> const &src) const {
+            template <class T>
+            scalar_data_store<T> operator()(scalar_data_store<T> const &src) const {
+                return src;
+            }
+
+            template <class T>
+            scalar_data_store<T> operator()(scalar_data_store<T> &&src) const {
+                return src;
+            }
+
+            template <class Storage, class StorageInfo>
+            data_store<Storage, StorageInfo> operator()(data_store<Storage, StorageInfo> const &src) const {
                 assert(src.valid());
                 static_assert(boost::mpl::has_key<StorageInfoMap, StorageInfo>::value, "");
                 auto &stored = boost::fusion::at_key<StorageInfo>(m_storage_info_map);
@@ -135,6 +145,13 @@ namespace gridtools {
             // we can use make_field_host_view here because the type is the
             // same for make_field_device_view and make_field_host_view.
             typedef decltype(make_field_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
+        };
+
+        template <typename Elem, access_mode AccessMode>
+        struct get_view<Elem,
+            AccessMode,
+            typename std::enable_if<!is_data_store<Elem>::value && !is_data_store_field<Elem>::value>::type> {
+            using type = scalar_data_store_view<typename Elem::data_t>;
         };
 
         /// This struct is used to hold bound storages. It holds a view.

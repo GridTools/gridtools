@@ -64,12 +64,21 @@ namespace gridtools {
             auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
             template <typename S, uint_t... N>
             auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
+            template <typename T>
+            scalar_data_store_view<T> operator()(scalar_data_store<T> const &src) const {
+                return {src.m_value};
+            }
         };
 
         template <uint_t Id>
         struct once_per_block {
             template <typename Left, typename Right>
             GT_FUNCTION static void assign(Left &l, Right const &r) {
+                //                l = r;
+            }
+
+            template <typename Left, typename Right>
+            GT_FUNCTION static void assign(void *&l, Right const &r) {
                 l = r;
             }
         };
