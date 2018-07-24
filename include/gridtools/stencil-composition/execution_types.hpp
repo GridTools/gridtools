@@ -34,6 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
 namespace gridtools {
     namespace enumtype {
 
@@ -58,9 +61,9 @@ namespace gridtools {
     } // namespace enumtype
 
     template <typename T>
-    struct is_execution_engine : boost::mpl::false_ {};
+    struct is_execution_engine : std::false_type {};
 
     template <enumtype::execution U>
-    struct is_execution_engine<enumtype::execute<U>> : boost::mpl::true_ {};
+    struct is_execution_engine<enumtype::execute<U>> : std::true_type {};
 
 } // namespace gridtools

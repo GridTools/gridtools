@@ -175,11 +175,12 @@ namespace gridtools {
             typedef typename index_to_level<typename interval::second>::type to;
             typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
 
+            const int_t kblock = execution_type_t::type::execution == enumtype::parallel_impl
+                                     ? blockIdx.z * GT_DEFAULT_VERTICAL_BLOCK_SIZE
+                                     : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, 0},
-                {iblock,
-                    jblock,
-                    static_cast<int_t>(grid.template value_at<iteration_policy_t::from>() - grid.k_min())});
+                {iblock, jblock, kblock});
             it_domain.set_block_pos(iblock, jblock);
 
             // execute the k interval functors
@@ -239,13 +240,13 @@ namespace gridtools {
                 // number of threads
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
                 const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
+                const uint_t nz = (uint_t)(m_grid.k_max() - m_grid.k_min() + 1);
 
                 static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
 
                 // number of grid points that a cuda block covers
                 static constexpr uint_t ntx = block_i_size(backend);
                 static constexpr uint_t nty = block_j_size(backend);
-                ;
                 static constexpr uint_t ntz = 1;
 
                 using max_extent_t = typename RunFunctorArguments::max_extent_t;
@@ -258,14 +259,20 @@ namespace gridtools {
                 // number of blocks required
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
-                const uint_t nbz = 1;
+                static constexpr uint_t bnz =
+                    RunFunctorArguments::execution_type_t::type::execution == enumtype::parallel_impl
+                        ? GT_DEFAULT_VERTICAL_BLOCK_SIZE
+                        : 0;
+                const uint_t nbz = RunFunctorArguments::execution_type_t::type::execution == enumtype::parallel_impl
+                                       ? (nz + bnz - 1) / bnz
+                                       : 1;
 
                 dim3 blocks(nbx, nby, nbz);
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
                 printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
-                printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
+                printf("nx = %d, ny = %d, nz = %d\n", nx, ny, nz);
 #endif
 
                 _impl_iccuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>

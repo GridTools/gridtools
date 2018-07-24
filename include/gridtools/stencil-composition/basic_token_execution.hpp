@@ -60,6 +60,8 @@ between levels.
 #include "iteration_policy.hpp"
 #include "level.hpp"
 
+#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 40
+
 namespace gridtools {
     namespace _impl {
 
@@ -84,6 +86,32 @@ namespace gridtools {
             template <class Index>
             GT_FUNCTION enable_if_t<!has_interval<Index>::value> operator()(Index) const {}
         };
+
+        // TODO probably move to block.hpp?
+        template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
+        GT_FUNCTION int get_k_start(BackendIds, ExecutionEngine, Grid const &grid) {
+            return grid.template value_at<Interval>();
+        }
+        template <class Interval, class BackendIds, class ExecutionEngine, class Grid>
+        GT_FUNCTION int get_k_end(BackendIds, ExecutionEngine, Grid const &grid) {
+            return grid.template value_at<Interval>();
+        }
+
+#ifdef __CUDACC__
+        // TODO move to backend, probably block.hpp?
+        template <class Interval, enumtype::grid_type GridBackend, class Grid>
+        GT_FUNCTION int get_k_start(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
+            enumtype::execute<enumtype::parallel>,
+            Grid const &) {
+            return blockIdx.z * GT_DEFAULT_VERTICAL_BLOCK_SIZE;
+        }
+        template <class Interval, enumtype::grid_type GridBackend, class Grid>
+        GT_FUNCTION int get_k_end(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
+            enumtype::execute<enumtype::parallel>,
+            Grid const &grid) {
+            return math::min((blockIdx.z + 1) * GT_DEFAULT_VERTICAL_BLOCK_SIZE - 1, grid.template value_at<Interval>());
+        }
+#endif
 
         /**
            @brief basic token of execution responsible of handling the discretization over the vertical dimension. This
@@ -152,12 +180,17 @@ namespace gridtools {
 
                 typedef iteration_policy<from_t, to_t, execution_engine::iteration> iteration_policy_t;
 
-                uint_t const from = m_grid.template value_at<from_t>();
-                uint_t const to = m_grid.template value_at<to_t>();
+                int const from = get_k_start<from_t>(typename RunFunctorArguments::backend_ids_t{},
+                    typename RunFunctorArguments::execution_type_t{},
+                    m_grid);
+                int const to = get_k_end<to_t>(typename RunFunctorArguments::backend_ids_t{},
+                    typename RunFunctorArguments::execution_type_t{},
+                    m_grid);
 
                 k_loop<iteration_policy_t, Interval>(from, to);
             }
         };
+
     } // namespace _impl
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
