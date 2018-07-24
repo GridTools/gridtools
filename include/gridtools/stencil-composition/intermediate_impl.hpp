@@ -137,15 +137,6 @@ namespace gridtools {
             typedef decltype(make_field_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
         };
 
-        template <class DataStorage>
-        struct data_view_info {
-            using view_t = typename get_view<DataStorage>::type;
-            using storage_info_t = typename DataStorage::storage_info_t;
-
-            boost::optional<view_t> m_view;
-            storage_info_t m_storage_info;
-        };
-
         /// This struct is used to hold bound storages. It holds a view.
         /// the method updated_view return creates a view only if the previously returned view was inconsistent.
         template <class Arg, class DataStorage>
@@ -177,8 +168,17 @@ namespace gridtools {
             }
         };
 
+        template <class DataStorage>
+        struct view_info_data {
+            using view_t = typename get_view<DataStorage>::type;
+            using storage_info_t = typename DataStorage::storage_info_t;
+
+            boost::optional<view_t> m_view;
+            storage_info_t m_storage_info;
+        };
+
         template <class Arg, class DataStorage>
-        using view_info_t = boost::fusion::pair<Arg, data_view_info<DataStorage>>;
+        using view_info_t = boost::fusion::pair<Arg, view_info_data<DataStorage>>;
 
         template <class Backend>
         struct make_view_info_f {
@@ -188,12 +188,12 @@ namespace gridtools {
                 if (storage.device_needs_update())
                     storage.sync();
 
-                return data_view_info<DataStorage>{
+                return view_info_data<DataStorage>{
                     boost::make_optional(typename Backend::make_view_f{}(storage)), *storage.get_storage_info_ptr()};
             }
             template <class Arg, class DataStorage>
             view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
-                return data_view_info<DataStorage>{
+                return view_info_data<DataStorage>{
                     src.template updated_view<Backend>(), *src.m_data_storage.get_storage_info_ptr()};
             }
         };
