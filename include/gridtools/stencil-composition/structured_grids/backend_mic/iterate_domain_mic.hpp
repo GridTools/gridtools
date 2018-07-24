@@ -71,6 +71,31 @@ namespace gridtools {
         GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
             return 0;
         }
+
+        /**
+         * @brief compute thread offsets for temporaries
+         *
+         * Actually offsets are stored for each data_ptr, however only for temporaries they are non-zero.
+         * We keep the zeros as it simplifies design, and will be cleaned up when we re-implement the temporaries.
+         */
+        template <typename LocalDomain, typename DataPtrsOffset>
+        struct assign_data_ptr_offsets {
+            LocalDomain const &m_local_domain;
+            DataPtrsOffset &m_data_ptr_offsets;
+
+            template <class ArgDataPtrPair, class Arg = typename ArgDataPtrPair::first_type>
+            void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
+                using data_store_t = typename Arg::data_store_t;
+                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
+                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
+                    typename Arg::data_store_t::storage_info_t const *>::value;
+                const int_t offset =
+                    _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(m_local_domain.m_local_storage_info_ptrs));
+
+                m_data_ptr_offsets[pos_in_args] = offset; // non-zero only for tmps.
+            }
+        };
+
     } // namespace _impl
 
     /**
@@ -191,37 +216,12 @@ namespace gridtools {
         data_ptr_offsets_t m_data_ptr_offsets;
 
         /**
-         * @brief compute thread offsets for temporaries
-         *
-         * Actually offsets are stored for each data_ptr, however only for temporaries they are non-zero.
-         * We keep the zeros as it simplifies design, and will be cleaned up when we re-implement the temporaries.
-         */
-        template <typename LocalDomain>
-        struct assign_data_ptr_offsets {
-            LocalDomain const &m_local_domain;
-            data_ptr_offsets_t &m_data_ptr_offsets;
-
-            template <class ArgDataPtrPair, class Arg = typename ArgDataPtrPair::first_type>
-            void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
-                using data_store_t = typename Arg::data_store_t;
-                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
-                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
-                    typename Arg::data_store_t::storage_info_t const *>::value;
-                const int_t offset =
-                    _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(m_local_domain.m_local_storage_info_ptrs));
-
-                m_data_ptr_offsets[pos_in_args] = offset; // only relevant for tmps
-            }
-        };
-
-        /**
          * @brief get data pointer, taking into account a possible offset in case of temporaries
          */
         template <typename LocalDomain,
             typename Accessor,
             typename Arg = typename get_arg_from_accessor<Accessor, LocalDomain>::type>
-        GT_FUNCTION typename std::enable_if<is_tmp_arg<Arg>::value, void * RESTRICT>::type get_data_pointer(
-            LocalDomain const &local_domain, Accessor const &accessor) {
+        GT_FUNCTION void *RESTRICT get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
             static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
             return aux::get_data_pointer(local_domain, accessor) + m_data_ptr_offsets[pos_in_args];
         }
@@ -236,7 +236,7 @@ namespace gridtools {
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                assign_data_ptr_offsets<local_domain_t>{local_domain, m_data_ptr_offsets});
+                _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }
 
         /** @brief Sets the block start indices. */
