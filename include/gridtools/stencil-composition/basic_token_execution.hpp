@@ -104,7 +104,7 @@ namespace gridtools {
         struct run_f_on_interval {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::execution_type_t::type execution_engine;
+            typedef typename RunFunctorArguments::execution_type_t execution_engine;
             typedef typename RunFunctorArguments::functor_list_t functor_list_t;
 
             ItDomain &m_domain;

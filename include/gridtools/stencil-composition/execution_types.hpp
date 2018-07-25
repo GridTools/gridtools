@@ -54,14 +54,10 @@ namespace gridtools {
         };
 
         template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
-        struct execute {
-            typedef execute_impl<serial, BlockSize, U> type;
-        };
+        struct execute : execute_impl<serial, BlockSize, U> {};
 
         template <uint_t BlockSize>
-        struct execute<parallel, BlockSize> {
-            typedef execute_impl<parallel_impl, BlockSize, forward> type;
-        };
+        struct execute<parallel, BlockSize> : execute_impl<parallel_impl, BlockSize, parallel> {};
     } // namespace enumtype
 
     template <typename T>
