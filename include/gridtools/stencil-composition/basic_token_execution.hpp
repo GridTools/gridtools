@@ -114,8 +114,6 @@ namespace gridtools {
             // of this function are k-caches.
             template <typename IterationPolicy, typename Interval>
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
-                assert(to >= from);
-
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
 
@@ -165,7 +163,11 @@ namespace gridtools {
                     typename RunFunctorArguments::execution_type_t{},
                     m_grid);
 
-                k_loop<iteration_policy_t, Interval>(from, to);
+                // for parallel execution we might get empty intervals,
+                // for other execution policies we check that they are given in the correct order
+                assert(RunFunctorArguments::execution_type_t::value == enumtype::parallel || from <= to);
+                if (from <= to)
+                    k_loop<iteration_policy_t, Interval>(from, to);
             }
         };
 

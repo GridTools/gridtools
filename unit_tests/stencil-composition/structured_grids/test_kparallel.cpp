@@ -76,18 +76,17 @@ namespace {
 
 TEST(structured_grid, kparallel) {
 
-    constexpr uint_t d1 = 10;
-    constexpr uint_t d2 = 20;
+    constexpr uint_t d1 = 7;
+    constexpr uint_t d2 = 8;
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using layout_t = gridtools::layout_map<0, 1, 2>;
     using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
     using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
 
     storage_info_t storage_info(d1, d2, d3_l + d3_u);
 
-    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i + j + k); });
+    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
     storage_t out(storage_info, (double)1.5);
 
     typedef arg<0, storage_t> p_in;

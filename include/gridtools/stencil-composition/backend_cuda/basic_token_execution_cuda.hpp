@@ -44,8 +44,8 @@ namespace gridtools {
     template <class Level, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
     GT_FUNCTION int get_k_start(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
         enumtype::execute<enumtype::parallel, BlockSize>,
-        Grid const &) {
-        return blockIdx.z * BlockSize;
+        Grid const &grid) {
+        return math::max((blockIdx.z * BlockSize), grid.template value_at<Level>());
     }
     template <class Level, enumtype::grid_type GridBackend, class Grid, uint_t BlockSize>
     GT_FUNCTION int get_k_end(backend_ids<enumtype::Cuda, GridBackend, enumtype::Block>,
