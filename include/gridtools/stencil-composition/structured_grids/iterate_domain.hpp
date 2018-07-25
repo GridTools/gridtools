@@ -467,8 +467,7 @@ namespace gridtools {
             m_index[storage_info_index_t::value] +
             compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
 
-        assert(pointer_oob_check(
-            boost::fusion::at<storage_info_index_t>(local_domain.m_local_storage_info_ptrs), pointer_offset));
+        assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
         return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }

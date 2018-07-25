@@ -237,6 +237,10 @@ namespace gridtools {
                 constexpr auto n_strides = layout_t::unmasked_length == 0 ? 0 : layout_t::unmasked_length - 1;
                 using range = GT_META_CALL(meta::make_indices_c, n_strides);
                 gridtools::for_each<range>(copy_strides_f<storage_info_t, LocalDomain>{storage_info, local_domain});
+
+                // here we set the storage size
+                f::at_key<storage_info_t>(local_domain.m_local_padded_total_lengths) =
+                    storage_info.padded_total_length();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class OptView, class LocalDomain>

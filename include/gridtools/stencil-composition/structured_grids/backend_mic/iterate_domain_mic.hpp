@@ -83,8 +83,8 @@ namespace gridtools {
             GT_FUNCTION void operator()(FusionPair const &sw) const {
                 typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
                 static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, arg_t>::value;
-                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
-                    typename arg_t::data_store_t::storage_info_t const *>::value;
+                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_typelist,
+                    typename arg_t::data_store_t::storage_info_t>::value;
                 const int_t offset = fields_offset<arg_t>(boost::fusion::at_c<si_index>(m_storageinfo_fusion_list));
                 for (unsigned i = 0; i < arg_t::data_store_t::num_of_storages; ++i)
                     m_data_ptr_cached.template get<pos_in_args>()[i] = sw.second[i] + offset;
@@ -111,8 +111,7 @@ namespace gridtools {
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
-        using storage_is_tmp =
-            meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
+        using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_info_typelist, StorageInfo>;
 
         /* meta function to get the storage info type corresponding to an accessor */
         template <typename Accessor>

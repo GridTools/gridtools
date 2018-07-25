@@ -132,7 +132,7 @@ namespace gridtools {
         struct is_dummy_coordinate : bool_constant<(Mapped < 0)> {};
 
         template <class StorageInfo, class LocalDomain>
-        struct get_index : meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *> {};
+        struct get_index : meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo> {};
 
         template <uint_t Coordinate,
             class StorageInfo,
@@ -262,7 +262,7 @@ namespace gridtools {
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
+                meta::st_contains<typename LocalDomain::tmp_storage_info_typelist, StorageInfo>::value;
             static constexpr auto storage_info_index =
                 meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>::value;
             m_index_array[storage_info_index] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
@@ -307,9 +307,9 @@ namespace gridtools {
      * once the base address is known it can be checked if the requested access lies within the
      * storages allocated memory.
      */
-    template <typename StorageInfo>
-    GT_FUNCTION bool pointer_oob_check(StorageInfo const *sinfo, int_t offset) {
-        return offset < sinfo->padded_total_length() && offset >= 0;
+    template <typename StorageInfo, typename LocalDomain>
+    GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
+        return offset >= 0 && offset < boost::fusion::at_key<StorageInfo>(local_domain.m_local_padded_total_lengths);
     }
 
     /**

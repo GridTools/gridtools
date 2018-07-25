@@ -77,11 +77,10 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
-        typedef typename local_domain_t::storage_info_ptr_fusion_list storage_info_ptrs_t;
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_typelist>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
@@ -328,7 +327,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
+                meta::st_position<typename local_domain_t::storage_info_typelist, storage_info_t>::value;
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -342,8 +341,7 @@ namespace gridtools {
                 m_index[storage_info_index] +
                 compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
 
-            assert(pointer_oob_check(
-                boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
+            assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
@@ -364,11 +362,7 @@ namespace gridtools {
             data_t *RESTRICT real_storage_pointer =
                 static_cast<data_t *>(data_pointer().template get<index_t::value>()[0]);
 
-            assert(pointer_oob_check(
-                boost::fusion::at_c<
-                    meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value>(
-                    m_local_domain.m_local_storage_info_ptrs),
-                offset));
+            assert(pointer_oob_check<storage_info_t>(m_local_domain, offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
@@ -395,7 +389,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
+                meta::st_position<typename local_domain_t::storage_info_typelist, storage_info_t>::value;
 
             using location_type_t = typename accessor_t::location_type;
             // control your instincts: changing the following
