@@ -109,11 +109,6 @@ namespace gridtools {
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 
-        /* meta function to get storage info index in local domain */
-        template <typename StorageInfo>
-        using local_domain_storage_index =
-            meta::st_position<typename local_domain_t::storage_info_ptr_list, const StorageInfo *>;
-
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
         using storage_is_tmp =
@@ -167,7 +162,7 @@ namespace gridtools {
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
         using data_ptr_cached_t = data_ptr_cached<typename local_domain_t::esf_args>;
-        using strides_t = typename local_domain_t::stride_array_fusion_list;
+        using strides_t = typename local_domain_t::strides_fusion_map;
         using array_index_t = array<int_t, N_META_STORAGES>;
         // *************** end of type definitions **************
 
@@ -372,8 +367,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
-            static constexpr auto storage_index = local_domain_storage_index<StorageInfo>::value;
-            auto const &strides = boost::fusion::at_c<storage_index>(local_domain.m_local_strides);
+            auto const &strides = boost::fusion::at_key<StorageInfo>(local_domain.m_local_strides);
             return stride<StorageInfo, Coordinate>(strides);
         }
 
@@ -508,10 +502,6 @@ namespace gridtools {
         using arg_t = typename local_domain_t::template get_arg<typename Accessor::index_t>::type;
         using storage_info_t = typename arg_t::data_store_t::storage_info_t;
         using data_t = typename arg_t::data_store_t::data_t;
-
-        static constexpr auto storage_index = local_domain_storage_index<storage_info_t>::value;
-
-        const storage_info_t *storage_info = boost::fusion::at_c<storage_index>(local_domain.m_local_storage_info_ptrs);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 

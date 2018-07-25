@@ -86,7 +86,7 @@ namespace gridtools {
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
         typedef data_ptr_cached<typename local_domain_t::esf_args> data_ptr_cached_t;
-        typedef typename local_domain_t::stride_array_fusion_list strides_t;
+        typedef typename local_domain_t::strides_fusion_map strides_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
 
@@ -340,7 +340,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(boost::fusion::at_c<storage_info_index>(strides()), accessor);
+                compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
 
             assert(pointer_oob_check(
                 boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
@@ -402,7 +402,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(boost::fusion::at_c<storage_info_index>(strides()), position_offset);
+                compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), position_offset);
 
             return get_raw_value(accessor_t(), data_pointer().template get<index_t::value>()[0], pointer_offset);
         }

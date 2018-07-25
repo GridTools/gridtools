@@ -155,7 +155,7 @@ namespace gridtools {
 
       public:
         typedef data_ptr_cached<typename local_domain_t::esf_args> data_ptr_cached_t;
-        typedef typename local_domain_t::stride_array_fusion_list strides_t;
+        typedef typename local_domain_t::strides_fusion_map strides_t;
         typedef array<int_t, N_META_STORAGES> array_index_t;
         // *************** end of type definitions **************
 
@@ -465,7 +465,7 @@ namespace gridtools {
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
         const int_t pointer_offset =
             m_index[storage_info_index_t::value] +
-            compute_offset<storage_info_t>(boost::fusion::at_c<storage_info_index_t::value>(strides()), accessor);
+            compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
 
         assert(pointer_oob_check(
             boost::fusion::at<storage_info_index_t>(local_domain.m_local_storage_info_ptrs), pointer_offset));

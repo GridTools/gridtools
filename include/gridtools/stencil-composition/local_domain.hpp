@@ -69,14 +69,14 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(
                 get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
 
-            template <class Arg>
-            GT_META_DEFINE_ALIAS(get_stride_array,
+            template <class StorageInfo>
+            GT_META_DEFINE_ALIAS(get_strides_elem,
                 meta::id,
-                (array < uint_t, Arg::layout_t::unmasked_length == 0 ? 0 : Arg::layout_t::unmasked_length - 1 >));
+                (boost::fusion::pair<StorageInfo,
+                    array<uint_t,
+                        StorageInfo::layout_t::unmasked_length == 0 ? 0
+                                                                    : StorageInfo::layout_t::unmasked_length - 1>>));
 
-            template <class Args>
-            GT_META_DEFINE_ALIAS(
-                get_stride_arrays, meta::id, (GT_META_CALL(meta::transform, (get_stride_array, Args))));
         } // namespace local_domain_details
     }     // namespace _impl
 
@@ -107,22 +107,23 @@ namespace gridtools {
         using storage_info_ptr_list = GT_META_CALL(_impl::local_domain_details::get_storage_info_ptrs, EsfArgs);
 
         using storage_info_typelist = GT_META_CALL(_impl::local_domain_details::get_storage_infos, EsfArgs);
-        using stride_array_list = GT_META_CALL(_impl::local_domain_details::get_stride_arrays, storage_info_typelist);
+
+        using storage_info_to_strides_map_t = GT_META_CALL(
+            meta::transform, (_impl::local_domain_details::get_strides_elem, storage_info_typelist));
 
         using tmp_storage_info_ptr_list = GT_META_CALL(
             _impl::local_domain_details::get_storage_info_ptrs, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
 
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
         using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
+        using strides_fusion_map = typename boost::fusion::result_of::as_map<storage_info_to_strides_map_t>::type;
 
         template <class N>
         struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
 
         data_ptr_fusion_map m_local_data_ptrs;
+        strides_fusion_map m_local_strides;
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
-        using stride_array_fusion_list = typename boost::fusion::result_of::as_vector<stride_array_list>::type;
-
-        stride_array_fusion_list m_local_strides;
     };
 
     template <class>

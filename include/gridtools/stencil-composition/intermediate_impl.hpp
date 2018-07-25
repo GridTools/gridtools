@@ -204,10 +204,8 @@ namespace gridtools {
         struct copy_strides_f {
             template <typename Coordinate>
             GT_FUNCTION void operator()(Coordinate) const {
-                using layout_t = typename StorageInfo::layout_t;
-                using index_t = meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>;
-                constexpr auto pos = layout_t::template find<Coordinate::value>();
-                auto &local_strides = boost::fusion::at_c<index_t::value>(m_local_domain.m_local_strides);
+                constexpr auto pos = StorageInfo::layout_t::template find<Coordinate::value>();
+                auto &local_strides = boost::fusion::at_key<StorageInfo>(m_local_domain.m_local_strides);
                 local_strides[Coordinate::value] = m_storage_info.template stride<pos>();
             }
 

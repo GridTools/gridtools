@@ -135,35 +135,32 @@ namespace gridtools {
         struct get_index : meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *> {};
 
         template <uint_t Coordinate,
-            class LayoutMap,
-            uint_t I,
+            class StorageInfo,
             class Strides,
-            int Cur = LayoutMap::template at_unsafe<Coordinate>(),
-            int Max = LayoutMap::max(),
+            int Cur = StorageInfo::layout_t::template at_unsafe<Coordinate>(),
+            int Max = StorageInfo::layout_t::max(),
             enable_if_t<Cur<0, int> = 0> GT_FUNCTION int_t get_stride(Strides const &) {
             return 0;
         }
 
         template <uint_t Coordinate,
-            class LayoutMap,
-            uint_t I,
+            class StorageInfo,
             class Strides,
-            int Cur = LayoutMap::template at_unsafe<Coordinate>(),
-            int Max = LayoutMap::max(),
+            int Cur = StorageInfo::layout_t::template at_unsafe<Coordinate>(),
+            int Max = StorageInfo::layout_t::max(),
             enable_if_t<Cur >= 0 && Cur == Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &) {
             return 1;
         }
 
         template <uint_t Coordinate,
-            class LayoutMap,
-            uint_t I,
+            class StorageInfo,
             class Strides,
-            int Cur = LayoutMap::template at_unsafe<Coordinate>(),
-            int Max = LayoutMap::max(),
+            int Cur = StorageInfo::layout_t::template at_unsafe<Coordinate>(),
+            int Max = StorageInfo::layout_t::max(),
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
-            return boost::fusion::at_c<I>(strides)[Cur];
+            return boost::fusion::at_key<StorageInfo>(strides)[Cur];
         }
     } // namespace _impl
 
@@ -186,17 +183,15 @@ namespace gridtools {
         Strides const &RESTRICT m_strides;
 
         template <typename StorageInfo,
-            typename Layout = typename StorageInfo::layout_t,
-            enable_if_t<_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
+            enable_if_t<_impl::is_dummy_coordinate<Coordinate, typename StorageInfo::layout_t>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {}
 
         template <typename StorageInfo,
-            size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
-            typename Layout = typename StorageInfo::layout_t,
-            enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
+            enable_if_t<!_impl::is_dummy_coordinate<Coordinate, typename StorageInfo::layout_t>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
-            GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides) * m_increment;
+            static constexpr auto storage_info_index =
+                meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>::value;
+            m_index_array[storage_info_index] += _impl::get_stride<Coordinate, StorageInfo>(m_strides) * m_increment;
         }
     };
 
@@ -261,18 +256,19 @@ namespace gridtools {
         pos3<int_t> m_pos_in_block;
         ArrayIndex &RESTRICT m_index_array;
 
-        template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
+        template <typename StorageInfo>
         GT_FUNCTION void operator()(const StorageInfo *) const {
-            GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using max_extent_t = typename LocalDomain::max_extent_for_tmp_t;
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
                 meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
-            m_index_array[I] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
-                make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
-                    _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
-                    _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
+            static constexpr auto storage_info_index =
+                meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>::value;
+            m_index_array[storage_info_index] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
+                make_pos3(_impl::get_stride<coord_i<Backend>::value, StorageInfo>(m_strides),
+                    _impl::get_stride<coord_j<Backend>::value, StorageInfo>(m_strides),
+                    _impl::get_stride<coord_k<Backend>::value, StorageInfo>(m_strides)),
                 m_begin,
                 m_block_no,
                 m_pos_in_block);
