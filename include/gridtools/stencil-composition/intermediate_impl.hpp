@@ -200,6 +200,21 @@ namespace gridtools {
         template <class LocalDomain, class Arg>
         using local_domain_has_arg = typename boost::mpl::has_key<typename LocalDomain::data_ptr_fusion_map, Arg>::type;
 
+        template <class StorageInfo, class LocalDomain>
+        struct copy_strides_f {
+            template <typename Coordinate>
+            GT_FUNCTION void operator()(Coordinate) const {
+                using layout_t = typename StorageInfo::layout_t;
+                using index_t = meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>;
+                constexpr auto pos = layout_t::template find<Coordinate::value>();
+                auto &local_strides = boost::fusion::at_c<index_t::value>(m_local_domain.m_local_strides);
+                local_strides[Coordinate::value] = m_storage_info.template stride<pos>();
+            }
+
+            StorageInfo const &m_storage_info;
+            LocalDomain &m_local_domain;
+        };
+
         // set pointers from the given view info to the local domain
         struct set_view_to_local_domain_f {
 
@@ -217,10 +232,13 @@ namespace gridtools {
                 // here we set meta data pointers
                 auto const *storage_info_ptr = advanced::storage_info_raw_ptr(view);
                 *f::find<decltype(storage_info_ptr)>(local_domain.m_local_storage_info_ptrs) = storage_info_ptr;
-                // here we set strides
+
+                // here we set the strides
                 using storage_info_t = remove_const_t<remove_reference_t<decltype(storage_info)>>;
-                using index_t = meta::st_position<typename LocalDomain::storage_info_typelist, storage_info_t>;
-                f::at_c<index_t::value>(local_domain.m_local_strides) = storage_info.strides();
+                using layout_t = typename storage_info_t::layout_t;
+                constexpr auto n_strides = layout_t::unmasked_length == 0 ? 0 : layout_t::unmasked_length - 1;
+                using range = GT_META_CALL(meta::make_indices_c, n_strides);
+                gridtools::for_each<range>(copy_strides_f<storage_info_t, LocalDomain>{storage_info, local_domain});
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class OptView, class LocalDomain>

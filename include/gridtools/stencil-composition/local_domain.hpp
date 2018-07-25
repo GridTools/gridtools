@@ -70,7 +70,9 @@ namespace gridtools {
                 get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
 
             template <class Arg>
-            GT_META_DEFINE_ALIAS(get_stride_array, meta::id, (array<uint_t, Arg::layout_t::unmasked_length>));
+            GT_META_DEFINE_ALIAS(get_stride_array,
+                meta::id,
+                (array < uint_t, Arg::layout_t::unmasked_length == 0 ? 0 : Arg::layout_t::unmasked_length - 1 >));
 
             template <class Args>
             GT_META_DEFINE_ALIAS(
