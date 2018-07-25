@@ -138,9 +138,12 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+// some compilers have the problem that template alias instantiations have exponential complexity
 #if !defined(GT_BROKEN_TEMPLATE_ALIASES)
 #if defined(__CUDACC_VER_MAJOR__)
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
+// CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
+// instantiation) see https://github.com/eth-cscs/gridtools/issues/976
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2))
 #elif defined(__INTEL_COMPILER)
 #define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
 #elif defined(__clang__)
@@ -153,7 +156,7 @@ namespace gridtools {
 #endif
 
 // check boost::optional workaround for CUDA9.2
-#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
+#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)
 #if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
      not defined(BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE))
 #error \
