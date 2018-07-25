@@ -160,7 +160,7 @@ namespace gridtools {
 
                 // for parallel execution we might get empty intervals,
                 // for other execution policies we check that they are given in the correct order
-                assert(RunFunctorArguments::execution_type_t::value == enumtype::parallel ||
+                assert(RunFunctorArguments::execution_type_t::iteration == enumtype::parallel ||
                        k_interval.first <= k_interval.second);
                 if (k_interval.first <= k_interval.second)
                     k_loop<iteration_policy_t, Interval>(k_interval.first, k_interval.second);
