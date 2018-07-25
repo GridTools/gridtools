@@ -42,6 +42,37 @@
 #include "../execution_types.hpp"
 
 namespace gridtools {
+    /**
+     * get_k_interval specialization for parallel execution policy. The full k-axis is split into equally-sized block
+     * sub-intervals and assigned to the blocks in z-direction. Each block iterates over all computation intervals and
+     * calculates the subinterval which intersects with the block sub-interval.
+     *
+     * Computation intervals   block sub-intervals
+     *                           with two blocks
+     *
+     *                                       B1   B2
+     *    0 ---------           0 --------- ---         Block B1 calculates the complete intervals I1 and I2, and parts
+     *          |                     |    1 :          of I3.
+     *          |  I1             B1  |      :
+     *          |                     |      :          1. iteration: get_k_interval(...) = [0, 4]
+     *          |                     |      :          2. iteration: get_k_interval(...) = [5, 7]
+     *    5    ---                    |     ---         3. iteration: get_k_interval(...) = [8, 9]
+     *          |                     |    2 :
+     *          | I2                  |      :
+     *    8    ---                    |     ---
+     *          |                     |    3 :
+     *          | I3           10    ---    ---  ---    Block B2 calculates parts of the interval I3.
+     *          |                 B2  |         3 :
+     *          |                     |           :     1. iteration: get_k_interval(...) = [10, 4] (= no calculation)
+     *          |                     |           :     2. iteration: get_k_interval(...) = [10, 7] (= no calculation)
+     *          |                     |           :     3. iteration: get_k_interval(...) = [10, 20]
+     *          |                     |           :
+     *          |                     |           :
+     *          |                     |           :
+     *          |                     |           :
+     *          |                     |           :
+     *   20 ---------          20 ---------      ---
+     */
     template <class FromLevel,
         class ToLevel,
         enumtype::grid_type GridBackend,
