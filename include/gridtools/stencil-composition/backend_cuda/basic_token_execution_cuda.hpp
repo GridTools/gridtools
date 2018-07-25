@@ -47,12 +47,14 @@ namespace gridtools {
      * sub-intervals and assigned to the blocks in z-direction. Each block iterates over all computation intervals and
      * calculates the subinterval which intersects with the block sub-interval.
      *
+     * Example with with an axis with four intervals, that is distributed among 2 blocks:
+     *
      * Computation intervals   block sub-intervals
      *                           with two blocks
      *
      *                                       B1   B2
      *    0 ---------           0 --------- ---         Block B1 calculates the complete intervals I1 and I2, and parts
-     *          |                     |    1 :          of I3.
+     *          |                     |    1 :          of I3. It does not calculate anything for I4.
      *          |  I1             B1  |      :
      *          |                     |      :          1. iteration: get_k_interval(...) = [0, 4]
      *          |                     |      :          2. iteration: get_k_interval(...) = [5, 7]
@@ -61,16 +63,16 @@ namespace gridtools {
      *          | I2                  |      :
      *    8    ---                    |     ---
      *          |                     |    3 :
-     *          | I3           10    ---    ---  ---    Block B2 calculates parts of the interval I3.
-     *          |                 B2  |         3 :
+     *          | I3           10    ---    ---  ---    Block B2 calculates parts of the interval I3, and the complete
+     *          |                     |         3 :     interval I4. It does not calculate anything for I1 and I2.
+     *          |                 B2  |           :
      *          |                     |           :     1. iteration: get_k_interval(...) = [10, 4] (= no calculation)
      *          |                     |           :     2. iteration: get_k_interval(...) = [10, 7] (= no calculation)
      *          |                     |           :     3. iteration: get_k_interval(...) = [10, 17]
      *          |                     |           :     4. iteration: get_k_interval(...) = [18, 20]
      *          |                     |           :
-     *          |                     |           :
      *   18    ---                    |          ---
-     *          |                     |         4 :
+     *          | I4                  |         4 :
      *   20 ---------          20 ---------      ---
      */
     template <class FromLevel,
