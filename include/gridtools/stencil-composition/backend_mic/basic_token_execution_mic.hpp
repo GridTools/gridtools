@@ -37,18 +37,19 @@
 #pragma once
 
 #include "../../common/defs.hpp"
+#include "../../common/pair.hpp"
 #include "../basic_token_execution.hpp"
 #include "../execution_types.hpp"
 
 namespace gridtools {
-    template <class Level, enumtype::grid_type GridBackend, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_start(
-        backend_ids<enumtype::Mic, GridBackend, enumtype::Block>, ExecutionEngine, Grid const &grid) {
-        return grid.template value_at<Level>();
-    }
-    template <class Level, enumtype::grid_type GridBackend, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_end(
-        backend_ids<enumtype::Mic, GridBackend, enumtype::Block>, ExecutionEngine, Grid const &grid) {
-        return grid.template value_at<Level>();
+    template <class FromLevel,
+        class ToLevel,
+        enumtype::grid_type GridBackend,
+        enumtype::strategy Strategy,
+        class ExecutionEngine,
+        class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(
+        backend_ids<enumtype::Mic, GridBackend, Strategy>, ExecutionEngine, Grid const &grid) {
+        return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
     }
 } // namespace gridtools

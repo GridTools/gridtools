@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
@@ -58,7 +57,7 @@ using axis_upper = axis::get_interval<1>;
 
 namespace {
 
-    struct copy_functor {
+    struct parallel_functor {
         typedef accessor<0> in;
         typedef accessor<1, inout> out;
         typedef boost::mpl::vector<in, out> arg_list;
@@ -92,12 +91,12 @@ TEST(structured_grid, kparallel) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto grid_ = gridtools::make_grid(d1, d2, axis(d3_l, d3_u));
+    auto grid = gridtools::make_grid(d1, d2, axis(d3_l, d3_u));
 
-    auto copy = gridtools::make_computation<backend_t>(grid_,
+    auto copy = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(execute<parallel>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
+        gridtools::make_multistage(execute<parallel, 20>(), gridtools::make_stage<parallel_functor>(p_in(), p_out())));
 
     copy.run();
 

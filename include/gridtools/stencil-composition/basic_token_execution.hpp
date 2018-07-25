@@ -62,10 +62,8 @@ between levels.
 
 namespace gridtools {
 
-    template <class Level, class BackendIds, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_start(BackendIds, ExecutionEngine, Grid const &grid);
-    template <class Level, class BackendIds, class ExecutionEngine, class Grid>
-    GT_FUNCTION int get_k_end(BackendIds, ExecutionEngine, Grid const &grid);
+    template <class FromLevel, class ToLevel, class BackendIds, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_interval(BackendIds, ExecutionEngine, Grid const &grid);
 
     namespace _impl {
 
@@ -156,18 +154,16 @@ namespace gridtools {
 
                 typedef iteration_policy<from_t, to_t, execution_engine::iteration> iteration_policy_t;
 
-                int const from = get_k_start<from_t>(typename RunFunctorArguments::backend_ids_t{},
-                    typename RunFunctorArguments::execution_type_t{},
-                    m_grid);
-                int const to = get_k_end<to_t>(typename RunFunctorArguments::backend_ids_t{},
+                const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
                     typename RunFunctorArguments::execution_type_t{},
                     m_grid);
 
                 // for parallel execution we might get empty intervals,
                 // for other execution policies we check that they are given in the correct order
-                assert(RunFunctorArguments::execution_type_t::value == enumtype::parallel || from <= to);
-                if (from <= to)
-                    k_loop<iteration_policy_t, Interval>(from, to);
+                assert(RunFunctorArguments::execution_type_t::value == enumtype::parallel ||
+                       k_interval.first <= k_interval.second);
+                if (k_interval.first <= k_interval.second)
+                    k_loop<iteration_policy_t, Interval>(k_interval.first, k_interval.second);
             }
         };
 
