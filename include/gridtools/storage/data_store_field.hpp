@@ -268,6 +268,8 @@ namespace gridtools {
             for (auto &e : m_field)
                 e.reactivate_host_write_views();
         }
+
+        storage_info_t const &info() const { return m_field.front().info(); }
     };
 
     // simple metafunction to check if a type is a data_store_field

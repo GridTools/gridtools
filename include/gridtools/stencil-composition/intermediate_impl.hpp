@@ -189,12 +189,11 @@ namespace gridtools {
                     storage.sync();
 
                 return view_info_data<DataStorage>{
-                    boost::make_optional(typename Backend::make_view_f{}(storage)), *storage.get_storage_info_ptr()};
+                    boost::make_optional(typename Backend::make_view_f{}(storage)), storage.info()};
             }
             template <class Arg, class DataStorage>
             view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
-                return view_info_data<DataStorage>{
-                    src.template updated_view<Backend>(), *src.m_data_storage.get_storage_info_ptr()};
+                return view_info_data<DataStorage>{src.template updated_view<Backend>(), src.m_data_storage.info()};
             }
         };
 
