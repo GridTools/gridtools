@@ -46,7 +46,6 @@
 #include "pos3.hpp"
 #include "run_functor_arguments.hpp"
 #include "tmp_storage.hpp"
-#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/contains.hpp>
@@ -198,13 +197,13 @@ namespace gridtools {
     template <uint_t Coordinate, class LocalDomain, class Strides, class ArrayIndex>
     GT_FUNCTION void do_increment(
         int_t step, LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
-        boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+        gridtools::for_each<typename LocalDomain::storage_info_ptr_list>(
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{step, index, strides});
     }
 
     template <uint_t Coordinate, ptrdiff_t Step, class LocalDomain, class Strides, class ArrayIndex>
     GT_FUNCTION void do_increment(LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
-        boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+        gridtools::for_each<typename LocalDomain::storage_info_ptr_list>(
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{Step, index, strides});
     }
 

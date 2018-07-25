@@ -196,7 +196,7 @@ namespace gridtools {
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
+            gridtools::for_each<typename local_domain_t::storage_info_typelist>(
                 initialize_index_f<strides_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }

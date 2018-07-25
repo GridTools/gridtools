@@ -45,6 +45,7 @@
 #include "../iterate_domain_fwd.hpp"
 #include "../pos3.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
+#include <boost/fusion/include/for_each.hpp>
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -255,7 +256,7 @@ namespace gridtools {
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
+            gridtools::for_each<typename local_domain_t::storage_info_ptr_list>(
                 initialize_index_f<strides_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }

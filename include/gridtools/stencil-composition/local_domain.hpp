@@ -42,6 +42,7 @@
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 
 #include "./arg.hpp"
 #include "./extent.hpp"
@@ -55,19 +56,15 @@ namespace gridtools {
                 meta::id,
                 (boost::fusion::pair<Arg, array<typename DataStore::data_t *, DataStore::num_of_storages>>));
 
-            template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
-            GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, StorageInfo const *);
-
-            template <class Args>
-            GT_META_DEFINE_ALIAS(
-                get_storage_info_ptrs, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info_ptr, Args))));
-
-            template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
-            GT_META_DEFINE_ALIAS(get_storage_info, meta::id, StorageInfo);
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(get_storage_info, meta::id, typename Arg::data_store_t::storage_info_t);
 
             template <class Args>
             GT_META_DEFINE_ALIAS(
                 get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
+
+            template <class T>
+            GT_META_DEFINE_ALIAS(add_const_ptr, add_pointer_t, add_const_t<T>);
 
             template <class StorageInfo>
             GT_META_DEFINE_ALIAS(get_strides_elem,
@@ -106,13 +103,14 @@ namespace gridtools {
         using arg_to_data_ptr_map_t = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_data_ptrs_elem, EsfArgs));
 
-        using storage_info_ptr_list = GT_META_CALL(_impl::local_domain_details::get_storage_info_ptrs, EsfArgs);
-        using tmp_storage_info_ptr_list = GT_META_CALL(
-            _impl::local_domain_details::get_storage_info_ptrs, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
-
         using storage_info_typelist = GT_META_CALL(_impl::local_domain_details::get_storage_infos, EsfArgs);
         using tmp_storage_info_typelist = GT_META_CALL(
             _impl::local_domain_details::get_storage_infos, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
+
+        using storage_info_ptr_list = GT_META_CALL(
+            meta::transform, (_impl::local_domain_details::add_const_ptr, storage_info_typelist));
+        using tmp_storage_info_ptr_list = GT_META_CALL(
+            meta::transform, (_impl::local_domain_details::add_const_ptr, tmp_storage_info_typelist));
 
         using storage_info_to_strides_map_t = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_strides_elem, storage_info_typelist));
