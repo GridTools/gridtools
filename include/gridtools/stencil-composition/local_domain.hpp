@@ -64,17 +64,18 @@ namespace gridtools {
                 get_storage_infos, meta::dedup, (GT_META_CALL(meta::transform, (get_storage_info, Args))));
 
             template <class T>
-            GT_META_DEFINE_ALIAS(add_const_ptr, add_pointer_t, add_const_t<T>);
+            GT_META_DEFINE_ALIAS(add_const_ptr, meta::id, add_pointer_t<add_const_t<T>>);
 
             template <class StorageInfo>
             GT_META_DEFINE_ALIAS(get_strides_elem,
-                boost::fusion::pair,
-                (StorageInfo,
+                meta::id,
+                (boost::fusion::pair<StorageInfo,
                     array<uint_t,
-                        StorageInfo::layout_t::unmasked_length == 0 ? 0 : StorageInfo::layout_t::unmasked_length - 1>));
+                        StorageInfo::layout_t::unmasked_length == 0 ? 0
+                                                                    : StorageInfo::layout_t::unmasked_length - 1>>));
 
             template <class StorageInfo>
-            GT_META_DEFINE_ALIAS(get_size_elem, boost::fusion::pair, (StorageInfo, uint_t));
+            GT_META_DEFINE_ALIAS(get_size_elem, meta::id, (boost::fusion::pair<StorageInfo, uint_t>));
 
         } // namespace local_domain_details
     }     // namespace _impl
