@@ -179,7 +179,7 @@ namespace gridtools {
                                      ? blockIdx.z * execution_type_t::block_size
                                      : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
-                {blockIdx.x, blockIdx.y, 0},
+                {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
             it_domain.set_block_pos(iblock, jblock);
 
