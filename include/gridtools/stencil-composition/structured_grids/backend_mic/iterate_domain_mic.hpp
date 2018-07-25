@@ -221,7 +221,7 @@ namespace gridtools {
         template <typename LocalDomain,
             typename Accessor,
             typename Arg = typename get_arg_from_accessor<Accessor, LocalDomain>::type>
-        GT_FUNCTION void *RESTRICT get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
+        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) {
             static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
             return aux::get_data_pointer(local_domain, accessor) + m_data_ptr_offsets[pos_in_args];
         }
@@ -309,7 +309,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
-            return get_value(accessor, get_data_pointer(local_domain, accessor));
+            return get_value(accessor, get_data_pointer(accessor));
         }
 
         /** @brief Global i-index. */
