@@ -140,11 +140,8 @@ namespace test_iterate_domain {
         auto const &data_pointer = it_domain.data_pointer();
 #else
         typename it_domain_t::data_ptr_cached_t data_pointer;
-        typedef typename it_domain_t::strides_cached_t strides_t;
-        strides_t strides;
 
         it_domain.set_data_pointer_impl(&data_pointer);
-        it_domain.set_strides_pointer_impl(&strides);
 
         it_domain.template assign_storage_pointers<backend_traits_t>();
 #endif
@@ -363,19 +360,6 @@ namespace test_iterate_domain {
         assert(((float_type *)(&outv.get<1, 1>()(0, 0) + new_index[2] + mdo->template stride<0>() == &it_domain(c1_))));
 
         assert(((float_type *)(&outv.get<1, 1>()(0, 0) + new_index[2] + mdo->template stride<1>() == &it_domain(c2_))));
-
-#ifndef BACKEND_MIC
-        // check strides initialization
-        // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
-        assert(mdi->template stride<3>() == strides.get<0>()[0]);
-        assert(mdi->template stride<2>() == strides.get<0>()[1]);
-        assert(mdi->template stride<1>() == strides.get<0>()[2]); // 4D storage
-
-        assert(mdb->template stride<0>() == strides.get<1>()[0]);
-        assert(mdb->template stride<1>() == strides.get<1>()[1]); // 3D storage
-
-        assert(mdo->template stride<0>() == strides.get<2>()[0]); // 2D storage
-#endif
 
         return true;
     }
