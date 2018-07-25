@@ -57,7 +57,7 @@ namespace gridtools {
      *          |                     |      :          1. iteration: get_k_interval(...) = [0, 4]
      *          |                     |      :          2. iteration: get_k_interval(...) = [5, 7]
      *    5    ---                    |     ---         3. iteration: get_k_interval(...) = [8, 9]
-     *          |                     |    2 :
+     *          |                     |    2 :          4. iteration: get_k_interval(...) = [18, 9] (= no calculation)
      *          | I2                  |      :
      *    8    ---                    |     ---
      *          |                     |    3 :
@@ -65,12 +65,12 @@ namespace gridtools {
      *          |                 B2  |         3 :
      *          |                     |           :     1. iteration: get_k_interval(...) = [10, 4] (= no calculation)
      *          |                     |           :     2. iteration: get_k_interval(...) = [10, 7] (= no calculation)
-     *          |                     |           :     3. iteration: get_k_interval(...) = [10, 20]
+     *          |                     |           :     3. iteration: get_k_interval(...) = [10, 17]
+     *          |                     |           :     4. iteration: get_k_interval(...) = [18, 20]
      *          |                     |           :
      *          |                     |           :
-     *          |                     |           :
-     *          |                     |           :
-     *          |                     |           :
+     *   18    ---                    |          ---
+     *          |                     |         4 :
      *   20 ---------          20 ---------      ---
      */
     template <class FromLevel,
