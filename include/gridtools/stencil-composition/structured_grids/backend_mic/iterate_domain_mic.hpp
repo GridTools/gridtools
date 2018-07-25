@@ -218,11 +218,9 @@ namespace gridtools {
         /**
          * @brief get data pointer, taking into account a possible offset in case of temporaries
          */
-        template <typename LocalDomain,
-            typename Accessor,
-            typename Arg = typename get_arg_from_accessor<Accessor, LocalDomain>::type>
+        template <typename Accessor, typename Arg = typename get_arg_from_accessor<Accessor, local_domain_t>::type>
         GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) {
-            static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
+            static constexpr auto pos_in_args = meta::st_position<typename local_domain_t::esf_args, Arg>::value;
             return aux::get_data_pointer(local_domain, accessor) + m_data_ptr_offsets[pos_in_args];
         }
 
