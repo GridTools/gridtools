@@ -167,7 +167,7 @@ namespace gridtools {
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
         using data_ptr_cached_t = data_ptr_cached<typename local_domain_t::esf_args>;
-        using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
+        using strides_t = typename local_domain_t::stride_array_fusion_list;
         using array_index_t = array<int_t, N_META_STORAGES>;
         // *************** end of type definitions **************
 
@@ -175,7 +175,6 @@ namespace gridtools {
         // *********************** members **********************
         local_domain_t const &local_domain;
         data_ptr_cached_t m_data_pointer;
-        strides_cached_t m_strides;
         int_t m_i_block_index;     /** Local i-index inside block. */
         int_t m_j_block_index;     /** Local j-index inside block. */
         int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
@@ -216,9 +215,6 @@ namespace gridtools {
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_storage_ptrs_mic<data_ptr_cached_t, local_domain_t>{
                     m_data_pointer, local_domain.m_local_storage_info_ptrs});
-            // assign stride pointers
-            boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
         }
 
         /** @brief Returns the array of pointers to the raw data as const reference. */
@@ -377,7 +373,7 @@ namespace gridtools {
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
             static constexpr auto storage_index = local_domain_storage_index<StorageInfo>::value;
-            auto const &strides = m_strides.template get<storage_index>();
+            auto const &strides = boost::fusion::at_c<storage_index>(local_domain.m_local_strides);
             return stride<StorageInfo, Coordinate>(strides);
         }
 

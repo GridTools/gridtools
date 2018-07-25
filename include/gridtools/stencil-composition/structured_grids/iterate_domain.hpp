@@ -155,7 +155,7 @@ namespace gridtools {
 
       public:
         typedef data_ptr_cached<typename local_domain_t::esf_args> data_ptr_cached_t;
-        typedef typename local_domain_t::stride_array_fusion_list strides_cached_t;
+        typedef typename local_domain_t::stride_array_fusion_list strides_t;
         typedef array<int_t, N_META_STORAGES> array_index_t;
         // *************** end of type definitions **************
 
@@ -179,7 +179,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const { return local_domain.m_local_strides; }
+        strides_t const &RESTRICT strides() const { return local_domain.m_local_strides; }
 
         /**
            @brief returns the array of pointers to the raw data
@@ -256,7 +256,7 @@ namespace gridtools {
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
+                initialize_index_f<strides_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }
 

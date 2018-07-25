@@ -86,7 +86,7 @@ namespace gridtools {
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
         typedef data_ptr_cached<typename local_domain_t::esf_args> data_ptr_cached_t;
-        typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
+        typedef typename local_domain_t::stride_array_fusion_list strides_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
 
@@ -179,15 +179,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
-            return static_cast<IterateDomainImpl const *>(this)->strides_impl();
-        }
-
-        /**
-           @brief returns the strides as const reference
-        */
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
+        strides_t const &RESTRICT strides() const { return m_local_domain.m_local_strides; }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -206,7 +198,7 @@ namespace gridtools {
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
             boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
+                initialize_index_f<strides_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }
 
@@ -348,7 +340,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), accessor);
+                compute_offset<storage_info_t>(boost::fusion::at_c<storage_info_index>(strides()), accessor);
 
             assert(pointer_oob_check(
                 boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
@@ -410,7 +402,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), position_offset);
+                compute_offset<storage_info_t>(boost::fusion::at_c<storage_info_index>(strides()), position_offset);
 
             return get_raw_value(accessor_t(), data_pointer().template get<index_t::value>()[0], pointer_offset);
         }
