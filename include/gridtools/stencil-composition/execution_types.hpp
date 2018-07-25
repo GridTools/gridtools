@@ -63,7 +63,7 @@ namespace gridtools {
     template <typename T>
     struct is_execution_engine : std::false_type {};
 
-    template <enumtype::execution U>
-    struct is_execution_engine<enumtype::execute<U>> : std::true_type {};
+    template <enumtype::execution U, uint_t BlockSize>
+    struct is_execution_engine<enumtype::execute<U, BlockSize>> : std::true_type {};
 
 } // namespace gridtools
