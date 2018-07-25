@@ -173,10 +173,10 @@ namespace gridtools {
             typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
             typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
+            typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
-            const int_t kblock = execution_type_t::type::execution == enumtype::parallel_impl
-                                     ? blockIdx.z * execution_type_t::type::block_size
+            const int_t kblock = execution_type_t::execution == enumtype::parallel_impl
+                                     ? blockIdx.z * execution_type_t::block_size
                                      : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, 0},
@@ -259,7 +259,7 @@ namespace gridtools {
                 // number of blocks required
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
-                using execution_type_t = typename RunFunctorArguments::execution_type_t::type;
+                using execution_type_t = typename RunFunctorArguments::execution_type_t;
                 const uint_t nbz = execution_type_t::execution == enumtype::parallel_impl
                                        ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
                                        : 1;
