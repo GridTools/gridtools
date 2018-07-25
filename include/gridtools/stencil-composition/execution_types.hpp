@@ -43,21 +43,14 @@
 namespace gridtools {
     namespace enumtype {
 
-        enum isparallel { parallel_impl, serial };
         enum execution { forward, backward, parallel };
 
-        template <enumtype::isparallel T, uint_t BlockSize, enumtype::execution U = forward>
-        struct execute_impl {
+        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
+        struct execute {
             static const enumtype::execution iteration = U;
-            static const enumtype::isparallel execution = T;
             static const uint_t block_size = BlockSize;
         };
 
-        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
-        struct execute : execute_impl<serial, BlockSize, U> {};
-
-        template <uint_t BlockSize>
-        struct execute<parallel, BlockSize> : execute_impl<parallel_impl, BlockSize, parallel> {};
     } // namespace enumtype
 
     template <typename T>

@@ -177,7 +177,7 @@ namespace gridtools {
             typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
             // initialize the indices
-            const int kblock = execution_type_t::execution == enumtype::parallel_impl
+            const int kblock = execution_type_t::iteration == enumtype::parallel
                                    ? blockIdx.z * execution_type_t::block_size
                                    : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
@@ -262,7 +262,7 @@ namespace gridtools {
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                const uint_t nbz = execution_type_t::execution == enumtype::parallel_impl
+                const uint_t nbz = execution_type_t::iteration == enumtype::parallel
                                        ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
                                        : 1;
 
