@@ -80,9 +80,9 @@ namespace gridtools {
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_list>::value;
+        static constexpr auto N_META_STORAGES = meta::length<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
-        static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
+        static constexpr auto N_STORAGES = meta::length<data_ptrs_map_t>::value;
 
         typedef typename local_domain_t::strides_fusion_map strides_t;
 
