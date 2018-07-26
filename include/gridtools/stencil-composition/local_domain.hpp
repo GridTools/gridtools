@@ -101,18 +101,12 @@ namespace gridtools {
         using esf_args = EsfArgs;
         using max_extent_for_tmp_t = MaxExtentForTmp;
 
-        using arg_to_data_ptr_map_t = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::get_data_ptrs_elem, EsfArgs));
-
         using storage_info_list = GT_META_CALL(_impl::local_domain_details::get_storage_infos, EsfArgs);
         using tmp_storage_info_list = GT_META_CALL(
             _impl::local_domain_details::get_storage_infos, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
 
-        using storage_info_ptr_list = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::add_const_ptr, storage_info_list));
-        using tmp_storage_info_ptr_list = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::add_const_ptr, tmp_storage_info_list));
-
+        using arg_to_data_ptr_map_t = GT_META_CALL(
+            meta::transform, (_impl::local_domain_details::get_data_ptrs_elem, EsfArgs));
         using storage_info_to_strides_map_t = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_strides_elem, storage_info_list));
         using storage_info_to_size_map_t = GT_META_CALL(
