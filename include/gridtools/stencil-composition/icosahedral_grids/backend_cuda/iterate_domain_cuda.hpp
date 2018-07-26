@@ -61,18 +61,16 @@ namespace gridtools {
 
       public:
         typedef typename super::grid_topology_t grid_topology_t;
-        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
-      private:
-        typedef typename super::readonly_args_indices_t readonly_args_indices_t;
-
-        typedef shared_iterate_domain<data_ptr_cached_t,
-            strides_cached_t,
+        typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
+
+      private:
+        typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
@@ -118,18 +116,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
-
-        GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
-
-        GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
 
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides_impl() const {
@@ -195,7 +181,7 @@ namespace gridtools {
             get_cache_value_impl(Accessor const &_accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             return super::template get_value<Accessor, void * RESTRICT>(
-                _accessor, super::template get_data_pointer<Accessor>(_accessor));
+                _accessor, aux::get_data_pointer(super::m_local_domain, _accessor));
         }
 
         /** @brief return a the value in memory pointed to by an accessor

@@ -58,14 +58,13 @@ namespace gridtools {
      * @tparam StridesType strides cached type
      * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
-    template <typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple>
+    template <typename StridesType, typename MaxExtent, typename IJCachesTuple>
     class shared_iterate_domain {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
       private:
-        DataPointerArray m_data_pointer;
         StridesType m_strides;
         void_if_empty_t<IJCachesTuple> m_ij_caches_tuple; // HACK: see void_if_empty_t
 
@@ -78,11 +77,7 @@ namespace gridtools {
         shared_iterate_domain() {}
 
         GT_FUNCTION
-        DataPointerArray const &data_pointer() const { return m_data_pointer; }
-        GT_FUNCTION
         StridesType const &strides() const { return m_strides; }
-        GT_FUNCTION
-        DataPointerArray &data_pointer() { return m_data_pointer; }
         GT_FUNCTION
         StridesType &strides() { return m_strides; }
 
