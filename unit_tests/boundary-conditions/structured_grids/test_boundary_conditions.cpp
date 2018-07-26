@@ -142,7 +142,8 @@ struct minus_predicate {
     bool operator()(direction<I, J, K>) const {
         if (I == minus_ || J == minus_ || K == minus_)
             return false;
-        return true;
+        else
+            return true;
     }
 };
 

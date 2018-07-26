@@ -57,13 +57,12 @@ namespace gridtools {
      * @tparam DataPointerArray array of data pointers
      * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
-    template <typename DataPointerArray, typename MaxExtent, typename IJCachesTuple>
+    template <typename MaxExtent, typename IJCachesTuple>
     class shared_iterate_domain {
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
       private:
-        DataPointerArray m_data_pointer;
         void_if_empty_t<IJCachesTuple> m_ij_caches_tuple; // HACK: see void_if_empty_t
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
@@ -73,11 +72,6 @@ namespace gridtools {
 
       public:
         shared_iterate_domain() {}
-
-        GT_FUNCTION
-        DataPointerArray const &data_pointer() const { return m_data_pointer; }
-        GT_FUNCTION
-        DataPointerArray &data_pointer() { return m_data_pointer; }
 
         template <typename IndexType>
         GT_FUNCTION typename boost::mpl::at<ij_caches_map_t, IndexType>::type &RESTRICT get_ij_cache() {

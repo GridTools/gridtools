@@ -121,11 +121,6 @@ namespace gridtools {
             void operator()() const {
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
-                typename iterate_domain_t::data_ptr_cached_t data_pointer;
-
-                it_domain.set_data_pointer_impl(&data_pointer);
-
-                it_domain.template assign_storage_pointers<backend_traits_t>();
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                     m_block_no,
