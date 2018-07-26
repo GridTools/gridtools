@@ -75,7 +75,6 @@ namespace gridtools {
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-        // TODO there are two instantiations of these type.. Fix this
         typedef shared_iterate_domain<typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
