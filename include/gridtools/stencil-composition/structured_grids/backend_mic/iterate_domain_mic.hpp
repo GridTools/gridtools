@@ -180,7 +180,7 @@ namespace gridtools {
 
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
-                using storage_info_t = meta::at<typename local_domain::storage_info_list, StorageInfoIndex>;
+                using storage_info_t = meta::at<typename local_domain_t::storage_info_list, StorageInfoIndex>;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset<storage_info_t>(accessor_base<storage_info_t::ndims>());
             }
