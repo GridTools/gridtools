@@ -43,7 +43,7 @@
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../basic_token_execution.hpp"
+#include "../../backend_mic/basic_token_execution_mic.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "./execinfo_mic.hpp"
@@ -155,8 +155,8 @@ namespace gridtools {
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = ::gridtools::_impl::
-                    iteration_policy<interval_from_t, interval_to_t, execution_type_t::type::iteration>;
+                using iteration_policy_t =
+                    ::gridtools::_impl::iteration_policy<interval_from_t, interval_to_t, execution_type_t::iteration>;
 
                 const int_t k_first = m_grid.template value_at<typename iteration_policy_t::from>();
                 const int_t k_last = m_grid.template value_at<typename iteration_policy_t::to>();
@@ -219,8 +219,8 @@ namespace gridtools {
                 using interval_from_t = typename index_to_level<typename Interval::first>::type;
                 using interval_to_t = typename index_to_level<typename Interval::second>::type;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = ::gridtools::_impl::
-                    iteration_policy<interval_from_t, interval_to_t, execution_type_t::type::iteration>;
+                using iteration_policy_t =
+                    ::gridtools::_impl::iteration_policy<interval_from_t, interval_to_t, execution_type_t::iteration>;
 
                 using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
                 using extent_t = typename boost::mpl::at<extent_sizes_t, Index>::type;

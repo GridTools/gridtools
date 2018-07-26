@@ -170,9 +170,9 @@ namespace gridtools {
                 LoopIntervals; // List of intervals on which functors are defined
             // wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<
-                typename boost::mpl::bool_<ExecutionEngine::type::iteration == enumtype::forward>::type,
-                LoopIntervals,
-                typename boost::mpl::reverse<LoopIntervals>::type>::type oriented_loop_intervals_t;
+                typename boost::mpl::bool_<ExecutionEngine::iteration == enumtype::backward>::type,
+                typename boost::mpl::reverse<LoopIntervals>::type,
+                LoopIntervals>::type oriented_loop_intervals_t;
             // List of functors to execute (in order)
             typedef typename mss_components_t::functors_list_t functors_list_t;
             // sequence of esf descriptors contained in this mss

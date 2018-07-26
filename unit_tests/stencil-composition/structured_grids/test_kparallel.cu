@@ -33,30 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-
-#include "../common/defs.hpp"
-#include <type_traits>
-
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
-
-namespace gridtools {
-    namespace enumtype {
-
-        enum execution { forward, backward, parallel };
-
-        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
-        struct execute {
-            static const enumtype::execution iteration = U;
-            static const uint_t block_size = BlockSize;
-        };
-
-    } // namespace enumtype
-
-    template <typename T>
-    struct is_execution_engine : std::false_type {};
-
-    template <enumtype::execution U, uint_t BlockSize>
-    struct is_execution_engine<enumtype::execute<U, BlockSize>> : std::true_type {};
-
-} // namespace gridtools
+#include "test_kparallel.cpp"

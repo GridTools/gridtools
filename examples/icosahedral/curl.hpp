@@ -166,7 +166,7 @@ namespace ico_operators {
                 p_dual_edge_length{} = dual_edge_length,
                 p_out_vertices{} = out_vertices,
                 gridtools::make_multistage // mss_descriptor
-                (execute<forward>(),
+                (execute<parallel>(),
                     gridtools::make_stage<curl_functor_flow_convention,
                         icosahedral_topology_t,
                         icosahedral_topology_t::vertices>(

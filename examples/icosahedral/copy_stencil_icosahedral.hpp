@@ -90,7 +90,7 @@ namespace test_copy_stencil_icosahedral {
         auto comp_ = make_computation<backend_t>(grid_,
             p_out() = storage1,
             p_in() = storage10,
-            make_multistage(enumtype::execute<enumtype::forward>(),
+            make_multistage(enumtype::execute<enumtype::parallel>(),
                 make_stage<functor_copy, icosahedral_topology_t, icosahedral_topology_t::cells>(p_out(), p_in())));
 
         comp_.run();

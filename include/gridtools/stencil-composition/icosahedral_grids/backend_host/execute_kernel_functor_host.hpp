@@ -38,7 +38,7 @@
 
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../basic_token_execution.hpp"
+#include "../../backend_host/basic_token_execution_host.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
@@ -137,7 +137,7 @@ namespace gridtools {
             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
             typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
+            typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
             template <class ReductionData>
             execute_kernel_functor_host(const local_domain_t &local_domain,
