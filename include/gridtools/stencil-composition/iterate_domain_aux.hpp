@@ -76,7 +76,7 @@ namespace gridtools {
         struct is_dummy_coordinate : bool_constant<(Mapped < 0)> {};
 
         template <class StorageInfo, class LocalDomain>
-        struct get_index : meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo> {};
+        struct get_index : meta::st_position<typename LocalDomain::storage_info_list, StorageInfo> {};
 
         template <uint_t Coordinate,
             class StorageInfo,
@@ -134,7 +134,7 @@ namespace gridtools {
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, typename StorageInfo::layout_t>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             static constexpr auto storage_info_index =
-                meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>::value;
+                meta::st_position<typename LocalDomain::storage_info_list, StorageInfo>::value;
             m_index_array[storage_info_index] += _impl::get_stride<Coordinate, StorageInfo>(m_strides) * m_increment;
         }
     };
@@ -206,9 +206,9 @@ namespace gridtools {
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                meta::st_contains<typename LocalDomain::tmp_storage_info_typelist, StorageInfo>::value;
+                meta::st_contains<typename LocalDomain::tmp_storage_info_list, StorageInfo>::value;
             static constexpr auto storage_info_index =
-                meta::st_position<typename LocalDomain::storage_info_typelist, StorageInfo>::value;
+                meta::st_position<typename LocalDomain::storage_info_list, StorageInfo>::value;
             m_index_array[storage_info_index] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
                 make_pos3(_impl::get_stride<coord_i<Backend>::value, StorageInfo>(m_strides),
                     _impl::get_stride<coord_j<Backend>::value, StorageInfo>(m_strides),

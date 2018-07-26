@@ -147,10 +147,10 @@ namespace gridtools {
             typedef typename ::gridtools::accessor_return_type_impl<Accessor, iterate_domain_arguments_t>::type type;
         };
 
-        using storage_info_typelist = typename local_domain_t::storage_info_typelist;
+        using storage_info_list = typename local_domain_t::storage_info_list;
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_typelist>::value;
+        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_list>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
@@ -379,7 +379,7 @@ namespace gridtools {
 
         // this index here describes the position of the storage info in the m_index array (can be different to the
         // storage info id)
-        using storage_info_index_t = typename meta::st_position<storage_info_typelist, storage_info_t>::type;
+        using storage_info_index_t = typename meta::st_position<storage_info_list, storage_info_t>::type;
 
         assert(storage_pointer);
         data_t *RESTRICT real_storage_pointer = static_cast<data_t *>(storage_pointer);

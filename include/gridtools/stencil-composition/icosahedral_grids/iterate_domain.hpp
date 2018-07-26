@@ -80,7 +80,7 @@ namespace gridtools {
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_typelist>::value;
+        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
@@ -254,7 +254,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_typelist, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::storage_info_list, storage_info_t>::value;
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -316,7 +316,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_typelist, storage_info_t>::value;
+                meta::st_position<typename local_domain_t::storage_info_list, storage_info_t>::value;
 
             using location_type_t = typename accessor_t::location_type;
             // control your instincts: changing the following

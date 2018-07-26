@@ -104,19 +104,19 @@ namespace gridtools {
         using arg_to_data_ptr_map_t = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_data_ptrs_elem, EsfArgs));
 
-        using storage_info_typelist = GT_META_CALL(_impl::local_domain_details::get_storage_infos, EsfArgs);
-        using tmp_storage_info_typelist = GT_META_CALL(
+        using storage_info_list = GT_META_CALL(_impl::local_domain_details::get_storage_infos, EsfArgs);
+        using tmp_storage_info_list = GT_META_CALL(
             _impl::local_domain_details::get_storage_infos, (GT_META_CALL(meta::filter, (is_tmp_arg, EsfArgs))));
 
         using storage_info_ptr_list = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::add_const_ptr, storage_info_typelist));
+            meta::transform, (_impl::local_domain_details::add_const_ptr, storage_info_list));
         using tmp_storage_info_ptr_list = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::add_const_ptr, tmp_storage_info_typelist));
+            meta::transform, (_impl::local_domain_details::add_const_ptr, tmp_storage_info_list));
 
         using storage_info_to_strides_map_t = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::get_strides_elem, storage_info_typelist));
+            meta::transform, (_impl::local_domain_details::get_strides_elem, storage_info_list));
         using storage_info_to_size_map_t = GT_META_CALL(
-            meta::transform, (_impl::local_domain_details::get_size_elem, storage_info_typelist));
+            meta::transform, (_impl::local_domain_details::get_size_elem, storage_info_list));
 
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
         using strides_fusion_map = typename boost::fusion::result_of::as_map<storage_info_to_strides_map_t>::type;

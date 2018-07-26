@@ -116,7 +116,7 @@ namespace gridtools {
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
-        using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_info_typelist, StorageInfo>;
+        using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_info_list, StorageInfo>;
 
         /* meta function to get the storage info type corresponding to an accessor */
         template <typename Accessor>
@@ -160,7 +160,7 @@ namespace gridtools {
         using data_ptrs_map_t = typename local_domain_t::data_ptr_fusion_map;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_typelist>::value;
+        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
@@ -188,7 +188,7 @@ namespace gridtools {
 
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
-                using storage_info_t = meta::at<typename local_domain::storage_info_typelist, StorageInfoIndex>;
+                using storage_info_t = meta::at<typename local_domain::storage_info_list, StorageInfoIndex>;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset<storage_info_t>(accessor_base<storage_info_t::ndims>());
             }
