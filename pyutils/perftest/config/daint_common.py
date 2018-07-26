@@ -18,7 +18,7 @@ env = dict(default.env,
 cmake_command = default.cmake_command + [
     '-DBOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_66_0']
 make_command = ['srun', '--constraint=gpu', '--account=c14',
-                '--time=00:20:00', 'make', '-j24']
+                '--time=00:30:00', 'make', '-j24']
 
 
 def sbatch(command):
