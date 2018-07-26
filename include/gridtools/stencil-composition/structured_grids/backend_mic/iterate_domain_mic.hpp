@@ -169,6 +169,7 @@ namespace gridtools {
         // *********************** members **********************
         local_domain_t const &local_domain;
         data_ptr_cached_t m_data_pointer;
+        strides_t m_strides;
         int_t m_i_block_index;     /** Local i-index inside block. */
         int_t m_j_block_index;     /** Local j-index inside block. */
         int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
@@ -202,9 +203,9 @@ namespace gridtools {
       public:
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_i_block_index(0),
-              m_j_block_index(0), m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
-              m_enable_ij_caches(false) {
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain),
+              m_strides(local_domain.m_local_strides), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0),
+              m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
             // assign storage pointers
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_storage_ptrs_mic<data_ptr_cached_t, local_domain_t>{
@@ -366,7 +367,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
-            auto const &strides = boost::fusion::at_key<StorageInfo>(local_domain.m_local_strides);
+            auto const &strides = boost::fusion::at_key<StorageInfo>(m_strides);
             return stride<StorageInfo, Coordinate>(strides);
         }
 
