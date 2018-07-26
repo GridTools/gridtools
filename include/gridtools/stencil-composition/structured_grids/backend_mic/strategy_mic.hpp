@@ -66,7 +66,7 @@ namespace gridtools {
         struct is_mss_kparallel {
             template <typename Mss>
             struct apply {
-                using type = boost::mpl::bool_<Mss::execution_engine_t::type::execution == enumtype::parallel_impl>;
+                using type = boost::mpl::bool_<Mss::execution_engine_t::iteration == enumtype::parallel>;
             };
         };
 

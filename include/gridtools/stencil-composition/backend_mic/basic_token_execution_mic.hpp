@@ -33,30 +33,23 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../common/defs.hpp"
-#include <type_traits>
-
-#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
+#include "../../common/defs.hpp"
+#include "../../common/pair.hpp"
+#include "../basic_token_execution.hpp"
+#include "../execution_types.hpp"
 
 namespace gridtools {
-    namespace enumtype {
-
-        enum execution { forward, backward, parallel };
-
-        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
-        struct execute {
-            static const enumtype::execution iteration = U;
-            static const uint_t block_size = BlockSize;
-        };
-
-    } // namespace enumtype
-
-    template <typename T>
-    struct is_execution_engine : std::false_type {};
-
-    template <enumtype::execution U, uint_t BlockSize>
-    struct is_execution_engine<enumtype::execute<U, BlockSize>> : std::true_type {};
-
+    template <class FromLevel,
+        class ToLevel,
+        enumtype::grid_type GridBackend,
+        enumtype::strategy Strategy,
+        class ExecutionEngine,
+        class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(
+        backend_ids<enumtype::Mic, GridBackend, Strategy>, ExecutionEngine, Grid const &grid) {
+        return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
+    }
 } // namespace gridtools
