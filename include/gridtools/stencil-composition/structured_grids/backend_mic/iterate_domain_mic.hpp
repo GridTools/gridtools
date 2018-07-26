@@ -70,28 +70,20 @@ namespace gridtools {
             LocalDomain const &m_local_domain;
             DataPtrsOffset &m_data_ptr_offsets;
 
-            template <class ArgDataPtrPair>
-            GT_FUNCTION void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
-                using arg = typename ArgDataPtrPair::first_type;
-                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, arg>::value;
-                m_data_ptr_offsets[pos_in_args] = offset<arg>();
-            }
-
-          private:
-            template <class Arg>
-            GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> offset() const {
+            template <class Index, class Arg = GT_META_CALL(meta::at, (typename LocalDomain::esf_args, Index))>
+            GT_FUNCTION enable_if_t<Arg::is_temporary> operator()(Index) const {
                 using storage_info_t = typename Arg::data_store_t::storage_info_t;
                 const int_t padded_total_length =
                     boost::fusion::at_key<storage_info_t>(m_local_domain.m_local_padded_total_lengths);
 
                 const int_t thread = omp_get_thread_num();
                 const int_t total_threads = omp_get_max_threads();
-                return padded_total_length * thread / total_threads;
+                m_data_ptr_offsets[Index::value] = padded_total_length * thread / total_threads;
             }
 
-            template <class Arg>
-            GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> offset() const {
-                return 0;
+            template <class Index, class Arg = GT_META_CALL(meta::at, (typename LocalDomain::esf_args, Index))>
+            GT_FUNCTION enable_if_t<!Arg::is_temporary> operator()(Index) const {
+                m_data_ptr_offsets[Index::value] = 0;
             }
         };
 
@@ -218,7 +210,7 @@ namespace gridtools {
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain),
               m_strides(local_domain.m_local_strides), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0),
               m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+            gridtools::for_each<GT_META_CALL(meta::make_indices_for, esf_args_t)>(
                 _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }
 
