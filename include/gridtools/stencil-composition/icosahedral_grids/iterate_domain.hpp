@@ -39,9 +39,9 @@
 
 #include "../../common/array.hpp"
 #include "../../common/explode_array.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/generic_metafunctions/variadic_typedef.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../storage/data_field_view.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"

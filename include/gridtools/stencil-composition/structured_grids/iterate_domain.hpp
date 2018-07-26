@@ -36,16 +36,14 @@
 
 #pragma once
 
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/gt_assert.hpp"
-
-#include "../../storage/data_field_view.hpp"
-
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../pos3.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
-#include <boost/fusion/include/for_each.hpp>
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
