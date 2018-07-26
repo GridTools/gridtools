@@ -72,26 +72,22 @@ namespace gridtools {
             typedef typename super::template accessor_return_type<Accessor>::type type;
         };
 
-        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
-      private:
-        // TODO there are two instantiations of these type.. Fix this
-        typedef shared_iterate_domain<data_ptr_cached_t,
-            strides_cached_t,
+        typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
 
+      private:
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
         typedef typename super::reduction_type_t reduction_type_t;
 
-        using super::get_data_pointer;
         using super::get_value;
         using super::increment_i;
         using super::increment_j;
@@ -129,18 +125,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
-
-        GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
-
-        GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
 
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides_impl() const {
@@ -237,7 +221,7 @@ namespace gridtools {
             get_cache_value_impl(Accessor const &accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
             return super::template get_value<Accessor, void * RESTRICT>(
-                accessor_, super::template get_data_pointer<Accessor>(accessor_));
+                accessor_, aux::get_data_pointer<Accessor>(super::local_domain, accessor_));
         }
 
         /** @brief return a value that was cached
