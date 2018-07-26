@@ -59,19 +59,6 @@
 namespace gridtools {
 
     namespace _impl {
-
-        template <typename Arg, typename StorageInfo>
-        GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset(StorageInfo const *sinfo) {
-            int_t thread = omp_get_thread_num();
-            int_t total_threads = omp_get_max_threads();
-            return sinfo->padded_total_length() * thread / total_threads;
-        }
-
-        template <typename Arg, typename StorageInfo>
-        GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
-            return 0;
-        }
-
         /**
          * @brief compute thread offsets for temporaries
          *
@@ -83,16 +70,28 @@ namespace gridtools {
             LocalDomain const &m_local_domain;
             DataPtrsOffset &m_data_ptr_offsets;
 
-            template <class ArgDataPtrPair, class Arg = typename ArgDataPtrPair::first_type>
-            void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
-                using data_store_t = typename Arg::data_store_t;
-                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
-                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
-                    typename Arg::data_store_t::storage_info_t const *>::value;
-                const int_t offset =
-                    _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(m_local_domain.m_local_storage_info_ptrs));
+            template <class ArgDataPtrPair>
+            GT_FUNCTION void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
+                using arg = typename ArgDataPtrPair::first_type;
+                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, arg>::value;
+                m_data_ptr_offsets[pos_in_args] = offset<arg>();
+            }
 
-                m_data_ptr_offsets[pos_in_args] = offset; // non-zero only for tmps.
+          private:
+            template <class Arg>
+            GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> offset() const {
+                using storage_info_t = typename Arg::data_store_t::storage_info_t;
+                const int_t padded_total_length =
+                    boost::fusion::at_key<storage_info_t>(m_local_domain.m_local_padded_total_lengths);
+
+                const int_t thread = omp_get_thread_num();
+                const int_t total_threads = omp_get_max_threads();
+                return padded_total_length * thread / total_threads;
+            }
+
+            template <class Arg>
+            GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> offset() const {
+                return 0;
             }
         };
 
@@ -158,11 +157,10 @@ namespace gridtools {
             using type = typename ::gridtools::accessor_return_type_impl<Accessor, IterateDomainArguments>::type;
         };
 
-        using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
         using data_ptrs_map_t = typename local_domain_t::data_ptr_fusion_map;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t N_META_STORAGES = boost::mpl::size<typename local_domain_t::storage_info_typelist>::value;
         // the number of storages  used in the current functor
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
@@ -190,11 +188,7 @@ namespace gridtools {
 
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
-                using storage_info_ptrref_t =
-                    typename boost::fusion::result_of::at<typename local_domain_t::storage_info_ptr_fusion_list,
-                        StorageInfoIndex>::type;
-                using storage_info_t = typename std::remove_const<typename std::remove_pointer<
-                    typename std::remove_reference<storage_info_ptrref_t>::type>::type>::type;
+                using storage_info_t = meta::at<typename local_domain::storage_info_typelist, StorageInfoIndex>;
                 m_index_array[StorageInfoIndex::value] =
                     m_it_domain.compute_offset<storage_info_t>(accessor_base<storage_info_t::ndims>());
             }

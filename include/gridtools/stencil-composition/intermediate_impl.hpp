@@ -227,9 +227,6 @@ namespace gridtools {
                 namespace f = boost::fusion;
                 // here we set data pointers
                 advanced::copy_raw_pointers(view, f::at_key<Arg>(local_domain.m_local_data_ptrs));
-                // here we set meta data pointers
-                auto const *storage_info_ptr = advanced::storage_info_raw_ptr(view);
-                *f::find<decltype(storage_info_ptr)>(local_domain.m_local_storage_info_ptrs) = storage_info_ptr;
 
                 // here we set the strides
                 using storage_info_t = remove_const_t<remove_reference_t<decltype(storage_info)>>;

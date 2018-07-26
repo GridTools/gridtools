@@ -118,7 +118,6 @@ namespace gridtools {
         using storage_info_to_size_map_t = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_size_elem, storage_info_typelist));
 
-        using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
         using strides_fusion_map = typename boost::fusion::result_of::as_map<storage_info_to_strides_map_t>::type;
         using size_fusion_map = typename boost::fusion::result_of::as_map<storage_info_to_size_map_t>::type;
@@ -129,7 +128,6 @@ namespace gridtools {
         data_ptr_fusion_map m_local_data_ptrs;
         strides_fusion_map m_local_strides;
         size_fusion_map m_local_padded_total_lengths;
-        storage_info_ptr_fusion_list m_local_storage_info_ptrs;
     };
 
     template <class>
