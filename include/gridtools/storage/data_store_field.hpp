@@ -269,6 +269,10 @@ namespace gridtools {
                 e.reactivate_host_write_views();
         }
 
+        /**
+         * @brief retrieve the underlying storage_info instance
+         * @return storage_info instance
+         */
         storage_info_t const &info() const { return m_field.front().info(); }
     };
 

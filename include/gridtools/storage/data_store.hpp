@@ -324,6 +324,10 @@ namespace gridtools {
             return m_shared_storage_info->length();
         }
 
+        /**
+         * @brief retrieve the underlying storage_info instance
+         * @return storage_info instance
+         */
         storage_info_t const &info() const { return *m_shared_storage_info; }
 
         /**
