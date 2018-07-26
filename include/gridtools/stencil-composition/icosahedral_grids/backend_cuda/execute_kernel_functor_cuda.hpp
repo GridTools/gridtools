@@ -81,12 +81,6 @@ namespace gridtools {
 
             typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
-            typedef typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
-            typedef shared_iterate_domain<data_ptr_cached_t,
-                strides_t,
-                max_extent_t,
-                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t>
-                shared_iterate_domain_t;
 
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
@@ -98,14 +92,13 @@ namespace gridtools {
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
 
-            __shared__ shared_iterate_domain_t shared_iterate_domain;
+            __shared__ typename iterate_domain_t::shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the iterate domain and assignment of pointers and strides
             iterate_domain_t it_domain(l_domain, grid.grid_topology(), block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_storage_pointers<backend_traits_t>();
             it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
             __syncthreads();
