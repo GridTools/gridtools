@@ -138,9 +138,12 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+// some compilers have the problem that template alias instantiations have exponential complexity
 #if !defined(GT_BROKEN_TEMPLATE_ALIASES)
 #if defined(__CUDACC_VER_MAJOR__)
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
+// CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
+// instantiation) see https://github.com/eth-cscs/gridtools/issues/976
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2))
 #elif defined(__INTEL_COMPILER)
 #define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
 #elif defined(__clang__)
@@ -153,7 +156,7 @@ namespace gridtools {
 #endif
 
 // check boost::optional workaround for CUDA9.2
-#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
+#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)
 #if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
      not defined(BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE))
 #error \
@@ -204,25 +207,6 @@ namespace gridtools {
             };
         };
 
-        enum isparallel { parallel_impl, serial };
-        enum execution { forward, backward, parallel };
-
-        template <enumtype::isparallel T, enumtype::execution U = forward>
-        struct execute_impl {
-            static const enumtype::execution iteration = U;
-            static const enumtype::isparallel execution = T;
-        };
-
-        template <enumtype::execution U>
-        struct execute {
-            typedef execute_impl<serial, U> type;
-        };
-
-        template <>
-        struct execute<parallel> {
-            typedef execute_impl<parallel_impl, forward> type;
-        };
-
         /*
          * accessor I/O policy
          */
@@ -242,12 +226,6 @@ namespace gridtools {
 #else
 #define GRIDBACKEND gridtools::enumtype::grid_icosahedral
 #endif
-
-    template <typename T>
-    struct is_execution_engine : boost::mpl::false_ {};
-
-    template <enumtype::execution U>
-    struct is_execution_engine<enumtype::execute<U>> : boost::mpl::true_ {};
 
 #define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
