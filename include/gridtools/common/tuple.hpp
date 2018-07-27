@@ -141,10 +141,6 @@ namespace gridtools {
         return tuple<Ts...>(std::forward<Ts>(ts)...);
     }
 
-    template <class... Ts>
-    GT_FUNCTION void swap(tuple<Ts...> &t1, tuple<Ts...> &t2) {
-        t1.swap(t2);
-    }
 
     /** @} */
     /** @} */
