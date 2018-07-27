@@ -114,12 +114,8 @@ namespace gridtools {
     template <cache_type cacheType>
     struct cache_is_type {
         template <typename Cache>
-        struct apply {
+        struct apply : static_bool<Cache::cacheType == cacheType> {
             GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
-            typedef
-                typename boost::is_same<enumtype::enum_type<cache_type, cacheType>, typename Cache::cache_type_t>::type
-                    type;
-            BOOST_STATIC_CONSTANT(bool, value = (type::value));
         };
     };
 

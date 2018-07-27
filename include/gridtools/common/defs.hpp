@@ -200,21 +200,6 @@ namespace gridtools {
            @{
          */
 
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
-        template <typename EnumType, EnumType T>
-        struct enum_type {
-            static const EnumType value = T;
-        };
-
-        template <typename Value>
-        struct is_enum {
-            template <typename T>
-            struct of_type {
-                typedef typename boost::is_same<Value, enum_type<T, Value::value>>::type type;
-                BOOST_STATIC_CONSTANT(bool, value = (type::value));
-            };
-        };
-
         /*
          * accessor I/O policy
          */
@@ -234,8 +219,6 @@ namespace gridtools {
 #else
 #define GRIDBACKEND gridtools::grid_type::icosahedral
 #endif
-
-#define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 

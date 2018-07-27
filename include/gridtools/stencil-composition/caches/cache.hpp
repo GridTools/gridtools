@@ -76,7 +76,7 @@ namespace gridtools {
          * @tparam CacheIOPolicy IO policy for cache
          * @tparam Interval vertical interval of validity of the cache
          */
-        template <cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval>
+        template <cache_type CacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval>
         struct cache_impl {
             GRIDTOOLS_STATIC_ASSERT((is_arg<Arg>::value), "argument passed to ij cache is not of the right arg<> type");
             typedef Arg arg_t;
@@ -86,7 +86,7 @@ namespace gridtools {
                 "args in irregular grids require a location type");
 #endif
             typedef Interval interval_t;
-            typedef enumtype::enum_type<cache_type, cacheType> cache_type_t;
+            static constexpr cache_type cacheType = CacheType;
             static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
 

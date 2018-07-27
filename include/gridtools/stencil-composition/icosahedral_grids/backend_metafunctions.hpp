@@ -48,6 +48,6 @@ namespace gridtools {
     struct backend_id;
 
     template <class BackendId, enumtype::strategy StrategyType>
-    struct backend_id<backend<BackendId, StrategyType>> : enumtype::enum_type<enumtype::platform, BackendId> {};
+    struct backend_id<backend<BackendId, StrategyType>> {};
 
 } // namespace gridtools
