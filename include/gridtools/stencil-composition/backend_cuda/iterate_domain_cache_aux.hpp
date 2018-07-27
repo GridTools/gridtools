@@ -157,15 +157,23 @@ namespace gridtools {
                 // shortcuts for fill and flush io policy
                 constexpr bool fill = CacheIOPolicy == cache_io_policy::fill;
                 constexpr bool flush = !fill;
+                // true iff cache operations are only performed at the begin and endpoint
+                constexpr bool endpoint_only = (kcache_t::ccacheIOPolicy == cache_io_policy::bpfill) ||
+                                               (kcache_t::ccacheIOPolicy == cache_io_policy::epflush);
 
                 // `tail` is true if we have to fill or flush the tail (kminus side) of the cache, false if we have to
                 // fill or flush the head (kplus side) of the cache.
                 constexpr bool tail = (backward && fill) || (forward && flush);
 
+                // with fill or flush caches, we need to load/store one element less at the begin and endpoints as the
+                // non-endpoint fill or flush on the same k-level will handle this already
+                constexpr int_t kminus_offset = (tail && !endpoint_only && AtBeginOrEndPoint) ? 1 : 0;
+                constexpr int_t kplus_offset = (!tail && !endpoint_only && AtBeginOrEndPoint) ? -1 : 0;
+
                 // lowest index in cache storage
-                constexpr int_t kminus = kcache_storage_t::kminus_t::value;
+                constexpr int_t kminus = kcache_storage_t::kminus_t::value + kminus_offset;
                 // highest index in cache storage
-                constexpr int_t kplus = kcache_storage_t::kplus_t::value;
+                constexpr int_t kplus = kcache_storage_t::kplus_t::value + kplus_offset;
 
                 // endpoint flushes happen after the last slide, so we need to use add an additional offset in this case
                 constexpr int_t endpoint_flush_offset = fill ? 0 : forward ? -1 : 1;
