@@ -91,6 +91,7 @@ namespace gridtools {
 
         template <size_t... Is, class... Ts>
         struct tuple_impl<gt_index_sequence<Is...>, Ts...> : tuple_item<Is, Ts>... {
+            GT_FUNCTION constexpr explicit tuple_impl(Ts const &... ts) : tuple_item<Is, Ts>(ts)... {}
             GT_FUNCTION constexpr explicit tuple_impl(Ts &&... ts) : tuple_item<Is, Ts>(std::forward<Ts>(ts))... {}
 
             GT_FUNCTION constexpr tuple_impl() : tuple_item<Is, Ts>()... {}
@@ -115,6 +116,7 @@ namespace gridtools {
         friend constexpr typename tuple_element<I, tuple<TTs...>>::type &get(tuple<TTs...> &);
 
       public:
+        GT_FUNCTION constexpr explicit tuple(Ts const &... ts) : m_impl(ts...) {}
         GT_FUNCTION constexpr explicit tuple(Ts &&... ts) : m_impl(std::forward<Ts>(ts)...) {}
 
         GT_FUNCTION constexpr tuple() : m_impl() {}
