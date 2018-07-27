@@ -265,9 +265,8 @@ namespace gridtools {
 
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-            const int_t pointer_offset =
-                m_index[storage_info_index] +
-                compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
+            const int_t pointer_offset = m_index[storage_info_index] +
+                                         compute_offset<storage_info_t>(get<storage_info_index>(strides()), accessor);
 
             assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
@@ -324,7 +323,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), position_offset);
+                compute_offset<storage_info_t>(get<storage_info_index>(strides()), position_offset);
 
             return get_raw_value(
                 accessor_t(), boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0], pointer_offset);

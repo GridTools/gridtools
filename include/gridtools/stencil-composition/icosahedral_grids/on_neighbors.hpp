@@ -177,9 +177,7 @@ namespace gridtools {
         reduction_function reduction() const { return m_reduction; }
 
         template <ushort_t idx>
-        GT_FUNCTION constexpr typename maps_t::template get_elem<idx>::type map() const {
-            return m_maps.template get<idx>();
-        }
+        GT_FUNCTION constexpr auto map() const GT_AUTO_RETURN(get<idx>(m_maps));
 
         GT_FUNCTION constexpr maps_t maps() const { return m_maps; }
 
