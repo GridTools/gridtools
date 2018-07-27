@@ -153,7 +153,7 @@ namespace gridtools {
         static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
       public:
-        typedef typename local_domain_t::strides_fusion_map strides_t;
+        typedef typename local_domain_t::strides_tuple strides_t;
         typedef array<int_t, N_META_STORAGES> array_index_t;
         // *************** end of type definitions **************
 
@@ -386,7 +386,7 @@ namespace gridtools {
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
         const int_t pointer_offset =
             m_index[storage_info_index_t::value] +
-            compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
+            compute_offset<storage_info_t>(get<storage_info_index_t::value>(strides()), accessor);
 
         assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 

@@ -84,7 +84,7 @@ namespace gridtools {
         // the number of storages  used in the current functor
         static constexpr auto N_STORAGES = meta::length<data_ptrs_map_t>::value;
 
-        typedef typename local_domain_t::strides_fusion_map strides_t;
+        typedef typename local_domain_t::strides_tuple strides_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
 

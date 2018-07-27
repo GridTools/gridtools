@@ -79,6 +79,7 @@ namespace gridtools {
         struct get_index : meta::st_position<typename LocalDomain::storage_info_list, StorageInfo> {};
 
         template <uint_t Coordinate,
+            class LocalDomain,
             class StorageInfo,
             class Strides,
             int Cur = StorageInfo::layout_t::template at_unsafe<Coordinate>(),
@@ -88,6 +89,7 @@ namespace gridtools {
         }
 
         template <uint_t Coordinate,
+            class LocalDomain,
             class StorageInfo,
             class Strides,
             int Cur = StorageInfo::layout_t::template at_unsafe<Coordinate>(),
@@ -98,13 +100,16 @@ namespace gridtools {
         }
 
         template <uint_t Coordinate,
+            class LocalDomain,
             class StorageInfo,
             class Strides,
             int Cur = StorageInfo::layout_t::template at_unsafe<Coordinate>(),
             int Max = StorageInfo::layout_t::max(),
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
-            return boost::fusion::at_key<StorageInfo>(strides)[Cur];
+            using storage_info_index_t =
+                GT_META_CALL(meta::st_position, (typename LocalDomain::storage_info_list, StorageInfo));
+            return get<storage_info_index_t::value>(strides)[Cur];
         }
     } // namespace _impl
 
@@ -133,7 +138,8 @@ namespace gridtools {
 
         template <typename Index, typename StorageInfo = GT_META_CALL(meta::at, (storage_info_list, Index))>
         GT_FUNCTION enable_if_t<!_impl::is_dummy_coordinate<Coordinate, StorageInfo>::value> operator()(Index) const {
-            m_index_array[Index::value] += _impl::get_stride<Coordinate, StorageInfo>(m_strides) * m_increment;
+            m_index_array[Index::value] +=
+                _impl::get_stride<Coordinate, LocalDomain, StorageInfo>(m_strides) * m_increment;
         }
     };
 
@@ -207,9 +213,9 @@ namespace gridtools {
             static constexpr auto is_tmp =
                 meta::st_contains<typename LocalDomain::tmp_storage_info_list, storage_info_t>::value;
             m_index_array[Index::value] = get_index_offset_f<storage_info_t, max_extent_t, is_tmp>{}(backend,
-                make_pos3(_impl::get_stride<coord_i<Backend>::value, storage_info_t>(m_strides),
-                    _impl::get_stride<coord_j<Backend>::value, storage_info_t>(m_strides),
-                    _impl::get_stride<coord_k<Backend>::value, storage_info_t>(m_strides)),
+                make_pos3(_impl::get_stride<coord_i<Backend>::value, LocalDomain, storage_info_t>(m_strides),
+                    _impl::get_stride<coord_j<Backend>::value, LocalDomain, storage_info_t>(m_strides),
+                    _impl::get_stride<coord_k<Backend>::value, LocalDomain, storage_info_t>(m_strides)),
                 m_begin,
                 m_block_no,
                 m_pos_in_block);
@@ -224,7 +230,9 @@ namespace gridtools {
      */
     template <typename StorageInfo, typename LocalDomain>
     GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
-        return offset >= 0 && offset < boost::fusion::at_key<StorageInfo>(local_domain.m_local_padded_total_lengths);
+        using storage_info_index_t =
+            GT_META_CALL(meta::st_position, (typename LocalDomain::storage_info_list, StorageInfo));
+        return offset >= 0 && offset < get<storage_info_index_t::value>(local_domain.m_local_padded_total_lengths);
     }
 
     /**

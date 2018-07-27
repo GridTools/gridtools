@@ -205,7 +205,9 @@ namespace gridtools {
             template <typename Coordinate>
             GT_FUNCTION void operator()(Coordinate) const {
                 constexpr auto pos = StorageInfo::layout_t::template find<Coordinate::value>();
-                auto &local_strides = boost::fusion::at_key<StorageInfo>(m_local_domain.m_local_strides);
+                using storage_info_index_t =
+                    GT_META_CALL(meta::st_position, (typename LocalDomain::storage_info_list, StorageInfo));
+                auto &local_strides = get<storage_info_index_t::value>(m_local_domain.m_local_strides);
                 local_strides[Coordinate::value] = m_storage_info.template stride<pos>();
             }
 
@@ -230,13 +232,15 @@ namespace gridtools {
 
                 // here we set the strides
                 using storage_info_t = remove_const_t<remove_reference_t<decltype(storage_info)>>;
+                using storage_info_index_t =
+                    GT_META_CALL(meta::st_position, (typename LocalDomain::storage_info_list, storage_info_t));
                 using layout_t = typename storage_info_t::layout_t;
                 constexpr auto n_strides = layout_t::unmasked_length == 0 ? 0 : layout_t::unmasked_length - 1;
                 using range = GT_META_CALL(meta::make_indices_c, n_strides);
                 gridtools::for_each<range>(copy_strides_f<storage_info_t, LocalDomain>{storage_info, local_domain});
 
                 // here we set the storage size
-                f::at_key<storage_info_t>(local_domain.m_local_padded_total_lengths) =
+                get<storage_info_index_t::value>(local_domain.m_local_padded_total_lengths) =
                     storage_info.padded_total_length();
             }
             // do nothing if arg is not in this local domain

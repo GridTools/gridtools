@@ -71,8 +71,10 @@ namespace gridtools {
             template <class Index, class Arg = GT_META_CALL(meta::at, (typename LocalDomain::esf_args, Index))>
             GT_FUNCTION enable_if_t<Arg::is_temporary> operator()(Index) const {
                 using storage_info_t = typename Arg::data_store_t::storage_info_t;
+                using storage_info_index_t =
+                    GT_META_CALL(meta::st_position, (typename LocalDomain::storage_info_list, storage_info_t));
                 const auto padded_total_length =
-                    boost::fusion::at_key<storage_info_t>(m_local_domain.m_local_padded_total_lengths);
+                    get<storage_info_index_t::value>(m_local_domain.m_local_padded_total_lengths);
 
                 const int_t thread = omp_get_thread_num();
                 const int_t total_threads = omp_get_max_threads();
@@ -154,7 +156,7 @@ namespace gridtools {
         // the number of storages  used in the current functor
         static constexpr auto N_STORAGES = meta::length<data_ptrs_map_t>::value;
 
-        using strides_t = typename local_domain_t::strides_fusion_map;
+        using strides_t = typename local_domain_t::strides_tuple;
         using array_index_t = array<int_t, N_META_STORAGES>;
         // *************** end of type definitions **************
 
@@ -307,7 +309,9 @@ namespace gridtools {
          */
         template <typename StorageInfo, int_t Coordinate>
         GT_FUNCTION int_t storage_stride() const {
-            auto const &strides = boost::fusion::at_key<StorageInfo>(m_strides);
+            using storage_info_index_t =
+                GT_META_CALL(meta::st_position, (typename local_domain_t::storage_info_list, StorageInfo));
+            auto const &strides = get<storage_info_index_t::value>(m_strides);
             return stride<StorageInfo, Coordinate>(strides);
         }
 

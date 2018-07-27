@@ -43,6 +43,7 @@
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
+#include "../common/tuple.hpp"
 
 #include "./arg.hpp"
 #include "./extent.hpp"
@@ -69,13 +70,11 @@ namespace gridtools {
             template <class StorageInfo>
             GT_META_DEFINE_ALIAS(get_strides_elem,
                 meta::id,
-                (boost::fusion::pair<StorageInfo,
-                    array<uint_t,
-                        StorageInfo::layout_t::unmasked_length == 0 ? 0
-                                                                    : StorageInfo::layout_t::unmasked_length - 1>>));
+                (array < uint_t,
+                    StorageInfo::layout_t::unmasked_length == 0 ? 0 : StorageInfo::layout_t::unmasked_length - 1 >));
 
             template <class StorageInfo>
-            GT_META_DEFINE_ALIAS(get_size_elem, meta::id, (boost::fusion::pair<StorageInfo, uint_t>));
+            GT_META_DEFINE_ALIAS(get_size_elem, meta::id, uint_t);
 
         } // namespace local_domain_details
     }     // namespace _impl
@@ -107,21 +106,22 @@ namespace gridtools {
 
         using arg_to_data_ptr_map_t = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_data_ptrs_elem, EsfArgs));
-        using storage_info_to_strides_map_t = GT_META_CALL(
+        using strides_list = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_strides_elem, storage_info_list));
-        using storage_info_to_size_map_t = GT_META_CALL(
+        using size_list = GT_META_CALL(
             meta::transform, (_impl::local_domain_details::get_size_elem, storage_info_list));
 
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
-        using strides_fusion_map = typename boost::fusion::result_of::as_map<storage_info_to_strides_map_t>::type;
-        using size_fusion_map = typename boost::fusion::result_of::as_map<storage_info_to_size_map_t>::type;
+
+        using strides_tuple = GT_META_CALL(meta::rename, (tuple, strides_list));
+        using size_tuple = GT_META_CALL(meta::rename, (tuple, size_list));
 
         template <class N>
         struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
 
         data_ptr_fusion_map m_local_data_ptrs;
-        strides_fusion_map m_local_strides;
-        size_fusion_map m_local_padded_total_lengths;
+        strides_tuple m_local_strides;
+        size_tuple m_local_padded_total_lengths;
     };
 
     template <class>
