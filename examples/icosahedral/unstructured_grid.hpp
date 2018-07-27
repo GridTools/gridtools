@@ -72,7 +72,7 @@ namespace gridtools {
     };
 
     class unstructured_grid {
-        using backend_t = backend<enumtype::Host, enumtype::icosahedral, enumtype::Naive>;
+        using backend_t = backend<platform::x86, grid_type::icosahedral, strategy::naive>;
         using grid_topology_t = icosahedral_topology<backend_t>;
 
         static const int ncolors = 2;

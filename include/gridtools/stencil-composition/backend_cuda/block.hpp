@@ -40,12 +40,12 @@
 #include "../backend_ids.hpp"
 
 namespace gridtools {
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<platform::cuda, GridType, strategy::block> const &) {
         return GT_DEFAULT_TILE_I;
     }
-    template <enumtype::grid_type GridType>
-    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<enumtype::Cuda, GridType, enumtype::Block> const &) {
+    template <class GridType>
+    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<platform::cuda, GridType, strategy::block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 } // namespace gridtools

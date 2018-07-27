@@ -60,13 +60,13 @@ namespace {
 
 class call_stress_types : public testing::Test {
   protected:
-    using storage_info_t = gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3>;
+    using storage_info_t = gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
     using data_store_in1_t =
-        gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<special_type<in1_tag>, storage_info_t>;
+        gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<special_type<in1_tag>, storage_info_t>;
     using data_store_in2_t =
-        gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<special_type<in2_tag>, storage_info_t>;
+        gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<special_type<in2_tag>, storage_info_t>;
     using data_store_out_t =
-        gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<special_type<out_tag>, storage_info_t>;
+        gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<special_type<out_tag>, storage_info_t>;
 
     gridtools::grid<gridtools::axis<1>::axis_interval_t> grid;
 

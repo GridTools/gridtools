@@ -70,10 +70,10 @@ namespace data_store_field_test {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_ty; // storage info type
-        typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_ty>
+        typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_ty; // storage info type
+        typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_ty>
             data_store_t; // data store type
-        typedef storage_traits<backend_t::s_backend_id>::data_store_field_t<float_type, storage_info_ty, 1, 2, 3>
+        typedef storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, storage_info_ty, 1, 2, 3>
             data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
         storage_info_ty si(d1, d2, d3);

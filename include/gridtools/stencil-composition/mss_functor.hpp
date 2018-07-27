@@ -182,7 +182,7 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type functors_map_t;
 
-            typedef backend_traits_from_id<BackendIds::s_backend_id> backend_traits_t;
+            typedef backend_traits_from_id<typename BackendIds::backend_id_t> backend_traits_t;
 
             // compute the struct with all the type arguments for the run functor
 
@@ -264,8 +264,8 @@ namespace gridtools {
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss
-            backend_traits_from_id<BackendIds::s_backend_id>::template mss_loop<run_functor_args_t>::template run(
-                local_domain, m_grid, m_reduction_data, m_execution_info);
+            backend_traits_from_id<typename BackendIds::backend_id_t>::template mss_loop<
+                run_functor_args_t>::template run(local_domain, m_grid, m_reduction_data, m_execution_info);
         }
     };
 } // namespace gridtools

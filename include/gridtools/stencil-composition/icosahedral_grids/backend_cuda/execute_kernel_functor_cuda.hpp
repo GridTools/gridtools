@@ -79,7 +79,7 @@ namespace gridtools {
 
             typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
-            typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
+            typedef backend_traits_from_id<platform::cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);

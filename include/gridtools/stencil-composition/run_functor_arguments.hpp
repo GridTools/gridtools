@@ -153,7 +153,7 @@ namespace gridtools {
         typedef IsIndependentSeq async_esf_map_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
-        static const enumtype::strategy s_strategy_id = backend_ids_t::s_strategy_id;
+        using strategy_type = typename backend_ids_t::strategy_id_t;
         static const bool s_is_reduction = IsReduction::value;
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
