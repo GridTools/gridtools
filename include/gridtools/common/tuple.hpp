@@ -77,8 +77,9 @@ namespace gridtools {
             GT_FUNCTION constexpr tuple_entry() : m_value() {}
 
             GT_FUNCTION int swap(tuple_entry &other) {
-                using std::swap;
-                swap(m_value, other.m_value);
+                T tmp = m_value;
+                m_value = static_cast<T &&>(other.m_value);
+                other.m_value = static_cast<T &&>(tmp);
                 return 0;
             }
         };
@@ -94,8 +95,10 @@ namespace gridtools {
 
             GT_FUNCTION void swap(tuple_impl &other) { all(tuple_entry<Is, Ts>::swap(other)...); }
 
-            static void all(...) {}
+            template <class... Args>
+            GT_FUNCTION static void all(Args...) {}
         };
+
     } // namespace impl_
 
     template <class... Ts>

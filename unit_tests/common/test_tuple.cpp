@@ -76,22 +76,28 @@ TEST(tuple, constexpr_test) {
 }
 
 TEST(tuple, swap_test) {
-    auto t1 = gridtools::make_tuple(0.0, 1, std::string("2"));
-    auto t2 = gridtools::make_tuple(3.0, 4, std::string("5"));
+    auto t1 = gridtools::make_tuple(0.0, 1, 2.0f);
+    auto t2 = gridtools::make_tuple(3.0, 4, 5.0f);
 
     ASSERT_EQ(get<0>(t1), 0.0);
     ASSERT_EQ(get<1>(t1), 1);
-    ASSERT_EQ(get<2>(t1), std::string("2"));
+    ASSERT_EQ(get<2>(t1), 2.0f);
     ASSERT_EQ(get<0>(t2), 3.0);
     ASSERT_EQ(get<1>(t2), 4);
-    ASSERT_EQ(get<2>(t2), std::string("5"));
+    ASSERT_EQ(get<2>(t2), 5.0f);
 
-    swap(t1, t2);
+    t1.swap(t2);
 
-    ASSERT_EQ(get<0>(t1), 3.0);
-    ASSERT_EQ(get<1>(t1), 4);
-    ASSERT_EQ(get<2>(t1), std::string("5"));
-    ASSERT_EQ(get<0>(t2), 0.0);
-    ASSERT_EQ(get<1>(t2), 1);
-    ASSERT_EQ(get<2>(t2), std::string("2"));
+    EXPECT_EQ(get<0>(t1), 3.0);
+    EXPECT_EQ(get<1>(t1), 4);
+    EXPECT_EQ(get<2>(t1), 5.0f);
+    EXPECT_EQ(get<0>(t2), 0.0);
+    EXPECT_EQ(get<1>(t2), 1);
+    EXPECT_EQ(get<2>(t2), 2.0f);
+
+    get<0>(t1) = 0.0;
+    get<1>(t1) = 1;
+    get<2>(t1) = 2.0f;
+
+    EXPECT_EQ(t1, t2);
 }
