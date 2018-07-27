@@ -71,7 +71,7 @@ namespace gridtools {
             template <class Index, class Arg = GT_META_CALL(meta::at, (typename LocalDomain::esf_args, Index))>
             GT_FUNCTION enable_if_t<Arg::is_temporary> operator()(Index) const {
                 using storage_info_t = typename Arg::data_store_t::storage_info_t;
-                const int_t padded_total_length =
+                const auto padded_total_length =
                     boost::fusion::at_key<storage_info_t>(m_local_domain.m_local_padded_total_lengths);
 
                 const int_t thread = omp_get_thread_num();
