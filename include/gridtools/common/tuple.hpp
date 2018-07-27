@@ -66,7 +66,9 @@ namespace gridtools {
     struct tuple_element : std::tuple_element<I, T> {};
 
     template <size_t I, class... Ts>
-    struct tuple_element<I, tuple<Ts...>> : meta::at_c<tuple<Ts...>, I> {};
+    struct tuple_element<I, tuple<Ts...>> {
+        using type = GT_META_CALL(meta::at_c, (tuple<Ts...>, I));
+    };
 
     namespace impl_ {
         template <size_t I, class T>
