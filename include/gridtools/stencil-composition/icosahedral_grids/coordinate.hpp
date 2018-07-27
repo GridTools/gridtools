@@ -45,20 +45,17 @@ namespace gridtools {
     struct coord_i;
 
     template <class BackendId, class StrategyId>
-    struct coord_i<backend_ids<BackendId, enumtype::grid_icosahedral, StrategyId>> : std::integral_constant<size_t, 0> {
-    };
+    struct coord_i<backend_ids<BackendId, grid_type::icosahedral, StrategyId>> : std::integral_constant<size_t, 0> {};
 
     template <class>
     struct coord_j;
 
     template <class BackendId, class StrategyId>
-    struct coord_j<backend_ids<BackendId, enumtype::grid_icosahedral, StrategyId>> : std::integral_constant<size_t, 2> {
-    };
+    struct coord_j<backend_ids<BackendId, grid_type::icosahedral, StrategyId>> : std::integral_constant<size_t, 2> {};
 
     template <class>
     struct coord_k;
 
     template <class BackendId, class StrategyId>
-    struct coord_k<backend_ids<BackendId, enumtype::grid_icosahedral, StrategyId>> : std::integral_constant<size_t, 3> {
-    };
+    struct coord_k<backend_ids<BackendId, grid_type::icosahedral, StrategyId>> : std::integral_constant<size_t, 3> {};
 } // namespace gridtools

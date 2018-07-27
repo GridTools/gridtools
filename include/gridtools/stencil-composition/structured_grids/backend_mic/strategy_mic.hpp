@@ -82,10 +82,10 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     * @brief Specialization for the \ref gridtools::enumtype::strategy_block strategy.
+     * @brief Specialization for the \ref gridtools::strategy::block strategy.
      */
     template <>
-    struct strategy_from_id_mic<enumtype::strategy_block> {
+    struct strategy_from_id_mic<strategy::block> {
         /**
          * @brief Loops over all blocks and executes sequentially all MSS functors for each block.
          * Implementation for stencils with serial execution along k-axis.

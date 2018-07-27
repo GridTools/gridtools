@@ -59,7 +59,7 @@
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the mic backend*/
     template <>
-    struct backend_traits_from_id<enumtype::platform_mic> {
+    struct backend_traits_from_id<platform::mc> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
@@ -101,7 +101,7 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
                 strgrid::execute_kernel_functor_mic<RunFunctorArgs>(local_domain, grid, reduction_data)(execution_info);
 #else
-                strategy_from_id_mic<enumtype::strategy_block>::template mss_loop<RunFunctorArgs>::template run(
+                strategy_from_id_mic<strategy::block>::template mss_loop<RunFunctorArgs>::template run(
                     local_domain, grid, reduction_data, execution_info);
 #endif
             }

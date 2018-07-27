@@ -58,10 +58,10 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref enumtype::strategy_naive strategy
+       @brief specialization for the \ref strategy::naive strategy
     */
     template <>
-    struct strategy_from_id_host<enumtype::strategy_naive> {
+    struct strategy_from_id_host<strategy::naive> {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -126,11 +126,11 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref enumtype::strategy_block strategy
+       @brief specialization for the \ref strategy::block strategy
        The loops over i and j are split according to the values of BI and BJ
     */
     template <>
-    struct strategy_from_id_host<enumtype::strategy_block> {
+    struct strategy_from_id_host<strategy::block> {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS

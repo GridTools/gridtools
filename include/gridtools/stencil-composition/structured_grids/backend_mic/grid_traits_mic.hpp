@@ -42,9 +42,7 @@
 
 namespace gridtools {
     template <class Args>
-    struct kernel_functor_executor<
-        backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block>,
-        Args> {
+    struct kernel_functor_executor<backend_ids<platform::mc, grid_type::structured, strategy::block>, Args> {
         using type = strgrid::execute_kernel_functor_mic<Args>;
     };
 } // namespace gridtools

@@ -46,13 +46,12 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, enumtype::platform_host>::value,
+using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, platform::x86>::value,
     layout_map<3, 4, 5, 0, 1, 2>,
     layout_map<5, 4, 3, 2, 1, 0>>::type;
-using layout_map_quad_t =
-    typename boost::conditional<std::is_same<backend_t::backend_id_t, enumtype::platform_host>::value,
-        layout_map<1, 2, 3, 0>,
-        layout_map<3, 2, 1, 0>>::type;
+using layout_map_quad_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, platform::x86>::value,
+    layout_map<1, 2, 3, 0>,
+    layout_map<3, 2, 1, 0>>::type;
 
 template <unsigned Id, typename Layout>
 using special_storage_info_t = typename backend_t::storage_traits_t::

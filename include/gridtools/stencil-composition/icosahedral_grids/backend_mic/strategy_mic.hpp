@@ -59,11 +59,11 @@ namespace gridtools {
     };
 
     /**
-       @brief specialization for the \ref gridtools::enumtype::strategy_block strategy
+       @brief specialization for the \ref gridtools::strategy::block strategy
        The loops over i and j are split according to the values of BI and BJ
     */
     template <>
-    struct strategy_from_id_mic<enumtype::strategy_block> {
+    struct strategy_from_id_mic<strategy::block> {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS

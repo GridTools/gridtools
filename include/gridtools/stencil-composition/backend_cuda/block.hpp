@@ -41,13 +41,11 @@
 
 namespace gridtools {
     template <class GridType>
-    GT_FUNCTION constexpr uint_t block_i_size(
-        backend_ids<enumtype::platform_cuda, GridType, enumtype::strategy_block> const &) {
+    GT_FUNCTION constexpr uint_t block_i_size(backend_ids<platform::cuda, GridType, strategy::block> const &) {
         return GT_DEFAULT_TILE_I;
     }
     template <class GridType>
-    GT_FUNCTION constexpr uint_t block_j_size(
-        backend_ids<enumtype::platform_cuda, GridType, enumtype::strategy_block> const &) {
+    GT_FUNCTION constexpr uint_t block_j_size(backend_ids<platform::cuda, GridType, strategy::block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 } // namespace gridtools

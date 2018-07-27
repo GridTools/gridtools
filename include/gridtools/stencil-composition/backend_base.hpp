@@ -111,7 +111,7 @@ namespace gridtools {
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, gridtools::enumtype::platform_cuda>::value),
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, platform::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");

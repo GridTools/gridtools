@@ -108,14 +108,14 @@ namespace test_iterate_domain {
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out()));
-        auto computation_ = make_computation<gridtools::backend<platform_host, GRIDBACKEND, strategy_naive>>(
+        auto computation_ = make_computation<gridtools::backend<platform::x86, GRIDBACKEND, strategy::naive>>(
             grid, p_in() = in, p_buff() = buff, p_out() = out, mss_);
         auto local_domain1 = std::get<0>(computation_.local_domains());
 
         typedef decltype(gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out())) esf_t;
 
         using iterate_domain_arguments_t =
-            iterate_domain_arguments<backend_ids<platform_host, GRIDBACKEND, strategy_naive>,
+            iterate_domain_arguments<backend_ids<platform::x86, GRIDBACKEND, strategy::naive>,
                 decltype(local_domain1),
                 boost::mpl::vector1<esf_t>,
                 boost::mpl::vector1<extent<0, 0, 0, 0>>,

@@ -42,15 +42,11 @@
 
 namespace gridtools {
     template <class Grid>
-    uint_t block_i_size(
-        backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block> const &,
-        Grid const &grid) {
+    uint_t block_i_size(backend_ids<platform::mc, grid_type::structured, strategy::block> const &, Grid const &grid) {
         return execinfo_mic{grid}.i_block_size();
     }
     template <class Grid>
-    uint_t block_j_size(
-        backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block> const &,
-        Grid const &grid) {
+    uint_t block_j_size(backend_ids<platform::mc, grid_type::structured, strategy::block> const &, Grid const &grid) {
         return execinfo_mic{grid}.j_block_size();
     }
 } // namespace gridtools

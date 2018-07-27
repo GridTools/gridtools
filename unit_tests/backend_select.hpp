@@ -39,18 +39,18 @@
 #include <gridtools/stencil-composition/backend.hpp>
 
 #ifdef BACKEND_HOST
-using ARCH = gridtools::enumtype::platform_host;
+using ARCH = gridtools::platform::x86;
 #ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_naive>;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::naive>;
 #else
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_block>;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
 #endif
 #elif defined(BACKEND_MIC)
-using ARCH = gridtools::enumtype::platform_mic;
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_block>;
+using ARCH = gridtools::platform::mc;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
 #elif defined(BACKEND_CUDA)
-using ARCH = gridtools::enumtype::platform_cuda;
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::enumtype::strategy_block>;
+using ARCH = gridtools::platform::cuda;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
 #else
 #error "no backend selected"
 #endif

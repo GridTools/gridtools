@@ -173,6 +173,25 @@ namespace gridtools {
         @{
     */
 
+    /** tags specifying the platform to use */
+    namespace platform {
+        struct cuda {};
+        struct mc {};
+        struct x86 {};
+    } // namespace platform
+
+    /** tags specifying the strategy to use */
+    namespace strategy {
+        struct naive {};
+        struct block {};
+    } // namespace strategy
+
+    /** tags specifying the type of grid to use */
+    namespace grid_type {
+        struct structured {};
+        struct icosahedral {};
+    } // namespace grid_type
+
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
@@ -180,17 +199,6 @@ namespace gridtools {
            @section enumtypes Gridtools enumeration types
            @{
          */
-        struct platform_cuda {};
-        struct platform_host {};
-        struct platform_mic {};
-
-        /** tags specifying the strategy to use */
-        struct strategy_naive {};
-        struct strategy_block {};
-
-        /** tags specifying the type of grid to use */
-        struct grid_structured {};
-        struct grid_icosahedral {};
 
         /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
         template <typename EnumType, EnumType T>
@@ -222,9 +230,9 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND gridtools::enumtype::grid_structured
+#define GRIDBACKEND gridtools::grid_type::structured
 #else
-#define GRIDBACKEND gridtools::enumtype::grid_icosahedral
+#define GRIDBACKEND gridtools::grid_type::icosahedral
 #endif
 
 #define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;

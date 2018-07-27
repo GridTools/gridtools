@@ -54,8 +54,8 @@ struct static_type_tests {
 #ifdef __CUDACC__
 // static type tests for Cuda backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<enumtype::platform_cuda, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<gridtools::enumtype::platform_cuda>;
+struct static_type_tests<backend<platform::cuda, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<platform::cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -97,8 +97,8 @@ struct static_type_tests<backend<enumtype::platform_cuda, GridBackend, Strategy>
 
 // static type tests for Mic backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<enumtype::platform_mic, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<enumtype::platform_mic>;
+struct static_type_tests<backend<platform::mc, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<platform::mc>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -151,8 +151,8 @@ struct static_type_tests<backend<enumtype::platform_mic, GridBackend, Strategy>>
 
 // static type tests for Host backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<enumtype::platform_host, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<enumtype::platform_host>;
+struct static_type_tests<backend<platform::x86, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<platform::x86>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -546,23 +546,23 @@ struct static_layout_tests {
 
 #ifdef __CUDACC__
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<enumtype::platform_cuda, GridBackend, Strategy>>
-    : static_layout_tests_decreasing<enumtype::platform_cuda> {};
+struct static_layout_tests<backend<platform::cuda, GridBackend, Strategy>>
+    : static_layout_tests_decreasing<platform::cuda> {};
 #endif
 
 #ifdef STRUCTURED_GRIDS
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<enumtype::platform_mic, GridBackend, Strategy>>
-    : static_layout_tests_decreasing_swappedxy<enumtype::platform_mic> {};
+struct static_layout_tests<backend<platform::mc, GridBackend, Strategy>>
+    : static_layout_tests_decreasing_swappedxy<platform::mc> {};
 #else
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<enumtype::platform_mic, GridBackend, Strategy>>
-    : static_layout_tests_increasing<enumtype::platform_mic> {};
+struct static_layout_tests<backend<platform::mc, GridBackend, Strategy>>
+    : static_layout_tests_increasing<platform::mc> {};
 #endif
 
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<enumtype::platform_host, GridBackend, Strategy>>
-    : static_layout_tests_increasing<enumtype::platform_host> {};
+struct static_layout_tests<backend<platform::x86, GridBackend, Strategy>>
+    : static_layout_tests_increasing<platform::x86> {};
 
 template class static_layout_tests<backend_t>;
 

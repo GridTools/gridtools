@@ -41,11 +41,11 @@
 
 namespace gridtools {
     GT_FUNCTION constexpr uint_t block_i_size(
-        backend_ids<enumtype::platform_mic, enumtype::grid_icosahedral, enumtype::strategy_block> const &) {
+        backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &) {
         return GT_DEFAULT_TILE_I;
     }
     GT_FUNCTION constexpr uint_t block_j_size(
-        backend_ids<enumtype::platform_mic, enumtype::grid_icosahedral, enumtype::strategy_block> const &) {
+        backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &) {
         return GT_DEFAULT_TILE_J;
     }
 } // namespace gridtools

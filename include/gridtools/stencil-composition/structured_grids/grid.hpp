@@ -41,7 +41,7 @@ namespace gridtools {
     template <typename Axis>
     struct grid : grid_base<Axis> {
         using base_type = grid_base<Axis>;
-        using grid_type = enumtype::grid_structured;
+        using grid_type = grid_type::structured;
 
         DEPRECATED_REASON(
             GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j),

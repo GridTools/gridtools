@@ -110,7 +110,7 @@ namespace gridtools {
 
         using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
         using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
-        using backend_traits_t = backend_traits_from_id<enumtype::platform_mic>;
+        using backend_traits_t = backend_traits_from_id<platform::mc>;
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;

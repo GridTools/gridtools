@@ -42,8 +42,7 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_i_size(
-            backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block> const &,
+        uint_t get_i_size(backend_ids<platform::mc, grid_type::structured, strategy::block> const &,
             uint_t block_size,
             uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<0>();
@@ -52,16 +51,14 @@ namespace gridtools {
         }
 
         template <class /*StorageInfo*/, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_i_block_offset(
-            backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block> const &,
+        GT_FUNCTION int_t get_i_block_offset(backend_ids<platform::mc, grid_type::structured, strategy::block> const &,
             uint_t /*block_size*/,
             uint_t /*block_no*/) {
             return false ? 0 : throw "should not be used";
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(
-            backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block> const &,
+        uint_t get_j_size(backend_ids<platform::mc, grid_type::structured, strategy::block> const &,
             uint_t block_size,
             uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<1>();
@@ -69,8 +66,7 @@ namespace gridtools {
         }
 
         template <class /*StorageInfo*/, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_j_block_offset(
-            backend_ids<enumtype::platform_mic, enumtype::grid_structured, enumtype::strategy_block> const &,
+        GT_FUNCTION int_t get_j_block_offset(backend_ids<platform::mc, grid_type::structured, strategy::block> const &,
             uint_t /*block_size*/,
             uint_t /*block_no*/) {
             return false ? 0 : throw "should not be used";

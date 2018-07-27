@@ -58,18 +58,18 @@ namespace gridtools {
         struct select_apply;
 
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<enumtype::platform_host, BoundaryFunction, Predicate> {
+        struct select_apply<platform::x86, BoundaryFunction, Predicate> {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<enumtype::platform_mic, BoundaryFunction, Predicate> {
+        struct select_apply<platform::mc, BoundaryFunction, Predicate> {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
 #ifdef __CUDACC__
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<enumtype::platform_cuda, BoundaryFunction, Predicate>
+        struct select_apply<platform::cuda, BoundaryFunction, Predicate>
 
         {
             using type = boundary_apply_gpu<BoundaryFunction, Predicate>;
@@ -80,14 +80,14 @@ namespace gridtools {
         struct proper_view;
 
         template <access_mode AM, typename DataF>
-        struct proper_view<enumtype::platform_host, AM, DataF> {
+        struct proper_view<platform::x86, AM, DataF> {
             using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
         };
 
         template <access_mode AM, typename DataF>
-        struct proper_view<enumtype::platform_mic, AM, DataF> {
+        struct proper_view<platform::mc, AM, DataF> {
             using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
@@ -95,7 +95,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
         template <access_mode AM, typename DataF>
-        struct proper_view<enumtype::platform_cuda, AM, DataF> {
+        struct proper_view<platform::cuda, AM, DataF> {
             using proper_view_t = decltype(make_device_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_device_view<AM>(df); }

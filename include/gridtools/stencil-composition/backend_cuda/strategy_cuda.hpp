@@ -64,11 +64,11 @@ namespace gridtools {
     struct execution_info_cuda {};
 
     /**
-       @brief specialization for the \ref enumtype::strategy_block strategy
+       @brief specialization for the \ref strategy::block strategy
        Empty as not used in the CUDA backend
     */
     template <>
-    struct strategy_from_id_cuda<enumtype::strategy_block> {
+    struct strategy_from_id_cuda<strategy::block> {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
