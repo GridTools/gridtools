@@ -173,37 +173,32 @@ namespace gridtools {
         @{
     */
 
+    /** tags specifying the platform to use */
+    namespace platform {
+        struct cuda {};
+        struct mc {};
+        struct x86 {};
+    } // namespace platform
+
+    /** tags specifying the strategy to use */
+    namespace strategy {
+        struct naive {};
+        struct block {};
+    } // namespace strategy
+
+    /** tags specifying the type of grid to use */
+    namespace grid_type {
+        struct structured {};
+        struct icosahedral {};
+    } // namespace grid_type
+
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
-/**
-   @section enumtypes Gridtools enumeration types
-   @{
- */
-/** enum specifying the type of backend we use */
-#ifndef PLATFORM_GUARD
-        enum platform { Cuda, Host, Mic };
-#endif
-
-        enum strategy { Naive, Block };
-
-        /** enum specifying the type of grid to use */
-        enum grid_type { structured, icosahedral };
-
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
-        template <typename EnumType, EnumType T>
-        struct enum_type {
-            static const EnumType value = T;
-        };
-
-        template <typename Value>
-        struct is_enum {
-            template <typename T>
-            struct of_type {
-                typedef typename boost::is_same<Value, enum_type<T, Value::value>>::type type;
-                BOOST_STATIC_CONSTANT(bool, value = (type::value));
-            };
-        };
+        /**
+           @section enumtypes Gridtools enumeration types
+           @{
+         */
 
         /*
          * accessor I/O policy
@@ -220,12 +215,10 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND structured
+#define GRIDBACKEND gridtools::grid_type::structured
 #else
-#define GRIDBACKEND icosahedral
+#define GRIDBACKEND gridtools::grid_type::icosahedral
 #endif
-
-#define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 

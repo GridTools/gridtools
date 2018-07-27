@@ -46,7 +46,7 @@
 #include "./storage_mic/mic_storage_info.hpp"
 
 namespace gridtools {
-    template <enumtype::platform T>
+    template <class BackendId>
     struct storage_traits_from_id;
 
     namespace impl {
@@ -63,7 +63,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Mic backend*/
     template <>
-    struct storage_traits_from_id<enumtype::Mic> {
+    struct storage_traits_from_id<platform::mc> {
 
         template <typename ValueType>
         struct select_storage {

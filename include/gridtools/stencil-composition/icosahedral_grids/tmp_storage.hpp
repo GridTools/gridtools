@@ -42,9 +42,9 @@
 
 namespace gridtools {
     namespace tmp_storage {
-        template <class StorageInfo, size_t NColors, enumtype::platform Platform, enumtype::strategy Strategy>
+        template <class StorageInfo, size_t NColors, class Platform, class Strategy>
         StorageInfo make_storage_info(
-            backend_ids<Platform, enumtype::icosahedral, Strategy> const &, size_t i, size_t j, size_t k) {
+            backend_ids<Platform, grid_type::icosahedral, Strategy> const &, size_t i, size_t j, size_t k) {
             return StorageInfo{i, NColors, j, k};
         }
     } // namespace tmp_storage

@@ -75,17 +75,17 @@ namespace test_iterate_domain {
         typedef layout_map<0, 1, 2> layout_kji_t;
         typedef layout_map<0, 1> layout_ij_t;
 
-        typedef backend_traits_from_id<backend_t::s_backend_id> backend_traits_t;
-        typedef storage_traits<backend_t::s_backend_id> storage_traits_t;
+        typedef backend_traits_from_id<backend_t::backend_id_t> backend_traits_t;
+        typedef storage_traits<backend_t::backend_id_t> storage_traits_t;
         typedef typename storage_traits_t::custom_layout_storage_info_t<0, layout_ijkp_t> meta_ijkp_t;
         typedef typename storage_traits_t::custom_layout_storage_info_t<0, layout_kji_t> meta_kji_t;
         typedef typename storage_traits_t::custom_layout_storage_info_t<0, layout_ij_t> meta_ij_t;
 
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<float_type, meta_ijkp_t, 3, 2, 1>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, meta_ijkp_t, 3, 2, 1>
             storage_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<float_type, meta_kji_t, 4, 7>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, meta_kji_t, 4, 7>
             storage_buff_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<float_type, meta_ij_t, 2, 2, 2>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, meta_ij_t, 2, 2, 2>
             storage_out_t;
 
         uint_t d1 = 15;
@@ -108,21 +108,22 @@ namespace test_iterate_domain {
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out()));
-        auto computation_ = make_computation<gridtools::backend<Host, GRIDBACKEND, Naive>>(
+        auto computation_ = make_computation<gridtools::backend<platform::x86, GRIDBACKEND, strategy::naive>>(
             grid, p_in() = in, p_buff() = buff, p_out() = out, mss_);
         auto local_domain1 = std::get<0>(computation_.local_domains());
 
         typedef decltype(gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out())) esf_t;
 
-        using iterate_domain_arguments_t = iterate_domain_arguments<backend_ids<Host, GRIDBACKEND, Naive>,
-            decltype(local_domain1),
-            boost::mpl::vector1<esf_t>,
-            boost::mpl::vector1<extent<0, 0, 0, 0>>,
-            extent<0, 0, 0, 0>,
-            boost::mpl::vector0<>,
-            gridtools::grid<gridtools::axis<1>::axis_interval_t>,
-            boost::mpl::false_,
-            notype>;
+        using iterate_domain_arguments_t =
+            iterate_domain_arguments<backend_ids<platform::x86, GRIDBACKEND, strategy::naive>,
+                decltype(local_domain1),
+                boost::mpl::vector1<esf_t>,
+                boost::mpl::vector1<extent<0, 0, 0, 0>>,
+                extent<0, 0, 0, 0>,
+                boost::mpl::vector0<>,
+                gridtools::grid<gridtools::axis<1>::axis_interval_t>,
+                boost::mpl::false_,
+                notype>;
 
 #ifdef BACKEND_MIC
         using it_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;

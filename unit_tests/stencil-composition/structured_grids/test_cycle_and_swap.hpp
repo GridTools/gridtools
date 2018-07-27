@@ -74,9 +74,9 @@ namespace test_cycle_and_swap {
 
     bool test_2D() {
 
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::special_storage_info_t<0, selector<1, 1, 1>>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::special_storage_info_t<0, selector<1, 1, 1>>
             storage_info_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<uint_t, storage_info_t, 2>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<uint_t, storage_info_t, 2>
             data_store_field_t;
 
         storage_info_t meta_(1u, 1u, 1u);
@@ -106,8 +106,8 @@ namespace test_cycle_and_swap {
         const uint_t d2 = 9;
         const uint_t d3 = 7;
 
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<uint_t, storage_info_t, 2>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<uint_t, storage_info_t, 2>
             data_store_field_t;
 
         storage_info_t meta_(d1, d2, d3);
@@ -189,8 +189,8 @@ namespace test_cycle_and_swap {
     }
 
     bool test_cycle() {
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_field_t<uint_t, storage_info_t, 3, 3, 4>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<uint_t, storage_info_t, 3, 3, 4>
             data_store_field_t;
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);

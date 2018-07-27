@@ -100,7 +100,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
 #else
     using comm_arch = gridtools::gcl_cpu;
 #endif
-    using storage_tr = gridtools::storage_traits<backend_t::s_backend_id>;
+    using storage_tr = gridtools::storage_traits<backend_t::backend_id_t>;
 
     using namespace gridtools;
 
@@ -310,7 +310,7 @@ TEST(DistributedBoundaries, Test) {
 #else
     using comm_arch = gridtools::gcl_cpu;
 #endif
-    using storage_tr = gridtools::storage_traits<backend_t::s_backend_id>;
+    using storage_tr = gridtools::storage_traits<backend_t::backend_id_t>;
 
     using namespace gridtools;
 

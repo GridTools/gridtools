@@ -43,7 +43,7 @@
 namespace gridtools {
     namespace tmp_storage {
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_i_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+        uint_t get_i_size(backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &,
             uint_t block_size,
             uint_t /*total_size*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<0>();
@@ -51,7 +51,7 @@ namespace gridtools {
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_i_block_offset(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+        GT_FUNCTION int_t get_i_block_offset(backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &,
             uint_t block_size,
             uint_t /*block_no*/) {
             static constexpr auto halo = StorageInfo::halo_t::template at<0>();
@@ -59,7 +59,7 @@ namespace gridtools {
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        uint_t get_j_size(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+        uint_t get_j_size(backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &,
             uint_t block_size,
             uint_t /*total_size*/) {
             // j corresponds to the third dimension in icgrid
@@ -68,7 +68,7 @@ namespace gridtools {
         }
 
         template <class StorageInfo, class /*MaxExtent*/>
-        GT_FUNCTION int_t get_j_block_offset(backend_ids<enumtype::Mic, enumtype::icosahedral, enumtype::Block> const &,
+        GT_FUNCTION int_t get_j_block_offset(backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &,
             uint_t /*block_size*/,
             uint_t /*block_no*/) {
             // j corresponds to the third dimension in icgrid

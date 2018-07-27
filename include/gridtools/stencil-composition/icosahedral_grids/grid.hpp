@@ -50,7 +50,7 @@ namespace gridtools {
         GridTopology m_grid_topology;
 
       public:
-        static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
+        using grid_type_t = grid_type::icosahedral;
 
         DEPRECATED_REASON(GT_FUNCTION explicit grid(
                               GridTopology const &grid_topology, const array<uint_t, 5> &i, const array<uint_t, 5> &j),

@@ -100,8 +100,8 @@ class expandable_parameters : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 0;
 
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 

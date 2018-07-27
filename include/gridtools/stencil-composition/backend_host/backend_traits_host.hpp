@@ -49,12 +49,12 @@
 #endif
 
 /**@file
-@brief type definitions and structures specific for the Host backend
-*/
+ * @brief type definitions and structures specific for the Host backend
+ */
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
-    struct backend_traits_from_id<enumtype::Host> {
+    struct backend_traits_from_id<platform::x86> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
@@ -94,8 +94,8 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
                 // each strategy executes a different high level loop for a mss
-                strategy_from_id_host<backend_ids_t::s_strategy_id>::template mss_loop<RunFunctorArgs>::template run(
-                    local_domain, grid, reduction_data, execution_info);
+                strategy_from_id_host<typename backend_ids_t::strategy_id_t>::template mss_loop<
+                    RunFunctorArgs>::template run(local_domain, grid, reduction_data, execution_info);
             }
         };
 
@@ -108,7 +108,7 @@ namespace gridtools {
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_host<BackendIds::s_strategy_id> type;
+            typedef strategy_from_id_host<typename BackendIds::strategy_id_t> type;
         };
 
         template <typename IterateDomainArguments>
