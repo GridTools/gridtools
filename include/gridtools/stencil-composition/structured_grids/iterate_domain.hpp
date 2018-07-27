@@ -495,15 +495,19 @@ namespace gridtools {
 
         using return_t = typename accessor_return_type<Accessor>::type;
         using data_t = typename get_arg_value_type_from_accessor<Accessor, IterateDomainArguments>::type;
+        using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
+        using storage_info_index_t =
+            typename meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::type;
 
         assert(storage_pointer);
         data_t *RESTRICT real_storage_pointer = static_cast<data_t *>(storage_pointer);
 
-        assert(in_gmem_bounds(accessor));
-
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
         const int_t pointer_offset = get_pointer_offset(accessor);
+
+        assert(pointer_oob_check(
+            boost::fusion::at<storage_info_index_t>(local_domain.m_local_storage_info_ptrs), pointer_offset));
 
         return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }
