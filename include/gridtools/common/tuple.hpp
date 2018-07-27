@@ -41,8 +41,10 @@
  */
 #pragma once
 #include "./defs.hpp"
-#include "./generic_metafunctions/variadic_typedef.hpp"
+#include "./generic_metafunctions/gt_integer_sequence.hpp"
+#include "./generic_metafunctions/meta.hpp"
 #include "./host_device.hpp"
+#include <utility>
 
 namespace gridtools {
     /** \ingroup common
@@ -51,94 +53,96 @@ namespace gridtools {
         @{
     */
 
-    namespace _impl {
-        template <ushort_t Idx, typename VariadicArgs, typename First, typename Super>
-        struct return_helper {
-            GT_FUNCTION constexpr typename VariadicArgs::template get_elem<Idx>::type operator()(
-                const First f, const Super x) const {
-                return x.template get<Idx - 1>();
+    template <class... Ts>
+    struct tuple;
+
+    template <class T>
+    struct tuple_size : std::tuple_size<T> {};
+
+    template <class... Ts>
+    struct tuple_size<tuple<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
+
+    template <size_t I, class T>
+    struct tuple_element : std::tuple_element<I, T> {};
+
+    template <size_t I, class... Ts>
+    struct tuple_element<I, tuple<Ts...>> : meta::at_c<tuple<Ts...>, I> {};
+
+    namespace impl_ {
+        template <size_t I, class T>
+        struct tuple_entry {
+            T m_value;
+
+            GT_FUNCTION constexpr explicit tuple_entry(T const &value) : m_value(value) {}
+            GT_FUNCTION constexpr tuple_entry() : m_value() {}
+
+            GT_FUNCTION int swap(tuple_entry &other) {
+                using std::swap;
+                swap(m_value, other.m_value);
+                return 0;
             }
         };
 
-        template <typename VariadicArgs, typename First, typename Super>
-        struct return_helper<0, VariadicArgs, First, Super> {
-            GT_FUNCTION constexpr First operator()(const First f, const Super x) const { return f; }
+        template <class IndexSequence, class... Ts>
+        struct tuple_impl;
+
+        template <size_t... Is, class... Ts>
+        struct tuple_impl<gt_index_sequence<Is...>, Ts...> : tuple_entry<Is, Ts>... {
+            GT_FUNCTION constexpr explicit tuple_impl(Ts &&... ts) : tuple_entry<Is, Ts>(std::forward<Ts>(ts))... {}
+
+            GT_FUNCTION constexpr tuple_impl() : tuple_entry<Is, Ts>()... {}
+
+            GT_FUNCTION void swap(tuple_impl &other) { all(tuple_entry<Is, Ts>::swap(other)...); }
+
+            static void all(...) {}
         };
-    } // namespace _impl
+    } // namespace impl_
 
-    template <typename... Args>
-    struct tuple;
+    template <class... Ts>
+    class tuple {
+      private:
+        using tuple_impl_t = impl_::tuple_impl<gt_index_sequence_for<Ts...>, Ts...>;
+        tuple_impl_t m_impl;
 
-    template <typename ElementType, typename... OtherElements>
-    struct tuple<ElementType, OtherElements...> : public tuple<OtherElements...> {
+        template <size_t I, class... TTs>
+        friend constexpr typename tuple_element<I, tuple<TTs...>>::type const &get(tuple<TTs...> const &);
+        template <size_t I, class... TTs>
+        friend constexpr typename tuple_element<I, tuple<TTs...>>::type &get(tuple<TTs...> &);
 
-        typedef tuple<ElementType, OtherElements...> type;
-        typedef variadic_typedef<ElementType, OtherElements...> tuple_elements_t;
-        typedef tuple<OtherElements...> super;
+      public:
+        GT_FUNCTION constexpr explicit tuple(Ts &&... ts) : m_impl(std::forward<Ts>(ts)...) {}
 
-        static const size_t n_dimensions = sizeof...(OtherElements) + 1;
+        GT_FUNCTION constexpr tuple() : m_impl() {}
 
-        // ctr
-        GT_FUNCTION constexpr tuple(const ElementType t, OtherElements const... x) : super(x...), m_elem(t) {}
+        GT_FUNCTION static constexpr size_t size() { return sizeof...(Ts); }
 
-        GT_FUNCTION constexpr ElementType operator()() const { return m_elem; }
-
-        /**@brief returns the element at a specific index Idx*/
-        template <ushort_t Idx>
-        GT_FUNCTION constexpr typename tuple_elements_t::template get_elem<Idx>::type get() const {
-
-            typedef _impl::return_helper<Idx, tuple_elements_t, ElementType, super> helper;
-            return helper()(m_elem, *this);
-        }
-
-      protected:
-        ElementType m_elem;
+        GT_FUNCTION void swap(tuple &other) noexcept { m_impl.swap(other.m_impl); }
     };
 
-    template <typename ElementType>
-    struct tuple<ElementType> {
-
-        static const size_t n_dimensions = 1;
-
-        typedef tuple<ElementType> type;
-        typedef variadic_typedef<ElementType> tuple_elements_t;
-
-        template <ushort_t Idx>
-        struct get_elem {
-            typedef typename tuple_elements_t::template get_elem<Idx>::type type;
-        };
-
-        GT_FUNCTION constexpr tuple(const ElementType t) : m_elem(t) {}
-
-        GT_FUNCTION constexpr ElementType operator()() const { return m_elem; }
-
-        /**@brief returns the offset at a specific index Idx*/
-        template <ushort_t Idx>
-        GT_FUNCTION constexpr typename get_elem<Idx>::type get() const {
-            GRIDTOOLS_STATIC_ASSERT((Idx == 0), "Error: out of bound tuple access");
-            return m_elem;
-        }
-
-      protected:
-        ElementType m_elem;
-    };
-
-    template <typename T>
-    struct is_tuple : boost::mpl::false_ {};
-
-    template <typename... Args>
-    struct is_tuple<tuple<Args...>> : boost::mpl::true_ {};
-
-    template <typename... Args>
-    tuple<Args...> make_tuple(Args... args) {
-        return tuple<Args...>(args...);
+    template <size_t I, class... Ts>
+    GT_FUNCTION constexpr typename tuple_element<I, tuple<Ts...>>::type const &get(tuple<Ts...> const &t) {
+        GRIDTOOLS_STATIC_ASSERT(I >= 0 && I < sizeof...(Ts), "out of bounds tuple access");
+        using type = typename tuple_element<I, tuple<Ts...>>::type;
+        return static_cast<impl_::tuple_entry<I, type> const &>(t.m_impl).m_value;
     }
 
-    template <typename T>
-    class tuple_size;
+    template <size_t I, class... Ts>
+    GT_FUNCTION constexpr typename tuple_element<I, tuple<Ts...>>::type &get(tuple<Ts...> &t) {
+        GRIDTOOLS_STATIC_ASSERT(I >= 0 && I < sizeof...(Ts), "out of bounds tuple access");
+        using type = typename tuple_element<I, tuple<Ts...>>::type;
+        return static_cast<impl_::tuple_entry<I, type> &>(t.m_impl).m_value;
+    }
 
-    template <typename... Elements>
-    class tuple_size<tuple<Elements...>> : public gridtools::static_size_t<sizeof...(Elements)> {};
+    template <class... Ts>
+    GT_FUNCTION constexpr tuple<Ts...> make_tuple(Ts &&... ts) {
+        return tuple<Ts...>(std::forward<Ts>(ts)...);
+    }
+
+    template <class... Ts>
+    GT_FUNCTION void swap(tuple<Ts...> &t1, tuple<Ts...> &t2) {
+        t1.swap(t2);
+    }
+
     /** @} */
     /** @} */
 
