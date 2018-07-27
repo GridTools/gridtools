@@ -413,7 +413,7 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 
 .. code-block:: gridtools
 
-    #define BACKEND enumtype::Cuda
+    #define BACKEND platform::cuda
     // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
     typedef storage_traits< BACKEND >::storage_info_t< 0, 3 > storage_info_t;
     // get a data store suitable for CUDA

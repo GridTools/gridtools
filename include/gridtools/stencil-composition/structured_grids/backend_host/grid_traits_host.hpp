@@ -41,8 +41,8 @@
 #include "./execute_kernel_functor_host_fwd.hpp"
 
 namespace gridtools {
-    template <enumtype::strategy Strategy, class Args>
-    struct kernel_functor_executor<backend_ids<enumtype::Host, enumtype::structured, Strategy>, Args> {
+    template <class Strategy, class Args>
+    struct kernel_functor_executor<backend_ids<platform::x86, grid_type::structured, Strategy>, Args> {
         using type = strgrid::execute_kernel_functor_host<Args>;
     };
 } // namespace gridtools

@@ -62,8 +62,8 @@ class test_expressions : public testing::Test {
     const uint_t d2 = 9;
     const uint_t d3 = 7;
 
-    using storage_info_t = storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3>;
-    using data_store_t = storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t>;
+    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
+    using data_store_t = storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>;
 
     storage_info_t storage_info_;
 

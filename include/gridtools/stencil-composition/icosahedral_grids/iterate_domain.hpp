@@ -68,9 +68,10 @@ namespace gridtools {
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
-        typedef backend_traits_from_id<backend_ids_t::s_backend_id> backend_traits_t;
-        typedef typename backend_traits_from_id<backend_ids_t::s_backend_id>::template select_iterate_domain_cache<
-            iterate_domain_arguments_t>::type iterate_domain_cache_t;
+        typedef backend_traits_from_id<typename backend_ids_t::backend_id_t> backend_traits_t;
+        typedef
+            typename backend_traits_from_id<typename backend_ids_t::backend_id_t>::template select_iterate_domain_cache<
+                iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;

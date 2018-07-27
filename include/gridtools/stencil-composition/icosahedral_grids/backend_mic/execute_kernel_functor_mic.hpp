@@ -164,7 +164,7 @@ namespace gridtools {
 
                 using iterate_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
 
-                typedef backend_traits_from_id<enumtype::Mic> backend_traits_t;
+                typedef backend_traits_from_id<platform::mc> backend_traits_t;
 
                 iterate_domain_t it_domain(m_local_domain, m_grid.grid_topology());
 
