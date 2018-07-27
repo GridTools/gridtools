@@ -70,14 +70,14 @@ namespace {
     };
 } // namespace
 
-TEST(structured_grid, kparallel) {
+template <typename Axis>
+void run_test() {
 
     constexpr uint_t d1 = 7;
     constexpr uint_t d2 = 8;
     constexpr uint_t d3_l = 14;
     constexpr uint_t d3_u = 16;
 
-    using axis = gridtools::axis<2>;
     using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
     using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
 
@@ -89,13 +89,13 @@ TEST(structured_grid, kparallel) {
     typedef arg<0, storage_t> p_in;
     typedef arg<1, storage_t> p_out;
 
-    auto grid = gridtools::make_grid(d1, d2, axis(d3_l, d3_u));
+    auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
 
     auto copy = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
-            execute<parallel, 20>(), gridtools::make_stage<parallel_functor<axis>>(p_in(), p_out())));
+            execute<parallel, 20>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
 
     copy.run();
 
@@ -112,44 +112,10 @@ TEST(structured_grid, kparallel) {
         }
 }
 
+TEST(structured_grid, kparallel) { //
+    run_test<gridtools::axis<2>>();
+}
+
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
-
-    constexpr uint_t d1 = 7;
-    constexpr uint_t d2 = 8;
-    constexpr uint_t d3_l = 14;
-    constexpr uint_t d3_u = 16;
-
-    using axis = gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>;
-    using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
-
-    storage_info_t storage_info(d1, d2, d3_l + d3_u);
-
-    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
-    storage_t out(storage_info, (double)1.5);
-
-    typedef arg<0, storage_t> p_in;
-    typedef arg<1, storage_t> p_out;
-
-    auto grid = gridtools::make_grid(d1, d2, axis(d3_l, d3_u));
-
-    auto copy = gridtools::make_computation<backend_t>(grid,
-        p_in() = in,
-        p_out() = out,
-        gridtools::make_multistage(
-            execute<parallel, 20>(), gridtools::make_stage<parallel_functor<axis>>(p_in(), p_out())));
-
-    copy.run();
-
-    copy.sync_bound_data_stores();
-
-    auto outv = make_host_view(out);
-    auto inv = make_host_view(in);
-    for (int i = 0; i < d1; ++i)
-        for (int j = 0; j < d2; ++j) {
-            for (int k = 0; k < d3_l; ++k)
-                EXPECT_EQ(inv(i, j, k), outv(i, j, k));
-            for (int k = d3_l; k < d3_u; ++k)
-                EXPECT_EQ(2 * inv(i, j, k), outv(i, j, k));
-        }
+    run_test<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
 }
