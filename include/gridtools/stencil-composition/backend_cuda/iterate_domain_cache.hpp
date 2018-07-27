@@ -332,12 +332,11 @@ namespace gridtools {
             typedef typename kcache_begin_fill_indexes<IterationPolicy>::type k_begin_filling_caches_indexes_t;
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
 
-            boost::mpl::for_each<k_begin_filling_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
+            boost::mpl::for_each<k_begin_filling_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
                 IterationPolicy,
-                cache_io_policy::fill,
-                true>(it_domain, m_k_caches_tuple, klevel));
+                cache_io_policy::fill>(it_domain, m_k_caches_tuple, klevel));
         }
 
         /**
@@ -352,12 +351,11 @@ namespace gridtools {
 
             typedef typename kcache_final_flush_indexes<IterationPolicy>::type k_final_flushing_caches_indexes_t;
 
-            boost::mpl::for_each<k_final_flushing_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
+            boost::mpl::for_each<k_final_flushing_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
                 IterationPolicy,
-                cache_io_policy::flush,
-                true>(it_domain, m_k_caches_tuple, klevel));
+                cache_io_policy::flush>(it_domain, m_k_caches_tuple, klevel));
         }
 
       private:
