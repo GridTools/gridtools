@@ -33,12 +33,71 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_tuple.hpp"
+#include "../test_helper.hpp"
 #include "gtest/gtest.h"
+#include <gridtools/common/tuple.hpp>
+#include <string>
 
-TEST(tuple, test_tuple) {
-    bool result = true;
-    test_tuple_elements(&result);
+using namespace gridtools;
 
-    ASSERT_TRUE(result);
+TEST(tuple, basic_test) {
+    tuple<int, float> t1(1, 0.5f);
+
+    ASSERT_EQ(t1.size(), 2);
+    EXPECT_EQ(get<0>(t1), 1);
+    EXPECT_EQ(get<1>(t1), 0.5f);
+
+    tuple<int, float> t2;
+    ASSERT_EQ(t2.size(), 2);
+    get<0>(t2) = 2;
+    get<1>(t2) = 1.0f;
+
+    EXPECT_EQ(get<0>(t2), 2);
+    EXPECT_EQ(get<1>(t2), 1.0f);
+}
+
+TEST(tuple, make_tuple_test) {
+    auto t = make_tuple(0.5, 1, 0.5f);
+    ASSERT_EQ(t.size(), 3);
+    ASSERT_TYPE_EQ<decltype(t), tuple<double, int, float>>();
+
+    EXPECT_EQ(get<0>(t), 0.5);
+    EXPECT_EQ(get<1>(t), 1);
+    EXPECT_EQ(get<2>(t), 0.5f);
+}
+
+TEST(tuple, constexpr_test) {
+    constexpr tuple<float, int> t(0.5f, 3);
+    constexpr auto t0 = get<0>(t);
+    constexpr auto t1 = get<1>(t);
+    GRIDTOOLS_STATIC_ASSERT(t.size() == 2, "");
+    GRIDTOOLS_STATIC_ASSERT(t0 == 0.5f, "");
+    GRIDTOOLS_STATIC_ASSERT(t1 == 3, "");
+}
+
+TEST(tuple, swap_test) {
+    auto t1 = gridtools::make_tuple(0.0, 1, 2.0f);
+    auto t2 = gridtools::make_tuple(3.0, 4, 5.0f);
+
+    ASSERT_EQ(get<0>(t1), 0.0);
+    ASSERT_EQ(get<1>(t1), 1);
+    ASSERT_EQ(get<2>(t1), 2.0f);
+    ASSERT_EQ(get<0>(t2), 3.0);
+    ASSERT_EQ(get<1>(t2), 4);
+    ASSERT_EQ(get<2>(t2), 5.0f);
+
+    t1.swap(t2);
+
+    EXPECT_EQ(get<0>(t1), 3.0);
+    EXPECT_EQ(get<1>(t1), 4);
+    EXPECT_EQ(get<2>(t1), 5.0f);
+    EXPECT_EQ(get<0>(t2), 0.0);
+    EXPECT_EQ(get<1>(t2), 1);
+    EXPECT_EQ(get<2>(t2), 2.0f);
+
+    get<0>(t1) = 0.0;
+    get<1>(t1) = 1;
+    get<2>(t1) = 2.0f;
+
+    EXPECT_EQ(t1, t2);
 }

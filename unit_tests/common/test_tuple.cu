@@ -33,19 +33,45 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_tuple.hpp"
-#include "gtest/gtest.h"
+#include "test_tuple.cpp"
 
-__global__ void test_tuple_kernel(bool *result) { test_tuple_elements(result); }
+__global__ void test_tuple_kernel(bool *result) {
+    *result = true;
 
-TEST(tuple, test_elements) {
+    auto t1 = gridtools::make_tuple(0.0, 1, 2.0f);
+    auto t2 = gridtools::make_tuple(3.0, 4, 5.0f);
+
+    *result &= get<0>(t1) == 0.0;
+    *result &= get<1>(t1) == 1;
+    *result &= get<2>(t1) == 2.0f;
+    *result &= get<0>(t2) == 3.0;
+    *result &= get<1>(t2) == 4;
+    *result &= get<2>(t2) == 5.0f;
+
+    t1.swap(t2);
+
+    *result &= get<0>(t1) == 3.0;
+    *result &= get<1>(t1) == 4;
+    *result &= get<2>(t1) == 5.0f;
+    *result &= get<0>(t2) == 0.0;
+    *result &= get<1>(t2) == 1;
+    *result &= get<2>(t2) == 2.0f;
+
+    get<0>(t1) = 0.0;
+    get<1>(t1) = 1;
+    get<2>(t1) = 2.0f;
+
+    *result &= get<0>(t1) == 0.0;
+    *result &= get<1>(t1) == 1;
+    *result &= get<2>(t1) == 2.0f;
+}
+
+TEST(tuple, test_on_device) {
     bool result;
     bool *resultDevice;
     cudaMalloc(&resultDevice, sizeof(bool));
 
-    // clang-format off
-    test_tuple_kernel<<<1,1>>>(resultDevice);
-    // clang-format on
+    test_tuple_kernel<<<1, 1>>>(resultDevice);
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
     ASSERT_TRUE(result);
