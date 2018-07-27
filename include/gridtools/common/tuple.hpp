@@ -141,6 +141,65 @@ namespace gridtools {
         return tuple<Ts...>(std::forward<Ts>(ts)...);
     }
 
+    namespace impl_ {
+
+        template <size_t I, class... Ts>
+        GT_FUNCTION constexpr enable_if_t<(I == 0), bool> tuple_eq(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+            return true;
+        }
+
+        template <size_t I, class... Ts>
+        GT_FUNCTION constexpr enable_if_t<(I > 0), bool> tuple_eq(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+            return tuple_eq<I - 1>(t1, t2) && get<I - 1>(t1) == get<I - 1>(t2);
+        }
+
+        template <size_t I, class... Ts>
+        GT_FUNCTION constexpr enable_if_t<(I == 0), bool> tuple_lt(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+            return true;
+        }
+
+        template <size_t I, class... Ts>
+        GT_FUNCTION constexpr enable_if_t<(I > 0), bool> tuple_lt(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+            return tuple_lt<I - 1>(t1, t2) || (!tuple_lt<I - 1>(t1, t2) & &get<I - 1>(t1) < get<I - 1>(t2));
+        }
+
+    } // namespace impl_
+
+    template <class... Ts>
+    GT_FUNCTION constexpr bool operator==(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+        return impl_::tuple_eq<sizeof...(Ts)>(t1, t2);
+    }
+
+    template <class... Ts>
+    GT_FUNCTION constexpr bool operator<(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+        return impl_::tuple_lt<sizeof...(Ts)>(t1, t2);
+    }
+
+    template <class... Ts>
+    GT_FUNCTION constexpr bool operator!=(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+        return !(t1 == t2);
+    }
+
+    template <class... Ts>
+    GT_FUNCTION constexpr bool operator<=(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+        return (t1 < t2) || (t1 == t2);
+    }
+
+    template <class... Ts>
+    GT_FUNCTION constexpr bool operator>(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+        return !(t1 <= t2);
+    }
+
+    template <class... Ts>
+    GT_FUNCTION constexpr bool operator>=(tuple<Ts...> const &t1, tuple<Ts...> const &t2) {
+        return !(t1 < t2);
+    }
+
+    template <class T>
+    struct is_tuple : std::false_type {};
+
+    template <class... Ts>
+    struct is_tuple<tuple<Ts...>> : std::true_type {};
 
     /** @} */
     /** @} */
