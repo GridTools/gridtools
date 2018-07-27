@@ -74,11 +74,6 @@ namespace gridtools {
         struct once_per_block {
             template <typename Left, typename Right>
             GT_FUNCTION static void assign(Left &l, Right const &r) {
-                //                l = r;
-            }
-
-            template <typename Left, typename Right>
-            GT_FUNCTION static void assign(void *&l, Right const &r) {
                 l = r;
             }
         };

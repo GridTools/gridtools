@@ -124,8 +124,8 @@ struct functor_with_function_call {
 class global_accessor_single_stage : public ::testing::Test {
   public:
     global_accessor_single_stage()
-        : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), bd_(backend_t::make_global_parameter(bd)), di(1, 0, 1, 9, 10),
-          dj(1, 0, 1, 1, 2), coords_bc(make_grid(di, dj, 2)) {}
+        : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), di(1, 0, 1, 9, 10), dj(1, 0, 1, 1, 2),
+          coords_bc(make_grid(di, dj, 2)) {}
 
     void check(data_store_t field, float_type value) {}
 
@@ -133,10 +133,9 @@ class global_accessor_single_stage : public ::testing::Test {
     storage_info_t sinfo;
     data_store_t sol_;
     boundary bd;
-    decltype(backend_t::make_global_parameter(bd)) bd_;
 
     using p_sol = arg<0, data_store_t>;
-    using p_bd = arg<1, decltype(bd_)>;
+    using p_bd = arg<1, boundary>;
 
     halo_descriptor di;
     halo_descriptor dj;
@@ -146,12 +145,10 @@ class global_accessor_single_stage : public ::testing::Test {
 
 TEST_F(global_accessor_single_stage, boundary_conditions) {
     /*****RUN 1 WITH bd int_value set to 20****/
-    auto bc_eval = make_computation<backend_t>(coords_bc,
-        p_sol() = sol_,
-        p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor1>(p_sol(), p_bd())));
+    auto bc_eval = make_computation<backend_t>(
+        coords_bc, p_sol() = sol_, make_multistage(execute<forward>(), make_stage<functor1>(p_sol(), p_bd())));
 
-    bc_eval.run();
+    bc_eval.run(p_bd{} = bd);
     // fetch data and check
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -171,8 +168,6 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     // get the configuration object from the gpu
     // modify configuration object (boundary)
     bd.int_value = 30;
-    backend_t::update_global_parameter(bd_, bd);
-
     // get the storage object from the gpu
     // modify storage object
     for (unsigned i = 0; i < 10; ++i) {
@@ -186,7 +181,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     sol_.clone_to_device();
 
     // run again and finalize
-    bc_eval.run();
+    bc_eval.run(p_bd{} = bd);
 
     sol_.clone_from_device();
     sol_.reactivate_host_write_views();
@@ -209,7 +204,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
 TEST_F(global_accessor_single_stage, with_procedure_call) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
-        p_bd() = bd_,
+        p_bd() = bd,
         make_multistage(execute<forward>(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
 
     bc_eval.run();
@@ -233,7 +228,7 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
 TEST_F(global_accessor_single_stage, with_function_call) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
-        p_bd() = bd_,
+        p_bd() = bd,
         make_multistage(execute<forward>(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
 
     bc_eval.run();
@@ -264,25 +259,22 @@ TEST(test_global_accessor, multiple_stages) {
 
     boundary bd(20);
 
-    auto bd_ = backend_t::make_global_parameter(bd);
-
     halo_descriptor di = halo_descriptor(1, 0, 1, 9, 10);
     halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
     auto coords_bc = make_grid(di, dj, 2);
 
     typedef arg<0, data_store_t> p_sol;
     typedef arg<1, data_store_t> p_tmp;
-    typedef arg<2, decltype(bd_)> p_bd;
+    typedef arg<2, boundary> p_bd;
 
     /*****RUN 1 WITH bd int_value set to 20****/
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_tmp() = tmp_,
-        p_bd() = bd_,
         make_multistage(
             execute<forward>(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
 
-    bc_eval.run();
+    bc_eval.run(p_bd{} = bd);
     // fetch data and check
     sol_.clone_from_device();
     auto solv = make_host_view(sol_);
@@ -301,8 +293,6 @@ TEST(test_global_accessor, multiple_stages) {
     // get the configuration object from the gpu
     // modify configuration object (boundary)
     bd.int_value = 30;
-    backend_t::update_global_parameter(bd_, bd);
-
     tmp_.sync();
     auto tmpv = make_host_view(tmp_);
 
@@ -321,7 +311,7 @@ TEST(test_global_accessor, multiple_stages) {
     tmp_.clone_to_device();
 
     // run again and finalize
-    bc_eval.run();
+    bc_eval.run(p_bd{} = bd);
     sol_.clone_from_device();
     sol_.reactivate_host_write_views();
 

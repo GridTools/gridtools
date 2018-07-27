@@ -47,6 +47,7 @@
 #include <utility>
 
 #include "../common/defs.hpp"
+#include "../common/vector_traits.hpp"
 #include "../storage/storage-facility.hpp"
 #include "arg_fwd.hpp"
 #include "arg_metafunctions.hpp"
@@ -109,8 +110,8 @@ namespace gridtools {
         };
         struct storage_t {};
 
-        void sync(){};
-        bool device_needs_update() { return false; };
+        void sync() const {};
+        bool device_needs_update() const { return false; };
     };
 
     template <typename T>
@@ -143,8 +144,10 @@ namespace gridtools {
     } // namespace advanced
 
     template <typename T>
-    using wrap_if_not_datastore = typename std::
-        conditional<is_data_store<T>::value || is_data_store_field<T>::value, T, scalar_data_store<T>>::type;
+    using wrap_if_not_datastore =
+        typename std::conditional<is_data_store<T>::value || is_data_store_field<T>::value || is_vector<T>::value,
+            T,
+            scalar_data_store<T>>::type;
 
     /**
      * Type to create placeholders for data fields.

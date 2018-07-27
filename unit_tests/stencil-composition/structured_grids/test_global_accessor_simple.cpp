@@ -68,8 +68,8 @@ struct functor1 {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        auto test = eval(global_acc());
-        eval(out()) = test.value;
+        auto global_acc_value = eval(global_acc());
+        eval(out()) = global_acc_value.value;
     }
 };
 
@@ -91,6 +91,16 @@ TEST(global_accessor_simple, make_computation) {
             gridtools::make_stage<functor1>(p_out{}, p_global_param{})));
 
     stencil.run();
+
+    out.sync();
+    auto outv = gridtools::make_host_view(out);
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            for (int k = 0; k < 10; ++k) {
+                ASSERT_EQ(test_val.value, outv(i, j, k));
+            }
+        }
+    }
 }
 
 // TEST(global_accessor_simple, test) {
