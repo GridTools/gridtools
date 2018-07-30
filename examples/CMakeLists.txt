@@ -17,7 +17,7 @@ else()
 
   add_definitions("-DBENCHMARK")
 
-  # special target for executables which are used fro performnace benchmarks
+  # special target for executables which are used from performance benchmarks
   add_custom_target(perftests)
 
   if(ENABLE_HOST)
