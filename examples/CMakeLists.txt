@@ -17,6 +17,9 @@ else()
 
   add_definitions("-DBENCHMARK")
 
+  # special target for executables which are used fro performnace benchmarks
+  add_custom_target(perftests)
+
   if(ENABLE_HOST)
     foreach(srcfile IN LISTS PERFTEST_SRCFILES SRCFILES X86_SRCFILES)
       add_executable(${srcfile}_host_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
@@ -31,7 +34,6 @@ else()
       gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_host_naive" "12 33 21")
       gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_host_naive" "23 11 23")
     endforeach(srcfile)
-    add_custom_target(perftests)
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_host_block)
     endforeach()
