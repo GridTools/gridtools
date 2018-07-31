@@ -44,53 +44,30 @@ using namespace gridtools;
 using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
-struct copy_functor {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
+struct shift_functor {
+    typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef boost::mpl::vector<out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-        eval(out{}) = eval(in{});
+        eval(out()) = eval(out(gridtools::dimension<3>() - 1));
     }
 };
 
-struct copy_functor_with_expression {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
+template <class AxisInterval>
+struct call_shift_functor {
+    typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef boost::mpl::vector<out, in> arg_list;
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
-        // use an expression which is equivalent to a copy to simplify the check
-        eval(out{}) = eval(2. * in{} - in{});
-    }
-};
-
-struct call_proc_copy_functor {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
-
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef boost::mpl::vector<out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
-        call_proc<copy_functor>::with(eval, out(), in());
+    GT_FUNCTION static void Do(Evaluation &eval, typename AxisInterval::template modify<1, 0>) {
+        call_proc<shift_functor>::with(eval, out());
+        // eval(out()) = eval(out(gridtools::dimension<3>() - 1));
     }
-};
-
-struct call_copy_functor {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
-
-    typedef boost::mpl::vector<out, in> arg_list;
-
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
-        eval(out()) = call<copy_functor>::with(eval, in());
-    }
+    GT_FUNCTION static void Do(Evaluation &eval, typename AxisInterval::first_level) {}
 };
 
 class expandable_parameters : public testing::Test {
@@ -152,68 +129,51 @@ class expandable_parameters : public testing::Test {
           in{in_1, in_2, in_3, in_4, in_5}, //
           out{out_1, out_2, out_3, out_4, out_5} {
     }
-
-    template <typename Computation>
-    void execute_computation(Computation &comp) {
-        comp.run(p_in() = in, p_out() = out);
-        out_1.sync();
-        out_2.sync();
-        out_3.sync();
-        out_4.sync();
-        out_5.sync();
-    }
 };
 
-TEST_F(expandable_parameters, copy) {
-    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
-        grid,
-        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_out(), p_in())));
-
-    execute_computation(comp);
-
-    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
-}
-
-// TODO this should be enabled when working on a bug fix for expressions with vector_accessors
-TEST_F(expandable_parameters, copy_with_expression) {
+TEST_F(expandable_parameters, call_shift) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<copy_functor_with_expression>(p_out(), p_in())));
+            execute<forward>(), gridtools::make_stage<call_shift_functor<gridtools::axis<1>::full_interval>>(p_out())));
 
-    execute_computation(comp);
+    auto set_everything = [](data_store_t &ds, float_type value) {
+        auto v = make_host_view(ds);
+        for (int i = 0; i < ds.total_length<0>(); ++i)
+            for (int j = 0; j < ds.total_length<1>(); ++j)
+                for (int k = 0; k < ds.total_length<2>(); ++k)
+                    v(i, j, k) = value;
+        ds.sync();
+    };
+    auto set_first_layer = [](data_store_t &ds, float_type value) {
+        auto v = make_host_view(ds);
+        for (int i = 0; i < ds.total_length<0>(); ++i)
+            for (int j = 0; j < ds.total_length<1>(); ++j)
+                v(i, j, 0) = value;
+        ds.sync();
+    };
 
-    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
-}
+    set_first_layer(out_1, float_type(14));
+    set_everything(in_1, float_type(14));
 
-TEST_F(expandable_parameters, call_proc_copy) {
-    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
-        grid,
-        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_proc_copy_functor>(p_out(), p_in())));
+    set_first_layer(out_2, float_type(15));
+    set_everything(in_2, float_type(15));
 
-    execute_computation(comp);
+    set_first_layer(out_3, float_type(16));
+    set_everything(in_3, float_type(16));
 
-    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
-    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
-}
+    set_first_layer(out_4, float_type(17));
+    set_everything(in_4, float_type(17));
 
-TEST_F(expandable_parameters, call_copy) {
-    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
-        grid,
-        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_copy_functor>(p_out(), p_in())));
+    set_first_layer(out_5, float_type(18));
+    set_everything(in_5, float_type(18));
 
-    execute_computation(comp);
+    comp.run(p_out() = out);
+    out_1.sync();
+    out_2.sync();
+    out_3.sync();
+    out_4.sync();
+    out_5.sync();
 
     ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
     ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
