@@ -44,6 +44,55 @@ using namespace gridtools;
 using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
+struct copy_functor {
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        eval(out{}) = eval(in{});
+    }
+};
+
+struct copy_functor_with_expression {
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        // use an expression which is equivalent to a copy to simplify the check
+        eval(out{}) = eval(2. * in{} - in{});
+    }
+};
+
+struct call_proc_copy_functor {
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        call_proc<copy_functor>::with(eval, out(), in());
+    }
+};
+
+struct call_copy_functor {
+    typedef vector_accessor<0, enumtype::inout> out;
+    typedef vector_accessor<1, enumtype::in> in;
+
+    typedef boost::mpl::vector<out, in> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        eval(out()) = call<copy_functor>::with(eval, in());
+    }
+};
+
 struct shift_functor {
     typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
@@ -129,7 +178,75 @@ class expandable_parameters : public testing::Test {
           in{in_1, in_2, in_3, in_4, in_5}, //
           out{out_1, out_2, out_3, out_4, out_5} {
     }
+
+    template <typename Computation>
+    void execute_computation(Computation &comp) {
+        comp.run(p_in() = in, p_out() = out);
+        out_1.sync();
+        out_2.sync();
+        out_3.sync();
+        out_4.sync();
+        out_5.sync();
+    }
 };
+
+TEST_F(expandable_parameters, copy) {
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
+        grid,
+        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_out(), p_in())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
+
+// TODO this should be enabled when working on a bug fix for expressions with vector_accessors
+TEST_F(expandable_parameters, copy_with_expression) {
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
+        grid,
+        gridtools::make_multistage(
+            execute<forward>(), gridtools::make_stage<copy_functor_with_expression>(p_out(), p_in())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
+
+TEST_F(expandable_parameters, call_proc_copy) {
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
+        grid,
+        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_proc_copy_functor>(p_out(), p_in())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
+
+TEST_F(expandable_parameters, call_copy) {
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
+        grid,
+        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_copy_functor>(p_out(), p_in())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
 
 TEST_F(expandable_parameters, call_shift) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
