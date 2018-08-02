@@ -147,9 +147,12 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor<get_passed_argument_t<Accessor>>::value),
                     "In call: you are passing a global_accessor to a normal accessor");
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    accessor.template get<2>() + Offi + get_passed_argument<Accessor>().template get<2>(),
-                    accessor.template get<1>() + Offj + get_passed_argument<Accessor>().template get<1>(),
-                    accessor.template get<0>() + Offk + get_passed_argument<Accessor>().template get<0>()));
+                    accessor.template get<Accessor::n_dimensions - 1>() + Offi +
+                        get_passed_argument<Accessor>().template get<Accessor::n_dimensions - 1>(),
+                    accessor.template get<Accessor::n_dimensions - 2>() + Offj +
+                        get_passed_argument<Accessor>().template get<Accessor::n_dimensions - 2>(),
+                    accessor.template get<Accessor::n_dimensions - 3>() + Offk +
+                        get_passed_argument<Accessor>().template get<Accessor::n_dimensions - 3>()));
             }
 
             /*
@@ -381,9 +384,12 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor<get_passed_argument_t<Accessor>>::value),
                     "In call_proc: you are passing a global_accessor to a regular/vector accessor");
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    accessor.template get<2>() + Offi + get_passed_argument<Accessor>().template get<2>(),
-                    accessor.template get<1>() + Offj + get_passed_argument<Accessor>().template get<1>(),
-                    accessor.template get<0>() + Offk + get_passed_argument<Accessor>().template get<0>()));
+                    accessor.template get<Accessor::n_dimensions - 1>() + Offi +
+                        get_passed_argument<Accessor>().template get<Accessor::n_dimensions - 1>(),
+                    accessor.template get<Accessor::n_dimensions - 2>() + Offj +
+                        get_passed_argument<Accessor>().template get<Accessor::n_dimensions - 2>(),
+                    accessor.template get<Accessor::n_dimensions - 3>() + Offk +
+                        get_passed_argument<Accessor>().template get<Accessor::n_dimensions - 3>()));
             }
 
             /**
