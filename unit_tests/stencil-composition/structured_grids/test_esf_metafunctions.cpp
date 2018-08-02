@@ -42,7 +42,12 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef interval<level<0, -1>, level<1, -1>> x_interval;
+constexpr int level_offset_limit = 1;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
+typedef interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct print_r {
     template <typename T>
     void operator()(T const &) const {
@@ -141,8 +146,8 @@ std::ostream &operator<<(std::ostream &s, functor4) { return s << "functor4"; }
 std::ostream &operator<<(std::ostream &s, functor5) { return s << "functor5"; }
 std::ostream &operator<<(std::ostream &s, functor6) { return s << "functor6"; }
 
-typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> storage_t;
+typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> storage_t;
 
 typedef arg<0, storage_t> o0;
 typedef arg<1, storage_t> o1;

@@ -138,9 +138,12 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+// some compilers have the problem that template alias instantiations have exponential complexity
 #if !defined(GT_BROKEN_TEMPLATE_ALIASES)
 #if defined(__CUDACC_VER_MAJOR__)
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
+// CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
+// instantiation) see https://github.com/eth-cscs/gridtools/issues/976
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2))
 #elif defined(__INTEL_COMPILER)
 #define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
 #elif defined(__clang__)
@@ -149,6 +152,15 @@ namespace gridtools {
 #define GT_BROKEN_TEMPLATE_ALIASES (__GNUC__ * 10 + __GNUC_MINOR__ < 47)
 #else
 #define GT_BROKEN_TEMPLATE_ALIASES 1
+#endif
+#endif
+
+// check boost::optional workaround for CUDA9.2
+#if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)
+#if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
+     not defined(BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE))
+#error \
+    "CUDA 9.2 has a problem with boost::optional, please define BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL and BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE prior to any include of boost/optional.hpp"
 #endif
 #endif
 
@@ -161,56 +173,32 @@ namespace gridtools {
         @{
     */
 
+    /** tags specifying the platform to use */
+    namespace platform {
+        struct cuda {};
+        struct mc {};
+        struct x86 {};
+    } // namespace platform
+
+    /** tags specifying the strategy to use */
+    namespace strategy {
+        struct naive {};
+        struct block {};
+    } // namespace strategy
+
+    /** tags specifying the type of grid to use */
+    namespace grid_type {
+        struct structured {};
+        struct icosahedral {};
+    } // namespace grid_type
+
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
-/**
-   @section enumtypes Gridtools enumeration types
-   @{
- */
-/** enum specifying the type of backend we use */
-#ifndef PLATFORM_GUARD
-        enum platform { Cuda, Host, Mic };
-#endif
-
-        enum strategy { Naive, Block };
-
-        /** enum specifying the type of grid to use */
-        enum grid_type { structured, icosahedral };
-
-        /** struct in order to perform templated methods partial specialization (Alexantrescu's trick, pre-c++11)*/
-        template <typename EnumType, EnumType T>
-        struct enum_type {
-            static const EnumType value = T;
-        };
-
-        template <typename Value>
-        struct is_enum {
-            template <typename T>
-            struct of_type {
-                typedef typename boost::is_same<Value, enum_type<T, Value::value>>::type type;
-                BOOST_STATIC_CONSTANT(bool, value = (type::value));
-            };
-        };
-
-        enum isparallel { parallel_impl, serial };
-        enum execution { forward, backward, parallel };
-
-        template <enumtype::isparallel T, enumtype::execution U = forward>
-        struct execute_impl {
-            static const enumtype::execution iteration = U;
-            static const enumtype::isparallel execution = T;
-        };
-
-        template <enumtype::execution U>
-        struct execute {
-            typedef execute_impl<serial, U> type;
-        };
-
-        template <>
-        struct execute<parallel> {
-            typedef execute_impl<parallel_impl, forward> type;
-        };
+        /**
+           @section enumtypes Gridtools enumeration types
+           @{
+         */
 
         /*
          * accessor I/O policy
@@ -227,18 +215,10 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND structured
+#define GRIDBACKEND gridtools::grid_type::structured
 #else
-#define GRIDBACKEND icosahedral
+#define GRIDBACKEND gridtools::grid_type::icosahedral
 #endif
-
-    template <typename T>
-    struct is_execution_engine : boost::mpl::false_ {};
-
-    template <enumtype::execution U>
-    struct is_execution_engine<enumtype::execute<U>> : boost::mpl::true_ {};
-
-#define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 

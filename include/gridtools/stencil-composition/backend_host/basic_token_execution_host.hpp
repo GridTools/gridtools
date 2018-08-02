@@ -34,31 +34,17 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <boost/fusion/container/vector.hpp>
+#pragma once
+
+#include "../../common/defs.hpp"
+#include "../../common/pair.hpp"
+#include "../basic_token_execution.hpp"
+#include "../execution_types.hpp"
 
 namespace gridtools {
-
-    /** \ingroup common
-        @{
-        \ingroup allmeta
-        @{
-        \defgroup fusionutil Fusion Library Utilities
-        @{
-    */
-
-    /**
-       Metafunction that checks that an index is not out of bounds for a fusion vector
-
-       \tparam IndexType Index type (need `value` to access the value)
-       \tparam FusionVector the fusion vector
-     */
-    template <typename IndexType, typename FusionVector>
-    struct fusion_vector_check_bound {
-        static const bool value =
-            IndexType::value >= 0 && IndexType::value < boost::fusion::result_of::size<FusionVector>::type::value;
-    };
-    /** @} */
-    /** @} */
-    /** @} */
-
+    template <class FromLevel, class ToLevel, class GridBackend, class Strategy, class ExecutionEngine, class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(
+        backend_ids<platform::x86, GridBackend, Strategy>, ExecutionEngine, Grid const &grid) {
+        return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
+    }
 } // namespace gridtools

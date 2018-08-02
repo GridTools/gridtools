@@ -42,14 +42,27 @@
 #include "../boundary-conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
+#ifdef _GCL_MPI_
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
+#else
+#include "./mock_pattern.hpp"
+#endif
+#include "./grid_predicate.hpp"
+
 #include "../gridtools.hpp"
 #include "../stencil-composition/stencil-composition.hpp"
 #include "./bound_bc.hpp"
 
 namespace gridtools {
+
+#ifndef _GCL_MPI_
+    // This provides an processing grid that works on a single process
+    // to be used without periodic boundary conditions, this enables
+    // the grid predicate to work
+    using namespace mock_;
+#endif
 
     namespace _workaround {
         /** \internal Workaround for NVCC that has troubles with tuple_cat */
@@ -223,7 +236,7 @@ namespace gridtools {
         typename std::enable_if<is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
             call_apply(boundary<typename BCApply::boundary_class,
-                           CTraits::compute_arch,
+                           typename CTraits::compute_arch,
                            proc_grid_predicate<typename CTraits::proc_grid_type>>(m_halos,
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename CTraits::proc_grid_type>(m_he.comm())),
@@ -253,7 +266,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.pack(advanced::get_address_of(_impl::proper_view<CTraits::compute_arch,
+            m_he.pack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
@@ -264,7 +277,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(advanced::get_address_of(_impl::proper_view<CTraits::compute_arch,
+            m_he.unpack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);

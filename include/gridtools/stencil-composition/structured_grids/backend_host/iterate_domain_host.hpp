@@ -36,53 +36,36 @@
 #pragma once
 
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
-#include "../positional_iterate_domain.hpp"
+#include "../iterate_domain.hpp"
 
 namespace gridtools {
 
     /**
      * @brief iterate domain class for the Host backend
      */
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
+    template <typename IterateDomainArguments>
     class iterate_domain_host
-        : public IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments>> // CRTP
+        : public iterate_domain<iterate_domain_host<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments>> super;
+        typedef iterate_domain<iterate_domain_host<IterateDomainArguments>, IterateDomainArguments> super;
 
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         typedef typename super::reduction_type_t reduction_type_t;
 
       public:
         using super::operator();
-        typedef iterate_domain_host iterate_domain_t;
-        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
         explicit iterate_domain_host(
             local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
-            : super(local_domain, reduction_initial_value), m_data_pointer(0), m_strides(0) {}
-
-        void set_data_pointer_impl(data_ptr_cached_t *RESTRICT data_pointer) {
-            assert(data_pointer);
-            m_data_pointer = data_pointer;
-        }
-
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
-            assert(m_data_pointer);
-            return *m_data_pointer;
-        }
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
-            assert(m_data_pointer);
-            return *m_data_pointer;
-        }
+            : super(local_domain, reduction_initial_value), m_strides(0) {}
 
         strides_cached_t &RESTRICT strides_impl() {
             assert(m_strides);
@@ -101,12 +84,10 @@ namespace gridtools {
 
         iterate_domain_host const &get() const { return *this; }
 
-        template <typename ReturnType, typename Accessor, typename StoragePointer>
-        GT_FUNCTION ReturnType get_value_impl(
-            StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+        template <typename ReturnType, typename Accessor, typename StorageType>
+        GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-
-            return super::template get_gmem_value<ReturnType>(storage_pointer, pointer_offset);
+            return *(storage_pointer + pointer_offset);
         }
 
         /**
@@ -157,17 +138,9 @@ namespace gridtools {
         }
 
       private:
-        data_ptr_cached_t *RESTRICT m_data_pointer;
         strides_cached_t *RESTRICT m_strides;
     };
 
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_host<IterateDomainBase, IterateDomainArguments>>
-        : public boost::mpl::true_ {};
-
-    template <template <class> class IterateDomainBase, typename IterateDomainArguments>
-    struct is_positional_iterate_domain<iterate_domain_host<IterateDomainBase, IterateDomainArguments>>
-        : is_positional_iterate_domain<
-              IterateDomainBase<iterate_domain_host<IterateDomainBase, IterateDomainArguments>>> {};
-
+    template <typename IterateDomainArguments>
+    struct is_iterate_domain<iterate_domain_host<IterateDomainArguments>> : public boost::mpl::true_ {};
 } // namespace gridtools

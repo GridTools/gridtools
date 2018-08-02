@@ -38,6 +38,11 @@
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/axis.hpp>
 
+constexpr int level_offset_limit = 3;
+
+template <uint_t Splitter, int_t Offset>
+using level_t = level<Splitter, Offset, level_offset_limit>;
+
 TEST(test_grid, k_total_length) {
     static const int_t offset_from = -2;
     static const int_t offset_to = 2;
@@ -45,7 +50,7 @@ TEST(test_grid, k_total_length) {
     uint_t splitter_begin = 5;
     uint_t splitter_end = 50;
 
-    typedef interval<level<0, offset_from>, level<1, offset_to + 1>> axis;
+    typedef interval<level_t<0, offset_from>, level_t<1, offset_to + 1>> axis;
     grid<axis> grid_(halo_descriptor{}, halo_descriptor{}, {splitter_begin, splitter_end});
 
     uint_t expected_total_length = (int_t)splitter_end - (int_t)splitter_begin - offset_from + offset_to;
@@ -61,7 +66,7 @@ class test_grid_copy_ctor : public ::testing::Test {
     const uint_t splitter_1;
 
   public:
-    typedef interval<level<0, -1>, level<1, -1>> axis;
+    typedef interval<level_t<0, -1>, level_t<1, -1>> axis;
     grid<axis> grid_;
 
     test_grid_copy_ctor()

@@ -274,6 +274,10 @@ namespace gridtools {
         static_assert(std::is_same<GT_META_CALL(cartesian_product, (f<int>, g<double>, list<void>)),
                           list<list<int, double, void>>>{},
             "");
+
+        static_assert(std::is_same<GT_META_CALL(reverse, (f<int, int *, int **, int ***, int ****, int *****>)),
+                          f<int *****, int ****, int ***, int **, int *, int>>{},
+            "");
     } // namespace meta
 } // namespace gridtools
 

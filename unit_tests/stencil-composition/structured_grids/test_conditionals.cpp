@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include <gridtools/stencil-composition/conditionals/if_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include "backend_select.hpp"
@@ -63,8 +64,8 @@ namespace test_conditionals {
 
         auto grid_ = make_grid((uint_t)2, (uint_t)2, axis_t((uint_t)3));
 
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t>
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>
             data_store_t;
         storage_info_t meta_data_(3, 3, 3);
         data_store_t dummy(meta_data_, 0.);

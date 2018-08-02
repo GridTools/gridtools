@@ -50,10 +50,10 @@ namespace gridtools {
     template <typename Functor, typename Axis>
     struct functor_default_interval {
         GRIDTOOLS_STATIC_ASSERT(is_interval<Axis>::value, "Internal error");
-        static const constexpr int_t to_offset = Axis::ToLevel::Offset::value;
-        static const constexpr uint_t to_splitter = Axis::ToLevel::Splitter::value;
-        static const constexpr int_t from_offset = Axis::FromLevel::Offset::value;
-        static const constexpr uint_t from_splitter = Axis::FromLevel::Splitter::value;
+        static const constexpr int_t to_offset = Axis::ToLevel::offset;
+        static const constexpr uint_t to_splitter = Axis::ToLevel::splitter;
+        static const constexpr int_t from_offset = Axis::FromLevel::offset;
+        static const constexpr uint_t from_splitter = Axis::FromLevel::splitter;
 
         // NOTE: because of API convention the default interval representing the whole vertical axis must have the same
         // splitters as Axis,
@@ -62,8 +62,8 @@ namespace gridtools {
         // for this reason we have to devise a special case for when the "from" offset in the vertical Axis is -1
         // (in that case the interval representing the whole axis must start from 1 instead of 0, so we have to add
         // -1+2=1)
-        typedef gridtools::interval<level<from_splitter, from_offset>,
-            level<to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2>>
+        typedef gridtools::interval<level<from_splitter, from_offset, Axis::offset_limit>,
+            level<to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2, Axis::offset_limit>>
             default_interval;
 
         typedef typename Functor::arg_list arg_list;

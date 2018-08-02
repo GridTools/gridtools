@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit
+module load cudatoolkit/9.0.103_3.7-6.0.4.1_2.1__g72b395b
 module rm   PrgEnv-cray
 module load CMake
 
@@ -70,5 +70,5 @@ export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export MAKE_THREADS=24
-export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:15:00"
+export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:20:00"
 

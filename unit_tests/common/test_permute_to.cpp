@@ -40,36 +40,29 @@
 
 #include <gtest/gtest.h>
 
-#include <boost/fusion/include/comparison.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-
 namespace gridtools {
 
-    using boost::fusion::make_vector;
-    using boost::fusion::vector;
-
     TEST(permute_to, lref) {
-        vector<> src;
-        EXPECT_TRUE(permute_to<vector<>>(src) == make_vector());
+        std::tuple<> src;
+        EXPECT_TRUE(permute_to<std::tuple<>>(src) == std::make_tuple());
     }
 
     TEST(permute_to, cref) {
-        vector<> const src = {};
-        EXPECT_TRUE(permute_to<vector<>>(src) == make_vector());
+        std::tuple<> const src = {};
+        EXPECT_TRUE(permute_to<std::tuple<>>(src) == std::make_tuple());
     }
 
     template <typename Res, typename... Args>
     Res testee(Args &&... args) {
-        return permute_to<Res>(make_vector(std::forward<Args>(args)...));
+        return permute_to<Res>(std::make_tuple(std::forward<Args>(args)...));
     }
 
-    TEST(permute_to, empty) { EXPECT_TRUE(testee<vector<>>() == make_vector()); }
+    TEST(permute_to, empty) { EXPECT_TRUE(testee<std::tuple<>>() == std::make_tuple()); }
 
-    TEST(permute_to, one) { EXPECT_TRUE(testee<vector<int>>(42) == make_vector(42)); }
+    TEST(permute_to, one) { EXPECT_TRUE(testee<std::tuple<int>>(42) == std::make_tuple(42)); }
 
     TEST(permute_to, functional) {
-        using res_t = vector<int, char, double>;
+        using res_t = std::tuple<int, char, double>;
         res_t expected{42, 'a', .1};
         EXPECT_TRUE(testee<res_t>(42, 'a', .1) == expected);
         EXPECT_TRUE(testee<res_t>(42, .1, 'a') == expected);
@@ -79,7 +72,9 @@ namespace gridtools {
         EXPECT_TRUE(testee<res_t>(.1, 'a', 42) == expected);
     }
 
-    TEST(permute_to, unused_extra_args) { EXPECT_TRUE((testee<vector<int>>('a', 42, .1, 12) == make_vector(42))); }
+    TEST(permute_to, unused_extra_args) {
+        EXPECT_TRUE((testee<std::tuple<int>>('a', 42, .1, true) == std::make_tuple(42)));
+    }
 
-    TEST(permute_to, duplicates_in_res) { EXPECT_TRUE((testee<vector<int, int>>(42) == make_vector(42, 42))); }
+    TEST(permute_to, duplicates_in_res) { EXPECT_TRUE((testee<std::tuple<int, int>>(42) == std::make_tuple(42, 42))); }
 } // namespace gridtools

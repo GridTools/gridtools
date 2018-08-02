@@ -55,7 +55,7 @@
 
 namespace gridtools {
 
-    template <enumtype::strategy>
+    template <class>
     struct strategy_from_id_mic;
 
     namespace _impl {
@@ -66,7 +66,7 @@ namespace gridtools {
         struct is_mss_kparallel {
             template <typename Mss>
             struct apply {
-                using type = boost::mpl::bool_<Mss::execution_engine_t::type::execution == enumtype::parallel_impl>;
+                using type = boost::mpl::bool_<Mss::execution_engine_t::iteration == enumtype::parallel>;
             };
         };
 
@@ -82,10 +82,10 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     * @brief Specialization for the \ref gridtools::enumtype::Block strategy.
+     * @brief Specialization for the \ref gridtools::strategy::block strategy.
      */
     template <>
-    struct strategy_from_id_mic<enumtype::Block> {
+    struct strategy_from_id_mic<strategy::block> {
         /**
          * @brief Loops over all blocks and executes sequentially all MSS functors for each block.
          * Implementation for stencils with serial execution along k-axis.

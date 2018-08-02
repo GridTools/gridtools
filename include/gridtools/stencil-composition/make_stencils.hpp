@@ -35,14 +35,15 @@
 */
 #pragma once
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
 #include <tuple>
 
-#include "../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "conditionals/case_.hpp"
-#include "conditionals/if_.hpp"
-#include "conditionals/switch_.hpp"
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+#include "independent_esf.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
 
@@ -58,14 +59,17 @@ namespace gridtools {
      */
     template <typename ExecutionEngine, typename... MssParameters>
     mss_descriptor<ExecutionEngine,
-        typename extract_mss_esfs<typename variadic_to_vector<MssParameters...>::type>::type,
-        typename extract_mss_caches<typename variadic_to_vector<MssParameters...>::type>::type>
-    make_multistage(ExecutionEngine && /**/, MssParameters...) {
-
+        GT_META_CALL(extract_mss_esfs, (MssParameters...)),
+        typename extract_mss_caches<MssParameters...>::type>
+    make_multistage(ExecutionEngine, MssParameters...) {
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value),
-            "The first argument passed to make_mss must be the execution engine (e.g. execute<forward>(), "
+            "The first argument passed to make_multistage must be the execution engine (e.g. execute<forward>(), "
             "execute<backward>(), execute<parallel>()");
-
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_mss_parameter<MssParameters>...>::value,
+            "wrong set of mss parameters passed to make_multistage construct.\n"
+            "Check that arguments passed are either :\n"
+            " * caches from define_caches(...) construct or\n"
+            " * esf descriptors from make_stage(...) or make_independent(...)");
         return {};
     }
 
@@ -80,7 +84,7 @@ namespace gridtools {
        tight bounds on blocks to be used by backends
      */
     template <class... Esfs>
-    independent_esf<std::tuple<Esfs...>> make_independent(Esfs &&...) {
+    independent_esf<std::tuple<Esfs...>> make_independent(Esfs...) {
         return {};
     }
 

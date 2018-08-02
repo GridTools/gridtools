@@ -38,6 +38,8 @@
 #include <gridtools/communication/low-level/proc_grids_3D.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
+#include <gridtools/distributed-boundaries/grid_predicate.hpp>
+
 #include <gridtools/boundary-conditions/boundary.hpp>
 
 #include <gridtools/communication/halo_exchange.hpp>
@@ -100,8 +102,8 @@ namespace copy_stencil {
         MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
 
-        typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-        typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> storage_t;
+        typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> storage_t;
 
         typedef gridtools::halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
             gridtools::layout_map<0, 1, 2>,
@@ -198,7 +200,7 @@ namespace copy_stencil {
         halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
         typename gridtools::boundary<boundary_conditions,
-            backend_t::s_backend_id,
+            backend_t::backend_id_t,
             typename gridtools::proc_grid_predicate<decltype(c_grid)>>(
             halos, boundary_conditions(), gridtools::proc_grid_predicate<decltype(c_grid)>(c_grid))
             .apply(in, out);

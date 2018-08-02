@@ -72,61 +72,6 @@
 
 namespace gridtools {
 
-    /* data structure that can be used to store the data pointers of a given list of storages */
-    template <typename StorageWrapperList, int I = boost::mpl::size<StorageWrapperList>::value - 1>
-    struct data_ptr_cached /** @cond */ : data_ptr_cached<StorageWrapperList, I - 1> /** @endcond */ {
-        typedef data_ptr_cached<StorageWrapperList, I - 1> super;
-        typedef typename boost::mpl::at_c<StorageWrapperList, I>::type storage_wrapper_t;
-        typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
-
-        constexpr static int index = I;
-
-        data_ptr_t m_content;
-
-        template <short_t Idx>
-        using return_t = typename boost::mpl::
-            if_<boost::mpl::bool_<Idx == index>, data_ptr_t, typename super::template return_t<Idx>>::type;
-
-        template <short_t Idx>
-        GT_FUNCTION return_t<Idx> const &RESTRICT get() const {
-            return static_if<(Idx == index)>::apply(m_content, super::template get<Idx>());
-        }
-
-        template <short_t Idx>
-        GT_FUNCTION return_t<Idx> &RESTRICT get() {
-            return static_if<(Idx == index)>::apply(m_content, super::template get<Idx>());
-        }
-    };
-
-    template <typename StorageWrapperList>
-    struct data_ptr_cached<StorageWrapperList, 0> {
-        typedef typename boost::mpl::at_c<StorageWrapperList, 0>::type storage_wrapper_t;
-        typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
-
-        constexpr static int index = 0;
-
-        data_ptr_t m_content;
-
-        template <short_t Idx>
-        using return_t = data_ptr_t;
-
-        template <short_t Idx>
-        GT_FUNCTION data_ptr_t const &RESTRICT get() const {
-            return m_content;
-        }
-
-        template <short_t Idx>
-        GT_FUNCTION data_ptr_t &RESTRICT get() {
-            return m_content;
-        }
-    };
-
-    template <typename T>
-    struct is_data_ptr_cached : boost::mpl::false_ {};
-
-    template <typename StorageWrapperList, int ID>
-    struct is_data_ptr_cached<data_ptr_cached<StorageWrapperList, ID>> : boost::mpl::true_ {};
-
     /**
        @brief struct to allocate recursively all the strides with the proper dimension
 
@@ -209,8 +154,7 @@ namespace gridtools {
         struct is_dummy_coordinate : bool_constant<(Mapped < 0)> {};
 
         template <class StorageInfo, class LocalDomain>
-        struct get_index
-            : boost::mpl::find<typename LocalDomain::storage_info_ptr_list, const StorageInfo *>::type::pos {};
+        struct get_index : meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *> {};
 
         template <uint_t Coordinate,
             class LayoutMap,
@@ -270,7 +214,7 @@ namespace gridtools {
         GT_FUNCTION void operator()(const StorageInfo *) const {}
 
         template <typename StorageInfo,
-            uint_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
+            size_t I = _impl::get_index<StorageInfo, LocalDomain>::value,
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
@@ -341,14 +285,14 @@ namespace gridtools {
         pos3<int_t> m_pos_in_block;
         ArrayIndex &RESTRICT m_index_array;
 
-        template <typename StorageInfo, uint_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
+        template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
         GT_FUNCTION void operator()(const StorageInfo *) const {
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            using max_extent_t = typename LocalDomain::max_i_extent_t;
+            using max_extent_t = typename LocalDomain::max_extent_for_tmp_t;
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
-                boost::mpl::at<typename LocalDomain::storage_info_tmp_info_t, StorageInfo>::type::value;
+                meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
             m_index_array[I] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
                 make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
                     _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
@@ -356,36 +300,6 @@ namespace gridtools {
                 m_begin,
                 m_block_no,
                 m_pos_in_block);
-        }
-    };
-
-    /**@brief functor assigning all the storage pointers to the m_data_pointers array
-     * This method is responsible of copying the base pointers of the storages inside a local vector
-     * which is typically instantiated on a fast local memory.
-     *
-     * The EU stands for ExecutionUnit (which may be a thread or a group of
-     * threads. There are potentially two ids, one over i and one over j, since
-     * our execution model is parallel on (i,j). Defaulted to 1.
-     * @tparam BackendTraits the type traits of the backend
-     * @tparam LocalDomain local domain type
-     * */
-    template <typename BackendTraits, typename DataPtrCached, typename LocalDomain>
-    struct assign_storage_ptrs {
-        GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached<DataPtrCached>::value), GT_INTERNAL_ERROR);
-
-        DataPtrCached &RESTRICT m_data_ptr_cached;
-
-        template <typename FusionPair>
-        GT_FUNCTION void operator()(FusionPair const &sw) const {
-            typedef typename boost::fusion::result_of::first<FusionPair>::type arg_t;
-            typedef typename storage_wrapper_elem<arg_t, typename LocalDomain::storage_wrapper_list_t>::type
-                storage_wrapper_t;
-            typedef
-                typename boost::mpl::find<typename LocalDomain::storage_wrapper_list_t, storage_wrapper_t>::type::pos
-                    pos_in_storage_wrapper_list_t;
-            for (uint_t i = 0; i < storage_wrapper_t::num_of_storages; ++i)
-                BackendTraits::template once_per_block<pos_in_storage_wrapper_list_t::value>::assign(
-                    m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i], sw.second[i]);
         }
     };
 
@@ -421,8 +335,7 @@ namespace gridtools {
             GT_FUNCTION typename boost::enable_if_c<(Coordinate::value < SInfo::layout_t::unmasked_length), void>::type
             operator()(Coordinate) const {
                 typedef typename SInfo::layout_t layout_map_t;
-                typedef typename boost::mpl::find<typename LocalDomain::storage_info_ptr_list, const SInfo *>::type::pos
-                    index_t;
+                using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, const SInfo *>;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(
@@ -491,23 +404,20 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size<typename LocalDomain::data_ptr_fusion_map>::value > Accessor::index_t::value),
             GT_INTERNAL_ERROR);
-        typedef typename LocalDomain::template get_data_store<typename Accessor::index_t>::type type;
+        typedef typename LocalDomain::template get_arg<typename Accessor::index_t>::type::data_store_t type;
     };
 
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */
-    template <typename Accessor, typename IterateDomainArguments>
+    template <typename Accessor, typename LocalDomain>
     struct get_arg_from_accessor {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::at<typename IterateDomainArguments::local_domain_t::esf_args,
-            typename Accessor::index_t>::type type;
+        using type = typename LocalDomain::template get_arg<typename Accessor::index_t>::type;
     };
 
-    template <typename Accessor, typename IterateDomainArguments>
+    template <typename Accessor, typename LocalDomain>
     struct get_arg_value_type_from_accessor {
-        typedef typename get_arg_from_accessor<Accessor, IterateDomainArguments>::type::data_store_t::data_t type;
+        typedef typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t type;
     };
 
     /**
@@ -518,23 +428,86 @@ namespace gridtools {
         typedef typename boost::remove_reference<Accessor>::type acc_t;
 
         typedef typename boost::mpl::eval_if<boost::mpl::or_<is_accessor<acc_t>, is_vector_accessor<acc_t>>,
-            get_arg_value_type_from_accessor<acc_t, IterateDomainArguments>,
+            get_arg_value_type_from_accessor<acc_t, typename IterateDomainArguments::local_domain_t>,
             boost::mpl::identity<boost::mpl::void_>>::type accessor_value_type;
 
         typedef typename boost::mpl::if_<is_accessor_readonly<acc_t>,
             typename boost::add_const<accessor_value_type>::type,
             typename boost::add_reference<accessor_value_type>::type RESTRICT>::type type;
     };
+
     namespace aux {
         /**
-         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         * @brief metafunction that determines if a given accessor is associated with a placeholder holding a datafield
          */
-        template <typename Accessor, typename IterateDomainArguments>
+        template <typename Accessor, typename LocalDomain>
         struct accessor_holds_data_field {
             typedef typename boost::mpl::eval_if<is_accessor<Accessor>,
-                arg_holds_data_field_h<get_arg_from_accessor<Accessor, IterateDomainArguments>>,
+                arg_holds_data_field_h<get_arg_from_accessor<Accessor, LocalDomain>>,
                 boost::mpl::identity<boost::mpl::false_>>::type type;
         };
 
+        /**
+         * @brief method returning the data pointer of an accessor
+         *
+         * Specialization for the accessor placeholders for standard storages.
+         *
+         * This method is enabled only if the current placeholder dimension does not exceed the number of space
+         * dimensions of the storage class.
+         * I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for
+         * definitions).
+         */
+        template <typename LocalDomain,
+            typename Accessor,
+            typename ArgT = typename get_arg_from_accessor<Accessor, LocalDomain>::type,
+            typename ReturnT = typename ArgT::type::data_store_t::data_t>
+        GT_FUNCTION typename boost::disable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
+            ReturnT * RESTRICT>::type
+        get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
+            using storage_info_t = typename ArgT::data_store_t::storage_info_t;
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
+                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
+                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
+                "you here.");
+
+            typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
+
+            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[0];
+        }
+
+        /**
+         * @brief method returning the data pointer of an accessor
+         *
+         * Specialization for the accessor placeholder for extended storages,
+         * containing multiple snapshots of data fields with the same dimension and memory layout)
+         *
+         * This method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
+         * the storage class. I.e., if we are dealing with  storage lists or data fields (see concepts page for
+         * definitions).
+         */
+        template <typename LocalDomain,
+            typename Accessor,
+            typename ArgT = typename get_arg_from_accessor<Accessor, LocalDomain>::type,
+            typename DataStoreT = typename ArgT::data_store_t,
+            typename ReturnT = typename DataStoreT::data_t>
+        GT_FUNCTION typename boost::enable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
+            ReturnT * RESTRICT>::type
+        get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+            using storage_info_t = typename DataStoreT::storage_info_t;
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
+                "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
+                "snapshot)");
+
+            const int_t idx = get_datafield_offset<DataStoreT>::get(accessor);
+            assert(
+                idx < DataStoreT::num_of_storages && "Out of bounds access when accessing data store field element.");
+
+            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[idx];
+        }
     } // namespace aux
 } // namespace gridtools
