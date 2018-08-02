@@ -107,11 +107,11 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId>
+    template <class BackendId, class GridId, class StrategyId>
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT(BackendId == enumtype::Cuda,
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, platform::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
@@ -125,9 +125,9 @@ namespace gridtools {
         typedef storage_traits<BackendId> storage_traits_t;
         typedef typename backend_traits_t::template select_strategy<backend_ids_t>::type strategy_traits_t;
 
-        static constexpr enumtype::strategy s_strategy_id = StrategyId;
-        static constexpr enumtype::platform s_backend_id = BackendId;
-        static constexpr enumtype::grid_type s_grid_type_id = GridId;
+        using strategy_id_t = StrategyId;
+        using backend_id_t = BackendId;
+        using grid_id_t = GridId;
 
         /**
             Method to retrieve a global parameter

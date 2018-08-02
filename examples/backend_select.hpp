@@ -40,18 +40,14 @@
 
 #ifdef BACKEND_HOST
 #ifdef BACKEND_STRATEGY_NAIVE
-using backend_t =
-    gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive>;
+using backend_t = gridtools::backend<gridtools::platform::x86, GRIDBACKEND, gridtools::strategy::naive>;
 #else
-using backend_t =
-    gridtools::backend<gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block>;
+using backend_t = gridtools::backend<gridtools::platform::x86, GRIDBACKEND, gridtools::strategy::block>;
 #endif
 #elif defined(BACKEND_MIC)
-using backend_t =
-    gridtools::backend<gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block>;
+using backend_t = gridtools::backend<gridtools::platform::mc, GRIDBACKEND, gridtools::strategy::block>;
 #elif defined(BACKEND_CUDA)
-using backend_t =
-    gridtools::backend<gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block>;
+using backend_t = gridtools::backend<gridtools::platform::cuda, GRIDBACKEND, gridtools::strategy::block>;
 #else
 #error "no backend selected"
 #endif

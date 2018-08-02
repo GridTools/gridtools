@@ -133,7 +133,7 @@ namespace gridtools {
 
             using iterate_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
 
-            typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
+            typedef backend_traits_from_id<platform::x86> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
