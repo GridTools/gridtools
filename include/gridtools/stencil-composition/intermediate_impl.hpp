@@ -198,7 +198,7 @@ namespace gridtools {
         };
 
         template <class LocalDomain, class Arg>
-        using local_domain_has_arg = typename boost::mpl::has_key<typename LocalDomain::data_ptr_fusion_map, Arg>::type;
+        using local_domain_has_arg = meta::st_contains<typename LocalDomain::esf_args, Arg>;
 
         template <class StorageInfo, class LocalDomain>
         struct copy_strides_f {
@@ -228,7 +228,8 @@ namespace gridtools {
                 auto const &storage_info = info.second.m_storage_info;
                 namespace f = boost::fusion;
                 // here we set data pointers
-                advanced::copy_raw_pointers(view, f::at_key<Arg>(local_domain.m_local_data_ptrs));
+                constexpr auto data_ptr_index = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
+                advanced::copy_raw_pointers(view, get<data_ptr_index>(local_domain.m_local_data_ptrs));
 
                 // here we set the strides
                 using storage_info_t = remove_const_t<remove_reference_t<decltype(storage_info)>>;

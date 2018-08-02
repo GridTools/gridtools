@@ -333,7 +333,8 @@ namespace gridtools {
             typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
 
-            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[0];
+            constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args, ArgT>::value;
+            return get<arg_index>(local_domain.m_local_data_ptrs)[0];
         }
 
         /**
@@ -365,7 +366,8 @@ namespace gridtools {
             assert(
                 idx < DataStoreT::num_of_storages && "Out of bounds access when accessing data store field element.");
 
-            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[idx];
+            constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args, ArgT>::value;
+            return get<arg_index>(local_domain.m_local_data_ptrs)[idx];
         }
     } // namespace aux
 } // namespace gridtools

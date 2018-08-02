@@ -149,12 +149,12 @@ namespace gridtools {
             using type = typename ::gridtools::accessor_return_type_impl<Accessor, IterateDomainArguments>::type;
         };
 
-        using data_ptrs_map_t = typename local_domain_t::data_ptr_fusion_map;
+        using data_ptr_tuple_t = typename local_domain_t::data_ptr_tuple;
 
         // the number of different storage metadatas used in the current functor
         static constexpr auto N_META_STORAGES = meta::length<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
-        static constexpr auto N_STORAGES = meta::length<data_ptrs_map_t>::value;
+        static constexpr auto N_STORAGES = meta::length<data_ptr_tuple_t>::value;
 
         using strides_t = typename local_domain_t::strides_tuple;
         using array_index_t = array<int_t, N_META_STORAGES>;
@@ -192,8 +192,7 @@ namespace gridtools {
         };
 
       private:
-        using data_ptr_offsets_t =
-            array<int, boost::fusion::result_of::size<decltype(local_domain.m_local_data_ptrs)>::value>;
+        using data_ptr_offsets_t = array<int, meta::length<decltype(local_domain.m_local_data_ptrs)>::value>;
         data_ptr_offsets_t m_data_ptr_offsets;
 
         /**
@@ -259,7 +258,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second[0]);
+            return *static_cast<Res *>(get<index_t::value>(local_domain.m_local_data_ptrs)[0]);
         }
 
         /**
@@ -268,9 +267,9 @@ namespace gridtools {
          */
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
-            GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(**boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second.data()),
-                accessor.get_arguments())) /** @endcond */;
+            GT_AUTO_RETURN(
+                boost::fusion::invoke(std::cref(**get<Acc::index_t::value>(local_domain.m_local_data_ptrs).data()),
+                    accessor.get_arguments())) /** @endcond */;
 
         /**
          * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
