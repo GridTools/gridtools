@@ -71,17 +71,37 @@ namespace gridtools {
     };
 
     namespace impl_ {
+        template <class T>
+        GT_FUNCTION constexpr remove_reference_t<T> &&device_move(T &&t) noexcept {
+            return static_cast<remove_reference_t<T> &&>(t);
+        }
+
+        template <class T>
+        GT_FUNCTION constexpr T &&device_forward(remove_reference_t<T> &t) noexcept {
+            return static_cast<T &&>(t);
+        }
+
+        template <class T>
+        GT_FUNCTION constexpr T &&device_forward(remove_reference_t<T> &&t) noexcept {
+            return static_cast<T &&>(t);
+        }
+
         template <size_t I, class T>
         struct tuple_item {
             T m_value;
 
             GT_FUNCTION constexpr explicit tuple_item(T const &value) : m_value(value) {}
-            GT_FUNCTION constexpr tuple_item() : m_value() {}
 
-            GT_FUNCTION int swap(tuple_item &other) {
+            GT_FUNCTION constexpr tuple_item() = default;
+            GT_FUNCTION constexpr tuple_item(tuple_item const &) = default;
+            GT_FUNCTION constexpr tuple_item(tuple_item &&) = default;
+            GT_FUNCTION tuple_item &operator=(tuple_item const &) = default;
+            GT_FUNCTION tuple_item &operator=(tuple_item &&) = default;
+
+            GT_FUNCTION int swap(tuple_item &other) noexcept {
                 T tmp = m_value;
-                m_value = static_cast<T &&>(other.m_value);
-                other.m_value = static_cast<T &&>(tmp);
+                m_value = device_move(other.m_value);
+                other.m_value = device_move(tmp);
                 return 0;
             }
         };
@@ -92,14 +112,18 @@ namespace gridtools {
         template <size_t... Is, class... Ts>
         struct tuple_impl<gt_index_sequence<Is...>, Ts...> : tuple_item<Is, Ts>... {
             GT_FUNCTION constexpr explicit tuple_impl(Ts const &... ts) : tuple_item<Is, Ts>(ts)... {}
-            GT_FUNCTION constexpr explicit tuple_impl(Ts &&... ts) : tuple_item<Is, Ts>(std::forward<Ts>(ts))... {}
+            GT_FUNCTION constexpr explicit tuple_impl(Ts &&... ts) : tuple_item<Is, Ts>(device_forward<Ts>(ts))... {}
 
-            GT_FUNCTION constexpr tuple_impl() : tuple_item<Is, Ts>()... {}
+            GT_FUNCTION constexpr tuple_impl() = default;
+            GT_FUNCTION constexpr tuple_impl(tuple_impl const &) = default;
+            GT_FUNCTION constexpr tuple_impl(tuple_impl &&) = default;
+            GT_FUNCTION tuple_impl &operator=(tuple_impl const &) = default;
+            GT_FUNCTION tuple_impl &operator=(tuple_impl &&) = default;
 
-            GT_FUNCTION void swap(tuple_impl &other) { all(tuple_item<Is, Ts>::swap(other)...); }
+            GT_FUNCTION void swap(tuple_impl &other) noexcept { all(tuple_item<Is, Ts>::swap(other)...); }
 
             template <class... Args>
-            GT_FUNCTION static void all(Args...) {}
+            GT_FUNCTION static constexpr void all(Args...) noexcept {}
         };
 
     } // namespace impl_
@@ -117,9 +141,13 @@ namespace gridtools {
 
       public:
         GT_FUNCTION constexpr explicit tuple(Ts const &... ts) : m_impl(ts...) {}
-        GT_FUNCTION constexpr explicit tuple(Ts &&... ts) : m_impl(std::forward<Ts>(ts)...) {}
+        GT_FUNCTION constexpr explicit tuple(Ts &&... ts) : m_impl(impl_::device_forward<Ts>(ts)...) {}
 
-        GT_FUNCTION constexpr tuple() : m_impl() {}
+        GT_FUNCTION constexpr tuple() = default;
+        GT_FUNCTION constexpr tuple(tuple const &) = default;
+        GT_FUNCTION constexpr tuple(tuple &&) = default;
+        GT_FUNCTION tuple &operator=(tuple const &) = default;
+        GT_FUNCTION tuple &operator=(tuple &&) = default;
 
         GT_FUNCTION static constexpr size_t size() { return sizeof...(Ts); }
 
@@ -145,7 +173,7 @@ namespace gridtools {
 
     template <class... Ts>
     GT_FUNCTION constexpr tuple<Ts...> make_tuple(Ts &&... ts) {
-        return tuple<Ts...>(std::forward<Ts>(ts)...);
+        return tuple<Ts...>(impl_::device_forward<Ts>(ts)...);
     }
 
     namespace impl_ {
