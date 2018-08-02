@@ -170,12 +170,13 @@ namespace gridtools {
             typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
             // initialize the indices
-            const int kblock = execution_type_t::iteration == enumtype::parallel
-                                   ? blockIdx.z * execution_type_t::block_size - grid.k_min()
-                                   : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
-            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
+            const uint_t kbegin =
+                grid.template value_at<iteration_policy_t::from>() +
+                (execution_type_t::iteration == enumtype::parallel ? blockIdx.z * execution_type_t::block_size : 0);
+
+            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), kbegin},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
-                {iblock, jblock, kblock});
+                {iblock, jblock, 0});
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -235,7 +236,10 @@ namespace gridtools {
                 // number of threads
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
                 const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
-                const uint_t nz = m_grid.k_total_length();
+                using interval = typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type;
+                using from_level = typename index_to_level<typename interval::first>::type;
+                using to_level = typename index_to_level<typename interval::second>::type;
+                const uint_t nz = m_grid.template value_at<to_level>() - m_grid.template value_at<from_level>() + 1;
 
                 static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
 
