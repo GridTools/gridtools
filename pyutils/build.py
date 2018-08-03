@@ -39,9 +39,7 @@ def build_and_test(args):
 
     targets = args.targets
     if args.perftest_targets:
-        import perftest.stencils
-        stencils = perftest.stencils.load(args.grid)
-        targets = [s.gridtools_target(args.backend) for s in stencils]
+        targets = ["perftests"]
 
     config = perftest.config.get(args.config)
 
