@@ -63,10 +63,9 @@ namespace gridtools {
          * Actually offsets are stored for each data_ptr, however only for temporaries they are non-zero.
          * We keep the zeros as it simplifies design, and will be cleaned up when we re-implement the temporaries.
          */
-        template <typename LocalDomain, typename DataPtrsOffset>
-        struct assign_data_ptr_offsets {
-            LocalDomain const &m_local_domain;
-            DataPtrsOffset &m_data_ptr_offsets;
+        template <typename LocalDomain>
+        struct update_data_ptrs {
+            LocalDomain &m_local_domain;
 
             template <class Index, class Arg = GT_META_CALL(meta::at, (typename LocalDomain::esf_args, Index))>
             GT_FUNCTION enable_if_t<Arg::is_temporary> operator()(Index) const {
@@ -78,13 +77,13 @@ namespace gridtools {
 
                 const int_t thread = omp_get_thread_num();
                 const int_t total_threads = omp_get_max_threads();
-                m_data_ptr_offsets[Index::value] = padded_total_length * thread / total_threads;
+                auto &data_ptrs = get<Index::value>(m_local_domain.m_local_data_ptrs);
+                for (std::size_t i = 0; i < data_ptrs.size(); ++i)
+                    data_ptrs[i] += padded_total_length * thread / total_threads;
             }
 
             template <class Index, class Arg = GT_META_CALL(meta::at, (typename LocalDomain::esf_args, Index))>
-            GT_FUNCTION enable_if_t<!Arg::is_temporary> operator()(Index) const {
-                m_data_ptr_offsets[Index::value] = 0;
-            }
+            GT_FUNCTION enable_if_t<!Arg::is_temporary> operator()(Index) const {}
         };
 
     } // namespace _impl
@@ -108,31 +107,30 @@ namespace gridtools {
         // the number of storages  used in the current functor
         static constexpr auto N_STORAGES = meta::length<typename local_domain_t::data_ptr_list>::value;
 
-        using data_ptr_offsets_t = array<int, N_STORAGES>;
-
       private:
         template <class IDA>
         friend class iterate_domain_mic;
 
         // *********************** members **********************
-        local_domain_t local_domain;
+
+        local_domain_t m_local_domain;
         int_t m_j_block_index;     /** Local j-index inside block. */
         int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
         int_t m_i_block_base;      /** Global block start index along i-axis. */
         int_t m_j_block_base;      /** Global block start index along j-axis. */
         int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
         bool m_enable_ij_caches;   /** Enables ij-caching. */
-        data_ptr_offsets_t m_data_ptr_offsets;
+
         // ******************* end of members *******************
 
       public:
         GT_FUNCTION
         iterate_domain_data_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_j_block_index(0),
+            : iterate_domain_reduction_t(reduction_initial_value), m_local_domain(local_domain), m_j_block_index(0),
               m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
               m_enable_ij_caches(false) {
             gridtools::for_each<GT_META_CALL(meta::make_indices_for, typename local_domain_t::esf_args)>(
-                _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
+                _impl::update_data_ptrs<local_domain_t>{m_local_domain});
         }
 
         /** @brief Sets the block start indices. */
@@ -224,16 +222,6 @@ namespace gridtools {
             array<int_t, N_META_STORAGES> &m_index_array;
         };
 
-      private:
-        /**
-         * @brief get data pointer, taking into account a possible offset in case of temporaries
-         */
-        template <typename Accessor, typename Arg = typename get_arg_from_accessor<Accessor, local_domain_t>::type>
-        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) {
-            static constexpr auto pos_in_args = meta::st_position<typename local_domain_t::esf_args, Arg>::value;
-            return aux::get_data_pointer(m_data.local_domain, accessor) + m_data.m_data_ptr_offsets[pos_in_args];
-        }
-
       public:
         GT_FUNCTION iterate_domain_mic(data_t &data, int_t i_block_index)
             : m_data(data), m_i_block_index(i_block_index) {}
@@ -266,7 +254,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(get<index_t::value>(m_data.local_domain.m_local_data_ptrs)[0]);
+            return *static_cast<Res *>(get<index_t::value>(m_data.m_local_domain.m_local_data_ptrs)[0]);
         }
 
         /**
@@ -276,7 +264,7 @@ namespace gridtools {
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(**get<Acc::index_t::value>(m_data.local_domain.m_local_data_ptrs).data()),
+                std::cref(**get<Acc::index_t::value>(m_data.m_local_domain.m_local_data_ptrs).data()),
                 accessor.get_arguments())) /** @endcond */;
 
         /**
@@ -292,7 +280,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
-            return get_value(accessor, get_data_pointer(accessor));
+            return get_value(accessor, aux::get_data_pointer(m_data.m_local_domain, accessor));
         }
 
         /** @brief Global i-index. */
@@ -321,7 +309,7 @@ namespace gridtools {
         GT_FUNCTION int_t storage_stride() const {
             using storage_info_index_t =
                 GT_META_CALL(meta::st_position, (typename local_domain_t::storage_info_list, StorageInfo));
-            auto const &strides = get<storage_info_index_t::value>(m_data.local_domain.m_local_strides);
+            auto const &strides = get<storage_info_index_t::value>(m_data.m_local_domain.m_local_strides);
             return stride<StorageInfo, Coordinate>(strides);
         }
 

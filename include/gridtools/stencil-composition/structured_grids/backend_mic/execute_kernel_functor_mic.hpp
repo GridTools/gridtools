@@ -432,13 +432,13 @@ namespace gridtools {
                 using iterate_domain_t = GT_META_CALL(gridtools::_impl::get_iterate_domain_type, RunFunctorArguments);
                 using iterate_domain_data_t = typename iterate_domain_t::data_t;
 
-                iterate_domain_data_t it_domain(m_local_domain, m_reduction_data.initial_value());
+                iterate_domain_data_t it_domain_data(m_local_domain, m_reduction_data.initial_value());
 
                 gridtools::_impl::boost_mpl_for_each_mic<loop_intervals_t>(
                     gridtools::_impl::interval_functor_mic<RunFunctorArguments, ExecutionInfo>{
-                        it_domain, m_grid, execution_info});
+                        it_domain_data, m_grid, execution_info});
 
-                m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
+                m_reduction_data.assign(omp_get_thread_num(), it_domain_data.reduction_value());
             }
 
           private:
