@@ -147,11 +147,10 @@ namespace gridtools {
         };
 
         using storage_info_list = typename local_domain_t::storage_info_list;
-        typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_list>::value;
+        static const uint_t N_META_STORAGES = meta::length<storage_info_list>::value;
         // the number of storages  used in the current functor
-        static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
+        static const uint_t N_STORAGES = meta::length<typename local_domain_t::data_ptr_list>::value;
 
       public:
         typedef typename local_domain_t::strides_tuple strides_t;
@@ -230,7 +229,7 @@ namespace gridtools {
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
-            gridtools::for_each<GT_META_CALL(meta::make_indices_for, typename local_domain_t::storage_info_list)>(
+            gridtools::for_each<GT_META_CALL(meta::make_indices_for, storage_info_list)>(
                 initialize_index_f<strides_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }
@@ -297,7 +296,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second[0]);
+            return *static_cast<Res *>(get<index_t::value>(local_data_ptrs())[0]);
         }
 
         /**
@@ -307,7 +306,7 @@ namespace gridtools {
         template <typename Acc, typename... Args>
         GT_FUNCTION ret_t<Acc, Args...> operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const {
             typedef typename Acc::index_t index_t;
-            auto storage_ = boost::fusion::at<index_t>(local_data_ptrs()).second;
+            auto storage_ = get<index_t::value>(local_data_ptrs());
             return tuple_to_container(
                 **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
         }
