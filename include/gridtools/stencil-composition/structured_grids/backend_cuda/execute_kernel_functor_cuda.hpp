@@ -170,10 +170,10 @@ namespace gridtools {
             typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
             // initialize the indices
-            const int kblock = execution_type_t::iteration != enumtype::parallel
-                                   ? grid.template value_at<iteration_policy_t::from>()
-                                   : grid.k_min() + blockIdx.z * execution_type_t::block_size;
-            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), 0},
+            const int_t kblock = execution_type_t::iteration == enumtype::parallel
+                                     ? blockIdx.z * execution_type_t::block_size - grid.k_min()
+                                     : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
+            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
 
