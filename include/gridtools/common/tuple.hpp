@@ -123,7 +123,7 @@ namespace gridtools {
             GT_FUNCTION void swap(tuple_impl &other) noexcept { all(tuple_item<Is, Ts>::swap(other)...); }
 
             template <class... Args>
-            GT_FUNCTION static constexpr void all(Args...) noexcept {}
+            GT_FUNCTION static void all(Args...) noexcept {}
         };
 
     } // namespace impl_
