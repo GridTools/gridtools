@@ -78,12 +78,10 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
-        typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
-
         // the number of different storage metadatas used in the current functor
         static constexpr auto N_META_STORAGES = meta::length<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
-        static constexpr auto N_STORAGES = meta::length<data_ptrs_map_t>::value;
+        static constexpr auto N_STORAGES = meta::length<typename local_domain_t::data_ptr_list>::value;
 
         typedef typename local_domain_t::strides_tuple strides_t;
 
@@ -287,7 +285,7 @@ namespace gridtools {
             typedef typename arg_t::data_store_t::data_t data_t;
 
             data_t *RESTRICT real_storage_pointer =
-                static_cast<data_t *>(boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0]);
+                static_cast<data_t *>(get<index_t::value>(m_local_domain.m_local_data_ptrs)[0]);
 
             assert(pointer_oob_check<storage_info_t>(m_local_domain, offset));
 
@@ -326,7 +324,7 @@ namespace gridtools {
                 compute_offset<storage_info_t>(get<storage_info_index>(strides()), position_offset);
 
             return get_raw_value(
-                accessor_t(), boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0], pointer_offset);
+                accessor_t(), get<index_t::value>(m_local_domain.m_local_data_ptrs)[0], pointer_offset);
         }
     };
 
