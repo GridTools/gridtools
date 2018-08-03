@@ -47,6 +47,7 @@ using gridtools::accessor;
 using gridtools::arg;
 using gridtools::extent;
 using gridtools::level;
+using gridtools::tmp_arg;
 using gridtools::uint_t;
 
 using namespace gridtools::enumtype;
@@ -91,15 +92,15 @@ void run_test() {
 
     auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
 
-    auto copy = gridtools::make_computation<backend_t>(grid,
+    auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
             execute<parallel, 20>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
 
-    copy.run();
+    comp.run();
 
-    copy.sync_bound_data_stores();
+    comp.sync_bound_data_stores();
 
     auto outv = make_host_view(out);
     auto inv = make_host_view(in);
@@ -112,10 +113,62 @@ void run_test() {
         }
 }
 
+template <typename Axis>
+void run_test_with_temporary() {
+
+    constexpr uint_t d1 = 7;
+    constexpr uint_t d2 = 8;
+    constexpr uint_t d3_l = 14;
+    constexpr uint_t d3_u = 16;
+
+    using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
+
+    storage_info_t storage_info(d1, d2, d3_l + d3_u);
+
+    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
+    storage_t out(storage_info, (double)1.5);
+
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_tmp;
+
+    auto grid = gridtools::make_grid(d1, d2, Axis(d3_l, d3_u));
+
+    auto comp = gridtools::make_computation<backend_t>(grid,
+        p_in() = in,
+        p_out() = out,
+        gridtools::make_multistage(execute<parallel, 20>(),
+            gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_tmp()),
+            gridtools::make_stage<parallel_functor<Axis>>(p_tmp(), p_out())));
+
+    comp.run();
+
+    comp.sync_bound_data_stores();
+
+    auto outv = make_host_view(out);
+    auto inv = make_host_view(in);
+    for (int i = 0; i < d1; ++i)
+        for (int j = 0; j < d2; ++j) {
+            for (int k = 0; k < d3_l; ++k)
+                EXPECT_EQ(inv(i, j, k), outv(i, j, k));
+            for (int k = d3_l; k < d3_u; ++k)
+                EXPECT_EQ(4 * inv(i, j, k), outv(i, j, k));
+        }
+}
+
 TEST(structured_grid, kparallel) { //
     run_test<gridtools::axis<2>>();
 }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
     run_test<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
+}
+
+TEST(structured_grid, kparallel_with_temporary) { //
+    run_test_with_temporary<gridtools::axis<2>>();
+}
+
+TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary) {
+    run_test_with_temporary<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
 }
