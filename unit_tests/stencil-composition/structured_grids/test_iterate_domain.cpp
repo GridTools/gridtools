@@ -127,13 +127,13 @@ namespace test_iterate_domain {
 
 #ifdef BACKEND_MIC
         using it_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
-#endif
-
-#ifdef BACKEND_HOST
+        using it_domain_data_t = typename it_domain_t::data_t;
+        it_domain_data_t it_domain_data(local_domain1, 0);
+        it_domain_t it_domain(it_domain_data, 0);
+#elif defined(BACKEND_HOST)
         using it_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
-#endif
-
         it_domain_t it_domain(local_domain1, 0);
+#endif
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
 
@@ -259,8 +259,8 @@ namespace test_iterate_domain {
 
 #ifdef BACKEND_MIC
         it_domain.set_i_block_index(1);
-        it_domain.set_j_block_index(1);
-        it_domain.set_k_block_index(1);
+        it_domain_data.set_j_block_index(1);
+        it_domain_data.set_k_block_index(1);
 #else
         it_domain.increment_i();
         it_domain.increment_j();

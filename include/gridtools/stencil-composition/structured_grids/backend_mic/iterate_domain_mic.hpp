@@ -93,7 +93,7 @@ namespace gridtools {
      * @brief Iterate domain class for the MIC backend.
      */
     template <typename IterateDomainArguments>
-    class iterate_domain_mic : public iterate_domain_reduction<IterateDomainArguments> {
+    class iterate_domain_data_mic : public iterate_domain_reduction<IterateDomainArguments> {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
@@ -101,19 +101,76 @@ namespace gridtools {
 
         using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
         using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
-        using backend_traits_t = backend_traits_from_id<platform::mc>;
 
-        using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
+      public:
+        // the number of different storage metadatas used in the current functor
+        static constexpr auto N_META_STORAGES = meta::length<typename local_domain_t::storage_info_list>::value;
+        // the number of storages  used in the current functor
+        static constexpr auto N_STORAGES = meta::length<typename local_domain_t::data_ptr_list>::value;
+
+        using data_ptr_offsets_t = array<int, N_STORAGES>;
+
+      private:
+        template <class IDA>
+        friend class iterate_domain_mic;
+
+        // *********************** members **********************
+        local_domain_t local_domain;
+        int_t m_j_block_index;     /** Local j-index inside block. */
+        int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
+        int_t m_i_block_base;      /** Global block start index along i-axis. */
+        int_t m_j_block_base;      /** Global block start index along j-axis. */
+        int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
+        bool m_enable_ij_caches;   /** Enables ij-caching. */
+        data_ptr_offsets_t m_data_ptr_offsets;
+        // ******************* end of members *******************
+
+      public:
+        GT_FUNCTION
+        iterate_domain_data_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_j_block_index(0),
+              m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
+              m_enable_ij_caches(false) {
+            gridtools::for_each<GT_META_CALL(meta::make_indices_for, typename local_domain_t::esf_args)>(
+                _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
+        }
+
+        /** @brief Sets the block start indices. */
+        GT_FUNCTION void set_block_base(int_t i_block_base, int_t j_block_base) {
+            m_i_block_base = i_block_base;
+            m_j_block_base = j_block_base;
+        }
+
+        /** @brief Sets the local block index along the j-axis. */
+        GT_FUNCTION void set_j_block_index(int_t j) { m_j_block_index = j; }
+        /** @brief Sets the local block index along the k-axis. */
+        GT_FUNCTION void set_k_block_index(int_t k) { m_k_block_index = k; }
+
+        /** @brief Sets the software prefetching distance along k-axis. Zero means no software prefetching. */
+        GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
+
+        /** @brief Enables ij-caches. */
+        GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
+    };
+
+    /**
+     * @brief Iterate domain class for the MIC backend.
+     */
+    template <typename IterateDomainArguments>
+    class iterate_domain_mic {
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+
+        using local_domain_t = typename IterateDomainArguments::local_domain_t;
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
+
+        using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
+        using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
+
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
 
         /* meta function to check if a storage info belongs to a temporary field */
         template <typename StorageInfo>
         using storage_is_tmp = meta::st_contains<typename local_domain_t::tmp_storage_info_list, StorageInfo>;
-
-        /* meta function to get the storage info type corresponding to an accessor */
-        template <typename Accessor>
-        using storage_info_from_accessor =
-            typename local_domain_t::template get_arg<typename Accessor::index_t>::type::data_store_t::storage_info_t;
 
         /* ij-cache types and meta functions */
         using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<IJ>>::type;
@@ -126,19 +183,9 @@ namespace gridtools {
 
       public:
         //***************** types exposed in API
-        using readonly_args_indices_t =
-            typename compute_readonly_args_indices<typename IterateDomainArguments::esf_sequence_t>::type;
         using esf_args_t = typename local_domain_t::esf_args;
+        using data_t = iterate_domain_data_mic<IterateDomainArguments>;
         //*****************
-
-        /**
-         * @brief metafunction that determines if a given accessor is associated with an placeholder holding a data
-         * field.
-         */
-        template <typename Accessor>
-        struct accessor_holds_data_field {
-            using type = typename aux::accessor_holds_data_field<Accessor, IterateDomainArguments>::type;
-        };
 
         /**
          * @brief metafunction that computes the return type of all operator() of an accessor.
@@ -149,35 +196,22 @@ namespace gridtools {
             using type = typename ::gridtools::accessor_return_type_impl<Accessor, IterateDomainArguments>::type;
         };
 
-        using data_ptr_tuple_t = typename local_domain_t::data_ptr_tuple;
-
         // the number of different storage metadatas used in the current functor
         static constexpr auto N_META_STORAGES = meta::length<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
-        static constexpr auto N_STORAGES = meta::length<data_ptr_tuple_t>::value;
+        static constexpr auto N_STORAGES = meta::length<typename local_domain_t::data_ptr_list>::value;
 
-        using strides_t = typename local_domain_t::strides_tuple;
-        using array_index_t = array<int_t, N_META_STORAGES>;
         // *************** end of type definitions **************
+      private:
+        using array_index_t = array<int_t, N_META_STORAGES>;
 
-      protected:
         // *********************** members **********************
-        local_domain_t const &local_domain;
-        strides_t m_strides;
-        int_t m_i_block_index;     /** Local i-index inside block. */
-        int_t m_j_block_index;     /** Local j-index inside block. */
-        int_t m_k_block_index;     /** Local/global k-index (no blocking along k-axis). */
-        int_t m_i_block_base;      /** Global block start index along i-axis. */
-        int_t m_j_block_base;      /** Global block start index along j-axis. */
-        int_t m_prefetch_distance; /** Prefetching distance along k-axis, zero means no software prefetching. */
-        bool m_enable_ij_caches;   /** Enables ij-caching. */
+        data_t &m_data;
+        int_t m_i_block_index; /** Local i-index inside block. */
         // ******************* end of members *******************
 
         // helper class for index array generation, only needed for the index() function
         struct index_getter {
-            index_getter(iterate_domain_mic const &it_domain, array_index_t &index_array)
-                : m_it_domain(it_domain), m_index_array(index_array) {}
-
             template <class StorageInfoIndex>
             void operator()(StorageInfoIndex const &) const {
                 using storage_info_t =
@@ -186,59 +220,33 @@ namespace gridtools {
                     m_it_domain.compute_offset<storage_info_t>(accessor_base<storage_info_t::ndims>());
             }
 
-          private:
             iterate_domain_mic const &m_it_domain;
             array<int_t, N_META_STORAGES> &m_index_array;
         };
 
       private:
-        using data_ptr_offsets_t = array<int, meta::length<decltype(local_domain.m_local_data_ptrs)>::value>;
-        data_ptr_offsets_t m_data_ptr_offsets;
-
         /**
          * @brief get data pointer, taking into account a possible offset in case of temporaries
          */
         template <typename Accessor, typename Arg = typename get_arg_from_accessor<Accessor, local_domain_t>::type>
         GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) {
             static constexpr auto pos_in_args = meta::st_position<typename local_domain_t::esf_args, Arg>::value;
-            return aux::get_data_pointer(local_domain, accessor) + m_data_ptr_offsets[pos_in_args];
+            return aux::get_data_pointer(m_data.local_domain, accessor) + m_data.m_data_ptr_offsets[pos_in_args];
         }
 
       public:
-        GT_FUNCTION
-        iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain),
-              m_strides(local_domain.m_local_strides), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0),
-              m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
-            gridtools::for_each<GT_META_CALL(meta::make_indices_for, esf_args_t)>(
-                _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
-        }
-
-        /** @brief Sets the block start indices. */
-        GT_FUNCTION void set_block_base(int_t i_block_base, int_t j_block_base) {
-            m_i_block_base = i_block_base;
-            m_j_block_base = j_block_base;
-        }
+        GT_FUNCTION iterate_domain_mic(data_t &data, int_t i_block_index)
+            : m_data(data), m_i_block_index(i_block_index) {}
 
         /** @brief Sets the local block index along the i-axis. */
         GT_FUNCTION void set_i_block_index(int_t i) { m_i_block_index = i; }
-        /** @brief Sets the local block index along the j-axis. */
-        GT_FUNCTION void set_j_block_index(int_t j) { m_j_block_index = j; }
-        /** @brief Sets the local block index along the k-axis. */
-        GT_FUNCTION void set_k_block_index(int_t k) { m_k_block_index = k; }
 
         /** @brief Returns the current data index at offset (0, 0, 0) per meta storage. */
         GT_FUNCTION array_index_t index() const {
             array_index_t index_array;
-            for_each<GT_META_CALL(meta::make_indices_c, N_META_STORAGES)>(index_getter(*this, index_array));
+            for_each<GT_META_CALL(meta::make_indices_c, N_META_STORAGES)>(index_getter{*this, index_array});
             return index_array;
         }
-
-        /** @brief Sets the software prefetching distance along k-axis. Zero means no software prefetching. */
-        GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
-
-        /** @brief Enables ij-caches. */
-        GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
 
         /**
          * @brief Returns the value of the memory at the given address, plus the offset specified by the arg
@@ -258,7 +266,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(get<index_t::value>(local_domain.m_local_data_ptrs)[0]);
+            return *static_cast<Res *>(get<index_t::value>(m_data.local_domain.m_local_data_ptrs)[0]);
         }
 
         /**
@@ -267,9 +275,9 @@ namespace gridtools {
          */
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
-            GT_AUTO_RETURN(
-                boost::fusion::invoke(std::cref(**get<Acc::index_t::value>(local_domain.m_local_data_ptrs).data()),
-                    accessor.get_arguments())) /** @endcond */;
+            GT_AUTO_RETURN(boost::fusion::invoke(
+                std::cref(**get<Acc::index_t::value>(m_data.local_domain.m_local_data_ptrs).data()),
+                accessor.get_arguments())) /** @endcond */;
 
         /**
          * @brief Returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
@@ -289,15 +297,18 @@ namespace gridtools {
 
         /** @brief Global i-index. */
         GT_FUNCTION
-        int_t i() const { return m_i_block_base + m_i_block_index; }
+        int_t i() const { return m_data.m_i_block_base + m_i_block_index; }
 
         /** @brief Global j-index. */
         GT_FUNCTION
-        int_t j() const { return m_j_block_base + m_j_block_index; }
+        int_t j() const { return m_data.m_j_block_base + m_data.m_j_block_index; }
 
         /** @brief Global k-index. */
         GT_FUNCTION
-        int_t k() const { return m_k_block_index; }
+        int_t k() const { return m_data.m_k_block_index; }
+
+        GT_FUNCTION void set_reduction_value(reduction_type_t value) { m_data.set_reduction_value(value); }
+        GT_FUNCTION reduction_type_t reduction_value() const { return m_data.reduction_value(); }
 
       private:
         /**
@@ -310,7 +321,7 @@ namespace gridtools {
         GT_FUNCTION int_t storage_stride() const {
             using storage_info_index_t =
                 GT_META_CALL(meta::st_position, (typename local_domain_t::storage_info_list, StorageInfo));
-            auto const &strides = get<storage_info_index_t::value>(m_strides);
+            auto const &strides = get<storage_info_index_t::value>(m_data.local_domain.m_local_strides);
             return stride<StorageInfo, Coordinate>(strides);
         }
 
@@ -335,7 +346,7 @@ namespace gridtools {
             constexpr int_t halo = StorageInfo::halo_t::template at<Coordinate>();
 
             // for temporaries the first element starts after the halo, for other storages we use the block base index
-            const int_t block_base = is_tmp ? halo : m_i_block_base;
+            const int_t block_base = is_tmp ? halo : m_data.m_i_block_base;
             return block_base + m_i_block_index + accessor_offset<Coordinate>(accessor);
         }
 
@@ -360,8 +371,8 @@ namespace gridtools {
             constexpr int_t halo = StorageInfo::halo_t::template at<Coordinate>();
 
             // for temporaries the first element starts after the halo, for other storages we use the block base index
-            const int_t block_base = is_tmp ? halo : m_j_block_base;
-            return block_base + m_j_block_index + accessor_offset<Coordinate>(accessor);
+            const int_t block_base = is_tmp ? halo : m_data.m_j_block_base;
+            return block_base + m_data.m_j_block_index + accessor_offset<Coordinate>(accessor);
         }
 
         /**
@@ -383,7 +394,7 @@ namespace gridtools {
             Accessor const &accessor) const {
             // for ij-caches we simply ignore the block index and always access storage at k = 0
             const int_t block_index =
-                (accessor_is_ij_cached<Accessor>::value && m_enable_ij_caches) ? 0 : m_k_block_index;
+                (accessor_is_ij_cached<Accessor>::value && m_data.m_enable_ij_caches) ? 0 : m_data.m_k_block_index;
             return block_index + accessor_offset<Coordinate>(accessor);
         }
 
@@ -454,8 +465,8 @@ namespace gridtools {
         const int_t pointer_offset = compute_offset<storage_info_t>(accessor);
 
 #ifdef __SSE__
-        if (m_prefetch_distance != 0) {
-            const int_t prefetch_offset = m_prefetch_distance * storage_stride<storage_info_t, 2>();
+        if (m_data.m_prefetch_distance != 0) {
+            const int_t prefetch_offset = m_data.m_prefetch_distance * storage_stride<storage_info_t, 2>();
             _mm_prefetch(
                 reinterpret_cast<const char *>(&real_storage_pointer[pointer_offset + prefetch_offset]), _MM_HINT_T1);
         }
