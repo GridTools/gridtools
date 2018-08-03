@@ -260,8 +260,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, GT_INTERNAL_ERROR);
 
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size<typename LocalDomain::data_ptr_fusion_map>::value > Accessor::index_t::value),
-            GT_INTERNAL_ERROR);
+            (meta::length<typename LocalDomain::data_ptr_list>::value > Accessor::index_t::value), GT_INTERNAL_ERROR);
         typedef typename LocalDomain::template get_arg<typename Accessor::index_t>::type::data_store_t type;
     };
 
