@@ -63,6 +63,8 @@ namespace gridtools {
         using super = accessor<ID, Intent, LocationType, Extent, NDim>;
         using super::accessor;
         static const ushort_t n_dimensions = NDim;
+
+        void set_snapshot(ushort_t snapshot_id) { super::template set_offset<NDim - 1>(snapshot_id); }
     };
 
     template <typename T>

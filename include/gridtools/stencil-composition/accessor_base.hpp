@@ -192,17 +192,17 @@ namespace gridtools {
         }
 
         template <short_t Idx>
-        GT_FUNCTION int_t constexpr get() const {
+        GT_FUNCTION int_t constexpr get_offset() const {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-            return m_offsets.template get<Dim - 1 - Idx>();
+            return m_offsets[Idx];
         }
 
         template <short_t Idx>
-        GT_FUNCTION void set(uint_t offset_) {
+        GT_FUNCTION void set_offset(uint_t offset) {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-            m_offsets[Dim - 1 - Idx] = offset_;
+            m_offsets[Idx] = offset;
         }
     };
 } // namespace gridtools
