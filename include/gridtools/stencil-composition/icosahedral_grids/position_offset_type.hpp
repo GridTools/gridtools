@@ -35,21 +35,18 @@
 */
 #pragma once
 
-#include "../common/array.hpp"
-#include "../common/defs.hpp"
-#include <boost/mpl/bool.hpp>
+#include "../../common/array.hpp"
+#include "../../common/defs.hpp"
+#include <type_traits>
 
 namespace gridtools {
     /**
      * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
      */
-    class position_offset_type : public array<int_t, 4> {
-      public:
-        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
-            : array<int_t, 4>({i0, i1, i2, i3}) {}
-    };
+    using position_offset_type = array<int_t, 4>;
+
     template <typename T>
-    struct is_position_offset_type : boost::mpl::false_ {};
+    struct is_position_offset_type : std::false_type {};
     template <>
-    struct is_position_offset_type<position_offset_type> : boost::mpl::true_ {};
+    struct is_position_offset_type<position_offset_type> : std::true_type {};
 } // namespace gridtools

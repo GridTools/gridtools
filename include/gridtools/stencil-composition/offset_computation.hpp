@@ -41,7 +41,6 @@
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
-#include "position_offset_type.hpp"
 
 namespace gridtools {
 
