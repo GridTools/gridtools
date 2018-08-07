@@ -65,8 +65,10 @@ namespace gridtools {
         using super::accessor;
         static const ushort_t n_dimensions = NDim;
 
-        GT_FUNCTION void set_snapshot(ushort_t snapshot_id) { super::template set_offset<NDim - 1>(snapshot_id); }
-    };
+        GT_FUNCTION void set_snapshot(ushort_t snapshot_id) {
+            get<NDim - 1>(static_cast<accessor_base<NDim> &>(*this)) = snapshot_id;
+        }
+    }; // namespace gridtools
 
     template <typename T>
     struct is_vector_accessor : boost::mpl::false_ {};

@@ -191,18 +191,30 @@ namespace gridtools {
                 "all dimensions should be of different indicies");
         }
 
-        template <short_t Idx>
-        GT_FUNCTION int_t constexpr get_offset() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-            GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-            return m_offsets[Idx];
-        }
+        GT_FUNCTION
+        constexpr int_t const &operator[](size_t i) const { return m_offsets[i]; }
 
-        template <short_t Idx>
-        GT_FUNCTION void set_offset(uint_t offset) {
-            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-            GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-            m_offsets[Idx] = offset;
-        }
+        GT_FUNCTION
+        int_t &operator[](size_t i) { return m_offsets[i]; }
     };
+
+    template <short_t Idx, ushort_t Dim>
+    GT_FUNCTION constexpr int_t &get(accessor_base<Dim> &acc) noexcept {
+        GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+        GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
+        return acc[Idx];
+    }
+
+    template <short_t Idx, ushort_t Dim>
+    GT_FUNCTION constexpr const int_t &get(const accessor_base<Dim> &acc) noexcept {
+        GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+        GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
+        return acc[Idx];
+    }
+
+    template <short_t Idx, ushort_t Dim>
+    GT_FUNCTION constexpr int_t &&get(accessor_base<Dim> &&acc) noexcept {
+        return std::move(get<Idx>(acc));
+    }
+
 } // namespace gridtools

@@ -86,9 +86,9 @@ TEST(accessor, copy_const) {
     const accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3> in(1, 2, 3);
     const accessor<1, enumtype::inout, extent<-1, 0, 0, 0>, 3> out(in);
 
-    ASSERT_EQ(in.get_offset<0>(), out.get_offset<0>());
-    ASSERT_EQ(in.get_offset<1>(), out.get_offset<1>());
-    ASSERT_EQ(in.get_offset<2>(), out.get_offset<2>());
+    ASSERT_EQ(get<0>(in), get<0>(out));
+    ASSERT_EQ(get<1>(in), get<1>(out));
+    ASSERT_EQ(get<2>(in), get<2>(out));
 }
 
 TEST(accessor, remap_accessor) {
@@ -101,27 +101,26 @@ TEST(accessor, remap_accessor) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor<remap_accessor_t>::value), "");
     GRIDTOOLS_STATIC_ASSERT((accessor_index<remap_accessor_t>::type::value == 8), "");
 
-    ASSERT_TRUE(remap_accessor_t(in).get_offset<0>() == 1);
-    ASSERT_TRUE(remap_accessor_t(in).get_offset<1>() == 2);
-    ASSERT_TRUE(remap_accessor_t(in).get_offset<2>() == 3);
+    ASSERT_TRUE(get<0>(remap_accessor_t(in)) == 1);
+    ASSERT_TRUE(get<1>(remap_accessor_t(in)) == 2);
+    ASSERT_TRUE(get<2>(remap_accessor_t(in)) == 3);
 }
 
 TEST(accessor, trivial) {
     accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
 
-    EXPECT_EQ(3, first.get_offset<0>());
-    EXPECT_EQ(2, first.get_offset<1>());
-    EXPECT_EQ(-1, first.get_offset<2>());
+    EXPECT_EQ(3, get<0>(first));
+    EXPECT_EQ(2, get<1>(first));
+    EXPECT_EQ(-1, get<2>(first));
 }
 
 TEST(accessor, array) {
     constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    GRIDTOOLS_STATIC_ASSERT(
-        (first.get_offset<0>() == 3 && first.get_offset<1>() == 2 && first.get_offset<2>() == -1), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
 
-    EXPECT_EQ(3, first.get_offset<0>());
-    EXPECT_EQ(2, first.get_offset<1>());
-    EXPECT_EQ(-1, first.get_offset<2>());
+    EXPECT_EQ(3, get<0>(first));
+    EXPECT_EQ(2, get<1>(first));
+    EXPECT_EQ(-1, get<2>(first));
 }
 
 /**
@@ -130,12 +129,12 @@ TEST(accessor, array) {
 TEST(accessor, alternative1) {
     accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
 
-    EXPECT_EQ(0, first.get_offset<0>());
-    EXPECT_EQ(0, first.get_offset<1>());
-    EXPECT_EQ(0, first.get_offset<2>());
-    EXPECT_EQ(12, first.get_offset<3>());
-    EXPECT_EQ(0, first.get_offset<4>());
-    EXPECT_EQ(-6, first.get_offset<5>());
+    EXPECT_EQ(0, get<0>(first));
+    EXPECT_EQ(0, get<1>(first));
+    EXPECT_EQ(0, get<2>(first));
+    EXPECT_EQ(12, get<3>(first));
+    EXPECT_EQ(0, get<4>(first));
+    EXPECT_EQ(-6, get<5>(first));
 }
 
 /**
@@ -151,12 +150,12 @@ TEST(accessor, alternative2) {
     // ICC 18 shows some strange bug here
     constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
 
-    GRIDTOOLS_STATIC_ASSERT(first.get_offset<0>() == -5, "ERROR");
+    GRIDTOOLS_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
 
-    EXPECT_EQ(-5, first.get_offset<0>());
-    EXPECT_EQ(0, first.get_offset<1>());
-    EXPECT_EQ(8, first.get_offset<2>());
-    EXPECT_EQ(2, first.get_offset<3>());
+    EXPECT_EQ(-5, get<0>(first));
+    EXPECT_EQ(0, get<1>(first));
+    EXPECT_EQ(8, get<2>(first));
+    EXPECT_EQ(2, get<3>(first));
 #else
     return true;
 #endif
@@ -175,9 +174,9 @@ TEST(accessor, static_alias) {
 
     alias_t first(dimension<8>(23), dimension<3>(-5));
 
-    EXPECT_EQ(2, first.get_offset<6>());
-    EXPECT_EQ(4, first.get_offset<0>());
-    EXPECT_EQ(-3, first.get_offset<14>());
-    EXPECT_EQ(23, first.get_offset<7>());
-    EXPECT_EQ(-5, first.get_offset<2>());
+    EXPECT_EQ(2, get<6>(first));
+    EXPECT_EQ(4, get<0>(first));
+    EXPECT_EQ(-3, get<14>(first));
+    EXPECT_EQ(23, get<7>(first));
+    EXPECT_EQ(-5, get<2>(first));
 }
