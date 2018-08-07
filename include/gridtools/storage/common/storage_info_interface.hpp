@@ -186,6 +186,9 @@ namespace gridtools {
         constexpr storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
             : m_total_lengths(
                   seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(dims)),
+              m_padded_lengths(
+                  seq::template apply<array<uint_t, ndims>, padded_length_initializer<uint_t>::template type>(
+                      dims, strides)),
               m_strides(
                   seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(strides)) {}
 

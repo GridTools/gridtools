@@ -90,6 +90,19 @@ namespace gridtools {
                    ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
+    template <typename Value>
+    struct padded_length_initializer {
+        template <int Idx>
+        struct type {
+            type() = delete;
+
+            template <long unsigned int ndims>
+            GT_FUNCTION constexpr static Value apply(
+                const gridtools::array<Value, ndims> dims, const gridtools::array<Value, ndims> strides) {
+                return Idx == 0 ? dims[0] : strides[Idx - 1] / strides[Idx];
+            }
+        };
+    };
 
     /*
      * @brief helper struct used to compute the strides in a constexpr manner
