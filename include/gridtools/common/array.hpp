@@ -82,64 +82,46 @@ namespace gridtools {
 
       public:
         // we make the members public to make this class an aggregate
-        typename impl_::array_traits<T, D>::type _array;
+        typename impl_::array_traits<T, D>::type m_array;
 
         typedef T value_type;
 
-        GT_FUNCTION array<T, D + 1> append_dim(T const &val) const {
-            array<T, D + 1> ret;
-            for (size_t c = 0; c < D; ++c) {
-                ret[c] = this->operator[](c);
-            }
-            ret[D] = val;
-            return ret;
-        }
-
-        GT_FUNCTION array<T, D + 1> prepend_dim(T const &val) const {
-            array<T, D + 1> ret;
-            for (size_t c = 1; c <= D; ++c) {
-                ret[c] = this->operator[](c - 1);
-            }
-            ret[0] = val;
-            return ret;
-        }
+        GT_FUNCTION
+        T const *begin() const { return &m_array[0]; }
 
         GT_FUNCTION
-        T const *begin() const { return &_array[0]; }
+        T *begin() { return &m_array[0]; }
 
         GT_FUNCTION
-        T *begin() { return &_array[0]; }
+        T const *end() const { return &m_array[D]; }
 
         GT_FUNCTION
-        T const *end() const { return &_array[D]; }
+        T *end() { return &m_array[D]; }
 
         GT_FUNCTION
-        T *end() { return &_array[D]; }
+        constexpr const T *data() const noexcept { return m_array; }
+        GT_FUNCTION
+        T *data() noexcept { return m_array; }
 
         GT_FUNCTION
-        constexpr const T *data() const noexcept { return _array; }
-        GT_FUNCTION
-        T *data() noexcept { return _array; }
-
-        GT_FUNCTION
-        constexpr T const &operator[](size_t i) const { return _array[i]; }
+        constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
         template <size_t I>
         GT_FUNCTION constexpr T get() const {
             GRIDTOOLS_STATIC_ASSERT((I < D), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
-            return _array[I];
+            return m_array[I];
         }
 
         GT_FUNCTION
         T &operator[](size_t i) {
             assert((impl_::array_traits<T, D>::assert_range(i)));
-            return _array[i];
+            return m_array[i];
         }
 
         template <typename A>
         GT_FUNCTION array &operator=(A const &a) {
             assert(a.size() == D);
-            std::copy(a.begin(), a.end(), _array);
+            std::copy(a.begin(), a.end(), m_array);
             return *this;
         }
 
@@ -191,13 +173,13 @@ namespace gridtools {
     template <size_t I, typename T, size_t D>
     GT_FUNCTION constexpr T &get(array<T, D> &arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
-        return arr[I];
+        return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>
     GT_FUNCTION constexpr const T &get(const array<T, D> &arr) noexcept {
         GRIDTOOLS_STATIC_ASSERT(I < D, "index is out of bounds");
-        return arr[I];
+        return arr.m_array[I];
     }
 
     template <size_t I, typename T, size_t D>

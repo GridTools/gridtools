@@ -158,6 +158,9 @@ namespace gridtools {
       public:
         static constexpr ushort_t n_dimensions = Dim;
 
+        GT_FUNCTION offsets_t const &offsets() const { return m_offsets; }
+        GT_FUNCTION offsets_t &offsets() { return m_offsets; }
+
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
@@ -202,14 +205,14 @@ namespace gridtools {
     GT_FUNCTION constexpr int_t &get(accessor_base<Dim> &acc) noexcept {
         GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
         GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-        return acc[Idx];
+        return get<Idx>(acc.offsets());
     }
 
     template <short_t Idx, ushort_t Dim>
     GT_FUNCTION constexpr const int_t &get(const accessor_base<Dim> &acc) noexcept {
         GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
         GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-        return acc[Idx];
+        return get<Idx>(acc.offsets());
     }
 
     template <short_t Idx, ushort_t Dim>
