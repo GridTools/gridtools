@@ -161,7 +161,7 @@ namespace gridtools {
       public:
         static constexpr ushort_t n_dimensions = Dim;
 
-        GT_FUNCTION offsets_t const &offsets() const { return m_offsets; }
+        GT_FUNCTION constexpr offsets_t const &offsets() const { return m_offsets; }
         GT_FUNCTION offsets_t &offsets() { return m_offsets; }
 
         template <class... Ints,
