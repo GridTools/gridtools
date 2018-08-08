@@ -156,7 +156,7 @@ namespace gridtools {
 #endif
 
       public:
-        static const ushort_t n_dimensions = Dim;
+        static constexpr ushort_t n_dimensions = Dim;
 
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
