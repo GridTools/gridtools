@@ -183,15 +183,26 @@ namespace gridtools {
             gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, ndims>::type>;
 
         GT_FUNCTION
-        constexpr storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
+        storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
             : m_total_lengths(
                   seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(dims)),
-              // we guess the padded lengths from the dimensions and the strides. padding[0] may be inaccurate.
-              m_padded_lengths(
-                  seq::template apply<array<uint_t, ndims>, padded_length_initializer<uint_t>::template type>(
-                      dims, strides)),
               m_strides(
-                  seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(strides)) {}
+                  seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(strides)) {
+
+            // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
+            // e.g., [256, 16, 1], and the dimensions are [5, 9, 9]. For the largest stride, we assume that padding
+            // = dimension (e.g. in this example the i-padding is 5). For all others we can calculate the padding from
+            // the strides (e.g. in this example, the j-padding is 256 / 16 = 16, and the k-padding is 16 / 1 = 1).
+            auto sorted_strides = strides;
+            std::sort(sorted_strides.begin(), sorted_strides.end());
+            for (uint_t i = 0; i < ndims; ++i) {
+                if (strides[i] == sorted_strides[ndims - 1])
+                    m_padded_lengths[i] = dims[i];
+                else
+                    m_padded_lengths[i] =
+                        *std::upper_bound(sorted_strides.begin(), sorted_strides.end(), m_strides[i]) / m_strides[i];
+            }
+        }
 
         /**
          * @brief storage info copy constructor.
