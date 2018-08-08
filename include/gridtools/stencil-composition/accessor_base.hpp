@@ -47,8 +47,8 @@
 
 namespace gridtools {
 
-    namespace _impl {
 #ifdef __INTEL_COMPILER
+    namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
          * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
          * in the most common case. */
@@ -71,25 +71,27 @@ namespace gridtools {
                 GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
             };
         };
+    } // namespace _impl
 
-        template <typename T, std::size_t Idx>
-        GT_FUNCTION constexpr typename std::enable_if<Idx == 0, T const &>::type get(
-            pseudo_array_type<T, 3> const &arr) {
-            return arr.data0;
-        }
-        template <typename T, std::size_t Idx>
-        GT_FUNCTION constexpr typename std::enable_if<Idx == 1, T const &>::type get(
-            pseudo_array_type<T, 3> const &arr) {
-            return arr.data1;
-        }
-        template <typename T, std::size_t Idx>
-        GT_FUNCTION constexpr typename std::enable_if<Idx == 2, T const &>::type get(
-            pseudo_array_type<T, 3> const &arr) {
-            return arr.data2;
-        }
+    template <std::size_t Idx>
+    GT_FUNCTION constexpr typename std::enable_if<Idx == 0, int_t const &>::type get(
+        typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
+        return arr.data0;
+    }
+    template <std::size_t Idx>
+    GT_FUNCTION constexpr typename std::enable_if<Idx == 1, int_t const &>::type get(
+        typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
+        return arr.data1;
+    }
+    template <std::size_t Idx>
+    GT_FUNCTION constexpr typename std::enable_if<Idx == 2, int_t const &>::type get(
+        typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
+        return arr.data2;
+    }
 
 #endif
 
+    namespace _impl {
         template <ushort_t I>
         struct get_dimension_value_f {
             template <ushort_t J>
