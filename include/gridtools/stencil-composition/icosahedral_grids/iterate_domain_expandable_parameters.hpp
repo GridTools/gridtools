@@ -94,7 +94,7 @@ namespace gridtools {
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor<ACC_ID, Intent, LocationType, Extent, Size>>::type
         operator()(vector_accessor<ACC_ID, Intent, LocationType, Extent, Size> arg) const {
-            arg.template set_snapshot(ID);
+            arg.set_snapshot(ID);
             accessor<ACC_ID, Intent, LocationType, Extent, Size> const &ref = arg;
             return super::operator()(ref);
         }
