@@ -64,6 +64,8 @@ namespace gridtools {
                 constexpr type(array<T, 3> const &a)
                     : data0(a.template get<0>()), data1(a.template get<1>()), data2(a.template get<2>()) {}
 
+                constexpr type() : data0(0), data1(0), data2(0) {}
+
                 constexpr type(T const &data0, T const &data1, T const &data2)
                     : data0(data0), data1(data1), data2(data2) {}
 
