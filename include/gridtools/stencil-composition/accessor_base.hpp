@@ -46,7 +46,6 @@
 #include "../common/host_device.hpp"
 
 namespace gridtools {
-
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
@@ -86,6 +85,21 @@ namespace gridtools {
     template <std::size_t Idx>
     GT_FUNCTION constexpr typename std::enable_if<Idx == 2, int_t const &>::type get(
         typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
+        return arr.data2;
+    }
+    template <std::size_t Idx>
+    GT_FUNCTION constexpr typename std::enable_if<Idx == 0, int_t &>::type get(
+        typename _impl::pseudo_array_type<int_t, 3>::type &arr) noexcept {
+        return arr.data0;
+    }
+    template <std::size_t Idx>
+    GT_FUNCTION constexpr typename std::enable_if<Idx == 1, int_t &>::type get(
+        typename _impl::pseudo_array_type<int_t, 3>::type &arr) noexcept {
+        return arr.data1;
+    }
+    template <std::size_t Idx>
+    GT_FUNCTION constexpr typename std::enable_if<Idx == 2, int_t &>::type get(
+        typename _impl::pseudo_array_type<int_t, 3>::type &arr) noexcept {
         return arr.data2;
     }
 
@@ -169,11 +183,11 @@ namespace gridtools {
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
-            : m_offsets({offsets...})
+        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
+            offsets...
+        }
 #ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
+        , m_workaround(Dim)
 #endif
         {
         }
