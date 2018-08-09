@@ -156,8 +156,6 @@ TEST(accessor, alternative2) {
     EXPECT_EQ(0, get<1>(first));
     EXPECT_EQ(8, get<2>(first));
     EXPECT_EQ(2, get<3>(first));
-#else
-    return true;
 #endif
 }
 
