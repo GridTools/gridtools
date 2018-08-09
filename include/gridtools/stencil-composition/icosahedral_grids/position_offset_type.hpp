@@ -46,5 +46,5 @@ namespace gridtools {
     using position_offset_type = array<int_t, 4>;
 
     template <class T>
-    using is_position_offset_type_t = typename std::is_same<T, position_offset_type>::type;
+    using is_position_offset_type = std::is_same<T, position_offset_type>;
 } // namespace gridtools
