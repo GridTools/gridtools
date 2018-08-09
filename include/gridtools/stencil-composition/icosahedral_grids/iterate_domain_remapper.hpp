@@ -247,7 +247,7 @@ namespace gridtools {
                     (boost::is_same<
                          typename boost::remove_const<typename boost::remove_reference<NeighborsArray>::type>::type,
                          unsigned int>::value ||
-                        is_position_offset_type<typename boost::remove_const<
+                        is_position_offset_type_t<typename boost::remove_const<
                             typename boost::remove_reference<NeighborsArray>::type>::type>::value),
                     GT_INTERNAL_ERROR);
 
