@@ -216,8 +216,7 @@ namespace gridtools {
         GT_FUNCTION static void check_kcache_access_in_bounds(
             Accessor const &accessor, gt_index_sequence<Coordinates...>) {
             assert(accumulate(logical_and(),
-                       (accessor.template get<Accessor::n_dimensions - 1 - Coordinates>() <=
-                           meta_t::template dim<Coordinates>())...) &&
+                       (accessor_offset<Coordinates>(accessor) <= meta_t::template dim<Coordinates>())...) &&
                    "Out of bounds access in cache");
         }
 
