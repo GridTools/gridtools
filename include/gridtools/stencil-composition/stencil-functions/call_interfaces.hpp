@@ -47,6 +47,7 @@
 #include "../functor_decorator.hpp"
 #include "../interval.hpp"           // to check if region is valid
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
+#include "../offset_computation.hpp"
 #include "./call_interfaces_metafunctions.hpp"
 
 namespace gridtools {
@@ -147,9 +148,9 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor<get_passed_argument_t<Accessor>>::value),
                     "In call: you are passing a global_accessor to a normal accessor");
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    accessor.template get<2>() + Offi + get_passed_argument<Accessor>().template get<2>(),
-                    accessor.template get<1>() + Offj + get_passed_argument<Accessor>().template get<1>(),
-                    accessor.template get<0>() + Offk + get_passed_argument<Accessor>().template get<0>()));
+                    accessor_offset<0>(accessor) + Offi + accessor_offset<0>(get_passed_argument<Accessor>()),
+                    accessor_offset<1>(accessor) + Offj + accessor_offset<1>(get_passed_argument<Accessor>()),
+                    accessor_offset<2>(accessor) + Offk + accessor_offset<2>(get_passed_argument<Accessor>())));
             }
 
             /*
@@ -381,9 +382,9 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((not is_global_accessor<get_passed_argument_t<Accessor>>::value),
                     "In call_proc: you are passing a global_accessor to a regular/vector accessor");
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
-                    accessor.template get<2>() + Offi + get_passed_argument<Accessor>().template get<2>(),
-                    accessor.template get<1>() + Offj + get_passed_argument<Accessor>().template get<1>(),
-                    accessor.template get<0>() + Offk + get_passed_argument<Accessor>().template get<0>()));
+                    accessor_offset<0>(accessor) + Offi + accessor_offset<0>(get_passed_argument<Accessor>()),
+                    accessor_offset<1>(accessor) + Offj + accessor_offset<1>(get_passed_argument<Accessor>()),
+                    accessor_offset<2>(accessor) + Offk + accessor_offset<2>(get_passed_argument<Accessor>())));
             }
 
             /**

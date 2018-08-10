@@ -143,7 +143,7 @@ namespace gridtools {
 #if defined(__CUDACC_VER_MAJOR__)
 // CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
 // instantiation) see https://github.com/eth-cscs/gridtools/issues/976
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2))
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
 #elif defined(__INTEL_COMPILER)
 #define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
 #elif defined(__clang__)

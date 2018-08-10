@@ -41,7 +41,6 @@
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
-#include "position_offset_type.hpp"
 
 namespace gridtools {
 
@@ -87,15 +86,8 @@ namespace gridtools {
      * @return The offset stored in the given accessor for the given axis.
      */
     template <int_t Coordinate, typename Accessor>
-    GT_FUNCTION constexpr enable_if_t<!is_position_offset_type<Accessor>::value, int_t> accessor_offset(
-        Accessor const &accessor) {
-        return accessor.template get<Accessor::n_dimensions - 1 - Coordinate>();
-    }
-
-    template <int_t Coordinate, typename Accessor>
-    GT_FUNCTION constexpr enable_if_t<is_position_offset_type<Accessor>::value, int_t> accessor_offset(
-        Accessor const &accessor) {
-        return accessor.template get<Coordinate>();
+    GT_FUNCTION constexpr int_t accessor_offset(Accessor const &accessor) {
+        return get<Coordinate>(accessor);
     }
 
     namespace _impl {
