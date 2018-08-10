@@ -97,8 +97,7 @@ implicit none
     subroutine foo() bind(c)
       use iso_c_binding
     end subroutine
-    subroutine qux_impl(arg0, arg1) &
-        bind(c, name="qux")
+    subroutine qux_impl(arg0, arg1) bind(c, name="qux")
       use iso_c_binding
       use array_descriptor
       integer(c_int), value :: arg0

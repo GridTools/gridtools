@@ -144,15 +144,13 @@ module my_module
 implicit none
   interface
 
-    subroutine my_assign0_impl(arg0, arg1) &
-        bind(c, name="my_assign0")
+    subroutine my_assign0_impl(arg0, arg1) bind(c, name="my_assign0")
       use iso_c_binding
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0
       integer(c_int), value :: arg1
     end subroutine
-    subroutine my_assign1_impl(arg0, arg1) &
-        bind(c, name="my_assign1")
+    subroutine my_assign1_impl(arg0, arg1) bind(c, name="my_assign1")
       use iso_c_binding
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0
@@ -194,8 +192,8 @@ implicit none
       type(gt_fortran_array_descriptor) :: arg0
       type(gt_fortran_array_descriptor) :: arg1
     end subroutine
-    subroutine test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, arg1) &
-        bind(c, name="test_c_bindings_and_wrapper_compatible_type_b")
+    subroutine test_c_bindings_and_wrapper_compatible_type_b_impl(arg0, arg1) bind(c, &
+        name="test_c_bindings_and_wrapper_compatible_type_b")
       use iso_c_binding
       use array_descriptor
       type(gt_fortran_array_descriptor) :: arg0

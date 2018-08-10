@@ -290,6 +290,8 @@ namespace gridtools {
                 : is_there_in_sequence_if<typename boost::function_types::parameter_types<CSignature>::type,
                       std::is_same<boost::mpl::_, gt_fortran_array_descriptor *>> {};
 
+            std::string wrap_line(const std::string &line, const std::string &prefix);
+
             /**
              * @brief This function writes the `interface`-section of the fortran-code.
              * @param strm Stream, where the output will be written to
@@ -299,19 +301,21 @@ namespace gridtools {
             template <class CSignature>
             std::ostream &write_fortran_binding(std::ostream &strm, char const *c_name, char const *fortran_name) {
                 namespace ft = boost::function_types;
-                strm << "    " << fortran_return_type<typename ft::result_type<CSignature>::type>() << " "
-                     << fortran_name << "(";
+                std::stringstream tmp_strm;
+                tmp_strm << fortran_return_type<typename ft::result_type<CSignature>::type>() << " " << fortran_name
+                         << "(";
                 for_each_param<CSignature>(ignore_type_f{}, [&](const std::string &, int i) {
                     if (i)
-                        strm << ", ";
-                    strm << "arg" << i;
+                        tmp_strm << ", ";
+                    tmp_strm << "arg" << i;
                 });
-                strm << ")";
+                tmp_strm << ")";
                 if (strcmp(c_name, fortran_name) == 0)
-                    strm << " bind(c)";
+                    tmp_strm << " bind(c)";
                 else
-                    strm << " &\n        bind(c, name=\"" << c_name << "\")";
-                strm << "\n      use iso_c_binding\n";
+                    tmp_strm << " bind(c, name=\"" << c_name << "\")";
+                strm << wrap_line(tmp_strm.str(), "    ");
+                strm << "      use iso_c_binding\n";
                 if (has_array_descriptor<CSignature>::value)
                     strm << "      use array_descriptor\n";
                 for_each_param<CSignature>(fortran_param_type_from_c_f{}, [&](const std::string &type_name, int i) {
@@ -353,14 +357,18 @@ namespace gridtools {
                 using CSignature = wrapped_t<CppSignature>;
                 namespace ft = boost::function_types;
 
-                strm << "    " << fortran_return_type<typename ft::result_type<CSignature>::type>() << " "
-                     << fortran_name << "(";
+                std::stringstream tmp_strm;
+                tmp_strm << fortran_return_type<typename ft::result_type<CSignature>::type>() << " " << fortran_name
+                         << "(";
                 for_each_param<CSignature>(ignore_type_f{}, [&](const std::string &, int i) {
                     if (i)
-                        strm << ", ";
-                    strm << "arg" << i;
+                        tmp_strm << ", ";
+                    tmp_strm << "arg" << i;
                 });
-                strm << ")\n      use iso_c_binding\n";
+                tmp_strm << ")";
+                strm << wrap_line(tmp_strm.str(), "    ");
+
+                strm << "      use iso_c_binding\n";
                 if (has_array_descriptor<CSignature>::value) {
                     strm << "      use array_descriptor\n";
                 }
@@ -397,22 +405,24 @@ namespace gridtools {
                         }
                     });
 
+                tmp_strm = std::stringstream{};
                 if (std::is_void<typename ft::result_type<CSignature>::type>::value) {
-                    strm << "      call " << fortran_cbindings_name << "(";
+                    tmp_strm << "call " << fortran_cbindings_name << "(";
                 } else {
-                    strm << "      " << fortran_name << " = " << fortran_cbindings_name << "(";
+                    tmp_strm << fortran_name << " = " << fortran_cbindings_name << "(";
                 }
                 for_each_param<CppSignature>(
                     cpp_type_descriptor_f{}, [&](const boost::optional<gt_fortran_array_descriptor> &meta, int i) {
                         if (i)
-                            strm << ", ";
+                            tmp_strm << ", ";
                         if (meta) {
-                            strm << "descriptor" << i;
+                            tmp_strm << "descriptor" << i;
                         } else {
-                            strm << "arg" << i;
+                            tmp_strm << "arg" << i;
                         }
                     });
-                strm << ")\n";
+                tmp_strm << ")";
+                strm << wrap_line(tmp_strm.str(), "      ");
 
                 return strm << "    end "
                             << fortran_function_specifier<typename ft::result_type<CSignature>::type>() + "\n";
