@@ -405,7 +405,7 @@ namespace gridtools {
                         }
                     });
 
-                tmp_strm = std::stringstream{};
+                tmp_strm.str("");
                 if (std::is_void<typename ft::result_type<CSignature>::type>::value) {
                     tmp_strm << "call " << fortran_cbindings_name << "(";
                 } else {
