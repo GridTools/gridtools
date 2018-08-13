@@ -132,6 +132,39 @@ end
                 generate_fortran_interface(strm, "my_module");
                 EXPECT_EQ(strm.str(), expected_fortran_interface);
             }
+            TEST(generator, wrap_short_line) {
+                const std::string prefix = "    ";
+                const std::string line = "short line, short line";
+                EXPECT_EQ(prefix + line + '\n', wrap_line(line, prefix));
+            }
+            TEST(generator, wrap_almost_full_line) {
+                const std::string prefix = "    ";
+                const std::string line = std::string(64, 'x') + "," + std::string(63, 'x');
+                EXPECT_EQ(prefix + line + '\n', wrap_line(line, prefix));
+            }
+            TEST(generator, wrap_full_line) {
+                const std::string prefix = "    ";
+                const std::string line = std::string(64, 'x') + "," + std::string(64, 'x');
+                EXPECT_EQ(prefix + std::string(64, 'x') + ", &" + '\n' + prefix + "   " + std::string(64, 'x') + "\n",
+                    wrap_line(line, prefix));
+            }
+            TEST(generator, wrap_multiple_lines) {
+                const std::string prefix = "    ";
+                const std::string line = std::string(50, 'x') + "," + std::string(50, 'x') + "," +
+                                         std::string(60, 'x') + "," + std::string(61, 'x') + "," +
+                                         std::string(60, 'x') + "," + std::string(62, 'x') + "," +
+                                         std::string(59, 'x') + "," + std::string(122, 'x');
+
+                const std::string line1 = prefix + std::string(50, 'x') + "," + std::string(50, 'x') + ", &" + '\n';
+                const std::string line2 =
+                    prefix + "   " + std::string(60, 'x') + "," + std::string(61, 'x') + ", &" + '\n';
+                const std::string line3 = prefix + "   " + std::string(60, 'x') + ", &" + '\n';
+                const std::string line4 =
+                    prefix + "   " + std::string(62, 'x') + "," + std::string(59, 'x') + ", &" + '\n';
+                const std::string line5 = prefix + "   " + std::string(122, 'x') + '\n';
+
+                EXPECT_EQ(line1 + line2 + line3 + line4 + line5, wrap_line(line, prefix));
+            }
         } // namespace
     }     // namespace c_bindings
 } // namespace gridtools

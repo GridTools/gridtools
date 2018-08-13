@@ -56,6 +56,8 @@
 namespace gridtools {
     namespace c_bindings {
 
+        std::string wrap_line(const std::string &line, const std::string &prefix);
+
         namespace _impl {
 
             struct c_string_less {
@@ -289,8 +291,6 @@ namespace gridtools {
             struct has_array_descriptor
                 : is_there_in_sequence_if<typename boost::function_types::parameter_types<CSignature>::type,
                       std::is_same<boost::mpl::_, gt_fortran_array_descriptor *>> {};
-
-            std::string wrap_line(const std::string &line, const std::string &prefix);
 
             /**
              * @brief This function writes the `interface`-section of the fortran-code.
