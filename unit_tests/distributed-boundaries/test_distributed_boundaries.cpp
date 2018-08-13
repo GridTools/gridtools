@@ -332,7 +332,8 @@ TEST(DistributedBoundaries, Test) {
     array<halo_descriptor, 3> halos{di, dj, dk};
 
     cabc_t cabc_tmp{halos, {false, false, false}, 3, GCL_WORLD};
-    auto cabc = std::move(cabc_tmp);
+    auto cabc =
+        std::move(cabc_tmp); // tests moveability of distributed boundaries, should be refactored into a unittest
 
     int pi, pj, pk;
     cabc.proc_grid().coords(pi, pj, pk);
