@@ -75,6 +75,8 @@ namespace gridtools {
         explicit constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface<Id, Layout, Halo, Alignment>(dims_...), m_gpu_ptr(nullptr) {}
 
+        cuda_storage_info(cuda_storage_info &&) = default;
+
         /*
          * @brief cuda_storage_info constructor.
          * @param dims the dimensionality (e.g., 128x128x80)
