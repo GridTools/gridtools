@@ -79,6 +79,7 @@ namespace gridtools {
         ownership m_ownership = ownership::Full;
 
       public:
+        cuda_storage(cuda_storage &&) = default;
         cuda_storage(cuda_storage const &) = delete;
         cuda_storage &operator=(cuda_storage const &) = delete;
 
