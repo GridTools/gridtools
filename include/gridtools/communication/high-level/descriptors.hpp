@@ -386,8 +386,8 @@ namespace gridtools {
          */
         typedef translate_t<DIMS, typename default_layout_map<DIMS>::type> translate;
 
-      private:
-        hndlr_descriptor_ut(hndlr_descriptor_ut const &) {}
+        hndlr_descriptor_ut(hndlr_descriptor_ut const &) = delete;
+        hndlr_descriptor_ut(hndlr_descriptor_ut &&) = default;
 
       public:
         /**

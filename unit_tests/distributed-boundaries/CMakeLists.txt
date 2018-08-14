@@ -5,7 +5,7 @@ add_custom_host_test(test_bindbc_utilities ${CMAKE_CURRENT_SOURCE_DIR}/test_bind
 if( USE_MPI )
 
     add_custom_mpi_host_test(distributed_boundaries ${CMAKE_CURRENT_SOURCE_DIR}/test_distributed_boundaries.cpp ${ccflags} ${ldflags})
-    if ( USE_GPU )
+    if ( ENABLE_CUDA )
         set(ccflags " ")
         set(ldflags " ")
 
@@ -15,7 +15,7 @@ if( USE_MPI )
 else()
 
     add_custom_host_test(distributed_boundaries ${CMAKE_CURRENT_SOURCE_DIR}/test_distributed_boundaries.cpp ${ccflags} ${ldflags})
-    if ( USE_GPU )
+    if ( ENABLE_CUDA )
         set(ccflags " ")
         set(ldflags " ")
 
