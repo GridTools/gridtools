@@ -24,11 +24,19 @@ namespace gridtools {
         using gt_view_rank = std::integral_constant<size_t, Layout::unmasked_length>;
         using gt_view_element_type = typename DataStore::data_t;
 
-        friend void transform(DataStore &dest, const fortran_array_adapter &src) {
-            adapter{const_cast<fortran_array_adapter &>(src), dest}.from_array();
+        friend void transform(
+            DataStore &dest, const fortran_array_adapter &src, std::array<uint_t, Layout::masked_length> halo = {}) {
+            if (halo.size() == 3) {
+                halo[0] = halo[1] = 3;
+            }
+            adapter{const_cast<fortran_array_adapter &>(src), dest, halo}.from_array();
         }
-        friend void transform(fortran_array_adapter &dest, const DataStore &src) {
-            adapter{dest, const_cast<DataStore &>(src)}.to_array();
+        friend void transform(
+            fortran_array_adapter &dest, const DataStore &src, std::array<uint_t, Layout::masked_length> halo = {}) {
+            if (halo.size() == 3) {
+                halo[0] = halo[1] = 3;
+            }
+            adapter{dest, const_cast<DataStore &>(src), halo}.to_array();
         }
 
       private:
@@ -36,7 +44,9 @@ namespace gridtools {
             using ElementType = typename DataStore::data_t;
 
           public:
-            adapter(fortran_array_adapter &view, DataStore &data_store) {
+            adapter(fortran_array_adapter &view,
+                DataStore &data_store,
+                const std::array<uint_t, Layout::masked_length> &halo) {
 
                 storage_info_rt si = make_storage_info_rt(*data_store.get_storage_info_ptr());
                 m_dims = si.dims();
@@ -50,10 +60,31 @@ namespace gridtools {
                 // verify dimensions of fortran array
                 for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {
                     if (Layout::at(c_dim) >= 0) {
-                        if (view.m_descriptor.dims[fortran_dim] != m_dims[c_dim])
-                            throw std::runtime_error("dimensions do not match (descriptor [" +
-                                                     std::to_string(view.m_descriptor.dims[fortran_dim]) +
-                                                     "] != data_store [" + std::to_string(m_dims[c_dim]) + "])");
+                        if (view.m_descriptor.dims[fortran_dim] != m_dims[c_dim] - 2 * halo[c_dim]) {
+                            std::string c_dims = "";
+                            std::string f_dims = "";
+                            std::string sep = "";
+                            for (uint_t c_dim2 = 0, fortran_dim2 = 0; c_dim2 < Layout::masked_length; ++c_dim2) {
+                                if (Layout::at(c_dim2) >= 0) {
+                                    c_dims += sep + std::to_string(m_dims[c_dim2] - 2 * halo[c_dim]);
+                                    f_dims += sep + std::to_string(view.m_descriptor.dims[fortran_dim2]);
+                                    sep = ", ";
+                                    ++fortran_dim2;
+                                }
+                            }
+                            throw std::runtime_error(
+                                "dimensions do not match for dimension = " + std::to_string(c_dim) + " (descriptor [" +
+                                f_dims + "] != data_store [" + c_dims + "])");
+                        }
+                        ++fortran_dim;
+                    }
+                }
+
+                // fix halo
+                for (uint_t c_dim = 0, fortran_dim = 0; c_dim < Layout::masked_length; ++c_dim) {
+                    if (Layout::at(c_dim) >= 0) {
+                        m_dims[c_dim] -= 2 * halo[c_dim];
+                        m_cpp_pointer += halo[c_dim] * m_cpp_strides[c_dim];
                         ++fortran_dim;
                     }
                 }
