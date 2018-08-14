@@ -9,7 +9,7 @@ if( USE_MPI )
         set(ccflags " ")
         set(ldflags " ")
 
-        add_custom_mpi_gpu_test(distributed_boundaries_cuda ${CMAKE_CURRENT_SOURCE_DIR}/test_distributed_boundaries.cu ${ccflags} ${ldflags})
+        add_custom_mpi_gpu_test(distributed_boundaries ${CMAKE_CURRENT_SOURCE_DIR}/test_distributed_boundaries.cu ${ccflags} ${ldflags})
     endif()
 
 else()
