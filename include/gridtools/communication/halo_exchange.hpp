@@ -277,7 +277,7 @@ namespace gridtools {
             MPI_Dims_create(nprocs, dims.size(), &dims[0]);
             int period[3] = {1, 1, 1};
             MPI_Comm CartComm;
-            MPI_Cart_create(cart, 3, &dims[0], period, false, &CartComm);
+            MPI_Cart_create(comm, 3, &dims[0], period, false, &CartComm);
             return CartComm;
         }
 
