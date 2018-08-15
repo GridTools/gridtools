@@ -35,8 +35,7 @@
 */
 
 #include <gridtools/c_bindings/generator.hpp>
-
-#include <cassert>
+#include <gridtools/common/gt_assert.hpp>
 
 namespace gridtools {
     namespace c_bindings {
@@ -139,10 +138,10 @@ namespace gridtools {
 
             auto it = line.begin();
             while (it + max_line_length - current_prefix.size() < line.end()) {
-                auto next_it = it + 132 - line_divider.size() - current_prefix.size();
+                auto next_it = it + max_line_length - line_divider.size() - current_prefix.size();
                 while (*(next_it - 1) != ',') {
                     --next_it;
-                    assert(next_it != line.begin() + 1);
+                    ASSERT_OR_THROW(next_it != line.begin() + 1, "Too long line cannot be wrapped");
                 }
 
                 ret.append(current_prefix);
