@@ -60,6 +60,8 @@ namespace gridtools {
 
         descriptor_base(grid_type const &g) : m_grid(g), m_haloexch(g) {}
 
+        descriptor_base(descriptor_base &&) = default;
+
         /**
            function to trigger data exchange
 

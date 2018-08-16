@@ -269,6 +269,9 @@ namespace gridtools {
         */
         typedef typename _impl::get_pattern<DIMS, grid_type, version>::type pattern_type;
 
+        halo_exchange_dynamic_ut(halo_exchange_dynamic_ut const &) = delete;
+        halo_exchange_dynamic_ut(halo_exchange_dynamic_ut &&) = default;
+
       private:
         template <typename Array>
         MPI_Comm _make_comm(MPI_Comm comm, Array dims) {
@@ -284,8 +287,6 @@ namespace gridtools {
         typedef hndlr_dynamic_ut<DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch, version> hd_t;
 
         hd_t hd;
-
-        halo_exchange_dynamic_ut(halo_exchange_dynamic_ut const &) {}
 
         //        typename grid_type::period_type periodicity;
 

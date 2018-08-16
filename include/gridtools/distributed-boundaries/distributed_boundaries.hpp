@@ -144,6 +144,9 @@ namespace gridtools {
         pattern_type m_he;
 
       public:
+        distributed_boundaries(distributed_boundaries const &) = delete;
+        distributed_boundaries(distributed_boundaries &&) = default;
+
         /**
             @brief Constructor of distributed_boundaries.
 
