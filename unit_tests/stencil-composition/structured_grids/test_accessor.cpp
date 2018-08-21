@@ -38,73 +38,12 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/global_accessor.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-#include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
 #include <gridtools/stencil-composition/structured_grids/vector_accessor.hpp>
 
+#include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
+
 using namespace gridtools;
-
-/** @brief simple interface
- */
-bool test_trivial() {
-    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
-    return first.get<2>() == 3 && first.get<1>() == 2 && first.get<0>() == -1;
-}
-
-bool test_array() {
-    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    GRIDTOOLS_STATIC_ASSERT((first.get<2>() == 3 && first.get<1>() == 2 && first.get<0>() == -1), "ERROR");
-    return first.get<2>() == 3 && first.get<1>() == 2 && first.get<0>() == -1;
-}
-
-/** @brief interface with out-of-order optional arguments
- */
-bool test_alternative1() {
-    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
-
-    return first.get<5 - 0>() == 0 && first.get<5 - 1>() == 0 && first.get<5 - 2>() == 0 && first.get<5 - 3>() == 12 &&
-           first.get<5 - 4>() == 0 && first.get<5 - 5>() == -6;
-}
-
-/** @brief interface with out-of-order optional arguments, represented as matlab indices
- */
-
 using namespace expressions;
-
-bool test_alternative2() {
-
-    constexpr dimension<1> i;
-    constexpr dimension<2> j;
-    constexpr dimension<3> k;
-
-    constexpr dimension<4> t;
-#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
-    // ICC 18 shows some strange bug here
-    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
-
-    GRIDTOOLS_STATIC_ASSERT(first.get<3 - 0>() == -5, "ERROR");
-    return first.get<3 - 0>() == -5 && first.get<3 - 1>() == 0 && first.get<3 - 2>() == 8 && first.get<3 - 3>() == 2;
-#else
-    return true;
-#endif
-}
-
-/** @brief interface with aliases defined at compile-time
-
-    allows to split a single field in its different components, assigning an offset to each component.
-    The aforementioned offset is guaranteed to be treated as compile-time static constant value.
-*/
-bool test_static_alias() {
-
-    // mixing compile time and runtime values
-    using t = dimension<15>;
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 15> arg_t;
-    using alias_t = alias<arg_t, t, dimension<1>, dimension<7>>::set<-3, 4, 2>;
-
-    alias_t first(dimension<8>(23), dimension<3>(-5));
-
-    return first.get<14 - 6>() == 2 && first.get<14 - 0>() == 4 && first.get<14 - 14>() == -3 &&
-           first.get<14 - 7>() == 23 && first.get<14 - 2>() == -5;
-}
 
 TEST(accessor, is_accessor) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3, 4, 4, 5>>>::value) == true, "");
@@ -144,40 +83,98 @@ TEST(accessor, is_vector_accessor) {
 }
 
 TEST(accessor, copy_const) {
+    const accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3> in(1, 2, 3);
+    const accessor<1, enumtype::inout, extent<-1, 0, 0, 0>, 3> out(in);
 
-    // using namespace gridtools;
-    // TODOCOSUNA not working due to problems with the copy ctor of the accessors
-
-    //    typedef accessor<0, extent<-1,0,0,0>, 3> accessor_t;
-    //    accessor<0, extent<-1,0,0,0>, 3> in(1,2,3);
-    //    accessor<1, extent<-1,0,0,0>, 3> out(in);
-    //
-    //    ASSERT_TRUE(in.get<0>() == 3 && out.get<0>()==3);
-    //    ASSERT_TRUE(in.get<1>() == 2 && out.get<1>()==2);
-    //    ASSERT_TRUE(in.get<2>() == 1 && out.get<2>()==1);
-    //
-    //    typedef boost::mpl::map1<
-    //        boost::mpl::pair<
-    //            boost::mpl::integral_c<int, 0>, boost::mpl::integral_c<int, 8>
-    //        >
-    //    > ArgsMap;
-    //
-    //    typedef remap_accessor_type<accessor_t, ArgsMap>::type remap_accessor_t;
-    //
-    //    BOOST_STATIC_ASSERT((is_accessor<remap_accessor_t>::value));
-    //    BOOST_STATIC_ASSERT((accessor_index<remap_accessor_t>::value == 8));
-    //
-    //    ASSERT_TRUE(remap_accessor_t(in).get<0>() == 3);
-    //    ASSERT_TRUE(remap_accessor_t(in).get<1>() == 2);
-    //    ASSERT_TRUE(remap_accessor_t(in).get<2>() == 1);
+    ASSERT_EQ(get<0>(in), get<0>(out));
+    ASSERT_EQ(get<1>(in), get<1>(out));
+    ASSERT_EQ(get<2>(in), get<2>(out));
 }
 
-TEST(accessor, trivial) { EXPECT_TRUE(test_trivial()); }
+TEST(accessor, remap_accessor) {
+    using accessor_t = accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3>;
+    accessor_t in(1, 2, 3);
 
-TEST(accessor, array) { EXPECT_TRUE(test_array()); }
+    using ArgsMap = boost::mpl::map1<boost::mpl::pair<boost::mpl::integral_c<int, 0>, boost::mpl::integral_c<int, 8>>>;
+    using remap_accessor_t = remap_accessor_type<accessor_t, ArgsMap>::type;
 
-TEST(accessor, alternative1) { EXPECT_TRUE(test_alternative1()); }
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<remap_accessor_t>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((accessor_index<remap_accessor_t>::type::value == 8), "");
 
-TEST(accessor, alternative2) { EXPECT_TRUE(test_alternative2()); }
+    ASSERT_TRUE(get<0>(remap_accessor_t(in)) == 1);
+    ASSERT_TRUE(get<1>(remap_accessor_t(in)) == 2);
+    ASSERT_TRUE(get<2>(remap_accessor_t(in)) == 3);
+}
 
-TEST(accessor, static_alias) { EXPECT_TRUE(test_static_alias()); }
+TEST(accessor, trivial) {
+    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
+
+    EXPECT_EQ(3, get<0>(first));
+    EXPECT_EQ(2, get<1>(first));
+    EXPECT_EQ(-1, get<2>(first));
+}
+
+TEST(accessor, array) {
+    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
+    GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
+
+    EXPECT_EQ(3, get<0>(first));
+    EXPECT_EQ(2, get<1>(first));
+    EXPECT_EQ(-1, get<2>(first));
+}
+
+/**
+ * @brief interface with out-of-order optional arguments
+ */
+TEST(accessor, alternative1) {
+    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
+
+    EXPECT_EQ(0, get<0>(first));
+    EXPECT_EQ(0, get<1>(first));
+    EXPECT_EQ(0, get<2>(first));
+    EXPECT_EQ(12, get<3>(first));
+    EXPECT_EQ(0, get<4>(first));
+    EXPECT_EQ(-6, get<5>(first));
+}
+
+/**
+ * @brief interface with out-of-order optional arguments, represented as matlab indices
+ */
+TEST(accessor, alternative2) {
+    constexpr dimension<1> i;
+    constexpr dimension<2> j;
+    constexpr dimension<3> k;
+
+    constexpr dimension<4> t;
+#if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
+    // ICC 18 shows some strange bug here
+    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
+
+    GRIDTOOLS_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
+
+    EXPECT_EQ(-5, get<0>(first));
+    EXPECT_EQ(0, get<1>(first));
+    EXPECT_EQ(8, get<2>(first));
+    EXPECT_EQ(2, get<3>(first));
+#endif
+}
+
+/**
+ * @brief interface with aliases defined at compile-time
+ * allows to split a single field in its different components, assigning an offset to each component.
+ * The aforementioned offset is guaranteed to be treated as compile-time static constant value.
+ */
+TEST(accessor, static_alias) {
+    // mixing compile time and runtime values
+    using t = dimension<15>;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 15> arg_t;
+    using alias_t = alias<arg_t, t, dimension<1>, dimension<7>>::set<-3, 4, 2>;
+
+    alias_t first(dimension<8>(23), dimension<3>(-5));
+
+    EXPECT_EQ(2, get<6>(first));
+    EXPECT_EQ(4, get<0>(first));
+    EXPECT_EQ(-3, get<14>(first));
+    EXPECT_EQ(23, get<7>(first));
+    EXPECT_EQ(-5, get<2>(first));
+}

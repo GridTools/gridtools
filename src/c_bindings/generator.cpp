@@ -35,8 +35,7 @@
 */
 
 #include <gridtools/c_bindings/generator.hpp>
-
-#include <cassert>
+#include <gridtools/common/gt_assert.hpp>
 
 namespace gridtools {
     namespace c_bindings {
@@ -130,6 +129,34 @@ namespace gridtools {
                 }
             }
         } // namespace _impl
+
+        std::string wrap_line(const std::string &line, const std::string &prefix) {
+            static constexpr uint_t max_line_length = 132;
+            const std::string line_divider = " &";
+            std::string ret = "";
+            std::string current_prefix = prefix;
+
+            auto it = line.begin();
+            while (it + max_line_length - current_prefix.size() < line.end()) {
+                auto next_it = it + max_line_length - line_divider.size() - current_prefix.size();
+                while (*(next_it - 1) != ',') {
+                    --next_it;
+                    ASSERT_OR_THROW(next_it != line.begin() + 1, "Too long line cannot be wrapped");
+                }
+
+                ret.append(current_prefix);
+                ret.append(it, next_it);
+                ret.append(line_divider + "\n");
+
+                it = next_it;
+                // more indentation on next line
+                current_prefix = prefix + "   ";
+            }
+            ret += current_prefix;
+            ret.append(it, line.end());
+            ret += '\n';
+            return ret;
+        }
 
         void generate_c_interface(std::ostream &strm) {
             strm << "\n#pragma once\n\n";

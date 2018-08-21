@@ -34,33 +34,29 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../common/defs.hpp"
+#include <type_traits>
+
+#define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
+
 namespace gridtools {
     namespace enumtype {
 
-        enum isparallel { parallel_impl, serial };
         enum execution { forward, backward, parallel };
 
-        template <enumtype::isparallel T, enumtype::execution U = forward>
-        struct execute_impl {
-            static const enumtype::execution iteration = U;
-            static const enumtype::isparallel execution = T;
-        };
-
-        template <enumtype::execution U>
+        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
         struct execute {
-            typedef execute_impl<serial, U> type;
+            static const enumtype::execution iteration = U;
+            static const uint_t block_size = BlockSize;
         };
 
-        template <>
-        struct execute<parallel> {
-            typedef execute_impl<parallel_impl, forward> type;
-        };
     } // namespace enumtype
 
     template <typename T>
-    struct is_execution_engine : boost::mpl::false_ {};
+    struct is_execution_engine : std::false_type {};
 
-    template <enumtype::execution U>
-    struct is_execution_engine<enumtype::execute<U>> : boost::mpl::true_ {};
+    template <enumtype::execution U, uint_t BlockSize>
+    struct is_execution_engine<enumtype::execute<U, BlockSize>> : std::true_type {};
 
 } // namespace gridtools

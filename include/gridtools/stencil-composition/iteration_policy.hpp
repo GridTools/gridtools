@@ -46,9 +46,7 @@ namespace gridtools {
 
         /**\brief specialization for the forward iteration loop over k*/
         template <typename From, typename To>
-        struct iteration_policy<From, To, enumtype::forward> {
-            static const enumtype::execution value = enumtype::forward;
-
+        struct iteration_policy_forward {
             typedef From from;
             typedef To to;
 
@@ -66,6 +64,15 @@ namespace gridtools {
                 return a <= b;
             } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
               // should have allocated more memory)
+        };
+
+        template <typename From, typename To>
+        struct iteration_policy<From, To, enumtype::forward> : iteration_policy_forward<From, To> {
+            static const enumtype::execution value = enumtype::forward;
+        };
+        template <typename From, typename To>
+        struct iteration_policy<From, To, enumtype::parallel> : iteration_policy_forward<From, To> {
+            static const enumtype::execution value = enumtype::parallel;
         };
 
         /**\brief specialization for the backward iteration loop over k*/

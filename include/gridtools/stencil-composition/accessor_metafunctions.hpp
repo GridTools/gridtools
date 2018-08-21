@@ -37,6 +37,9 @@
 
 #include "accessor_fwd.hpp"
 #include "dimension_fwd.hpp"
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/front.hpp> // missing in <boost/mpl/at.hpp>
+#include <boost/mpl/size.hpp>
 
 namespace gridtools {
     template <typename Accessor, typename Enable = void>

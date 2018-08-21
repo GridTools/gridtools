@@ -36,7 +36,7 @@
 #pragma once
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../basic_token_execution.hpp"
+#include "../../backend_mic/basic_token_execution_mic.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include "../esf_metafunctions.hpp"
@@ -164,24 +164,21 @@ namespace gridtools {
 
                 using iterate_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
 
-                typedef backend_traits_from_id<enumtype::Mic> backend_traits_t;
+                typedef backend_traits_from_id<platform::mc> backend_traits_t;
 
-                typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 
                 iterate_domain_t it_domain(m_local_domain, m_grid.grid_topology());
 
-                it_domain.set_data_pointer_impl(&data_pointer);
                 it_domain.set_strides_pointer_impl(&strides);
 
-                it_domain.template assign_storage_pointers<backend_traits_t>();
                 it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
                 typedef typename boost::mpl::front<loop_intervals_t>::type interval;
                 typedef typename index_to_level<typename interval::first>::type from;
                 typedef typename index_to_level<typename interval::second>::type to;
-                typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
+                typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                     {m_block_id[0], m_block_id[1], 0},

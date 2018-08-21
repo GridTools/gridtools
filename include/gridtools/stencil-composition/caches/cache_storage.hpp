@@ -154,11 +154,11 @@ namespace gridtools {
         using jplus_t = typename boost::mpl::at_c<typename plus_t::type, 1>::type;
         using kplus_t = typename boost::mpl::at_c<typename plus_t::type, 2>::type;
 
-        GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
-                                                                         iplus_t::value == 0 && jplus_t::value == 0),
+        GRIDTOOLS_STATIC_ASSERT((Cache::cacheType != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
+                                                               iplus_t::value == 0 && jplus_t::value == 0),
             "KCaches can not be use with a non null extent in the horizontal dimensions");
 
-        GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
+        GRIDTOOLS_STATIC_ASSERT((Cache::cacheType != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
             "Only KCaches can be accessed with a non null extent in K");
 
         template <typename Accessor>
@@ -232,7 +232,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void slide() {
-            GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value == K), "Error: we can only slide KCaches");
+            GRIDTOOLS_STATIC_ASSERT((Cache::cacheType == K), "Error: we can only slide KCaches");
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "Error");
 
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
@@ -254,8 +254,7 @@ namespace gridtools {
         GT_FUNCTION static void check_kcache_access_in_bounds(
             Accessor const &accessor, gt_index_sequence<Coordinates...>) {
             assert(accumulate(logical_and(),
-                       (accessor.template get<Accessor::n_dimensions - 1 - Coordinates>() <=
-                           meta_t::template dim<Coordinates>())...) &&
+                       (accessor_offset<Coordinates>(accessor) <= meta_t::template dim<Coordinates>())...) &&
                    "Out of bounds access in cache");
         }
 

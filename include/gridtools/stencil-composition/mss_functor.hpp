@@ -170,9 +170,9 @@ namespace gridtools {
                 LoopIntervals; // List of intervals on which functors are defined
             // wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<
-                typename boost::mpl::bool_<ExecutionEngine::type::iteration == enumtype::forward>::type,
-                LoopIntervals,
-                typename boost::mpl::reverse<LoopIntervals>::type>::type oriented_loop_intervals_t;
+                typename boost::mpl::bool_<ExecutionEngine::iteration == enumtype::backward>::type,
+                typename boost::mpl::reverse<LoopIntervals>::type,
+                LoopIntervals>::type oriented_loop_intervals_t;
             // List of functors to execute (in order)
             typedef typename mss_components_t::functors_list_t functors_list_t;
             // sequence of esf descriptors contained in this mss
@@ -182,7 +182,7 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type functors_map_t;
 
-            typedef backend_traits_from_id<BackendIds::s_backend_id> backend_traits_t;
+            typedef backend_traits_from_id<typename BackendIds::backend_id_t> backend_traits_t;
 
             // compute the struct with all the type arguments for the run functor
 
@@ -264,8 +264,8 @@ namespace gridtools {
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss
-            backend_traits_from_id<BackendIds::s_backend_id>::template mss_loop<run_functor_args_t>::template run(
-                local_domain, m_grid, m_reduction_data, m_execution_info);
+            backend_traits_from_id<typename BackendIds::backend_id_t>::template mss_loop<
+                run_functor_args_t>::template run(local_domain, m_grid, m_reduction_data, m_execution_info);
         }
     };
 } // namespace gridtools

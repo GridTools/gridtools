@@ -93,6 +93,32 @@ struct call_copy_functor {
     }
 };
 
+struct shift_functor {
+    typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+
+    typedef boost::mpl::vector<out> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        eval(out()) = eval(out(gridtools::dimension<3>() - 1));
+    }
+};
+
+template <class AxisInterval>
+struct call_shift_functor {
+    typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+
+    typedef boost::mpl::vector<out> arg_list;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval, typename AxisInterval::template modify<1, 0>) {
+        call_proc<shift_functor>::with(eval, out());
+        // eval(out()) = eval(out(gridtools::dimension<3>() - 1));
+    }
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval, typename AxisInterval::first_level) {}
+};
+
 class expandable_parameters : public testing::Test {
   protected:
     const uint_t d1 = 13;
@@ -100,8 +126,8 @@ class expandable_parameters : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 0;
 
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> data_store_t;
 
     storage_info_t meta_;
 
@@ -214,6 +240,57 @@ TEST_F(expandable_parameters, call_copy) {
         gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
+
+TEST_F(expandable_parameters, call_shift) {
+    auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
+        grid,
+        gridtools::make_multistage(
+            execute<forward>(), gridtools::make_stage<call_shift_functor<gridtools::axis<1>::full_interval>>(p_out())));
+
+    auto set_everything = [](data_store_t &ds, float_type value) {
+        auto v = make_host_view(ds);
+        for (int i = 0; i < ds.total_length<0>(); ++i)
+            for (int j = 0; j < ds.total_length<1>(); ++j)
+                for (int k = 0; k < ds.total_length<2>(); ++k)
+                    v(i, j, k) = value;
+        ds.sync();
+    };
+    auto set_first_layer = [](data_store_t &ds, float_type value) {
+        auto v = make_host_view(ds);
+        for (int i = 0; i < ds.total_length<0>(); ++i)
+            for (int j = 0; j < ds.total_length<1>(); ++j)
+                v(i, j, 0) = value;
+        ds.sync();
+    };
+
+    set_first_layer(out_1, float_type(14));
+    set_everything(in_1, float_type(14));
+
+    set_first_layer(out_2, float_type(15));
+    set_everything(in_2, float_type(15));
+
+    set_first_layer(out_3, float_type(16));
+    set_everything(in_3, float_type(16));
+
+    set_first_layer(out_4, float_type(17));
+    set_everything(in_4, float_type(17));
+
+    set_first_layer(out_5, float_type(18));
+    set_everything(in_5, float_type(18));
+
+    comp.run(p_out() = out);
+    out_1.sync();
+    out_2.sync();
+    out_3.sync();
+    out_4.sync();
+    out_5.sync();
 
     ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
     ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));

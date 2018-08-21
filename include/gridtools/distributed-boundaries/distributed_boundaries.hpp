@@ -236,7 +236,7 @@ namespace gridtools {
         typename std::enable_if<is_bound_bc<BCApply>::value, void>::type apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
             call_apply(boundary<typename BCApply::boundary_class,
-                           CTraits::compute_arch,
+                           typename CTraits::compute_arch,
                            proc_grid_predicate<typename CTraits::proc_grid_type>>(m_halos,
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename CTraits::proc_grid_type>(m_he.comm())),
@@ -266,7 +266,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.pack(advanced::get_address_of(_impl::proper_view<CTraits::compute_arch,
+            m_he.pack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
@@ -277,7 +277,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(advanced::get_address_of(_impl::proper_view<CTraits::compute_arch,
+            m_he.unpack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);

@@ -61,6 +61,10 @@ between levels.
 #include "level.hpp"
 
 namespace gridtools {
+
+    template <class FromLevel, class ToLevel, class BackendIds, class ExecutionEngine, class Grid>
+    GT_FUNCTION int get_k_interval(BackendIds, ExecutionEngine, Grid const &grid);
+
     namespace _impl {
 
         template <class ItDomain, class RunFunctorArguments, class Interval, class Impl>
@@ -98,7 +102,7 @@ namespace gridtools {
         struct run_f_on_interval {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::execution_type_t::type execution_engine;
+            typedef typename RunFunctorArguments::execution_type_t execution_engine;
             typedef typename RunFunctorArguments::functor_list_t functor_list_t;
 
             ItDomain &m_domain;
@@ -108,8 +112,6 @@ namespace gridtools {
             // of this function are k-caches.
             template <typename IterationPolicy, typename Interval>
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
-                assert(to >= from);
-
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
                 constexpr bool backward = IterationPolicy::value == enumtype::backward;
@@ -156,12 +158,19 @@ namespace gridtools {
 
                 typedef iteration_policy<from_t, to_t, execution_engine::iteration> iteration_policy_t;
 
-                uint_t const from = m_grid.template value_at<from_t>();
-                uint_t const to = m_grid.template value_at<to_t>();
+                const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
+                    typename RunFunctorArguments::execution_type_t{},
+                    m_grid);
 
-                k_loop<iteration_policy_t, Interval>(from, to);
+                // for parallel execution we might get empty intervals,
+                // for other execution policies we check that they are given in the correct order
+                assert(RunFunctorArguments::execution_type_t::iteration == enumtype::parallel ||
+                       k_interval.first <= k_interval.second);
+                if (k_interval.first <= k_interval.second)
+                    k_loop<iteration_policy_t, Interval>(k_interval.first, k_interval.second);
             }
         };
+
     } // namespace _impl
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>

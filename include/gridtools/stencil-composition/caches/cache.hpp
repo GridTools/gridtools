@@ -93,7 +93,7 @@ namespace gridtools {
          * @tparam KWindow window of the cache for IO synchronizations (only used for IO policies that synchronize with
          * main mem)
          */
-        template <cache_type cacheType,
+        template <cache_type CacheType,
             typename Arg,
             cache_io_policy cacheIOPolicy,
             typename Interval,
@@ -108,7 +108,7 @@ namespace gridtools {
 #endif
             typedef Interval interval_t;
             using kwindow_t = KWindow;
-            typedef enumtype::enum_type<cache_type, cacheType> cache_type_t;
+            static constexpr cache_type cacheType = CacheType;
             static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
 
