@@ -124,7 +124,6 @@ namespace gridtools {
 
             IterateDomain const &m_it_domain;
             KCachesTuple &m_kcaches;
-            const int_t m_klevel;
 
             // shortcurts for forward backward iteration policy
             static constexpr bool forward = IterationPolicy::value == enumtype::forward;
@@ -154,8 +153,8 @@ namespace gridtools {
 
           public:
             GT_FUNCTION
-            io_cache_functor_base(IterateDomain const &it_domain, KCachesTuple &kcaches, const int_t klevel)
-                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel) {}
+            io_cache_functor_base(IterateDomain const &it_domain, KCachesTuple &kcaches)
+                : m_it_domain(it_domain), m_kcaches(kcaches) {}
         };
 
         template <typename KCachesTuple,

@@ -216,19 +216,19 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
-        GT_FUNCTION void flush_caches(const int_t klevel) {
+        GT_FUNCTION void flush_caches() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
-        GT_FUNCTION void fill_caches(const int_t klevel) {
+        GT_FUNCTION void fill_caches() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
-        GT_FUNCTION void final_flush(const int_t klevel) {
+        GT_FUNCTION void final_flush() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
-        GT_FUNCTION void begin_fill(const int_t klevel) {
+        GT_FUNCTION void begin_fill() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
