@@ -39,6 +39,7 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/pair.hpp>
 
+#include "../common/array.hpp"
 #include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
@@ -95,12 +96,14 @@ namespace gridtools {
 
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
         using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
+        using size_array = array<uint_t, meta::length<storage_info_ptr_list>::value>;
 
         template <class N>
         struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
 
         data_ptr_fusion_map m_local_data_ptrs;
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
+        size_array m_local_padded_total_lengths;
     };
 
     template <class>

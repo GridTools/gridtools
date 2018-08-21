@@ -77,8 +77,7 @@ namespace gridtools {
                 constexpr acc_t acc(0, 0, offset);
 
                 // perform an out-of-bounds check
-                auto mem_ptr = m_it_domain.get_gmem_ptr_in_bounds(acc);
-                if (mem_ptr) {
+                if (auto mem_ptr = m_it_domain.get_gmem_ptr_in_bounds(acc)) {
                     // fill or flush cache
                     if (CacheIOPolicy == cache_io_policy::fill)
                         m_cache_storage.at(acc) = *mem_ptr;
