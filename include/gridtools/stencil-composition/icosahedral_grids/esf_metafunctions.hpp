@@ -34,11 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+
 #include <boost/mpl/equal.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/set/set0.hpp>
+
+#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
     namespace icgrid {
@@ -134,4 +138,33 @@ namespace gridtools {
         using type = Extent;
     };
 
+    namespace _impl {
+        template <template <class...> class FunctorTransformation, template <uint_t> class Functor>
+        struct functor_transformation_wrapper {
+            template <uint_t Color>
+            using apply = GT_META_CALL(FunctorTransformation, Functor<Color>);
+        };
+    } // namespace _impl
+
+    template <template <class...> class FunctorTransformation, class Esf, class = void>
+    struct esf_transform_functor {
+        using type = void;
+    };
+
+    template <template <class...> class FunctorTransformation,
+        template <uint_t> class Functor,
+        class Grid,
+        class LocationType,
+        class Color,
+        class ArgSequence>
+    struct esf_transform_functor<FunctorTransformation,
+        esf_descriptor<Functor, Grid, LocationType, Color, ArgSequence>,
+        enable_if_t<!std::is_void<GT_META_CALL(FunctorTransformation, Functor<0>)>::value>> {
+        using type =
+            esf_descriptor<_impl::functor_transformation_wrapper<FunctorTransformation, Functor>::template apply,
+                Grid,
+                LocationType,
+                Color,
+                ArgSequence>;
+    };
 } // namespace gridtools

@@ -82,8 +82,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((functor_t::repeat_t::value == 1),
                 "Expandable parameters are not implemented for the reduction stages");
-            GRIDTOOLS_STATIC_ASSERT((sfinae::has_two_args<typename functor_t::f_type>::value),
-                "API with a default interval is not implemented for the reduction stages");
             it_domain.set_reduction_value(
                 bin_op_t{}(it_domain.reduction_value(), functor_t::f_type::Do(it_domain, IntervalType{})));
         }

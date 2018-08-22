@@ -33,12 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/range_c.hpp>
+
+#include <iostream>
+
+#include <gridtools/common/generic_metafunctions/for_each.hpp>
 #include <gridtools/stencil-composition/functor_do_methods.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/level.hpp>
-#include <iostream>
 
 using namespace gridtools;
 
@@ -54,7 +55,7 @@ using index_t = level_index<Value, level_offset_limit>;
 struct Functor0 {
     template <typename TArguments>
     static void Do(TArguments &args, interval<level_t<3, -1>, level_t<3, -1>>) {
-        std::cout << "Functor0:Do(Interval<Level<3,-1>, Level<3,-1> >) called" << std::endl;
+        std::cout << "Functor0:Do(interval<level_t<3, -1>, level_t<3, -1>>) called" << std::endl;
     }
 };
 
@@ -62,7 +63,7 @@ struct Functor0 {
 struct Functor1 {
     template <typename TArguments>
     static void Do(TArguments &args, interval<level_t<0, 1>, level_t<2, -1>>) {
-        std::cout << "Functor1:Do(Interval<Level<0,1>, Level<2,-1> >) called" << std::endl;
+        std::cout << "Functor1:Do(interval<level_t<0, 1>, level_t<2, -1>>) called" << std::endl;
     }
 };
 
@@ -70,29 +71,19 @@ struct Functor1 {
 struct Functor2 {
     template <typename TArguments>
     static void Do(TArguments &args, interval<level_t<0, 1>, level_t<1, -1>>) {
-        std::cout << "Functor2:Do(Interval<Level<0,1>, Level<1,-1> >) called" << std::endl;
+        std::cout << "Functor2:Do(interval<level_t<0, 1>, level_t<1, -1>>) called" << std::endl;
     }
 
     template <typename TArguments>
     static void Do(TArguments &args, interval<level_t<1, 1>, level_t<3, -1>>) {
-        std::cout << "Functor2:Do(Interval<Level<1,1>, Level<3,-1> >) called" << std::endl;
+        std::cout << "Functor2:Do(interval<level_t<1, 1>, level_t<3, -1>>) called" << std::endl;
     }
-};
-
-// illegal functor
-struct IllegalFunctor {
-    template <typename TArguments>
-    static void Do(TArguments &args, interval<level_t<1, 1>, level_t<2, -1>>) {}
-    template <typename TArguments>
-    static void Do(TArguments &args, interval<level_t<1, 1>, level_t<3, -2>>) {}
-    template <typename TArguments>
-    static void Do(TArguments &args, interval<level_t<3, -1>, level_t<3, -1>>) {}
 };
 
 // functor printing level_t and index
 struct PrintLevel {
     template <typename T>
-    void operator()(T) {
+    void operator()(T) const {
         typedef typename index_to_level<T>::type Level;
         typedef typename level_to_index<Level>::type Index;
 
@@ -104,14 +95,10 @@ struct PrintLevel {
 // helper executing a functor via boost for each
 template <typename TFunctor>
 struct RunnerFunctor {
-    template <typename T>
-    void operator()(T) {
-        // define the do method interval type
-        typedef typename make_interval<typename boost::mpl::first<T>::type, typename boost::mpl::second<T>::type>::type
-            interval;
-
+    template <template <class...> class L, class FromIndex, class ToIndex>
+    void operator()(L<FromIndex, ToIndex>) const {
         int argument = 0;
-        TFunctor::Do(argument, interval());
+        TFunctor::Do(argument, make_interval<FromIndex, ToIndex>{});
     }
 };
 
@@ -122,7 +109,7 @@ int main(int argc, char *argv[]) {
     // test the level_t to index conversions be enumerating all levels in an range
     // (for test purposes convert the range into levels and back into an index)
     std::cout << "Verify the level_t index computation:" << std::endl;
-    boost::mpl::for_each<typename make_range<index_t<0>, index_t<20>>::type>(PrintLevel());
+    gridtools::for_each<typename make_range<index_t<0>, index_t<20>>::type>(PrintLevel{});
     std::cout << "Done!" << std::endl;
 
     const int has_do_functor0_index_expected = 2 * level_offset_limit * 3 - 1 + level_offset_limit;
@@ -145,21 +132,16 @@ int main(int argc, char *argv[]) {
 
     // run all methods of functor 0
     std::cout << "Print Functor0 Do methods:" << std::endl;
-    boost::mpl::for_each<compute_functor_do_methods<Functor0, AxisInterval>::type>(RunnerFunctor<Functor0>());
+    gridtools::for_each<compute_functor_do_methods<Functor0, AxisInterval>::type>(RunnerFunctor<Functor0>{});
     std::cout << "Done!" << std::endl;
 
     // run all methods of functor 1
     std::cout << "Print Functor1 Do methods:" << std::endl;
-    boost::mpl::for_each<compute_functor_do_methods<Functor1, AxisInterval>::type>(RunnerFunctor<Functor1>());
+    gridtools::for_each<compute_functor_do_methods<Functor1, AxisInterval>::type>(RunnerFunctor<Functor1>{});
     std::cout << "Done!" << std::endl;
 
     // run all methods of functor 2
     std::cout << "Print Functor2 Do methods:" << std::endl;
-    boost::mpl::for_each<compute_functor_do_methods<Functor2, AxisInterval>::type>(RunnerFunctor<Functor2>());
+    gridtools::for_each<compute_functor_do_methods<Functor2, AxisInterval>::type>(RunnerFunctor<Functor2>{});
     std::cout << "Done!" << std::endl;
-
-    // test illegal functor
-    // typedef compute_functor_do_methods<IllegalFunctor, AxisInterval>::type TestIllegalFunctor;
-
-    return 0;
 }

@@ -46,10 +46,10 @@
 #include "functor_do_method_lookup_maps.hpp"
 #include "functor_do_methods.hpp"
 #include "grid.hpp"
+#include "hasdo.hpp"
 #include "loopintervals.hpp"
 #include "mss_components.hpp"
 #include "mss_metafunctions.hpp"
-#include "sfinae.hpp"
 
 namespace gridtools {
 
@@ -131,9 +131,9 @@ namespace gridtools {
         template <typename Functor>
         struct inserter_ {
 
-            typedef typename boost::mpl::if_<typename sfinae::has_two_args<Functor>::type,
-                Functor,
-                functor_default_interval<Functor, typename Grid::axis_type>>::type functor_t;
+            typedef typename boost::mpl::if_<has_do<Functor>,
+                functor_default_interval<Functor, typename Grid::axis_type>,
+                Functor>::type functor_t;
 
             typedef typename compute_functor_do_methods<functor_t, typename Grid::axis_type>::type type;
         };

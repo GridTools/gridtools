@@ -35,112 +35,92 @@
 */
 #pragma once
 
-#include "functor_decorator.hpp"
+#include <boost/mpl/pair.hpp>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../common/host_device.hpp"
 #include "hasdo.hpp"
 #include "interval.hpp"
 #include "level.hpp"
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/back.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/vector.hpp>
 
 namespace gridtools {
 
-    /**
-     * @struct find_do_method_starting_at
-     * Meta function searching for the do method starting at a given from index
-     */
-    template <typename TFromIndex, typename TToIndex, typename TFunctor>
-    struct find_do_method_starting_at {
-        // iterate over all do methods starting from a given level and add them to the do method vector
-        // (note that the do method vector stores level index pairs instead of intervals)
-        typedef typename boost::mpl::fold<typename make_range<TFromIndex, TToIndex>::type,
-            boost::mpl::vector0<>,
-            boost::mpl::if_<has_do<TFunctor, make_interval<TFromIndex, boost::mpl::_2>>,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::pair<TFromIndex, boost::mpl::_2>>,
-                boost::mpl::_1>>::type DoMethods;
+    namespace _impl {
+        template <class ToIndex, class FromIndex>
+        struct no_gap : bool_constant<ToIndex::value + 1 == FromIndex::value &&
+                                      GT_META_CALL(index_to_level, ToIndex)::splitter ==
+                                          GT_META_CALL(index_to_level, FromIndex)::splitter> {};
+        template <class Functor>
+        struct is_from_index {
+            template <class Index>
+            GT_META_DEFINE_ALIAS(apply, has_do, (Functor, GT_META_CALL(index_to_level, Index)));
+        };
 
-        GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args<TFunctor>::type::value,
-            "A functor's Do method is found to have only one argument, when it is supposed to have two");
-
-        // check that:
-        // * the k intervals you specified are consistent (i.e. the domain axis used to build
-        //     the coordinate system contains all the intervals specified for the solutions)
-        // * there is exactly one Do method per functor matching the specified interval
-        GRIDTOOLS_STATIC_ASSERT(
-            boost::mpl::size<DoMethods>::value == 1, "Did not find do method for a given interval from level");
-
-        // define the do method
-        typedef typename boost::mpl::back<DoMethods>::type DoMethod;
-
-        // return the do method pair holding the from and to indexes of the Do method
-        typedef DoMethod type;
-    };
-
-    /**
-     * @struct are_do_methods_continuous
-     * Meta function returning true if two interval pairs are continuous
-     */
-    template <typename TDoMethod1, typename TDoMethod2>
-    struct are_do_methods_continuous {
-        // extract the do method from and to indexes
-        typedef typename boost::mpl::second<TDoMethod1>::type DoMethod1ToIndex;
-        typedef typename boost::mpl::first<TDoMethod2>::type DoMethod2FromIndex;
-
-        // make sure the second interval starts where the first ends
-        // (check the index values are continuous and both indexes are associated to the same splitter)
-        BOOST_STATIC_CONSTANT(bool,
-            value = ((_impl::add_offset(DoMethod1ToIndex::value, 1) == DoMethod2FromIndex::value) &&
-                     (index_to_level<DoMethod1ToIndex>::type::splitter ==
-                         index_to_level<DoMethod2FromIndex>::type::splitter)));
-        typedef boost::mpl::integral_c<bool, value> type;
-    };
+    } // namespace _impl
 
     /**
      * @struct compute_functor_do_methods
      * Meta function computing a vector containing all do method overloads inside the given axis interval
      * (note that the result vector contains pairs of from and to level indexes instead of intervals)
      */
-    template <typename TFunctor, typename TAxisInterval>
-    struct compute_functor_do_methods {
-        // define the from and to level indexes
-        typedef typename interval_from_index<TAxisInterval>::type FromIndex;
-        typedef typename interval_to_index<TAxisInterval>::type ToIndex;
+    template <class Functor, class Axis>
+    struct compute_functor_do_methods;
 
-        // search all do method from levels
-        typedef typename boost::mpl::fold<typename make_range<FromIndex, ToIndex>::type,
-            boost::mpl::vector0<>,
-            boost::mpl::if_<has_do<TFunctor, index_to_level<boost::mpl::_2>>,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>,
-                boost::mpl::_1>>::type FromLevels;
+    template <class Functor, class AxisFromLevel, class AxisToLevel>
+    struct compute_functor_do_methods<Functor, interval<AxisFromLevel, AxisToLevel>> {
 
-        // compute the do method associated to every from level
-        typedef typename boost::mpl::transform<FromLevels,
-            find_do_method_starting_at<boost::mpl::_, ToIndex, TFunctor>>::type DoMethods;
+        GRIDTOOLS_STATIC_ASSERT(!has_do<Functor>::value,
+            "A functor's Do method is found to have only one argument, when it is supposed to have two");
 
-        // check at least one do method was found
-        BOOST_MPL_ASSERT_MSG(
-            !boost::mpl::empty<DoMethods>::value, NO_DO_METHOD_FOUND, (TFunctor, TAxisInterval, DoMethods));
+        using from_index_t = GT_META_CALL(level_to_index, AxisFromLevel);
+        using to_index_t = GT_META_CALL(level_to_index, AxisToLevel);
+        using all_indices_t = typename make_range<from_index_t, to_index_t>::type;
 
-        // check the do methods are continuous
-        BOOST_MPL_ASSERT_MSG((boost::mpl::fold<boost::mpl::range_c<uint_t, 0, boost::mpl::size<DoMethods>::value - 1>,
-                                 boost::mpl::true_,
-                                 boost::mpl::if_<are_do_methods_continuous<boost::mpl::at<DoMethods, boost::mpl::_2>,
-                                                     boost::mpl::at<DoMethods, boost::mpl::next<boost::mpl::_2>>>,
-                                     boost::mpl::_1,
-                                     boost::mpl::false_>>::type::value),
-            DO_METHOD_INTERVALS_ARE_NOT_CONTINOUS,
-            (TFunctor, TAxisInterval, DoMethods));
+        using from_indices_t = GT_META_CALL(
+            meta::filter, (_impl::is_from_index<Functor>::template apply, all_indices_t));
 
-        typedef DoMethods type;
+        GRIDTOOLS_STATIC_ASSERT(meta::length<from_indices_t>::value, "no Do methods for an axis interval found");
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+#define LAZY_DEDUCE_TO_INDEX deduce_to_index
+#else
+#define LAZY_DEDUCE_TO_INDEX lazy_deduce_to_index
+#endif
+        template <class FromIndex>
+        struct LAZY_DEDUCE_TO_INDEX {
+            template <class Index>
+            GT_META_DEFINE_ALIAS(is_to_index, has_do, (Functor, GT_META_CALL(make_interval, (FromIndex, Index))));
+
+            using indices_t = typename make_range<FromIndex, to_index_t>::type;
+            using to_indices_t = GT_META_CALL(meta::filter, (is_to_index, indices_t));
+
+            GRIDTOOLS_STATIC_ASSERT(
+                meta::length<to_indices_t>::value, "no Do methods for an axis interval found with a given from level");
+
+            GRIDTOOLS_STATIC_ASSERT(
+                meta::length<to_indices_t>::value == 1, "ambiguous Do methods with a given from level");
+
+            using type = GT_META_CALL(meta::first, to_indices_t);
+        };
+#undef LAZY_DEDUCE_TO_INDEX
+#if !GT_BROKEN_TEMPLATE_ALIASES
+        template <class FromIndex>
+        using deduce_to_index = typename lazy_deduce_to_index<FromIndex>::type;
+
+#endif
+
+        using to_indices_t = GT_META_CALL(meta::transform, (deduce_to_index, from_indices_t));
+
+        using no_gaps_t = GT_META_CALL(meta::transform,
+            (_impl::no_gap, GT_META_CALL(meta::pop_back, to_indices_t), GT_META_CALL(meta::pop_front, from_indices_t)));
+
+        GRIDTOOLS_STATIC_ASSERT(meta::all<no_gaps_t>::value, "Do methods are not continuous");
+
+        using tuple_of_lists_t = GT_META_CALL(meta::zip, (from_indices_t, to_indices_t));
+
+        using type = GT_META_CALL(
+            meta::transform, (GT_META_CALL(meta::rename, boost::mpl::pair)::apply, tuple_of_lists_t));
     };
-
 } // namespace gridtools

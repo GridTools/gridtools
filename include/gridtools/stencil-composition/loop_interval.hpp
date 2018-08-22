@@ -35,13 +35,21 @@
 */
 #pragma once
 
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "./esf.hpp"
+#include "./level.hpp"
+
 namespace gridtools {
-    template <uint_t VSplitter, int_t VOffset, int_t OffsetLimit>
-    struct level;
+    template <class FromLevel, class ToLevel, class Esfs>
+    struct loop_interval {
+        GRIDTOOLS_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
 
-    template <typename TLevel>
-    struct level_to_index;
+        using type = loop_interval;
+    };
 
-    template <typename TIndex>
-    struct index_to_level;
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_loop_interval, meta::is_instantiation_of, (loop_interval, T));
 } // namespace gridtools
