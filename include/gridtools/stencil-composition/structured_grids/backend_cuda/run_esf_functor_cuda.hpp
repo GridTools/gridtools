@@ -70,7 +70,7 @@ namespace gridtools {
             if (it_domain.template is_thread_in_domain<extent_t>()) {
                 // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
                 // position in the iterate domain
-                typedef typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type
+                typedef typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_t::args_t>::type
                     iterate_domain_remapper_t;
 
                 iterate_domain_remapper_t iterate_domain_remapper(it_domain);

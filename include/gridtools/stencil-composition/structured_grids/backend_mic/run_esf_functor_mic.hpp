@@ -58,9 +58,7 @@ namespace gridtools {
         GT_FUNCTION void operator()(Index, ItDomain &it_domain) const {
 
             typedef esf_arguments<RunFunctorArguments, Index> esf_arguments_t;
-
             typedef typename esf_arguments_t::interval_map_t interval_map_t;
-            typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
 
             if (boost::mpl::has_key<interval_map_t, Interval>::value) {
                 typedef typename boost::mpl::at<interval_map_t, Interval>::type interval_type;
@@ -84,7 +82,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<functor_t>::value, GT_INTERNAL_ERROR);
 
             using iterate_domain_remapper_t =
-                typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type;
+                typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_t::args_t>::type;
             iterate_domain_remapper_t iterate_domain_remapper(it_domain);
 
             call_repeated<functor_t, IntervalType>(iterate_domain_remapper);
@@ -109,7 +107,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((functor_t::repeat_t::value == 1),
                 "Expandable parameters are not implemented for the reduction stages");
             using iterate_domain_remapper_t =
-                typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_args_map_t>::type;
+                typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_t::args_t>::type;
             iterate_domain_remapper_t iterate_domain_remapper(it_domain);
             it_domain.set_reduction_value(bin_op_t{}(
                 it_domain.reduction_value(), functor_t::f_type::Do(iterate_domain_remapper, IntervalType{})));

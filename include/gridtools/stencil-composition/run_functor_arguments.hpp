@@ -158,26 +158,6 @@ namespace gridtools {
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
         typedef Color color_t;
-
-      private:
-        template <typename Arg>
-        struct find_arg_position_in_local_domain {
-            using args_t = typename LocalDomain::esf_args;
-            typedef typename boost::mpl::find<args_t, Arg>::type pos;
-            typedef typename boost::mpl::distance<typename boost::mpl::begin<args_t>::type, pos>::type type;
-            BOOST_STATIC_CONSTANT(int, value = type::value);
-        };
-
-      public:
-        template <class Esf>
-        struct generate_esf_args_map {
-            using from_args_t = typename Esf::args_t;
-            using type = typename boost::mpl::fold<boost::mpl::range_c<int, 0, boost::mpl::size<from_args_t>::value>,
-                boost::mpl::map0<>,
-                boost::mpl::insert<boost::mpl::_1,
-                    boost::mpl::pair<boost::mpl::_2,
-                        find_arg_position_in_local_domain<boost::mpl::at<from_args_t, boost::mpl::_2>>>>>::type;
-        };
     };
 
     template <typename T>
@@ -225,15 +205,11 @@ namespace gridtools {
         typedef
             typename boost::mpl::at_c<typename RunFunctorArguments::functors_map_t, Index::value>::type interval_map_t;
         typedef typename boost::mpl::at_c<typename RunFunctorArguments::esf_sequence_t, Index::value>::type esf_t;
-        typedef typename RunFunctorArguments::template generate_esf_args_map<esf_t>::type esf_args_map_t;
 
         // global (to the mss) sequence_of_is_independent_t map (not local to the esf)
         typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
         typedef typename RunFunctorArguments::is_reduction_t is_reduction_t;
-        typedef typename index_to_level<
-            typename boost::mpl::deref<typename boost::mpl::find_if<typename RunFunctorArguments::loop_intervals_t,
-                boost::mpl::has_key<interval_map_t, boost::mpl::_1>>::type>::type::first>::type first_hit_t;
         typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
         typedef typename RunFunctorArguments::color_t color_t;
     };

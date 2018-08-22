@@ -69,7 +69,7 @@ namespace gridtools {
         GT_FUNCTION_DEVICE static void call_colored(ItDomain &it_domain) {
             using esf_t = typename EsfArguments::esf_t;
             using iterate_domain_remapper_t = typename get_iterate_domain_remapper<ItDomain,
-                typename EsfArguments::esf_args_map_t,
+                typename EsfArguments::esf_t::args_t,
                 typename esf_get_location_type<esf_t>::type,
                 Color>::type;
 
