@@ -93,10 +93,10 @@ namespace gridtools {
          */
         template <uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size>
         GT_FUNCTION typename super::template accessor_return_type<accessor<ACC_ID, Intent, Extent, Size>>::type
-        operator()(vector_accessor<ACC_ID, Intent, Extent, Size> const &arg) {
-            accessor<ACC_ID, Intent, Extent, Size> tmp_(arg);
-            tmp_.template set<0>(ID);
-            return super::operator()(tmp_);
+        operator()(vector_accessor<ACC_ID, Intent, Extent, Size> arg) {
+            arg.set_snapshot(ID);
+            accessor<ACC_ID, Intent, Extent, Size> const &ref = arg;
+            return super::operator()(ref);
         }
 
         /** @brief method called in the Do methods of the functors

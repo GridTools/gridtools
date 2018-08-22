@@ -114,7 +114,7 @@ namespace gridtools {
     template <cache_type cacheType>
     struct cache_is_type {
         template <typename Cache>
-        struct apply : static_bool<Cache::cacheType == cacheType> {
+        struct apply : boost::integral_constant<bool, Cache::cacheType == cacheType> {
             GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         };
     };
