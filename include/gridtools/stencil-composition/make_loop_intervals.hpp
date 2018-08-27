@@ -37,53 +37,21 @@
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
-#include "./bind_functor_with_interval.hpp"
-#include "./esf.hpp"
-#include "./esf_metafunctions.hpp"
 #include "./interval.hpp"
 #include "./level.hpp"
 #include "./loop_interval.hpp"
 
 namespace gridtools {
-
     namespace _impl {
-
-        template <class Index, class Esfs>
+        template <class Index, class Stages>
         struct loop_level {
             using type = loop_level;
         };
 
-        template <class Index>
-        struct make_loop_level_impl {
-#if GT_BROKEN_TEMPLATE_ALIASES
-            template <class Functor>
-            struct bind_functor : bind_functor_with_interval<Functor, Index> {};
-            template <class Esf>
-            struct bind_esf : esf_transform_functor<bind_functor, Esf>;
-#else
-            template <class Functor>
-            using bind_functor = typename bind_functor_with_interval<Functor, Index>::type;
-            template <class Esf>
-            using bind_esf = typename esf_transform_functor<bind_functor, Esf>::type;
-#endif
-            template <class Esfs>
-            GT_META_DEFINE_ALIAS(bind_esfs, meta::transform, (bind_esf, Esfs));
-
-            template <class Esfs>
-            GT_META_DEFINE_ALIAS(apply,
-                loop_level,
-                (Index, GT_META_CALL(meta::filter, (is_esf_descriptor, GT_META_CALL(bind_esfs, Esfs)))));
-        };
-
-        template <class Esfs>
+        template <template <class...> class StagesMaker>
         struct make_loop_level {
             template <class Index>
-#if GT_BROKEN_TEMPLATE_ALIASES
-            struct apply : make_loop_level_impl<Index>::template apply<Esfs> {
-            };
-#else
-            using apply = typename make_loop_level_impl<Index>::template apply<Esfs>;
-#endif
+            GT_META_DEFINE_ALIAS(apply, loop_level, (Index, GT_META_CALL(StagesMaker, Index)));
         };
 
         template <class Acc,
@@ -105,42 +73,35 @@ namespace gridtools {
             (GT_META_CALL(index_to_level, FromIndex), GT_META_CALL(index_to_level, ToIndex), Esfs));
 
         template <class LoopInterval>
-        struct has_esfs : std::false_type {};
+        struct has_stages : std::false_type {};
 
-        template <class From, class To, class Esfs>
-        struct has_esfs<loop_interval<From, To, Esfs>> : bool_constant<meta::length<Esfs>::value != 0> {};
+        template <class From, class To, class Stages>
+        struct has_stages<loop_interval<From, To, Stages>> : bool_constant<meta::length<Stages>::value != 0> {};
     } // namespace _impl
 
-#if GT_BROKEN_TEMPLATE_ALIASES
-#define LAZY_MAKE_LOOP_INTERVALS make_loop_intervals
-#else
-#define LAZY_MAKE_LOOP_INTERVALS lazy_make_loop_intervals
-#endif
+    GT_META_LAZY_NAMESPASE {
+        template <template <class...> class StagesMaker, class Interval>
+        struct make_loop_intervals {
+            GRIDTOOLS_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);
 
-    template <class Esfs, class AxisInterval>
-    struct LAZY_MAKE_LOOP_INTERVALS {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_interval<AxisInterval>::value, GT_INTERNAL_ERROR);
+            using from_index_t = GT_META_CALL(level_to_index, typename Interval::FromLevel);
+            using to_index_t = GT_META_CALL(level_to_index, typename Interval::ToLevel);
+            using indices_t = typename make_range<from_index_t, to_index_t>::type;
+            using all_loop_levels_t = GT_META_CALL(
+                meta::transform, (_impl::make_loop_level<StagesMaker>::template apply, indices_t));
+            using first_loop_level_t = GT_META_CALL(meta::first, all_loop_levels_t);
+            using rest_of_loop_levels_t = GT_META_CALL(meta::pop_front, all_loop_levels_t);
+            using loop_levels_t = GT_META_CALL(
+                meta::lfold, (_impl::loop_level_inserter, meta::list<first_loop_level_t>, rest_of_loop_levels_t));
+            using next_loop_levels_t = GT_META_CALL(meta::push_back,
+                (GT_META_CALL(meta::pop_front, loop_levels_t),
+                    _impl::loop_level<typename to_index_t::next, meta::list<>>));
+            using loop_intervals_t = GT_META_CALL(
+                meta::transform, (_impl::make_loop_interval, loop_levels_t, next_loop_levels_t));
+            using type = GT_META_CALL(meta::filter, (_impl::has_stages, loop_intervals_t));
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(
+        make_loop_intervals, (template <class...> class StagesMaker, class Interval), (StagesMaker, Interval));
 
-        using from_index_t = GT_META_CALL(level_to_index, typename AxisInterval::FromLevel);
-        using to_index_t = GT_META_CALL(level_to_index, typename AxisInterval::ToLevel);
-        using indices_t = typename make_range<from_index_t, to_index_t>::type;
-        using all_loop_levels_t = GT_META_CALL(
-            meta::transform, (_impl::make_loop_level<Esfs>::template apply, indices_t));
-        using first_loop_level_t = GT_META_CALL(meta::first, all_loop_levels_t);
-        using rest_of_loop_levels_t = GT_META_CALL(meta::pop_front, all_loop_levels_t);
-        using loop_levels_t = GT_META_CALL(
-            meta::lfold, (_impl::loop_level_inserter, meta::list<first_loop_level_t>, rest_of_loop_levels_t));
-        using next_loop_levels_t = GT_META_CALL(meta::push_back,
-            (GT_META_CALL(meta::pop_front, loop_levels_t), _impl::loop_level<typename to_index_t::next, meta::list<>>));
-        using loop_intervals_t = GT_META_CALL(
-            meta::transform, (_impl::make_loop_interval, loop_levels_t, next_loop_levels_t));
-        using type = GT_META_CALL(meta::filter, (_impl::has_esfs, loop_intervals_t));
-    };
-
-#undef LAZY_MAKE_LOOP_INTERVALS
-#if !GT_BROKEN_TEMPLATE_ALIASES
-    template <class Esfs, class AxisInterval>
-    using make_loop_intervals = typename lazy_make_loop_intervals<Esfs, AxisInterval>::type;
-#endif
 } // namespace gridtools

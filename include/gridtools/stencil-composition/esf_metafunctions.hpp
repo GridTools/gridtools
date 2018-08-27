@@ -70,12 +70,10 @@ namespace gridtools {
        from false_type), or map between placeholders in this ESF and the extents
        associated with it (if Pred derives from true_type)
      */
-    template <typename Esf, typename Pred = boost::false_type>
+    template <typename Esf>
     struct esf_args {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
-
-        typedef typename boost::mpl::if_<Pred, typename Esf::args_with_extents, typename Esf::args_t>::type type;
+        typedef typename Esf::args_t type;
     };
 
     /**

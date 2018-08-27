@@ -48,17 +48,18 @@ between levels.
 
 #pragma once
 
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/has_key.hpp>
-
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
+#include "../common/host_device.hpp"
 
+#include "execution_types.hpp"
 #include "grid_traits_fwd.hpp"
 #include "interval.hpp"
 #include "iteration_policy.hpp"
 #include "level.hpp"
+#include "loop_interval.hpp"
+#include "run_functor_arguments.hpp"
 
 namespace gridtools {
 
@@ -66,28 +67,6 @@ namespace gridtools {
     GT_FUNCTION int get_k_interval(BackendIds, ExecutionEngine, Grid const &grid);
 
     namespace _impl {
-
-        template <class ItDomain, class RunFunctorArguments, class Interval, class Impl>
-        struct run_esf_functor_helper {
-            GRIDTOOLS_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArguments>::value, GT_INTERNAL_ERROR);
-
-            template <class Index>
-            using has_interval =
-                boost::mpl::has_key<typename esf_arguments<RunFunctorArguments, Index>::interval_map_t, Interval>;
-
-            ItDomain &m_domain;
-
-            template <class Index>
-            GT_FUNCTION enable_if_t<has_interval<Index>::value> operator()(Index) const {
-                using esf_arguments_t = esf_arguments<RunFunctorArguments, Index>;
-                using interval_map_t = typename esf_arguments_t::interval_map_t;
-                using interval_type = typename boost::mpl::at<interval_map_t, Interval>::type;
-                Impl{}.template operator()<interval_type, esf_arguments_t>(m_domain);
-            }
-
-            template <class Index>
-            GT_FUNCTION enable_if_t<!has_interval<Index>::value> operator()(Index) const {}
-        };
 
         /**
            @brief basic token of execution responsible of handling the discretization over the vertical dimension. This
@@ -108,14 +87,10 @@ namespace gridtools {
             ItDomain &m_domain;
             Grid const &m_grid;
 
-            // TODO(anstaf): refactor k-caches related code to make it more self descriptive. All caches in the context
-            // of this function are k-caches.
-            template <typename IterationPolicy, typename Interval>
+            template <typename IterationPolicy, class Stages>
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
-
-                run_esf_functor_helper<ItDomain, RunFunctorArguments, Interval, RunEsfFunctor> fun{m_domain};
 
                 if (in_domain)
                     m_domain.template begin_fill<IterationPolicy>();
@@ -126,8 +101,7 @@ namespace gridtools {
                         m_domain.template fill_caches<IterationPolicy>(lev, m_grid);
                     }
 
-                    gridtools::for_each<GT_META_CALL(meta::make_indices_c, boost::mpl::size<functor_list_t>::value)>(
-                        fun);
+                    RunEsfFunctor::template exec<Stages>(m_domain);
 
                     if (in_domain) {
 
@@ -141,20 +115,19 @@ namespace gridtools {
                     m_domain.template final_flush<IterationPolicy>();
             }
 
-            template <typename Interval>
-            GT_FUNCTION void operator()(Interval const &) const {
-                typedef typename index_to_level<typename Interval::first>::type from_t;
-                typedef typename index_to_level<typename Interval::second>::type to_t;
-
+            template <class From, class To, class Stages>
+            GT_FUNCTION void operator()(loop_interval<From, To, Stages>) const {
+                using from_index_t = GT_META_CALL(level_to_index, From);
+                using to_index_t = GT_META_CALL(level_to_index, To);
                 // check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
-                    (level_to_index<typename Grid::axis_type::FromLevel>::type::value <= Interval::first::value &&
-                        level_to_index<typename Grid::axis_type::ToLevel>::type::value >= Interval::second::value),
+                    (level_to_index<typename Grid::axis_type::FromLevel>::type::value <= from_index_t::value &&
+                        level_to_index<typename Grid::axis_type::ToLevel>::type::value >= to_index_t::value),
                     "the k interval exceeds the axis you specified for the grid instance");
 
-                typedef iteration_policy<from_t, to_t, execution_engine::iteration> iteration_policy_t;
+                typedef iteration_policy<From, To, execution_engine::iteration> iteration_policy_t;
 
-                const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
+                const auto k_interval = get_k_interval<From, To>(typename RunFunctorArguments::backend_ids_t{},
                     typename RunFunctorArguments::execution_type_t{},
                     m_grid);
 
@@ -163,16 +136,14 @@ namespace gridtools {
                 assert(RunFunctorArguments::execution_type_t::iteration == enumtype::parallel ||
                        k_interval.first <= k_interval.second);
                 if (k_interval.first <= k_interval.second)
-                    k_loop<iteration_policy_t, Interval>(k_interval.first, k_interval.second);
+                    k_loop<iteration_policy_t, Stages>(k_interval.first, k_interval.second);
             }
         };
-
     } // namespace _impl
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
     GT_FUNCTION void run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
-        boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
+        gridtools::for_each<typename RunFunctorArguments::new_loop_intervals_t>(
             _impl::run_f_on_interval<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{it_domain, grid});
     }
-
 } // namespace gridtools

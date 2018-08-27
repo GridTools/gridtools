@@ -115,25 +115,28 @@ namespace gridtools {
         };
     } // namespace _impl
 
-    template <class Functor, class Index, class = void>
-    struct bind_functor_with_interval {
-        GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
-        using type = void;
-    };
+    GT_META_LAZY_NAMESPASE {
+        template <class Functor, class Index, class = void>
+        struct bind_functor_with_interval {
+            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            using type = void;
+        };
 
-    template <class Functor, class Index>
-    struct bind_functor_with_interval<Functor,
-        Index,
-        enable_if_t<_impl::is_interval_overload_defined<Functor, Index>::value>> {
-        GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
-        using type = _impl::bound_functor<Functor, typename _impl::find_interval<Functor, Index>::type>;
-    };
+        template <class Functor, class Index>
+        struct bind_functor_with_interval<Functor,
+            Index,
+            enable_if_t<_impl::is_interval_overload_defined<Functor, Index>::value>> {
+            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            using type = _impl::bound_functor<Functor, typename _impl::find_interval<Functor, Index>::type>;
+        };
 
-    template <class Functor, class Index>
-    struct bind_functor_with_interval<Functor,
-        Index,
-        enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value && has_do<Functor>::value>> {
-        GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
-        using type = Functor;
-    };
+        template <class Functor, class Index>
+        struct bind_functor_with_interval<Functor,
+            Index,
+            enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value && has_do<Functor>::value>> {
+            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            using type = Functor;
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(bind_functor_with_interval, (class Functor, class Index), (Functor, Index));
 } // namespace gridtools

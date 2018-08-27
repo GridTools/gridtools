@@ -173,6 +173,7 @@ namespace gridtools {
                 typename boost::mpl::bool_<ExecutionEngine::iteration == enumtype::backward>::type,
                 typename boost::mpl::reverse<LoopIntervals>::type,
                 LoopIntervals>::type oriented_loop_intervals_t;
+
             // List of functors to execute (in order)
             typedef typename mss_components_t::functors_list_t functors_list_t;
             // sequence of esf descriptors contained in this mss
@@ -260,7 +261,8 @@ namespace gridtools {
                 ExecutionEngine,
                 typename mss_components_is_reduction<mss_components_t>::type,
                 ReductionData,
-                nocolor>
+                nocolor,
+                typename mss_components_t::loop_intervals_t>
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss

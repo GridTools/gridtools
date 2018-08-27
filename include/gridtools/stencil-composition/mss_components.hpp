@@ -36,11 +36,14 @@
 #pragma once
 #include "./linearize_mss_functions.hpp"
 #include "computation_grammar.hpp"
+#include "compute_extents_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
 #include "functor_decorator.hpp"
+#include "make_loop_intervals.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
 #include "reductions/reduction_descriptor.hpp"
+#include "stages_maker.hpp"
 
 namespace gridtools {
 
@@ -51,10 +54,9 @@ namespace gridtools {
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
      * @tparam RepeatFunctor the length of the chunks for expandable parameters
      */
-    template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
+    template <typename MssDescriptor, typename ExtentMap, typename RepeatFunctor, typename Axis>
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token<MssDescriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentSizes, is_extent>::value), GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
@@ -66,9 +68,6 @@ namespace gridtools {
         /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
         typedef typename boost::mpl::transform<linear_esf_t, esf_get_w_temps_per_functor<boost::mpl::_>>::type
             written_temps_per_functor_t;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            boost::mpl::size<ExtentSizes>::value == boost::mpl::size<linear_esf_t>::value, GT_INTERNAL_ERROR);
 
         /**
          * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
@@ -96,14 +95,26 @@ namespace gridtools {
                     RepeatFunctor,
                     Axis>>>::type functors_list_t;
 
-        typedef ExtentSizes extent_sizes_t;
+        typedef typename get_extent_sizes<MssDescriptor, ExtentMap>::type extent_sizes_t;
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<extent_sizes_t, is_extent>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            boost::mpl::size<extent_sizes_t>::value == boost::mpl::size<linear_esf_t>::value, GT_INTERNAL_ERROR);
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
+
+        using default_interval_t = interval<typename Axis::FromLevel,
+            GT_META_CALL(index_to_level, typename GT_META_CALL(level_to_index, typename Axis::ToLevel)::prior)>;
+
+        using loop_intervals_t = GT_META_CALL(order_loop_intervals,
+            (execution_engine_t,
+                GT_META_CALL(make_loop_intervals,
+                    (stages_maker<MssDescriptor, ExtentMap, RepeatFunctor::value>::template apply,
+                        default_interval_t))));
     };
 
     template <typename T>
     struct is_mss_components : boost::mpl::false_ {};
 
-    template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
-    struct is_mss_components<mss_components<MssDescriptor, ExtentSizes, RepeatFunctor, Axis>> : boost::mpl::true_ {};
+    template <typename MssDescriptor, typename ExtentMap, typename RepeatFunctor, typename Axis>
+    struct is_mss_components<mss_components<MssDescriptor, ExtentMap, RepeatFunctor, Axis>> : boost::mpl::true_ {};
 
 } // namespace gridtools

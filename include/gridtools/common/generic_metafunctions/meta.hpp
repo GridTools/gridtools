@@ -59,9 +59,12 @@
 #define GT_META_DEFINE_ALIAS(name, fun, args) \
     struct name : GT_META_INTERNAL_APPLY(fun, args) {}
 
+#define GT_META_LAZY_NAMESPASE inline namespace lazy
+
+#define GT_META_DELEGATE_TO_LAZY(fun, signature, args) static_assert(1, "")
+
 // internal
 #define GT_META_INTERNAL_LAZY_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
-#define GT_META_INTERNAL_LAZY_INLINE inline
 
 #else
 
@@ -74,9 +77,14 @@
  */
 #define GT_META_DEFINE_ALIAS(name, fun, args) using name = GT_META_INTERNAL_APPLY(fun, args)
 
+#define GT_META_LAZY_NAMESPASE namespace lazy
+
+#define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
+    template <BOOST_PP_REMOVE_PARENS(signature)>       \
+    using fun = typename lazy::fun<BOOST_PP_REMOVE_PARENS(args)>::type
+
 // internal
 #define GT_META_INTERNAL_LAZY_PARAM(fun) ::gridtools::meta::force<BOOST_PP_REMOVE_PARENS(fun)>::template apply
-#define GT_META_INTERNAL_LAZY_INLINE
 
 #endif
 
@@ -340,7 +348,7 @@ namespace gridtools {
         using _9 = placeholder<8>;
         using _10 = placeholder<9>;
 
-        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
+        GT_META_LAZY_NAMESPASE {
 
             /**
              *  Normalized std::conditional version, which is proper function in the terms of meta library.
@@ -407,7 +415,7 @@ namespace gridtools {
 
 #endif
 
-        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
+        GT_META_LAZY_NAMESPASE {
 
             /**
              *  Identity (lazy)
@@ -1178,5 +1186,4 @@ namespace gridtools {
     /** @} */
 } // namespace gridtools
 
-#undef GT_META_INTERNAL_LAZY_INLINE
 #undef GT_META_INTERNAL_LAZY_PARAM

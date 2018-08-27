@@ -252,7 +252,8 @@ namespace gridtools {
                   Extent> {};
 
         template <class Extents>
-        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>> {};
+        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>> {
+        };
 
         template <class MssComponents>
         struct get_max_extent_for_tmp_from_mss_components

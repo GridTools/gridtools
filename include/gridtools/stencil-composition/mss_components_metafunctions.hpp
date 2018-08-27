@@ -56,8 +56,8 @@ namespace gridtools {
     template <typename T>
     struct mss_components_is_reduction;
 
-    template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
-    struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentSizes, RepeatFunctor, Axis>>
+    template <typename MssDescriptor, typename ExtentMap, typename RepeatFunctor, typename Axis>
+    struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentMap, RepeatFunctor, Axis>>
         : MssDescriptor::is_reduction_t {};
 
     template <typename MssDescriptor>
@@ -67,7 +67,9 @@ namespace gridtools {
         using execution_engine_t = typename mss_descriptor_execution_engine<MssDescriptor>::type;
 
         template <typename Esf_>
-        using compose_mss_ = mss_descriptor<execution_engine_t, boost::mpl::vector1<Esf_>>;
+        struct compose_mss_ {
+            using type = mss_descriptor<execution_engine_t, std::tuple<Esf_>>;
+        };
 
         using mss_split_multiple_esf_t =
             typename boost::mpl::fold<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type,
@@ -115,7 +117,7 @@ namespace gridtools {
             split_mss_into_independent_esfs<MssDescriptors>>::type;
 
         using type = typename boost::mpl::transform<mss_seq_t,
-            mss_components<boost::mpl::_, get_extent_sizes<boost::mpl::_, ExtentMap>, RepeatFunctor, Axis>>::type;
+            mss_components<boost::mpl::_, ExtentMap, RepeatFunctor, Axis>>::type;
     };
 
     /**

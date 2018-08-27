@@ -67,8 +67,8 @@ namespace gridtools {
         }
 
         template <class Functor, uint_t Splitter, int_t Offset>
-        using testee =
-            typename bind_functor_with_interval<Functor, GT_META_CALL(level_to_index, (lev<Splitter, Offset>))>::type;
+        using testee = GT_META_CALL(
+            bind_functor_with_interval, (Functor, GT_META_CALL(level_to_index, (lev<Splitter, Offset>))));
 
         template <class Functor, uint_t Splitter, int_t Offset>
         std::string run() {

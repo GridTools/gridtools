@@ -37,19 +37,45 @@
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
-#include "./esf.hpp"
+#include "./execution_types.hpp"
 #include "./level.hpp"
 
 namespace gridtools {
-    template <class FromLevel, class ToLevel, class Esfs>
+    template <class FromLevel, class ToLevel, class Stages>
     struct loop_interval {
         GRIDTOOLS_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
 
         using type = loop_interval;
     };
 
     template <class T>
     GT_META_DEFINE_ALIAS(is_loop_interval, meta::is_instantiation_of, (loop_interval, T));
+
+    namespace _impl {
+        GT_META_LAZY_NAMESPASE {
+            template <class>
+            struct reverse_loop_interval;
+            template <class From, class To, class Stages>
+            struct reverse_loop_interval<loop_interval<From, To, Stages>> {
+                using type = loop_interval<To, From, Stages>;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(reverse_loop_interval, class T, T);
+    } // namespace _impl
+
+    GT_META_LAZY_NAMESPASE {
+        template <class Execute, class LoopIntervals>
+        struct order_loop_intervals : meta::lazy::id<LoopIntervals> {};
+
+        template <uint_t BlockSize, class LoopIntervals>
+        struct order_loop_intervals<enumtype::execute<enumtype::backward, BlockSize>, LoopIntervals> {
+            using type = GT_META_CALL(meta::reverse, LoopIntervals);
+            //            using type = GT_META_CALL(
+            //                meta::reverse, (GT_META_CALL(meta::transform, (_impl::reverse_loop_interval,
+            //                LoopIntervals))));
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(order_loop_intervals, (class Execute, class LoopIntervals), (Execute, LoopIntervals));
+
 } // namespace gridtools

@@ -322,6 +322,11 @@ namespace gridtools {
         GT_FUNCTION
         int_t k() const { return m_k_block_index; }
 
+        template <class>
+        GT_FUNCTION bool is_thread_in_domain() const {
+            return true;
+        }
+
       private:
         /**
          * @brief Returns stride for a storage along the given axis.

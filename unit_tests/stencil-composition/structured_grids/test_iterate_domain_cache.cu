@@ -43,7 +43,6 @@
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/caches/cache_metafunctions.hpp>
 #include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
-#include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
@@ -119,9 +118,8 @@ TEST(iterate_domain_cache, flush) {
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
     typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
@@ -213,9 +211,8 @@ TEST(iterate_domain_cache, fill) {
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
     typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
@@ -296,9 +293,8 @@ TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
     typedef detail::cache_impl<K, p_in1, cache_io_policy::flush, kminimum> cachef1_t;
     typedef detail::cache_impl<K, p_in2, cache_io_policy::epflush, kmin_and_range1> cachef2_t;
@@ -403,9 +399,8 @@ TEST(iterate_domain_cache, bpfill) {
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
     typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,

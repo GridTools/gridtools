@@ -35,13 +35,15 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/plus.hpp>
 #include <boost/mpl/push_front.hpp>
 #include <boost/mpl/reverse_fold.hpp>
 #include <boost/mpl/vector.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
@@ -56,6 +58,8 @@ namespace gridtools {
         int_t KPlus = 0,
         int_t...>
     struct extent {
+        using type = extent;
+
         typedef static_int<IMinus> iminus;
         typedef static_int<IPlus> iplus;
         typedef static_int<JMinus> jminus;
@@ -72,17 +76,6 @@ namespace gridtools {
 
     template <int_t... Grid>
     struct is_staggered<staggered<Grid...>> : public boost::true_type {};
-    /**
-     * Output operator for extents - for debug purposes
-     *
-     * @param s The ostream
-     * @param * Arguemnt to deduce extent type
-     * @return The ostream
-     */
-    template <int_t I1, int_t I2, int_t I3, int_t I4, int_t I5, int_t I6>
-    std::ostream &operator<<(std::ostream &s, extent<I1, I2, I3, I4, I5, I6>) {
-        return s << "[" << I1 << ", " << I2 << ", " << I3 << ", " << I4 << ", " << I5 << ", " << I6 << "]";
-    }
 
     /**
      * Metafunction to check if a type is a extent
@@ -103,33 +96,57 @@ namespace gridtools {
     struct is_extent<const T> : is_extent<T> {};
 
     /**
-     * Metafunction taking two extents and yielding a extent containing them
+     * Metafunction taking extents and yielding an extent containing them
      */
-    template <typename Extent1, typename Extent2>
-    struct enclosing_extent {
-        BOOST_MPL_ASSERT((is_extent<Extent1>));
-        BOOST_MPL_ASSERT((is_extent<Extent2>));
+    GT_META_LAZY_NAMESPASE {
+        template <class...>
+        struct enclosing_extent;
+    }
+    GT_META_DELEGATE_TO_LAZY(enclosing_extent, class... Extents, Extents...);
+    GT_META_LAZY_NAMESPASE {
+        template <>
+        struct enclosing_extent<> {
+            using type = extent<>;
+        };
 
-        typedef extent<boost::mpl::min<typename Extent1::iminus, typename Extent2::iminus>::type::value,
-            boost::mpl::max<typename Extent1::iplus, typename Extent2::iplus>::type::value,
-            boost::mpl::min<typename Extent1::jminus, typename Extent2::jminus>::type::value,
-            boost::mpl::max<typename Extent1::jplus, typename Extent2::jplus>::type::value,
-            boost::mpl::min<typename Extent1::kminus, typename Extent2::kminus>::type::value,
-            boost::mpl::max<typename Extent1::kplus, typename Extent2::kplus>::type::value>
-            type;
-    };
+        template <int_t... Is>
+        struct enclosing_extent<extent<Is...>> {
+            using type = extent<Is...>;
+        };
 
-    // Specializations for the case in which a range is an mpl::void_, which is used when the extent is taken from an
-    // mpl::map
-    template <typename Extent>
-    struct enclosing_extent<Extent, boost::mpl::void_> {
-        typedef Extent type;
-    };
+        template <int_t L_I_Minus,
+            int_t L_I_Plus,
+            int_t L_J_Minus,
+            int_t L_J_Plus,
+            int_t L_K_Minus,
+            int_t L_K_Plus,
+            int_t... Ls,
+            int_t R_I_Minus,
+            int_t R_I_Plus,
+            int_t R_J_Minus,
+            int_t R_J_Plus,
+            int_t R_K_Minus,
+            int_t R_K_Plus,
+            int_t... Rs>
+        struct enclosing_extent<extent<L_I_Minus, L_I_Plus, L_J_Minus, L_J_Plus, L_K_Minus, L_K_Plus, Ls...>,
+            extent<R_I_Minus, R_I_Plus, R_J_Minus, R_J_Plus, R_K_Minus, R_K_Plus, Rs...>> {
+            using type = extent<(L_I_Minus < R_I_Minus) ? L_I_Minus : R_I_Minus,
+                (L_I_Plus < R_I_Plus) ? R_I_Plus : L_I_Plus,
+                (L_J_Minus < R_J_Minus) ? L_J_Minus : R_J_Minus,
+                (L_J_Plus < R_J_Plus) ? R_J_Plus : L_J_Plus,
+                (L_K_Minus < R_K_Minus) ? L_K_Minus : R_K_Minus,
+                (L_K_Plus < R_K_Plus) ? R_K_Plus : L_K_Plus>;
+        };
 
-    template <typename Extent>
-    struct enclosing_extent<boost::mpl::void_, Extent> {
-        typedef Extent type;
-    };
+        template <class... Extents>
+        struct enclosing_extent : meta::lazy::combine<gridtools::enclosing_extent, meta::list<Extents...>> {};
+    }
+
+    /**
+     *  Verison of enclosing_extent with exactly two parameters
+     */
+    template <class Lhs, class Rhs>
+    struct enclosing_extent_2 : lazy::enclosing_extent<Lhs, Rhs> {};
 
     /**
      * Metafunction taking two extents and yielding a extent which is the extension of one another

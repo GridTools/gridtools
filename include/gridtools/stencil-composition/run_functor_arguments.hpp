@@ -36,10 +36,12 @@
 
 #pragma once
 
+#include <boost/mpl/at.hpp>
 #include <boost/mpl/fold.hpp>
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 #include "./backend_ids.hpp"
 #include "./backend_traits_fwd.hpp"
 #include "./caches/cache_traits.hpp"
@@ -85,27 +87,8 @@ namespace gridtools {
         typedef FunctorReturnType functor_return_type_t;
     };
 
-    template <typename T>
-    struct is_iterate_domain_arguments : boost::mpl::false_ {};
-
-    template <typename BackendIds,
-        typename LocalDomain,
-        typename EsfSequence,
-        typename ExtentSizes,
-        typename MaxExtent,
-        typename CacheSequence,
-        typename Grid,
-        typename IsReduction,
-        typename FunctorReturnType>
-    struct is_iterate_domain_arguments<iterate_domain_arguments<BackendIds,
-        LocalDomain,
-        EsfSequence,
-        ExtentSizes,
-        MaxExtent,
-        CacheSequence,
-        Grid,
-        IsReduction,
-        FunctorReturnType>> : boost::mpl::true_ {};
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_iterate_domain_arguments, meta::is_instantiation_of, (iterate_domain_arguments, T));
 
     /**
      * @brief type that contains main metadata required to execute a mss kernel. This type will be passed to
@@ -126,8 +109,9 @@ namespace gridtools {
         typename IsReduction,      // boolean stating if the operation to be applied at mss is a reduction
         typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
                                    //        otherwise void
-        typename Color             // current color execution (not used for rectangular grids, or grids that dont have
+        typename Color,            // current color execution (not used for rectangular grids, or grids that dont have
                                    // concept of a color
+        typename NewLoopIntervals  //
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -145,52 +129,23 @@ namespace gridtools {
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef ExtentSizes extent_sizes_t;
-        typedef
-            typename boost::mpl::fold<extent_sizes_t, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-                max_extent_t;
+        typedef typename boost::mpl::
+            fold<extent_sizes_t, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef IsIndependentSeq async_esf_map_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         using strategy_type = typename backend_ids_t::strategy_id_t;
-        static const bool s_is_reduction = IsReduction::value;
+        static constexpr bool s_is_reduction = IsReduction::value;
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
         typedef Color color_t;
+        typedef NewLoopIntervals new_loop_intervals_t;
     };
 
-    template <typename T>
-    struct is_run_functor_arguments : boost::mpl::false_ {};
-
-    template <typename BackendIds,
-        typename FunctorList,
-        typename EsfSequence,
-        typename LoopIntervals,
-        typename FunctorsMap,
-        typename ExtentSizes,
-        typename LocalDomain,
-        typename CacheSequence,
-        typename IsIndependentSequence,
-        typename Grid,
-        typename ExecutionEngine,
-        typename IsReduction,
-        typename ReductionData,
-        typename Color>
-    struct is_run_functor_arguments<run_functor_arguments<BackendIds,
-        FunctorList,
-        EsfSequence,
-        LoopIntervals,
-        FunctorsMap,
-        ExtentSizes,
-        LocalDomain,
-        CacheSequence,
-        IsIndependentSequence,
-        Grid,
-        ExecutionEngine,
-        IsReduction,
-        ReductionData,
-        Color>> : boost::mpl::true_ {};
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_run_functor_arguments, meta::is_instantiation_of, (run_functor_arguments, T));
 
     /**
      * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to
@@ -212,12 +167,9 @@ namespace gridtools {
         typedef typename RunFunctorArguments::is_reduction_t is_reduction_t;
         typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
         typedef typename RunFunctorArguments::color_t color_t;
+        typedef typename RunFunctorArguments::new_loop_intervals_t new_loop_intervals_t;
     };
 
-    template <typename T>
-    struct is_esf_arguments : boost::mpl::false_ {};
-
-    template <typename RunFunctorArguments, typename Index>
-    struct is_esf_arguments<esf_arguments<RunFunctorArguments, Index>> : boost::mpl::true_ {};
-
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_esf_arguments, meta::is_instantiation_of, (esf_arguments, T));
 } // namespace gridtools

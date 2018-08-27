@@ -36,18 +36,10 @@
 
 #include <gridtools/stencil-composition/make_loop_intervals.hpp>
 
-#include <tuple>
-
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
-
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/generic_metafunctions/meta.hpp>
-#include <gridtools/common/host_device.hpp>
-#include <gridtools/stencil-composition/bind_functor_with_interval.hpp>
-#include <gridtools/stencil-composition/esf.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/level.hpp>
 
@@ -62,52 +54,42 @@ namespace gridtools {
         using to_t = lev<3, -1>;
         using axis_interval_t = interval<from_t, to_t>;
 
-        template <class... Esfs>
-        GT_META_DEFINE_ALIAS(testee, make_loop_intervals, (meta::list<Esfs...>, axis_interval_t));
+        struct stage1 {};
+        struct stage2 {};
 
-        static_assert(meta::length<GT_META_CALL(testee, )>::value == 0, "");
+        template <template <class...> class StagesMaker>
+        GT_META_DEFINE_ALIAS(testee, make_loop_intervals, (StagesMaker, axis_interval_t));
+
+        namespace no_stages {
+            using testee_t = GT_META_CALL(testee, meta::always<list<>>::apply);
+            static_assert(std::is_same<testee_t, list<>>{}, "");
+        } // namespace no_stages
 
         namespace simple {
-            struct functor {
-                using arg_list = std::tuple<>;
-
-                template <class Eval>
-                static GT_FUNCTION void Do(Eval &) {}
-            };
-            using esf_t = esf_descriptor<functor, std::tuple<>>;
-            using testee_t = GT_META_CALL(testee, esf_t);
-            static_assert(std::is_same<testee_t, list<loop_interval<from_t, to_t, list<esf_t>>>>{}, "");
+            using testee_t = GT_META_CALL(testee, meta::always<list<stage1>>::apply);
+            static_assert(std::is_same<testee_t, list<loop_interval<from_t, to_t, list<stage1>>>>{}, "");
         } // namespace simple
 
         namespace overlap {
-            struct functor1 {
-                using arg_list = std::tuple<>;
+            template <uint_t Splitter, int_t Offset>
+            constexpr int_t idx() {
+                return GT_META_CALL(level_to_index, (lev<Splitter, Offset>))::value;
+            }
+            constexpr bool has_stage1(int_t i) { return i >= idx<0, 2>() && i < idx<2, 1>(); }
+            constexpr bool has_stage2(int_t i) { return i >= idx<1, 1>() && i < idx<3, -1>(); }
 
-                template <class Eval>
-                static GT_FUNCTION void Do(Eval &, interval<lev<0, 2>, lev<2, -1>>) {}
-            };
-            struct functor2 {
-                using arg_list = std::tuple<>;
+            template <class Index>
+            GT_META_DEFINE_ALIAS(stages_maker,
+                meta::filter,
+                (meta::not_<std::is_void>::apply,
+                    meta::list<conditional_t<has_stage1(Index::value), stage1, void>,
+                        conditional_t<has_stage2(Index::value), stage2, void>>));
 
-                template <class Eval>
-                static GT_FUNCTION void Do(Eval &, interval<lev<1, 1>, lev<3, -2>>) {}
-            };
-            using esf1_t = esf_descriptor<functor1, std::tuple<>>;
-            using esf2_t = esf_descriptor<functor2, std::tuple<>>;
+            using testee_t = GT_META_CALL(testee, stages_maker);
 
-            using bound_functor1 =
-                bind_functor_with_interval<functor1, GT_META_CALL(level_to_index, (lev<0, 2>))>::type;
-            using bound_functor2 =
-                bind_functor_with_interval<functor2, GT_META_CALL(level_to_index, (lev<1, 1>))>::type;
-
-            using bound_esf1 = esf_descriptor<bound_functor1, std::tuple<>>;
-            using bound_esf2 = esf_descriptor<bound_functor2, std::tuple<>>;
-
-            using testee_t = GT_META_CALL(testee, (esf1_t, esf2_t));
-
-            using expected_t = list<loop_interval<lev<0, 2>, lev<1, -1>, list<bound_esf1>>,
-                loop_interval<lev<1, 1>, lev<2, -1>, list<bound_esf1, bound_esf2>>,
-                loop_interval<lev<2, 1>, lev<3, -2>, list<bound_esf2>>>;
+            using expected_t = list<loop_interval<lev<0, 2>, lev<1, -1>, list<stage1>>,
+                loop_interval<lev<1, 1>, lev<2, -1>, list<stage1, stage2>>,
+                loop_interval<lev<2, 1>, lev<3, -2>, list<stage2>>>;
 
             static_assert(std::is_same<testee_t, expected_t>{}, "");
         } // namespace overlap
