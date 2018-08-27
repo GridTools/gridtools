@@ -38,4 +38,6 @@
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/stages_maker.hpp"
+#else
+#include "./icosahedral_grids/stages_maker.hpp"
 #endif

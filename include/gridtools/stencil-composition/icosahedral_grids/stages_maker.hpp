@@ -52,6 +52,7 @@
 namespace gridtools {
 
     namespace _impl {
+
         template <class Index, class ExtentMap, size_t RepeatFactor>
         struct stage_from_esf_f;
 
@@ -62,20 +63,54 @@ namespace gridtools {
                 GT_META_CALL(
                     meta::transform, (stage_from_esf_f<Index, ExtentMap, RepeatFactor>::template apply, Esfs))));
 
+        template <template <uint_t> class ColoredFunctor, class Index>
+        struct bind_colored_functor_with_interval {
+            template <uint_t Color>
+            using apply = GT_META_CALL(bind_functor_with_interval, (ColoredFunctor<Color>, Index));
+        };
+
         GT_META_LAZY_NAMESPASE {
-            template <class Functor, class Esf, class ExtentMap, size_t RepeatFactor>
+            template <template <uint_t> class Functor,
+                class Esf,
+                class ExtentMap,
+                size_t RepeatFactor,
+                class Color = typename Esf::color_t::color_t,
+                class FirstFunctor = Functor<0>>
             struct stage_from_functor {
+                static constexpr uint_t color = Color::value;
                 using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
-                using type = regular_stage<Functor, extent_t, typename Esf::args_t, RepeatFactor>;
+                using type = color_specific_stage<color,
+                    Functor<color>,
+                    extent_t,
+                    typename Esf::args_t,
+                    typename Esf::location_type,
+                    RepeatFactor>;
             };
-            template <class Esf, class ExtentMap, size_t RepeatFactor>
-            struct stage_from_functor<void, Esf, ExtentMap, RepeatFactor> {
+            template <template <uint_t> class Functor, class Esf, class ExtentMap, size_t RepeatFactor>
+            struct stage_from_functor<Functor, Esf, ExtentMap, RepeatFactor, notype, void> {
                 using type = void;
             };
-
+            template <template <uint_t> class Functor, class Esf, class ExtentMap, size_t RepeatFactor, class Color>
+            struct stage_from_functor<Functor, Esf, ExtentMap, RepeatFactor, Color, void> {
+                using type = void;
+            };
+            template <template <uint_t> class Functor,
+                class Esf,
+                class ExtentMap,
+                size_t RepeatFactor,
+                class FirstFunctor>
+            struct stage_from_functor<Functor, Esf, ExtentMap, RepeatFactor, notype, FirstFunctor> {
+                using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
+                using type = all_colors_stage<Functor,
+                    extent_t,
+                    typename Esf::args_t,
+                    typename Esf::location_type,
+                    RepeatFactor>;
+            };
             template <class Esf, class Index, class ExtentMap, size_t RepeatFactor>
             struct stage_from_esf
-                : stage_from_functor<GT_META_CALL(bind_functor_with_interval, (typename Esf::esf_function, Index)),
+                : stage_from_functor<
+                      bind_colored_functor_with_interval<Esf::template esf_function, Index>::template apply,
                       Esf,
                       ExtentMap,
                       RepeatFactor> {};
@@ -98,28 +133,10 @@ namespace gridtools {
             template <class Index, class Esfs, class ExtentMap, size_t RepeatFactor>
             struct stage_from_esf<independent_esf<Esfs>, Index, ExtentMap, RepeatFactor>
                 : stage_from_stages<GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap, RepeatFactor))> {};
-
-            template <class Functor, class Esf, class BinOp, class ExtentMap>
-            struct reduction_stages_from_functor {
-                using extent_t = typename reduction_get_extent_for<Esf, ExtentMap>::type;
-                using type = meta::list<reduction_stage<Functor, extent_t, typename Esf::args_t, BinOp>>;
-            };
-            template <class Esf, class BinOp, class ExtentMap>
-            struct reduction_stages_from_functor<void, Esf, BinOp, ExtentMap> {
-                using type = meta::list<>;
-            };
-            template <class Esf, class Index, class BinOp, class ExtentMap>
-            struct reduction_stages : reduction_stages_from_functor<GT_META_CALL(bind_functor_with_interval,
-                                                                        (typename Esf::esf_function, Index)),
-                                          Esf,
-                                          BinOp,
-                                          ExtentMap> {};
         }
         GT_META_DELEGATE_TO_LAZY(stage_from_esf,
             (class Esf, class Index, class ExtentMap, size_t RepeatFactor),
             (Esf, Index, ExtentMap, RepeatFactor));
-        GT_META_DELEGATE_TO_LAZY(
-            reduction_stages, (class Esf, class Index, class BinOp, class ExtentMap), (Esf, Index, BinOp, ExtentMap));
 
         template <class Index, class ExtentMap, size_t RepeatFactor>
         struct stage_from_esf_f {
@@ -136,16 +153,4 @@ namespace gridtools {
         template <class LevelIndex>
         GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap, RepeatFactor));
     };
-
-    template <class ReductionType,
-        class BinOp,
-        template <class...> class L,
-        class Esf,
-        class ExtentMap,
-        size_t RepeatFactor>
-    struct stages_maker<reduction_descriptor<ReductionType, BinOp, L<Esf>>, ExtentMap, RepeatFactor> {
-        template <class LevelIndex>
-        GT_META_DEFINE_ALIAS(apply, _impl::reduction_stages, (Esf, LevelIndex, BinOp, ExtentMap));
-    };
-
 } // namespace gridtools
