@@ -35,52 +35,36 @@
 */
 #pragma once
 
-#include <boost/mpl/at.hpp>
-
-#include "../../functor_decorator.hpp"
-#include "../../run_esf_functor.hpp"
-#include "../../run_functor_arguments.hpp"
-#include "../iterate_domain_remapper.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/for_each.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
+#include "../../../common/host_device.hpp"
 
 namespace gridtools {
-    /*
-     * @brief main functor that executes (for CUDA) the user functor of an ESF
-     * @tparam RunFunctorArguments run functor arguments
-     * @tparam Interval interval where the functor gets executed
-     */
-    struct run_esf_functor_cuda {
-        /*
-         * @brief main functor implemenation that executes (for CUDA) the user functor of an ESF
-         * @tparam IntervalType interval where the functor gets executed
-         * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
-         */
-        template <class IntervalType, class EsfArguments, class ItDomain>
-        GT_FUNCTION void operator()(ItDomain &it_domain) const {
-            // To remove a compilation error (calling __device__ from __host__ __device__) I had to add __host__
-            // __device__ decorators. However this function is device only and contains device only functions, therefore
-            // we have to hide it from host.
+    namespace _impl {
+        template <class ItDomain>
+        struct exec_stage_cuda_f {
+            ItDomain &m_domain;
+
+            template <class Stage>
+            GT_FUNCTION void operator()(Stage) const {
 #ifdef __CUDA_ARCH__
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments<EsfArguments>::value), GT_INTERNAL_ERROR);
-
-            typedef typename EsfArguments::extent_t extent_t;
-            typedef typename EsfArguments::functor_t functor_t;
-
-            // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
-            // is not a multiple of the block size
-            if (it_domain.template is_thread_in_domain<extent_t>()) {
-                // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
-                // position in the iterate domain
-                typedef typename get_iterate_domain_remapper<ItDomain, typename EsfArguments::esf_t::args_t>::type
-                    iterate_domain_remapper_t;
-
-                iterate_domain_remapper_t iterate_domain_remapper(it_domain);
-
-                // call the user functor at the core of the block
-                call_repeated<functor_t, IntervalType>(iterate_domain_remapper);
+                __syncthreads();
+#endif
+                if (m_domain.template is_thread_in_domain<typename Stage::extent_t>())
+                    Stage::exec(m_domain);
             }
+        };
+    } // namespace _impl
 
-            // synchronize threads if not independent esf
-            if (!boost::mpl::at<typename EsfArguments::async_esf_map_t, functor_t>::type::value)
+    struct run_esf_functor_cuda {
+        template <class Stages, class ItDomain>
+        GT_FUNCTION static void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(meta::length<Stages>::value > 0, GT_INTERNAL_ERROR);
+            GT_META_CALL(meta::first, Stages)::exec(it_domain);
+            gridtools::for_each<GT_META_CALL(meta::pop_front, Stages)>(_impl::exec_stage_cuda_f<ItDomain>{it_domain});
+#ifdef __CUDA_ARCH__
+            if (ItDomain::has_ij_caches)
                 __syncthreads();
 #endif
         }

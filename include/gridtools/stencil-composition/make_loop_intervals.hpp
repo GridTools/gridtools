@@ -54,23 +54,19 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(apply, loop_level, (Index, GT_META_CALL(StagesMaker, Index)));
         };
 
-        template <class Acc,
-            class Cur,
-            class Prev = GT_META_CALL(meta::last, Acc),
-            class Esfs = GT_META_CALL(meta::second, Cur),
-            class PrevEsfs = GT_META_CALL(meta::second, Prev)>
+        template <class Acc, class Cur, class Prev = GT_META_CALL(meta::last, Acc)>
         GT_META_DEFINE_ALIAS(loop_level_inserter,
             meta::if_,
-            (std::is_same<Esfs, PrevEsfs>, Acc, GT_META_CALL(meta::push_back, (Acc, Cur))));
+            (std::is_same<GT_META_CALL(meta::second, Cur), GT_META_CALL(meta::second, Prev)>,
+                Acc,
+                GT_META_CALL(meta::push_back, (Acc, Cur))));
 
-        template <class LoopLevel,
-            class NextLoopLevel,
-            class FromIndex = GT_META_CALL(meta::first, LoopLevel),
-            class ToIndex = typename GT_META_CALL(meta::first, NextLoopLevel)::prior,
-            class Esfs = GT_META_CALL(meta::second, LoopLevel)>
+        template <class LoopLevel, class NextLoopLevel, class FromIndex = GT_META_CALL(meta::first, LoopLevel)>
         GT_META_DEFINE_ALIAS(make_loop_interval,
             loop_interval,
-            (GT_META_CALL(index_to_level, FromIndex), GT_META_CALL(index_to_level, ToIndex), Esfs));
+            (GT_META_CALL(index_to_level, FromIndex),
+                GT_META_CALL(index_to_level, typename GT_META_CALL(meta::first, NextLoopLevel)::prior),
+                GT_META_CALL(meta::second, LoopLevel)));
 
         template <class LoopInterval>
         struct has_stages : std::false_type {};

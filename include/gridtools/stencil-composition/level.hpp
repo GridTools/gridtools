@@ -48,7 +48,7 @@ namespace gridtools {
 
     namespace _impl {
         constexpr int_t calc_level_index(uint_t splitter, int_t offset, int_t limit) {
-            return limit * (2 * splitter + 1) + offset - (offset >= 0);
+            return limit * (2 * (int_t)splitter + 1) + offset - (offset >= 0);
         }
         constexpr int_t get_splitter_from_index(int_t index, int_t limit) { return index / (2 * limit); }
         constexpr int_t get_offset_from_index(int_t index, int_t limit) {

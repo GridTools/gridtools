@@ -753,7 +753,7 @@ namespace gridtools {
              *  Zip lists
              */
             template <class... Lists>
-            GT_META_DEFINE_ALIAS(zip, transpose, list<Lists...>);
+            struct zip : transpose<list<Lists...>> {};
 
             // transform, generic version
             template <template <class...> class F, class List, class... Lists>
