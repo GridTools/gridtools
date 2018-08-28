@@ -204,6 +204,31 @@ namespace gridtools {
         }
 
         /**
+         * @brief metafunction that computes the list of indexes of all k caches that require a fill
+         */
+        template <typename IterationPolicy>
+        struct kcache_fill_indexes {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+
+            /**
+             * @brief filters caches that overlap with the current IterationPolicy's interval
+             * @tparam CacheStorage cache storage
+             */
+            template <typename CacheStorage>
+            struct is_overlapping {
+                using cache_t = typename CacheStorage::cache_t;
+                static constexpr bool value = (interval_to_index<typename cache_t::interval_t>::type::value >=
+                                                  level_to_index<typename IterationPolicy::from>::type::value) ||
+                                              (interval_from_index<typename cache_t::interval_t>::type::value <=
+                                                  level_to_index<typename IterationPolicy::to>::type::value);
+            };
+
+            // determine indexes of all k caches that require filling
+            using type = typename boost::mpl::filter_view<k_filling_caches_indexes_t,
+                is_overlapping<boost::mpl::at<k_caches_map_t, boost::mpl::_>>>::type;
+        };
+
+        /**
          * fill next k level from main memory for all k caches. The position of the kcache being filled
          * depends on the iteration policy
          * \tparam IterationPolicy forward: backward
@@ -212,13 +237,39 @@ namespace gridtools {
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            using indices = typename kcache_fill_indexes<IterationPolicy>::type;
 
-            boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
+            boost::mpl::for_each<indices>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
                 IterationPolicy,
                 cache_io_policy::fill>(it_domain, m_k_caches_tuple));
         }
+
+        /**
+         * @brief metafunction that computes the list of indexes of all k caches that require a flush
+         */
+        template <typename IterationPolicy>
+        struct kcache_flush_indexes {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+
+            /**
+             * @brief filters caches that overlap with the current IterationPolicy's interval
+             * @tparam CacheStorage cache storage
+             */
+            template <typename CacheStorage>
+            struct is_overlapping {
+                using cache_t = typename CacheStorage::cache_t;
+                static constexpr bool value = (interval_to_index<typename cache_t::interval_t>::type::value >=
+                                                  level_to_index<typename IterationPolicy::from>::type::value) ||
+                                              (interval_from_index<typename cache_t::interval_t>::type::value <=
+                                                  level_to_index<typename IterationPolicy::to>::type::value);
+            };
+
+            // determine indexes of all k caches that require flushing
+            using type = typename boost::mpl::filter_view<k_flushing_caches_indexes_t,
+                is_overlapping<boost::mpl::at<k_caches_map_t, boost::mpl::_>>>::type;
+        };
 
         /**
          * flush the last k level of the ring buffer into main memory. The position of the kcache being flushed
@@ -229,8 +280,9 @@ namespace gridtools {
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            using indices = typename kcache_flush_indexes<IterationPolicy>::type;
 
-            boost::mpl::for_each<k_flushing_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
+            boost::mpl::for_each<indices>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
                 IterationPolicy,
