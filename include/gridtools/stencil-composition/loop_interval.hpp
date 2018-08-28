@@ -70,10 +70,8 @@ namespace gridtools {
 
         template <uint_t BlockSize, class LoopIntervals>
         struct order_loop_intervals<enumtype::execute<enumtype::backward, BlockSize>, LoopIntervals> {
-            using type = GT_META_CALL(meta::reverse, LoopIntervals);
-            //            using type = GT_META_CALL(
-            //                meta::reverse, (GT_META_CALL(meta::transform, (_impl::reverse_loop_interval,
-            //                LoopIntervals))));
+            using type = GT_META_CALL(
+                meta::reverse, (GT_META_CALL(meta::transform, (_impl::reverse_loop_interval, LoopIntervals))));
         };
     }
     GT_META_DELEGATE_TO_LAZY(order_loop_intervals, (class Execute, class LoopIntervals), (Execute, LoopIntervals));

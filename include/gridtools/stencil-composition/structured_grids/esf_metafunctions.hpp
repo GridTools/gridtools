@@ -50,15 +50,6 @@ namespace gridtools {
             type;
     };
 
-    struct extract_esf_functor {
-        template <typename Esf>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::esf_function type;
-        };
-    };
-
     template <typename Esf>
     struct esf_arg_list {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
@@ -75,17 +66,5 @@ namespace gridtools {
     template <typename ESF, typename Extent, typename ArgArray, typename Staggering>
     struct esf_extent<esf_descriptor_with_extent<ESF, Extent, ArgArray, Staggering>> {
         using type = Extent;
-    };
-
-    template <template <class...> class FunctorTransformation, class Esf, class = void>
-    struct esf_transform_functor {
-        using type = void;
-    };
-
-    template <template <class...> class FunctorTransformation, class ESF, class ArgArray, class Staggering>
-    struct esf_transform_functor<FunctorTransformation,
-        esf_descriptor<ESF, ArgArray, Staggering>,
-        enable_if_t<!std::is_void<GT_META_CALL(FunctorTransformation, ESF)>::value>> {
-        using type = esf_descriptor<GT_META_CALL(FunctorTransformation, ESF), ArgArray, Staggering>;
     };
 } // namespace gridtools

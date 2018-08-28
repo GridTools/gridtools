@@ -72,7 +72,7 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(has_color,
                 meta::any_of,
                 (_impl::loop_interval_contains_color<Color::value>::template apply,
-                    typename RunFunctorArguments::new_loop_intervals_t));
+                    typename RunFunctorArguments::loop_intervals_t));
 
             IterateDomain &m_it_domain;
             Grid const &m_grid;
@@ -136,10 +136,8 @@ namespace gridtools {
 
             typedef backend_traits_from_id<platform::x86> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
-            using first_interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::new_loop_intervals_t);
-            typedef GT_META_CALL(meta::first, first_interval_t) from;
-            typedef GT_META_CALL(meta::second, first_interval_t) to;
-            typedef ::gridtools::_impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
+            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+            using from_t = GT_META_CALL(meta::first, interval_t);
 
             template <class ReductionData>
             execute_kernel_functor_host(const local_domain_t &local_domain,
@@ -167,8 +165,7 @@ namespace gridtools {
                     m_block_no,
                     {extent_t::iminus::value,
                         extent_t::jminus::value,
-                        static_cast<int_t>(
-                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
+                        static_cast<int_t>(m_grid.template value_at<from_t>() - m_grid.k_min())});
 
                 for (uint_t i = 0; i != m_size.i; ++i) {
                     gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(

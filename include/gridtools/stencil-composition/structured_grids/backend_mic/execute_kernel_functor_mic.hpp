@@ -39,7 +39,6 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/type_traits.hpp"
-#include "../../backend_mic/basic_token_execution_mic.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../loop_interval.hpp"
@@ -108,10 +107,10 @@ namespace gridtools {
             template <template <class...> class L, class Stage, class Index>
             GT_FUNCTION void operator()(L<Stage, Index>) const {
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = ::gridtools::_impl::iteration_policy<From, To, execution_type_t::iteration>;
+                using iteration_policy_t = iteration_policy<From, To, execution_type_t::iteration>;
 
-                const int_t k_first = m_grid.template value_at<typename iteration_policy_t::from>();
-                const int_t k_last = m_grid.template value_at<typename iteration_policy_t::to>();
+                const int_t k_first = m_grid.template value_at<From>();
+                const int_t k_last = m_grid.template value_at<To>();
 
                 /* Prefetching is only done for the first ESF, as we assume the following ESFs access the same data
                  * that's already in cache then. The prefetching distance is currently always 2 k-levels. */
@@ -166,15 +165,15 @@ namespace gridtools {
             template <class Stage>
             GT_FUNCTION void operator()(Stage) const {
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                using iteration_policy_t = ::gridtools::_impl::iteration_policy<From, To, execution_type_t::iteration>;
+                using iteration_policy_t = iteration_policy<From, To, execution_type_t::iteration>;
                 using extent_t = typename Stage::extent_t;
 
                 const int_t i_first = extent_t::iminus::value;
                 const int_t i_last = m_execution_info.i_block_size + extent_t::iplus::value;
                 const int_t j_first = extent_t::jminus::value;
                 const int_t j_last = m_execution_info.j_block_size + extent_t::jplus::value;
-                const int_t k_first = m_grid.template value_at<typename iteration_policy_t::from>();
-                const int_t k_last = m_grid.template value_at<typename iteration_policy_t::to>();
+                const int_t k_first = m_grid.template value_at<From>();
+                const int_t k_last = m_grid.template value_at<To>();
 
                 m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
                 for (int_t j = j_first; j < j_last; ++j) {
@@ -375,7 +374,6 @@ namespace gridtools {
         class execute_kernel_functor_mic {
             using grid_t = typename RunFunctorArguments::grid_t;
             using local_domain_t = typename RunFunctorArguments::local_domain_t;
-            using loop_intervals_t = typename RunFunctorArguments::new_loop_intervals_t;
             using reduction_data_t = typename RunFunctorArguments::reduction_data_t;
 
           public:
@@ -389,7 +387,7 @@ namespace gridtools {
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
-                gridtools::for_each<loop_intervals_t>(
+                gridtools::for_each<typename RunFunctorArguments::loop_intervals_t>(
                     gridtools::_impl::interval_functor_mic<RunFunctorArguments, ExecutionInfo>(
                         it_domain, m_grid, execution_info));
 

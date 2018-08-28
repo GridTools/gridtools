@@ -38,7 +38,6 @@
 #include "computation_grammar.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
-#include "functor_decorator.hpp"
 #include "make_loop_intervals.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
@@ -64,36 +63,6 @@ namespace gridtools {
         /** Collect all esf nodes in the the multi-stage descriptor. Recurse into independent
             esf structs. Independent functors are listed one after the other.*/
         typedef typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type linear_esf_t;
-
-        /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
-        typedef typename boost::mpl::transform<linear_esf_t, esf_get_w_temps_per_functor<boost::mpl::_>>::type
-            written_temps_per_functor_t;
-
-        /**
-         * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
-         * functors_list is a list of all the functors of all the esf nodes in the multi-stage descriptor.
-         */
-        typedef typename boost::mpl::transform<linear_esf_t, extract_esf_functor>::type functors_seq_t;
-
-        /*
-          @brief attaching an integer index to each functor
-
-          This ensures that the types in the functors_list_t are unique.
-          It is necessary to have unique types in the functors_list_t, so that we can use the
-          functor types as keys in an MPL map. This is used in particular in the innermost loop, where
-          we decide at compile-time wether the functors need synchronization or not, based on a map
-          connecting the functors to the "is independent" boolean (set to true if the functor does
-          not have data dependency with the next one). Since we can have the exact same functor used multiple
-          times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
-          above mentioned map, and we need to attach a unique index to its type.
-        */
-        typedef typename boost::mpl::fold<boost::mpl::range_c<ushort_t, 0, boost::mpl::size<functors_seq_t>::value>,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back<boost::mpl::_1,
-                functor_decorator<boost::mpl::_2,
-                    boost::mpl::at<functors_seq_t, boost::mpl::_2>,
-                    RepeatFunctor,
-                    Axis>>>::type functors_list_t;
 
         typedef typename get_extent_sizes<MssDescriptor, ExtentMap>::type extent_sizes_t;
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<extent_sizes_t, is_extent>::value), GT_INTERNAL_ERROR);

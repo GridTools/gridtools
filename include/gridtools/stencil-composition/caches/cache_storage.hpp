@@ -47,7 +47,7 @@
 
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../iteration_policy_fwd.hpp"
+#include "../iteration_policy.hpp"
 #include "../offset_computation.hpp"
 
 #include "cache_storage_metafunctions.hpp"

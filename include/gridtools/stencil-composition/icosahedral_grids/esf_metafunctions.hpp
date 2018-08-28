@@ -93,15 +93,6 @@ namespace gridtools {
             type;
     };
 
-    struct extract_esf_functor {
-        template <typename Esf>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::template esf_function<0> type;
-        };
-    };
-
     template <typename Esf>
     struct esf_arg_list {
         template <typename Set, typename Item>

@@ -50,6 +50,7 @@
 #include "./grid.hpp"
 #include "./grid_traits_fwd.hpp"
 #include "./local_domain.hpp"
+#include "./loop_interval.hpp"
 #include "./reductions/reduction_data.hpp"
 
 namespace gridtools {
@@ -95,23 +96,16 @@ namespace gridtools {
      * all functors involved in the execution of the mss
      */
     template <typename BackendIds, // id of the different backends
-        typename FunctorList,      // sequence of functors (one per ESF)
         typename EsfSequence,      // sequence of ESF
         typename LoopIntervals,    // loop intervals
-        typename FunctorsMap,      // functors map
         typename ExtentSizes,      // extents of each ESF
         typename LocalDomain,      // local domain type
         typename CacheSequence,    // sequence of user specified caches
-        typename IsIndependentSeq, // sequence of boolenans (one per functor), stating if it is contained in a
-                                   // "make_independent" construct
         typename Grid,             // the grid
         typename ExecutionEngine,  // the execution engine
         typename IsReduction,      // boolean stating if the operation to be applied at mss is a reduction
-        typename ReductionData,    // return type of functors of a mss: return type of reduction operations,
+        typename ReductionData     // return type of functors of a mss: return type of reduction operations,
                                    //        otherwise void
-        typename Color,            // current color execution (not used for rectangular grids, or grids that dont have
-                                   // concept of a color
-        typename NewLoopIntervals  //
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -119,57 +113,27 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
+
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
-        typedef FunctorList functor_list_t;
         typedef EsfSequence esf_sequence_t;
         typedef LoopIntervals loop_intervals_t;
-        typedef FunctorsMap functors_map_t;
         typedef ExtentSizes extent_sizes_t;
         typedef typename boost::mpl::
             fold<extent_sizes_t, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
-        typedef IsIndependentSeq async_esf_map_t;
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         using strategy_type = typename backend_ids_t::strategy_id_t;
         static constexpr bool s_is_reduction = IsReduction::value;
         typedef IsReduction is_reduction_t;
         typedef ReductionData reduction_data_t;
-        typedef Color color_t;
-        typedef NewLoopIntervals new_loop_intervals_t;
     };
 
     template <class T>
     GT_META_DEFINE_ALIAS(is_run_functor_arguments, meta::is_instantiation_of, (run_functor_arguments, T));
-
-    /**
-     * @brief type that contains main metadata required to execute an ESF functor. This type will be passed to
-     * all functors involved in the execution of the ESF
-     */
-    template <typename RunFunctorArguments, typename Index>
-    struct esf_arguments {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::at_c<typename RunFunctorArguments::functor_list_t, Index::value>::type functor_t;
-        typedef typename boost::mpl::at_c<typename RunFunctorArguments::extent_sizes_t, Index::value>::type extent_t;
-        typedef
-            typename boost::mpl::at_c<typename RunFunctorArguments::functors_map_t, Index::value>::type interval_map_t;
-        typedef typename boost::mpl::at_c<typename RunFunctorArguments::esf_sequence_t, Index::value>::type esf_t;
-
-        // global (to the mss) sequence_of_is_independent_t map (not local to the esf)
-        typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
-
-        typedef typename RunFunctorArguments::is_reduction_t is_reduction_t;
-        typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
-        typedef typename RunFunctorArguments::color_t color_t;
-        typedef typename RunFunctorArguments::new_loop_intervals_t new_loop_intervals_t;
-    };
-
-    template <class T>
-    GT_META_DEFINE_ALIAS(is_esf_arguments, meta::is_instantiation_of, (esf_arguments, T));
 } // namespace gridtools
