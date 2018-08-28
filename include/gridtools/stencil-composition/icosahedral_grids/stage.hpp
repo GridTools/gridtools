@@ -49,8 +49,23 @@
 namespace gridtools {
 
     namespace _impl {
-        template <uint_t Color, class EnclosedExtent, class ItDomain>
+        template <class EnclosedExtent, class ItDomain>
         struct exec_stage_f {
+            ItDomain &m_domain;
+
+            template <class Extent, class Stage>
+            GT_FUNCTION void operator()(meta::list<Stage, Extent>) const {
+                if (m_domain.template is_thread_in_domain<Extent>())
+                    Stage::exec(m_domain);
+            }
+            template <class Extent, class Stage>
+            GT_FUNCTION void operator()(meta::list<Stage, EnclosedExtent>) const {
+                Stage::exec(m_domain);
+            }
+        };
+
+        template <uint_t Color, class EnclosedExtent, class ItDomain>
+        struct exec_stage_for_color_f {
             ItDomain &m_domain;
 
             template <class Extent, class Stage>
@@ -91,7 +106,13 @@ namespace gridtools {
         template <uint_t Color, class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             gridtools::for_each<GT_META_CALL(meta::zip, (stages_t, extents_t))>(
-                _impl::exec_stage_f<Color, extent_t, ItDomain>{it_domain});
+                _impl::exec_stage_for_color_f<Color, extent_t, ItDomain>{it_domain});
+        }
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            gridtools::for_each<GT_META_CALL(meta::zip, (stages_t, extents_t))>(
+                _impl::exec_stage_f<extent_t, ItDomain>{it_domain});
         }
     };
 
@@ -112,6 +133,23 @@ namespace gridtools {
             gridtools::for_each<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
                 _impl::call_do<Functor<Color>, eval_t>{&eval});
         }
+
+        template <class ItDomain>
+        struct exec_for_color_f {
+            ItDomain &m_domain;
+            template <class Color>
+            GT_FUNCTION void operator()(Color) const {
+                exec<Color::value>(m_domain);
+                m_domain.increment_c();
+            }
+        };
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            static constexpr auto n_colors = LocationType::n_colors::value;
+            gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(exec_for_color_f<ItDomain>{it_domain});
+            it_domain.template increment_c<-n_colors>();
+        }
     };
 
     template <uint_t Color, class Functor, class Extent, class Args, class LocationType, size_t RepeatFactor>
@@ -121,6 +159,9 @@ namespace gridtools {
 
         using extent_t = Extent;
 
+        template <uint_t C>
+        struct contains_color : bool_constant<C == Color> {};
+
         template <uint_t C, class ItDomain, enable_if_t<C == Color, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args, LocationType, Color>::type;
@@ -129,11 +170,15 @@ namespace gridtools {
                 _impl::call_do<Functor, eval_t>{&eval});
         }
 
-        template <uint_t C>
-        struct contains_color : bool_constant<C == Color> {};
-
         template <uint_t C, class ItDomain, enable_if_t<C != Color, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {}
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            it_domain.template increment_c<Color>();
+            exec<Color>(it_domain);
+            it_domain.template increment_c<-Color>();
+        }
     };
 
     template <size_t Color>

@@ -42,6 +42,12 @@
 
 namespace gridtools {
     namespace _impl {
+        template <class Stage, class ItDomain>
+        GT_FUNCTION void exec_stage(ItDomain &it_domain) {
+            if (it_domain.template is_thread_in_domain<typename Stage::extent_t>())
+                Stage::exec(it_domain);
+        }
+
         template <class ItDomain>
         struct exec_stage_cuda_f {
             ItDomain &m_domain;
@@ -51,8 +57,7 @@ namespace gridtools {
 #ifdef __CUDA_ARCH__
                 __syncthreads();
 #endif
-                if (m_domain.template is_thread_in_domain<typename Stage::extent_t>())
-                    Stage::exec(m_domain);
+                exec_stage<Stage>(m_domain);
             }
         };
     } // namespace _impl
@@ -61,7 +66,7 @@ namespace gridtools {
         template <class Stages, class ItDomain>
         GT_FUNCTION static void exec(ItDomain &it_domain) {
             GRIDTOOLS_STATIC_ASSERT(meta::length<Stages>::value > 0, GT_INTERNAL_ERROR);
-            GT_META_CALL(meta::first, Stages)::exec(it_domain);
+            _impl::exec_stage<GT_META_CALL(meta::first, Stages)>(it_domain);
             gridtools::for_each<GT_META_CALL(meta::pop_front, Stages)>(_impl::exec_stage_cuda_f<ItDomain>{it_domain});
 #ifdef __CUDA_ARCH__
             if (ItDomain::has_ij_caches)
