@@ -55,17 +55,14 @@ namespace gridtools {
      * @class shared_iterate_domain
      * data structure that holds data members of the iterate domain that must be stored in shared memory.
      * @tparam DataPointerArray array of data pointers
-     * @tparam StridesType strides cached type
      * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
-    template <typename StridesType, typename MaxExtent, typename IJCachesTuple>
+    template <typename MaxExtent, typename IJCachesTuple>
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
       private:
-        StridesType m_strides;
         void_if_empty_t<IJCachesTuple> m_ij_caches_tuple; // HACK: see void_if_empty_t
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
@@ -75,11 +72,6 @@ namespace gridtools {
 
       public:
         shared_iterate_domain() {}
-
-        GT_FUNCTION
-        StridesType const &strides() const { return m_strides; }
-        GT_FUNCTION
-        StridesType &strides() { return m_strides; }
 
         template <typename IndexType>
         GT_FUNCTION typename boost::mpl::at<ij_caches_map_t, IndexType>::type &RESTRICT get_ij_cache() {

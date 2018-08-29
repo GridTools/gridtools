@@ -80,7 +80,7 @@ namespace gridtools {
                     meta::lazy::id<iterate_domain_cuda_t>>::type;
 
             typedef backend_traits_from_id<platform::cuda> backend_traits_t;
-            typedef typename iterate_domain_t::strides_cached_t strides_t;
+            typedef typename iterate_domain_t::strides_t strides_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
@@ -102,8 +102,6 @@ namespace gridtools {
             iterate_domain_t it_domain(l_domain, 0, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
-
-            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
             __syncthreads();
 

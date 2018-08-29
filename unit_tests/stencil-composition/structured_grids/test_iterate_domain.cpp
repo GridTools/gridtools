@@ -137,15 +137,6 @@ namespace test_iterate_domain {
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
 
-#ifndef BACKEND_MIC
-        typedef typename it_domain_t::strides_cached_t strides_t;
-        strides_t strides;
-
-        it_domain.set_strides_pointer_impl(&strides);
-
-        it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
-#endif
-
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
 #ifndef BACKEND_MIC
         it_domain.initialize({}, {}, {});
@@ -331,19 +322,6 @@ namespace test_iterate_domain {
         assert(((float_type *)(&outv.get<1, 1>()(0, 0) + new_index[2] + mdo->template stride<0>() == &it_domain(c1_))));
 
         assert(((float_type *)(&outv.get<1, 1>()(0, 0) + new_index[2] + mdo->template stride<1>() == &it_domain(c2_))));
-
-#ifndef BACKEND_MIC
-        // check strides initialization
-        // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
-        assert(mdi->template stride<3>() == strides.get<0>()[0]);
-        assert(mdi->template stride<2>() == strides.get<0>()[1]);
-        assert(mdi->template stride<1>() == strides.get<0>()[2]); // 4D storage
-
-        assert(mdb->template stride<0>() == strides.get<1>()[0]);
-        assert(mdb->template stride<1>() == strides.get<1>()[1]); // 3D storage
-
-        assert(mdo->template stride<0>() == strides.get<2>()[0]); // 2D storage
-#endif
 
         return true;
     }

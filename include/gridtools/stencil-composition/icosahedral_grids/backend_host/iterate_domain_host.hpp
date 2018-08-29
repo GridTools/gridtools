@@ -56,29 +56,13 @@ namespace gridtools {
 
       public:
         typedef iterate_domain_host iterate_domain_t;
-        typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::local_domain_t local_domain_t;
         typedef typename super::grid_topology_t grid_topology_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
         explicit iterate_domain_host(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
-            : super(local_domain_, grid_topology), m_strides(0) {}
-
-        strides_cached_t &RESTRICT strides_impl() {
-            assert(m_strides);
-            return *m_strides;
-        }
-
-        strides_cached_t const &RESTRICT strides_impl() const {
-            assert(m_strides);
-            return *m_strides;
-        }
-
-        void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
-            assert(strides);
-            m_strides = strides;
-        }
+            : super(local_domain_, grid_topology) {}
 
         template <typename ReturnType, typename Accessor, typename StorageType>
         GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
@@ -132,9 +116,6 @@ namespace gridtools {
         GT_FUNCTION bool is_thread_in_domain() const {
             return true;
         }
-
-      private:
-        strides_cached_t *RESTRICT m_strides;
     };
 
     template <typename IterateDomainArguments>

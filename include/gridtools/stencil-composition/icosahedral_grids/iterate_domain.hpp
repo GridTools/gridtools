@@ -39,9 +39,9 @@
 
 #include "../../common/array.hpp"
 #include "../../common/explode_array.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/generic_metafunctions/variadic_typedef.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../storage/data_field_view.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
@@ -78,15 +78,14 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
-        typedef typename local_domain_t::storage_info_ptr_fusion_list storage_info_ptrs_t;
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static constexpr auto N_META_STORAGES = meta::length<typename local_domain_t::storage_info_list>::value;
         // the number of storages  used in the current functor
-        static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
+        static constexpr auto N_STORAGES = meta::length<data_ptrs_map_t>::value;
 
-        typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
+        typedef typename local_domain_t::strides_fusion_map strides_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
 
@@ -165,34 +164,13 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
-            return static_cast<IterateDomainImpl const *>(this)->strides_impl();
-        }
-
-        /**
-           @brief returns the strides as const reference
-        */
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
-
-        /**
-           @brief recursively assignes all the strides
-
-           copies them from the
-           local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
-         */
-        template <typename BackendType, typename Strides>
-        GT_FUNCTION void assign_stride_pointers() {
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t>(strides()));
-        }
+        strides_t const &RESTRICT strides() const { return m_local_domain.m_local_strides; }
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
             using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
-            boost::fusion::for_each(m_local_domain.m_local_storage_info_ptrs,
-                initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
+            gridtools::for_each<GT_META_CALL(meta::make_indices_for, typename local_domain_t::storage_info_list)>(
+                initialize_index_f<strides_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
         }
 
@@ -277,7 +255,7 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
+                meta::st_position<typename local_domain_t::storage_info_list, storage_info_t>::value;
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
@@ -289,10 +267,9 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), accessor);
+                compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), accessor);
 
-            assert(pointer_oob_check(
-                boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
+            assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
@@ -313,11 +290,7 @@ namespace gridtools {
             data_t *RESTRICT real_storage_pointer =
                 static_cast<data_t *>(boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0]);
 
-            assert(pointer_oob_check(
-                boost::fusion::at_c<
-                    meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value>(
-                    m_local_domain.m_local_storage_info_ptrs),
-                offset));
+            assert(pointer_oob_check<storage_info_t>(m_local_domain, offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
@@ -344,14 +317,14 @@ namespace gridtools {
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
+                meta::st_position<typename local_domain_t::storage_info_list, storage_info_t>::value;
 
             using location_type_t = typename accessor_t::location_type;
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset =
                 m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), position_offset);
+                compute_offset<storage_info_t>(boost::fusion::at_key<storage_info_t>(strides()), position_offset);
 
             return get_raw_value(
                 accessor_t(), boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0], pointer_offset);

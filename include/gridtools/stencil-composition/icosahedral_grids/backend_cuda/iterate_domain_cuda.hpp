@@ -61,11 +61,9 @@ namespace gridtools {
 
       public:
         typedef typename super::grid_topology_t grid_topology_t;
-        typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
-        typedef shared_iterate_domain<strides_cached_t,
-            typename IterateDomainArguments::max_extent_t,
+        typedef shared_iterate_domain<typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
 
@@ -116,17 +114,6 @@ namespace gridtools {
 
         GT_FUNCTION
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
-
-        GT_FUNCTION
-        strides_cached_t const &RESTRICT strides_impl() const {
-            //        assert((m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->strides();
-        }
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides_impl() {
-            //        assert((m_pshared_iterate_domain));
-            return m_pshared_iterate_domain->strides();
-        }
 
         /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs
          */

@@ -134,7 +134,6 @@ namespace gridtools {
             using iterate_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
 
             typedef backend_traits_from_id<platform::x86> backend_traits_t;
-            typedef typename iterate_domain_t::strides_cached_t strides_t;
             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
             typedef typename index_to_level<typename interval::second>::type to;
@@ -154,13 +153,7 @@ namespace gridtools {
                   m_block_no{block_no_i, block_no_j} {}
 
             void operator()() const {
-                strides_t strides;
-
                 iterate_domain_t it_domain(m_local_domain, m_grid.grid_topology());
-
-                it_domain.set_strides_pointer_impl(&strides);
-
-                it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
                     m_block_no,
