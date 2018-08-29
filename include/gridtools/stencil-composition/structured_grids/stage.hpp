@@ -57,7 +57,7 @@ namespace gridtools {
                 if (m_domain.template is_thread_in_domain<Extent>())
                     Stage::exec(m_domain);
             }
-            template <class Extent, class Stage>
+            template <class Stage>
             GT_FUNCTION void operator()(meta::list<Stage, EnclosedExtent>) const {
                 Stage::exec(m_domain);
             }

@@ -35,12 +35,7 @@
 */
 #pragma once
 
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/min_max.hpp>
-#include <boost/mpl/plus.hpp>
-#include <boost/mpl/push_front.hpp>
-#include <boost/mpl/reverse_fold.hpp>
-#include <boost/mpl/vector.hpp>
+#include <type_traits>
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
@@ -68,32 +63,26 @@ namespace gridtools {
         typedef static_int<KPlus> kplus;
     };
 
-    template <typename In>
-    struct is_staggered : public boost::false_type {};
-
-    template <int_t... Grid>
-    struct staggered : public extent<Grid...> {};
-
-    template <int_t... Grid>
-    struct is_staggered<staggered<Grid...>> : public boost::true_type {};
-
     /**
      * Metafunction to check if a type is a extent
      */
-    template <typename T>
-    struct is_extent : boost::false_type {};
+    template <typename>
+    struct is_extent : std::false_type {};
 
-    /**
-     * Metafunction to check if a type is a extent - Specialization yielding true
-     */
     template <int_t... Is>
-    struct is_extent<extent<Is...>> : boost::true_type {};
+    struct is_extent<extent<Is...>> : std::true_type {};
 
-    /**
-     * Metafunction to check if a type is a extent - Specialization yielding true
-     */
     template <typename T>
     struct is_extent<const T> : is_extent<T> {};
+
+    template <int_t... Grid>
+    struct staggered : extent<Grid...> {};
+
+    template <typename>
+    struct is_staggered : std::false_type {};
+
+    template <int_t... Grid>
+    struct is_staggered<staggered<Grid...>> : std::true_type {};
 
     /**
      * Metafunction taking extents and yielding an extent containing them
@@ -120,16 +109,14 @@ namespace gridtools {
             int_t L_J_Plus,
             int_t L_K_Minus,
             int_t L_K_Plus,
-            int_t... Ls,
             int_t R_I_Minus,
             int_t R_I_Plus,
             int_t R_J_Minus,
             int_t R_J_Plus,
             int_t R_K_Minus,
-            int_t R_K_Plus,
-            int_t... Rs>
-        struct enclosing_extent<extent<L_I_Minus, L_I_Plus, L_J_Minus, L_J_Plus, L_K_Minus, L_K_Plus, Ls...>,
-            extent<R_I_Minus, R_I_Plus, R_J_Minus, R_J_Plus, R_K_Minus, R_K_Plus, Rs...>> {
+            int_t R_K_Plus>
+        struct enclosing_extent<extent<L_I_Minus, L_I_Plus, L_J_Minus, L_J_Plus, L_K_Minus, L_K_Plus>,
+            extent<R_I_Minus, R_I_Plus, R_J_Minus, R_J_Plus, R_K_Minus, R_K_Plus>> {
             using type = extent<(L_I_Minus < R_I_Minus) ? L_I_Minus : R_I_Minus,
                 (L_I_Plus < R_I_Plus) ? R_I_Plus : L_I_Plus,
                 (L_J_Minus < R_J_Minus) ? L_J_Minus : R_J_Minus,
@@ -143,7 +130,7 @@ namespace gridtools {
     }
 
     /**
-     *  Verison of enclosing_extent with exactly two parameters
+     *  Version of enclosing_extent with exactly two parameters
      */
     template <class Lhs, class Rhs>
     struct enclosing_extent_2 : lazy::enclosing_extent<Lhs, Rhs> {};
@@ -153,37 +140,14 @@ namespace gridtools {
      */
     template <typename Extent1, typename Extent2>
     struct sum_extent {
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_<is_extent<Extent1>, is_staggered<Extent1>>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_<is_extent<Extent2>, is_staggered<Extent2>>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent1>::value || is_staggered<Extent1>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent2>::value || is_staggered<Extent2>::value), GT_INTERNAL_ERROR);
 
-        typedef extent<boost::mpl::plus<typename Extent1::iminus, typename Extent2::iminus>::type::value,
-            boost::mpl::plus<typename Extent1::iplus, typename Extent2::iplus>::type::value,
-            boost::mpl::plus<typename Extent1::jminus, typename Extent2::jminus>::type::value,
-            boost::mpl::plus<typename Extent1::jplus, typename Extent2::jplus>::type::value,
-            boost::mpl::plus<typename Extent1::kminus, typename Extent2::kminus>::type::value,
-            boost::mpl::plus<typename Extent1::kplus, typename Extent2::kplus>::type::value>
-            type;
+        using type = extent<Extent1::iminus::value + Extent2::iminus::value,
+            Extent1::iplus::value + Extent2::iplus::value,
+            Extent1::jminus::value + Extent2::jminus::value,
+            Extent1::jplus::value + Extent2::jplus::value,
+            Extent1::kminus::value + Extent2::kminus::value,
+            Extent1::kplus::value + Extent2::kplus::value>;
     };
-
-    template <typename Extent>
-    struct extent_get_iminus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
-        static const int_t value = Extent::iminus::value;
-    };
-    template <typename Extent>
-    struct extent_get_iplus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
-        static const int_t value = Extent::iplus::value;
-    };
-    template <typename Extent>
-    struct extent_get_jminus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
-        static const int_t value = Extent::jminus::value;
-    };
-    template <typename Extent>
-    struct extent_get_jplus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
-        static const int_t value = Extent::jplus::value;
-    };
-
 } // namespace gridtools
