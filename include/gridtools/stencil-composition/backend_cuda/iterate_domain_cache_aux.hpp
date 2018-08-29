@@ -210,9 +210,9 @@ namespace gridtools {
                 constexpr int_t kminus_offset = (base::tail && !endpoint_only) ? 1 : 0;
                 constexpr int_t kplus_offset = (!base::tail && !endpoint_only) ? -1 : 0;
 
-                // endpoint-only caches have a window, for others we use a zero-window for the limits
+                // endpoint-only caches have a window, for others we use the k-extents for the limits
                 using window_t =
-                    typename std::conditional<endpoint_only, typename kcache_t::kwindow_t, window<0, 0>>::type;
+                    typename std::conditional<endpoint_only, typename kcache_t::kwindow_t, window<kminus, kplus>>::type;
 
                 // choose lower and upper cache index for syncing
                 constexpr int_t sync_start = base::tail ? kminus + kminus_offset : window_t::m_;
