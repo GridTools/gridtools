@@ -45,7 +45,6 @@
 #include "../compute_extents_metafunctions.hpp"
 #include "../independent_esf.hpp"
 #include "../mss.hpp"
-#include "../reductions/reduction_descriptor.hpp"
 #include "./esf.hpp"
 #include "./stage.hpp"
 
@@ -54,14 +53,14 @@ namespace gridtools {
     namespace _impl {
 
         template <class Index, class ExtentMap, size_t RepeatFactor>
-        struct stage_from_esf_f;
+        struct stages_from_esf_f;
 
         template <class Esfs, class Index, class ExtentMap, size_t RepeatFactor>
         GT_META_DEFINE_ALIAS(stages_from_esfs,
             meta::filter,
-            (meta::not_<std::is_void>::apply,
+            (meta::not_<meta::is_empty>::apply,
                 GT_META_CALL(
-                    meta::transform, (stage_from_esf_f<Index, ExtentMap, RepeatFactor>::template apply, Esfs))));
+                    meta::transform, (stages_from_esf_f<Index, ExtentMap, RepeatFactor>::template apply, Esfs))));
 
         template <template <uint_t> class ColoredFunctor, class Index>
         struct bind_colored_functor_with_interval {
@@ -76,72 +75,59 @@ namespace gridtools {
                 size_t RepeatFactor,
                 class Color = typename Esf::color_t::color_t,
                 class FirstFunctor = Functor<0>>
-            struct stage_from_functor {
+            struct stages_from_functor {
                 static constexpr uint_t color = Color::value;
                 using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
-                using type = color_specific_stage<color,
+                using type = meta::list<color_specific_stage<color,
                     Functor<color>,
                     extent_t,
                     typename Esf::args_t,
                     typename Esf::location_type,
-                    RepeatFactor>;
+                    RepeatFactor>>;
             };
             template <template <uint_t> class Functor, class Esf, class ExtentMap, size_t RepeatFactor>
-            struct stage_from_functor<Functor, Esf, ExtentMap, RepeatFactor, notype, void> {
-                using type = void;
+            struct stages_from_functor<Functor, Esf, ExtentMap, RepeatFactor, notype, void> {
+                using type = meta::list<>;
             };
             template <template <uint_t> class Functor, class Esf, class ExtentMap, size_t RepeatFactor, class Color>
-            struct stage_from_functor<Functor, Esf, ExtentMap, RepeatFactor, Color, void> {
-                using type = void;
+            struct stages_from_functor<Functor, Esf, ExtentMap, RepeatFactor, Color, void> {
+                using type = meta::list<>;
             };
             template <template <uint_t> class Functor,
                 class Esf,
                 class ExtentMap,
                 size_t RepeatFactor,
                 class FirstFunctor>
-            struct stage_from_functor<Functor, Esf, ExtentMap, RepeatFactor, notype, FirstFunctor> {
+            struct stages_from_functor<Functor, Esf, ExtentMap, RepeatFactor, notype, FirstFunctor> {
                 using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
-                using type = all_colors_stage<Functor,
+                using type = meta::list<all_colors_stage<Functor,
                     extent_t,
                     typename Esf::args_t,
                     typename Esf::location_type,
-                    RepeatFactor>;
+                    RepeatFactor>>;
             };
             template <class Esf, class Index, class ExtentMap, size_t RepeatFactor>
-            struct stage_from_esf
-                : stage_from_functor<
+            struct stages_from_esf
+                : stages_from_functor<
                       bind_colored_functor_with_interval<Esf::template esf_function, Index>::template apply,
                       Esf,
                       ExtentMap,
                       RepeatFactor> {};
 
-            template <class>
-            struct stage_from_stages;
-            template <template <class...> class L>
-            struct stage_from_stages<L<>> {
-                using type = void;
-            };
-            template <template <class...> class L, class Stage>
-            struct stage_from_stages<L<Stage>> {
-                using type = Stage;
-            };
-            template <template <class...> class L, class... Stages>
-            struct stage_from_stages<L<Stages...>> {
-                using type = merged_stage<Stages...>;
-            };
-
             template <class Index, class Esfs, class ExtentMap, size_t RepeatFactor>
-            struct stage_from_esf<independent_esf<Esfs>, Index, ExtentMap, RepeatFactor>
-                : stage_from_stages<GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap, RepeatFactor))> {};
+            struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap, RepeatFactor> {
+                using type = GT_META_CALL(
+                    meta::flatten, (GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap, RepeatFactor))));
+            };
         }
-        GT_META_DELEGATE_TO_LAZY(stage_from_esf,
+        GT_META_DELEGATE_TO_LAZY(stages_from_esf,
             (class Esf, class Index, class ExtentMap, size_t RepeatFactor),
             (Esf, Index, ExtentMap, RepeatFactor));
 
         template <class Index, class ExtentMap, size_t RepeatFactor>
-        struct stage_from_esf_f {
+        struct stages_from_esf_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, stage_from_esf, (Esf, Index, ExtentMap, RepeatFactor));
+            GT_META_DEFINE_ALIAS(apply, stages_from_esf, (Esf, Index, ExtentMap, RepeatFactor));
         };
     } // namespace _impl
 

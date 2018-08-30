@@ -42,29 +42,15 @@
 #include "../../common/host_device.hpp"
 #include "../arg.hpp"
 #include "../expandable_parameters/iterate_domain_expandable_parameters.hpp"
+#include "../iterate_domain_fwd.hpp"
 #include "./extent.hpp"
 #include "./iterate_domain_remapper.hpp"
 
 namespace gridtools {
 
     namespace _impl {
-        template <class EnclosedExtent, class ItDomain>
-        struct exec_stage_f {
-            ItDomain &m_domain;
-
-            template <class Extent, class Stage>
-            GT_FUNCTION void operator()(meta::list<Stage, Extent>) const {
-                if (m_domain.template is_thread_in_domain<Extent>())
-                    Stage::exec(m_domain);
-            }
-            template <class Stage>
-            GT_FUNCTION void operator()(meta::list<Stage, EnclosedExtent>) const {
-                Stage::exec(m_domain);
-            }
-        };
-
         template <class Functor, class Eval>
-        struct call_do {
+        struct call_do_f {
             Eval *m_eval;
             template <class Index>
             GT_FUNCTION void operator()(Index) const {
@@ -75,22 +61,6 @@ namespace gridtools {
 
     } // namespace _impl
 
-    template <class... Stages>
-    struct merged_stage {
-        using extents_t = meta::list<typename Stages::extent_t...>;
-        using stages_t = meta::list<Stages...>;
-
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_extent, extents_t>::value), GT_INTERNAL_ERROR);
-
-        using extent_t = GT_META_CALL(enclosing_extent, typename Stages::extent_t...);
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            gridtools::for_each<GT_META_CALL(meta::zip, (stages_t, extents_t))>(
-                _impl::exec_stage_f<extent_t, ItDomain>{it_domain});
-        }
-    };
-
     template <class Functor, class Extent, class Args, size_t RepeatFactor>
     struct regular_stage {
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
@@ -100,10 +70,11 @@ namespace gridtools {
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
             gridtools::for_each<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
-                _impl::call_do<Functor, eval_t>{&eval});
+                _impl::call_do_f<Functor, eval_t>{&eval});
         }
     };
 
@@ -116,6 +87,7 @@ namespace gridtools {
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
             it_domain.set_reduction_value(BinOp{}(it_domain.reduction_value(), Functor::Do(eval)));

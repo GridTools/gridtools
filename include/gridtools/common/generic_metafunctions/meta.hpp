@@ -312,6 +312,9 @@ namespace gridtools {
         template <template <class...> class L, class... Ts>
         struct length<L<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
 
+        template <class T>
+        struct is_empty : bool_constant<length<T>::value == 0> {};
+
         /**
          *   Check if L is a ctor of List
          */

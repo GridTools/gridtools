@@ -57,7 +57,7 @@ namespace gridtools {
                 template <class T>
                 GT_META_DEFINE_ALIAS(apply,
                     meta::any_of,
-                    (stage_contains_color<Color>::template apply, GT_META_CALL(meta::at_c, (T, 2))));
+                    (stage_group_contains_color<Color>::template apply, GT_META_CALL(meta::at_c, (T, 2))));
             };
         } // namespace _impl
 

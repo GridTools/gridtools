@@ -266,11 +266,12 @@ namespace gridtools {
             /**
              * @brief Runs all functors in RunFunctorArguments on the given interval.
              */
-            template <class From, class To, class Stages>
-            GT_FUNCTION void operator()(loop_interval<From, To, Stages>) const {
+            template <class From, class To, class StageGroups>
+            GT_FUNCTION void operator()(loop_interval<From, To, StageGroups>) const {
                 using extent_t = typename RunFunctorArguments::max_extent_t;
-                using indices_t = GT_META_CALL(meta::make_indices_for, Stages);
-                using stages_and_indices_t = GT_META_CALL(meta::zip, (Stages, indices_t));
+                using stages_t = GT_META_CALL(meta::flatten, StageGroups);
+                using indices_t = GT_META_CALL(meta::make_indices_for, stages_t);
+                using stages_and_indices_t = GT_META_CALL(meta::zip, (stages_t, indices_t));
                 using inner_functor_t = inner_functor_mic_kserial_fused<RunFunctorArguments, From, To>;
 
                 const int_t i_first = extent_t::iminus::value;
@@ -315,9 +316,9 @@ namespace gridtools {
             /**
              * @brief Runs all functors in RunFunctorArguments on the given interval.
              */
-            template <class From, class To, class Stages>
-            GT_FUNCTION void operator()(loop_interval<From, To, Stages>) const {
-                gridtools::for_each<Stages>(
+            template <class From, class To, class StageGroups>
+            GT_FUNCTION void operator()(loop_interval<From, To, StageGroups>) const {
+                gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
                     inner_functor_mic_kserial<RunFunctorArguments, From, To>(m_it_domain, m_grid, m_execution_info));
             }
 
@@ -347,13 +348,13 @@ namespace gridtools {
             /**
              * @brief Runs all functors in RunFunctorArguments on the given interval if k is inside the interval.
              */
-            template <class From, class To, class Stages>
-            GT_FUNCTION void operator()(loop_interval<From, To, Stages>) const {
+            template <class From, class To, class StageGroups>
+            GT_FUNCTION void operator()(loop_interval<From, To, StageGroups>) const {
                 const int_t k_first = this->m_grid.template value_at<From>();
                 const int_t k_last = this->m_grid.template value_at<To>();
 
                 if (k_first <= m_execution_info.k && m_execution_info.k <= k_last)
-                    gridtools::for_each<Stages>(
+                    gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
                         inner_functor_mic_kparallel<iterate_domain_t>{m_it_domain, m_execution_info});
             }
 

@@ -42,32 +42,48 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class Stage, class ItDomain>
-        GT_FUNCTION void exec_stage(ItDomain &it_domain) {
-            if (it_domain.template is_thread_in_domain<typename Stage::extent_t>())
-                Stage::exec(it_domain);
+        template <class ItDomain>
+        struct exec_stage_f {
+            ItDomain &m_domain;
+            template <class Stage>
+            GT_FUNCTION void operator()(Stage) const {
+                if (m_domain.template is_thread_in_domain<typename Stage::extent_t>())
+                    Stage::exec(m_domain);
+            }
+        };
+
+        template <class Stages, class ItDomain>
+        GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
+            gridtools::for_each<Stages>(exec_stage_f<ItDomain>{it_domain});
         }
 
         template <class ItDomain>
-        struct exec_stage_cuda_f {
+        struct exec_stage_group_f {
             ItDomain &m_domain;
 
-            template <class Stage>
-            GT_FUNCTION void operator()(Stage) const {
+            template <class Stages>
+            GT_FUNCTION void operator()(Stages) const {
 #ifdef __CUDA_ARCH__
                 __syncthreads();
 #endif
-                exec_stage<Stage>(m_domain);
+                exec_stage_group<Stages>(m_domain);
             }
         };
     } // namespace _impl
 
     struct run_esf_functor_cuda {
-        template <class Stages, class ItDomain>
+        template <class StageGroups, class ItDomain>
         GT_FUNCTION static void exec(ItDomain &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(meta::length<Stages>::value > 0, GT_INTERNAL_ERROR);
-            _impl::exec_stage<GT_META_CALL(meta::first, Stages)>(it_domain);
-            gridtools::for_each<GT_META_CALL(meta::pop_front, Stages)>(_impl::exec_stage_cuda_f<ItDomain>{it_domain});
+
+            GRIDTOOLS_STATIC_ASSERT(!meta::is_empty<StageGroups>::value, GT_INTERNAL_ERROR);
+            using first_t = GT_META_CALL(meta::first, StageGroups);
+            using rest_t = GT_META_CALL(meta::pop_front, StageGroups);
+
+            // execute the groups of independent stages calling `__syncthreads()` in between
+            _impl::exec_stage_group<first_t>(it_domain);
+            gridtools::for_each<rest_t>(_impl::exec_stage_group_f<ItDomain>{it_domain});
+
+            // call additional `__syncthreads()` at the and of the k-level if the domain has IJ caches
 #ifdef __CUDA_ARCH__
             if (ItDomain::has_ij_caches)
                 __syncthreads();

@@ -42,10 +42,11 @@
 namespace gridtools {
     template <uint_t Color>
     struct run_esf_functor_host {
-        template <class Stages, class ItDomain>
+        template <class StageGroups, class ItDomain>
         GT_FUNCTION static void exec(ItDomain &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(meta::length<Stages>::value == 1, GT_INTERNAL_ERROR);
-            GT_META_CALL(meta::first, Stages)::template exec<Color>(it_domain);
+            using stages_t = GT_META_CALL(meta::flatten, StageGroups);
+            GRIDTOOLS_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
+            GT_META_CALL(meta::first, stages_t)::template exec<Color>(it_domain);
         }
     };
 } // namespace gridtools

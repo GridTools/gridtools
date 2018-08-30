@@ -266,9 +266,6 @@ namespace gridtools {
         typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
 
-    template <typename T>
-    struct is_esf_descriptor<independent_esf<T>> : boost::mpl::true_ {};
-
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
     template <typename ESFList>
     struct unwrap_independent {
