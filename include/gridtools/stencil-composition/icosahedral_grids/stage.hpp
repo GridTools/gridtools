@@ -43,6 +43,7 @@
 #include "../../common/host_device.hpp"
 #include "../arg.hpp"
 #include "../extent.hpp"
+#include "../location_type.hpp"
 #include "./iterate_domain_expandable_parameters.hpp"
 #include "./iterate_domain_remapper.hpp"
 
@@ -61,23 +62,28 @@ namespace gridtools {
 
     } // namespace _impl
 
-    template <template <uint_t> class Functor, class Extent, class Args, class LocationType, size_t RepeatFactor>
-    struct all_colors_stage {
+    template <class Functors, class Extent, class Args, class LocationType, size_t RepeatFactor>
+    struct stage {
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
-        template <uint_t>
-        struct contains_color : std::true_type {};
+        template <uint_t Color, class Functor = GT_META_CALL(meta::at_c, (Functors, Color))>
+        struct contains_color : bool_constant<!std::is_void<Functor>::value> {};
 
-        template <uint_t Color, class ItDomain>
+        template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args, LocationType, Color>::type;
             eval_t eval{it_domain};
             gridtools::for_each<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
-                _impl::call_do_f<Functor<Color>, eval_t>{&eval});
+                _impl::call_do_f<GT_META_CALL(meta::at_c, (Functors, Color)), eval_t>{&eval});
         }
+
+        template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {}
 
         template <class ItDomain>
         struct exec_for_color_f {
@@ -94,35 +100,6 @@ namespace gridtools {
             static constexpr auto n_colors = LocationType::n_colors::value;
             gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(exec_for_color_f<ItDomain>{it_domain});
             it_domain.template increment_c<-n_colors>();
-        }
-    };
-
-    template <uint_t Color, class Functor, class Extent, class Args, class LocationType, size_t RepeatFactor>
-    struct color_specific_stage {
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
-
-        using extent_t = Extent;
-
-        template <uint_t C>
-        struct contains_color : bool_constant<C == Color> {};
-
-        template <uint_t C, class ItDomain, enable_if_t<C == Color, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            using eval_t = typename get_iterate_domain_remapper<ItDomain, Args, LocationType, Color>::type;
-            eval_t eval{it_domain};
-            gridtools::for_each<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
-                _impl::call_do_f<Functor, eval_t>{&eval});
-        }
-
-        template <uint_t C, class ItDomain, enable_if_t<C != Color, int> = 0>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {}
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            it_domain.template increment_c<Color>();
-            exec<Color>(it_domain);
-            it_domain.template increment_c<-Color>();
         }
     };
 

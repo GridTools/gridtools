@@ -417,20 +417,4 @@ namespace gridtools {
         typedef icgrid::iterate_domain_remapper<IterateDomain, EsfArgs, EsfLocationType, Color> type;
     };
 
-    /**
-     * @struct get_trivial_iterate_domain_remapper
-     * metafunction that computes a trivial iterate_domain_remapper where all the accessors are mapped to themselves
-     */
-    template <typename IterateDomain, typename Esf, typename Color>
-    struct get_trivial_iterate_domain_remapper {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-        typedef icgrid::iterate_domain_remapper<IterateDomain,
-            typename Esf::args_t,
-            typename Esf::location_type,
-            Color::color_t::value>
-            type;
-    };
-
 } // namespace gridtools

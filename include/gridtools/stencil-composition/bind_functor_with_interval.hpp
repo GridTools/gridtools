@@ -122,6 +122,12 @@ namespace gridtools {
             using type = void;
         };
 
+        template <class Index>
+        struct bind_functor_with_interval<void, Index, void> {
+            GRIDTOOLS_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
+            using type = void;
+        };
+
         template <class Functor, class Index>
         struct bind_functor_with_interval<Functor,
             Index,
