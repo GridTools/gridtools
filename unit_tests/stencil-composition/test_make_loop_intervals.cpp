@@ -73,7 +73,7 @@ namespace gridtools {
         namespace overlap {
             template <uint_t Splitter, int_t Offset>
             constexpr int_t idx() {
-                return GT_META_CALL(level_to_index, (lev<Splitter, Offset>))::value;
+                return level_to_index<lev<Splitter, Offset>>::value;
             }
             constexpr bool has_stage1(int_t i) { return i >= idx<0, 2>() && i < idx<2, 1>(); }
             constexpr bool has_stage2(int_t i) { return i >= idx<1, 1>() && i < idx<3, -1>(); }

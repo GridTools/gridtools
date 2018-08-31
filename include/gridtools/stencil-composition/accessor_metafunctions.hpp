@@ -64,7 +64,7 @@ namespace gridtools {
         constexpr ushort_t get_remap_accessor_id() {
             GRIDTOOLS_STATIC_ASSERT(meta::length<ArgsMap>::value != 0, GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(ID < meta::length<ArgsMap>::value, GT_INTERNAL_ERROR);
-            return GT_META_CALL(meta::at_c, (ArgsMap, ID))::value;
+            return meta::lazy::at_c<ArgsMap, ID>::type::value;
         }
     } // namespace _impl
 } // namespace gridtools

@@ -65,7 +65,7 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(make_loop_interval,
             loop_interval,
             (GT_META_CALL(index_to_level, FromIndex),
-                GT_META_CALL(index_to_level, typename GT_META_CALL(meta::first, NextLoopLevel)::prior),
+                GT_META_CALL(index_to_level, typename meta::lazy::first<NextLoopLevel>::type::prior),
                 GT_META_CALL(meta::second, LoopLevel)));
 
         template <class LoopInterval>

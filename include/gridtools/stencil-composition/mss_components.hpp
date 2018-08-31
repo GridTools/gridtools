@@ -71,7 +71,7 @@ namespace gridtools {
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 
         using default_interval_t = interval<typename Axis::FromLevel,
-            GT_META_CALL(index_to_level, typename GT_META_CALL(level_to_index, typename Axis::ToLevel)::prior)>;
+            GT_META_CALL(index_to_level, typename level_to_index<typename Axis::ToLevel>::prior)>;
 
         using loop_intervals_t = GT_META_CALL(order_loop_intervals,
             (execution_engine_t,
