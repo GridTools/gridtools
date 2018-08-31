@@ -43,6 +43,95 @@
 
 namespace gridtools {
     namespace _impl {
+        namespace run_esf_functor_cuda_detail {
+            template <class List>
+            struct cuda8_for_each;
+
+            template <template <class...> class L, class T, class... Ts>
+            struct cuda8_for_each<L<T, Ts...>> {
+                template <class Fun>
+                static GT_FUNCTION void call(Fun const &RESTRICT fun) {
+                    (void)(int[]){((void)fun.template operator()<T>(), 0), ((void)fun.template operator()<Ts>(), 0)...};
+                }
+            };
+
+            // Specialization for empty loops as nvcc refuses to compile the normal version in device code
+            template <template <class...> class L>
+            struct cuda8_for_each<L<>> {
+                template <class Fun>
+                GT_FUNCTION void operator()(Fun const &) const {}
+            };
+
+            template <class ItDomain>
+            struct exec_stage_f {
+                ItDomain &m_domain;
+                template <class Stage>
+                GT_FUNCTION void operator()() const {
+                    if (m_domain.template is_thread_in_domain<typename Stage::extent_t>())
+                        Stage::exec(m_domain);
+                }
+            };
+
+            template <class Stages, class ItDomain>
+            GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
+                cuda8_for_each<Stages>::call(exec_stage_f<ItDomain>{it_domain});
+            }
+
+            /*
+            template <class Stages, class ItDomain, enable_if_t<(meta::length<Stages>::value > 1), int> = 0>
+            GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
+                gridtools::for_each<Stages>(exec_stage_f<ItDomain>{it_domain});
+            }
+
+            template <class Stages, class ItDomain, enable_if_t<(meta::length<Stages>::value == 1), int> = 0>
+            GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
+                using stage_t = GT_META_CALL(meta::first, Stages);
+                if (it_domain.template is_thread_in_domain<typename stage_t::extent_t>())
+                    stage_t::exec(it_domain);
+            }
+             */
+
+            template <class ItDomain>
+            struct exec_stage_group_f {
+                ItDomain &m_domain;
+
+                template <class Stages>
+                GT_FUNCTION void operator()() const {
+#ifdef __CUDA_ARCH__
+                    __syncthreads();
+#endif
+                    exec_stage_group<Stages>(m_domain);
+                }
+            };
+        } // namespace run_esf_functor_cuda_detail
+    }     // namespace _impl
+
+    struct run_esf_functor_cuda {
+        template <class StageGroups, class ItDomain>
+        GT_FUNCTION static void exec(ItDomain &it_domain) {
+
+            GRIDTOOLS_STATIC_ASSERT(!meta::is_empty<StageGroups>::value, GT_INTERNAL_ERROR);
+            using first_t = GT_META_CALL(meta::first, StageGroups);
+            using rest_t = GT_META_CALL(meta::pop_front, StageGroups);
+
+            // execute the groups of independent stages calling `__syncthreads()` in between
+            _impl::run_esf_functor_cuda_detail::exec_stage_group<first_t>(it_domain);
+            _impl::run_esf_functor_cuda_detail::cuda8_for_each<rest_t>::call(
+                _impl::run_esf_functor_cuda_detail::exec_stage_group_f<ItDomain>{it_domain});
+
+            // call additional `__syncthreads()` at the and of the k-level if the domain has IJ caches
+#ifdef __CUDA_ARCH__
+            if (ItDomain::has_ij_caches)
+                __syncthreads();
+#endif
+        }
+    };
+
+} // namespace gridtools
+
+#if 0
+namespace gridtools {
+    namespace _impl {
         template <class ItDomain>
         struct exec_stage_f {
             ItDomain &m_domain;
@@ -53,6 +142,12 @@ namespace gridtools {
             }
         };
 
+        template <class Stages, class ItDomain>
+        GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
+            gridtools::for_each<Stages>(exec_stage_f<ItDomain>{it_domain});
+        }
+
+        /*
         template <class Stages, class ItDomain, enable_if_t<(meta::length<Stages>::value > 1), int> = 0>
         GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
             gridtools::for_each<Stages>(exec_stage_f<ItDomain>{it_domain});
@@ -64,6 +159,7 @@ namespace gridtools {
             if (it_domain.template is_thread_in_domain<typename stage_t::extent_t>())
                 stage_t::exec(it_domain);
         }
+         */
 
         template <class ItDomain>
         struct exec_stage_group_f {
@@ -99,3 +195,5 @@ namespace gridtools {
         }
     };
 } // namespace gridtools
+
+#endif
