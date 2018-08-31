@@ -55,11 +55,10 @@ namespace gridtools {
                 }
             };
 
-            // Specialization for empty loops as nvcc refuses to compile the normal version in device code
             template <template <class...> class L>
             struct cuda8_for_each<L<>> {
                 template <class Fun>
-                GT_FUNCTION void operator()(Fun const &) const {}
+                static GT_FUNCTION void call(Fun const &RESTRICT fun) {}
             };
 
             template <class ItDomain>
