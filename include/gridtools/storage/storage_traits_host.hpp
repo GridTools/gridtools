@@ -50,12 +50,12 @@ namespace gridtools {
      * @{
      */
 
-    template <enumtype::platform T>
+    template <class BackendId>
     struct storage_traits_from_id;
 
     /** @brief storage traits for the Host backend*/
     template <>
-    struct storage_traits_from_id<enumtype::Host> {
+    struct storage_traits_from_id<platform::x86> {
 
         template <typename ValueType>
         struct select_storage {

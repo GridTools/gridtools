@@ -65,6 +65,7 @@
 #include "./cache_storage.hpp"
 
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 
 #include "../accessor_fwd.hpp"
 #include "../block_size.hpp"
@@ -83,13 +84,10 @@ namespace gridtools {
      *        cache within the sequence
      */
     template <typename Cache, typename LocalDomain>
-    struct cache_to_index {
+    struct cache_to_index
+        : static_uint<meta::st_position<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type>::value> {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::find<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type>::type
-            arg_pos_t;
-        typedef static_uint<arg_pos_t::pos::value> type;
     };
 
     /**
@@ -116,12 +114,8 @@ namespace gridtools {
     template <cache_type cacheType>
     struct cache_is_type {
         template <typename Cache>
-        struct apply {
+        struct apply : boost::integral_constant<bool, Cache::cacheType == cacheType> {
             GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
-            typedef
-                typename boost::is_same<enumtype::enum_type<cache_type, cacheType>, typename Cache::cache_type_t>::type
-                    type;
-            BOOST_STATIC_CONSTANT(bool, value = (type::value));
         };
     };
 
@@ -158,14 +152,11 @@ namespace gridtools {
         template <typename Cache, typename IndexT>
         struct get_cache_storage {
             GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
-            typedef typename LocalDomain::template get_storage_wrapper<IndexT>::type storage_wrapper_t;
+            typedef typename LocalDomain::template get_arg<IndexT>::type arg_t;
             using block_size_t = typename boost::mpl::if_<is_k_cache<Cache>, block_size<1, 1, 1>, BlockSize>::type;
 
-            typedef typename boost::mpl::if_<is_storage_wrapper<storage_wrapper_t>,
-                cache_storage<Cache,
-                    block_size_t,
-                    typename boost::mpl::at<CacheExtentsMap, Cache>::type,
-                    storage_wrapper_t>,
+            typedef typename boost::mpl::if_<is_arg<arg_t>,
+                cache_storage<Cache, block_size_t, typename boost::mpl::at<CacheExtentsMap, Cache>::type, arg_t>,
                 boost::mpl::void_>::type type;
         };
 

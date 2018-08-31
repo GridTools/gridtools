@@ -53,9 +53,7 @@
 #include "./accessor.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
-#include "./mss_local_domain.hpp"
 #include "./mss_metafunctions.hpp"
-#include "./storage_wrapper.hpp"
 
 /**
    @file
@@ -109,11 +107,11 @@ namespace gridtools {
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
     */
-    template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId>
+    template <class BackendId, class GridId, class StrategyId>
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT(BackendId == enumtype::Cuda,
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, platform::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
@@ -127,9 +125,9 @@ namespace gridtools {
         typedef storage_traits<BackendId> storage_traits_t;
         typedef typename backend_traits_t::template select_strategy<backend_ids_t>::type strategy_traits_t;
 
-        static constexpr enumtype::strategy s_strategy_id = StrategyId;
-        static constexpr enumtype::platform s_backend_id = BackendId;
-        static constexpr enumtype::grid_type s_grid_type_id = GridId;
+        using strategy_id_t = StrategyId;
+        using backend_id_t = BackendId;
+        using grid_id_t = GridId;
 
         /**
             Method to retrieve a global parameter
@@ -166,21 +164,20 @@ namespace gridtools {
          * the loop over the functors list is unrolled at compile-time using the for_each construct.
          * @tparam MssArray  meta array of mss
          * \tparam Grid Coordinate class with domain sizes and splitter grid
-         * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
+         * \tparam LocalDomains sequence of local domains
          */
         template <typename MssComponents,
             typename Grid,
-            typename MssLocalDomains,
-            typename ReductionData> // List of local domain to be pbassed to functor at<i>
-        static void
-        run(Grid const &grid, MssLocalDomains const &mss_local_domain_list, ReductionData &reduction_data) {
-            // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomains, is_mss_local_domain>::value), GT_INTERNAL_ERROR);
+            typename LocalDomains, // List of local domain to be passed to functor at<i>
+            typename ReductionData>
+        static void run(Grid const &grid, LocalDomains const &local_domains, ReductionData &reduction_data) {
+            // TODO: I would swap the arguments coords and local_domains, for consistency
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t, ReductionData>::run(
-                mss_local_domain_list, grid, reduction_data);
+                local_domains, grid, reduction_data);
         }
     };
 

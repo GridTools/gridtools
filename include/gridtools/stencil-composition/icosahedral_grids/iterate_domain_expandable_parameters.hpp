@@ -39,15 +39,13 @@
 #include "../extent.hpp"
 #include "../icosahedral_grids/accessor.hpp"
 #include "../icosahedral_grids/vector_accessor.hpp"
+#include "../iterate_domain_fwd.hpp"
 
 /** @file
     iterate_domain for expandable parameters
 */
 
 namespace gridtools {
-
-    template <typename T>
-    struct is_iterate_domain;
 
     /**
        @brief iterate_domain specific for when expandable parameters are used
@@ -68,7 +66,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
-        typedef IterateDomain iterate_domain_t;
 
         // user protections
         template <typename... T>
@@ -96,14 +93,10 @@ namespace gridtools {
         template <uint_t ACC_ID, enumtype::intent Intent, typename LocationType, typename Extent, uint_t Size>
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor<ACC_ID, Intent, LocationType, Extent, Size>>::type
-        operator()(vector_accessor<ACC_ID, Intent, LocationType, Extent, Size> const &arg) const {
-            typedef typename super::template accessor_return_type<
-                accessor<ACC_ID, Intent, LocationType, Extent, Size>>::type return_t;
-
-            GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
-            accessor<ACC_ID, Intent, LocationType, Extent, Size> tmp_(arg);
-            tmp_.template set<0>(ID);
-            return super::operator()(static_cast<const accessor<ACC_ID, Intent, LocationType, Extent, Size>>(tmp_));
+        operator()(vector_accessor<ACC_ID, Intent, LocationType, Extent, Size> arg) const {
+            arg.set_snapshot(ID);
+            accessor<ACC_ID, Intent, LocationType, Extent, Size> const &ref = arg;
+            return super::operator()(ref);
         }
     };
 

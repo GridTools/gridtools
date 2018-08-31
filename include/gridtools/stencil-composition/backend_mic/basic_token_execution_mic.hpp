@@ -33,10 +33,18 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "../structured_grids/backend_host/iterate_domain_host.hpp"
-#else
-#include "../icosahedral_grids/backend_host/iterate_domain_host.hpp"
-#endif
+#include "../../common/defs.hpp"
+#include "../../common/pair.hpp"
+#include "../basic_token_execution.hpp"
+#include "../execution_types.hpp"
+
+namespace gridtools {
+    template <class FromLevel, class ToLevel, class GridBackend, class Strategy, class ExecutionEngine, class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(
+        backend_ids<platform::mc, GridBackend, Strategy>, ExecutionEngine, Grid const &grid) {
+        return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
+    }
+} // namespace gridtools

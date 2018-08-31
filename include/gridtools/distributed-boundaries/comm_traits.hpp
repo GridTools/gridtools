@@ -38,10 +38,20 @@
 
 #include "../gridtools.hpp"
 
+#include "../common/boollist.hpp"
+#ifdef _GCL_MPI_
 #include "../communication/low-level/proc_grids_3D.hpp"
+#else
+#include "./mock_pattern.hpp"
+#endif
+
 #include "../stencil-composition/stencil-composition.hpp"
 
 namespace gridtools {
+
+#ifndef _GCL_MPI_
+    using namespace mock_;
+#endif
 
     /** \ingroup Distributed-Boundaries
      * @{ */
@@ -50,18 +60,18 @@ namespace gridtools {
     struct comm_traits {
         template <typename GCLArch, typename = void>
         struct compute_arch_of {
-            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Host;
+            using type = platform::x86;
         };
 
         template <typename T>
         struct compute_arch_of<gcl_gpu, T> {
-            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Cuda;
+            using type = platform::cuda;
         };
 
         using proc_layout = gridtools::layout_map<0, 1, 2>;
         using proc_grid_type = gridtools::MPI_3D_process_grid_t<3>;
         using comm_arch_type = Arch;
-        static constexpr gridtools::enumtype::platform compute_arch = compute_arch_of<comm_arch_type>::value;
+        using compute_arch = typename compute_arch_of<comm_arch_type>::type;
         static constexpr int version = gridtools::version_manual;
         using data_layout = typename StorageType::storage_info_t::layout_t;
         using value_type = typename StorageType::data_t;

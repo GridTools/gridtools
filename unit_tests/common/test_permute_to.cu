@@ -33,12 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "../structured_grids/backend_mic/iterate_domain_mic.hpp"
-#else
-#include "..//icosahedral_grids/backend_mic/iterate_domain_mic.hpp"
-#endif
-
-#include "../iterate_domain_fwd.hpp"
+#include "test_permute_to.cpp"

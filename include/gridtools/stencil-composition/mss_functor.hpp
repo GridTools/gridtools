@@ -42,13 +42,14 @@
 
 #pragma once
 
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "hasdo.hpp"
 #include "mss.hpp"
 #include "mss_components_metafunctions.hpp"
-#include "mss_local_domain.hpp"
 #include "mss_metafunctions.hpp"
 #include "run_functor_arguments.hpp"
+#include <boost/mpl/count_if.hpp>
 
 namespace gridtools {
 
@@ -100,12 +101,12 @@ namespace gridtools {
      */
     template <typename MssComponentsArray,
         typename Grid,
-        typename MssLocalDomainArray,
+        typename LocalDomains,
         typename BackendIds,
         typename ReductionData,
         typename ExecutionInfo>
     struct mss_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssLocalDomainArray, is_mss_local_domain>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponentsArray, is_mss_components>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -134,17 +135,17 @@ namespace gridtools {
         };
 
       private:
-        MssLocalDomainArray const &m_local_domain_lists;
+        LocalDomains const &m_local_domains;
         const Grid &m_grid;
         ReductionData &m_reduction_data;
         const ExecutionInfo m_execution_info;
 
       public:
-        mss_functor(MssLocalDomainArray const &local_domain_lists,
+        mss_functor(LocalDomains const &local_domains,
             const Grid &grid,
             ReductionData &reduction_data,
             const ExecutionInfo &execution_info)
-            : m_local_domain_lists(local_domain_lists), m_grid(grid), m_reduction_data(reduction_data),
+            : m_local_domains(local_domains), m_grid(grid), m_reduction_data(reduction_data),
               m_execution_info(execution_info) {}
 
         template <typename T1, typename T2, typename Seq, typename NextSeq>
@@ -160,19 +161,10 @@ namespace gridtools {
          */
         template <typename Index>
         void operator()(Index const &) const {
-            typedef typename boost::fusion::result_of::value_at<MssLocalDomainArray, Index>::type mss_local_domain_t;
-            GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain<mss_local_domain_t>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((Index::value < boost::mpl::size<MssComponentsArray>::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::at<MssComponentsArray, Index>::type mss_components_t;
 
-            typedef typename mss_local_domain_list<mss_local_domain_t>::type local_domain_list_t;
-            typedef typename mss_local_domain_esf_args_map<mss_local_domain_t>::type local_domain_esf_args_map_t;
-
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<local_domain_list_t>::value == 1), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::back<local_domain_list_t>::type local_domain_t;
-            local_domain_list_t &local_domain_list =
-                (local_domain_list_t &)boost::fusion::at<Index>(m_local_domain_lists).local_domain_list;
-            local_domain_t &local_domain = (local_domain_t &)boost::fusion::at<boost::mpl::int_<0>>(local_domain_list);
+            auto const &local_domain = boost::fusion::at<Index>(m_local_domains);
 
             typedef typename mss_components_t::execution_engine_t ExecutionEngine;
 
@@ -180,9 +172,9 @@ namespace gridtools {
                 LoopIntervals; // List of intervals on which functors are defined
             // wrapping all the template arguments in a single container
             typedef typename boost::mpl::if_<
-                typename boost::mpl::bool_<ExecutionEngine::type::iteration == enumtype::forward>::type,
-                LoopIntervals,
-                typename boost::mpl::reverse<LoopIntervals>::type>::type oriented_loop_intervals_t;
+                typename boost::mpl::bool_<ExecutionEngine::iteration == enumtype::backward>::type,
+                typename boost::mpl::reverse<LoopIntervals>::type,
+                LoopIntervals>::type oriented_loop_intervals_t;
             // List of functors to execute (in order)
             typedef typename mss_components_t::functors_list_t functors_list_t;
             // sequence of esf descriptors contained in this mss
@@ -192,7 +184,7 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps<mss_components_t, Grid>::type functors_map_t;
 
-            typedef backend_traits_from_id<BackendIds::s_backend_id> backend_traits_t;
+            typedef backend_traits_from_id<typename BackendIds::backend_id_t> backend_traits_t;
 
             // compute the struct with all the type arguments for the run functor
 
@@ -247,10 +239,8 @@ namespace gridtools {
             // otherwise it could happen that warp A is already in level k+1
             // filling values in the cache while warp B did not consume the
             // cached values (written by A) from level k yet -> race condition)
-            typedef typename boost::mpl::transform<typename mss_components_t::cache_sequence_t, cache_is_type<IJ>>::type
-                cache_types_t;
-            typedef typename boost::mpl::not_<typename boost::mpl::contains<cache_types_t,
-                boost::integral_constant<bool, true>>::type>::type contains_no_IJ_cache_t;
+            using contains_no_IJ_cache_t = bool_constant<
+                boost::mpl::count_if<typename mss_components_t::cache_sequence_t, cache_is_type<IJ>>::type::value == 0>;
 
             typedef typename boost::mpl::insert<async_esf_map_tmp_t,
                 boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type,
@@ -260,11 +250,10 @@ namespace gridtools {
             typedef run_functor_arguments<BackendIds,
                 functors_list_t,
                 esf_sequence_t,
-                local_domain_esf_args_map_t,
                 oriented_loop_intervals_t,
                 functors_map_t,
                 extent_sizes,
-                local_domain_t,
+                decay_t<decltype(local_domain)>,
                 typename mss_components_t::cache_sequence_t,
                 async_esf_map_t,
                 Grid,
@@ -275,8 +264,8 @@ namespace gridtools {
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss
-            backend_traits_from_id<BackendIds::s_backend_id>::template mss_loop<run_functor_args_t>::template run(
-                local_domain, m_grid, m_reduction_data, m_execution_info);
+            backend_traits_from_id<typename BackendIds::backend_id_t>::template mss_loop<
+                run_functor_args_t>::template run(local_domain, m_grid, m_reduction_data, m_execution_info);
         }
     };
 } // namespace gridtools

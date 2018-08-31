@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "./linearize_mss_functions.hpp"
+#include "computation_grammar.hpp"
 #include "esf_metafunctions.hpp"
 #include "functor_decorator.hpp"
 #include "mss.hpp"
@@ -53,10 +54,7 @@ namespace gridtools {
     template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token<MssDescriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size<ExtentSizes>::type::value == 0 || is_sequence_of<ExtentSizes, is_extent>::value),
-            "There seems to be a stage in the computation which does not contain any output field. Check that at least "
-            "one accessor in each stage is defined as \'inout\'");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentSizes, is_extent>::value), GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;
@@ -66,10 +64,11 @@ namespace gridtools {
         typedef typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type linear_esf_t;
 
         /** Compute a vector of vectors of temp indices of temporaries initialized by each functor*/
-        typedef typename boost::mpl::fold<linear_esf_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back<boost::mpl::_1, esf_get_w_temps_per_functor<boost::mpl::_2>>>::type
+        typedef typename boost::mpl::transform<linear_esf_t, esf_get_w_temps_per_functor<boost::mpl::_>>::type
             written_temps_per_functor_t;
+
+        GRIDTOOLS_STATIC_ASSERT(
+            boost::mpl::size<ExtentSizes>::value == boost::mpl::size<linear_esf_t>::value, GT_INTERNAL_ERROR);
 
         /**
          * typename linear_esf is a list of all the esf nodes in the multi-stage descriptor.
@@ -87,7 +86,7 @@ namespace gridtools {
           connecting the functors to the "is independent" boolean (set to true if the functor does
           not have data dependency with the next one). Since we can have the exact same functor used multiple
           times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
-          abovementioned map, and we need to attach a unique index to its type.
+          above mentioned map, and we need to attach a unique index to its type.
         */
         typedef typename boost::mpl::fold<boost::mpl::range_c<ushort_t, 0, boost::mpl::size<functors_seq_t>::value>,
             boost::mpl::vector0<>,

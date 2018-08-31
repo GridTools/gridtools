@@ -63,10 +63,10 @@ namespace {
         }
     };
 
-    using storage_info_t = storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3>;
+    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
 
     template <class T>
-    using generic_data_store_t = storage_traits<backend_t::s_backend_id>::data_store_t<T, storage_info_t>;
+    using generic_data_store_t = storage_traits<backend_t::backend_id_t>::data_store_t<T, storage_info_t>;
 
     using data_store_t = generic_data_store_t<float_type>;
 } // namespace

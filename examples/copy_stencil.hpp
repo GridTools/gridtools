@@ -77,8 +77,8 @@ namespace copy_stencil {
         uint d1, d2, d3, t_steps;
         bool m_verify;
 
-        typedef storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-        typedef storage_traits<backend_t::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+        typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+        typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t> data_store_t;
         storage_info_t meta_data_;
         data_store_t in, out;
 
@@ -125,7 +125,7 @@ namespace copy_stencil {
                 p_in() = in,
                 p_out() = out,
                 gridtools::make_multistage // mss_descriptor
-                (execute<parallel>(),
+                (execute<parallel, 20>(),
                     gridtools::make_stage_with_extent<copy_functor, extent<0, 0, 0, 0>>(p_in(), p_out())));
 
             copy.run();

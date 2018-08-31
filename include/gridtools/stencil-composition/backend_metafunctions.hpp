@@ -39,13 +39,13 @@
 
 namespace gridtools {
 
-    template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyType>
-    struct is_backend<backend<BackendId, GridId, StrategyType>> : boost::mpl::true_ {};
+    template <class BackendId, class GridId, class StrategyType>
+    struct is_backend<backend<BackendId, GridId, StrategyType>> : std::true_type {};
 
     template <typename T>
     struct backend_id;
 
-    template <enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyType>
-    struct backend_id<backend<BackendId, GridId, StrategyType>> : enumtype::enum_type<enumtype::platform, BackendId> {};
+    template <class BackendId, class GridId, class StrategyType>
+    struct backend_id<backend<BackendId, GridId, StrategyType>> {};
 
 } // namespace gridtools

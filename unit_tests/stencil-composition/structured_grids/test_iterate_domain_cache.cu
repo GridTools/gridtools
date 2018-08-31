@@ -33,6 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <tuple>
+#include <type_traits>
+
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/common/defs.hpp>
@@ -43,37 +46,25 @@
 #include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/tile.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval<level<0, -1>, level<2, 1>> axis_t;
-typedef gridtools::interval<level<0, -1>, level<0, -1>> kminimum;
-typedef gridtools::interval<level<0, 1>, level<1, -1>> krange1;
-typedef gridtools::interval<level<1, 1>, level<2, -2>> krange2;
-typedef gridtools::interval<level<2, -1>, level<2, -1>> kmaximum;
+using axis_t = axis<2>::with_extra_offsets<1>;
+using kminimum = axis_t::full_interval::first_level::shift<-1>;
+using krange1 = axis_t::get_interval<0>;
+using krange2 = axis_t::get_interval<1>::modify<0, -1>;
+using kmaximum = axis_t::full_interval::last_level;
 
-typedef storage_traits<Host>::storage_info_t<0, 2> storage_info_ij_t;
-typedef storage_traits<Host>::data_store_t<float_type, storage_info_ij_t> storage_type;
+typedef storage_traits<platform::x86>::storage_info_t<0, 2> storage_info_ij_t;
+typedef storage_traits<platform::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
 
 typedef arg<0, storage_type> p_in1;
 typedef arg<1, storage_type> p_in2;
 typedef arg<2, storage_type> p_in3;
 typedef arg<3, storage_type> p_in4;
 typedef arg<4, storage_type> p_out;
-
-using st_wrapper_in1_t =
-    storage_wrapper<p_in1, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in2_t =
-    storage_wrapper<p_in2, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in3_t =
-    storage_wrapper<p_in3, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_in4_t =
-    storage_wrapper<p_in4, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
-using st_wrapper_out_t =
-    storage_wrapper<p_out, data_view<storage_type, access_mode::ReadWrite>, tile<0, 0>, tile<0, 0>>;
 
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in1;
@@ -105,9 +96,9 @@ struct functor2 {
     GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
 };
 
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<1, -1>> kmin_and_range1;
-typedef gridtools::interval<gridtools::level<1, 1>, gridtools::level<2, -1>> krange2_and_max;
-typedef gridtools::interval<gridtools::level<0, -1>, gridtools::level<2, -1>> kall;
+using kmin_and_range1 = krange1::modify<-1, 0>;
+using krange2_and_max = krange2::modify<0, 1>;
+using kall = axis_t::full_interval::modify<-1, 0>;
 
 typedef decltype(gridtools::make_stage<functor1>(p_in1(), p_in3(), p_in4(), p_out())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_in1(), p_in2(), p_in4(), p_out())) esf2k_t;
@@ -124,13 +115,7 @@ TEST(iterate_domain_cache, flush) {
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
-
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<std::tuple<p_in1, p_in2, p_in3, p_in4, p_out>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -138,7 +123,7 @@ TEST(iterate_domain_cache, flush) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<Cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -222,13 +207,9 @@ TEST(iterate_domain_cache, fill) {
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
+    typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -236,7 +217,7 @@ TEST(iterate_domain_cache, fill) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<Cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -309,13 +290,9 @@ TEST(iterate_domain_cache, fill) {
 
 TEST(iterate_domain_cache, epflush) {
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
+    typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -331,7 +308,7 @@ TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::vector5<cachef1_t, cachef2_t, cachef3_t, cachef4_t, cachef5_t> cachesf_t;
 
-    typedef iterate_domain_arguments<backend_ids<Cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -420,13 +397,9 @@ TEST(iterate_domain_cache, bpfill) {
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
-    typedef boost::mpl::
-        vector5<st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t>
-            storages_t;
+    typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
-    typedef boost::mpl::vector5<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
-
-    typedef local_domain<storages_t, esf_args_t, false> local_domain_t;
+    typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
@@ -434,7 +407,7 @@ TEST(iterate_domain_cache, bpfill) {
         typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
             max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<Cuda, GRIDBACKEND, Block>,
+    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,

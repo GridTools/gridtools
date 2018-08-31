@@ -39,7 +39,7 @@
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-using axis_t = gridtools::axis<1, 1>;
+using axis_t = gridtools::axis<1>::with_extra_offsets<1>::with_offset_limit<3>;
 using axis = axis_t::axis_interval_t;
 
 using kfull = axis_t::full_interval;
@@ -53,7 +53,7 @@ using kmaximumm1 = kmaximum::shift<-1>;
 using kbody_low = kfull::modify<0, -1>;
 using kbody = kfull::modify<1, -1>;
 
-using axis_b_t = gridtools::axis<2, 1>;
+using axis_b_t = gridtools::axis<2>::with_extra_offsets<1>::with_offset_limit<3>;
 using axis_b = axis_b_t::axis_interval_t;
 
 using kfull_b = axis_b_t::full_interval;
@@ -66,8 +66,8 @@ using kbody_lowp1_b = kbody_low_b::modify<1, 0>;
 
 class kcachef : public ::testing::Test {
   protected:
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<gridtools::float_type, storage_info_t>
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
+    typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<gridtools::float_type, storage_info_t>
         storage_t;
 
     const gridtools::uint_t m_d1, m_d2, m_d3;

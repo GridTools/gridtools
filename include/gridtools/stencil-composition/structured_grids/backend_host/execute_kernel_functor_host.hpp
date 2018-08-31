@@ -41,11 +41,13 @@
  */
 
 #pragma once
-#include "../../backend_host/iterate_domain_host.hpp"
-#include "../../execution_policy.hpp"
+#include "../../backend_host/basic_token_execution_host.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
+#include "../positional_iterate_domain.hpp"
+#include "./iterate_domain_host.hpp"
+#include "./run_esf_functor_host.hpp"
 
 namespace gridtools {
 
@@ -70,8 +72,21 @@ namespace gridtools {
             typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
             GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-            typedef backend_traits_from_id<enumtype::Host> backend_traits_t;
+            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                local_domain_t,
+                typename RunFunctorArguments::esf_sequence_t,
+                typename RunFunctorArguments::extent_sizes_t,
+                typename RunFunctorArguments::max_extent_t,
+                typename RunFunctorArguments::cache_sequence_t,
+                grid_t,
+                typename RunFunctorArguments::is_reduction_t,
+                reduction_type_t>;
+            using iterate_domain_host_t = iterate_domain_host<iterate_domain_arguments_t>;
+            using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
+                meta::lazy::id<positional_iterate_domain<iterate_domain_host_t>>,
+                meta::lazy::id<iterate_domain_host_t>>::type;
+
+            typedef backend_traits_from_id<platform::x86> backend_traits_t;
 
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 
@@ -81,8 +96,7 @@ namespace gridtools {
             typedef typename boost::mpl::front<loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
             typedef typename index_to_level<typename interval::second>::type to;
-            typedef ::gridtools::_impl::iteration_policy<from, to, execution_type_t::type::iteration>
-                iteration_policy_t;
+            typedef ::gridtools::_impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
@@ -109,12 +123,8 @@ namespace gridtools {
                 strides_t strides;
 
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
-                typename iterate_domain_t::data_ptr_cached_t data_pointer;
 
-                it_domain.set_data_pointer_impl(&data_pointer);
                 it_domain.set_strides_pointer_impl(&strides);
-
-                it_domain.template assign_storage_pointers<backend_traits_t>();
                 it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},
@@ -130,9 +140,7 @@ namespace gridtools {
                     irestore_index = it_domain.index();
                     for (uint_t j = 0; j != m_size.j; ++j) {
                         jrestore_index = it_domain.index();
-                        boost::mpl::for_each<loop_intervals_t>(
-                            gridtools::_impl::run_f_on_interval<execution_type_t, RunFunctorArguments>{
-                                it_domain, m_grid});
+                        run_functors_on_interval<RunFunctorArguments, run_esf_functor_host>(it_domain, m_grid);
                         it_domain.set_index(jrestore_index);
                         it_domain.increment_j();
                     }

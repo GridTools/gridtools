@@ -41,9 +41,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace rw_test {
-
-    typedef gridtools::interval<level<0, -1>, level<1, -1>> x_interval;
-
     struct test_functor {
         typedef accessor<0, in, extent<0>> i0;
         typedef accessor<1, inout> o0;
@@ -57,7 +54,7 @@ namespace rw_test {
         typedef boost::mpl::vector8<i0, o0, i1, o1, i2, o2, i3, o3> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 } // namespace rw_test
 

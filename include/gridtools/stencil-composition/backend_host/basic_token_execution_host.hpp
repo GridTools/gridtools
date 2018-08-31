@@ -33,23 +33,18 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../common/array.hpp"
-#include "../common/defs.hpp"
-#include <boost/mpl/bool.hpp>
+#include "../../common/defs.hpp"
+#include "../../common/pair.hpp"
+#include "../basic_token_execution.hpp"
+#include "../execution_types.hpp"
 
 namespace gridtools {
-    /**
-     * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
-     */
-    class position_offset_type : public array<int_t, 4> {
-      public:
-        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
-            : array<int_t, 4>({i0, i1, i2, i3}) {}
-    };
-    template <typename T>
-    struct is_position_offset_type : boost::mpl::false_ {};
-    template <>
-    struct is_position_offset_type<position_offset_type> : boost::mpl::true_ {};
+    template <class FromLevel, class ToLevel, class GridBackend, class Strategy, class ExecutionEngine, class Grid>
+    GT_FUNCTION pair<int, int> get_k_interval(
+        backend_ids<platform::x86, GridBackend, Strategy>, ExecutionEngine, Grid const &grid) {
+        return make_pair(grid.template value_at<FromLevel>(), grid.template value_at<ToLevel>());
+    }
 } // namespace gridtools

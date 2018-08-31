@@ -44,7 +44,7 @@
 
 #include <gridtools/common/defs.hpp>
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define NO_CONSTEXPR
 #endif
 
@@ -183,6 +183,13 @@ namespace gridtools {
         TEST(fold, functional) {
             auto f = [](int x, int y) { return x + y; };
             EXPECT_EQ(fold(f, std::make_tuple(1, 2, 3, 4)), 10);
+        }
+
+        TEST(apply, lambda) {
+            auto f = [](int x, int y) { return x + y; };
+            auto t = std::make_tuple(1, 2);
+
+            EXPECT_EQ(3, apply(f, t));
         }
     } // namespace tuple_util
 } // namespace gridtools

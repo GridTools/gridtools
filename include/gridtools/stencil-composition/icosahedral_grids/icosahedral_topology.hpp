@@ -64,7 +64,7 @@
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../location_type.hpp"
-#include "../position_offset_type.hpp"
+#include "position_offset_type.hpp"
 
 #include "icosahedral_topology_metafunctions.hpp"
 

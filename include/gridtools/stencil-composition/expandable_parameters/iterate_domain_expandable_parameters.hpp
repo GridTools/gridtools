@@ -38,6 +38,7 @@
 
 #include "../../common/defs.hpp"
 #include "../expressions/expr_base.hpp"
+#include "../iterate_domain_fwd.hpp"
 #include "../structured_grids/accessor.hpp"
 #include "../structured_grids/vector_accessor.hpp"
 
@@ -46,9 +47,6 @@
 */
 
 namespace gridtools {
-
-    template <typename T>
-    struct is_iterate_domain;
 
     /**
        @brief iterate_domain specific for when expandable parameters are used
@@ -69,7 +67,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
-        typedef IterateDomain iterate_domain_t;
 
         // user protections
         template <typename... T>
@@ -96,10 +93,10 @@ namespace gridtools {
          */
         template <uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size>
         GT_FUNCTION typename super::template accessor_return_type<accessor<ACC_ID, Intent, Extent, Size>>::type
-        operator()(vector_accessor<ACC_ID, Intent, Extent, Size> const &arg) {
-            accessor<ACC_ID, Intent, Extent, Size> tmp_(arg);
-            tmp_.template set<0>(ID);
-            return super::operator()(tmp_);
+        operator()(vector_accessor<ACC_ID, Intent, Extent, Size> arg) {
+            arg.set_snapshot(ID);
+            accessor<ACC_ID, Intent, Extent, Size> const &ref = arg;
+            return super::operator()(ref);
         }
 
         /** @brief method called in the Do methods of the functors
@@ -112,5 +109,5 @@ namespace gridtools {
     };
 
     template <typename T, ushort_t Val>
-    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : boost::mpl::true_ {};
+    struct is_iterate_domain<iterate_domain_expandable_parameters<T, Val>> : std::true_type {};
 } // namespace gridtools

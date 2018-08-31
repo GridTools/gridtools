@@ -152,7 +152,7 @@ namespace horizontal_diffusion {
             p_out() = out,
             p_coeff() = coeff,
             gridtools::make_multistage(
-                execute<parallel>(), gridtools::make_stage<out_function>(p_out(), p_in(), p_coeff())));
+                execute<parallel, 20>(), gridtools::make_stage<out_function>(p_out(), p_in(), p_coeff())));
 
         horizontal_diffusion.run();
 

@@ -33,32 +33,18 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include <boost/fusion/container/vector.hpp>
+#include "../../common/array.hpp"
+#include "../../common/defs.hpp"
+#include <type_traits>
 
 namespace gridtools {
-
-    /** \ingroup common
-        @{
-        \ingroup allmeta
-        @{
-        \defgroup fusionutil Fusion Library Utilities
-        @{
-    */
-
     /**
-       Metafunction that checks that an index is not out of bounds for a fusion vector
-
-       \tparam IndexType Index type (need `value` to access the value)
-       \tparam FusionVector the fusion vector
+     * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
      */
-    template <typename IndexType, typename FusionVector>
-    struct fusion_vector_check_bound {
-        static const bool value =
-            IndexType::value >= 0 && IndexType::value < boost::fusion::result_of::size<FusionVector>::type::value;
-    };
-    /** @} */
-    /** @} */
-    /** @} */
+    using position_offset_type = array<int_t, 4>;
 
+    template <class T>
+    using is_position_offset_type = std::is_same<T, position_offset_type>;
 } // namespace gridtools

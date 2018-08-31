@@ -40,8 +40,6 @@
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
-#include "iterate_domain_mic.hpp"
-#include "run_esf_functor_mic.hpp"
 
 #ifdef STRUCTURED_GRIDS
 #include "../structured_grids/backend_mic/execute_kernel_functor_mic.hpp"
@@ -61,7 +59,7 @@
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the mic backend*/
     template <>
-    struct backend_traits_from_id<enumtype::Mic> {
+    struct backend_traits_from_id<platform::mc> {
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
@@ -92,8 +90,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArgs>::value), GT_INTERNAL_ERROR);
             template <typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo>
-            static void run(LocalDomain &local_domain,
-                const Grid &grid,
+            static void run(LocalDomain const &local_domain,
+                Grid const &grid,
                 ReductionData &reduction_data,
                 const ExecutionInfo &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
@@ -103,7 +101,7 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
                 strgrid::execute_kernel_functor_mic<RunFunctorArgs>(local_domain, grid, reduction_data)(execution_info);
 #else
-                strategy_from_id_mic<enumtype::Block>::template mss_loop<RunFunctorArgs>::template run(
+                strategy_from_id_mic<strategy::block>::template mss_loop<RunFunctorArgs>::template run(
                     local_domain, grid, reduction_data, execution_info);
 #endif
             }
@@ -118,51 +116,11 @@ namespace gridtools {
         using mss_fuse_esfs_strategy = std::false_type;
 #endif
 
-        // high level metafunction that contains the run_esf_functor corresponding to this backend
-        typedef boost::mpl::quote2<run_esf_functor_mic> run_esf_functor_h_t;
-
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_mic<BackendIds::s_strategy_id> type;
-        };
-
-        /**
-         * @brief metafunction that returns the right iterate domain
-         * (depending on whether the local domain is positional or not)
-         * @param IterateDomainArguments the iterate domain arguments
-         * @return the iterate domain type for this backend
-         */
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
-// indirection in order to avoid instantiation of both types of the eval_if
-#ifdef STRUCTURED_GRIDS
-            template <typename _IterateDomainArguments>
-            struct select_positional_iterate_domain {
-                typedef iterate_domain_mic<_IterateDomainArguments> type;
-            };
-
-            template <typename _IterateDomainArguments>
-            struct select_basic_iterate_domain {
-                typedef iterate_domain_mic<_IterateDomainArguments> type;
-            };
-#else
-            template <typename _IterateDomainArguments>
-            struct select_basic_iterate_domain {
-                typedef iterate_domain_mic<iterate_domain, _IterateDomainArguments> type;
-            };
-#endif
-
-            typedef
-                typename boost::mpl::eval_if<local_domain_is_stateful<typename IterateDomainArguments::local_domain_t>,
-#ifdef STRUCTURED_GRIDS
-                    select_positional_iterate_domain<IterateDomainArguments>,
-#else
-                    select_basic_iterate_domain<IterateDomainArguments>,
-#endif
-                    select_basic_iterate_domain<IterateDomainArguments>>::type type;
+            typedef strategy_from_id_mic<typename BackendIds::strategy_id_t> type;
         };
 
 #ifndef STRUCTURED_GRIDS

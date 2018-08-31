@@ -36,13 +36,17 @@
 #pragma once
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "../grid_traits.hpp"
+#include "../positional_iterate_domain.hpp"
 #include "./iterate_domain_cuda.hpp"
+#include "./run_esf_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -61,16 +65,22 @@ namespace gridtools {
 
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
-            typedef backend_traits_from_id<enumtype::Cuda> backend_traits_t;
+            using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+                typename RunFunctorArguments::local_domain_t,
+                typename RunFunctorArguments::esf_sequence_t,
+                typename RunFunctorArguments::extent_sizes_t,
+                typename RunFunctorArguments::max_extent_t,
+                typename RunFunctorArguments::cache_sequence_t,
+                typename RunFunctorArguments::grid_t>;
+            using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
+            using iterate_domain_t =
+                typename conditional_t<local_domain_is_stateful<typename RunFunctorArguments::local_domain_t>::value,
+                    meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
+                    meta::lazy::id<iterate_domain_cuda_t>>::type;
+
+            typedef backend_traits_from_id<platform::cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
-            typedef typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
-            typedef shared_iterate_domain<data_ptr_cached_t,
-                strides_t,
-                max_extent_t,
-                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t>
-                shared_iterate_domain_t;
 
             // number of threads
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
@@ -81,12 +91,11 @@ namespace gridtools {
             // number of grid points that a cuda block covers
             static constexpr uint_t ntx = block_i_size(backend);
             static constexpr uint_t nty = block_j_size(backend);
-            ;
 
             const uint_t block_size_i = (blockIdx.x + 1) * ntx < nx ? ntx : nx - blockIdx.x * ntx;
             const uint_t block_size_j = (blockIdx.y + 1) * nty < ny ? nty : ny - blockIdx.y * nty;
 
-            __shared__ shared_iterate_domain_t shared_iterate_domain;
+            __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the iterate domain and assignment of pointers and strides
             // for the moment reductions are not supported so that the initial value is 0
@@ -94,7 +103,6 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_storage_pointers<backend_traits_t>();
             it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 
             __syncthreads();
@@ -159,19 +167,20 @@ namespace gridtools {
             typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
             typedef typename index_to_level<typename interval::first>::type from;
             typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::type::iteration> iteration_policy_t;
+            typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
 
             // initialize the indices
-            const auto k_min = grid.k_min();
-            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), k_min},
-                {blockIdx.x, blockIdx.y, 0},
-                {iblock, jblock, static_cast<int_t>(grid.template value_at<iteration_policy_t::from>() - k_min)});
+            const int_t kblock = execution_type_t::iteration == enumtype::parallel
+                                     ? blockIdx.z * execution_type_t::block_size - grid.k_min()
+                                     : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
+            it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
+                {blockIdx.x, blockIdx.y, blockIdx.z},
+                {iblock, jblock, kblock});
 
             it_domain.set_block_pos(iblock, jblock);
 
             // execute the k interval functors
-            boost::mpl::for_each<typename RunFunctorArguments::loop_intervals_t>(
-                _impl::run_f_on_interval<execution_type_t, RunFunctorArguments>(it_domain, grid));
+            run_functors_on_interval<RunFunctorArguments, run_esf_functor_cuda>(it_domain, grid);
         }
     } // namespace _impl_strcuda
 
@@ -226,13 +235,13 @@ namespace gridtools {
                 // number of threads
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
                 const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
+                const uint_t nz = m_grid.k_total_length();
 
                 static constexpr auto backend = typename RunFunctorArguments::backend_ids_t{};
 
                 // number of grid points that a cuda block covers
                 static constexpr uint_t ntx = block_i_size(backend);
                 static constexpr uint_t nty = block_j_size(backend);
-                ;
                 static constexpr uint_t ntz = 1;
 
                 using max_extent_t = typename RunFunctorArguments::max_extent_t;
@@ -245,14 +254,17 @@ namespace gridtools {
                 // number of blocks required
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
-                const uint_t nbz = 1;
+                using execution_type_t = typename RunFunctorArguments::execution_type_t;
+                const uint_t nbz = execution_type_t::iteration == enumtype::parallel
+                                       ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
+                                       : 1;
 
                 dim3 blocks(nbx, nby, nbz);
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
                 printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
-                printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
+                printf("nx = %d, ny = %d, nz = %d\n", nx, ny, nz);
 #endif
                 _impl_strcuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
                     <<<blocks, threads>>>(m_local_domain, m_grid);

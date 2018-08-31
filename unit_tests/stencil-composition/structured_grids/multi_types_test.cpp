@@ -223,12 +223,12 @@ namespace multi_types_test {
         uint_t d3 = z;
         uint_t halo_size = 0;
 
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<0, 3> storage_info1_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<1, 3> storage_info2_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::storage_info_t<2, 3> storage_info3_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<type1, storage_info1_t> data_store1_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<type2, storage_info2_t> data_store2_t;
-        typedef gridtools::storage_traits<backend_t::s_backend_id>::data_store_t<type3, storage_info3_t> data_store3_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info1_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<1, 3> storage_info2_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<2, 3> storage_info3_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<type1, storage_info1_t> data_store1_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<type2, storage_info2_t> data_store2_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<type3, storage_info3_t> data_store3_t;
 
         // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
         storage_info1_t si1(x, y, z);

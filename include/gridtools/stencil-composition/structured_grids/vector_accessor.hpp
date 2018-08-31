@@ -64,7 +64,9 @@ namespace gridtools {
         using super = accessor<ID, Intent, Extent, NDim>;
         using super::accessor;
         static const ushort_t n_dimensions = NDim;
-    };
+
+        GT_FUNCTION void set_snapshot(ushort_t snapshot_id) { get<NDim - 1>(*this) = snapshot_id; }
+    }; // namespace gridtools
 
     template <typename T>
     struct is_vector_accessor : boost::mpl::false_ {};
