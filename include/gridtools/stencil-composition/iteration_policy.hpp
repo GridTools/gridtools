@@ -51,9 +51,7 @@ namespace gridtools {
     struct iteration_policy {
         GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (GT_META_CALL(level_to_index, From)::value <= GT_META_CALL(level_to_index, From)::value),
-            GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value <= level_to_index<From>::value, GT_INTERNAL_ERROR);
 
         using from = From;
         using to = To;
@@ -82,9 +80,7 @@ namespace gridtools {
     struct iteration_policy<From, To, enumtype::backward> {
         GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (GT_META_CALL(level_to_index, From)::value >= GT_META_CALL(level_to_index, From)::value),
-            GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value >= level_to_index<From>::value, GT_INTERNAL_ERROR);
 
         using from = From;
         using to = To;
