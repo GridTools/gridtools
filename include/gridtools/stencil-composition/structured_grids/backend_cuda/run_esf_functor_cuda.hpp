@@ -38,6 +38,7 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
+#include "../../../common/generic_metafunctions/type_traits.hpp"
 #include "../../../common/host_device.hpp"
 
 namespace gridtools {
@@ -52,9 +53,16 @@ namespace gridtools {
             }
         };
 
-        template <class Stages, class ItDomain>
+        template <class Stages, class ItDomain, enable_if_t<(meta::length<Stages>::value > 1), int> = 0>
         GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
             gridtools::for_each<Stages>(exec_stage_f<ItDomain>{it_domain});
+        }
+
+        template <class Stages, class ItDomain, enable_if_t<(meta::length<Stages>::value == 1), int> = 0>
+        GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
+            using stage_t = GT_META_CALL(meta::first, Stages);
+            if (it_domain.template is_thread_in_domain<typename stage_t::extent_t>())
+                stage_t::exec(it_domain);
         }
 
         template <class ItDomain>
