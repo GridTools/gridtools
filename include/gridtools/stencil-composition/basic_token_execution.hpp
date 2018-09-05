@@ -117,23 +117,19 @@ namespace gridtools {
 
                 run_esf_functor_helper<ItDomain, RunFunctorArguments, Interval, RunEsfFunctor> fun{m_domain};
 
-                if (in_domain)
-                    m_domain.template begin_fill<IterationPolicy>();
-
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(m_domain)) {
-                    if (in_domain)
-                        m_domain.template fill_caches<IterationPolicy>();
+                    if (in_domain) {
+                        m_domain.template fill_caches<IterationPolicy>(k == from);
+                    }
 
                     gridtools::for_each<GT_META_CALL(meta::make_indices_c, boost::mpl::size<functor_list_t>::value)>(
                         fun);
 
                     if (in_domain) {
-                        m_domain.template flush_caches<IterationPolicy>();
+                        m_domain.template flush_caches<IterationPolicy>(k == to);
                         m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
-                if (in_domain)
-                    m_domain.template final_flush<IterationPolicy>();
             }
 
             template <typename Interval>

@@ -101,15 +101,12 @@ namespace gridtools {
         }
 
         /**
-         * @struct io_cache_functor
-         * functor that performs the io cache operations (fill and flush) from main memory into a kcache and viceversa
+         * @brief Base class for functors that sync k-caches with device memory.
          * @tparam KCachesTuple fusion tuple as map of pairs of <index,cache_storage>
          * @tparam KCachesMap mpl map of <index, cache_storage>
          * @tparam IterateDomain is the iterate domain
          * @tparam IterationPolicy: forward, backward
-         * @tparam Grid grid type
          * @tparam CacheIOPolicy the cache io policy: fill, flush
-         * @tparam AtBeginOrEndPoint true if the performed operation is performed at a cache begin- or endpoint
          */
         template <typename KCachesTuple,
             typename KCachesMap,
@@ -117,7 +114,7 @@ namespace gridtools {
             typename IterationPolicy,
             cache_io_policy CacheIOPolicy>
         struct io_cache_functor_base {
-          protected:
+          private:
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
 
@@ -126,24 +123,24 @@ namespace gridtools {
 
             // shortcurts for forward backward iteration policy
             static constexpr bool forward = IterationPolicy::value == enumtype::forward;
-            static constexpr bool backward = !forward;
+            static constexpr bool backward = IterationPolicy::value == enumtype::backward;
 
             // shortcuts for fill and flush io policy
             static constexpr bool fill = CacheIOPolicy == cache_io_policy::fill;
-            static constexpr bool flush = !fill;
+            static constexpr bool flush = CacheIOPolicy == cache_io_policy::flush;
 
+          protected:
             // `tail` is true if we have to fill or flush the tail (kminus side) of the cache, false if we have to
             // fill or flush the head (kplus side) of the cache.
             static constexpr bool tail = (backward && fill) || (forward && flush);
 
+            /**
+             * @brief Syncs the elements of k-cache with index `Idx` for all offsets in range [`SyncStart`, `SyncEnd`].
+             */
             template <typename Idx, int_t SyncStart, int_t SyncEnd = SyncStart>
             GT_FUNCTION void sync() const {
-                GRIDTOOLS_STATIC_ASSERT(
-                    IterationPolicy::value == enumtype::forward || IterationPolicy::value == enumtype::backward,
-                    "k-caches only support forward and backward iteration");
-                GRIDTOOLS_STATIC_ASSERT(
-                    CacheIOPolicy == cache_io_policy::fill || CacheIOPolicy == cache_io_policy::flush,
-                    "io policy must be either fill or flush");
+                GRIDTOOLS_STATIC_ASSERT(forward || backward, "k-caches only support forward and backward iteration");
+                GRIDTOOLS_STATIC_ASSERT(fill || flush, "io policy must be either fill or flush");
                 constexpr uint_t sync_size = (uint_t)(SyncEnd - SyncStart + 1);
                 using range = GT_META_CALL(meta::make_indices_c, sync_size);
                 auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
@@ -156,6 +153,15 @@ namespace gridtools {
                 : m_it_domain(it_domain), m_kcaches(kcaches) {}
         };
 
+        /**
+         * @brief Functor that syncs k-caches with main memory, this is the implementation for fill and flush caches
+         * used on all k-levels of the iteration.
+         * @tparam KCachesTuple fusion tuple as map of pairs of <index,cache_storage>
+         * @tparam KCachesMap mpl map of <index, cache_storage>
+         * @tparam IterateDomain is the iterate domain
+         * @tparam IterationPolicy: forward, backward
+         * @tparam CacheIOPolicy the cache io policy: fill, flush
+         */
         template <typename KCachesTuple,
             typename KCachesMap,
             typename IterateDomain,
@@ -166,13 +172,15 @@ namespace gridtools {
             using base = io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy>;
             using base::io_cache_functor_base;
 
+            /**
+             * @brief Syncs one level of the cache with main memory.
+             */
             template <typename Idx>
             GT_FUNCTION void operator()(Idx) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
-                // lowest index in cache storage
+                // lowest and highest index in cache storage
                 constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                // highest index in cache storage
                 constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
                 // cache index at which we need to sync (single element)
@@ -182,6 +190,15 @@ namespace gridtools {
             }
         };
 
+        /**
+         * @brief Functor that syncs k-caches with main memory, this is the implementation for fill and flush caches
+         * used on the beginning and end levels of the iteration and for bpfill and epflush caches.
+         * @tparam KCachesTuple fusion tuple as map of pairs of <index,cache_storage>
+         * @tparam KCachesMap mpl map of <index, cache_storage>
+         * @tparam IterateDomain is the iterate domain
+         * @tparam IterationPolicy: forward, backward
+         * @tparam CacheIOPolicy the cache io policy: fill, flush
+         */
         template <typename KCachesTuple,
             typename KCachesMap,
             typename IterateDomain,
@@ -192,45 +209,46 @@ namespace gridtools {
             using base = io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy>;
             using base::io_cache_functor_base;
 
+            template <typename Idx, typename KCache = typename boost::mpl::at<KCachesMap, Idx>::type::cache_t>
+            struct endpoint_only_cache : static_int<KCache::ccacheIOPolicy == cache_io_policy::bpfill ||
+                                                    KCache::ccacheIOPolicy == cache_io_policy::epflush> {};
+
+            /**
+             * @brief Sync implementation for endpoint-only caches (i.e. bpfill, epflush).
+             */
             template <typename Idx>
-            GT_FUNCTION void operator()(Idx) const {
+            GT_FUNCTION enable_if_t<endpoint_only_cache<Idx>::value> operator()(Idx) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
                 using kcache_t = typename kcache_storage_t::cache_t;
+
+                // endpoint-only caches have a window which defines the sync elements
+                constexpr int_t sync_start = kcache_t::kwindow_t::m_;
+                constexpr int_t sync_end = kcache_t::kwindow_t::p_;
+
+                base::template sync<Idx, sync_start, sync_end>();
+            }
+
+            /**
+             * @brief Sync implementation for non-endpoint-only caches (i.e. fill, flush).
+             */
+            template <typename Idx>
+            GT_FUNCTION enable_if_t<!endpoint_only_cache<Idx>::value> operator()(Idx) const {
+                using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
                 constexpr int_t kminus = kcache_storage_t::kminus_t::value;
                 constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
-                // true iff cache operations are only performed at the begin and endpoint
-                constexpr bool endpoint_only = (kcache_t::ccacheIOPolicy == cache_io_policy::bpfill) ||
-                                               (kcache_t::ccacheIOPolicy == cache_io_policy::epflush);
-
                 // with fill or flush caches, we need to load/store one element less at the begin and endpoints as the
                 // non-endpoint fill or flush on the same k-level will handle this already
-                constexpr int_t kminus_offset = (base::tail && !endpoint_only) ? 1 : 0;
-                constexpr int_t kplus_offset = (!base::tail && !endpoint_only) ? -1 : 0;
-
-                // endpoint-only caches have a window, for others we use the k-extents for the limits
-                using window_t =
-                    typename std::conditional<endpoint_only, typename kcache_t::kwindow_t, window<kminus, kplus>>::type;
+                constexpr int_t kminus_offset = base::tail ? 1 : 0;
+                constexpr int_t kplus_offset = !base::tail ? -1 : 0;
 
                 // choose lower and upper cache index for syncing
-                constexpr int_t sync_start = base::tail ? kminus + kminus_offset : window_t::m_;
-                constexpr int_t sync_end = base::tail ? window_t::p_ : kplus + kplus_offset;
+                constexpr int_t sync_start = kminus + kminus_offset;
+                constexpr int_t sync_end = kplus + kplus_offset;
 
-                // endpoint flushes happen after the last slide, so we need to use add an additional offset in this case
-                constexpr int_t flush_offset = base::fill ? 0 : base::forward ? -1 : 1;
-                constexpr int_t shifted_sync_start = clamp_to_cache_krange<kcache_storage_t>(sync_start + flush_offset);
-                constexpr int_t shifted_sync_end = clamp_to_cache_krange<kcache_storage_t>(sync_end + flush_offset);
-
-                base::template sync<Idx, shifted_sync_start, shifted_sync_end>();
-            }
-
-            template <typename CacheStorage>
-            GT_FUNCTION static constexpr int_t clamp_to_cache_krange(int_t index) {
-                return index < CacheStorage::kminus_t::value
-                           ? CacheStorage::kminus_t::value
-                           : index > CacheStorage::kplus_t::value ? CacheStorage::kplus_t::value : index;
+                base::template sync<Idx, sync_start, sync_end>();
             }
         };
     } // namespace _impl

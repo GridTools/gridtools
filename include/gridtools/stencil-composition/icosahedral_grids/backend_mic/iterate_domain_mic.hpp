@@ -99,7 +99,7 @@ namespace gridtools {
          * caches are not currently used in mic backend
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void flush_caches() {
+        GT_FUNCTION void flush_caches(bool) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
@@ -107,23 +107,7 @@ namespace gridtools {
          * caches are not currently used in mic backend
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void fill_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-        }
-
-        /**
-         * caches are not currently used in mic backend
-         */
-        template <typename IterationPolicy>
-        GT_FUNCTION void final_flush() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-        }
-
-        /**
-         * caches are not currently used in mic backend
-         */
-        template <typename IterationPolicy>
-        GT_FUNCTION void begin_fill() {
+        GT_FUNCTION void fill_caches(bool) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 

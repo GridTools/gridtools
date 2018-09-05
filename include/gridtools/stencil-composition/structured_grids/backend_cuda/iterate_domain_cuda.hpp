@@ -274,9 +274,9 @@ namespace gridtools {
          * \param grid a grid with loop bounds information
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void fill_caches() {
+        GT_FUNCTION void fill_caches(bool first_level) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this);
+            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, first_level);
         }
 
         /**
@@ -286,31 +286,9 @@ namespace gridtools {
          * \param grid a grid with loop bounds information
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void flush_caches() {
+        GT_FUNCTION void flush_caches(bool last_level) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this);
-        }
-
-        /**
-         * Final flush of the of the kcaches. After the iteration over k is done, we still need to flush the remaining
-         * k levels of the cache with k > 0 (<0) for the backward (forward) iteration policy
-         * \tparam IterationPolicy forward: backward
-         */
-        template <typename IterationPolicy>
-        GT_FUNCTION void final_flush() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template final_flush<IterationPolicy>(*this);
-        }
-
-        /**
-         * Initial fill of the of the kcaches. Before the iteration over k starts, we need to prefill the k level
-         * of the cache with k > 0 (<0) for the forward (backward) iteration policy
-         * \tparam IterationPolicy forward: backward
-         */
-        template <typename IterationPolicy>
-        GT_FUNCTION void begin_fill() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template begin_fill<IterationPolicy>(*this);
+            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, last_level);
         }
 
       private:
