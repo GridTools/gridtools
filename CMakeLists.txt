@@ -75,7 +75,7 @@ add_library(array_descriptor src/c_bindings/array_descriptor.f90)
 # ===============
 include (fix_test_case_name)
 if(NOT DISABLE_TESTING)
-  add_subdirectory(examples)
+  add_subdirectory(regression)
   add_subdirectory(unit_tests)
 endif()
 
