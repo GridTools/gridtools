@@ -6,7 +6,7 @@ enable_language (CXX Fortran)
 
 if( GRIDTOOLS_MODULES )
 # To be completed!
-  
+
   add_subdirectory( modules/storage )
 
 else()
@@ -79,6 +79,10 @@ if(NOT DISABLE_TESTING)
   add_subdirectory(unit_tests)
 endif()
 
+if(COMPILE_EXAMPLES)
+  add_subdirectory(examples)
+endif()
+
 # ===============
 # Downloads the gridtools_experimental repository
 # ===============
@@ -141,4 +145,3 @@ message("compile definitions: ${COMPILE_DEFINITIONS}")
 include (post_config_actions)
 
 endif()
-
