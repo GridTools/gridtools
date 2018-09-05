@@ -42,8 +42,15 @@
 #include "data_store_field.hpp"
 
 #ifdef _USE_GPU_
+#include "../../storage/storage_cuda/data_field_view_helpers.hpp"
+#include "../../storage/storage_cuda/data_view_helpers.hpp"
 #include "storage_traits_cuda.hpp"
 #endif
+
+#include "./storage_host/data_field_view_helpers.hpp"
+#include "./storage_host/data_view_helpers.hpp"
+#include "storage_mic/data_field_view_helpers.hpp"
+#include "storage_mic/data_view_helpers.hpp"
 #include "storage_traits_host.hpp"
 #include "storage_traits_mic.hpp"
 
