@@ -1,5 +1,5 @@
 set( EXAMPLES_SRCFILES )
-list( APPEND EXAMPLES_SRCFILES copy_stencil )
+list( APPEND EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited)
 
 #  if(ENABLE_HOST)
     foreach(srcfile IN LISTS EXAMPLES_SRCFILES )

@@ -56,11 +56,9 @@ struct copy_functor {
 };
 
 /*
- * The following operators and structs are for debugging only
+ * The following operators and structs are for debugging only in VERBOSE mode
  */
-std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
-
-void handle_error(gt::int_t) { std::cout << "error" << std::endl; }
+// std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
 
 template <typename In, typename Out>
 bool verify(In const& in, Out const& out) {
