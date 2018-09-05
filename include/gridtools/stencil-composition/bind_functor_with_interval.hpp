@@ -144,5 +144,29 @@ namespace gridtools {
             using type = Functor;
         };
     }
+    /**
+     *   Takes an elementary functor (Functor) and the level index (Index) as an input; deduces the interval that should
+     *   be used for the range from Index to Index::next and produces the functor where the deduced interval is bound.
+     *   I.e. the new functor has the Do method with a single argument and delegates to the original one.
+     *
+     *   Corner cases:
+     *     - if `void` is passed as a Functor the return will be also `void`
+     *     - if there is no overload that includes that level and there is overload with a single argument, `void` is
+     *       returned.
+     *     - if there is no overload, but there is an overload with a single argument, original Functor is returned.
+     *
+     *   The algorithm for deducing the interval is the following:
+     *     - from the given Index we go left util we have found the level that matches as a lower bound. (Here we use
+     *       the fact that interval is convertible to its lower bound level). if we reach zero index, we fail.
+     *     - next we search for the upper bound by going right from the lower bound that we just found.
+     *     - if the interval contains the Index, we are done else we fail.
+     *
+     *   Note that the algorithm doesn't have assertions that there is no holes between intervals and there is no
+     *   overlaps. Moreover, it produces deterministic results even for insane setups.
+     *
+     *   TODO(anstaf): If we want to keep the strict requirements on interval overloads that we have now (no holes, no
+     *   overlaps), we need to add an additional predicate `is_valid_functor<Functor, AxisInterval>` just for the user
+     *   protection. The alternative is to clearly define overlap resolution rules for the user.
+     */
     GT_META_DELEGATE_TO_LAZY(bind_functor_with_interval, (class Functor, class Index), (Functor, Index));
 } // namespace gridtools

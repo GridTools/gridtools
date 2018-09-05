@@ -742,6 +742,11 @@ namespace gridtools {
                 using type = L1<GT_META_CALL(F, (T1s, T2s))...>;
             };
 
+            /**
+             *   Takes `2D array` of types (i.e. list of lists where inner lists are the same length) and do
+             *   trasposition. Example:
+             *   a<b<void, void*, void**>, b<int, int*, int**>> => b<a<void, int>, a<void*, int*>, a<void**, int**>>
+             */
             template <class>
             struct transpose;
             template <template <class...> class L>

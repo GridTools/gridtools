@@ -34,6 +34,24 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+/**
+ *   @file
+ *
+ *   Stage concept represents elementary functor from the backend implementor point of view.
+ *
+ *   Stage must have the nested `extent_t` type or an alias that has to model Extent concept.
+ *   The meaning: the stage should be computed in the area that is extended from the user provided computation aria by
+ *   that much.
+ *
+ *   Stage also have static `exec` method that accepts an object by reference that models IteratorDomain.
+ *   `exec` should execute an elementary functor in the grid point that IteratorDomain points to.
+ *
+ *   Note that the Stage is (and should stay) backend independent. The core of gridtools passes stages [split by k-loop
+ *   intervals and independent groups] to the backend in the form of compile time only parameters.
+ *
+ *   TODO(anstaf): add `is_stage<T>` trait
+ */
+
 #pragma once
 
 #include "../../common/defs.hpp"
@@ -42,6 +60,7 @@
 #include "../../common/host_device.hpp"
 #include "../arg.hpp"
 #include "../expandable_parameters/iterate_domain_expandable_parameters.hpp"
+#include "../hasdo.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "./extent.hpp"
 #include "./iterate_domain_remapper.hpp"
@@ -61,8 +80,12 @@ namespace gridtools {
 
     } // namespace _impl
 
+    /**
+     *   A stage that is associated with non reduction elementary functor.
+     */
     template <class Functor, class Extent, class Args, size_t RepeatFactor>
     struct regular_stage {
+        GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
 
@@ -77,8 +100,12 @@ namespace gridtools {
         }
     };
 
+    /**
+     *   A stage that is associated with reduction elementary functor.
+     */
     template <class Functor, class Extent, class Args, class BinOp>
     struct reduction_stage {
+        GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
 
