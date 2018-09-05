@@ -111,7 +111,7 @@ namespace gridtools {
             using arg_list = typename Functor::arg_list;
 
             template <class Eval>
-            static GT_FUNCTION auto Do(Eval &eval) GT_AUTO_RETURN(Functor::Do(eval, Interval{}));
+            static GT_FUNCTION auto Do(Eval &eval) GT_AUTO_RETURN(Functor::template Do<Eval &>(eval, Interval{}));
         };
     } // namespace _impl
 

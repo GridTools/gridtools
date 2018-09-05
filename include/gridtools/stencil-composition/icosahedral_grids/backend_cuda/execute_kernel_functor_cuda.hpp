@@ -39,12 +39,12 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
+#include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
-#include "./run_esf_functor_cuda.hpp"
 
 namespace gridtools {
 

@@ -35,10 +35,10 @@
 */
 #pragma once
 
-#include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/host_device.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/host_device.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -46,7 +46,7 @@ namespace gridtools {
         struct exec_stage_f {
             ItDomain &m_domain;
             template <class Stage>
-            GT_FUNCTION void operator()(Stage) const {
+            GT_FUNCTION void operator()() const {
                 if (m_domain.template is_thread_in_domain<typename Stage::extent_t>())
                     Stage::exec(m_domain);
             }
@@ -54,7 +54,7 @@ namespace gridtools {
 
         template <class Stages, class ItDomain>
         GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
-            gridtools::for_each<Stages>(exec_stage_f<ItDomain>{it_domain});
+            for_each_type<Stages>(exec_stage_f<ItDomain>{it_domain});
         }
 
         template <class ItDomain>
@@ -62,7 +62,7 @@ namespace gridtools {
             ItDomain &m_domain;
 
             template <class Stages>
-            GT_FUNCTION void operator()(Stages) const {
+            GT_FUNCTION void operator()() const {
 #ifdef __CUDA_ARCH__
                 __syncthreads();
 #endif
@@ -81,9 +81,9 @@ namespace gridtools {
 
             // execute the groups of independent stages calling `__syncthreads()` in between
             _impl::exec_stage_group<first_t>(it_domain);
-            gridtools::for_each<rest_t>(_impl::exec_stage_group_f<ItDomain>{it_domain});
+            for_each_type<rest_t>(_impl::exec_stage_group_f<ItDomain>{it_domain});
 
-            // call additional `__syncthreads()` at the and of the k-level if the domain has IJ caches
+            // call additional `__syncthreads()` at the end of the k-level if the domain has IJ caches
 #ifdef __CUDA_ARCH__
             if (ItDomain::has_ij_caches)
                 __syncthreads();

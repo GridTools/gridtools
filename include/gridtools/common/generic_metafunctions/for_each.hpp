@@ -42,19 +42,23 @@ namespace gridtools {
         template <class List>
         struct for_each_f;
 
-        template <template <class...> class L, class T, class... Ts>
-        struct for_each_f<L<T, Ts...>> {
+        template <template <class...> class L, class... Ts>
+        struct for_each_f<L<Ts...>> {
             template <class Fun>
             GT_FUNCTION void operator()(Fun const &fun) const {
-                (void)(int[]){((void)fun(T{}), 0), ((void)fun(Ts{}), 0)...};
+                (void)(int[]){((void)fun(Ts{}), 0)...};
             }
         };
 
-        // Specialization for empty loops as nvcc refuses to compile the normal version in device code
-        template <template <class...> class L>
-        struct for_each_f<L<>> {
+        template <class List>
+        struct for_each_type_f;
+
+        template <template <class...> class L, class... Ts>
+        struct for_each_type_f<L<Ts...>> {
             template <class Fun>
-            GT_FUNCTION void operator()(Fun const &) const {}
+            GT_FUNCTION void operator()(Fun const &fun) const {
+                (void)(int[]){((void)fun.template operator()<Ts>(), 0)...};
+            }
         };
 
         template <class List>
@@ -80,6 +84,19 @@ namespace gridtools {
     template <class List, class Fun>
     GT_FUNCTION Fun for_each(Fun const &fun) {
         _impl::for_each_f<List>{}(fun);
+        return fun;
+    };
+
+    ///  Calls fun.template operator<T>() for each element of the type list List.
+    ///
+    ///  Note the difference between for_each: T is passed only as a template parameter; the operator itself has to be a
+    ///  nullary function. This ensures that the object of type T is nor created, nor passed to the function. The
+    ///  disadvantage is that the functor can not a [generic] lambda (in C++14 syntax) and also it limits the ability to
+    ///  do operator(). However, if T is not a POD it makes sense to use this for_each flavour. Also nvcc8 has problems
+    ///  with the code generation for the regular for_each even if all the types are empty structs.
+    template <class List, class Fun>
+    GT_FUNCTION Fun for_each_type(Fun const &fun) {
+        _impl::for_each_type_f<List>{}(fun);
         return fun;
     };
 

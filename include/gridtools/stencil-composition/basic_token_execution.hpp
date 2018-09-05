@@ -117,20 +117,24 @@ namespace gridtools {
                 }
             }
 
-            template <class From, class To, class Stages>
-            GT_FUNCTION void operator()(loop_interval<From, To, Stages>) const {
-                typedef iteration_policy<From, To, execution_engine::iteration> iteration_policy_t;
-                const auto k_interval = get_k_interval<From, To>(typename RunFunctorArguments::backend_ids_t{},
+            template <class LoopInterval>
+            GT_FUNCTION void operator()() const {
+                GRIDTOOLS_STATIC_ASSERT(is_loop_interval<LoopInterval>::value, GT_INTERNAL_ERROR);
+                using from_t = GT_META_CALL(meta::first, LoopInterval);
+                using to_t = GT_META_CALL(meta::second, LoopInterval);
+                using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
+                using iteration_policy_t = iteration_policy<from_t, to_t, execution_engine::iteration>;
+                const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
                     typename RunFunctorArguments::execution_type_t{},
                     m_grid);
-                k_loop<iteration_policy_t, Stages>(k_interval.first, k_interval.second);
+                k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second);
             }
         };
     } // namespace _impl
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
     GT_FUNCTION void run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
-        gridtools::for_each<typename RunFunctorArguments::loop_intervals_t>(
+        gridtools::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{it_domain, grid});
     }
 } // namespace gridtools

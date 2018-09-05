@@ -53,7 +53,7 @@ namespace gridtools {
         struct call_do_f {
             Eval *m_eval;
             template <class Index>
-            GT_FUNCTION void operator()(Index) const {
+            GT_FUNCTION void operator()() const {
                 using eval_t = iterate_domain_expandable_parameters<Eval, Index::value + 1>;
                 Functor::template Do<eval_t &>(*reinterpret_cast<eval_t *>(m_eval));
             }
@@ -73,8 +73,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
-            gridtools::for_each<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
-                _impl::call_do_f<Functor, eval_t>{&eval});
+            for_each_type<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(_impl::call_do_f<Functor, eval_t>{&eval});
         }
     };
 
@@ -90,7 +89,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
-            it_domain.set_reduction_value(BinOp{}(it_domain.reduction_value(), Functor::Do(eval)));
+            it_domain.set_reduction_value(BinOp{}(it_domain.reduction_value(), Functor::template Do<eval_t &>(eval)));
         }
     };
 

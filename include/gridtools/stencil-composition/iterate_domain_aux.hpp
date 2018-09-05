@@ -329,11 +329,11 @@ namespace gridtools {
 
             template <typename Coordinate>
             GT_FUNCTION typename boost::enable_if_c<(Coordinate::value >= SInfo::layout_t::unmasked_length), void>::type
-            operator()(Coordinate) const {}
+            operator()() const {}
 
             template <typename Coordinate>
             GT_FUNCTION typename boost::enable_if_c<(Coordinate::value < SInfo::layout_t::unmasked_length), void>::type
-            operator()(Coordinate) const {
+            operator()() const {
                 typedef typename SInfo::layout_t layout_map_t;
                 using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, const SInfo *>;
                 GRIDTOOLS_STATIC_ASSERT(
@@ -362,7 +362,7 @@ namespace gridtools {
         GT_FUNCTION typename boost::enable_if_c<StorageInfo::layout_t::unmasked_length != 0, void>::type operator()(
             const StorageInfo *storage_info) const {
             using range = GT_META_CALL(meta::make_indices_c, StorageInfo::layout_t::unmasked_length - 1);
-            gridtools::for_each<range>(assign<StorageInfo>(storage_info, m_strides_cached));
+            for_each_type<range>(assign<StorageInfo>(storage_info, m_strides_cached));
         }
     };
 
