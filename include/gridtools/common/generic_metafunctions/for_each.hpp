@@ -97,9 +97,8 @@ namespace gridtools {
     */
     /// Calls fun(T{}) for each element of the type list List.
     template <class List, class Fun>
-    GT_FUNCTION Fun for_each(Fun const &fun) {
+    GT_FUNCTION void for_each(Fun const &fun) {
         _impl::for_each_f<List>{}(fun);
-        return fun;
     };
 
     ///  Calls fun.template operator<T>() for each element of the type list List.
@@ -110,9 +109,8 @@ namespace gridtools {
     ///  do operator(). However, if T is not a POD it makes sense to use this for_each flavour. Also nvcc8 has problems
     ///  with the code generation for the regular for_each even if all the types are empty structs.
     template <class List, class Fun>
-    GT_FUNCTION Fun for_each_type(Fun const &fun) {
+    GT_FUNCTION void for_each_type(Fun const &fun) {
         _impl::for_each_type_f<List>{}(fun);
-        return fun;
     };
 
     // TODO(anstaf): avoid copying the same thing with and without GT_FUNCTION.
@@ -122,9 +120,8 @@ namespace gridtools {
     //               The same pattern could be applied for all template functions that we use both in
     //               device and host context.
     template <class List, class Fun>
-    Fun host_for_each(Fun const &fun) {
+    void host_for_each(Fun const &fun) {
         _impl::host_for_each_f<List>{}(fun);
-        return fun;
     };
 
     /** @} */
