@@ -42,6 +42,7 @@
 #include "arg_metafunctions.hpp"
 #include "block.hpp"
 #include "expressions/expressions.hpp"
+#include "get_datafield_offset.hpp"
 #include "offset_computation.hpp"
 #include "pos3.hpp"
 #include "run_functor_arguments.hpp"

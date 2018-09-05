@@ -35,19 +35,29 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../backend_base.hpp"
-#include "../backend_fwd.hpp"
+#include "../common/array.hpp"
+#include "../common/host_device.hpp"
+#include "../storage/common/data_store_field_metafunctions.hpp"
+#include "../storage/data_store_field.hpp"
+#include "./accessor_base.hpp"
 
 namespace gridtools {
 
-    template <class BackendId, class StrategyType>
-    struct backend<BackendId, grid_type::structured, StrategyType>
-        : public backend_base<BackendId, grid_type::structured, StrategyType> {
-        typedef backend_base<BackendId, grid_type::structured, StrategyType> base_t;
+    template <typename T>
+    struct get_datafield_offset {
+        template <typename Acc>
+        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
+            return 0;
+        }
+    };
 
-        using typename base_t::backend_traits_t;
-        using typename base_t::strategy_traits_t;
+    template <typename T, unsigned... N>
+    struct get_datafield_offset<data_store_field<T, N...>> {
+        template <typename Acc>
+        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
+            return get_accumulated_data_field_index(gridtools::get<Acc::n_dimensions - 2>(a), N...) +
+                   gridtools::get<Acc::n_dimensions - 1>(a);
+        }
     };
 
 } // namespace gridtools

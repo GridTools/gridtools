@@ -89,7 +89,7 @@ namespace gridtools {
         struct exec_for_color_f {
             ItDomain &m_domain;
             template <class Color>
-            GT_FUNCTION void operator()(Color) const {
+            GT_FUNCTION void operator()() const {
                 exec<Color::value>(m_domain);
                 m_domain.increment_c();
             }

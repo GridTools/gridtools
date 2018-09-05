@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../defs.hpp"
 #include "../host_device.hpp"
 
 namespace gridtools {
@@ -60,6 +61,21 @@ namespace gridtools {
                 (void)(int[]){((void)fun.template operator()<Ts>(), 0)...};
             }
         };
+
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+        // nvcc < 9 doesn't like `int[] = {}`
+        template <template <class...> class L>
+        struct for_each_f<L<>> {
+            template <class Fun>
+            GT_FUNCTION void operator()(Fun const &fun) const {}
+        };
+
+        template <template <class...> class L>
+        struct for_each_type_f<L<>> {
+            template <class Fun>
+            GT_FUNCTION void operator()(Fun const &fun) const {}
+        };
+#endif
 
         template <class List>
         struct host_for_each_f;
