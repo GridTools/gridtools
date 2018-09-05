@@ -67,7 +67,7 @@ namespace gridtools {
     struct lst;
 
     template <int I>
-    using int_t = std::integral_constant<int, I>;
+    using my_int_t = std::integral_constant<int, I>;
 
     TEST(for_each, empty) {
         int vals[3];
@@ -79,7 +79,7 @@ namespace gridtools {
     TEST(for_each, functional) {
         int vals[3];
         int *cur = vals;
-        for_each<lst<int_t<0>, int_t<42>, int_t<3>>>(f{cur});
+        for_each<lst<my_int_t<0>, my_int_t<42>, my_int_t<3>>>(f{cur});
         EXPECT_EQ(cur, vals + 3);
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
@@ -87,7 +87,7 @@ namespace gridtools {
     TEST(for_each_type, functional) {
         int vals[3];
         int *cur = vals;
-        for_each_type<lst<int_t<0>, int_t<42>, int_t<3>>>(ff{cur});
+        for_each_type<lst<my_int_t<0>, my_int_t<42>, my_int_t<3>>>(ff{cur});
         EXPECT_EQ(cur, vals + 3);
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
