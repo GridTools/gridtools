@@ -87,18 +87,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes<Tiles...>::value), GT_INTERNAL_ERROR);
 
-        template <typename Tile, typename KWindow>
-        struct get_kminus_bound {
-            using type = typename boost::mpl::min<typename boost::mpl::at_c<typename Tile::type, 2>::type,
-                static_int<KWindow::m>>::type;
-        };
-
-        template <typename Tile, typename KWindow>
-        struct get_kplus_bound {
-            using type = typename boost::mpl::max<typename boost::mpl::at_c<typename Tile::type, 2>::type,
-                static_int<KWindow::p>>::type;
-        };
-
         template <typename Seq, typename KWindow>
         struct min_enclosing_extent;
 
