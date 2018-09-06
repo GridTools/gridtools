@@ -115,7 +115,37 @@ namespace gridtools {
         };
     } // namespace _impl
 
-    template <class MssDescriptor, class ExtentMap, size_t RepeatFactor>
+    /**
+     *   Transforms computation token (mss_descriptor or reduction_descriptor) into a sequence of stages.
+     *
+     * @tparam Descriptor -   mss or reduction descriptor
+     * @tparam ExtentMap -    a compile time map that maps placeholders to computed extents.
+     *                        `stages_maker` uses ExtentMap parameter in an opaque way -- it just delegates it to
+     *                        get_extent_for/reduction_get_extent_for when it is needed.
+     * @tparam RepeatFactor - how many times to call an elementary functor in a computation point
+     *                        (in normal case it is == 1, for expandable parameter >= 1)
+     *
+     *   This metafunction returns another metafunction (i.e. has nested `apply` metafunction) that accepts
+     *   a single argument that has to be a level_index and returns the stages (classes that model Stage concept)
+     *   The returned stages are organized as a type list of type lists. The inner lists represent the stages that are
+     *   independent on each other. The outer list represents the sequence that should be executed in order.
+     *   It is guarantied that all inner lists are not empty.
+     *   Examples of valid return types:
+     *      list<> -  no stages should be executed for the given interval level
+     *      list<list<stage1>> - a singe stage to execute
+     *      list<list<stage1>, list<stage2>> - two stages should be executed in the given order
+     *      list<list<stage1, stage2>> - two stages should be executed in any order or in paralel
+     *      list<list<stage1>, list<stage2, stage3>, list<stage4>> - an order of execution can be
+     *         either 1,2,3,4 or 1,3,2,4
+     *
+     *   Note that the collection of stages is calculated for the provided level_index. It can happen that same mss
+     *   produces different stages for the different level indices because of interval overloads. If for two level
+     *   indices all elementary functors should be called with the same correspondent intervals, the returned stages
+     *   will be exactly the same.
+     *
+     *   TODO(anstaf): unit test!!!
+     */
+    template <class Descriptor, class ExtentMap, size_t RepeatFactor>
     struct stages_maker;
 
     template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap, size_t RepeatFactor>

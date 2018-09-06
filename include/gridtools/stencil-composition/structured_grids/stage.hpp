@@ -81,7 +81,7 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     *   A stage that is associated with non reduction elementary functor.
+     *   A stage that is associated with the non reduction elementary functor.
      */
     template <class Functor, class Extent, class Args, size_t RepeatFactor>
     struct regular_stage {
@@ -101,7 +101,7 @@ namespace gridtools {
     };
 
     /**
-     *   A stage that is associated with reduction elementary functor.
+     *   A stage that is associated with the reduction elementary functor.
      */
     template <class Functor, class Extent, class Args, class BinOp>
     struct reduction_stage {

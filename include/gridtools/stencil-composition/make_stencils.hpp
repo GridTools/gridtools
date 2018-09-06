@@ -96,6 +96,11 @@ namespace gridtools {
 
        Function to create a list of independent Elementary Stencil Functions. This is used to let the library compute
        tight bounds on blocks to be used by backends
+
+       _impl::tuple_from_esfs is used here to flatten the Esfs within independent_esf. It ensures that nested
+       make_independent calls produces a single independent_esf
+       for example:
+       make_independent(make_independent(f1, f2), f3) will produce independent_esf<tuple<f1, f2, f3>>
      */
     template <class Esf1, class Esf2, class... Esfs>
     independent_esf<GT_META_CALL(_impl::tuple_from_esfs, (Esf1, Esf2, Esfs...))> make_independent(Esf1, Esf2, Esfs...) {

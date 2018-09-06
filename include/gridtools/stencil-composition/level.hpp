@@ -35,11 +35,7 @@
 */
 #pragma once
 
-#include <tuple>
 #include <type_traits>
-
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
@@ -118,23 +114,4 @@ namespace gridtools {
         (_impl::get_splitter_from_index(Index::value, Index::offset_limit),
             _impl::get_offset_from_index(Index::value, Index::offset_limit),
             Index::offset_limit));
-
-    /**
-     * @struct make_range
-     * Meta function converting two level indexes into a range
-     */
-    template <class FromIndex, class ToIndex>
-    struct make_range {
-        GRIDTOOLS_STATIC_ASSERT(
-            is_level_index<FromIndex>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
-        GRIDTOOLS_STATIC_ASSERT(
-            is_level_index<ToIndex>::value, GT_INTERNAL_ERROR_MSG("metafunction input must be an index"));
-
-        template <class Number>
-        GT_META_DEFINE_ALIAS(to_level_index, level_index, (Number::value + FromIndex::value, FromIndex::offset_limit));
-
-        using numbers_t = GT_META_CALL(meta::make_indices_c, ToIndex::value + 1 - FromIndex::value);
-        using levels_t = GT_META_CALL(meta::transform, (to_level_index, numbers_t));
-        using type = GT_META_CALL(meta::rename, (meta::ctor<std::tuple<>>::apply, levels_t));
-    };
 } // namespace gridtools

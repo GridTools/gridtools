@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
@@ -43,9 +45,42 @@
 #include "../../common/host_device.hpp"
 #include "../arg.hpp"
 #include "../extent.hpp"
+#include "../hasdo.hpp"
 #include "../location_type.hpp"
 #include "./iterate_domain_expandable_parameters.hpp"
 #include "./iterate_domain_remapper.hpp"
+
+/**
+ *   @file
+ *
+ *   Stage concept represents elementary functor from the backend implementor point of view.
+ *   Stage concept for icosahedral grid is defined similar as for structured grid (with some additions)
+ *
+ *   [exactly the same as for strgrid]
+ *   Stage must have the nested `extent_t` type or an alias that has to model Extent concept.
+ *   The meaning: the stage should be computed in the area that is extended from the user provided computation aria by
+ *   that much.
+ *
+ *   [almost the same as for strgrid]
+ *   Stage also have static `exec` method that accepts an object by reference that models IteratorDomain.
+ *   `exec` should execute an elementary functor for all colors from the grid point that IteratorDomain points to.
+ *   precondition: IteratorDomain should point to the first color.
+ *   postcondition: IteratorDomain still points to the first color.
+ *
+ *   [icgrid specific]
+ *   Stage has templated variation of `exec` which accept color number as a first template parameter. This variation
+ *   does not iterate on colors; it executes an elementary functor for the given color.
+ *   precondition: IteratorDomain should point to the same color as one in exec parameter.
+ *
+ *   [icgrid specific]
+ *   Stage has netsted metafunction contains_color<Color> that evaluates to std::false_type if for the given color
+ *   the elementary function is not executed.
+ *
+ *   Note that the Stage is (and should stay) backend independent. The core of gridtools passes stages [split by k-loop
+ *   intervals and independent groups] to the backend in the form of compile time only parameters.
+ *
+ *   TODO(anstaf): add `is_stage<T>` trait
+ */
 
 namespace gridtools {
 
@@ -60,10 +95,21 @@ namespace gridtools {
             }
         };
 
+        template <class T>
+        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_do<T>::value || std::is_void<T>::value);
+
     } // namespace _impl
 
+    /**
+     *   A stage that is produced from the icgrid esf_description data
+     *
+     * @tparam Functors - a list of elementary functors (with the intervals already bound). The position in the list
+     *                    corresponds to the color number. If a functor should not be executed for the given color,
+     *                    the correspondent element in the list is `void`
+     */
     template <class Functors, class Extent, class Args, class LocationType, size_t RepeatFactor>
     struct stage {
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<_impl::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);

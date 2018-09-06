@@ -70,9 +70,13 @@ namespace gridtools {
             boost::mpl::size<extent_sizes_t>::value == boost::mpl::size<linear_esf_t>::value, GT_INTERNAL_ERROR);
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
 
+        // For historical reasons the user provided axis interval is stripped by one level from the right to produce
+        // the interval that will be used for actual computation.
+        // TODO(anstaf): fix this ugly convention
         using default_interval_t = interval<typename Axis::FromLevel,
             GT_META_CALL(index_to_level, typename level_to_index<typename Axis::ToLevel>::prior)>;
 
+        // calculate loop intervals and order them according to the execution policy.
         using loop_intervals_t = GT_META_CALL(order_loop_intervals,
             (execution_engine_t,
                 GT_META_CALL(make_loop_intervals,
