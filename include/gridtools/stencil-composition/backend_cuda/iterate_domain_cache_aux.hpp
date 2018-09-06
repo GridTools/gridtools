@@ -222,8 +222,8 @@ namespace gridtools {
                 using kcache_t = typename kcache_storage_t::cache_t;
 
                 // endpoint-only caches have a window which defines the sync elements
-                constexpr int_t sync_start = kcache_t::kwindow_t::m_;
-                constexpr int_t sync_end = kcache_t::kwindow_t::p_;
+                constexpr int_t sync_start = kcache_t::kwindow_t::m;
+                constexpr int_t sync_end = kcache_t::kwindow_t::p;
 
                 base::template sync<Idx, sync_start, sync_end>();
             }

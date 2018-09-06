@@ -90,13 +90,13 @@ namespace gridtools {
         template <typename Tile, typename KWindow>
         struct get_kminus_bound {
             using type = typename boost::mpl::min<typename boost::mpl::at_c<typename Tile::type, 2>::type,
-                static_int<KWindow::m_>>::type;
+                static_int<KWindow::m>>::type;
         };
 
         template <typename Tile, typename KWindow>
         struct get_kplus_bound {
             using type = typename boost::mpl::max<typename boost::mpl::at_c<typename Tile::type, 2>::type,
-                static_int<KWindow::p_>>::type;
+                static_int<KWindow::p>>::type;
         };
 
         template <typename Seq, typename KWindow>
@@ -105,7 +105,7 @@ namespace gridtools {
         template <typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow>
         struct min_enclosing_extent<variadic_to_vector<Arg0, Arg1, Arg2, Args...>, KWindow> {
             using type =
-                variadic_to_vector<Arg0, Arg1, typename boost::mpl::min<Arg2, static_int<KWindow::m_>>::type, Args...>;
+                variadic_to_vector<Arg0, Arg1, typename boost::mpl::min<Arg2, static_int<KWindow::m>>::type, Args...>;
         };
 
         template <typename Seq, typename KWindow>
@@ -114,7 +114,7 @@ namespace gridtools {
         template <typename Arg0, typename Arg1, typename Arg2, typename... Args, typename KWindow>
         struct max_enclosing_extent<variadic_to_vector<Arg0, Arg1, Arg2, Args...>, KWindow> {
             using type =
-                variadic_to_vector<Arg0, Arg1, typename boost::mpl::max<Arg2, static_int<KWindow::p_>>::type, Args...>;
+                variadic_to_vector<Arg0, Arg1, typename boost::mpl::max<Arg2, static_int<KWindow::p>>::type, Args...>;
         };
 
       public:

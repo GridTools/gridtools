@@ -64,8 +64,8 @@ namespace gridtools {
      */
     template <int M, int P>
     struct window {
-        static constexpr int m_ = M;
-        static constexpr int p_ = P;
+        static constexpr int m = M;
+        static constexpr int p = P;
     };
 
     template <typename T>
