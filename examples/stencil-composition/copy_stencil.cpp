@@ -72,7 +72,7 @@ bool verify(In const& in, Out const& out) {
     for (int k = in_v.template total_begin<2>(); k <= in_v.template total_end<2>(); ++k) {
         for (int i = in_v.template total_begin<0>(); i <= in_v.template total_end<0>(); ++i) {
             for (int j = in_v.template total_begin<1>(); j <= in_v.template total_end<1>(); ++j) {
-                if (in_v(i, j, k) != out_v(i, j, k)) { // TODO use verifier
+                if (in_v(i, j, k) != out_v(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
                               << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
                     success = false;

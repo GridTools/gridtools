@@ -79,7 +79,11 @@ if(NOT DISABLE_TESTING)
   add_subdirectory(unit_tests)
 endif()
 
-if(COMPILE_EXAMPLES)
+if( INSTALL_GT_EXAMPLES )
+   SET(COMPILE_EXAMPLES ON)
+endif()
+
+if( COMPILE_EXAMPLES )
   add_subdirectory(examples)
 endif()
 
@@ -120,6 +124,7 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
 install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
 install(TARGETS
         gcl
+        gtest
         c_bindings_generator
         c_bindings_handle
         c_bindings_handle_fortran
@@ -133,6 +138,13 @@ install(FILES
 install(FILES
     "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
     DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
+if ( INSTALL_GT_EXAMPLES )
+    install(DIRECTORY
+            examples
+            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" )
+endif()
+
 # Install the export set for use with the install-tree
 # TODO should this really be installed to PROJECT_BINARY_DIR (why not install?)
 install(EXPORT GridTools DESTINATION
