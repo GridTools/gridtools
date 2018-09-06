@@ -84,7 +84,7 @@ if( INSTALL_GT_EXAMPLES )
 endif()
 
 if( COMPILE_EXAMPLES )
-  add_subdirectory(examples)
+  add_subdirectory(gt_examples)
 endif()
 
 # ===============
@@ -141,7 +141,7 @@ install(FILES
 
 if ( INSTALL_GT_EXAMPLES )
     install(DIRECTORY
-            examples
+            gt_examples
             DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" )
 endif()
 
