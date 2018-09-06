@@ -233,7 +233,18 @@ namespace gridtools {
         }
 
         template <typename Accessor>
-        GT_FUNCTION int_t get_pointer_offset(Accessor const &accessor) const;
+        GT_FUNCTION int_t get_pointer_offset(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "invalid accessor type");
+            using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
+
+            // this index here describes the position of the storage info in the m_index array (can be different to the
+            // storage info id)
+            using storage_info_index_t = typename meta::st_position<typename local_domain_t::storage_info_ptr_list,
+                storage_info_t const *>::type;
+
+            return m_index[storage_info_index_t::value] +
+                   compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
+        }
 
       public:
         template <int_t Step = 1>
@@ -432,21 +443,4 @@ namespace gridtools {
 
         return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }
-
-    template <typename IterateDomainImpl, typename IterateDomainArguments>
-    template <typename Accessor>
-    GT_FUNCTION int_t iterate_domain<IterateDomainImpl, IterateDomainArguments>::get_pointer_offset(
-        Accessor const &accessor) const {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "invalid accessor type");
-        using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
-
-        // this index here describes the position of the storage info in the m_index array (can be different to the
-        // storage info id)
-        using storage_info_index_t =
-            typename meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::type;
-
-        return m_index[storage_info_index_t::value] +
-               compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
-    }
-
 } // namespace gridtools
