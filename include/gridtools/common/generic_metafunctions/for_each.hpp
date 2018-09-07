@@ -105,7 +105,7 @@ namespace gridtools {
     ///
     ///  Note the difference between for_each: T is passed only as a template parameter; the operator itself has to be a
     ///  nullary function. This ensures that the object of type T is nor created, nor passed to the function. The
-    ///  disadvantage is that the functor can not a [generic] lambda (in C++14 syntax) and also it limits the ability to
+    ///  disadvantage is that the functor can not be a [generic] lambda (in C++14 syntax) and also it limits the ability to
     ///  do operator(). However, if T is not a POD it makes sense to use this for_each flavour. Also nvcc8 has problems
     ///  with the code generation for the regular for_each even if all the types are empty structs.
     template <class List, class Fun>
