@@ -43,8 +43,8 @@ using namespace enumtype;
 
 struct shift_acc_forward_bpfilll {
 
-    typedef accessor<0, in, extent<0, 0, 0, 0, -2, 0>> in;
-    typedef accessor<1, inout, extent<>> out;
+    typedef accessor<0, in> in;
+    typedef accessor<1, inout, extent<0, 0, 0, 0, -2, 0>> out;
 
     typedef boost::mpl::vector<in, out> arg_list;
 
@@ -66,8 +66,8 @@ struct shift_acc_forward_bpfilll {
 
 struct shift_acc_backward_bpfilll {
 
-    typedef accessor<0, in, extent<0, 0, 0, 0, 0, 2>> in;
-    typedef accessor<1, inout, extent<>> out;
+    typedef accessor<0, in> in;
+    typedef accessor<1, inout, extent<0, 0, 0, 0, 0, 2>> out;
 
     typedef boost::mpl::vector<in, out> arg_list;
 
@@ -87,8 +87,8 @@ struct shift_acc_backward_bpfilll {
 };
 
 struct self_update_forward_bpfilll {
-
-    typedef accessor<0, inout, extent<0, 0, 0, 0, -2, 0>> in;
+    // Hacked extents to load cache at kminimump1
+    typedef accessor<0, inout, extent<0, 0, 0, 0, -2, 1>> in;
     typedef inout_accessor<1> out;
 
     typedef boost::mpl::vector<in, out> arg_list;
@@ -111,8 +111,8 @@ struct self_update_forward_bpfilll {
 };
 
 struct self_update_backward_bpfilll {
-
-    typedef accessor<0, inout, extent<0, 0, 0, 0, 0, 2>> in;
+    // Hacked extents to load cache at kmaximumm1
+    typedef accessor<0, inout, extent<0, 0, 0, 0, -1, 2>> in;
     typedef inout_accessor<1> out;
 
     typedef boost::mpl::vector<in, out> arg_list;
@@ -154,7 +154,7 @@ TEST_F(kcachef, bpfilll_forward) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<0, 0>>(p_in())),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_in())),
             make_stage<shift_acc_forward_bpfilll>(p_in(), p_out())));
 
     kcache_stencil.run();
@@ -192,7 +192,7 @@ TEST_F(kcachef, bpfilll_backward) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<0, 0>>(p_in())),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_in())),
             make_stage<shift_acc_backward_bpfilll>(p_in(), p_out())));
 
     kcache_stencil.run();
@@ -235,7 +235,7 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
         p_buff() = buff,
         p_out() = m_out,
         make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<0, 1>>(p_buff())),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_buff())),
             make_stage<self_update_forward_bpfilll>(p_buff(), p_out())));
 
     kcache_stencil.run();
@@ -279,7 +279,7 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
         p_buff() = buff,
         p_out() = m_out,
         make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull, window<-1, 0>>(p_buff())),
+            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_buff())),
             make_stage<self_update_backward_bpfilll>(p_buff(), p_out())));
 
     kcache_stencil.run();

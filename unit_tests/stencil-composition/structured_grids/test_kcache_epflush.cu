@@ -99,7 +99,7 @@ TEST_F(kcachef, epflush_forward) {
 
             for (uint_t k = 2; k < m_d3; ++k) {
                 auxv(i, j, k) = auxv(i, j, k - 1) + auxv(i, j, k - 2) + m_inv(i, j, k);
-                if (k >= m_d3 - 2) {
+                if (k >= m_d3 - 3) {
                     m_refv(i, j, k) = auxv(i, j, k);
                 }
             }
@@ -114,7 +114,7 @@ TEST_F(kcachef, epflush_forward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::epflush, kfull, window<-1, 0>>(p_out())),
+            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_out())),
             make_stage<shift_acc_forward_epflush>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -146,7 +146,7 @@ TEST_F(kcachef, epflush_backward) {
 
             for (int_t k = m_d3 - 3; k >= 0; --k) {
                 auxv(i, j, k) = auxv(i, j, k + 1) + auxv(i, j, k + 2) + m_inv(i, j, k);
-                if (k < 2) {
+                if (k <= 2) {
                     m_refv(i, j, k) = auxv(i, j, k);
                 }
             }
@@ -161,7 +161,7 @@ TEST_F(kcachef, epflush_backward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::epflush, kfull, window<0, 1>>(p_out())),
+            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_out())),
             make_stage<shift_acc_backward_epflush>(p_in() // esf_descriptor
                 ,
                 p_out())));

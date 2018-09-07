@@ -219,13 +219,13 @@ namespace gridtools {
             template <typename Idx>
             GT_FUNCTION enable_if_t<endpoint_only_cache<Idx>::value> operator()(Idx) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
-                using kcache_t = typename kcache_storage_t::cache_t;
 
-                // endpoint-only caches have a window which defines the sync elements
-                constexpr int_t sync_start = kcache_t::kwindow_t::m;
-                constexpr int_t sync_end = kcache_t::kwindow_t::p;
+                // lowest and highest index in cache storage
+                constexpr int_t kminus = kcache_storage_t::kminus_t::value;
+                constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
-                base::template sync<Idx, sync_start, sync_end>();
+                // sync full cache
+                base::template sync<Idx, kminus, kplus>();
             }
 
             /**

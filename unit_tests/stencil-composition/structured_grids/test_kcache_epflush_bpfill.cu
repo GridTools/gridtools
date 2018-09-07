@@ -33,22 +33,23 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "gridtools/stencil-composition/stencil-composition.hpp"
 #include "gridtools/tools/verifier.hpp"
 #include "kcache_fixture.hpp"
+#include "gtest/gtest.h"
 
 using namespace gridtools;
 using namespace enumtype;
 
 struct copy_flush {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 0 > > in;
-    typedef accessor< 1, inout, extent<> > out;
+    typedef accessor<0, in> in;
+    // Hacked extent, used to defined flush range
+    typedef accessor<1, inout, extent<0, 0, 0, 0, -2, 2>> out;
 
-    typedef boost::mpl::vector< in, out > arg_list;
+    typedef boost::mpl::vector<in, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {
         eval(out()) = eval(in());
     }
@@ -56,24 +57,24 @@ struct copy_flush {
 
 struct backward_fill {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 2 > > tmp;
-    typedef accessor< 1, inout, extent< 0, 0, 0, 0, 0, 2 > > out;
+    typedef accessor<0, in, extent<0, 0, 0, 0, 0, 2>> tmp;
+    typedef accessor<1, inout, extent<0, 0, 0, 0, 0, 2>> out;
 
-    typedef boost::mpl::vector< tmp, out > arg_list;
+    typedef boost::mpl::vector<tmp, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, lasttwo) {}
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, midbody_last) {
         eval(out()) = eval(tmp(0, 0, 1)) + eval(tmp(0, 0, 2));
     }
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, midbody_low) {
         eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2));
     }
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, firsttwo) {
         eval(out()) = eval(out(0, 0, 1)) + eval(out(0, 0, 2));
     }
@@ -81,23 +82,23 @@ struct backward_fill {
 
 struct forward_fill {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, -2 > > tmp;
-    typedef accessor< 1, inout, extent< 0, 0, 0, 0, 0, -2 > > out;
+    typedef accessor<0, in, extent<0, 0, 0, 0, -2, 0>> tmp;
+    typedef accessor<1, inout, extent<0, 0, 0, 0, -2, 0>> out;
 
-    typedef boost::mpl::vector< tmp, out > arg_list;
+    typedef boost::mpl::vector<tmp, out> arg_list;
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, firsttwo) {}
 
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, midbody_first) {
         eval(out()) = eval(tmp(0, 0, -1)) + eval(tmp(0, 0, -2));
     }
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, midbody_high) {
         eval(out()) = eval(out(0, 0, -1)) + eval(out(0, 0, -2));
     }
-    template < typename Evaluation >
+    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, lasttwo) {
         eval(out()) = eval(out(0, 0, -1)) + eval(out(0, 0, -2));
     }
@@ -117,21 +118,20 @@ TEST_F(kcachef, epflush_and_bpfill_forward_backward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_tmp;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_tmp;
 
-    auto kcache_stencil = make_positional_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = make_positional_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
         make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::epflush, kfull, window< -2, 0 > >(p_tmp())),
-            make_stage< copy_flush >(p_in(), p_tmp())),
-        make_multistage(execute< backward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, fullminustwolast, window< 0, 2 > >(p_tmp())),
-            make_stage< backward_fill >(p_tmp(), p_out())));
+        (execute<forward>(),
+            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_tmp())),
+            make_stage<copy_flush>(p_in(), p_tmp())),
+        make_multistage(execute<backward>(),
+            define_caches(cache<K, cache_io_policy::bpfill, fullminustwolast>(p_tmp())),
+            make_stage<backward_fill>(p_tmp(), p_out())));
 
     kcache_stencil.run();
 
@@ -143,7 +143,7 @@ TEST_F(kcachef, epflush_and_bpfill_forward_backward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }
@@ -162,20 +162,19 @@ TEST_F(kcachef, epflush_and_bpfill_backward_forward) {
         }
     }
 
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef tmp_arg< 2, storage_t > p_tmp;
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+    typedef tmp_arg<2, storage_t> p_tmp;
 
-    auto kcache_stencil = make_positional_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = make_positional_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        make_multistage(execute< backward >(),
-            define_caches(cache< K, cache_io_policy::epflush, kfull, window< 0, 2 > >(p_tmp())),
-            make_stage< copy_flush >(p_in(), p_tmp())),
-        make_multistage(execute< forward >(),
-            define_caches(cache< K, cache_io_policy::bpfill, fullminustwofirst, window< -2, 0 > >(p_tmp())),
-            make_stage< forward_fill >(p_tmp(), p_out())));
+        make_multistage(execute<backward>(),
+            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_tmp())),
+            make_stage<copy_flush>(p_in(), p_tmp())),
+        make_multistage(execute<forward>(),
+            define_caches(cache<K, cache_io_policy::bpfill, fullminustwofirst>(p_tmp())),
+            make_stage<forward_fill>(p_tmp(), p_out())));
 
     kcache_stencil.run();
 
@@ -187,7 +186,7 @@ TEST_F(kcachef, epflush_and_bpfill_backward_forward) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 }

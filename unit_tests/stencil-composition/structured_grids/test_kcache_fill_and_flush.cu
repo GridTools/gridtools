@@ -210,7 +210,7 @@ TEST_F(kcachef, fill_scale_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull, window<0, 0>>(p_in())),
+            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull>(p_in())),
             gridtools::make_stage<scale_fill>(p_in())));
 
     kcache_stencil.run();
@@ -228,19 +228,16 @@ TEST_F(kcachef, fill_scale_forward) {
 
 struct do_nothing {
 
-    typedef accessor< 0, enumtype::inout, extent<0, 0, 0, 0, -1, 1> > in;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 1>> in;
 
-    typedef boost::mpl::vector< in > arg_list;
+    typedef boost::mpl::vector<in> arg_list;
 
-    template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
-    }
-    template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
-    }
-    template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
-    }
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval, kbody) {}
 };
 
 TEST_F(kcachef, fill_copy_forward_with_extent) {
@@ -255,14 +252,13 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
     m_in.sync();
     m_ref.sync();
 
-    typedef arg< 0, storage_t > p_in;
+    typedef arg<0, storage_t> p_in;
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        m_grid,
+    auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage(execute< forward >(),
-            define_caches(cache< K, cache_io_policy::fill_and_flush, kfull >(p_in())),
-            gridtools::make_stage< do_nothing >(p_in())));
+        gridtools::make_multistage(execute<forward>(),
+            define_caches(cache<K, cache_io_policy::fill_and_flush, kfull>(p_in())),
+            gridtools::make_stage<do_nothing>(p_in())));
 
     kcache_stencil.run();
 
@@ -271,7 +267,7 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
 #else
     verifier verif(1e-10);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+    array<array<uint_t, 2>, 3> halos{{{0, 0}, {0, 0}, {0, 0}}};
 
     m_in.sync();
     ASSERT_TRUE(verif.verify(m_grid, m_ref, m_in, halos));
