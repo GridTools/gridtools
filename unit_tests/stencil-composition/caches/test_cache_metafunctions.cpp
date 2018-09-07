@@ -87,10 +87,10 @@ struct functor2 {
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef detail::cache_impl<IJ, p_in, cache_io_policy::fill, boost::mpl::void_, boost::mpl::void_> cache1_t;
-typedef detail::cache_impl<IJ, p_buff, cache_io_policy::fill, boost::mpl::void_, boost::mpl::void_> cache2_t;
-typedef detail::cache_impl<K, p_out, cache_io_policy::local, x_interval, boost::mpl::void_> cache3_t;
-typedef detail::cache_impl<K, p_notin, cache_io_policy::local, x_interval, boost::mpl::void_> cache4_t;
+typedef detail::cache_impl<IJ, p_in, cache_io_policy::fill, boost::mpl::void_> cache1_t;
+typedef detail::cache_impl<IJ, p_buff, cache_io_policy::fill, boost::mpl::void_> cache2_t;
+typedef detail::cache_impl<K, p_out, cache_io_policy::local, x_interval> cache3_t;
+typedef detail::cache_impl<K, p_notin, cache_io_policy::local, x_interval> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;

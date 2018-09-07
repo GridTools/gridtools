@@ -75,7 +75,6 @@ namespace gridtools {
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
          * @tparam Interval vertical interval of validity of the cache
-         * main mem)
          */
         template <cache_type CacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval>
         struct cache_impl {
@@ -127,7 +126,6 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((boost::is_same<Interval, boost::mpl::void_>::value || is_interval<Interval>::value),
             "Invalid Interval type passed to cache construct");
-
         typedef typename boost::mpl::transform<boost::mpl::vector<Args...>,
             detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval>>::type res_ty;
         return res_ty();
