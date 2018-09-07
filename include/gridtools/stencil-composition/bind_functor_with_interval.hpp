@@ -151,7 +151,7 @@ namespace gridtools {
      *
      *   Corner cases:
      *     - if `void` is passed as a Functor the return will be also `void`
-     *     - if there is no overload that includes that level and there is overload with a single argument, `void` is
+     *     - if there is no overload that includes that level and there is no overload with a single argument, `void` is
      *       returned.
      *     - if there is no overload, but there is an overload with a single argument, original Functor is returned.
      *
