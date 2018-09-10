@@ -61,6 +61,11 @@ namespace gridtools {
             };
         } // namespace _impl
 
+        /**
+         * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
+         * @tparam IterateDomain iterator domain class
+         * @tparam Grid grid object as it provided by user.
+         */
         template <typename RunFunctorArguments, typename IterateDomain, typename Grid>
         struct color_execution_functor {
           private:
@@ -82,11 +87,11 @@ namespace gridtools {
             color_execution_functor(IterateDomain &it_domain, Grid const &grid, uint_t loop_size)
                 : m_it_domain(it_domain), m_grid(grid), m_loop_size(loop_size) {}
 
-            template <class Index, enable_if_t<has_color<Index>::value, int> = 0>
-            void operator()(Index) const {
+            template <class Color, enable_if_t<has_color<Color>::value, int> = 0>
+            void operator()(Color) const {
                 for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
-                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_host<Index::value>>(
+                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_host<Color::value>>(
                         m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
@@ -94,8 +99,8 @@ namespace gridtools {
                 m_it_domain.increment_j(-m_loop_size);
                 m_it_domain.increment_c();
             }
-            template <class Index, enable_if_t<!has_color<Index>::value, int> = 0>
-            void operator()(Index) const {
+            template <class Color, enable_if_t<!has_color<Color>::value, int> = 0>
+            void operator()(Color) const {
                 // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
                 // color iterator
                 m_it_domain.increment_c();

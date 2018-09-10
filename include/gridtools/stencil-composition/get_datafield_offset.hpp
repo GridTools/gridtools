@@ -43,6 +43,14 @@
 
 namespace gridtools {
 
+    /*
+     *  This function was located historically in interate_domain_aux.hpp
+     *  It was moved first to data_store_field.hpp and after it to the separate file.
+     *  The move was done during resolving circular header dependencies.
+     *  The original semantics and implementation was not changed (as well as a luck of comments)
+     *  The hope is that this function will go away soon (after expandable parameter support will be moved
+     *  out of the core of the library).
+     */
     template <typename T>
     struct get_datafield_offset {
         template <typename Acc>

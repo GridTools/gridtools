@@ -58,7 +58,7 @@
  *
  *   [exactly the same as for strgrid]
  *   Stage must have the nested `extent_t` type or an alias that has to model Extent concept.
- *   The meaning: the stage should be computed in the area that is extended from the user provided computation aria by
+ *   The meaning: the stage should be computed in the area that is extended from the user provided computation area by
  *   that much.
  *
  *   [almost the same as for strgrid]
