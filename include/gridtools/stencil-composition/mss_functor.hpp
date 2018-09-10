@@ -94,7 +94,7 @@ namespace gridtools {
          * operations defined on that functor.
          */
         template <typename Index>
-        void operator()(Index) const {
+        GT_FUNCTION_HOST void operator()(Index) const {
             GRIDTOOLS_STATIC_ASSERT((Index::value < boost::mpl::size<MssComponentsArray>::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::at<MssComponentsArray, Index>::type mss_components_t;
 
