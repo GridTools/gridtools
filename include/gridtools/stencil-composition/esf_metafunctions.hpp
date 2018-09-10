@@ -55,9 +55,6 @@
 
 namespace gridtools {
 
-    template <typename ...Ts>
-    using make_arg_list = boost::mpl::vector<Ts...>;
-
     /** Metafunction checking if an ESF has, as argument, a given placeholder
      */
     template <typename Arg>
