@@ -85,12 +85,11 @@ namespace gridtools {
     } // namespace detail
 
     /**
-     *	@brief function that forms a vector of caches that share the same cache type and input/output policy  (c++11
-     *version)
+     *	@brief function that forms a vector of caches that share the same cache type and input/output policy
      *	@tparam cacheType type of cache (e.g., IJ, IJK, ...)
      *	@tparam cacheIOPolicy input/output policy (e.g., cFill, cLocal, ...)
      *	@tparam Args arbitrary number of storages that should be cached
-     *	@return vector of caches
+     *	@return tuple of caches
      */
     template <cache_type cacheType, cache_io_policy cacheIOPolicy, class Interval = void, class... Args>
     std::tuple<detail::cache_impl<cacheType, Args, cacheIOPolicy, Interval>...> cache(Args...) {

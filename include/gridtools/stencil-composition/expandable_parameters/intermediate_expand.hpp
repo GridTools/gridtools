@@ -94,9 +94,18 @@ namespace gridtools {
                     using type = detail::
                         cache_impl<CacheType, typename convert_plh<I::value, Plh>::type, cacheIOPolicy, Interval>;
                 };
+
+                template <class I, class ArgStoragePair>
+                struct convert_arg_storage_pair;
+
+                template <class I, class Plh, class DataStore>
+                struct convert_arg_storage_pair<I, arg_storage_pair<Plh, std::vector<DataStore>>> {
+                    using type = arg_storage_pair<typename convert_plh<I::value, Plh>::type, DataStore>;
+                };
             };
             GT_META_DELEGATE_TO_LAZY(convert_plh, (size_t I, class Plh), (I, Plh));
             GT_META_DELEGATE_TO_LAZY(convert_cache, (class I, class Cache), (I, Cache));
+            GT_META_DELEGATE_TO_LAZY(convert_arg_storage_pair, (class I, class ArgStoragePair), (I, ArgStoragePair));
 
             template <size_t I>
             struct convert_plh_f {
@@ -104,12 +113,47 @@ namespace gridtools {
                 GT_META_DEFINE_ALIAS(apply, convert_plh, (I, Plh));
             };
 
-            template <size_t N, class Caches>
-            GT_META_DEFINE_ALIAS(expand_caches,
-                meta::flatten,
-                (GT_META_CALL(meta::transform,
-                    (convert_cache,
-                        GT_META_CALL(meta::cartesian_product, (GT_META_CALL(meta::make_indices_c, N), Caches))))));
+            template <class ArgStoragePair>
+            struct convert_arg_storage_pair_f {
+                template <class I>
+                GT_META_DEFINE_ALIAS(apply, convert_arg_storage_pair, (I, ArgStoragePair));
+            };
+
+            template <size_t N,
+                class Caches,
+                class Indices = GT_META_CALL(meta::make_indices_c, N),
+                class IndicesAndCaches = GT_META_CALL(meta::cartesian_product, (Indices, Caches)),
+                class ExpandedCacheLists = GT_META_CALL(meta::transform, (convert_cache, IndicesAndCaches)),
+                class ExpandedCaches = GT_META_CALL(meta::flatten, ExpandedCacheLists)>
+            GT_META_DEFINE_ALIAS(expand_caches, meta::rename, (meta::ctor<std::tuple<>>::apply, ExpandedCaches));
+
+            template <size_t N, class ArgStoragePair>
+            GT_META_DEFINE_ALIAS(expand_arg_storage_pair,
+                meta::rename,
+                (meta::ctor<std::tuple<>>::apply,
+                    GT_META_CALL(meta::transform,
+                        (convert_arg_storage_pair_f<ArgStoragePair>::template apply,
+                            GT_META_CALL(meta::make_indices_c, N)))));
+
+            template <class I>
+            struct data_store_generator_f {
+                template <class DataStore>
+                DataStore const &operator()(const std::vector<DataStore> &src, size_t offset) const {
+                    return src[offset + I::value];
+                }
+                using type = data_store_generator_f;
+            };
+
+            template <size_t N>
+            struct expand_arg_storage_pair_f {
+                size_t m_offset;
+                template <class T, class Res = GT_META_CALL(expand_arg_storage_pair, (N, T))>
+                Res operator()(T const &obj) const {
+                    using indices_t = GT_META_CALL(meta::make_indices_c, N);
+                    using generators_t = GT_META_CALL(meta::transform, (data_store_generator_f, indices_t));
+                    return tuple_util::generate<generators_t, Res>(obj.m_value, m_offset);
+                }
+            };
 
             template <size_t I, class Plhs>
             GT_META_DEFINE_ALIAS(convert_plhs, meta::transform, (convert_plh_f<I>::template apply, Plhs));
@@ -334,7 +378,7 @@ namespace gridtools {
             };
 
             template <uint_t N>
-            struct convert_arg_storage_pair_f {
+            struct old_convert_arg_storage_pair_f {
                 convert_data_store_f<make_gt_index_sequence<N>> m_convert_data_store;
                 template <typename Arg, typename DataStoreType>
                 arg_storage_pair<typename convert_placeholder<N>::template apply<Arg>::type,
@@ -346,7 +390,7 @@ namespace gridtools {
 
             template <uint_t N, class ArgStoragePairs>
             auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src)
-                GT_AUTO_RETURN(tuple_util::transform(convert_arg_storage_pair_f<N>{offset}, src));
+                GT_AUTO_RETURN(tuple_util::transform(old_convert_arg_storage_pair_f<N>{offset}, src));
 
             template <uint_t N>
             struct convert_mss_descriptors_tree_f {
