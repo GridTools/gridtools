@@ -116,8 +116,8 @@ namespace gridtools {
 
         // **************** end of internal type definitions
         //***************** types exposed in API
-        typedef typename compute_readonly_args_indices<typename iterate_domain_arguments_t::esf_sequence_t>::type
-            readonly_args_indices_t;
+        typedef
+            typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
         typedef typename local_domain_t::esf_args esf_args_t;
         //*****************
         /**

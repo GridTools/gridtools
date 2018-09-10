@@ -62,22 +62,6 @@ namespace gridtools {
      * \{
      */
 
-    /**substituting the std::vector type in the args<> with a correspondent
-       expandable_parameter placeholder*/
-    template <uint_t Size>
-    struct substitute_expandable_param {
-
-        template <typename Placeholder>
-        struct apply {
-            typedef Placeholder type;
-        };
-
-        template <ushort_t ID, typename DataStoreType, typename Location, bool Temporary>
-        struct apply<arg<ID, std::vector<DataStoreType>, Location, Temporary>> {
-            typedef arg<ID, data_store_field<DataStoreType, Size>, Location, Temporary> type;
-        };
-    };
-
     /** metafunction removing global accessors from an mpl_vector of pairs <extent, placeholders>.
         Note: the global accessors do not have extents (have mpl::void_ instead). */
     template <typename PlaceholderExtentPair>

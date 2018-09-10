@@ -107,8 +107,8 @@ namespace gridtools {
             typedef typename remove_restrict_reference<typename accessor_return_type<Arg0>::type>::type type;
         };
 
-        typedef typename compute_readonly_args_indices<typename iterate_domain_arguments_t::esf_sequence_t>::type
-            readonly_args_indices_t;
+        typedef
+            typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
 
         /**
          * metafunction that determines if a given accessor is associated with an placeholder holding a data field

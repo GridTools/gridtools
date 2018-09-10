@@ -87,12 +87,6 @@ namespace gridtools {
         return {};
     }
 
-    template <typename ESF, typename Staggering, typename... Args>
-    esf_descriptor<ESF, std::tuple<Args...>, Staggering> make_stage(Args...) {
-        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
-        return {};
-    }
-
     template <typename ESF, typename Extent, typename... Args>
     esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>> make_stage_with_extent(Args...) {
         GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
@@ -102,11 +96,4 @@ namespace gridtools {
 #endif
         return {};
     }
-
-    template <typename ESF, typename Extent, typename Staggering, typename... Args>
-    esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>, Staggering> make_stage_with_extent(Args...) {
-        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "Malformed make_stage");
-        return {};
-    }
-
 } // namespace gridtools

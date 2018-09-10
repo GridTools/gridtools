@@ -61,14 +61,14 @@ namespace gridtools {
     namespace _impl {
 
         template <typename Arg, typename StorageInfo>
-        GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset(StorageInfo const *sinfo) {
+        GT_FUNCTION enable_if_t<is_tmp_arg<Arg>::value, int_t> fields_offset(StorageInfo const *sinfo) {
             int_t thread = omp_get_thread_num();
             int_t total_threads = omp_get_max_threads();
             return sinfo->padded_total_length() * thread / total_threads;
         }
 
         template <typename Arg, typename StorageInfo>
-        GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
+        GT_FUNCTION enable_if_t<!is_tmp_arg<Arg>::value, int_t> fields_offset(StorageInfo const *) {
             return 0;
         }
 
@@ -140,9 +140,6 @@ namespace gridtools {
         using accessor_is_ij_cached = typename accessor_is_cached<Accessor, ij_cache_indexset_t>::type;
 
       public:
-        //***************** types exposed in API
-        using readonly_args_indices_t =
-            typename compute_readonly_args_indices<typename IterateDomainArguments::esf_sequence_t>::type;
         using esf_args_t = typename local_domain_t::esf_args;
         //*****************
 

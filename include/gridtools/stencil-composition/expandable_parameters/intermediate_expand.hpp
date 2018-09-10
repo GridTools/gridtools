@@ -59,16 +59,215 @@
 #include "../backend_metafunctions.hpp"
 #include "../computation_grammar.hpp"
 #include "../conditionals/condition_tree.hpp"
+#include "../esf_fwd.hpp"
+#include "../esf_metafunctions.hpp"
 #include "../grid.hpp"
+#include "../independent_esf.hpp"
 #include "../intermediate.hpp"
 #include "../intermediate_impl.hpp"
-#include "../mss_components_metafunctions.hpp"
-#include "expand_factor.hpp"
+#include "../mss.hpp"
+#include "./expand_factor.hpp"
 
 namespace gridtools {
 
     namespace _impl {
         namespace expand_detail {
+            template <size_t I, class Tag>
+            struct tag;
+
+            GT_META_LAZY_NAMESPASE {
+                template <size_t I, class Plh>
+                struct convert_plh {
+                    using type = Plh;
+                };
+
+                template <size_t I, class ID, class DataStore, class Location, bool Temporary>
+                struct convert_plh<I, plh<ID, std::vector<DataStore>, Location, Temporary>> {
+                    using type = plh<tag<I, ID>, DataStore, Location, Temporary>;
+                };
+
+                template <class I, class Cache>
+                struct convert_cache;
+
+                template <class I, cache_type CacheType, class Plh, cache_io_policy cacheIOPolicy, class Interval>
+                struct convert_cache<I, detail::cache_impl<CacheType, Plh, cacheIOPolicy, Interval>> {
+                    using type = detail::
+                        cache_impl<CacheType, typename convert_plh<I::value, Plh>::type, cacheIOPolicy, Interval>;
+                };
+            };
+            GT_META_DELEGATE_TO_LAZY(convert_plh, (size_t I, class Plh), (I, Plh));
+            GT_META_DELEGATE_TO_LAZY(convert_cache, (class I, class Cache), (I, Cache));
+
+            template <size_t I>
+            struct convert_plh_f {
+                template <class Plh>
+                GT_META_DEFINE_ALIAS(apply, convert_plh, (I, Plh));
+            };
+
+            template <size_t N, class Caches>
+            GT_META_DEFINE_ALIAS(expand_caches,
+                meta::flatten,
+                (GT_META_CALL(meta::transform,
+                    (convert_cache,
+                        GT_META_CALL(meta::cartesian_product, (GT_META_CALL(meta::make_indices_c, N), Caches))))));
+
+            template <size_t I, class Plhs>
+            GT_META_DEFINE_ALIAS(convert_plhs, meta::transform, (convert_plh_f<I>::template apply, Plhs));
+
+            template <class Esf>
+            struct convert_esf {
+                template <class I>
+                GT_META_DEFINE_ALIAS(
+                    apply, esf_replace_args, (Esf, GT_META_CALL(convert_plhs, (I::value, typename Esf::args_t))));
+            };
+
+            template <size_t N>
+            struct expand_normal_esf_f {
+                template <class Esf>
+                GT_META_DEFINE_ALIAS(
+                    apply, meta::transform, (convert_esf<Esf>::template apply, GT_META_CALL(meta::make_indices_c, N)));
+            };
+
+            template <size_t N>
+            struct expand_esf_f;
+
+            GT_META_LAZY_NAMESPASE {
+                template <size_t N, class Esf>
+                struct expand_esf {
+                    using indices_t = GT_META_CALL(meta::make_indices_c, N);
+                    using esfs_t = GT_META_CALL(meta::transform, (convert_esf<Esf>::template apply, indices_t));
+                    using tuple_t = GT_META_CALL(meta::rename, (meta::ctor<std::tuple<>>::apply, esfs_t));
+                    using type = independent_esf<tuple_t>;
+                };
+                template <size_t N, class Esfs>
+                struct expand_esf<N, independent_esf<Esfs>> {
+                    using type = independent_esf<GT_META_CALL(meta::flatten,
+                        (GT_META_CALL(meta::transform, (expand_normal_esf_f<N>::template apply, Esfs))))>;
+                };
+
+                template <size_t N, class Mss>
+                struct convert_mss;
+
+                template <size_t N, class ExecutionEngine, class Esfs, class Caches>
+                struct convert_mss<N, mss_descriptor<ExecutionEngine, Esfs, Caches>> {
+                    using esfs_t = GT_META_CALL(meta::transform, (expand_esf_f<N>::template apply, Esfs));
+                    using type = mss_descriptor<ExecutionEngine, esfs_t, GT_META_CALL(expand_caches, (N, Caches))>;
+                };
+            }
+            GT_META_DELEGATE_TO_LAZY(expand_esf, (size_t N, class Esf), (N, Esf));
+            GT_META_DELEGATE_TO_LAZY(convert_mss, (size_t N, class Mss), (N, Mss));
+
+            template <size_t N>
+            struct expand_esf_f {
+                template <class Esf>
+                GT_META_DEFINE_ALIAS(apply, expand_esf, (N, Esf));
+            };
+
+            /**
+             * substituting the std::vector type in the args<> with a correspondent expandable_parameter placeholder
+             */
+            template <size_t Size>
+            struct substitute_expandable_param {
+
+                template <class Plh>
+                struct apply {
+                    typedef Plh type;
+                };
+
+                template <class ID, class DataStore, class Location, bool Temporary>
+                struct apply<plh<ID, std::vector<DataStore>, Location, Temporary>> {
+                    typedef plh<ID, data_store_field<DataStore, Size>, Location, Temporary> type;
+                };
+            };
+
+            /**
+             * @brief metafunction class that replaces the storage info ID contained in all the ESF
+             * placeholders of all temporaries. This is needed because the ID is replaced in the
+             * aggregator and in order to be able to map the args contained in the aggregator to the
+             * args contained in the ESF types we have to replace them in the same way.
+             */
+            template <uint_t RepeatFunctor>
+            struct fix_esf_sequence {
+
+                template <typename ArgArray>
+                struct impl {
+                    typedef
+                        typename boost::mpl::transform<ArgArray, substitute_expandable_param<RepeatFunctor>>::type type;
+                };
+
+                template <typename T>
+                struct apply;
+
+                /**
+                 * @brief specialization for structured grid ESF types
+                 */
+                template <template <typename, typename> class EsfDescriptor, typename ESF, typename ArgArray>
+                struct apply<EsfDescriptor<ESF, ArgArray>> {
+                    GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfDescriptor<ESF, ArgArray>>::value),
+                        GT_INTERNAL_ERROR_MSG("Given type is no esf_descriptor."));
+                    typedef EsfDescriptor<ESF, typename impl<ArgArray>::type> type;
+                };
+
+                /**
+                 * @brief specialization for structured grid ESF with extent
+                 */
+                template <template <typename, typename, typename> class EsfDescriptor,
+                    typename ESF,
+                    typename Extent,
+                    typename ArgArray>
+                struct apply<EsfDescriptor<ESF, Extent, ArgArray>> {
+                    static_assert(is_esf_descriptor<EsfDescriptor<ESF, Extent, ArgArray>>::value,
+                        GT_INTERNAL_ERROR_MSG("Type is not an EsfDescriptor"));
+                    typedef EsfDescriptor<ESF, Extent, typename impl<ArgArray>::type> type;
+                };
+
+                /**
+                 * @brief specialization for icosahedral grid ESF types
+                 */
+                template <template <template <uint_t> class, typename, typename, typename, typename>
+                          class EsfDescriptor,
+                    template <uint_t> class ESF,
+                    typename Topology,
+                    typename LocationType,
+                    typename Color,
+                    typename ArgArray>
+                struct apply<EsfDescriptor<ESF, Topology, LocationType, Color, ArgArray>> {
+                    GRIDTOOLS_STATIC_ASSERT(
+                        (is_esf_descriptor<EsfDescriptor<ESF, Topology, LocationType, Color, ArgArray>>::value),
+                        GT_INTERNAL_ERROR_MSG("Given type is no esf_descriptor."));
+                    typedef EsfDescriptor<ESF, Topology, LocationType, Color, typename impl<ArgArray>::type> type;
+                };
+
+                /**
+                 * @brief specialization for independent ESF descriptor
+                 */
+                template <template <typename> class IndependentEsfDescriptor, typename ESFVector>
+                struct apply<IndependentEsfDescriptor<ESFVector>> {
+                    typedef typename boost::mpl::transform<ESFVector, fix_esf_sequence>::type fixed_esf_sequence_t;
+                    typedef IndependentEsfDescriptor<fixed_esf_sequence_t> type;
+                };
+            };
+
+            template <typename T, typename Functor>
+            struct fix_arg_sequences;
+
+            template <typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor>
+            struct fix_arg_sequences<mss_descriptor<ExecutionEngine, ESFSeq, CacheSeq>, Functor> {
+                using type =
+                    mss_descriptor<ExecutionEngine, typename boost::mpl::transform<ESFSeq, Functor>::type, CacheSeq>;
+            };
+
+            template <class Mss, uint_t RepeatFunctor>
+            struct convert_mss_descriptor : fix_arg_sequences<Mss, fix_esf_sequence<RepeatFunctor>> {};
+
+            template <uint_t RepeatFunctor>
+            struct convert_mss_descriptor_f {
+                template <class T>
+                typename convert_mss_descriptor<T, RepeatFunctor>::type operator()(T) const {
+                    return {};
+                }
+            };
+
             template <typename T>
             struct is_expandable : std::false_type {};
 
@@ -88,9 +287,9 @@ namespace gridtools {
             struct convert_placeholder {
                 template <typename>
                 struct apply;
-                template <uint_t I, typename S, typename L, bool T>
-                struct apply<arg<I, S, L, T>> {
-                    using type = arg<I, typename convert_data_store_type<N, S>::type, L, T>;
+                template <class I, typename S, typename L, bool T>
+                struct apply<plh<I, S, L, T>> {
+                    using type = plh<I, typename convert_data_store_type<N, S>::type, L, T>;
                 };
             };
 
@@ -105,7 +304,7 @@ namespace gridtools {
             };
 
             template <typename ArgStoragePairs>
-            typename std::enable_if<!boost::mpl::empty<ArgStoragePairs>::value, size_t>::type get_expandable_size(
+            enable_if_t<!boost::mpl::empty<ArgStoragePairs>::value, size_t> get_expandable_size(
                 ArgStoragePairs const &src) {
                 auto sizes = tuple_util::transform(get_value_size{}, src);
                 size_t res = tuple_util::get<0>(sizes);
@@ -114,9 +313,9 @@ namespace gridtools {
             }
 
             template <typename ArgStoragePairs>
-            typename std::enable_if<boost::mpl::empty<ArgStoragePairs>::value, size_t>::type get_expandable_size(
+            enable_if_t<boost::mpl::empty<ArgStoragePairs>::value, size_t> get_expandable_size(
                 ArgStoragePairs const &src) {
-                // If there is nothing to expand we are going to compute stensil once.
+                // If there is nothing to expand we are going to compute stencils once.
                 return 1;
             }
 
@@ -153,7 +352,7 @@ namespace gridtools {
             struct convert_mss_descriptors_tree_f {
                 template <typename T>
                 auto operator()(T const &src) const
-                    GT_AUTO_RETURN(condition_tree_transform(src, fix_mss_arg_indices_f<N>{}));
+                    GT_AUTO_RETURN(condition_tree_transform(src, convert_mss_descriptor_f<N>{}));
             };
 
             template <uint_t N, class... Ts>

@@ -225,18 +225,6 @@ namespace gridtools {
             extract_readonly_arg<boost::mpl::_1, boost::mpl::_2, readwrite_args_t>>::type type;
     };
 
-    /**
-       @brief It computes an associative sequence of indices for all arg types specified by
-        the user that are readonly through all ESFs/MSSs
-     */
-    template <typename EsfSequence>
-    struct compute_readonly_args_indices {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Wrong type");
-        typedef typename boost::mpl::fold<typename compute_readonly_args<EsfSequence>::type,
-            boost::mpl::set0<>,
-            boost::mpl::insert<boost::mpl::_1, arg_index<boost::mpl::_2>>>::type type;
-    };
-
     /*
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
