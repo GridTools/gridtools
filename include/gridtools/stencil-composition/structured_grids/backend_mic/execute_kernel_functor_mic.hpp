@@ -80,10 +80,11 @@ namespace gridtools {
 
         /**
          * @brief Class for inner (block-level) looping.
-         * Specialization for stencils with serial execution along k-axis and max extent 0.
+         * Specialization for stencils with serial execution along k-axis and max extent = 0.
          *
          * @tparam RunFunctorArguments Run functor arguments.
-         * @tparam Interval K-axis interval where the functors should be executed.
+         * @tparam From K-axis level to start with.
+         * @tparam To the last K-axis level to process.
          */
         template <typename RunFunctorArguments, typename From, typename To>
         class inner_functor_mic_kserial_fused {
@@ -144,10 +145,8 @@ namespace gridtools {
          * Specialization for stencils with serial execution along k-axis and non-zero max extent.
          *
          * @tparam RunFunctorArguments Run functor arguments.
-         * @tparam Interval K-axis interval where the functors should be executed.
-         */
-        /**
-         * @brief Class for inner (block-level) looping.
+         * @tparam From K-axis level to start with.
+         * @tparam To the last K-axis level to process.
          */
         template <typename RunFunctorArguments, typename From, typename To>
         class inner_functor_mic_kserial {
@@ -204,7 +203,8 @@ namespace gridtools {
          * Specialization for stencils with parallel execution along k-axis.
          *
          * @tparam RunFunctorArguments Run functor arguments.
-         * @tparam Interval K-axis interval where the functors should be executed.
+         * @tparam From K-axis level to start with.
+         * @tparam To the last K-axis level to process.
          */
         template <typename ItDomain>
         struct inner_functor_mic_kparallel {

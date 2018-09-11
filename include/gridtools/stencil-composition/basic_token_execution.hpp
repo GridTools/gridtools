@@ -112,6 +112,13 @@ namespace gridtools {
 
             template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value == 0, int> = 0>
             GT_FUNCTION void k_loop(int_t cur, int_t last) const {
+                // TODO(anstaf): supplement iteration_policy with the function that is functionally equivalent with
+                //               this loop. smth. like: dry_run(from, to, it_domain);
+                //
+                // The weird thing here: because we use unnatural to C/C++ convention that the ranges are
+                // defined not by [begin, end) but by [first, last], the implementation of this function would be
+                // a bit messy [much more cryptic comparing to the current loop]. For me it is not clear what
+                // to do first: fix an alien convention everywhere or implement this TODO.
                 for (; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
                 }

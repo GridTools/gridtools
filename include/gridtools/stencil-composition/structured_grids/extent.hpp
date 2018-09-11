@@ -131,6 +131,7 @@ namespace gridtools {
 
     /**
      *  Version of enclosing_extent with exactly two parameters
+     *  It can be used to pass to MPL algorithms.
      */
     template <class Lhs, class Rhs>
     struct enclosing_extent_2 : lazy::enclosing_extent<Lhs, Rhs> {};

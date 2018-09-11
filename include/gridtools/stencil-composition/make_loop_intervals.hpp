@@ -126,6 +126,8 @@ namespace gridtools {
      *   - use lfold to glue together the sequential levels that have the same calculated stages.
      *   - transform the result into the sequence of loop intervals
      *   - filter out the intervals with empty stages
+     *
+     *   TODO(anstaf): verify that doxy formatting is OK here.
      */
     GT_META_DELEGATE_TO_LAZY(
         make_loop_intervals, (template <class...> class StagesMaker, class Interval), (StagesMaker, Interval));
