@@ -47,8 +47,8 @@ namespace adv_prepare_tracers {
     using namespace expressions;
 
     struct prepare_tracers {
-        using data = vector_accessor<0, inout>;
-        using data_nnow = vector_accessor<1, in>;
+        using data = accessor<0, inout>;
+        using data_nnow = accessor<1, in>;
         using rho = accessor<2, in>;
         typedef boost::mpl::vector<data, data_nnow, rho> arg_list;
 

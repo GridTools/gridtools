@@ -107,6 +107,11 @@ namespace gridtools {
             GT_META_DELEGATE_TO_LAZY(convert_cache, (class I, class Cache), (I, Cache));
             GT_META_DELEGATE_TO_LAZY(convert_arg_storage_pair, (class I, class ArgStoragePair), (I, ArgStoragePair));
 
+            template <class IndexAndCache>
+            GT_META_DEFINE_ALIAS(convert_cache_f,
+                convert_cache,
+                (GT_META_CALL(meta::first, IndexAndCache), GT_META_CALL(meta::second, IndexAndCache)));
+
             template <size_t I>
             struct convert_plh_f {
                 template <class Plh>
@@ -123,8 +128,7 @@ namespace gridtools {
                 class Caches,
                 class Indices = GT_META_CALL(meta::make_indices_c, N),
                 class IndicesAndCaches = GT_META_CALL(meta::cartesian_product, (Indices, Caches)),
-                class ExpandedCacheLists = GT_META_CALL(meta::transform, (convert_cache, IndicesAndCaches)),
-                class ExpandedCaches = GT_META_CALL(meta::flatten, ExpandedCacheLists)>
+                class ExpandedCaches = GT_META_CALL(meta::transform, (convert_cache_f, IndicesAndCaches))>
             GT_META_DEFINE_ALIAS(expand_caches, meta::rename, (meta::ctor<std::tuple<>>::apply, ExpandedCaches));
 
             template <size_t N, class ArgStoragePair>
@@ -304,10 +308,11 @@ namespace gridtools {
             template <class Mss, uint_t RepeatFunctor>
             struct convert_mss_descriptor : fix_arg_sequences<Mss, fix_esf_sequence<RepeatFunctor>> {};
 
-            template <uint_t RepeatFunctor>
+            template <size_t N>
             struct convert_mss_descriptor_f {
                 template <class T>
-                typename convert_mss_descriptor<T, RepeatFunctor>::type operator()(T) const {
+                GT_META_CALL(convert_mss, (N, T))
+                operator()(T) const {
                     return {};
                 }
             };
@@ -390,7 +395,7 @@ namespace gridtools {
 
             template <uint_t N, class ArgStoragePairs>
             auto convert_arg_storage_pairs(size_t offset, ArgStoragePairs const &src)
-                GT_AUTO_RETURN(tuple_util::transform(old_convert_arg_storage_pair_f<N>{offset}, src));
+                GT_AUTO_RETURN(tuple_util::flatten(tuple_util::transform(expand_arg_storage_pair_f<N>{offset}, src)));
 
             template <uint_t N>
             struct convert_mss_descriptors_tree_f {
@@ -403,7 +408,7 @@ namespace gridtools {
             auto convert_mss_descriptors_trees(std::tuple<Ts...> const &src)
                 GT_AUTO_RETURN(tuple_util::transform(convert_mss_descriptors_tree_f<N>{}, src));
 
-            template <uint_t N, typename MssDescriptorsTrees>
+            template <uint_t N, class MssDescriptorsTrees>
             using converted_mss_descriptors_trees =
                 decltype(convert_mss_descriptors_trees<N>(std::declval<MssDescriptorsTrees const &>()));
 
@@ -462,7 +467,7 @@ namespace gridtools {
         using expandable_bound_arg_storage_pairs_t = GT_META_CALL(
             meta::filter, (_impl::expand_detail::is_expandable, BoundArgStoragePairs));
 
-        template <uint_t N>
+        template <size_t N>
         using converted_intermediate = intermediate<N,
             IsStateful,
             Backend,
