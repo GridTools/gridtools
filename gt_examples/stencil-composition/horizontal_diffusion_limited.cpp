@@ -39,8 +39,9 @@
 #include <tuple>
 
 /**
-   @file  This  file  shows   an  implementation  of  the  "horizontal
-   diffusion" stencil, similar to the one used in COSMO
+   @file This file shows an implementation of the "horizontal
+   diffusion" stencil, similar to the one used in COSMO since it
+   implements flux-limiting
 */
 
 namespace gt = gridtools;
@@ -141,51 +142,62 @@ int main(int argc, char **argv) {
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<2, 2, 0>>;
     using storage_type = storage_tr::data_store_t<gt::float_type, storage_info_ijk_t>;
 
+    // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     storage_info_ijk_t sinfo(d1, d2, d3);
 
-    // Definition of the actual data fields that are used for input/output
+    // Definition of the actual data fields that are used for input/output, instantiated using the storage_info
     storage_type in(sinfo, "in");
     storage_type out(sinfo, "out");
     storage_type coeff(sinfo, "coeff");
 
-    // Definition of placeholders. The order of them reflect the order the user will deal with them
-    // especially the non-temporary ones, in the construction of the domain
-    typedef gt::tmp_arg<0, storage_type> p_lap;
+    // Definition of placeholders. The order does not have any semantics
+    typedef gt::tmp_arg<0, storage_type> p_lap; // This represent a
+                                                // temporary data (the
+                                                // library will take
+                                                // care of that and it
+                                                // is not observable
+                                                // by the user
     typedef gt::tmp_arg<1, storage_type> p_flx;
     typedef gt::tmp_arg<2, storage_type> p_fly;
-    typedef gt::arg<3, storage_type> p_coeff;
+    typedef gt::arg<3, storage_type> p_coeff; // This is a regular placeholder to some data
     typedef gt::arg<4, storage_type> p_in;
     typedef gt::arg<5, storage_type> p_out;
 
+    // Now we describe the itaration space. The frist two dimensions
+    // are described with a tuple of values (minus, plus, begin, end,
+    // length) begin and end, for each dimension represent the space
+    // where the output data will be located in the data_stores, while
+    // minus and plus indicate the number of halo points in the
+    // indices before begin and after end, respectively. The length,
+    // is not needed, and will be removed in future versions, but we
+    // keep it for now since the data structure used is the same used
+    // in the communication library and there the length is used.
     gt::halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
     gt::halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
+    // The grid represent the iteration space. The third dimension is
+    // indicated here as a size and the iteration space is deduced by
+    // the fact that there is not an axis definition. More ocmplex
+    // third dimensions are possible but not described in this
+    // example.
     auto grid = gt::make_grid(di, dj, d3);
 
-    /*
-      Here we do lot of stuff
-      1) We pass to the intermediate representation ::run function the description
-      of the stencil, which is a multi-stage stencil (mss)
-      The mss includes (in order of execution) a laplacian, two fluxes which are independent
-      and a final step that is the out_function
-      2) The logical physical domain with the fields to use
-      3) The actual grid dimensions
-    */
-
+    // Here we make the computation, specifying the backend, the gird
+    // (iteration space), binding of the placeholders to the fields
+    // that will not be modified during the computation, and then the
+    // stencil structure
     auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
-        p_in() = in,
-        p_out() = out,
-        p_coeff() = coeff,  // assign placeholders
-        gt::make_multistage // mss_descriptor
-        (gt::enumtype::execute<gt::enumtype::parallel, 20>(),
+        p_coeff() = coeff, // Binding data_stores that will not change during the application
+        gt::make_multistage(gt::enumtype::execute<gt::enumtype::parallel, 20>(),
             define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap(), p_flx(), p_fly())),
-            gt::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
-            gt::make_independent(                          // independent_esf
-                gt::make_stage<flx_function>(p_flx(), p_in(), p_lap()),
+            gt::make_stage<lap_function>(p_lap(), p_in()),
+            gt::make_independent(gt::make_stage<flx_function>(p_flx(), p_in(), p_lap()),
                 gt::make_stage<fly_function>(p_fly(), p_in(), p_lap())),
             gt::make_stage<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
-    horizontal_diffusion.run();
+    // The execution happens here. Here we bind the placeholders to
+    // the data. This binding can change at every `run` invokation
+    horizontal_diffusion.run(p_in() = in, p_out() = out);
 
     out.sync();
 

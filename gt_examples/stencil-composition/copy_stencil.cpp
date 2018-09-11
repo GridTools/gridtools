@@ -99,14 +99,21 @@ int main(int argc, char **argv) {
 
     typedef gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
     typedef gt::storage_traits<backend_t::backend_id_t>::data_store_t<gt::float_type, storage_info_t> data_store_t;
+
+    // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     storage_info_t meta_data_(d1, d2, d3);
 
+    // Definition of placeholders. The order does not have any semantics
     typedef gt::arg<0, data_store_t> p_in;
     typedef gt::arg<1, data_store_t> p_out;
 
-    gt::grid<gt::axis<1>::axis_interval_t> grid(gt::halo_descriptor(d1),
-        gt::halo_descriptor(d2),
-        gt::_impl::intervals_to_indices(gt::axis<1>{d3}.interval_sizes()));
+    // Now we describe the itaration space. The first two dimensions
+    // are described by halo_descriptors. In this case, since the
+    // stencil has zero-exent, not particular care should be focused
+    // on centering the iteration space to avoid put-of-bound
+    // access. The third dimension is indicated with a simple size,
+    // since there is not specific axis definition.
+    auto grid = gt::make_grid(gt::halo_descriptor(d1), gt::halo_descriptor(d2), d3);
 
     data_store_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
     data_store_t out(meta_data_, -1.0, "out");
@@ -114,8 +121,8 @@ int main(int argc, char **argv) {
     auto copy = gt::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gt::make_multistage // mss_descriptor
-        (gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in(), p_out())));
+        gt::make_multistage(
+            gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in(), p_out())));
 
     copy.run();
 
