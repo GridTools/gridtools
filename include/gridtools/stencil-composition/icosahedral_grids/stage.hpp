@@ -56,23 +56,19 @@
  *   Stage concept represents elementary functor from the backend implementor point of view.
  *   Stage concept for icosahedral grid is defined similar as for structured grid (with some additions)
  *
- *   [exactly the same as for strgrid]
  *   Stage must have the nested `extent_t` type or an alias that has to model Extent concept.
  *   The meaning: the stage should be computed in the area that is extended from the user provided computation area by
  *   that much.
  *
- *   [almost the same as for strgrid]
  *   Stage also have static `exec` method that accepts an object by reference that models IteratorDomain.
  *   `exec` should execute an elementary functor for all colors from the grid point that IteratorDomain points to.
  *   precondition: IteratorDomain should point to the first color.
  *   postcondition: IteratorDomain still points to the first color.
  *
- *   [icgrid specific]
  *   Stage has templated variation of `exec` which accept color number as a first template parameter. This variation
  *   does not iterate on colors; it executes an elementary functor for the given color.
  *   precondition: IteratorDomain should point to the same color as one in exec parameter.
  *
- *   [icgrid specific]
  *   Stage has netsted metafunction contains_color<Color> that evaluates to std::false_type if for the given color
  *   the elementary function is not executed.
  *
