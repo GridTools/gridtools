@@ -36,10 +36,11 @@
 
 #include "backend_select.hpp"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <tuple>
 
 /**
-   @file
-   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
+   @file  This  file  shows   an  implementation  of  the  "horizontal
+   diffusion" stencil, similar to the one used in COSMO
 */
 
 namespace gt = gridtools;
@@ -51,23 +52,23 @@ using gt::level;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    typedef gt::accessor<0, gt::enumtype::inout> out;
-    typedef gt::accessor<1, gt::enumtype::in, gt::extent<-1, 1, -1, 1>> in;
+    using out = gt::accessor<0, gt::enumtype::inout>;
+    using in = gt::accessor<1, gt::enumtype::in, gt::extent<-1, 1, -1, 1>>;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    using arg_list = boost::mpl::vector<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
         eval(out()) = (gt::float_type)4 * eval(in()) -
-            (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
+                      (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
     }
 };
 
 struct flx_function {
 
-    typedef gt::accessor<0, gt::enumtype::inout> out;
-    typedef gt::accessor<1, gt::enumtype::in, gt::extent<0, 1, 0, 0>> in;
-    typedef gt::accessor<2, gt::enumtype::in, gt::extent<0, 1, 0, 0>> lap;
+    using out = gt::accessor<0, gt::enumtype::inout>;
+    using in = gt::accessor<1, gt::enumtype::in, gt::extent<0, 1, 0, 0>>;
+    using lap = gt::accessor<2, gt::enumtype::in, gt::extent<0, 1, 0, 0>>;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -82,11 +83,11 @@ struct flx_function {
 
 struct fly_function {
 
-    typedef gt::accessor<0, gt::enumtype::inout> out;
-    typedef gt::accessor<1, gt::enumtype::in, gt::extent<0, 0, 0, 1>> in;
-    typedef gt::accessor<2, gt::enumtype::in, gt::extent<0, 0, 0, 1>> lap;
+    using out = gt::accessor<0, gt::enumtype::inout>;
+    using in = gt::accessor<1, gt::enumtype::in, gt::extent<0, 0, 0, 1>>;
+    using lap = gt::accessor<2, gt::enumtype::in, gt::extent<0, 0, 0, 1>>;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    using arg_list = boost::mpl::vector<out, in, lap>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -99,13 +100,13 @@ struct fly_function {
 
 struct out_function {
 
-    typedef gt::accessor<0, gt::enumtype::inout> out;
-    typedef gt::accessor<1, gt::enumtype::in> in;
-    typedef gt::accessor<2, gt::enumtype::in, gt::extent<-1, 0, 0, 0>> flx;
-    typedef gt::accessor<3, gt::enumtype::in, gt::extent<0, 0, -1, 0>> fly;
-    typedef gt::accessor<4, gt::enumtype::in> coeff;
+    using out = gt::accessor<0, gt::enumtype::inout>;
+    using in = gt::accessor<1, gt::enumtype::in>;
+    using flx = gt::accessor<2, gt::enumtype::in, gt::extent<-1, 0, 0, 0>>;
+    using fly = gt::accessor<3, gt::enumtype::in, gt::extent<0, 0, -1, 0>>;
+    using coeff = gt::accessor<4, gt::enumtype::in>;
 
-    typedef boost::mpl::vector<out, in, flx, fly, coeff> arg_list;
+    using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -122,8 +123,7 @@ struct out_function {
 // std::ostream &operator<<(std::ostream &s, fly_function const) { return s << "fly_function"; }
 // std::ostream &operator<<(std::ostream &s, out_function const) { return s << "out_function"; }
 
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
     gt::uint_t halo_size = 2;
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<2, 2, 0>>;
     using storage_type = storage_tr::data_store_t<gt::float_type, storage_info_ijk_t>;
 
-    storage_info_ijk_t sinfo(d1,d2,d3);
+    storage_info_ijk_t sinfo(d1, d2, d3);
 
     // Definition of the actual data fields that are used for input/output
     storage_type in(sinfo, "in");
@@ -172,19 +172,18 @@ int main(int argc, char** argv) {
       3) The actual grid dimensions
     */
 
-    auto horizontal_diffusion = gt::make_computation<backend_t>
-        (grid,
-         p_in() = in,
-         p_out() = out,
-         p_coeff() = coeff,         // assign placeholders
-         gt::make_multistage // mss_descriptor
-         (gt::enumtype::execute<gt::enumtype::parallel, 20>(),
-          define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap(), p_flx(), p_fly())),
-          gt::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
-          gt::make_independent(                          // independent_esf
-                               gt::make_stage<flx_function>(p_flx(), p_in(), p_lap()),
-                               gt::make_stage<fly_function>(p_fly(), p_in(), p_lap())),
-          gt::make_stage<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+    auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
+        p_in() = in,
+        p_out() = out,
+        p_coeff() = coeff,  // assign placeholders
+        gt::make_multistage // mss_descriptor
+        (gt::enumtype::execute<gt::enumtype::parallel, 20>(),
+            define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap(), p_flx(), p_fly())),
+            gt::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
+            gt::make_independent(                          // independent_esf
+                gt::make_stage<flx_function>(p_flx(), p_in(), p_lap()),
+                gt::make_stage<fly_function>(p_fly(), p_in(), p_lap())),
+            gt::make_stage<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
     horizontal_diffusion.run();
 

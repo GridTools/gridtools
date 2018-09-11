@@ -34,8 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "backend_select.hpp"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <tuple>
+
+#include "backend_select.hpp"
 
 /**
   @file
@@ -47,7 +49,7 @@ namespace gt = gridtools;
 struct copy_functor {
     using in = gt::accessor<0, gt::enumtype::in, gt::extent<>, 3>;
     using out = gt::accessor<1, gt::enumtype::inout, gt::extent<>, 3>;
-    typedef gt::make_arg_list<in, out> arg_list;
+    using arg_list = boost::mpl::vector<in, out>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -61,7 +63,7 @@ struct copy_functor {
 // std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
 
 template <typename In, typename Out>
-bool verify(In const& in, Out const& out) {
+bool verify(In const &in, Out const &out) {
     auto in_v = gt::make_host_view(in);
     auto out_v = gt::make_host_view(out);
     // check consistency
@@ -83,7 +85,7 @@ bool verify(In const& in, Out const& out) {
     return success;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
     gt::uint_t d1, d2, d3;
     if (argc != 4) {
@@ -97,24 +99,23 @@ int main(int argc, char** argv) {
 
     typedef gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
     typedef gt::storage_traits<backend_t::backend_id_t>::data_store_t<gt::float_type, storage_info_t> data_store_t;
-    storage_info_t meta_data_(d1,d2,d3);
+    storage_info_t meta_data_(d1, d2, d3);
 
     typedef gt::arg<0, data_store_t> p_in;
     typedef gt::arg<1, data_store_t> p_out;
 
     gt::grid<gt::axis<1>::axis_interval_t> grid(gt::halo_descriptor(d1),
-                                                gt::halo_descriptor(d2),
-                                                gt::_impl::intervals_to_indices(gt::axis<1>{d3}.interval_sizes()));
+        gt::halo_descriptor(d2),
+        gt::_impl::intervals_to_indices(gt::axis<1>{d3}.interval_sizes()));
 
     data_store_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
     data_store_t out(meta_data_, -1.0, "out");
 
-    auto copy = gt::make_computation<backend_t>
-        (grid,
-         p_in() = in,
-         p_out() = out,
-         gt::make_multistage // mss_descriptor
-         (gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in(), p_out())));
+    auto copy = gt::make_computation<backend_t>(grid,
+        p_in() = in,
+        p_out() = out,
+        gt::make_multistage // mss_descriptor
+        (gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in(), p_out())));
 
     copy.run();
 
