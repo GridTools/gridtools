@@ -130,9 +130,7 @@ namespace gridtools {
             struct data_store_generator_f {
                 template <class DataStore>
                 DataStore const &operator()(std::vector<DataStore> const &src, size_t offset) const {
-                    size_t i = offset + I::value;
-                    size_t size = src.size();
-                    assert(i < src.size());
+                    assert(offset + I::value < src.size());
                     return src[offset + I::value];
                 }
                 using type = data_store_generator_f;
