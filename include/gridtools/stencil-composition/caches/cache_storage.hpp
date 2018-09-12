@@ -144,7 +144,7 @@ namespace gridtools {
                                   (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
                                   (extra_dims)*Color * meta_t::template stride<1>() +
                                   compute_offset_cache<meta_t>(accessor_);
-            assert((extra_) < (padded_total_length() * Arg::data_store_t::num_of_storages));
+            assert(extra_ < padded_total_length());
             return m_values[extra_];
         }
 
@@ -158,7 +158,7 @@ namespace gridtools {
 
             const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
             assert(index_ >= 0);
-            assert(index_ < (padded_total_length() * Arg::data_store_t::num_of_storages));
+            assert(index_ < padded_total_length());
 
             return m_values[index_];
         }
@@ -174,7 +174,7 @@ namespace gridtools {
             const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
-            assert(index_ < (padded_total_length() * Arg::data_store_t::num_of_storages));
+            assert(index_ < padded_total_length());
 
             return m_values[index_];
         }
@@ -200,7 +200,7 @@ namespace gridtools {
         }
 
       private:
-        value_type m_values[padded_total_length() * Arg::data_store_t::num_of_storages];
+        value_type m_values[padded_total_length()];
 
         template <typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION static void check_kcache_access_in_bounds(

@@ -83,34 +83,6 @@ namespace gridtools {
             return dv.m_raw_ptrs[i];
         }
 
-        /**
-         *  Copy the raw pointers from the data_view or data_field_view to the destination.
-         *
-         *  Destination should be an array or should model STL container concept.
-         */
-        template <typename Src, typename Dst>
-        void copy_raw_pointers(Src const &src, Dst &dst) {
-            using std::begin;
-            using std::copy;
-            using std::end;
-            copy(begin(src.m_raw_ptrs), end(src.m_raw_ptrs), begin(dst));
-        }
-
-        /** Function to obtain the address of the first element of the view,
-            that is &view(0,0,0). This fuction gives that address without
-            de-referencing the actual value. This is useful to interface
-            C or Fortran code that needs raw pointers to the data.
-
-            \tparam DataView The data_view type (deduced)
-
-            \param dv The data_view object
-            \param i The index of the pointer in the arrays of raw pointers
-        */
-        template <typename DataView>
-        inline typename DataView::data_t *get_address_of(DataView const &dv, int i = 0) {
-            return dv.m_raw_ptrs[i];
-        }
-
         template <typename DataStore, access_mode AccessMode>
         typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view<DataStore, AccessMode> const &);
 
@@ -311,12 +283,6 @@ namespace gridtools {
 
         template <typename T>
         friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
-
-        template <typename T>
-        friend typename T::data_t *advanced::get_address_of(T const &, int);
-
-        template <typename Src, typename Dst>
-        friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
 
         template <typename D, access_mode A>
         friend typename D::storage_info_t const *advanced::storage_info_raw_ptr(data_view<D, A> const &);

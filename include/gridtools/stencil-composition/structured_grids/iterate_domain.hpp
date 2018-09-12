@@ -313,7 +313,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second[0]);
+            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second);
         }
 
         /**
@@ -325,7 +325,7 @@ namespace gridtools {
             typedef typename Acc::index_t index_t;
             auto storage_ = boost::fusion::at<index_t>(local_data_ptrs()).second;
             return tuple_to_container(
-                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
+                *storage_, accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
         }
 
         // some aliases to ease the notation

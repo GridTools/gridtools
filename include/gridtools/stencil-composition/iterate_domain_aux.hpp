@@ -463,7 +463,7 @@ namespace gridtools {
             typedef typename boost::remove_const<typename boost::remove_reference<Accessor>::type>::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
 
-            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[0];
+            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs);
         }
     } // namespace aux
 } // namespace gridtools

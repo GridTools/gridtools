@@ -301,7 +301,7 @@ namespace gridtools {
             typedef typename arg_t::data_store_t::data_t data_t;
 
             data_t *RESTRICT real_storage_pointer =
-                static_cast<data_t *>(boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0]);
+                static_cast<data_t *>(boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second);
 
             assert(pointer_oob_check(
                 boost::fusion::at_c<
@@ -344,7 +344,7 @@ namespace gridtools {
                 compute_offset<storage_info_t>(strides().template get<storage_info_index>(), position_offset);
 
             return get_raw_value(
-                accessor_t(), boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second[0], pointer_offset);
+                accessor_t(), boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second, pointer_offset);
         }
     };
 

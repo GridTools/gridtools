@@ -283,7 +283,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second[0]);
+            return *static_cast<Res *>(boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second);
         }
 
         /**
@@ -293,7 +293,7 @@ namespace gridtools {
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(**boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second.data()),
+                std::cref(*boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second),
                 accessor.get_arguments())) /** @endcond */;
 
         /**
