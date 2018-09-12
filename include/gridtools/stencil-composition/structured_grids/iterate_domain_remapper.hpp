@@ -45,6 +45,7 @@
 #include "../../common/generic_metafunctions/meta.hpp"
 #include "../accessor.hpp"
 #include "../arg.hpp"
+#include "../expressions/expr_base.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 
@@ -131,6 +132,14 @@ namespace gridtools {
                     remap_accessor_t;
                 return m_iterate_domain(remap_accessor_t(arg));
             }
+
+            /** @brief method called in the Do methods of the functors
+
+                Overload of the operator() for expressions.
+            */
+            template <class Op, class... Args>
+            GT_FUNCTION auto operator()(expr<Op, Args...> const &arg)
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
         };
 
         /**

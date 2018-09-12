@@ -149,11 +149,6 @@ namespace gridtools {
             using type = data_store<Storage, typename tmp_storage_info<Id, StorageInfo>::type>;
         };
 
-        template <unsigned Id, typename DataStore, unsigned... N>
-        struct tmp_data_store<Id, data_store_field<DataStore, N...>> {
-            using type = data_store_field<typename tmp_data_store<Id, DataStore>::type, N...>;
-        };
-
         template <unsigned Id, typename DataStore>
         struct tmp_data_store<Id, std::vector<DataStore>> {
             using type = std::vector<typename tmp_data_store<Id, DataStore>::type>;
@@ -182,35 +177,4 @@ namespace gridtools {
 
     template <uint_t I, typename T, typename LocationType = enumtype::default_location_type>
     using arg = plh<_impl::arg_tag<I>, T, LocationType, false>;
-
-    template <typename T>
-    struct is_storage_arg : std::false_type {};
-
-    template <class Tag, typename DataStoreType, typename Location, bool Temporary>
-    struct is_storage_arg<plh<Tag, DataStoreType, Location, Temporary>> : is_storage<DataStoreType> {};
-
-    /**
-     * @struct arg_holds_data_field
-     * metafunction that determines if an arg type is holding the storage type of a data field
-     */
-    template <typename Arg>
-    struct arg_holds_data_field;
-
-    template <class Tag, typename DataStoreType, typename Location, bool Temporary>
-    struct arg_holds_data_field<plh<Tag, DataStoreType, Location, Temporary>> : is_data_store_field<DataStoreType> {};
-
-    /**
-     * @struct arg_hods_data_field_h
-     * high order metafunction of arg_holds_data_field
-     */
-    template <typename Arg>
-    struct arg_holds_data_field_h {
-        typedef typename arg_holds_data_field<typename Arg::type>::type type;
-    };
-
-    template <class Tag, typename DataStoreType, typename Location, bool Temporary>
-    struct arg_holds_data_field_h<plh<Tag, DataStoreType, Location, Temporary>> {
-        typedef typename arg_holds_data_field<plh<Tag, DataStoreType, Location, Temporary>>::type type;
-    };
-
 } // namespace gridtools

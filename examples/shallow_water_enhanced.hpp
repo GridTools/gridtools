@@ -83,10 +83,6 @@ namespace shallow_water {
      * water model*/
     struct functor_traits {
 
-        //! [dimension]
-        typedef dimension<5> comp;
-        //! [dimension]
-
         /**@brief space discretization step in direction i */
         GT_FUNCTION
         static float_type dx() { return 1.; }
@@ -115,27 +111,25 @@ namespace shallow_water {
     // [flux_x]
     struct flux_x : public functor_traits {
 
+        /** (input) is the solution at the cell center, computed at the previous time level */
         //! [accessor]
-        typedef accessor<1, enumtype::in, extent<0, -1, 0, 0>, 5>
-            sol; /** (input) is the solution at the cell center, computed at the previous time level */
+        using h = accessor<3, enumtype::in, extent<0, -1, 0, 0>>;
         //! [accessor]
-        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 5>
-            tmpx; /** (output) is the flux computed on the left edge of the cell */
-        using arg_list = boost::mpl::vector2<tmpx, sol>;
+        using u = accessor<4, enumtype::in, extent<0, -1, 0, 0>>;
+        using v = accessor<5, enumtype::in, extent<0, -1, 0, 0>>;
+
+        /** (output) is the flux computed on the left edge of the cell */
+        using hx = accessor<0, enumtype::inout>;
+        using ux = accessor<1, enumtype::inout>;
+        using vx = accessor<2, enumtype::inout>;
+
+        using arg_list = boost::mpl::vector<hx, ux, vx, h, u, v>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
             dimension<1> i;
-            //![alias]
-            using hx = alias<tmpx, comp>::set<0>;
-            using h = alias<sol, comp>::set<0>;
-            //![alias]
-            using ux = alias<tmpx, comp>::set<1>;
-            using u = alias<sol, comp>::set<1>;
-            using vx = alias<tmpx, comp>::set<2>;
-            using v = alias<sol, comp>::set<2>;
 
             //! [expression]
             eval(hx()) = eval((h() + h(i - 1)) / tl - (u() - u(i - 1)) * (dt() / (2 * dx())));
@@ -155,23 +149,23 @@ namespace shallow_water {
     // [flux_y]
     struct flux_y : public functor_traits {
 
-        typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 5>
-            tmpy; /** (output) is the flux at the bottom edge of the cell */
-        typedef accessor<1, enumtype::in, extent<0, 0, 0, -1>, 5>
-            sol; /** (input) is the solution at the cell center, computed at the previous time level */
-        using arg_list = boost::mpl::vector<tmpy, sol>;
+        /** (output) is the flux at the bottom edge of the cell */
+        using hy = accessor<0, enumtype::inout>;
+        using uy = accessor<1, enumtype::inout>;
+        using vy = accessor<2, enumtype::inout>;
+
+        /** (input) is the solution at the cell center, computed at the previous time level */
+        using h = accessor<3, enumtype::in, extent<0, 0, 0, -1>>;
+        using u = accessor<4, enumtype::in, extent<0, 0, 0, -1>>;
+        using v = accessor<5, enumtype::in, extent<0, 0, 0, -1>>;
+
+        using arg_list = boost::mpl::vector<hy, uy, vy, h, u, v>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
             dimension<2> j;
-            using h = alias<sol, comp>::set<0>;
-            using hy = alias<tmpy, comp>::set<0>;
-            using u = alias<sol, comp>::set<1>;
-            using uy = alias<tmpy, comp>::set<1>;
-            using v = alias<sol, comp>::set<2>;
-            using vy = alias<tmpy, comp>::set<2>;
 
             eval(hy()) = eval((h() + h(j - 1)) / tl - (v() - v(j - 1)) * (dt() / (2 * dy())));
 
@@ -189,13 +183,22 @@ namespace shallow_water {
     // [final_step]
     struct final_step : public functor_traits {
 
-        typedef accessor<0, enumtype::in, extent<0, 1, 0, 1>, 5>
-            tmpx; /** (input) is the flux at the left edge of the cell */
-        typedef accessor<1, enumtype::in, extent<0, 1, 0, 1>, 5>
-            tmpy; /** (input) is the flux at the bottom edge of the cell */
-        typedef accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 5>
-            sol; /** (output) is the solution at the cell center, computed at the previous time level */
-        typedef boost::mpl::vector<tmpx, tmpy, sol> arg_list;
+        /** (input) is the flux at the left edge of the cell */
+        using hx = accessor<0, enumtype::in, extent<0, 1, 0, 1>>;
+        using ux = accessor<1, enumtype::in, extent<0, 1, 0, 1>>;
+        using vx = accessor<2, enumtype::in, extent<0, 1, 0, 1>>;
+
+        /** (input) is the flux at the bottom edge of the cell */
+        using hy = accessor<3, enumtype::in, extent<0, 1, 0, 1>>;
+        using uy = accessor<4, enumtype::in, extent<0, 1, 0, 1>>;
+        using vy = accessor<5, enumtype::in, extent<0, 1, 0, 1>>;
+
+        /** (output) is the solution at the cell center, computed at the previous time level */
+        using h = accessor<6, enumtype::inout>;
+        using u = accessor<7, enumtype::inout>;
+        using v = accessor<8, enumtype::inout>;
+
+        using arg_list = boost::mpl::vector<hx, ux, vx, hy, uy, vy, h, u, v>;
         static uint_t current_time;
 
         //########## FINAL STEP #############
@@ -208,29 +211,19 @@ namespace shallow_water {
             const float_type &tl = 2.;
             dimension<1> i;
             dimension<2> j;
-            using hx = alias<tmpx, comp>::set<0>;
-            using h = alias<sol, comp>::set<0>;
-            using hy = alias<tmpy, comp>::set<0>;
-            using ux = alias<tmpx, comp>::set<1>;
-            using u = alias<sol, comp>::set<1>;
-            using uy = alias<tmpy, comp>::set<1>;
-            using vx = alias<tmpx, comp>::set<2>;
-            using v = alias<sol, comp>::set<2>;
-            using vy = alias<tmpy, comp>::set<2>;
 
-            eval(sol()) = eval(sol() - (ux(i + 1) - ux()) * (dt() / dx()) - (vy(j + 1) - vy()) * (dt() / dy()));
+            eval(h()) = eval(h() - (ux(i + 1) - ux()) * (dt() / dx()) - (vy(j + 1) - vy()) * (dt() / dy()));
 
-            eval(sol(comp(1))) = eval(sol(comp(1)) -
-                                      (pow<2>(ux(i + 1)) / hx(i + 1) + hx(i + 1) * hx(i + 1) * ((g() / tl)) -
-                                          (pow<2>(ux()) / hx() + pow<2>(hx()) * ((g() / tl)))) *
-                                          ((dt() / dx())) -
-                                      (vy(j + 1) * uy(j + 1) / hy(j + 1) - vy() * uy() / hy()) * (dt() / dy()));
+            eval(u()) = eval(u() -
+                             (pow<2>(ux(i + 1)) / hx(i + 1) + hx(i + 1) * hx(i + 1) * ((g() / tl)) -
+                                 (pow<2>(ux()) / hx() + pow<2>(hx()) * ((g() / tl)))) *
+                                 ((dt() / dx())) -
+                             (vy(j + 1) * uy(j + 1) / hy(j + 1) - vy() * uy() / hy()) * (dt() / dy()));
 
-            eval(sol(comp(2))) =
-                eval(sol(comp(2)) - (ux(i + 1) * vx(i + 1) / hx(i + 1) - (ux() * vx()) / hx()) * ((dt() / dx())) -
-                     (pow<2>(vy(j + 1)) / hy(j + 1) + pow<2>(hy(j + 1)) * ((g() / tl)) -
-                         (pow<2>(vy()) / hy() + pow<2>(hy()) * ((g() / tl)))) *
-                         ((dt() / dy())));
+            eval(v()) = eval(v() - (ux(i + 1) * vx(i + 1) / hx(i + 1) - (ux() * vx()) / hx()) * ((dt() / dx())) -
+                             (pow<2>(vy(j + 1)) / hy(j + 1) + pow<2>(hy(j + 1)) * ((g() / tl)) -
+                                 (pow<2>(vy()) / hy() + pow<2>(hy()) * ((g() / tl)))) *
+                                 ((dt() / dy())));
         }
     };
     // [final_step]
@@ -262,16 +255,22 @@ namespace shallow_water {
 
         //! [storage_type]
         typedef backend_t::storage_traits_t::storage_info_t<0, 3> storage_info_t;
-        typedef backend_t::storage_traits_t::data_store_field_t<float_type, storage_info_t, 1, 1, 1> sol_type;
+        typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> sol_type;
         //! [storage_type]
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
         //! [args]
-        typedef tmp_arg<0, sol_type> p_tmpx;
-        typedef tmp_arg<1, sol_type> p_tmpy;
+        tmp_arg<0, sol_type> p_hx;
+        tmp_arg<1, sol_type> p_ux;
+        tmp_arg<2, sol_type> p_vx;
+        tmp_arg<3, sol_type> p_hy;
+        tmp_arg<4, sol_type> p_uy;
+        tmp_arg<5, sol_type> p_vy;
 
-        typedef arg<2, sol_type> p_sol;
+        arg<0, sol_type> p_h;
+        arg<1, sol_type> p_u;
+        arg<2, sol_type> p_v;
 
         //! [proc_grid_dims]
         array<int, 3> dimensions{0, 0, 1};
@@ -280,7 +279,7 @@ namespace shallow_water {
         //! [proc_grid_dims]
 
         //! [pattern_type]
-        typedef gridtools::halo_exchange_dynamic_ut<typename storage_info_t::layout_t,
+        typedef gridtools::halo_exchange_dynamic_ut<storage_info_t::layout_t,
             gridtools::layout_map<0, 1, 2>,
             float_type,
             MPI_3D_process_grid_t<3>,
@@ -309,7 +308,9 @@ namespace shallow_water {
         storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
         //! [storage]
 
-        sol_type sol(storage_info);
+        sol_type h(storage_info);
+        sol_type u(storage_info);
+        sol_type v(storage_info);
 
         //! [add_halo]
         he.add_halo<0>(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
@@ -320,18 +321,15 @@ namespace shallow_water {
         //! [add_halo]
 
         //! [initialization_h]
-        auto ds0 = sol.get<0, 0>();
-        auto ds1 = sol.get<1, 0>();
-        auto ds2 = sol.get<2, 0>();
-        auto view0 = make_host_view(ds0);
-        auto view1 = make_host_view(ds1);
-        auto view2 = make_host_view(ds2);
+        auto view_h = make_host_view(h);
+        auto view_u = make_host_view(u);
+        auto view_v = make_host_view(v);
 
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
             for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
-                view0(i, j, 0) = bc_periodic<0, 0>::droplet(i, j); // h
-                view1(i, j, 0) = 0.0;
-                view2(i, j, 0) = 0.0;
+                view_h(i, j, 0) = bc_periodic<0, 0>::droplet(i, j); // h
+                view_u(i, j, 0) = 0.0;
+                view_v(i, j, 0) = 0.0;
             }
         }
 
@@ -354,11 +352,14 @@ namespace shallow_water {
 
         //! [computation]
         auto shallow_water_stencil = make_computation<backend_t>(grid,
-            p_sol() = sol,
+            p_h = h,
+            p_u = u,
+            p_v = v,
             make_multistage // mss_descriptor
             (execute<forward>(),
-                make_independent(make_stage<flux_x>(p_tmpx(), p_sol()), make_stage<flux_y>(p_tmpy(), p_sol())),
-                make_stage<final_step>(p_tmpx(), p_tmpy(), p_sol())));
+                make_independent(make_stage<flux_x>(p_hx, p_ux, p_vx, p_h, p_u, p_v),
+                    make_stage<flux_y>(p_hy, p_uy, p_vy, p_h, p_u, p_v)),
+                make_stage<final_step>(p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v)));
         //! [computation]
 
         // the following might be runtime value
@@ -369,13 +370,13 @@ namespace shallow_water {
             std::vector<float_type *> vec(3);
 
 #ifdef __CUDACC__
-            vec[0] = advanced::get_address_of(make_device_view(sol.get<0, 0>()));
-            vec[1] = advanced::get_address_of(make_device_view(sol.get<1, 0>()));
-            vec[2] = advanced::get_address_of(make_device_view(sol.get<2, 0>()));
+            vec[0] = advanced::get_address_of(make_device_view(h));
+            vec[1] = advanced::get_address_of(make_device_view(u));
+            vec[2] = advanced::get_address_of(make_device_view(v));
 #else
-            vec[0] = advanced::get_address_of(make_host_view(sol.get<0, 0>()));
-            vec[1] = advanced::get_address_of(make_host_view(sol.get<1, 0>()));
-            vec[2] = advanced::get_address_of(make_host_view(sol.get<2, 0>()));
+            vec[0] = advanced::get_address_of(make_host_view(h));
+            vec[1] = advanced::get_address_of(make_host_view(u));
+            vec[2] = advanced::get_address_of(make_host_view(v));
 #endif
 
             // he.pack(vec);
@@ -385,11 +386,12 @@ namespace shallow_water {
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
-            sol.sync();
-            auto view = make_field_host_view(sol);
-            auto view00 = view.get<0, 0>();
-            auto view10 = view.get<1, 0>();
-            auto view20 = view.get<2, 0>();
+            h.sync();
+            u.sync();
+            v.sync();
+            auto view00 = make_host_view(h);
+            auto view10 = make_host_view(v);
+            auto view20 = make_host_view(u);
 
             myfile << "INITIALIZED VALUES view00" << std::endl;
             for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
@@ -435,10 +437,9 @@ namespace shallow_water {
 #ifndef NDEBUG
 #ifndef __CUDACC__
         myfile << "############## SOLUTION ################" << std::endl;
-        auto view = make_field_host_view(sol);
-        auto view00 = view.get<0, 0>();
-        auto view10 = view.get<1, 0>();
-        auto view20 = view.get<2, 0>();
+        auto view00 = make_host_view(h);
+        auto view10 = make_host_view(v);
+        auto view20 = make_host_view(u);
         myfile << "SOLUTION VALUES view00" << std::endl;
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
             for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
@@ -471,7 +472,7 @@ namespace shallow_water {
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE INIT ################" << std::endl;
-        view = make_field_host_view(reference.solution);
+        auto view = make_field_host_view(reference.solution);
         view00 = view.get<0, 0>();
         view10 = view.get<1, 0>();
         view20 = view.get<2, 0>();
@@ -505,8 +506,7 @@ namespace shallow_water {
             reference.iterate();
         }
 
-        for (int i = 0; i < 1; ++i)
-            retval &= check_result.verify(grid, reference.solution.get_field()[i], sol.get_field()[i], halos);
+        retval &= check_result.verify(grid, reference.solution.get_field()[0], h, halos);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;

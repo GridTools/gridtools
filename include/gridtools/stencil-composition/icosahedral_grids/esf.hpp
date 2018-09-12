@@ -43,7 +43,6 @@
 #include "color.hpp"
 #include "grid.hpp"
 #include "icosahedral_topology.hpp"
-#include "vector_accessor.hpp"
 #include <boost/mpl/equal.hpp>
 
 namespace gridtools {

@@ -204,8 +204,6 @@ TEST_F(expandable_parameters, copy) {
     ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
 }
 
-#if 0
-
 // TODO this should be enabled when working on a bug fix for expressions with vector_accessors
 TEST_F(expandable_parameters, copy_with_expression) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
@@ -300,5 +298,3 @@ TEST_F(expandable_parameters, call_shift) {
     ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
     ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
 }
-
-#endif

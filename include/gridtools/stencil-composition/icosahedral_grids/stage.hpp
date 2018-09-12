@@ -47,7 +47,6 @@
 #include "../extent.hpp"
 #include "../hasdo.hpp"
 #include "../location_type.hpp"
-#include "./iterate_domain_expandable_parameters.hpp"
 #include "./iterate_domain_remapper.hpp"
 
 /**
@@ -81,19 +80,8 @@
 namespace gridtools {
 
     namespace _impl {
-        template <class Functor, class Eval>
-        struct call_do_f {
-            Eval *m_eval;
-            template <class Index>
-            GT_FUNCTION void operator()() const {
-                using eval_t = iterate_domain_expandable_parameters<Eval, Index::value + 1>;
-                Functor::template Do<eval_t &>(*reinterpret_cast<eval_t *>(m_eval));
-            }
-        };
-
         template <class T>
         GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_do<T>::value || std::is_void<T>::value);
-
     } // namespace _impl
 
     /**
@@ -103,7 +91,7 @@ namespace gridtools {
      *                    corresponds to the color number. If a functor should not be executed for the given color,
      *                    the correspondent element in the list is `void`
      */
-    template <class Functors, class Extent, class Args, class LocationType, size_t RepeatFactor>
+    template <class Functors, class Extent, class Args, class LocationType>
     struct stage {
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<_impl::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
@@ -120,8 +108,8 @@ namespace gridtools {
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args, LocationType, Color>::type;
             eval_t eval{it_domain};
-            for_each_type<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
-                _impl::call_do_f<GT_META_CALL(meta::at_c, (Functors, Color)), eval_t>{&eval});
+            using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
+            functor_t::template Do<eval_t &>(eval);
         }
 
         template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>

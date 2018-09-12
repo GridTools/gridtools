@@ -67,7 +67,7 @@ namespace gridtools {
         /**
          * @brief Per-thread global fixed-point value of omp_get_thread_num() / omp_get_max_threads().
          */
-        long fixedp_thread_factor() {
+        inline long fixedp_thread_factor() {
             thread_local static const long value =
                 (omp_get_thread_num() << fixedp_thread_factor_prec) / omp_get_max_threads();
             return value;
@@ -94,7 +94,7 @@ namespace gridtools {
 
           private:
             template <typename Arg>
-            GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset() const {
+            GT_FUNCTION enable_if_t<is_tmp_arg<Arg>::value, int_t> fields_offset() const {
                 using storage_info_ptr_t = typename Arg::data_store_t::storage_info_t const *;
                 constexpr auto storage_info_index =
                     meta::st_position<typename LocalDomain::storage_info_ptr_list, storage_info_ptr_t>::value;
@@ -105,7 +105,7 @@ namespace gridtools {
             }
 
             template <typename Arg>
-            GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset() const {
+            GT_FUNCTION enable_if_t<!is_tmp_arg<Arg>::value, int_t> fields_offset() const {
                 return 0;
             }
         };
@@ -156,15 +156,6 @@ namespace gridtools {
       public:
         using esf_args_t = typename local_domain_t::esf_args;
         //*****************
-
-        /**
-         * @brief metafunction that determines if a given accessor is associated with an placeholder holding a data
-         * field.
-         */
-        template <typename Accessor>
-        struct accessor_holds_data_field {
-            using type = typename aux::accessor_holds_data_field<Accessor, IterateDomainArguments>::type;
-        };
 
         /**
          * @brief metafunction that computes the return type of all operator() of an accessor.
@@ -314,10 +305,6 @@ namespace gridtools {
             boost::mpl::or_<boost::mpl::not_<is_accessor<Accessor>>, is_global_accessor<Accessor>>,
             typename accessor_return_type<Accessor>::type>::type
         operator()(Accessor const &accessor) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
-
             return get_value(accessor, get_data_pointer(accessor));
         }
 

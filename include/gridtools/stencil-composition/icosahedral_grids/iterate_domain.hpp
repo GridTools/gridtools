@@ -111,14 +111,6 @@ namespace gridtools {
             typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
 
         /**
-         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
-         */
-        template <typename Accessor>
-        struct accessor_holds_data_field {
-            typedef typename aux::accessor_holds_data_field<Accessor, iterate_domain_arguments_t>::type type;
-        };
-
-        /**
          * metafunction that determines if a given accessor is associated with an arg that is cached
          */
         template <typename Accessor>
@@ -134,9 +126,7 @@ namespace gridtools {
         template <typename Accessor>
         struct mem_access_with_standard_accessor {
             typedef typename boost::mpl::and_<
-                typename boost::mpl::and_<
-                    typename boost::mpl::not_<typename accessor_is_cached<Accessor, all_caches_t>::type>::type,
-                    typename boost::mpl::not_<typename accessor_holds_data_field<Accessor>::type>::type>::type,
+                typename boost::mpl::not_<typename accessor_is_cached<Accessor, all_caches_t>::type>::type,
                 typename is_accessor<Accessor>::type>::type type;
         };
 

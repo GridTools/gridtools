@@ -42,7 +42,6 @@
 #include "arg.hpp"
 #include "block.hpp"
 #include "expressions/expressions.hpp"
-#include "get_datafield_offset.hpp"
 #include "offset_computation.hpp"
 #include "pos3.hpp"
 #include "run_functor_arguments.hpp"
@@ -428,7 +427,7 @@ namespace gridtools {
     struct accessor_return_type_impl {
         typedef typename boost::remove_reference<Accessor>::type acc_t;
 
-        typedef typename boost::mpl::eval_if<boost::mpl::or_<is_accessor<acc_t>, is_vector_accessor<acc_t>>,
+        typedef typename boost::mpl::eval_if<is_accessor<acc_t>,
             get_arg_value_type_from_accessor<acc_t, typename IterateDomainArguments::local_domain_t>,
             boost::mpl::identity<boost::mpl::void_>>::type accessor_value_type;
 
@@ -438,16 +437,6 @@ namespace gridtools {
     };
 
     namespace aux {
-        /**
-         * @brief metafunction that determines if a given accessor is associated with a placeholder holding a datafield
-         */
-        template <typename Accessor, typename LocalDomain>
-        struct accessor_holds_data_field {
-            typedef typename boost::mpl::eval_if<is_accessor<Accessor>,
-                arg_holds_data_field_h<get_arg_from_accessor<Accessor, LocalDomain>>,
-                boost::mpl::identity<boost::mpl::false_>>::type type;
-        };
-
         /**
          * @brief method returning the data pointer of an accessor
          *
@@ -462,9 +451,7 @@ namespace gridtools {
             typename Accessor,
             typename ArgT = typename get_arg_from_accessor<Accessor, LocalDomain>::type,
             typename ReturnT = typename ArgT::type::data_store_t::data_t>
-        GT_FUNCTION typename boost::disable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
-            ReturnT * RESTRICT>::type
-        get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
+        GT_FUNCTION ReturnT *RESTRICT get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
             using storage_info_t = typename ArgT::data_store_t::storage_info_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
@@ -477,38 +464,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<acc_t>::value), "Using EVAL is only allowed for an accessor type");
 
             return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[0];
-        }
-
-        /**
-         * @brief method returning the data pointer of an accessor
-         *
-         * Specialization for the accessor placeholder for extended storages,
-         * containing multiple snapshots of data fields with the same dimension and memory layout)
-         *
-         * This method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
-         * the storage class. I.e., if we are dealing with  storage lists or data fields (see concepts page for
-         * definitions).
-         */
-        template <typename LocalDomain,
-            typename Accessor,
-            typename ArgT = typename get_arg_from_accessor<Accessor, LocalDomain>::type,
-            typename DataStoreT = typename ArgT::data_store_t,
-            typename ReturnT = typename DataStoreT::data_t>
-        GT_FUNCTION typename boost::enable_if<typename accessor_holds_data_field<Accessor, LocalDomain>::type,
-            ReturnT * RESTRICT>::type
-        get_data_pointer(LocalDomain const &local_domain, Accessor const &accessor) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            using storage_info_t = typename DataStoreT::storage_info_t;
-
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
-                "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
-                "snapshot)");
-
-            const int_t idx = get_datafield_offset<DataStoreT>::get(accessor);
-            assert(
-                idx < DataStoreT::num_of_storages && "Out of bounds access when accessing data store field element.");
-
-            return boost::fusion::at_key<ArgT>(local_domain.m_local_data_ptrs)[idx];
         }
     } // namespace aux
 } // namespace gridtools
