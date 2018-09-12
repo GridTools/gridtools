@@ -36,7 +36,6 @@
 
 #include <gridtools/stencil-composition/bind_functor_with_interval.hpp>
 
-#include <string>
 #include <tuple>
 #include <type_traits>
 
@@ -55,14 +54,14 @@ namespace gridtools {
         using lev = level<Splitter, Offset, 3>;
 
         template <class BoundFunctor>
-        std::string run_bound_functor() {
-            std::string res;
+        char const *run_bound_functor() {
+            char const *res;
             BoundFunctor::Do(res);
             return res;
         }
 
         template <>
-        std::string run_bound_functor<void>() {
+        char const *run_bound_functor<void>() {
             return "not defined";
         }
 
@@ -71,7 +70,7 @@ namespace gridtools {
             bind_functor_with_interval, (Functor, GT_META_CALL(level_to_index, (lev<Splitter, Offset>))));
 
         template <class Functor, uint_t Splitter, int_t Offset>
-        std::string run() {
+        const char *run() {
             return run_bound_functor<testee<Functor, Splitter, Offset>>();
         }
 
