@@ -416,6 +416,8 @@ namespace gridtools {
                         if (i)
                             tmp_strm << ", ";
                         if (meta) {
+                            const int tmp = 0;
+                            (void)tmp;
                             tmp_strm << "descriptor" << i;
                         } else {
                             tmp_strm << "arg" << i;
