@@ -112,16 +112,31 @@ namespace gridtools {
                 }
             };
 
+            template <class TypeToStr, class Fun>
+            class for_each_param_helper {
+              public:
+                template <typename T>
+                void operator()(T t) const {
+                    apply_to_param_f{}(m_fun, m_type_to_str, m_count, t);
+                }
+
+                template <class T, class F>
+                for_each_param_helper(T &&type_to_str, F &&fun, int &count)
+                    : m_type_to_str(std::forward<T>(type_to_str)), m_fun(std::forward<F>(fun)), m_count(count) {}
+
+              private:
+                typename std::decay<TypeToStr>::type m_type_to_str;
+                typename std::decay<Fun>::type m_fun;
+                int &m_count;
+            };
+
             template <class Signature, class TypeToStr, class Fun>
             void for_each_param(TypeToStr &&type_to_str, Fun &&fun) {
                 namespace m = boost::mpl;
                 int count = 0;
                 m::for_each<typename boost::function_types::parameter_types<Signature>::type, boxed<m::_>>(
-                    std::bind(apply_to_param_f{},
-                        std::forward<Fun>(fun),
-                        std::forward<TypeToStr>(type_to_str),
-                        std::ref(count),
-                        std::placeholders::_1));
+                    for_each_param_helper<TypeToStr, Fun>{
+                        std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), std::ref(count)});
             };
 
             template <class CSignature>
