@@ -34,9 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "backend_select.hpp"
+#include <cstdlib>
+#include <iostream>
+
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <tuple>
+
+#include "backend_select.hpp"
 
 /**
    @file This file shows an implementation of the "horizontal
@@ -126,7 +130,7 @@ struct out_function {
 
 int main(int argc, char **argv) {
 
-    gt::uint_t halo_size = 2;
+    constexpr gt::uint_t halo_size = 2;
 
     gt::uint_t d1, d2, d3;
     if (argc != 4) {
@@ -139,16 +143,16 @@ int main(int argc, char **argv) {
     }
 
     using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
-    using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<2, 2, 0>>;
+    using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
     using storage_type = storage_tr::data_store_t<gt::float_type, storage_info_ijk_t>;
 
     // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
-    storage_info_ijk_t sinfo(d1, d2, d3);
+    storage_info_ijk_t sinfo{d1, d2, d3};
 
     // Definition of the actual data fields that are used for input/output, instantiated using the storage_info
-    storage_type in(sinfo, "in");
-    storage_type out(sinfo, "out");
-    storage_type coeff(sinfo, "coeff");
+    storage_type in{sinfo, "in"};
+    storage_type out{sinfo, "out"};
+    storage_type coeff{sinfo, "coeff"};
 
     // Definition of placeholders. The order does not have any semantics
     typedef gt::tmp_arg<0, storage_type> p_lap; // This represent a
@@ -187,17 +191,17 @@ int main(int argc, char **argv) {
     // that will not be modified during the computation, and then the
     // stencil structure
     auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
-        p_coeff() = coeff, // Binding data_stores that will not change during the application
-        gt::make_multistage(gt::enumtype::execute<gt::enumtype::parallel, 20>(),
-            define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap(), p_flx(), p_fly())),
-            gt::make_stage<lap_function>(p_lap(), p_in()),
-            gt::make_independent(gt::make_stage<flx_function>(p_flx(), p_in(), p_lap()),
-                gt::make_stage<fly_function>(p_fly(), p_in(), p_lap())),
-            gt::make_stage<out_function>(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+        p_coeff{} = coeff, // Binding data_stores that will not change during the application
+        gt::make_multistage(gt::enumtype::execute<gt::enumtype::parallel, 20>{},
+            define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
+            gt::make_stage<lap_function>(p_lap{}, p_in{}),
+            gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
+                gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),
+            gt::make_stage<out_function>(p_out{}, p_in{}, p_flx{}, p_fly{}, p_coeff{})));
 
     // The execution happens here. Here we bind the placeholders to
     // the data. This binding can change at every `run` invokation
-    horizontal_diffusion.run(p_in() = in, p_out() = out);
+    horizontal_diffusion.run(p_in{} = in, p_out{} = out);
 
     out.sync();
 

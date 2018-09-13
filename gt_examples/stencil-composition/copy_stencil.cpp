@@ -34,6 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include <cassert>
+#include <cstdlib>
+#include <iostream>
+
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <tuple>
 
@@ -101,7 +105,7 @@ int main(int argc, char **argv) {
     typedef gt::storage_traits<backend_t::backend_id_t>::data_store_t<gt::float_type, storage_info_t> data_store_t;
 
     // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
-    storage_info_t meta_data_(d1, d2, d3);
+    storage_info_t meta_data_{d1, d2, d3};
 
     // Definition of placeholders. The order does not have any semantics
     typedef gt::arg<0, data_store_t> p_in;
@@ -115,14 +119,14 @@ int main(int argc, char **argv) {
     // since there is not specific axis definition.
     auto grid = gt::make_grid(gt::halo_descriptor(d1), gt::halo_descriptor(d2), d3);
 
-    data_store_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
-    data_store_t out(meta_data_, -1.0, "out");
+    data_store_t in{meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"};
+    data_store_t out{meta_data_, -1.0, "out"};
 
     auto copy = gt::make_computation<backend_t>(grid,
-        p_in() = in,
-        p_out() = out,
+        p_in{} = in,
+        p_out{} = out,
         gt::make_multistage(
-            gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in(), p_out())));
+            gt::enumtype::execute<gt::enumtype::parallel>{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
 
     copy.run();
 
