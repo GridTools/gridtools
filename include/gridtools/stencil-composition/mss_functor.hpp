@@ -42,12 +42,14 @@
 
 #pragma once
 
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "hasdo.hpp"
 #include "mss.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "mss_metafunctions.hpp"
 #include "run_functor_arguments.hpp"
+#include <boost/mpl/count_if.hpp>
 
 namespace gridtools {
 
@@ -158,7 +160,7 @@ namespace gridtools {
          * operations defined on that functor.
          */
         template <typename Index>
-        void operator()(Index const &) const {
+        GT_FUNCTION_HOST void operator()(Index const &) const {
             GRIDTOOLS_STATIC_ASSERT((Index::value < boost::mpl::size<MssComponentsArray>::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::at<MssComponentsArray, Index>::type mss_components_t;
 
@@ -237,10 +239,8 @@ namespace gridtools {
             // otherwise it could happen that warp A is already in level k+1
             // filling values in the cache while warp B did not consume the
             // cached values (written by A) from level k yet -> race condition)
-            typedef typename boost::mpl::transform<typename mss_components_t::cache_sequence_t, cache_is_type<IJ>>::type
-                cache_types_t;
-            typedef typename boost::mpl::not_<typename boost::mpl::contains<cache_types_t,
-                boost::integral_constant<bool, true>>::type>::type contains_no_IJ_cache_t;
+            using contains_no_IJ_cache_t = bool_constant<
+                boost::mpl::count_if<typename mss_components_t::cache_sequence_t, cache_is_type<IJ>>::type::value == 0>;
 
             typedef typename boost::mpl::insert<async_esf_map_tmp_t,
                 boost::mpl::pair<typename boost::mpl::at_c<functors_list_t, boost::mpl::size<next_thing>::value>::type,

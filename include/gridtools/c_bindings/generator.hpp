@@ -56,6 +56,8 @@
 namespace gridtools {
     namespace c_bindings {
 
+        std::string wrap_line(const std::string &line, const std::string &prefix);
+
         namespace _impl {
 
             struct c_string_less {
@@ -405,7 +407,7 @@ namespace gridtools {
                         }
                     });
 
-                tmp_strm = std::stringstream{};
+                tmp_strm.str("");
                 if (std::is_void<typename ft::result_type<CSignature>::type>::value) {
                     tmp_strm << "call " << fortran_cbindings_name << "(";
                 } else {
@@ -416,8 +418,6 @@ namespace gridtools {
                         if (i)
                             tmp_strm << ", ";
                         if (meta) {
-                            const int tmp = 0;
-                            (void)tmp;
                             tmp_strm << "descriptor" << i;
                         } else {
                             tmp_strm << "arg" << i;
