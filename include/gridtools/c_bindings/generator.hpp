@@ -307,8 +307,6 @@ namespace gridtools {
                 : is_there_in_sequence_if<typename boost::function_types::parameter_types<CSignature>::type,
                       std::is_same<boost::mpl::_, gt_fortran_array_descriptor *>> {};
 
-            std::string wrap_line(const std::string &line, const std::string &prefix);
-
             /**
              * @brief This function writes the `interface`-section of the fortran-code.
              * @param strm Stream, where the output will be written to
