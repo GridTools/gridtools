@@ -86,7 +86,7 @@ namespace gridtools {
             m_j_blocks = (m_j_grid_size + m_j_block_size - 1) / m_j_block_size;
             const int_t max_i_blocks = threads / m_j_blocks;
             m_i_block_size = (m_i_grid_size + max_i_blocks - 1) / max_i_blocks;
-            m_i_blocks = (m_j_grid_size + m_i_block_size - 1) / m_i_block_size;
+            m_i_blocks = (m_i_grid_size + m_i_block_size - 1) / m_i_block_size;
 
             assert(m_i_block_size > 0 && m_j_block_size > 0);
         }
