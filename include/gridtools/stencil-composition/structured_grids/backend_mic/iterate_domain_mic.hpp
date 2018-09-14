@@ -67,7 +67,7 @@ namespace gridtools {
         /**
          * @brief Per-thread global fixed-point value of omp_get_thread_num() / omp_get_max_threads().
          */
-        long fixedp_thread_factor() {
+        inline long fixedp_thread_factor() {
             thread_local static const long value =
                 (omp_get_thread_num() << fixedp_thread_factor_prec) / omp_get_max_threads();
             return value;
