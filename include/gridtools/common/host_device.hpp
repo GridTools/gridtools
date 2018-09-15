@@ -78,12 +78,68 @@
 #endif
 #endif
 
-#ifndef GT_KERNEL
-#ifdef __CUDACC__
-#define GT_KERNEL __global__
-#else
-#define GT_KERNEL
-#endif
-#endif
+/**
+ *   A helper to implement a family of functions with that are different from each other only by target specifies.
+ *
+ *   It uses the same design pattern as BOOST_PP_ITERATE does.
+ *   For example if one wants to define a function with any possible combination of __host__ and __device__ specifiers
+ *   he needs to write the following code:
+ *
+ *   foo.hpp:
+ *
+ *   // here we query if this file is used in the context of iteration
+ *   #ifndef GT_TARGET_ITERATING
+ *
+ *   // note that you can't use `#pragma once` here and have to use classic header guards instead
+ *   #ifndef FOO_HPP_
+ *   #define FOO_HPP_
+ *
+ *   #include <gridtools/common/host_device.hpp>
+ *
+ *   // we need to provide GT_ITERATE_ON_TARGETS() with the name of the current file to include it back during
+ *   // iteration process. GT_FILENAME is a hardcoded name that GT_ITERATE_ON_TARGETS() will use.
+ *   #define GT_FILENAME "foo.hpp"
+ *
+ *   // iteration takes place here
+ *   #include GT_ITERATE_ON_TARGETS()
+ *
+ *   // cleanup
+ *   #undef GT_FILENAME
+ *
+ *   #endif
+ *   #else
+ *
+ *   // here is the code that will be included several times during the iteration process
+ *
+ *   namespace my {
+ *     // GT_TARGET_NAMESPACE will be defined by GT_ITERATE_ON_TARGETS() for you.
+ *     // It could be either `namespace host` or `namespace device` or `namespace host_device`.
+ *     // one of those namespaces would be defined as `inline`
+ *     GT_TARGET_NAMESPACE {
+ *        // GT_TARGET will be defined by GT_ITERATE_ON_TARGETS() for you.
+ *        // It will contain target specifier that is needed it the given context.
+ *        GT_TARGET void foo() {}
+ *     }
+ *   }
+ *
+ *   #endif
+ *
+ *   By including "file.hpp" file the following symbols would be available:
+ *     my::foo
+ *     my::host::foo
+ *     my::device::foo
+ *     my::host_device::foo
+ *
+ *   where:
+ *
+ *   `my::host::foo` has no specifiers.
+ *
+ *   If compiling with CUDA, `my::device::foo` has `__device__` specifier, `my::host_device::foo` has
+ *   `__host__ __device__` specifier, and `my::foo` is resolved to `my::host_device::foo`.
+ *
+ *   Otherwise `my::foo`, `my::device::foo` and `my::host_device::foo` are all resolved to my::host::foo.
+ */
+#define GT_ITERATE_ON_TARGETS() <gridtools/common/iterate_on_host_device.hpp>
+
 /** @} */
 /** @} */

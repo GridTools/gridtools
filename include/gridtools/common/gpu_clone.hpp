@@ -65,7 +65,7 @@ namespace gridtools {
     /** @brief function called by the device, it allocates the storage on the GPU, given an object on the CPU.
     The template argument T is supposed to be of mask_object type */
     template <class T>
-    GT_KERNEL void construct(T object) {
+    __global__ void construct(T object) {
         typedef typename T::type derived_type;
         derived_type *p = reinterpret_cast<derived_type *>(&object);
         derived_type *x = new (p->gpu_object_ptr) derived_type(*p);
