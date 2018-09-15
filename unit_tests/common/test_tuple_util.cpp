@@ -34,12 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include <gridtools/common/tuple_util.hpp>
+
 #include <array>
 #include <tuple>
 #include <utility>
 
-#include <gridtools/common/tuple_util.hpp>
-
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
@@ -123,9 +124,23 @@ namespace gridtools {
             EXPECT_EQ(res, std::make_tuple(44, 7.3));
         }
 
+        TEST(transform, array) {
+            std::array<int, 2> src{42, 5};
+            auto res = transform(add_2_f{}, src);
+            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            EXPECT_THAT(res, testing::ElementsAre(44, 7));
+        }
+
         TEST(transform, multiple_inputs) {
             EXPECT_EQ(std::make_tuple(11, 22),
                 transform([](int lhs, int rhs) { return lhs + rhs; }, std::make_tuple(1, 2), std::make_tuple(10, 20)));
+        }
+
+        TEST(transform, multiple_arrays) {
+            EXPECT_THAT(
+                transform(
+                    [](int lhs, int rhs) { return lhs + rhs; }, std::array<int, 2>{1, 2}, std::array<int, 2>{10, 20}),
+                testing::ElementsAre(11, 22));
         }
 
         struct accumulate_f {
@@ -137,9 +152,14 @@ namespace gridtools {
         };
 
         TEST(for_each, functional) {
-            auto src = std::make_tuple(42, 5.3);
             double acc = 0;
-            for_each(accumulate_f{acc}, src);
+            for_each(accumulate_f{acc}, std::make_tuple(42, 5.3));
+            EXPECT_EQ(47.3, acc);
+        }
+
+        TEST(for_each, array) {
+            double acc = 0;
+            for_each(accumulate_f{acc}, std::array<double, 2>{42, 5.3});
             EXPECT_EQ(47.3, acc);
         }
 
@@ -163,9 +183,20 @@ namespace gridtools {
             EXPECT_EQ(90, acc);
         }
 
+        TEST(for_each_in_cartesian_product, array) {
+            double acc = 0;
+            for_each_in_cartesian_product(accumulate2_f{acc}, std::array<int, 2>{1, 2}, std::array<int, 2>{10, 20});
+            EXPECT_EQ(90, acc);
+        }
+
         TEST(flatten, functional) {
             EXPECT_EQ(
                 flatten(std::make_tuple(std::make_tuple(1, 2), std::make_tuple(3, 4))), std::make_tuple(1, 2, 3, 4));
+        }
+
+        TEST(flatten, array) {
+            EXPECT_THAT(flatten(std::make_tuple(std::array<int, 2>{1, 2}, std::array<int, 2>{3, 4})),
+                testing::ElementsAre(1, 2, 3, 4));
         }
 
         TEST(flatten, ref) {
@@ -178,11 +209,24 @@ namespace gridtools {
 
         TEST(drop_front, functional) { EXPECT_EQ(drop_front<2>(std::make_tuple(1, 2, 3, 4)), std::make_tuple(3, 4)); }
 
+        TEST(drop_front, array) {
+            EXPECT_THAT(drop_front<2>(std::array<int, 4>{1, 2, 3, 4}), testing::ElementsAre(3, 4));
+        }
+
         TEST(push_back, functional) { EXPECT_EQ(push_back(std::make_tuple(1, 2), 3, 4), std::make_tuple(1, 2, 3, 4)); }
+
+        TEST(push_back, array) {
+            EXPECT_THAT(push_back(std::array<int, 2>{1, 2}, 3, 4), testing::ElementsAre(1, 2, 3, 4));
+        }
 
         TEST(fold, functional) {
             auto f = [](int x, int y) { return x + y; };
             EXPECT_EQ(fold(f, std::make_tuple(1, 2, 3, 4)), 10);
+        }
+
+        TEST(fold, array) {
+            auto f = [](int x, int y) { return x + y; };
+            EXPECT_EQ(fold(f, std::array<int, 4>{1, 2, 3, 4}), 10);
         }
 
         TEST(apply, lambda) {
@@ -190,6 +234,10 @@ namespace gridtools {
             auto t = std::make_tuple(1, 2);
 
             EXPECT_EQ(3, apply(f, t));
+        }
+
+        TEST(apply, array) {
+            EXPECT_EQ(3, apply([](int x, int y) { return x + y; }, std::array<int, 2>{1, 2}));
         }
     } // namespace tuple_util
 } // namespace gridtools

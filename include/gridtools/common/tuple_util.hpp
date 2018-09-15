@@ -61,10 +61,12 @@ namespace gridtools {
      *
      *  Here is a set of algorithms that are defined on "tuple like" structures
      *  To be a "tuple like", a structure should:
-     *    - be a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ]
+     *    - be either a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ] or
+     *      have the specialization of the template structs size, to_types and from_types within
+     *      gridtools::tuple_util::trait namespace.
      *    - have accessors like do_get(std::integral_constant< size_t, I >, foo<Ts...>) defined in
      *      gridtools::tuple_util::traits namespace, or being available via ADL
-     *    - have an element wise ctor
+     *    - can be initialized element wise: [i.e. T x{a, b,c};]
      *    - have a ctor from another tuple of the same kind. [ i.e. foo<double, double> should be
      *      constructible from foo<int, int> or foo<double&&, double&&>]
      *
@@ -88,7 +90,6 @@ namespace gridtools {
      *
      *  TODO list
      *  =========
-     *  - extend concept to be applied to std::array's
      *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
      *  - supply all functions here with `GT_FUNCTION` variants.
      *  - add push_front
@@ -163,10 +164,52 @@ namespace gridtools {
                 constexpr auto operator()(T &&obj) const
                     GT_AUTO_RETURN(do_get(std::integral_constant<size_t, I>{}, std::forward<T>(obj)));
             };
+
+            template <class T>
+            struct size : meta::length<T> {};
+
+            template <class T, size_t N>
+            struct size<std::array<T, N>> : std::integral_constant<size_t, N> {};
+
+            template <class T>
+            struct to_types {
+                using type = T;
+            };
+
+            template <class T, size_t N>
+            struct to_types<std::array<T, N>> {
+                using type = GT_META_CALL(meta::repeat_c, (N, T));
+            };
+
+            template <class Sample, class Types>
+            struct from_types : meta::lazy::rename<meta::ctor<Sample>::template apply, Types> {};
+
+            template <class T, size_t N, template <class...> class L>
+            struct from_types<std::array<T, N>, L<>> {
+                using type = std::array<T, 0>;
+            };
+
+            template <class T, size_t N, template <class...> class L, class... Ts>
+            struct from_types<std::array<T, N>, L<Ts...>> {
+                using type = std::array<common_type_t<Ts...>, sizeof...(Ts)>;
+            };
         } // namespace traits
         /// @endcond
 
         using traits::get_f;
+
+        using traits::size;
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+        using traits::from_types;
+        using traits::to_types;
+#else
+        template <class T>
+        using to_types = typename traits::to_types<T>::type;
+        template <class Sample, class Types>
+        using from_types = typename traits::from_types<Sample, Types>::type;
+
+#endif
 
         /**
          * @brief Tuple element accessor like std::get.
@@ -290,8 +333,9 @@ namespace gridtools {
 #endif
 
             template <class Tup>
-            GT_META_DEFINE_ALIAS(
-                get_accessors, meta::transform, (get_accessor<get_ref_kind<Tup>::value>::template apply, decay_t<Tup>));
+            GT_META_DEFINE_ALIAS(get_accessors,
+                meta::transform,
+                (get_accessor<get_ref_kind<Tup>::value>::template apply, GT_META_CALL(to_types, decay_t<Tup>)));
 
             template <class Fun>
             struct transform_f {
@@ -302,10 +346,12 @@ namespace gridtools {
 
                 template <class Tup,
                     class... Tups,
-                    class Res = GT_META_CALL(
-                        get_results_t, (GT_META_CALL(get_accessors, Tup &&), GT_META_CALL(get_accessors, Tups &&)...))>
+                    class Res = GT_META_CALL(from_types,
+                        (decay_t<Tup>,
+                            GT_META_CALL(get_results_t,
+                                (GT_META_CALL(get_accessors, Tup &&), GT_META_CALL(get_accessors, Tups &&)...))))>
                 Res operator()(Tup &&tup, Tups &&... tups) const {
-                    constexpr auto length = meta::length<decay_t<Tup>>::value;
+                    constexpr auto length = size<decay_t<Tup>>::value;
                     using generators = GT_META_CALL(
                         meta::transform, (get_transform_generator, GT_META_CALL(meta::make_indices_c, length)));
                     return generate_f<generators, Res>{}(m_fun, std::forward<Tup>(tup), std::forward<Tups>(tups)...);
@@ -351,8 +397,8 @@ namespace gridtools {
                 Fun m_fun;
                 template <class... Tups>
                 void operator()(Tups &&... tups) const {
-                    for_each_in_cartesian_product_impl_f<GT_META_CALL(
-                        meta::cartesian_product, (GT_META_CALL(meta::make_indices_for, decay_t<Tups>)...))>{}(
+                    for_each_in_cartesian_product_impl_f<GT_META_CALL(meta::cartesian_product,
+                        (GT_META_CALL(meta::make_indices_c, size<decay_t<Tups>>::value)...))>{}(
                         m_fun, std::forward<Tups>(tups)...);
                 }
             };
@@ -383,8 +429,10 @@ namespace gridtools {
                 template <class Tup,
                     class Accessors = GT_META_CALL(
                         meta::transform, (get_accessors, GT_META_CALL(get_accessors, Tup &&))),
-                    class Res = GT_META_CALL(meta::flatten, Accessors)>
+                    class First = GT_META_CALL(meta::first, GT_META_CALL(to_types, decay_t<Tup>)),
+                    class Res = GT_META_CALL(from_types, (decay_t<First>, GT_META_CALL(meta::flatten, Accessors)))>
                 Res operator()(Tup &&tup) const {
+                    GRIDTOOLS_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
                     using generators = GT_META_CALL(meta::flatten,
                         (GT_META_CALL(meta::transform,
                             (get_inner_generators, GT_META_CALL(meta::make_indices_for, Accessors), Accessors))));
@@ -406,11 +454,11 @@ namespace gridtools {
 
                 template <class Tup,
                     class Accessors = GT_META_CALL(get_accessors, Tup &&),
-                    class Res = GT_META_CALL(meta::drop_front_c, (N, Accessors))>
+                    class Res = GT_META_CALL(
+                        from_types, (decay_t<Tup>, GT_META_CALL(meta::drop_front_c, (N, Accessors))))>
                 Res operator()(Tup &&tup) const {
                     using generators = GT_META_CALL(meta::transform,
-                        (get_drop_front_generator,
-                            GT_META_CALL(meta::make_indices_c, meta::length<Accessors>::value - N)));
+                        (get_drop_front_generator, GT_META_CALL(meta::make_indices_c, size<Accessors>::value - N)));
                     return generate_f<generators, Res>{}(std::forward<Tup>(tup));
                 }
             };
@@ -430,9 +478,10 @@ namespace gridtools {
                 template <class Tup,
                     class... Args,
                     class Accessors = GT_META_CALL(get_accessors, Tup &&),
-                    class Res = GT_META_CALL(meta::push_back, (Accessors, Args &&...))>
+                    class Res = GT_META_CALL(
+                        from_types, (decay_t<Tup>, GT_META_CALL(meta::push_back, (Accessors, Args &&...))))>
                 Res operator()(Tup &&tup, Args &&... args) const {
-                    return push_back_impl_f<make_gt_index_sequence<meta::length<Accessors>::value>, Res>{}(
+                    return push_back_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
                         std::forward<Tup>(tup), std::forward<Args>(args)...);
                 }
             };
@@ -449,8 +498,8 @@ namespace gridtools {
 
                 Fun m_fun;
 
-                template <class State, template <class...> class L>
-                State operator()(State &&state, L<>) const {
+                template <class State, class Tup>
+                enable_if_t<size<decay_t<Tup>>::value == 0, State> operator()(State &&state, Tup &&) const {
                     return state;
                 }
 
@@ -458,7 +507,7 @@ namespace gridtools {
                     class Tup,
                     class Accessors = GT_META_CALL(get_accessors, Tup &&),
                     class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors))>
-                Res operator()(State &&state, Tup &&tup) const {
+                enable_if_t<size<decay_t<Tup>>::value != 0, Res> operator()(State &&state, Tup &&tup) const {
                     auto &&new_state = m_fun(std::forward<State>(state), get<0>(std::forward<Tup>(tup)));
                     auto &&rest = drop_front_f<1>{}(std::forward<Tup>(tup));
                     return this->operator()(std::move(new_state), std::move(rest));
@@ -936,9 +985,8 @@ namespace gridtools {
          * See std::apply (c++17), with the limitation that it only works for FunctionObjects (not for any Callable)
          */
         template <class Fun, class Tup>
-        constexpr auto apply(Fun &&fun, Tup &&tup) GT_AUTO_RETURN(_impl::apply_impl(std::forward<Fun>(fun),
-            std::forward<Tup>(tup),
-            make_gt_index_sequence<meta::length<decay_t<Tup>>::value>{}));
+        constexpr auto apply(Fun &&fun, Tup &&tup) GT_AUTO_RETURN(_impl::apply_impl(
+            std::forward<Fun>(fun), std::forward<Tup>(tup), make_gt_index_sequence<size<decay_t<Tup>>::value>{}));
 
     } // namespace tuple_util
     /** @} */
