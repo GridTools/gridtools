@@ -552,13 +552,22 @@ namespace gridtools {
                         m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))), std::forward<Tup>(tup));
                 }
 
-                template <class State, class Tup>
-                auto operator()(State &&state, Tup &&tup) const GT_AUTO_RETURN(
-                    (impl<0, size<decay_t<Tup>>::value>(std::forward<State>(state), std::forward<Tup>(tup))));
+                template <class State,
+                    class Tup,
+                    class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                    class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors))>
+                Res operator()(State &&state, Tup &&tup) const {
+                    return impl<0, size<decay_t<Tup>>::value>(std::forward<State>(state), std::forward<Tup>(tup));
+                }
 
-                template <class Tup>
-                auto operator()(Tup &&tup) const GT_AUTO_RETURN(
-                    (impl<1, size<decay_t<Tup>>::value>(get<0>(std::forward<Tup>(tup)), std::forward<Tup>(tup))));
+                template <class Tup,
+                    class AllAccessors = GT_META_CALL(get_accessors, Tup &&),
+                    class StateAccessor = GT_META_CALL(meta::first, AllAccessors),
+                    class Accessors = GT_META_CALL(meta::drop_front_c, (1, AllAccessors)),
+                    class Res = GT_META_CALL(meta::lfold, (meta_fun, StateAccessor, Accessors))>
+                Res operator()(Tup &&tup) const {
+                    return impl<1, size<decay_t<Tup>>::value>(get<0>(std::forward<Tup>(tup)), std::forward<Tup>(tup));
+                }
             };
         } // namespace _impl
 

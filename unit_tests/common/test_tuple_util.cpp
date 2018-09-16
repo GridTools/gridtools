@@ -224,6 +224,11 @@ namespace gridtools {
             EXPECT_EQ(fold(f, std::make_tuple(1, 2, 3, 4, 5, 6)), 21);
         }
 
+        TEST(fold, with_state) {
+            auto f = [](int x, int y) { return x + y; };
+            EXPECT_EQ(fold(f, 100, std::make_tuple(1, 2, 3, 4, 5, 6)), 121);
+        }
+
         TEST(fold, array) {
             auto f = [](int x, int y) { return x + y; };
             EXPECT_EQ(fold(f, std::array<int, 6>{1, 2, 3, 4, 5, 6}), 21);
