@@ -57,19 +57,19 @@
 #ifdef __CUDACC__
 
 #define GT_TARGET_NAMESPACE inline namespace host_device
-#define GT_TARGET __host__ __device__
+#define GT_TARGET GT_HOST_DEVICE
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 
 #define GT_TARGET_NAMESPACE namespace host
-#define GT_TARGET
+#define GT_TARGET GT_HOST
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 
 #define GT_TARGET_NAMESPACE namespace device
-#define GT_TARGET __device__
+#define GT_TARGET GT_DEVICE
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
@@ -85,7 +85,7 @@
         using namespace host; \
     }                         \
     inline namespace host
-#define GT_TARGET
+#define GT_TARGET GT_HOST
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE

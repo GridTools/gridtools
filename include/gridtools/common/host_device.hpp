@@ -48,7 +48,9 @@
 #include <cuda_runtime.h>
 #endif
 
-#ifdef __GNUC__
+#if defined(__CUDACC__)
+#define GT_FORCE_INLINE __forceinline__
+#elif defined(__GNUC__)
 #define GT_FORCE_INLINE inline __attribute__((always_inline))
 #elif defined(_MSC_VER)
 #define GT_FORCE_INLINE inline __forceinline
@@ -62,20 +64,30 @@
 /* @def GT_FUNCTION_WARNING Function attribute macro to be used for host-only functions that might call a host-device
  * function. This macro is only needed to supress NVCC warnings. */
 
-#ifndef GT_FUNCTION
 #ifdef __CUDACC__
-/* Function attribute macros for NVCC, see Doxygen comments above for an explanation of the macros. */
-#define GT_FUNCTION __host__ __device__ __forceinline__
-#define GT_FUNCTION_HOST __host__ __forceinline__
-#define GT_FUNCTION_DEVICE __device__ __forceinline__
-#define GT_FUNCTION_WARNING __host__ __device__ __forceinline__
+#define GT_HOST_DEVICE __host__ __device__
+#define GT_DEVICE __device__
+#define GT_HOST __host__
 #else
-/* Function attribute macros for other compilers, see Doxygen comments above for an explanation of the macros. */
-#define GT_FUNCTION GT_FORCE_INLINE
-#define GT_FUNCTION_HOST GT_FORCE_INLINE
-#define GT_FUNCTION_DEVICE GT_FORCE_INLINE
-#define GT_FUNCTION_WARNING GT_FORCE_INLINE
+#define GT_HOST_DEVICE
+#define GT_DEVICE
+#define GT_HOST
 #endif
+
+#ifndef GT_FUNCTION
+#define GT_FUNCTION GT_HOST_DEVICE GT_FORCE_INLINE
+#endif
+
+#ifndef GT_FUNCTION_WARNING
+#define GT_FUNCTION_WARNING GT_HOST_DEVICE GT_FORCE_INLINE
+#endif
+
+#ifndef GT_FUNCTION_HOST
+#define GT_FUNCTION_HOST GT_HOST GT_FORCE_INLINE
+#endif
+
+#ifndef GT_FUNCTION_DEVICE
+#define GT_FUNCTION_DEVICE GT_HOST_DEVICE GT_FORCE_INLINE
 #endif
 
 /**
