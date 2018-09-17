@@ -34,9 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
 namespace gridtools {
 
-    template <typename T>
-    struct is_esf_descriptor : boost::mpl::false_ {};
+    template <class>
+    struct is_esf_descriptor : std::false_type {};
 
 } // namespace gridtools

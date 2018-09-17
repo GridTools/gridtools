@@ -33,10 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "../structured_grids/backend_mic/strategy_mic.hpp"
-#else
-#include "../icosahedral_grids/backend_mic/strategy_mic.hpp"
-#endif
+#include "./test_make_loop_intervals.cpp"

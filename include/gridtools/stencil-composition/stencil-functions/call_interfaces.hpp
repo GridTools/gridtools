@@ -44,7 +44,6 @@
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../accessor.hpp"
-#include "../functor_decorator.hpp"
 #include "../interval.hpp"           // to check if region is valid
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
 #include "../offset_computation.hpp"

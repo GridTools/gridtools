@@ -38,8 +38,6 @@
 #include "../../common/defs.hpp"
 #include "../backend_ids.hpp"
 
-#include "./backend_mic/tmp_storage.hpp"
-
 namespace gridtools {
     namespace tmp_storage {
         template <class StorageInfo, size_t NColors, class Platform, class Strategy>
