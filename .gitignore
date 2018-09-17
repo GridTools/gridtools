@@ -27,7 +27,8 @@ __pycache__
 # except
 !cmake
 !docs
-!examples
+!regression
+!gt_examples
 !include
 !jenkins
 !pyutils
