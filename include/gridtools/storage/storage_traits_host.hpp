@@ -40,8 +40,6 @@
 #include "../common/selector.hpp"
 #include "./common/definitions.hpp"
 #include "./common/storage_traits_metafunctions.hpp"
-#include "./storage_host/data_field_view_helpers.hpp"
-#include "./storage_host/data_view_helpers.hpp"
 #include "./storage_host/host_storage.hpp"
 #include "./storage_host/host_storage_info.hpp"
 

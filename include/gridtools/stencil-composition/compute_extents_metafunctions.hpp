@@ -150,8 +150,8 @@ namespace gridtools {
                     GRIDTOOLS_STATIC_ASSERT((is_extent<typename PlcRangePair::second>::value), GT_INTERNAL_ERROR);
 
                     typedef typename sum_extent<CurrentRange, typename PlcRangePair::second>::type candidate_extent;
-                    typedef typename enclosing_extent<candidate_extent,
-                        typename boost::mpl::at<CurrentMap, typename PlcRangePair::first>::type>::type extent;
+                    using extent = GT_META_CALL(enclosing_extent,
+                        (candidate_extent, typename boost::mpl::at<CurrentMap, typename PlcRangePair::first>::type));
                     typedef typename boost::mpl::erase_key<CurrentMap, typename PlcRangePair::first>::type map_erased;
                     typedef typename boost::mpl::insert<map_erased,
                         boost::mpl::pair<typename PlcRangePair::first, extent>>::type type; // new map
@@ -190,9 +190,8 @@ namespace gridtools {
             */
             template <typename Extents>
             struct min_enclosing_extents_of_outputs {
-                typedef
-                    typename boost::mpl::fold<Extents, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-                        type;
+                typedef typename boost::mpl::
+                    fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type type;
             };
 
             /**
@@ -426,7 +425,7 @@ namespace gridtools {
 
     template <typename Esf, typename ExtentMap>
     struct reduction_get_extent_for {
-        typedef typename esf_args<Esf>::type w_plcs;
+        typedef typename Esf::args_t w_plcs;
         typedef typename boost::mpl::at_c<w_plcs, 0>::type first_out;
         typedef typename boost::mpl::at<ExtentMap, first_out>::type extent;
 

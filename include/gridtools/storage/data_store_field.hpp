@@ -349,24 +349,6 @@ namespace gridtools {
         }
     };
 
-    // TODO this should disappear with data_store_field (dependency from storage -> stencil_composition)
-    template <typename T>
-    struct get_datafield_offset {
-        template <typename Acc>
-        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-            return 0;
-        }
-    };
-
-    template <typename T, unsigned... N>
-    struct get_datafield_offset<data_store_field<T, N...>> {
-        template <typename Acc>
-        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-            return get_accumulated_data_field_index(gridtools::get<Acc::n_dimensions - 2>(a), N...) +
-                   gridtools::get<Acc::n_dimensions - 1>(a);
-        }
-    };
-
     /**
      * @}
      */

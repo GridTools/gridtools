@@ -43,7 +43,6 @@
 #include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
 #include "../expandable_parameters/vector_accessor.hpp"
-#include "../sfinae.hpp"
 #include "accessor.hpp"
 #include "accessor_mixed.hpp"
 

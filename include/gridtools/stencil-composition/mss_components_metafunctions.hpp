@@ -42,22 +42,18 @@
 #include "../common/gt_assert.hpp"
 #include "./reductions/reduction_descriptor.hpp"
 #include "compute_extents_metafunctions.hpp"
-#include "functor_decorator.hpp"
-#include "functor_do_method_lookup_maps.hpp"
-#include "functor_do_methods.hpp"
 #include "grid.hpp"
-#include "loopintervals.hpp"
+#include "hasdo.hpp"
 #include "mss_components.hpp"
 #include "mss_metafunctions.hpp"
-#include "sfinae.hpp"
 
 namespace gridtools {
 
     template <typename T>
     struct mss_components_is_reduction;
 
-    template <typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis>
-    struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentSizes, RepeatFunctor, Axis>>
+    template <typename MssDescriptor, typename ExtentMap, typename RepeatFunctor, typename Axis>
+    struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentMap, RepeatFunctor, Axis>>
         : MssDescriptor::is_reduction_t {};
 
     template <typename MssDescriptor>
@@ -67,7 +63,9 @@ namespace gridtools {
         using execution_engine_t = typename mss_descriptor_execution_engine<MssDescriptor>::type;
 
         template <typename Esf_>
-        using compose_mss_ = mss_descriptor<execution_engine_t, boost::mpl::vector1<Esf_>>;
+        struct compose_mss_ {
+            using type = mss_descriptor<execution_engine_t, std::tuple<Esf_>>;
+        };
 
         using mss_split_multiple_esf_t =
             typename boost::mpl::fold<typename mss_descriptor_linear_esf_sequence<MssDescriptor>::type,
@@ -115,67 +113,7 @@ namespace gridtools {
             split_mss_into_independent_esfs<MssDescriptors>>::type;
 
         using type = typename boost::mpl::transform<mss_seq_t,
-            mss_components<boost::mpl::_, get_extent_sizes<boost::mpl::_, ExtentMap>, RepeatFunctor, Axis>>::type;
-    };
-
-    /**
-     * @brief metafunction that computes the mss functor do methods
-     */
-    template <typename MssComponents, typename Grid>
-    struct mss_functor_do_methods {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), GT_INTERNAL_ERROR);
-
-        /**
-         *  compute the functor do methods - This is the most computationally intensive part
-         */
-        template <typename Functor>
-        struct inserter_ {
-
-            typedef typename boost::mpl::if_<typename sfinae::has_two_args<Functor>::type,
-                Functor,
-                functor_default_interval<Functor, typename Grid::axis_type>>::type functor_t;
-
-            typedef typename compute_functor_do_methods<functor_t, typename Grid::axis_type>::type type;
-        };
-
-        typedef typename boost::mpl::transform<typename MssComponents::functors_seq_t,
-            inserter_<boost::mpl::_>>::type
-            type; // Vector of vectors - each element is a vector of pairs of actual axis-indices
-    };
-
-    /**
-     * @brief metafunction that computes the loop intervals of an mss
-     */
-    template <typename MssComponents, typename Grid>
-    struct mss_loop_intervals {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-
-        /**
-         *  compute the functor do methods - This is the most computationally intensive part
-         */
-        typedef typename mss_functor_do_methods<MssComponents, Grid>::type functor_do_methods;
-
-        /**
-         * compute the loop intervals
-         */
-        typedef typename compute_loop_intervals<functor_do_methods,
-            typename Grid::axis_type>::type type; // vector of pairs of indices - sorted and contiguous
-    };
-
-    template <typename MssComponents, typename Grid>
-    struct mss_functor_do_method_lookup_maps {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components<MssComponents>::value), GT_INTERNAL_ERROR);
-        typedef typename mss_functor_do_methods<MssComponents, Grid>::type functor_do_methods;
-
-        typedef typename mss_loop_intervals<MssComponents, Grid>::type loop_intervals;
-        /**
-         * compute the do method lookup maps
-         *
-         */
-        typedef typename boost::mpl::transform<functor_do_methods,
-            compute_functor_do_method_lookup_map<boost::mpl::_, loop_intervals>>::type
-            type; // vector of maps, indexed by functors indices in Functor vector.
+            mss_components<boost::mpl::_, ExtentMap, RepeatFunctor, Axis>>::type;
     };
 
     /**

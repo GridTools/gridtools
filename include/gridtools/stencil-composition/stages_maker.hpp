@@ -33,19 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../../../common/defs.hpp"
-#include "../../../common/host_device.hpp"
-#include "../../backend_ids.hpp"
-
-namespace gridtools {
-    GT_FUNCTION constexpr uint_t block_i_size(
-        backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &) {
-        return GT_DEFAULT_TILE_I;
-    }
-    GT_FUNCTION constexpr uint_t block_j_size(
-        backend_ids<platform::mc, grid_type::icosahedral, strategy::block> const &) {
-        return GT_DEFAULT_TILE_J;
-    }
-} // namespace gridtools
+#ifdef STRUCTURED_GRIDS
+#include "./structured_grids/stages_maker.hpp"
+#else
+#include "./icosahedral_grids/stages_maker.hpp"
+#endif

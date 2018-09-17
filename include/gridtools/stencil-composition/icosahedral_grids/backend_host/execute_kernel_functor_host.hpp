@@ -34,16 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/utility/enable_if.hpp>
 
 #include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../../common/generic_metafunctions/type_traits.hpp"
 #include "../../backend_host/basic_token_execution_host.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../grid_traits.hpp"
+#include "../stage.hpp"
 #include "./iterate_domain_host.hpp"
 #include "./run_esf_functor_host.hpp"
 
@@ -51,18 +51,34 @@ namespace gridtools {
 
     namespace icgrid {
 
-        template <typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent>
+        namespace _impl {
+            template <size_t Color>
+            struct loop_interval_contains_color {
+                template <class T>
+                GT_META_DEFINE_ALIAS(apply,
+                    meta::any_of,
+                    (stage_group_contains_color<Color>::template apply, GT_META_CALL(meta::at_c, (T, 2))));
+            };
+        } // namespace _impl
+
+        /**
+         * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
+         * @tparam IterateDomain iterator domain class
+         * @tparam Grid grid object as it provided by user.
+         */
+        template <typename RunFunctorArguments, typename IterateDomain, typename Grid>
         struct color_execution_functor {
+          private:
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
-            typedef typename RunFunctorArguments::execution_type_t execution_type_t;
-            typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
+            template <class Color>
+            GT_META_DEFINE_ALIAS(has_color,
+                meta::any_of,
+                (_impl::loop_interval_contains_color<Color::value>::template apply,
+                    typename RunFunctorArguments::loop_intervals_t));
 
-          private:
             IterateDomain &m_it_domain;
             Grid const &m_grid;
             uint_t m_loop_size;
@@ -71,29 +87,20 @@ namespace gridtools {
             color_execution_functor(IterateDomain &it_domain, Grid const &grid, uint_t loop_size)
                 : m_it_domain(it_domain), m_grid(grid), m_loop_size(loop_size) {}
 
-            template <typename Index>
-            void operator()(Index const &,
-                typename boost::enable_if<typename esf_sequence_contains_color<esf_sequence_t,
-                    color_type<Index::value>>::type>::type * = 0) const {
-
+            template <class Color, enable_if_t<has_color<Color>::value, int> = 0>
+            void operator()(Color) const {
                 for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
-
-                    // we fill the run_functor_arguments with the current color being processed
-                    using run_functor_arguments_t = GT_META_CALL(meta::replace,
-                        (RunFunctorArguments, typename RunFunctorArguments::color_t, color_type<(uint_t)Index::value>));
-
-                    run_functors_on_interval<run_functor_arguments_t, run_esf_functor_host>(m_it_domain, m_grid);
+                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_host<Color::value>>(
+                        m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
                 }
                 m_it_domain.increment_j(-m_loop_size);
                 m_it_domain.increment_c();
             }
-            template <typename Index>
-            void operator()(Index const &,
-                typename boost::disable_if<typename esf_sequence_contains_color<esf_sequence_t,
-                    color_type<Index::value>>::type>::type * = 0) const {
+            template <class Color, enable_if_t<!has_color<Color>::value, int> = 0>
+            void operator()(Color) const {
                 // If there is no ESF in the sequence matching the color, we skip execution and simply increment the
                 // color iterator
                 m_it_domain.increment_c();
@@ -112,9 +119,8 @@ namespace gridtools {
 
             typedef typename extract_esf_location_type<esf_sequence_t>::type location_type_t;
 
-            using n_colors_t = typename location_type_t::n_colors;
+            static constexpr int_t n_colors = location_type_t::n_colors::value;
 
-            typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
             // in the host backend there should be only one esf per mss
@@ -135,10 +141,8 @@ namespace gridtools {
 
             typedef backend_traits_from_id<platform::x86> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
-            typedef typename boost::mpl::front<loop_intervals_t>::type interval;
-            typedef typename index_to_level<typename interval::first>::type from;
-            typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
+            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+            using from_t = GT_META_CALL(meta::first, interval_t);
 
             template <class ReductionData>
             execute_kernel_functor_host(const local_domain_t &local_domain,
@@ -166,14 +170,13 @@ namespace gridtools {
                     m_block_no,
                     {extent_t::iminus::value,
                         extent_t::jminus::value,
-                        static_cast<int_t>(
-                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
+                        static_cast<int_t>(m_grid.template value_at<from_t>() - m_grid.k_min())});
 
                 for (uint_t i = 0; i != m_size.i; ++i) {
-                    boost::mpl::for_each<boost::mpl::range_c<uint_t, 0, n_colors_t::value>>(
-                        color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t, extent_t>{
+                    gridtools::for_each<GT_META_CALL(meta::make_indices_c, n_colors)>(
+                        color_execution_functor<RunFunctorArguments, iterate_domain_t, grid_t>{
                             it_domain, m_grid, m_size.j});
-                    it_domain.template increment_c<-int_t(n_colors_t::value)>();
+                    it_domain.template increment_c<-n_colors>();
                     it_domain.increment_i();
                 }
             }

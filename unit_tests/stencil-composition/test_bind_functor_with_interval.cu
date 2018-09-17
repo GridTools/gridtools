@@ -33,6 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "./backend_mic/block.hpp"
+#include "./test_bind_functor_with_interval.cpp"

@@ -40,16 +40,17 @@
 #include <boost/fusion/include/flatten.hpp>
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/mpl/transform_view.hpp>
 #include <boost/optional.hpp>
 
 #include "../common/functional.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/tuple_util.hpp"
 #include "../common/vector_traits.hpp"
-#include "./tmp_storage.hpp"
-
+#include "./esf_metafunctions.hpp"
 #include "./extract_placeholders.hpp"
 #include "./local_domain.hpp"
+#include "./tmp_storage.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -252,7 +253,8 @@ namespace gridtools {
                   Extent> {};
 
         template <class Extents>
-        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>> {};
+        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>> {
+        };
 
         template <class MssComponents>
         struct get_max_extent_for_tmp_from_mss_components
