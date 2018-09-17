@@ -74,6 +74,10 @@ struct flx_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
+        // Instead of using a temporary variable we writedirectly to
+        // eval(out()) twice. This will eliminate a possible thread
+        // divergenge on GPUs since we can avoid to put the `else`
+        // branch below
         eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
         if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
             eval(out()) = 0.;
@@ -91,6 +95,10 @@ struct fly_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
+        // Instead of using a temporary variable we writedirectly to
+        // eval(out()) twice. This will eliminate a possible thread
+        // divergenge on GPUs since we can avoid to put the `else`
+        // branch below
         eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
         if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
             eval(out()) = 0.;

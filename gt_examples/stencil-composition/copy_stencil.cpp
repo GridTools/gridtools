@@ -59,7 +59,7 @@ struct copy_functor {
     using arg_list = boost::mpl::vector<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void Do(Evaluation eval) {
         eval(out()) = eval(in());
     }
 };
