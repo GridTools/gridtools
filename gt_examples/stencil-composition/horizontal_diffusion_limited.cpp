@@ -37,8 +37,8 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <boost/mpl/vector.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <tuple>
 
 #include "backend_select.hpp"
 
@@ -50,11 +50,6 @@
 
 namespace gt = gridtools;
 
-using gt::accessor;
-using gt::arg;
-using gt::extent;
-using gt::level;
-
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
     using out = gt::accessor<0, gt::enumtype::inout>;
@@ -64,8 +59,8 @@ struct lap_function {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
-        eval(out()) = (gt::float_type)4 * eval(in()) -
-                      (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
+        eval(out()) =
+            4. * eval(in()) - (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
     }
 };
 
@@ -114,19 +109,11 @@ struct out_function {
     using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void Do(Evaluation eval) {
         eval(out()) =
             eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
     }
 };
-
-// /*
-//  * The following operators and structs are for debugging only in VERBOSE mode
-//  */
-// std::ostream &operator<<(std::ostream &s, lap_function const) { return s << "lap_function"; }
-// std::ostream &operator<<(std::ostream &s, flx_function const) { return s << "flx_function"; }
-// std::ostream &operator<<(std::ostream &s, fly_function const) { return s << "fly_function"; }
-// std::ostream &operator<<(std::ostream &s, out_function const) { return s << "out_function"; }
 
 int main(int argc, char **argv) {
 
@@ -134,7 +121,7 @@ int main(int argc, char **argv) {
 
     gt::uint_t d1, d2, d3;
     if (argc != 4) {
-        std::cout << "Usage: " << argv[0] << " dimx dimy dimz\n";
+        std::cerr << "Usage: " << argv[0] << " dimx dimy dimz\n";
         return 1;
     } else {
         d1 = atoi(argv[1]);
@@ -155,17 +142,17 @@ int main(int argc, char **argv) {
     storage_type coeff{sinfo, "coeff"};
 
     // Definition of placeholders. The order does not have any semantics
-    typedef gt::tmp_arg<0, storage_type> p_lap; // This represent a
+    using p_lap = gt::tmp_arg<0, storage_type>; // This represent a
                                                 // temporary data (the
                                                 // library will take
                                                 // care of that and it
                                                 // is not observable
                                                 // by the user
-    typedef gt::tmp_arg<1, storage_type> p_flx;
-    typedef gt::tmp_arg<2, storage_type> p_fly;
-    typedef gt::arg<3, storage_type> p_coeff; // This is a regular placeholder to some data
-    typedef gt::arg<4, storage_type> p_in;
-    typedef gt::arg<5, storage_type> p_out;
+    using p_flx = gt::tmp_arg<1, storage_type>;
+    using p_fly = gt::tmp_arg<2, storage_type>;
+    using p_coeff = gt::arg<3, storage_type>; // This is a regular placeholder to some data
+    using p_in = gt::arg<4, storage_type>;
+    using p_out = gt::arg<5, storage_type>;
 
     // Now we describe the itaration space. The frist two dimensions
     // are described with a tuple of values (minus, plus, begin, end,
@@ -204,6 +191,4 @@ int main(int argc, char **argv) {
     horizontal_diffusion.run(p_in{} = in, p_out{} = out);
 
     out.sync();
-
-    return 0;
 }
