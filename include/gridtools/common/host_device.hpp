@@ -106,7 +106,7 @@
  *   #ifndef FOO_HPP_
  *   #define FOO_HPP_
  *
- *   #include <gridtools/common/host_device.hpp>
+ *   #include <path/to/this/file/host_device.hpp>
  *
  *   // we need to provide GT_ITERATE_ON_TARGETS() with the name of the current file to include it back during
  *   // iteration process. GT_FILENAME is a hardcoded name that GT_ITERATE_ON_TARGETS() will use.
