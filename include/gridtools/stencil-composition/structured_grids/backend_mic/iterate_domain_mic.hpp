@@ -60,16 +60,10 @@ namespace gridtools {
 
     namespace _impl {
         /**
-         * @brief Precision (fractional bits) of fixed-point computations used in temporary offset computations.
+         * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
-        static constexpr uint_t fixedp_thread_factor_prec = 16;
-
-        /**
-         * @brief Per-thread global fixed-point value of omp_get_thread_num() / omp_get_max_threads().
-         */
-        inline long fixedp_thread_factor() {
-            thread_local static const long value =
-                (omp_get_thread_num() << fixedp_thread_factor_prec) / omp_get_max_threads();
+        inline float thread_factor() {
+            thread_local static const float value = omp_get_thread_num() / omp_get_max_threads();
             return value;
         }
 
@@ -101,7 +95,7 @@ namespace gridtools {
                 storage_info_ptr_t storage_info =
                     boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs);
 
-                return (storage_info->padded_total_length() * fixedp_thread_factor()) >> fixedp_thread_factor_prec;
+                return int_t(storage_info->padded_total_length() * thread_factor());
             }
 
             template <typename Arg>
