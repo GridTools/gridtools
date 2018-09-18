@@ -38,7 +38,6 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/stencil-composition/level.hpp>
-#include <gridtools/stencil-composition/level_metafunctions.hpp>
 
 using namespace gridtools;
 
@@ -70,20 +69,4 @@ TEST(test_level, index_to_level) {
     ASSERT_TYPE_EQ<level<2, -1, 2>, typename index_to_level<level_index<9, 2>>::type>();
     ASSERT_TYPE_EQ<level<2, 1, 2>, typename index_to_level<level_index<10, 2>>::type>();
     ASSERT_TYPE_EQ<level<2, 2, 2>, typename index_to_level<level_index<11, 2>>::type>();
-}
-
-TEST(test_level, level_gt) {
-    using level_1 = level<0, -1, 3>;
-    using level_2 = level<0, 1, 3>;
-    using level_3 = level<1, 1, 3>;
-
-    static_assert(impl_::level_gt::apply<level_2, level_1>::value, "");
-    static_assert(impl_::level_gt::apply<level_3, level_2>::value, "");
-    static_assert(impl_::level_gt::apply<level_3, level_1>::value, "");
-    static_assert(!impl_::level_gt::apply<level_1, level_2>::value, "");
-    static_assert(!impl_::level_gt::apply<level_2, level_3>::value, "");
-    static_assert(!impl_::level_gt::apply<level_1, level_3>::value, "");
-    static_assert(!impl_::level_gt::apply<level_1, level_1>::value, "");
-    static_assert(!impl_::level_gt::apply<level_2, level_2>::value, "");
-    static_assert(!impl_::level_gt::apply<level_3, level_3>::value, "");
 }

@@ -68,8 +68,6 @@
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/block.hpp"
-#else
-#include "./icosahedral_grids/block.hpp"
 #endif
 
 namespace gridtools {

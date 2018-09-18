@@ -59,9 +59,12 @@
 #define GT_META_DEFINE_ALIAS(name, fun, args) \
     struct name : GT_META_INTERNAL_APPLY(fun, args) {}
 
+#define GT_META_LAZY_NAMESPASE inline namespace lazy
+
+#define GT_META_DELEGATE_TO_LAZY(fun, signature, args) static_assert(1, "")
+
 // internal
 #define GT_META_INTERNAL_LAZY_PARAM(fun) BOOST_PP_REMOVE_PARENS(fun)
-#define GT_META_INTERNAL_LAZY_INLINE inline
 
 #else
 
@@ -74,9 +77,14 @@
  */
 #define GT_META_DEFINE_ALIAS(name, fun, args) using name = GT_META_INTERNAL_APPLY(fun, args)
 
+#define GT_META_LAZY_NAMESPASE namespace lazy
+
+#define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
+    template <BOOST_PP_REMOVE_PARENS(signature)>       \
+    using fun = typename lazy::fun<BOOST_PP_REMOVE_PARENS(args)>::type
+
 // internal
 #define GT_META_INTERNAL_LAZY_PARAM(fun) ::gridtools::meta::force<BOOST_PP_REMOVE_PARENS(fun)>::template apply
-#define GT_META_INTERNAL_LAZY_INLINE
 
 #endif
 
@@ -304,6 +312,9 @@ namespace gridtools {
         template <template <class...> class L, class... Ts>
         struct length<L<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
 
+        template <class T>
+        struct is_empty : bool_constant<length<T>::value == 0> {};
+
         /**
          *   Check if L is a ctor of List
          */
@@ -340,7 +351,7 @@ namespace gridtools {
         using _9 = placeholder<8>;
         using _10 = placeholder<9>;
 
-        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
+        GT_META_LAZY_NAMESPASE {
 
             /**
              *  Normalized std::conditional version, which is proper function in the terms of meta library.
@@ -407,7 +418,7 @@ namespace gridtools {
 
 #endif
 
-        GT_META_INTERNAL_LAZY_INLINE namespace lazy {
+        GT_META_LAZY_NAMESPASE {
 
             /**
              *  Identity (lazy)
@@ -732,12 +743,25 @@ namespace gridtools {
             };
 
             /**
+             *   Takes `2D array` of types (i.e. list of lists where inner lists are the same length) and do
+             *   trasposition. Example:
+             *   a<b<void, void*, void**>, b<int, int*, int**>> => b<a<void, int>, a<void*, int*>, a<void**, int**>>
+             */
+            template <class>
+            struct transpose;
+            template <template <class...> class L>
+            struct transpose<L<>> {
+                using type = list<>;
+            };
+            template <template <class...> class Outer, template <class...> class Inner, class... Ts, class... Inners>
+            struct transpose<Outer<Inner<Ts...>, Inners...>>
+                : lfold<transform<meta::push_back>::type::apply, Inner<Outer<Ts>...>, list<Inners...>> {};
+
+            /**
              *  Zip lists
              */
-            template <class List, class... Lists>
-            struct zip
-                : lfold<transform<meta::push_back>::type::apply, typename transform<list, List>::type, list<Lists...>> {
-            };
+            template <class... Lists>
+            struct zip : transpose<list<Lists...>> {};
 
             // transform, generic version
             template <template <class...> class F, class List, class... Lists>
@@ -826,6 +850,9 @@ namespace gridtools {
                 : second<typename mp_find<typename zip<typename make_indices_for<List>::type, List>::type, N>::type> {};
             template <class List, size_t N>
             GT_META_DEFINE_ALIAS(at_c, at, (List, std::integral_constant<size_t, N>));
+
+            template <class List>
+            GT_META_DEFINE_ALIAS(last, at_c, (List, length<List>::value - 1));
 
             /**
              * return the position of T in the Set. If there is no T, it returns the length of the Set.
@@ -1048,6 +1075,18 @@ namespace gridtools {
             template <template <class...> class L, class T0, class T1, class T2, class T3, class T4, class... Ts>
             struct reverse<L<T0, T1, T2, T3, T4, Ts...>>
                 : push_back<typename reverse<L<Ts...>>::type, T4, T3, T2, T1, T0> {};
+
+            template <class N, class List>
+            GT_META_DEFINE_ALIAS(drop_back, reverse, (typename drop_front<N, typename reverse<List>::type>::type));
+
+            template <size_t N, class List>
+            GT_META_DEFINE_ALIAS(drop_back_c, reverse, (typename drop_front_c<N, typename reverse<List>::type>::type));
+
+            template <class List>
+            GT_META_DEFINE_ALIAS(pop_front, drop_front_c, (1, List));
+
+            template <class List>
+            GT_META_DEFINE_ALIAS(pop_back, drop_back_c, (1, List));
         }
 
         /**
@@ -1112,12 +1151,14 @@ namespace gridtools {
         using drop_front_c = typename lazy::drop_front_c<N, List>::type;
         template <class Lists>
         using flatten = typename lazy::flatten<Lists>::type;
-        template <class List, class... Lists>
-        using zip = typename lazy::zip<List, Lists...>::type;
+        template <class... Lists>
+        using zip = typename lazy::zip<Lists...>::type;
         template <class List>
         using dedup = typename lazy::dedup<List>::type;
         template <class List, size_t N>
         using at_c = typename lazy::at_c<List, N>::type;
+        template <class List>
+        using last = typename lazy::last<List>::type;
         template <class N, class T>
         using repeat = typename lazy::repeat<N, T>::type;
         template <size_t N, class T>
@@ -1136,6 +1177,16 @@ namespace gridtools {
         using cartesian_product = typename lazy::cartesian_product<Lists...>::type;
         template <class List>
         using reverse = typename lazy::reverse<List>::type;
+        template <class N, class List>
+        using drop_front = typename lazy::drop_front<N, List>::type;
+        template <size_t N, class List>
+        using drop_front_c = typename lazy::drop_front_c<N, List>::type;
+        template <class List>
+        using pop_front = typename lazy::pop_front<List>::type;
+        template <class List>
+        using pop_back = typename lazy::pop_back<List>::type;
+        template <class Lists>
+        using transpose = typename lazy::transpose<Lists>::type;
 #endif
     } // namespace meta
     /** @} */
@@ -1143,5 +1194,4 @@ namespace gridtools {
     /** @} */
 } // namespace gridtools
 
-#undef GT_META_INTERNAL_LAZY_INLINE
 #undef GT_META_INTERNAL_LAZY_PARAM

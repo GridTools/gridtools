@@ -53,12 +53,3 @@ TEST(test_interval, modify) {
     ASSERT_TYPE_EQ<interval<level_t<0, -3>, level_t<1, -1>>, my_interval::modify<-2, 0>>();
     ASSERT_TYPE_EQ<interval<level_t<0, 2>, level_t<1, 2>>, my_interval::modify<2, 2>>();
 }
-
-TEST(test_interval, join) {
-    using interval1 = interval<level_t<1, -2>, level_t<1, -1>>;
-    using interval2 = interval<level_t<0, -1>, level_t<3, -1>>;
-    using interval3 = interval<level_t<2, -2>, level_t<3, -1>>;
-    using joined_interval = join_interval<interval1, interval2, interval3>;
-
-    ASSERT_TYPE_EQ<interval<level_t<0, -1>, level_t<3, -1>>, joined_interval>();
-}
