@@ -6,7 +6,7 @@ enable_language (CXX Fortran)
 
 if( GRIDTOOLS_MODULES )
 # To be completed!
-  
+
   add_subdirectory( modules/storage )
 
 else()
@@ -75,8 +75,16 @@ add_library(array_descriptor src/c_bindings/array_descriptor.f90)
 # ===============
 include (fix_test_case_name)
 if(NOT DISABLE_TESTING)
-  add_subdirectory(examples)
+  add_subdirectory(regression)
   add_subdirectory(unit_tests)
+endif()
+
+if( INSTALL_GT_EXAMPLES )
+   SET(COMPILE_EXAMPLES ON)
+endif()
+
+if( COMPILE_EXAMPLES )
+  add_subdirectory(gt_examples)
 endif()
 
 # ===============
@@ -116,6 +124,7 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
 install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
 install(TARGETS
         gcl
+        gtest
         c_bindings_generator
         c_bindings_handle
         c_bindings_handle_fortran
@@ -129,6 +138,13 @@ install(FILES
 install(FILES
     "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
     DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
+if ( INSTALL_GT_EXAMPLES )
+    install(DIRECTORY
+            gt_examples
+            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" )
+endif()
+
 # Install the export set for use with the install-tree
 # TODO should this really be installed to PROJECT_BINARY_DIR (why not install?)
 install(EXPORT GridTools DESTINATION
@@ -141,4 +157,3 @@ message("compile definitions: ${COMPILE_DEFINITIONS}")
 include (post_config_actions)
 
 endif()
-

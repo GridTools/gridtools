@@ -34,8 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "esf.hpp"
 #include <boost/mpl/equal.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
 
@@ -45,15 +48,6 @@ namespace gridtools {
         typedef static_bool<boost::is_same<typename Esf1::esf_function, typename Esf2::esf_function>::value &&
                             boost::mpl::equal<typename Esf1::args_t, typename Esf2::args_t>::value>
             type;
-    };
-
-    struct extract_esf_functor {
-        template <typename Esf>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::esf_function type;
-        };
     };
 
     template <typename Esf>

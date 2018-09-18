@@ -34,11 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+
 #include <boost/mpl/equal.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/set/set0.hpp>
+
+#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
     namespace icgrid {
@@ -89,15 +93,6 @@ namespace gridtools {
             type;
     };
 
-    struct extract_esf_functor {
-        template <typename Esf>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::template esf_function<0> type;
-        };
-    };
-
     template <typename Esf>
     struct esf_arg_list {
         template <typename Set, typename Item>
@@ -133,5 +128,4 @@ namespace gridtools {
     struct esf_extent<esf_descriptor_with_extent<Functor, Grid, LocationType, Extent, Color, ArgSequence>> {
         using type = Extent;
     };
-
 } // namespace gridtools

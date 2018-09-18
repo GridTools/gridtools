@@ -57,7 +57,7 @@ namespace gridtools {
 #if !defined(__CUDACC__)
                     typename enclosing_extent_full<default_extent_t, Extent>::type>>::type
 #else
-                    typename enclosing_extent<default_extent_t, Extent>::type>>::type
+                    GT_META_CALL(enclosing_extent, (default_extent_t, Extent))>>::type
 #endif
                 type;
         };
