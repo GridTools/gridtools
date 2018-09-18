@@ -37,7 +37,7 @@
 // DON'T USE #pragma once HERE!!!
 
 #if !defined(GT_FILENAME)
-#error GT_FILINAME is not defined
+#error GT_FILENAME is not defined
 #endif
 
 #if defined(GT_TARGET_ITERATING)

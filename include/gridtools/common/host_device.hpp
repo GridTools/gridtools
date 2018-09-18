@@ -99,6 +99,7 @@
  *
  *   foo.hpp:
  *
+ *   ```
  *   // here we query if this file is used in the context of iteration
  *   #ifndef GT_TARGET_ITERATING
  *
@@ -110,7 +111,7 @@
  *
  *   // we need to provide GT_ITERATE_ON_TARGETS() with the name of the current file to include it back during
  *   // iteration process. GT_FILENAME is a hardcoded name that GT_ITERATE_ON_TARGETS() will use.
- *   #define GT_FILENAME "foo.hpp"
+ *   #define GT_FILENAME <path/to/the/user/file/foo.hpp>
  *
  *   // iteration takes place here
  *   #include GT_ITERATE_ON_TARGETS()
@@ -135,6 +136,7 @@
  *   }
  *
  *   #endif
+ *   ```
  *
  *   By including "file.hpp" file the following symbols would be available:
  *     my::foo
