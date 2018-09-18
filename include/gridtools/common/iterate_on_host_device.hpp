@@ -34,68 +34,62 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/common/generic_metafunctions/for_each.hpp>
+// DON'T USE #pragma once HERE!!!
 
-#include <type_traits>
+#if !defined(GT_FILENAME)
+#error GT_FILENAME is not defined
+#endif
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#if defined(GT_TARGET_ITERATING)
+#error nesting target iterating is not supported
+#endif
 
-#include <gridtools/common/host_device.hpp>
+#if defined(GT_TARGET)
+#error GT_TARGET should not be defined outside of this file
+#endif
 
-namespace gridtools {
+#if defined(GT_TARGET_NAMESPACE)
+#error GT_TARGET_NAMESPACE should not be defined outside of this file
+#endif
 
-    struct f {
-        int *&dst;
+#define GT_TARGET_ITERATING
 
-        template <class T>
-        GT_FUNCTION_WARNING void operator()(T) const {
-            *(dst++) = T::value;
-        }
-    };
+#ifdef __CUDACC__
 
-    struct ff {
-        int *&dst;
+#define GT_TARGET_NAMESPACE inline namespace host_device
+#define GT_TARGET GT_HOST_DEVICE
+#include GT_FILENAME
+#undef GT_TARGET
+#undef GT_TARGET_NAMESPACE
 
-        template <class T>
-        GT_FUNCTION_WARNING void operator()() const {
-            *(dst++) = T::value;
-        }
-    };
+#define GT_TARGET_NAMESPACE namespace host
+#define GT_TARGET GT_HOST
+#include GT_FILENAME
+#undef GT_TARGET
+#undef GT_TARGET_NAMESPACE
 
-    template <class...>
-    struct lst;
+#define GT_TARGET_NAMESPACE namespace device
+#define GT_TARGET GT_DEVICE
+#include GT_FILENAME
+#undef GT_TARGET
+#undef GT_TARGET_NAMESPACE
 
-    template <int I>
-    using my_int_t = std::integral_constant<int, I>;
+#else
 
-    TEST(for_each, empty) {
-        int vals[3];
-        int *cur = vals;
-        for_each<lst<>>(f{cur});
-        EXPECT_EQ(cur, cur);
-    }
+#define GT_TARGET_NAMESPACE   \
+    inline namespace host {}  \
+    namespace device {        \
+        using namespace host; \
+    }                         \
+    namespace host_device {   \
+        using namespace host; \
+    }                         \
+    inline namespace host
+#define GT_TARGET GT_HOST
+#include GT_FILENAME
+#undef GT_TARGET
+#undef GT_TARGET_NAMESPACE
 
-    TEST(for_each, functional) {
-        int vals[3];
-        int *cur = vals;
-        for_each<lst<my_int_t<0>, my_int_t<42>, my_int_t<3>>>(f{cur});
-        EXPECT_EQ(cur, vals + 3);
-        EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
-    }
+#endif
 
-    TEST(for_each_type, functional) {
-        int vals[3];
-        int *cur = vals;
-        for_each_type<lst<my_int_t<0>, my_int_t<42>, my_int_t<3>>>(ff{cur});
-        EXPECT_EQ(cur, vals + 3);
-        EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
-    }
-
-    TEST(for_each, targets) {
-        int *ptr = nullptr;
-        for_each<lst<>>(f{ptr});
-        host::for_each<lst<>>(f{ptr});
-        host_device::for_each<lst<>>(f{ptr});
-    }
-} // namespace gridtools
+#undef GT_TARGET_ITERATING

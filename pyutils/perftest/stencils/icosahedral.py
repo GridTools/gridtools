@@ -6,7 +6,7 @@ from perftest.stencils import Stencil
 
 
 def path(stencil):
-    return os.path.join('examples', 'icosahedral', stencil)
+    return os.path.join('regression', 'icosahedral', stencil)
 
 
 class StencilOnEdgesMultifields(Stencil):
