@@ -56,6 +56,7 @@ namespace gridtools {
 
     struct ff {
         int *&dst;
+
         template <class T>
         GT_FUNCTION_WARNING void operator()() const {
             *(dst++) = T::value;
@@ -89,12 +90,5 @@ namespace gridtools {
         for_each_type<lst<my_int_t<0>, my_int_t<42>, my_int_t<3>>>(ff{cur});
         EXPECT_EQ(cur, vals + 3);
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
-    }
-
-    TEST(for_each, targets) {
-        int *ptr = nullptr;
-        for_each<lst<>>(f{ptr});
-        host::for_each<lst<>>(f{ptr});
-        host_device::for_each<lst<>>(f{ptr});
     }
 } // namespace gridtools
