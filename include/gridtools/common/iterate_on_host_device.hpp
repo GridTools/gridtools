@@ -56,14 +56,14 @@
 
 #ifdef __CUDACC__
 
-#define GT_TARGET_NAMESPACE inline namespace host_device
-#define GT_TARGET GT_HOST_DEVICE
+#define GT_TARGET_NAMESPACE inline namespace host
+#define GT_TARGET GT_HOST
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE
 
-#define GT_TARGET_NAMESPACE namespace host
-#define GT_TARGET GT_HOST
+#define GT_TARGET_NAMESPACE namespace host_device
+#define GT_TARGET GT_HOST_DEVICE
 #include GT_FILENAME
 #undef GT_TARGET
 #undef GT_TARGET_NAMESPACE

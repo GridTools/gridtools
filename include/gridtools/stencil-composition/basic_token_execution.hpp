@@ -141,7 +141,7 @@ namespace gridtools {
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
     GT_FUNCTION void run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
-        gridtools::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
+        host_device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{it_domain, grid});
     }
 } // namespace gridtools
