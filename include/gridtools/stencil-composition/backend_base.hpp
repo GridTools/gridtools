@@ -35,25 +35,23 @@
 */
 #pragma once
 
-#include <boost/mpl/filter_view.hpp>
-#include <boost/mpl/reverse.hpp>
-#include <boost/mpl/transform.hpp>
+#include <cassert>
+#include <type_traits>
 
-#include "../gridtools.hpp"
-#include "./backend_traits_fwd.hpp"
-#include "./run_functor_arguments.hpp"
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../common/selector.hpp"
+#include "../storage/storage-facility.hpp"
+#include "./backend_ids.hpp"
+#include "./grid.hpp"
+#include "./local_domain.hpp"
+#include "./mss_components.hpp"
 
 #ifdef __CUDACC__
-#include "./backend_cuda/backend_cuda.hpp"
+#include "./backend_cuda/backend_traits_cuda.hpp"
 #endif
-#include "./backend_host/backend_host.hpp"
-#include "./backend_mic/backend_mic.hpp"
-
-#include "../storage/storage-facility.hpp"
-#include "./accessor.hpp"
-#include "./intermediate_impl.hpp"
-#include "./mss.hpp"
-#include "./mss_metafunctions.hpp"
+#include "./backend_host/backend_traits_host.hpp"
+#include "./backend_mic/backend_traits_mic.hpp"
 
 /**
    @file

@@ -95,7 +95,7 @@ TEST(accessor, remap_accessor) {
     using accessor_t = accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3>;
     accessor_t in(1, 2, 3);
 
-    using ArgsMap = boost::mpl::map1<boost::mpl::pair<boost::mpl::integral_c<int, 0>, boost::mpl::integral_c<int, 8>>>;
+    using ArgsMap = std::tuple<std::integral_constant<size_t, 8>>;
     using remap_accessor_t = remap_accessor_type<accessor_t, ArgsMap>::type;
 
     GRIDTOOLS_STATIC_ASSERT((is_accessor<remap_accessor_t>::value), "");
