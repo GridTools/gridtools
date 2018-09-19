@@ -63,7 +63,7 @@ namespace gridtools {
          * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
         inline float thread_factor() {
-            thread_local static const float value = omp_get_thread_num() / omp_get_max_threads();
+            thread_local static const float value = (float) omp_get_thread_num() / omp_get_max_threads();
             return value;
         }
 
