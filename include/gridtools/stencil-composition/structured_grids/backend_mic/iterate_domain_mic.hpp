@@ -95,7 +95,7 @@ namespace gridtools {
                 storage_info_ptr_t storage_info =
                     boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs);
 
-                int_t offset(storage_info->padded_total_length() * thread_factor());
+                int_t offset = std::lround(storage_info->padded_total_length() * thread_factor());
                 assert(offset ==
                        ((long long)storage_info->padded_total_length() * omp_get_thread_num()) / omp_get_max_threads());
                 return offset;
