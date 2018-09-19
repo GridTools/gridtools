@@ -100,6 +100,7 @@ namespace gridtools {
 
                     if (in_domain) {
                         m_domain.template flush_caches<IterationPolicy>(cur == last);
+                        m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
             }
