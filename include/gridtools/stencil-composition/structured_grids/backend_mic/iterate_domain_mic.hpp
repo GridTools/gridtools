@@ -39,6 +39,7 @@
 #include <xmmintrin.h>
 #endif
 
+#include <cmath>
 #include <functional>
 
 #include <boost/fusion/functional/invocation/invoke.hpp>
