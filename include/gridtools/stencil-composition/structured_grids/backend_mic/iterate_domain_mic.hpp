@@ -59,17 +59,18 @@
 namespace gridtools {
 
     namespace _impl {
+        /**
+         * @brief Precision (fractional bits) of fixed-point computations used in temporary offset computations.
+         */
+        static constexpr uint_t fixedp_thread_factor_prec = 16;
 
-        template <typename Arg, typename StorageInfo>
-        GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset(StorageInfo const *sinfo) {
-            int_t thread = omp_get_thread_num();
-            int_t total_threads = omp_get_max_threads();
-            return sinfo->padded_total_length() * thread / total_threads;
-        }
-
-        template <typename Arg, typename StorageInfo>
-        GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset(StorageInfo const *) {
-            return 0;
+        /**
+         * @brief Per-thread global fixed-point value of omp_get_thread_num() / omp_get_max_threads().
+         */
+        inline long fixedp_thread_factor() {
+            thread_local static const long value =
+                (omp_get_thread_num() << fixedp_thread_factor_prec) / omp_get_max_threads();
+            return value;
         }
 
         /**
@@ -83,16 +84,29 @@ namespace gridtools {
             LocalDomain const &m_local_domain;
             DataPtrsOffset &m_data_ptr_offsets;
 
-            template <class ArgDataPtrPair, class Arg = typename ArgDataPtrPair::first_type>
-            void operator()(ArgDataPtrPair const &arg_data_ptr_pair) const {
-                using data_store_t = typename Arg::data_store_t;
-                static constexpr auto pos_in_args = meta::st_position<typename LocalDomain::esf_args, Arg>::value;
-                static constexpr auto si_index = meta::st_position<typename LocalDomain::storage_info_ptr_list,
-                    typename Arg::data_store_t::storage_info_t const *>::value;
-                const int_t offset =
-                    _impl::fields_offset<Arg>(boost::fusion::at_c<si_index>(m_local_domain.m_local_storage_info_ptrs));
+            template <class ArgDataPtrPair>
+            GT_FUNCTION void operator()(ArgDataPtrPair const &) const {
+                using arg_t = typename ArgDataPtrPair::first_type;
+                constexpr auto arg_index = meta::st_position<typename LocalDomain::esf_args, arg_t>::value;
 
-                m_data_ptr_offsets[pos_in_args] = offset; // non-zero only for tmps.
+                get<arg_index>(m_data_ptr_offsets) = fields_offset<arg_t>(); // non-zero only for tmps.
+            }
+
+          private:
+            template <typename Arg>
+            GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset() const {
+                using storage_info_ptr_t = typename Arg::data_store_t::storage_info_t const *;
+                constexpr auto storage_info_index =
+                    meta::st_position<typename LocalDomain::storage_info_ptr_list, storage_info_ptr_t>::value;
+                storage_info_ptr_t storage_info =
+                    boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs);
+
+                return (storage_info->padded_total_length() * fixedp_thread_factor()) >> fixedp_thread_factor_prec;
+            }
+
+            template <typename Arg>
+            GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset() const {
+                return 0;
             }
         };
 

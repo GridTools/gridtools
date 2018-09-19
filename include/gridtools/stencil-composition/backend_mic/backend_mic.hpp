@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#ifdef STRUCTURED_GRIDS
+
 // This file contains all header files required by the mic backend
 #ifdef _OPENMP
 #include <omp.h>
@@ -43,5 +45,7 @@
 #include "../../storage/storage-facility.hpp"
 #include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"
-#include "backend_traits_mic.hpp"
-#include "strategy_mic.hpp"
+#include "../structured_grids/backend_mic/strategy_mic.hpp"
+#include "./backend_traits_mic.hpp"
+
+#endif

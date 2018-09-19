@@ -37,6 +37,7 @@
 #pragma once
 
 #include "../../../common/defs.hpp"
+#include "../../../common/host_device.hpp"
 
 namespace gridtools {
 
@@ -82,9 +83,10 @@ namespace gridtools {
             // we split only along j-axis (for prefetching reasons)
             // for smaller domains we also split along i-axis
             m_j_block_size = (m_j_grid_size + threads - 1) / threads;
-            const int_t j_blocks = (m_j_grid_size + m_j_block_size - 1) / m_j_block_size;
-            const int_t i_blocks = threads / j_blocks;
-            m_i_block_size = (m_i_grid_size + i_blocks - 1) / i_blocks;
+            m_j_blocks = (m_j_grid_size + m_j_block_size - 1) / m_j_block_size;
+            const int_t max_i_blocks = threads / m_j_blocks;
+            m_i_block_size = (m_i_grid_size + max_i_blocks - 1) / max_i_blocks;
+            m_i_blocks = (m_i_grid_size + m_i_block_size - 1) / m_i_block_size;
 
             assert(m_i_block_size > 0 && m_j_block_size > 0);
         }
@@ -100,8 +102,8 @@ namespace gridtools {
         GT_FUNCTION block_kserial_t block(int_t i_block_index, int_t j_block_index) const {
             return block_kserial_t{block_start(i_block_index, m_i_block_size, m_i_low_bound),
                 block_start(j_block_index, m_j_block_size, m_j_low_bound),
-                clamped_block_size(i_block_index, m_i_block_size, m_i_grid_size),
-                clamped_block_size(j_block_index, m_j_block_size, m_j_grid_size)};
+                clamped_block_size(m_i_grid_size, i_block_index, m_i_block_size, m_i_blocks),
+                clamped_block_size(m_j_grid_size, j_block_index, m_j_block_size, m_j_blocks)};
         }
 
         /**
@@ -117,14 +119,14 @@ namespace gridtools {
             return block_kparallel_t{block_start(i_block_index, m_i_block_size, m_i_low_bound),
                 block_start(j_block_index, m_j_block_size, m_j_low_bound),
                 k,
-                clamped_block_size(i_block_index, m_i_block_size, m_i_grid_size),
-                clamped_block_size(j_block_index, m_j_block_size, m_j_grid_size)};
+                clamped_block_size(m_i_grid_size, i_block_index, m_i_block_size, m_i_blocks),
+                clamped_block_size(m_j_grid_size, j_block_index, m_j_block_size, m_j_blocks)};
         }
 
         /** @brief Number of blocks along i-axis. */
-        GT_FUNCTION int_t i_blocks() const { return (m_i_grid_size + m_i_block_size - 1) / m_i_block_size; }
+        GT_FUNCTION int_t i_blocks() const { return m_i_blocks; }
         /** @brief Number of blocks along j-axis. */
-        GT_FUNCTION int_t j_blocks() const { return (m_j_grid_size + m_j_block_size - 1) / m_j_block_size; }
+        GT_FUNCTION int_t j_blocks() const { return m_j_blocks; }
 
         /** @brief Unclamped block size along i-axis. */
         GT_FUNCTION int_t i_block_size() const { return m_i_block_size; }
@@ -136,14 +138,15 @@ namespace gridtools {
             return block_index * block_size + offset;
         }
 
-        GT_FUNCTION static int_t clamped_block_size(int_t block_index, int_t block_size, int_t grid_size) {
-            int_t blocks = (grid_size + block_size - 1) / block_size;
+        GT_FUNCTION static int_t clamped_block_size(
+            int_t grid_size, int_t block_index, int_t block_size, int_t blocks) {
             return (block_index == blocks - 1) ? grid_size - block_index * block_size : block_size;
         }
 
         int_t m_i_grid_size, m_j_grid_size;
         int_t m_i_low_bound, m_j_low_bound;
         int_t m_i_block_size, m_j_block_size;
+        int_t m_i_blocks, m_j_blocks;
     };
 
 } // namespace gridtools

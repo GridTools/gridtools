@@ -34,21 +34,32 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "esf.hpp"
+
+#include <type_traits>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "./esf_fwd.hpp"
 
 namespace gridtools {
 
-    template <typename EsfSequence>
+    template <class>
+    struct independent_esf;
+
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_independent, meta::is_instantiation_of, (independent_esf, T));
+
+    template <class Esfs>
+    struct is_esf_descriptor<independent_esf<Esfs>> : std::true_type {};
+
+    template <class Esfs>
     struct independent_esf {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value),
-            "Error: independent_esf requires a sequence of esf's");
-        typedef EsfSequence esf_list;
+        GRIDTOOLS_STATIC_ASSERT(
+            (meta::all_of<is_esf_descriptor, Esfs>::value), "Error: independent_esf requires a sequence of esf's");
+        // independent_esf always contains a flat list of esfs! No independent_esf inside.
+        // This is ensured by make_independent design. That's why this assert is internal.
+        GRIDTOOLS_STATIC_ASSERT((!meta::any_of<is_independent, Esfs>::value), GT_INTERNAL_ERROR);
+        using esf_list = Esfs;
     };
-
-    template <typename T>
-    struct is_independent : boost::false_type {};
-
-    template <typename T>
-    struct is_independent<independent_esf<T>> : boost::true_type {};
 
 } // namespace gridtools

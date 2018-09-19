@@ -35,45 +35,36 @@
 */
 #pragma once
 
-#include "accessor_fwd.hpp"
-#include "dimension_fwd.hpp"
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/front.hpp> // missing in <boost/mpl/at.hpp>
-#include <boost/mpl/size.hpp>
+#include <type_traits>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
+#include "./accessor_fwd.hpp"
 
 namespace gridtools {
-    template <typename Accessor, typename Enable = void>
-    struct is_accessor_readonly : boost::mpl::false_ {};
+    template <class Accessor, class = void>
+    struct is_accessor_readonly : std::false_type {};
 
-    template <typename Accessor>
-    struct is_accessor_readonly<Accessor, typename std::enable_if<Accessor::intent == enumtype::in>::type>
-        : boost::mpl::true_ {};
+    template <class Accessor>
+    struct is_accessor_readonly<Accessor, enable_if_t<Accessor::intent == enumtype::in>> : std::true_type {};
 
     /* Is written is actually "can be written", since it checks if not read only.*/
-    template <typename Accessor>
-    struct is_accessor_written : boost::mpl::bool_<!is_accessor_readonly<Accessor>::value> {};
+    template <class Accessor>
+    struct is_accessor_written : negation<is_accessor_readonly<Accessor>> {};
 
-    template <typename Accessor>
+    template <class Accessor>
     struct accessor_index {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-        typedef typename Accessor::index_t type;
+        using type = typename Accessor::index_t;
     };
 
     namespace _impl {
-        template <ushort_t ID, typename ArgsMap>
+        template <size_t ID, class ArgsMap>
         constexpr ushort_t get_remap_accessor_id() {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<ArgsMap>::value > 0), GT_INTERNAL_ERROR);
-            // check that the key type is an int (otherwise the later has_key would never find the key)
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::is_same<typename boost::mpl::first<typename boost::mpl::front<ArgsMap>::type>::type::value_type,
-                    int>::value),
-                GT_INTERNAL_ERROR);
-
-            typedef typename boost::mpl::integral_c<int, (int)ID> index_t;
-
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key<ArgsMap, index_t>::value), GT_INTERNAL_ERROR);
-
-            return boost::mpl::at<ArgsMap, index_t>::type::value;
+            GRIDTOOLS_STATIC_ASSERT(meta::length<ArgsMap>::value != 0, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(ID < meta::length<ArgsMap>::value, GT_INTERNAL_ERROR);
+            return meta::lazy::at_c<ArgsMap, ID>::type::value;
         }
     } // namespace _impl
 } // namespace gridtools

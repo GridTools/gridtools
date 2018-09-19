@@ -42,14 +42,11 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/gt_assert.hpp"
-
-#include "../../storage/data_store_field.hpp"
-
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../iteration_policy_fwd.hpp"
+#include "../get_datafield_offset.hpp"
+#include "../iteration_policy.hpp"
 #include "../offset_computation.hpp"
-
 #include "cache_storage_metafunctions.hpp"
 #include "cache_traits.hpp"
 #include "meta_storage_cache.hpp"

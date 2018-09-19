@@ -70,12 +70,10 @@ namespace gridtools {
        from false_type), or map between placeholders in this ESF and the extents
        associated with it (if Pred derives from true_type)
      */
-    template <typename Esf, typename Pred = boost::false_type>
+    template <typename Esf>
     struct esf_args {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
-
-        typedef typename boost::mpl::if_<Pred, typename Esf::args_with_extents, typename Esf::args_t>::type type;
+        typedef typename Esf::args_t type;
     };
 
     /**
@@ -267,9 +265,6 @@ namespace gridtools {
 
         typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
-
-    template <typename T>
-    struct is_esf_descriptor<independent_esf<T>> : boost::mpl::true_ {};
 
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
     template <typename ESFList>

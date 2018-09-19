@@ -69,6 +69,8 @@ namespace gridtools {
             typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
 
+        static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
+
       private:
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 

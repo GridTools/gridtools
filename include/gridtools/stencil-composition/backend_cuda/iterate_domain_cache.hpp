@@ -47,6 +47,7 @@
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/support/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/count_if.hpp>
 #include <boost/mpl/filter_view.hpp>
 #include <boost/mpl/transform_view.hpp>
 
@@ -200,6 +201,9 @@ namespace gridtools {
 
         GT_FUNCTION
         ~iterate_domain_cache() {}
+
+        static constexpr bool has_ij_caches =
+            boost::mpl::count_if<cache_sequence_t, cache_is_type<IJ>>::type::value != 0;
 
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if<cache_sequence_t,

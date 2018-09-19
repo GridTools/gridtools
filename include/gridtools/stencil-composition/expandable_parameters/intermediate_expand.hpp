@@ -285,12 +285,14 @@ namespace gridtools {
                     _impl::expand_detail::convert_arg_storage_pairs<ExpandFactor>(offset, expandable_args);
                 // concatenate that chunk with the plain portion of the arguments
                 // and invoke the `run` of the `m_intermediate`.
-                _impl::expand_detail::invoke_run(m_intermediate, std::tuple_cat(plain_args, converted_args));
+                _impl::expand_detail::invoke_run(
+                    m_intermediate, tuple_util::flatten(std::tie(plain_args, converted_args)));
             }
             // process the reminder the same way
             for (; offset < size; ++offset) {
                 auto converted_args = _impl::expand_detail::convert_arg_storage_pairs<1>(offset, expandable_args);
-                _impl::expand_detail::invoke_run(m_intermediate_remainder, std::tuple_cat(plain_args, converted_args));
+                _impl::expand_detail::invoke_run(
+                    m_intermediate_remainder, tuple_util::flatten(std::tie(plain_args, converted_args)));
             }
             m_meter.pause();
             return {};
