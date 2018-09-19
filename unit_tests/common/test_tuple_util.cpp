@@ -44,6 +44,8 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/common/generic_metafunctions/meta.hpp>
+#include <gridtools/common/generic_metafunctions/type_traits.hpp>
 
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define NO_CONSTEXPR
@@ -60,32 +62,40 @@ namespace custom {
         int a;
         double b;
 
-        friend CONSTEXPR int do_get(std::integral_constant<size_t, 0>, foo const &obj) { return obj.a; }
-        friend int &do_get(std::integral_constant<size_t, 0>, foo &obj) { return obj.a; }
-        friend CONSTEXPR int do_get(std::integral_constant<size_t, 0>, foo &&obj) { return obj.a; }
-        friend CONSTEXPR double do_get(std::integral_constant<size_t, 1>, foo const &obj) { return obj.b; }
-        friend double &do_get(std::integral_constant<size_t, 1>, foo &obj) { return obj.b; }
-        friend CONSTEXPR double do_get(std::integral_constant<size_t, 1>, foo &&obj) { return obj.b; }
+        struct getter {
+            template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
+            static CONSTEXPR int get(foo const &obj) {
+                return obj.a;
+            }
+            template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
+            static int &get(foo &obj) {
+                return obj.a;
+            }
+            template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
+            static CONSTEXPR int get(foo &&obj) {
+                return obj.a;
+            }
+            template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
+            static CONSTEXPR double get(foo const &obj) {
+                return obj.b;
+            }
+            template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
+            static double &get(foo &obj) {
+                return obj.b;
+            }
+            template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
+            static CONSTEXPR double get(foo &&obj) {
+                return obj.b;
+            }
+        };
+        friend getter tuple_getter(foo);
+        friend gridtools::meta::list<int, double> tuple_to_types(foo);
+        friend gridtools::meta::always<foo> tuple_from_types(foo);
     };
 } // namespace custom
 
 namespace gridtools {
     namespace tuple_util {
-
-        TEST(get, custom) {
-            custom::foo obj{1, 2};
-            EXPECT_EQ(get<0>(obj), 1);
-            EXPECT_EQ(get<1>(obj), 2);
-            get<0>(obj) = 42;
-            EXPECT_EQ(get<0>(obj), 42);
-
-#ifndef NO_CONSTEXPR
-            constexpr custom::foo c_obj{2, 4};
-            static_assert(get<0>(c_obj) == 2, "");
-            static_assert(get<0>(custom::foo{3}) == 3, "");
-#endif
-        }
-
         TEST(get, std_tuple) {
             auto obj = std::make_tuple(1, 2.);
             EXPECT_EQ(get<0>(obj), 1);
@@ -116,6 +126,26 @@ namespace gridtools {
                 return val + 2;
             }
         };
+
+        TEST(get, custom) {
+            custom::foo obj{1, 2};
+            EXPECT_EQ(get<0>(obj), 1);
+            EXPECT_EQ(get<1>(obj), 2);
+            get<0>(obj) = 42;
+            EXPECT_EQ(get<0>(obj), 42);
+
+#ifndef NO_CONSTEXPR
+            constexpr custom::foo c_obj{2, 4};
+            static_assert(get<0>(c_obj) == 2, "");
+            static_assert(get<0>(custom::foo{3}) == 3, "");
+#endif
+            static_assert(size<custom::foo>::value == 2, "");
+
+            auto res = transform(add_2_f{}, custom::foo{42, 5.3});
+            static_assert(std::is_same<decltype(res), custom::foo>{}, "");
+            EXPECT_EQ(res.a, 44);
+            EXPECT_EQ(res.b, 7.3);
+        }
 
         TEST(transform, functional) {
             auto src = std::make_tuple(42, 5.3);

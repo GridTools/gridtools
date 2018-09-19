@@ -41,11 +41,13 @@
 #include <type_traits>
 #include <utility>
 
+#include "array.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
-
 #include "generic_metafunctions/meta.hpp"
 #include "generic_metafunctions/type_traits.hpp"
+#include "host_device.hpp"
+#include "pair.hpp"
 
 namespace gridtools {
 
@@ -64,11 +66,7 @@ namespace gridtools {
      *    - be either a template instantiation of a template of class parameters [ for ex. foo<int, double, int> ] or
      *      have the specialization of the template structs size, to_types and from_types within
      *      gridtools::tuple_util::trait namespace.
-     *    - have accessors like do_get(std::integral_constant< size_t, I >, foo<Ts...>) defined in
-     *      gridtools::tuple_util::traits namespace, or being available via ADL
      *    - can be initialized element wise: [i.e. T x{a, b,c};]
-     *    - have a ctor from another tuple of the same kind. [ i.e. foo<double, double> should be
-     *      constructible from foo<int, int> or foo<double&&, double&&>]
      *
      *  If the opposite is not mentioned explicitly, the algorithms produce tuples of references. L-value or R-value
      *  depending on algorithm input.
@@ -90,7 +88,6 @@ namespace gridtools {
      *
      *  TODO list
      *  =========
-     *  - adapt gridtools::array, gridtools::pair and gridtools::tuple
      *  - supply all functions here with `GT_FUNCTION` variants.
      *  - add push_front
      *  - add for_each_index
@@ -101,156 +98,104 @@ namespace gridtools {
 
         /// @cond
         namespace traits {
+            namespace _impl {
+                template <class... Ts>
+                struct deduce_array_type {
+                    using type = common_type_t<decay_t<Ts>...>;
+                };
+                template <>
+                struct deduce_array_type<> {
+                    using type = meta::lazy::id<void>;
+                };
+                template <template <class, size_t> class Arr>
+                struct array_from_types {
+                    template <class... Ts>
+                    using apply = Arr<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>;
+                };
+                struct std_getter {
+                    template <size_t I, class T>
+                    static constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(std::get<I>(std::forward<T>(obj)));
+                };
+                struct gt_getter {
+                    template <size_t I, class T>
+                    GT_FUNCTION static constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(
+                        ::gridtools::get<I>(std::forward<T>(obj)));
+                };
+            } // namespace _impl
 
-            template <class Tup>
-            struct size : meta::length<Tup> {};
+            // start of builtin adaptations
 
-            template <class Tup>
-            struct to_types {
-                using type = Tup;
-            };
-
-            template <class Tup>
-            struct get_ctor {
-                using type = meta::ctor<Tup>;
-            };
-
-            template <class Ctor, class Types>
-            struct from_types : meta::lazy::rename<Ctor::template apply, Types> {};
-
-            /*
-             * Adaptation traits
-             *
-             * To enable the algorithms provided in this file for a tuple-like container, an implementation of do_get
-             * has to be defined here. Currently std::tuple, std::pair and std::aray are fully supported.
-             */
-
-            // std::tuple adaptation
-            template <size_t I, class... Ts>
-            constexpr typename std::tuple_element<I, std::tuple<Ts...>>::type &do_get(
-                std::integral_constant<size_t, I>, std::tuple<Ts...> &obj) noexcept {
-                return std::get<I>(obj);
-            }
-            template <size_t I, class... Ts>
-            constexpr typename std::tuple_element<I, std::tuple<Ts...>>::type const &do_get(
-                std::integral_constant<size_t, I>, std::tuple<Ts...> const &obj) noexcept {
-                return std::get<I>(obj);
-            }
-            template <size_t I, class... Ts>
-            constexpr typename std::tuple_element<I, std::tuple<Ts...>>::type &&do_get(
-                std::integral_constant<size_t, I>, std::tuple<Ts...> &&obj) noexcept {
-                return std::get<I>(std::move(obj));
-            }
-
-            // std::array adaptation
-            template <size_t I, class T, size_t N>
-            constexpr T &do_get(std::integral_constant<size_t, I>, std::array<T, N> &obj) noexcept {
-                return std::get<I>(obj);
-            }
-            template <size_t I, class T, size_t N>
-            constexpr T const &do_get(std::integral_constant<size_t, I>, std::array<T, N> const &obj) noexcept {
-                return std::get<I>(obj);
-            }
-            template <size_t I, class T, size_t N>
-            constexpr T &&do_get(std::integral_constant<size_t, I>, std::array<T, N> &&obj) noexcept {
-                return std::get<I>(std::move(obj));
-            }
-
-            // std::pair adaptation
-            template <size_t I, class T1, class T2>
-            constexpr typename std::tuple_element<I, std::pair<T1, T2>>::type &do_get(
-                std::integral_constant<size_t, I>, std::pair<T1, T2> &obj) noexcept {
-                return std::get<I>(obj);
-            }
-            template <size_t I, class T1, class T2>
-            constexpr const typename std::tuple_element<I, std::pair<T1, T2>>::type &do_get(
-                std::integral_constant<size_t, I>, const std::pair<T1, T2> &obj) noexcept {
-                return std::get<I>(obj);
-            }
-            template <size_t I, class T1, class T2>
-            constexpr typename std::tuple_element<I, std::pair<T1, T2>>::type &&do_get(
-                std::integral_constant<size_t, I>, std::pair<T1, T2> &&obj) noexcept {
-                return std::get<I>(std::move(obj));
-            }
-
-            template <size_t I>
-            struct get_f {
-                template <class T>
-                constexpr auto operator()(T &&obj) const
-                    GT_AUTO_RETURN(do_get(std::integral_constant<size_t, I>{}, std::forward<T>(obj)));
-            };
-
-            template <class T, size_t N>
-            struct size<std::array<T, N>> : std::integral_constant<size_t, N> {};
-
-            template <class T, size_t N>
-            struct to_types<std::array<T, N>> {
-                using type = GT_META_CALL(meta::repeat_c, (N, T));
-            };
-
-            struct std_array_ctor;
-
-            template <class T, size_t N>
-            struct get_ctor<std::array<T, N>> {
-                using type = std_array_ctor;
-            };
-
-            template <template <class...> class L>
-            struct from_types<std_array_ctor, L<>> {
-                using type = std::array<std::nullptr_t, 0>;
-            };
-
+            // to_types
             template <template <class...> class L, class... Ts>
-            struct from_types<std_array_ctor, L<Ts...>> {
-                using type = std::array<common_type_t<Ts...>, sizeof...(Ts)>;
-            };
+            L<Ts...> tuple_to_types(L<Ts...>);
+            template <class T, size_t N>
+            GT_META_CALL(meta::repeat_c, (N, T))
+            tuple_to_types(std::array<T, N>);
+            template <class T, size_t N>
+            GT_META_CALL(meta::repeat_c, (N, T))
+            tuple_to_types(::gridtools::array<T, N>);
+
+            // from_types
+            template <template <class...> class L, class... Ts>
+            meta::curry<L> tuple_from_types(L<Ts...>);
+            template <class T, size_t N>
+            _impl::array_from_types<std::array> tuple_from_types(std::array<T, N>);
+            template <class T, size_t N>
+            _impl::array_from_types<::gridtools::array> tuple_from_types(::gridtools::array<T, N>);
+
+            // getter
+            template <class... Ts>
+            _impl::std_getter tuple_getter(std::tuple<Ts...>);
+            template <class T, class U>
+            _impl::std_getter tuple_getter(std::pair<T, U>);
+            template <class T, size_t N>
+            _impl::std_getter tuple_getter(std::array<T, N>);
+            template <class T, class U>
+            _impl::gt_getter tuple_getter(::gridtools::pair<T, U>);
+            template <class T, size_t N>
+            _impl::gt_getter tuple_getter(::gridtools::array<T, N>);
+
+            // end of builtin adaptations
+
+            template <class T>
+            using getter = decltype(tuple_getter(std::declval<T>()));
+
+            template <class T>
+            using to_types = decltype(tuple_to_types(std::declval<T>()));
+
+            template <class T>
+            using from_types = decltype(tuple_from_types(std::declval<T>()));
         } // namespace traits
         /// @endcond
 
-        using traits::get_f;
+        ///  Generalization of std::tuple_size
+        //
+        template <class T>
+        GT_META_DEFINE_ALIAS(size, meta::length, traits::to_types<T>);
 
-        using traits::size;
-
-        /**
-         * @brief Tuple element accessor like std::get.
-         *
-         * @tparam I Element index.
-         * @tparam T Tuple-like type.
-         * @param obj Tuple-like object.
-         *
-         * Extensible via defining `do_get()`-functions which are searched via argument-dependent lookup.
-         */
+        ///  Generalization of std::tuple_element
+        //
         template <size_t I, class T>
-        constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(get_f<I>{}(std::forward<T>(obj)));
+        GT_META_DEFINE_ALIAS(element, meta::at_c, (traits::to_types<T>, I));
 
         namespace _impl {
 
 #if GT_BROKEN_TEMPLATE_ALIASES
             template <class T>
-            struct to_types : traits::to_types<typename std::decay<T>::type> {
-            }
-
+            struct to_types {
+                using type = traits::to_types<decay_t<T>>;
+            };
             template <class Sample, class Types>
             struct from_types
-                : traits::from_types<typename traits::get_ctor<typename std::decay<Sample>::type>::type, Types> {
-            };
+                : meta::lazy::rename<meta::defer<traits::from_types<decay_t<Sample>>::template apply>::template apply,
+                      Types> {};
 #else
             template <class T>
-            using to_types = typename traits::to_types<decay_t<T>>::type;
-            template <class Sample, class Types>
-            using from_types =
-                typename traits::from_types<typename traits::get_ctor<decay_t<Sample>>::type, Types>::type;
-#endif
+            using to_types = traits::to_types<decay_t<T>>;
 
-            template <class GeneratorList, class Res>
-            struct generate_f;
-            template <template <class...> class L, class... Generators, class Res>
-            struct generate_f<L<Generators...>, Res> {
-                template <class... Args>
-                Res operator()(Args &&... args) const {
-                    return Res{Generators{}(std::forward<Args>(args)...)...};
-                }
-            };
+            template <class Sample, class Types>
+            using from_types = meta::rename<traits::from_types<decay_t<Sample>>::template apply, Types>;
+#endif
 
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
@@ -278,40 +223,6 @@ namespace gridtools {
             template <class T>
             struct add_ref<ref_kind::const_lvalue, T> : std::add_lvalue_reference<add_const_t<T>> {};
 
-            template <size_t I>
-            struct transform_elem_f {
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-                // CAUTION!! CUDA8 barely understands this. If you just GT_AUTO_RETURN it goes nuts with mysterious
-                // error message; if you replace the inner result_of_t to typename std::result_of<...>::type it fails
-                // as well.
-                // Alternatively you can also write:
-                // auto operator()(Fun &&fun, Tups &&... tups) const
-                // -> typename std::result_of<Fun&&(decltype(get< I >(std::forward< Tups >(tups)))...)>::type
-                template <class Fun, class... Tups>
-                typename std::result_of<Fun && (result_of_t<get_f<I>(Tups &&)>...)>::type operator()(
-                    Fun &&fun, Tups &&... tups) const {
-                    return std::forward<Fun>(fun)(get<I>(std::forward<Tups>(tups))...);
-                }
-#elif (defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
-    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 10)
-                template <class Fun, class Tup>
-                auto operator()(Fun &&fun, Tup &&tup) const
-                    GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tup>(tup))));
-                template <class Fun, class Tup1, class Tup2>
-                auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(
-                    std::forward<Fun>(fun)(get<I>(std::forward<Tup1>(tup1)), get<I>(std::forward<Tup2>(tup2))));
-                template <class Fun, class Tup1, class Tup2, class Tup3>
-                auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
-                    GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tup1>(tup1)),
-                        get<I>(std::forward<Tup2>(tup2)),
-                        get<I>(std::forward<Tup3>(tup3))));
-#else
-                template <class Fun, class... Tups>
-                auto operator()(Fun &&fun, Tups &&... tups) const
-                    GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tups>(tups))...));
-#endif
-            };
-
 #if GT_BROKEN_TEMPLATE_ALIASES
             template <ref_kind Kind>
             struct get_accessor {
@@ -326,12 +237,6 @@ namespace gridtools {
                     using type = decltype(std::declval<Fun>()(std::declval<Ts>()...));
                 };
             };
-
-            template <class I>
-            struct get_transform_generator {
-                using type = transform_elem_f<I::value>;
-            };
-
 #else
             template <ref_kind Kind>
             struct get_accessor {
@@ -344,701 +249,783 @@ namespace gridtools {
                 template <class... Ts>
                 using apply = decltype(std::declval<Fun>()(std::declval<Ts>()...));
             };
-
-            template <class I>
-            using get_transform_generator = transform_elem_f<I::value>;
 #endif
-
             template <class Tup>
             GT_META_DEFINE_ALIAS(get_accessors,
                 meta::transform,
                 (get_accessor<get_ref_kind<Tup>::value>::template apply, GT_META_CALL(to_types, Tup)));
 
-            template <class Fun>
-            struct transform_f {
-                template <class... Args>
-                GT_META_DEFINE_ALIAS(get_results_t, meta::transform, (get_fun_result<Fun>::template apply, Args...));
+        } // namespace _impl
 
-                Fun m_fun;
+        inline namespace host {
 
-                template <class Tup,
-                    class... Tups,
-                    class Res = GT_META_CALL(from_types,
-                        (Tup,
-                            GT_META_CALL(get_results_t,
-                                (GT_META_CALL(get_accessors, Tup &&), GT_META_CALL(get_accessors, Tups &&)...))))>
-                Res operator()(Tup &&tup, Tups &&... tups) const {
-                    constexpr auto length = size<decay_t<Tup>>::value;
-                    using generators = GT_META_CALL(
-                        meta::transform, (get_transform_generator, GT_META_CALL(meta::make_indices_c, length)));
-                    return generate_f<generators, Res>{}(m_fun, std::forward<Tup>(tup), std::forward<Tups>(tups)...);
-                }
+            /**
+             * @brief Tuple element accessor like std::get.
+             *
+             * @tparam I Element index.
+             * @tparam T Tuple-like type.
+             * @param obj Tuple-like object.
+             */
+            template <size_t I, class T>
+            constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(
+                traits::getter<decay_t<T>>::template get<I>(std::forward<T>(obj)));
+
+            template <size_t I>
+            struct get_nth_f {
+                template <class T>
+                constexpr auto operator()(T &&obj) const
+                    noexcept GT_AUTO_RETURN(traits::getter<decay_t<T>>::template get<I>(std::forward<T>(obj)));
             };
 
-            struct empty {};
+            namespace detail {
+                using _impl::from_types;
+                using _impl::get_accessors;
+                using _impl::get_fun_result;
+                using _impl::to_types;
 
-            template <class Fun>
-            struct for_each_adaptor_f {
-                Fun m_fun;
-                template <class... Args>
-                empty operator()(Args &&... args) const {
-                    m_fun(std::forward<Args>(args)...);
-                    return {};
-                }
-            };
-
-            template <class Indices>
-            struct apply_to_elements_f;
-
-            template <template <class...> class L, class... Is>
-            struct apply_to_elements_f<L<Is...>> {
-                template <class Fun, class... Tups>
-                auto operator()(Fun &&fun, Tups &&... tups) const
-                    GT_AUTO_RETURN(std::forward<Fun>(fun)(get<Is::value>(std::forward<Tups>(tups))...));
-            };
-
-            template <class>
-            struct for_each_in_cartesian_product_impl_f;
-
-            template <template <class...> class Outer, class... Inners>
-            struct for_each_in_cartesian_product_impl_f<Outer<Inners...>> {
-                template <class Fun, class... Tups>
-                void operator()(Fun &&fun, Tups &&... tups) const {
-                    void((int[]){
-                        (apply_to_elements_f<Inners>{}(std::forward<Fun>(fun), std::forward<Tups>(tups)...), 0)...});
-                }
-            };
-
-            template <class Fun>
-            struct for_each_in_cartesian_product_f {
-                Fun m_fun;
-                template <class... Tups>
-                void operator()(Tups &&... tups) const {
-                    for_each_in_cartesian_product_impl_f<GT_META_CALL(meta::cartesian_product,
-                        (GT_META_CALL(meta::make_indices_c, size<decay_t<Tups>>::value)...))>{}(
-                        m_fun, std::forward<Tups>(tups)...);
-                }
-            };
-
-            struct flatten_f {
-                template <size_t OuterI, size_t InnerI>
-                struct generator_f {
-                    template <class Tup>
-                    auto operator()(Tup &&tup) const GT_AUTO_RETURN(get<InnerI>(get<OuterI>(std::forward<Tup>(tup))));
+                template <size_t I>
+                struct transform_elem_f {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+                    // CAUTION!! CUDA8 barely understands this. If you just GT_AUTO_RETURN it goes nuts with mysterious
+                    // error message; if you replace the inner result_of_t to typename std::result_of<...>::type it
+                    // fails as well. Alternatively you can also write: auto operator()(Fun &&fun, Tups &&... tups)
+                    // const
+                    // -> typename std::result_of<Fun&&(decltype(get< I >(std::forward< Tups >(tups)))...)>::type
+                    template <class Fun, class... Tups>
+                    typename std::result_of<Fun && (result_of_t<get_nth_f<I>(Tups &&)>...)>::type operator()(
+                        Fun &&fun, Tups &&... tups) const {
+                        return std::forward<Fun>(fun)(get<I>(std::forward<Tups>(tups))...);
+                    }
+#elif (defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
+    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 10)
+                    template <class Fun, class Tup>
+                    auto operator()(Fun &&fun, Tup &&tup) const
+                        GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tup>(tup))));
+                    template <class Fun, class Tup1, class Tup2>
+                    auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(
+                        std::forward<Fun>(fun)(get<I>(std::forward<Tup1>(tup1)), get<I>(std::forward<Tup2>(tup2))));
+                    template <class Fun, class Tup1, class Tup2, class Tup3>
+                    auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
+                        GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tup1>(tup1)),
+                            get<I>(std::forward<Tup2>(tup2)),
+                            get<I>(std::forward<Tup3>(tup3))));
+#else
+                    template <class Fun, class... Tups>
+                    auto operator()(Fun &&fun, Tups &&... tups) const
+                        GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tups>(tups))...));
+#endif
                 };
 
 #if GT_BROKEN_TEMPLATE_ALIASES
-                template <class OuterI, class InnerI>
-                struct get_generator {
-                    using type = generator_f<OuterI::value, InnerI::value>;
+                template <class I>
+                struct get_transform_generator {
+                    using type = transform_elem_f<I::value>;
                 };
 #else
-                template <class OuterI, class InnerI>
-                using get_generator = generator_f<OuterI::value, InnerI::value>;
+                template <class I>
+                using get_transform_generator = transform_elem_f<I::value>;
 #endif
 
-                template <class OuterI, class InnerTup>
-                GT_META_DEFINE_ALIAS(get_inner_generators,
-                    meta::transform,
-                    (meta::bind<get_generator, OuterI, meta::_1>::template apply,
-                        GT_META_CALL(meta::make_indices_for, InnerTup)));
+                template <class GeneratorList, class Res>
+                struct generate_f;
+                template <template <class...> class L, class... Generators, class Res>
+                struct generate_f<L<Generators...>, Res> {
+                    template <class... Args>
+                    Res operator()(Args &&... args) const {
+                        return Res{Generators{}(std::forward<Args>(args)...)...};
+                    }
+                };
 
-                template <class Tup,
-                    class Accessors = GT_META_CALL(
-                        meta::transform, (get_accessors, GT_META_CALL(get_accessors, Tup &&))),
-                    class First = GT_META_CALL(meta::first, GT_META_CALL(to_types, Tup)),
-                    class Res = GT_META_CALL(from_types, (First, GT_META_CALL(meta::flatten, Accessors)))>
-                Res operator()(Tup &&tup) const {
-                    GRIDTOOLS_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
-                    using generators = GT_META_CALL(meta::flatten,
-                        (GT_META_CALL(meta::transform,
-                            (get_inner_generators, GT_META_CALL(meta::make_indices_for, Accessors), Accessors))));
-                    return generate_f<generators, Res>{}(std::forward<Tup>(tup));
-                }
-            };
+                template <class Fun>
+                struct transform_f {
+                    template <class... Args>
+                    GT_META_DEFINE_ALIAS(
+                        get_results_t, meta::transform, (get_fun_result<Fun>::template apply, Args...));
 
+                    Fun m_fun;
+
+                    template <class Tup,
+                        class... Tups,
+                        class Res = GT_META_CALL(from_types,
+                            (Tup,
+                                GT_META_CALL(get_results_t,
+                                    (GT_META_CALL(get_accessors, Tup &&), GT_META_CALL(get_accessors, Tups &&)...))))>
+                    Res operator()(Tup &&tup, Tups &&... tups) const {
+                        constexpr auto length = size<decay_t<Tup>>::value;
+                        using generators = GT_META_CALL(
+                            meta::transform, (get_transform_generator, GT_META_CALL(meta::make_indices_c, length)));
+                        return generate_f<generators, Res>{}(
+                            m_fun, std::forward<Tup>(tup), std::forward<Tups>(tups)...);
+                    }
+                };
+
+                template <class Fun>
+                struct for_each_adaptor_f {
+                    Fun m_fun;
+                    template <class... Args>
+                    meta::lazy::id<void> operator()(Args &&... args) const {
+                        m_fun(std::forward<Args>(args)...);
+                        return {};
+                    }
+                };
+
+                template <class Indices>
+                struct apply_to_elements_f;
+
+                template <template <class...> class L, class... Is>
+                struct apply_to_elements_f<L<Is...>> {
+                    template <class Fun, class... Tups>
+                    auto operator()(Fun &&fun, Tups &&... tups) const
+                        GT_AUTO_RETURN(std::forward<Fun>(fun)(get<Is::value>(std::forward<Tups>(tups))...));
+                };
+
+                template <class>
+                struct for_each_in_cartesian_product_impl_f;
+
+                template <template <class...> class Outer, class... Inners>
+                struct for_each_in_cartesian_product_impl_f<Outer<Inners...>> {
+                    template <class Fun, class... Tups>
+                    void operator()(Fun &&fun, Tups &&... tups) const {
+                        void((int[]){(
+                            apply_to_elements_f<Inners>{}(std::forward<Fun>(fun), std::forward<Tups>(tups)...), 0)...});
+                    }
+                };
+
+                template <class Fun>
+                struct for_each_in_cartesian_product_f {
+                    Fun m_fun;
+                    template <class... Tups>
+                    void operator()(Tups &&... tups) const {
+                        for_each_in_cartesian_product_impl_f<GT_META_CALL(meta::cartesian_product,
+                            (GT_META_CALL(meta::make_indices_c, size<decay_t<Tups>>::value)...))>{}(
+                            m_fun, std::forward<Tups>(tups)...);
+                    }
+                };
+
+                struct flatten_f {
+                    template <size_t OuterI, size_t InnerI>
+                    struct generator_f {
+                        template <class Tup>
+                        auto operator()(Tup &&tup) const
+                            GT_AUTO_RETURN(get<InnerI>(get<OuterI>(std::forward<Tup>(tup))));
+                    };
+
+#if GT_BROKEN_TEMPLATE_ALIASES
+                    template <class OuterI, class InnerI>
+                    struct get_generator {
+                        using type = generator_f<OuterI::value, InnerI::value>;
+                    };
+#else
+                    template <class OuterI, class InnerI>
+                    using get_generator = generator_f<OuterI::value, InnerI::value>;
+#endif
+
+                    template <class OuterI, class InnerTup>
+                    GT_META_DEFINE_ALIAS(get_inner_generators,
+                        meta::transform,
+                        (meta::bind<get_generator, OuterI, meta::_1>::template apply,
+                            GT_META_CALL(meta::make_indices_for, InnerTup)));
+
+                    template <class Tup,
+                        class Accessors = GT_META_CALL(
+                            meta::transform, (get_accessors, GT_META_CALL(get_accessors, Tup &&))),
+                        class First = GT_META_CALL(meta::first, GT_META_CALL(to_types, Tup)),
+                        class Res = GT_META_CALL(from_types, (First, GT_META_CALL(meta::flatten, Accessors)))>
+                    Res operator()(Tup &&tup) const {
+                        GRIDTOOLS_STATIC_ASSERT(size<decay_t<Tup>>::value != 0, "can not flatten empty tuple");
+                        using generators = GT_META_CALL(meta::flatten,
+                            (GT_META_CALL(meta::transform,
+                                (get_inner_generators, GT_META_CALL(meta::make_indices_for, Accessors), Accessors))));
+                        return generate_f<generators, Res>{}(std::forward<Tup>(tup));
+                    }
+                };
+
+                template <size_t N>
+                struct drop_front_f {
+#if GT_BROKEN_TEMPLATE_ALIASES
+                    template <class I>
+                    struct get_drop_front_generator {
+                        using type = get_nth_f<N + I::value>;
+                    };
+#else
+                    template <class I>
+                    using get_drop_front_generator = get_nth_f<N + I::value>;
+#endif
+
+                    template <class Tup,
+                        class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Res = GT_META_CALL(from_types, (Tup, GT_META_CALL(meta::drop_front_c, (N, Accessors))))>
+                    Res operator()(Tup &&tup) const {
+                        using generators = GT_META_CALL(meta::transform,
+                            (get_drop_front_generator, GT_META_CALL(meta::make_indices_c, size<Accessors>::value - N)));
+                        return generate_f<generators, Res>{}(std::forward<Tup>(tup));
+                    }
+                };
+
+                template <class, class>
+                struct push_back_impl_f;
+
+                template <template <class T, T...> class L, class Int, Int... Is, class Res>
+                struct push_back_impl_f<L<Int, Is...>, Res> {
+                    template <class Tup, class... Args>
+                    Res operator()(Tup &&tup, Args &&... args) const {
+                        return Res{get<Is>(std::forward<Tup>(tup))..., std::forward<Args>(args)...};
+                    }
+                };
+
+                struct push_back_f {
+                    template <class Tup,
+                        class... Args,
+                        class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Res = GT_META_CALL(
+                            from_types, (Tup, GT_META_CALL(meta::push_back, (Accessors, Args &&...))))>
+                    Res operator()(Tup &&tup, Args &&... args) const {
+                        return push_back_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
+                            std::forward<Tup>(tup), std::forward<Args>(args)...);
+                    }
+                };
+
+                template <class Fun>
+                struct fold_f {
+#if GT_BROKEN_TEMPLATE_ALIASES
+                    template <class S, class T>
+                    struct meta_fun : get_fun_result<Fun>::template apply<S, T> {};
+#else
+                    template <class S, class T>
+                    using meta_fun = typename get_fun_result<Fun>::template apply<S, T>;
+#endif
+                    Fun m_fun;
+
+                    template <size_t I, size_t N, class State, class Tup, enable_if_t<I == N, int> = 0>
+                    State impl(State &&state, Tup &&) const {
+                        return state;
+                    }
+
+                    template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 1 == N, int> = 0>
+                    auto impl(State &&state, Tup &&tup) const
+                        GT_AUTO_RETURN(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))));
+
+                    template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 2 == N, int> = 0>
+                    auto impl(State &&state, Tup &&tup) const
+                        GT_AUTO_RETURN(m_fun(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))),
+                            get<I + 1>(std::forward<Tup>(tup))));
+
+                    template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 3 == N, int> = 0>
+                    auto impl(State &&state, Tup &&tup) const
+                        GT_AUTO_RETURN(m_fun(m_fun(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))),
+                                                 get<I + 1>(std::forward<Tup>(tup))),
+                            get<I + 2>(std::forward<Tup>(tup))));
+
+                    template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 4 == N, int> = 0>
+                    auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(
+                        m_fun(m_fun(m_fun(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))),
+                                        get<I + 1>(std::forward<Tup>(tup))),
+                                  get<I + 2>(std::forward<Tup>(tup))),
+                            get<I + 3>(std::forward<Tup>(tup))));
+
+                    template <size_t I,
+                        size_t N,
+                        class State,
+                        class Tup,
+                        class AllAccessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Accessors = GT_META_CALL(meta::drop_front_c, (I, AllAccessors)),
+                        class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors)),
+                        enable_if_t<(I + 4 < N), int> = 0>
+                    Res impl(State &&state, Tup &&tup) const {
+                        return impl<I + 1, N>(
+                            m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))), std::forward<Tup>(tup));
+                    }
+
+                    template <class State,
+                        class Tup,
+                        class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors))>
+                    Res operator()(State &&state, Tup &&tup) const {
+                        return impl<0, size<decay_t<Tup>>::value>(std::forward<State>(state), std::forward<Tup>(tup));
+                    }
+
+                    template <class Tup,
+                        class AllAccessors = GT_META_CALL(get_accessors, Tup &&),
+                        class StateAccessor = GT_META_CALL(meta::first, AllAccessors),
+                        class Accessors = GT_META_CALL(meta::drop_front_c, (1, AllAccessors)),
+                        class Res = GT_META_CALL(meta::lfold, (meta_fun, StateAccessor, Accessors))>
+                    Res operator()(Tup &&tup) const {
+                        return impl<1, size<decay_t<Tup>>::value>(
+                            get<0>(std::forward<Tup>(tup)), std::forward<Tup>(tup));
+                    }
+                };
+            } // namespace detail
+
+            /**
+             * @brief Transforms each tuple element by a function.
+             *
+             * Transformations with functions with more than one argument are supported by passing multiple tuples of
+             * the same size.
+             *
+             * @tparam Fun Functor type.
+             * @tparam Tup Optional tuple-like type.
+             * @tparam Tups Optional Tuple-like types.
+             *
+             * @param fun Function that should be applied to all elements of the given tuple(s).
+             * @param tup First tuple-like object, serves as first arguments to `fun` if given.
+             * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
+             *
+             * Example code:
+             * @code
+             * #include <functional>
+             * using namespace std::placeholders;
+             *
+             * struct add {
+             *     template < class A, class B >
+             *     auto operator()(A a, B b) -> decltype(a + b) {
+             *         return a + b;
+             *     }
+             * };
+             *
+             * // Unary function, like boost::fusion::transform
+             * auto tup = std::make_tuple(1, 2, 3.5);
+             * auto fun = std::bind(add{}, 2, _1);
+             * auto res = transform(fun, tup);
+             * // res == {3, 4, 5.5}
+             *
+             * // Binary function
+             * auto tup2 = std::make_tuple(1.5, 3, 4.1);
+             * auto res2 = transform(add{}, tup, tup2);
+             * // res2 == {2.5, 5, 7.6}
+             * @endcode
+             */
+            template <class Fun, class Tup, class... Tups>
+            auto transform(Fun &&fun, Tup &&tup, Tups &&... tups) GT_AUTO_RETURN(
+                detail::transform_f<Fun>{std::forward<Fun>(fun)}(std::forward<Tup>(tup), std::forward<Tups>(tups)...));
+
+            /**
+             * @brief Returns a functor that transforms each tuple element by a function.
+             *
+             * Composable version of `transform` that returns a functor which can be invoked with (one or multiple)
+             * tuples.
+             *
+             * @tparam Fun Functor type.
+             *
+             * @param fun Function that should be applied to all elements of the given tuple(s).
+             *
+             * Example code:
+             * @code
+             * struct add {
+             *     template < class A, class B >
+             *     auto operator()(A a, B b) -> decltype(a + b) {
+             *         return a + b;
+             *     }
+             * };
+             *
+             * // Composable usage with only a function argument
+             * auto addtuples = transform(add{});
+             * // addtuples takes now two tuples as arguments
+             * auto tup1 = std::make_tuple(1, 2, 3.5);
+             * auto tup2 = std::make_tuple(1.5, 3, 4.1);
+             * auto res = addtuples(tup1, tup2)
+             * // res == {2.5, 5, 7.6}
+             * @endcode
+             */
+            template <class Fun>
+            constexpr detail::transform_f<Fun> transform(Fun fun) {
+                return {std::move(fun)};
+            }
+
+            /**
+             * @brief Calls a function for each element in a tuple.
+             *
+             * Functions with more than one argument are supported by passing multiple tuples of the same size. If only
+             * a function but no tuples are passed, a composable functor is returned.
+             *
+             * @tparam Fun Functor type.
+             * @tparam Tup Optional tuple-like type.
+             * @tparam Tups Optional Tuple-like types.
+             *
+             * @param fun Function that should be called for each element of the given tuple(s).
+             * @param tup First tuple-like object, serves as first arguments to `fun` if given.
+             * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
+             *
+             * Example code:
+             * @code
+             * struct sum {
+             *     double& value;
+             *     template < class A >
+             *     void operator()(A a, bool mask = true) const {
+             *         if (mask)
+             *             value += a;
+             *     }
+             * };
+             *
+             * // Unary function, like boost::fusion::for_each
+             * auto tup = std::make_tuple(1, 2, 3.5);
+             * double sum_value = 0.0;
+             * for_each(sum{sum_value}, tup);
+             * // sum_value == 6.5
+             *
+             * // Binary function
+             * auto tup2 = std::make_tuple(false, true, true);
+             * sum_value = 0.0;
+             * for_each(sum{sum_value}, tup, tup2);
+             * // sum_value == 5.5
+             * @endcode
+             */
+            template <class Fun, class Tup, class... Tups>
+            void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
+                transform(detail::for_each_adaptor_f<Fun>{std::forward<Fun>(fun)},
+                    std::forward<Tup>(tup),
+                    std::forward<Tups>(tups)...);
+            }
+
+            /**
+             * @brief Returns a functor that calls a function for each element in a tuple.
+             *
+             * Composable version of `for_each` that returns a functor which can be invoked with (one or multiple)
+             * tuples.
+             *
+             * @tparam Fun Functor type.
+             *
+             * @param fun Function that should be called for each element of the given tuple(s).
+             *
+             * Example code:
+             * @code
+             * struct sum {
+             *     double& value;
+             *     template < class A >
+             *     void operator()(A a, bool mask = true) const {
+             *         if (mask)
+             *             value += a;
+             *     }
+             * };
+             *
+             * // Composable usage with only a function argument
+             * sum_value = 0.0;
+             * auto sumtuples = for_each(sum{sum_value});
+             * // sumtuples takes now two tuples as arguments
+             * auto tup1 = std::make_tuple(1, 2, 3.5);
+             * auto tup2 = std::make_tuple(false, true, true);
+             * auto res = sumtuples(tup1, tup2)
+             * // sum_value == 5.5
+             * @endcode
+             */
+            template <class Fun>
+            constexpr detail::transform_f<detail::for_each_adaptor_f<Fun>> for_each(Fun fun) {
+                return {{std::move(fun)}};
+            }
+
+            /**
+             * @brief Calls a function for each element in a cartesian product of the given tuples.
+             *
+             * If only a function but no tuples are passed, a composable functor is returned.
+             *
+             * @tparam Fun Functor type.
+             * @tparam Tup Optional tuple-like type.
+             * @tparam Tups Optional Tuple-like types.
+             *
+             * @param fun Function that should be called for each element in a cartesian product of the given tuples.
+             * @param tup First tuple-like object, serves as first arguments to `fun` if given.
+             * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
+             *
+             * Example code:
+             * @code
+             * struct sum {
+             *     double& value;
+             *     template < class A, class B >
+             *     void operator()(A a, B b) const {
+             *         if (mask)
+             *             value += a * b;
+             *     }
+             * };
+             *
+             * // Binary function
+             * sum_value = 0.;
+             * for_each(sum{sum_value}, std::make_tuple(1, 2, 3), std::make_tuple(1, 10));
+             * // sum_value == 66.
+             * @endcode
+             */
+            template <class Fun, class Tup, class... Tups>
+            void for_each_in_cartesian_product(Fun &&fun, Tup &&tup, Tups &&... tups) {
+                detail::for_each_in_cartesian_product_f<Fun>{std::forward<Fun>(fun)}(
+                    std::forward<Tup>(tup), std::forward<Tups>(tups)...);
+            }
+
+            template <class Fun>
+            constexpr detail::for_each_in_cartesian_product_f<Fun> for_each_in_cartesian_product(Fun fun) {
+                return {std::move(fun)};
+            }
+
+            /**
+             * @brief Return a functor that flattens a tuple of tuples non-recursively into a single tuple.
+             *
+             * Flattens only the first two levels of nested tuples into a single level. Does not flatten further levels
+             * of nesting.
+             *
+             * Example:
+             * @code
+             * auto flattenfunc = flatten();
+             * auto tup1 = std::make_tuple(1, 2);
+             * auto tup2 = std::make_tuple(3, 4, 5);
+             * auto flat = flattenfunc(tup1, tup2);
+             * // flat == {1, 2, 3, 4, 5}
+             * @endcode
+             */
+            inline constexpr detail::flatten_f flatten() { return {}; }
+
+            /**
+             * @brief Non-recursively flattens a tuple of tuples into a single tuple.
+             *
+             * Flattens only the first two levels of nested tuples into a single level. Does not flatten further levels
+             * of nesting.
+             *
+             * @tparam Tup Tuple-like type.
+             * @param tup Tuple-like object.
+             *
+             * Example:
+             * @code
+             * auto tup1 = std::make_tuple(1, 2);
+             * auto tup2 = std::make_tuple(3, 4, 5);
+             * auto flat = flatten(tup1, tup2);
+             * // flat == {1, 2, 3, 4, 5}
+             * @endcode
+             */
+            template <class Tup>
+            auto flatten(Tup &&tup) GT_AUTO_RETURN(flatten()(std::forward<Tup>(tup)));
+
+            /**
+             * @brief Constructs an object from generator functors.
+             *
+             * `Generators` is a typelist of generator functors. Instances of those types are first default constructed,
+             * then invoked with `args` as arguments. The results of those calls are then passed to the constructor of
+             * `Res`.
+             *
+             * @tparam Generators A typelist of functors. All functor types must be default-constructible and callable
+             * with arguments of type `Args`.
+             * @tparam Res The type that should be constructed.
+             * @tparam Args Argument types for the generator functors.
+             *
+             * @param args Arguments that will be passed to the generator functors.
+             *
+             * Example:
+             * @code
+             * // Generators that extract some information from the given arguments (a single std::string in this
+             * example) struct ptr_extractor { const char* operator()(std::string const& s) const { return s.data();
+             *     }
+             * };
+             *
+             * struct size_extractor {
+             *     std::size_t operator()(std::string const& s) const {
+             *         return s.size();
+             *     }
+             * };
+             *
+             * // We want to generate a pair of a pointer and size, that represents this string in a simple C-style
+             * manner std::string s = "Hello World!";
+             * // Target-type to construct
+             * using ptr_size_pair = std::pair< const char*, std::size_t >;
+             *
+             * // Typelist of generators
+             * using generators = std::tuple< ptr_extractor, size_extractor>;
+             *
+             * // Generate pair
+             * auto p = generate< generators, ptr_size_pair >(s);
+             * // p.first is now a pointer to the first character of s, p.second is the size of s
+             * @endcode
+             */
+            template <class Generators, class Res, class... Args>
+            Res generate(Args &&... args) {
+                return detail::generate_f<Generators, Res>{}(std::forward<Args>(args)...);
+            }
+
+            /**
+             * @brief Returns a functor that removes the first `N` elements from a tuple.
+             *
+             * @tparam N Number of elements to remove.
+             *
+             * Example:
+             * @code
+             * auto dropper = drop_front<2>();
+             * auto tup = std::make_tuple(1, 2, 3, 4);
+             * auto res = dropper(tup);
+             * // res == {3, 4}
+             * @endcode
+             */
             template <size_t N>
-            struct drop_front_f {
-#if GT_BROKEN_TEMPLATE_ALIASES
-                template <class I>
-                struct get_drop_front_generator {
-                    using type = get_f<N + I::value>;
-                };
-#else
-                template <class I>
-                using get_drop_front_generator = get_f<N + I::value>;
-#endif
+            constexpr detail::drop_front_f<N> drop_front() {
+                return {};
+            }
 
-                template <class Tup,
-                    class Accessors = GT_META_CALL(get_accessors, Tup &&),
-                    class Res = GT_META_CALL(from_types, (Tup, GT_META_CALL(meta::drop_front_c, (N, Accessors))))>
-                Res operator()(Tup &&tup) const {
-                    using generators = GT_META_CALL(meta::transform,
-                        (get_drop_front_generator, GT_META_CALL(meta::make_indices_c, size<Accessors>::value - N)));
-                    return generate_f<generators, Res>{}(std::forward<Tup>(tup));
-                }
-            };
+            /**
+             * @brief Removes the first `N` elements from a tuple.
+             *
+             * @tparam N Number of elements to remove.
+             * @tparam Tup Tuple-like type.
+             *
+             * @param tup Tuple to remove first `N` elements from.
+             *
+             * Example:
+             * @code
+             * auto tup = std::make_tuple(1, 2, 3, 4);
+             * auto res = drop_front<2>(tup);
+             * // res == {3, 4}
+             * @endcode
+             */
+            template <size_t N, class Tup>
+            auto drop_front(Tup &&tup) GT_AUTO_RETURN(drop_front<N>()(std::forward<Tup>(tup)));
 
-            template <class, class>
-            struct push_back_impl_f;
+            /**
+             * @brief Returns a functor that appends elements to a tuple.
+             *
+             * Example:
+             * @code
+             * auto pusher = push_back();
+             * auto tup = std::make_tuple(1, 2);
+             * auto res = pusher(tup, 3, 4);
+             * // res = {1, 2, 3, 4}
+             * @endcode
+             */
+            inline constexpr detail::push_back_f push_back() { return {}; }
 
-            template <template <class T, T...> class L, class Int, Int... Is, class Res>
-            struct push_back_impl_f<L<Int, Is...>, Res> {
-                template <class Tup, class... Args>
-                Res operator()(Tup &&tup, Args &&... args) const {
-                    return Res{get<Is>(std::forward<Tup>(tup))..., std::forward<Args>(args)...};
-                }
-            };
+            /**
+             * @brief Appends elements to a tuple.
+             *
+             * @tparam Tup Tuple-like type.
+             * @tparam Args Argument types to append.
+             *
+             * @param tup Tuple-like object.
+             * @param args Arguments to append.
+             *
+             * Example:
+             * @code
+             * auto tup = std::make_tuple(1, 2);
+             * auto res = push_back(tup, 3, 4);
+             * // res = {1, 2, 3, 4}
+             * @endcode
+             */
+            template <class Tup, class... Args>
+            auto push_back(Tup &&tup, Args &&... args)
+                GT_AUTO_RETURN(push_back()(std::forward<Tup>(tup), std::forward<Args>(args)...));
 
-            struct push_back_f {
-                template <class Tup,
-                    class... Args,
-                    class Accessors = GT_META_CALL(get_accessors, Tup &&),
-                    class Res = GT_META_CALL(from_types, (Tup, GT_META_CALL(meta::push_back, (Accessors, Args &&...))))>
-                Res operator()(Tup &&tup, Args &&... args) const {
-                    return push_back_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
-                        std::forward<Tup>(tup), std::forward<Args>(args)...);
-                }
-            };
+            /**
+             * @brief Left fold on tuple-like objects.
+             *
+             * This function accepts either two or three arguments. If three arguments are given, the second is the
+             * initial state and the third a tuple-like object to fold. If only two arguments are given, the second is a
+             * tuple-like object where the first element acts as the initial state.
+             *
+             * @tparam Fun Binary function type.
+             * @tparam Arg Either the initial state if three arguments are given or the tuple to fold if two arguments
+             * are given.
+             * @tparam Args The tuple type to fold (if three arguments are given).
+             *
+             * @param fun Binary function object.
+             * @param arg Either the initial state if three arguments are given or the tuple to fold if two arguments
+             * are given.
+             * @param args The tuple to fold (if three arguments are given).
+             *
+             * Example:
+             * @code
+             * auto tup = std::make_tuple(1, 2, 3);
+             *
+             * // Three arguments
+             * auto res = fold(std::plus<int>{}, 0, tup);
+             * // res == 6
+             *
+             * // Two arguments
+             * auto res2 = fold(std::plus<int>{}, tup);
+             * // res2 == 6
+             * @endcode
+             */
+            template <class Fun, class Arg, class... Args>
+            auto fold(Fun &&fun, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+                detail::fold_f<Fun>{std::forward<Fun>(fun)}(std::forward<Arg>(arg), std::forward<Args>(args)...));
 
+            /**
+             * @brief Returns a functor that performs a left fold on tuple-like objects.
+             *
+             * The returned functor accepts either one or two arguments. If two arguments are given, the first is the
+             * initial state and the second a tuple-like object to fold. If only one argument is given, the argument
+             * must be a tuple-like object where the first element acts as the initial state.
+             *
+             * @tparam Fun Binary function type.
+             * @param fun Binary function object.
+             *
+             * Example:
+             * @code
+             * auto tup = std::make_tuple(1, 2, 3);
+             * auto folder = fold(std::plus<int>{});
+             *
+             * // Three arguments
+             * auto res = folder(0, tup);
+             * // res == 6
+             *
+             * // Two arguments
+             * auto res2 = folder(tup);
+             * // res2 == 6
+             * @endcode
+             */
             template <class Fun>
-            struct fold_f {
-#if GT_BROKEN_TEMPLATE_ALIASES
-                template <class S, class T>
-                struct meta_fun : get_fun_result<Fun>::template apply<S, T> {};
-#else
-                template <class S, class T>
-                using meta_fun = typename get_fun_result<Fun>::template apply<S, T>;
-#endif
-                Fun m_fun;
+            constexpr detail::fold_f<Fun> fold(Fun fun) {
+                return {std::move(fun)};
+            }
 
-                template <size_t I, size_t N, class State, class Tup, enable_if_t<I == N, int> = 0>
-                State impl(State &&state, Tup &&) const {
-                    return state;
-                }
+            /**
+             * @brief Returns a functor that replaces reference types by value types in a tuple
+             *
+             * Example:
+             * @code
+             * auto copyfun = deep_copy();
+             * int foo = 3;
+             * std::tuple<int&> tup(foo);
+             * auto tupcopy = copyfun(tup);
+             * ++foo;
+             * // tup == {4}, tupcopy == {3}
+             * @endcode
+             */
+            inline constexpr detail::transform_f<clone> deep_copy() { return {}; }
 
-                template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 1 == N, int> = 0>
-                auto impl(State &&state, Tup &&tup) const
-                    GT_AUTO_RETURN(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))));
+            /**
+             * @brief Replaces reference types by value types in a tuple.
+             *
+             * @tparam Tup Tuple-like type.
+             * @param tup Tuple-like object, possibly containing references.
+             *
+             * Example:
+             * @code
+             * int foo = 3;
+             * std::tuple<int&> tup(foo);
+             * auto tupcopy = deep_copy(tup);
+             * ++foo;
+             * // tup == {4}, tupcopy == {3}
+             * @endcode
+             */
+            template <class Tup>
+            auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward<Tup>(tup)));
 
-                template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 2 == N, int> = 0>
-                auto impl(State &&state, Tup &&tup) const
-                    GT_AUTO_RETURN(m_fun(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))),
-                        get<I + 1>(std::forward<Tup>(tup))));
+            namespace detail {
+                // in impl as it is not as powerful as std::invoke (does not support invoking member functions)
+                template <class Fun, class... Args>
+                auto invoke_impl(Fun &&f, Args &&... args)
+                    GT_AUTO_RETURN(std::forward<Fun>(f)(std::forward<Args>(args)...));
 
-                template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 3 == N, int> = 0>
-                auto impl(State &&state, Tup &&tup) const
-                    GT_AUTO_RETURN(m_fun(m_fun(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))),
-                                             get<I + 1>(std::forward<Tup>(tup))),
-                        get<I + 2>(std::forward<Tup>(tup))));
+                template <class Fun, class Tup, std::size_t... Is>
+                constexpr auto apply_impl(Fun &&f, Tup &&tup, gt_index_sequence<Is...>)
+                    GT_AUTO_RETURN(invoke_impl(std::forward<Fun>(f), get<Is>(std::forward<Tup>(tup))...));
+            } // namespace detail
 
-                template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 4 == N, int> = 0>
-                auto impl(State &&state, Tup &&tup) const
-                    GT_AUTO_RETURN(m_fun(m_fun(m_fun(m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))),
-                                                   get<I + 1>(std::forward<Tup>(tup))),
-                                             get<I + 2>(std::forward<Tup>(tup))),
-                        get<I + 3>(std::forward<Tup>(tup))));
+            /**
+             * @brief Invoke callable f with tuple of arguments.
+             *
+             * @tparam Fun Functor type.
+             * @tparam Tup Tuple-like type.
+             * @param tup Tuple-like object containing arguments
+             * @param fun Function that should be called with the arguments in tup
+             *
+             * See std::apply (c++17), with the limitation that it only works for FunctionObjects (not for any Callable)
+             */
+            template <class Fun, class Tup>
+            constexpr auto apply(Fun &&fun, Tup &&tup) GT_AUTO_RETURN(detail::apply_impl(
+                std::forward<Fun>(fun), std::forward<Tup>(tup), make_gt_index_sequence<size<decay_t<Tup>>::value>{}));
 
-                template <size_t I,
-                    size_t N,
-                    class State,
-                    class Tup,
-                    class AllAccessors = GT_META_CALL(get_accessors, Tup &&),
-                    class Accessors = GT_META_CALL(meta::drop_front_c, (I, AllAccessors)),
-                    class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors)),
-                    enable_if_t<(I + 4 < N), int> = 0>
-                Res impl(State &&state, Tup &&tup) const {
-                    return impl<I + 1, N>(
-                        m_fun(std::forward<State>(state), get<I>(std::forward<Tup>(tup))), std::forward<Tup>(tup));
-                }
-
-                template <class State,
-                    class Tup,
-                    class Accessors = GT_META_CALL(get_accessors, Tup &&),
-                    class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors))>
-                Res operator()(State &&state, Tup &&tup) const {
-                    return impl<0, size<decay_t<Tup>>::value>(std::forward<State>(state), std::forward<Tup>(tup));
-                }
-
-                template <class Tup,
-                    class AllAccessors = GT_META_CALL(get_accessors, Tup &&),
-                    class StateAccessor = GT_META_CALL(meta::first, AllAccessors),
-                    class Accessors = GT_META_CALL(meta::drop_front_c, (1, AllAccessors)),
-                    class Res = GT_META_CALL(meta::lfold, (meta_fun, StateAccessor, Accessors))>
-                Res operator()(Tup &&tup) const {
-                    return impl<1, size<decay_t<Tup>>::value>(get<0>(std::forward<Tup>(tup)), std::forward<Tup>(tup));
-                }
-            };
-        } // namespace _impl
-
-        /**
-         * @brief Transforms each tuple element by a function.
-         *
-         * Transformations with functions with more than one argument are supported by passing multiple tuples of the
-         * same size.
-         *
-         * @tparam Fun Functor type.
-         * @tparam Tup Optional tuple-like type.
-         * @tparam Tups Optional Tuple-like types.
-         *
-         * @param fun Function that should be applied to all elements of the given tuple(s).
-         * @param tup First tuple-like object, serves as first arguments to `fun` if given.
-         * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
-         *
-         * Example code:
-         * @code
-         * #include <functional>
-         * using namespace std::placeholders;
-         *
-         * struct add {
-         *     template < class A, class B >
-         *     auto operator()(A a, B b) -> decltype(a + b) {
-         *         return a + b;
-         *     }
-         * };
-         *
-         * // Unary function, like boost::fusion::transform
-         * auto tup = std::make_tuple(1, 2, 3.5);
-         * auto fun = std::bind(add{}, 2, _1);
-         * auto res = transform(fun, tup);
-         * // res == {3, 4, 5.5}
-         *
-         * // Binary function
-         * auto tup2 = std::make_tuple(1.5, 3, 4.1);
-         * auto res2 = transform(add{}, tup, tup2);
-         * // res2 == {2.5, 5, 7.6}
-         * @endcode
-         */
-        template <class Fun, class Tup, class... Tups>
-        auto transform(Fun &&fun, Tup &&tup, Tups &&... tups) GT_AUTO_RETURN(
-            _impl::transform_f<Fun>{std::forward<Fun>(fun)}(std::forward<Tup>(tup), std::forward<Tups>(tups)...));
-
-        /**
-         * @brief Returns a functor that transforms each tuple element by a function.
-         *
-         * Composable version of `transform` that returns a functor which can be invoked with (one or multiple) tuples.
-         *
-         * @tparam Fun Functor type.
-         *
-         * @param fun Function that should be applied to all elements of the given tuple(s).
-         *
-         * Example code:
-         * @code
-         * struct add {
-         *     template < class A, class B >
-         *     auto operator()(A a, B b) -> decltype(a + b) {
-         *         return a + b;
-         *     }
-         * };
-         *
-         * // Composable usage with only a function argument
-         * auto addtuples = transform(add{});
-         * // addtuples takes now two tuples as arguments
-         * auto tup1 = std::make_tuple(1, 2, 3.5);
-         * auto tup2 = std::make_tuple(1.5, 3, 4.1);
-         * auto res = addtuples(tup1, tup2)
-         * // res == {2.5, 5, 7.6}
-         * @endcode
-         */
-        template <class Fun>
-        constexpr _impl::transform_f<Fun> transform(Fun fun) {
-            return {std::move(fun)};
-        }
-
-        /**
-         * @brief Calls a function for each element in a tuple.
-         *
-         * Functions with more than one argument are supported by passing multiple tuples of the same size. If only a
-         * function but no tuples are passed, a composable functor is returned.
-         *
-         * @tparam Fun Functor type.
-         * @tparam Tup Optional tuple-like type.
-         * @tparam Tups Optional Tuple-like types.
-         *
-         * @param fun Function that should be called for each element of the given tuple(s).
-         * @param tup First tuple-like object, serves as first arguments to `fun` if given.
-         * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
-         *
-         * Example code:
-         * @code
-         * struct sum {
-         *     double& value;
-         *     template < class A >
-         *     void operator()(A a, bool mask = true) const {
-         *         if (mask)
-         *             value += a;
-         *     }
-         * };
-         *
-         * // Unary function, like boost::fusion::for_each
-         * auto tup = std::make_tuple(1, 2, 3.5);
-         * double sum_value = 0.0;
-         * for_each(sum{sum_value}, tup);
-         * // sum_value == 6.5
-         *
-         * // Binary function
-         * auto tup2 = std::make_tuple(false, true, true);
-         * sum_value = 0.0;
-         * for_each(sum{sum_value}, tup, tup2);
-         * // sum_value == 5.5
-         * @endcode
-         */
-        template <class Fun, class Tup, class... Tups>
-        void for_each(Fun &&fun, Tup &&tup, Tups &&... tups) {
-            transform(_impl::for_each_adaptor_f<Fun>{std::forward<Fun>(fun)},
-                std::forward<Tup>(tup),
-                std::forward<Tups>(tups)...);
-        }
-
-        /**
-         * @brief Returns a functor that calls a function for each element in a tuple.
-         *
-         * Composable version of `for_each` that returns a functor which can be invoked with (one or multiple) tuples.
-         *
-         * @tparam Fun Functor type.
-         *
-         * @param fun Function that should be called for each element of the given tuple(s).
-         *
-         * Example code:
-         * @code
-         * struct sum {
-         *     double& value;
-         *     template < class A >
-         *     void operator()(A a, bool mask = true) const {
-         *         if (mask)
-         *             value += a;
-         *     }
-         * };
-         *
-         * // Composable usage with only a function argument
-         * sum_value = 0.0;
-         * auto sumtuples = for_each(sum{sum_value});
-         * // sumtuples takes now two tuples as arguments
-         * auto tup1 = std::make_tuple(1, 2, 3.5);
-         * auto tup2 = std::make_tuple(false, true, true);
-         * auto res = sumtuples(tup1, tup2)
-         * // sum_value == 5.5
-         * @endcode
-         */
-        template <class Fun>
-        constexpr _impl::transform_f<_impl::for_each_adaptor_f<Fun>> for_each(Fun fun) {
-            return {{std::move(fun)}};
-        }
-
-        /**
-         * @brief Calls a function for each element in a cartesian product of the given tuples.
-         *
-         * If only a function but no tuples are passed, a composable functor is returned.
-         *
-         * @tparam Fun Functor type.
-         * @tparam Tup Optional tuple-like type.
-         * @tparam Tups Optional Tuple-like types.
-         *
-         * @param fun Function that should be called for each element in a cartesian product of the given tuples.
-         * @param tup First tuple-like object, serves as first arguments to `fun` if given.
-         * @param tups Further tuple-like objects, serve as additional arguments to `fun` if given.
-         *
-         * Example code:
-         * @code
-         * struct sum {
-         *     double& value;
-         *     template < class A, class B >
-         *     void operator()(A a, B b) const {
-         *         if (mask)
-         *             value += a * b;
-         *     }
-         * };
-         *
-         * // Binary function
-         * sum_value = 0.;
-         * for_each(sum{sum_value}, std::make_tuple(1, 2, 3), std::make_tuple(1, 10));
-         * // sum_value == 66.
-         * @endcode
-         */
-        template <class Fun, class Tup, class... Tups>
-        void for_each_in_cartesian_product(Fun &&fun, Tup &&tup, Tups &&... tups) {
-            _impl::for_each_in_cartesian_product_f<Fun>{std::forward<Fun>(fun)}(
-                std::forward<Tup>(tup), std::forward<Tups>(tups)...);
-        }
-
-        template <class Fun>
-        constexpr _impl::for_each_in_cartesian_product_f<Fun> for_each_in_cartesian_product(Fun fun) {
-            return {std::move(fun)};
-        }
-
-        /**
-         * @brief Return a functor that flattens a tuple of tuples non-recursively into a single tuple.
-         *
-         * Flattens only the first two levels of nested tuples into a single level. Does not flatten further levels of
-         * nesting.
-         *
-         * Example:
-         * @code
-         * auto flattenfunc = flatten();
-         * auto tup1 = std::make_tuple(1, 2);
-         * auto tup2 = std::make_tuple(3, 4, 5);
-         * auto flat = flattenfunc(tup1, tup2);
-         * // flat == {1, 2, 3, 4, 5}
-         * @endcode
-         */
-        inline constexpr _impl::flatten_f flatten() { return {}; }
-
-        /**
-         * @brief Non-recursively flattens a tuple of tuples into a single tuple.
-         *
-         * Flattens only the first two levels of nested tuples into a single level. Does not flatten further levels of
-         * nesting.
-         *
-         * @tparam Tup Tuple-like type.
-         * @param tup Tuple-like object.
-         *
-         * Example:
-         * @code
-         * auto tup1 = std::make_tuple(1, 2);
-         * auto tup2 = std::make_tuple(3, 4, 5);
-         * auto flat = flatten(tup1, tup2);
-         * // flat == {1, 2, 3, 4, 5}
-         * @endcode
-         */
-        template <class Tup>
-        auto flatten(Tup &&tup) GT_AUTO_RETURN(flatten()(std::forward<Tup>(tup)));
-
-        /**
-         * @brief Constructs an object from generator functors.
-         *
-         * `Generators` is a typelist of generator functors. Instances of those types are first default constructed,
-         * then invoked with `args` as arguments. The results of those calls are then passed to the constructor of
-         * `Res`.
-         *
-         * @tparam Generators A typelist of functors. All functor types must be default-constructible and callable with
-         * arguments of type `Args`.
-         * @tparam Res The type that should be constructed.
-         * @tparam Args Argument types for the generator functors.
-         *
-         * @param args Arguments that will be passed to the generator functors.
-         *
-         * Example:
-         * @code
-         * // Generators that extract some information from the given arguments (a single std::string in this example)
-         * struct ptr_extractor {
-         *     const char* operator()(std::string const& s) const {
-         *         return s.data();
-         *     }
-         * };
-         *
-         * struct size_extractor {
-         *     std::size_t operator()(std::string const& s) const {
-         *         return s.size();
-         *     }
-         * };
-         *
-         * // We want to generate a pair of a pointer and size, that represents this string in a simple C-style manner
-         * std::string s = "Hello World!";
-         * // Target-type to construct
-         * using ptr_size_pair = std::pair< const char*, std::size_t >;
-         *
-         * // Typelist of generators
-         * using generators = std::tuple< ptr_extractor, size_extractor>;
-         *
-         * // Generate pair
-         * auto p = generate< generators, ptr_size_pair >(s);
-         * // p.first is now a pointer to the first character of s, p.second is the size of s
-         * @endcode
-         */
-        template <class Generators, class Res, class... Args>
-        Res generate(Args &&... args) {
-            return _impl::generate_f<Generators, Res>{}(std::forward<Args>(args)...);
-        }
-
-        /**
-         * @brief Returns a functor that removes the first `N` elements from a tuple.
-         *
-         * @tparam N Number of elements to remove.
-         *
-         * Example:
-         * @code
-         * auto dropper = drop_front<2>();
-         * auto tup = std::make_tuple(1, 2, 3, 4);
-         * auto res = dropper(tup);
-         * // res == {3, 4}
-         * @endcode
-         */
-        template <size_t N>
-        constexpr _impl::drop_front_f<N> drop_front() {
-            return {};
-        }
-
-        /**
-         * @brief Removes the first `N` elements from a tuple.
-         *
-         * @tparam N Number of elements to remove.
-         * @tparam Tup Tuple-like type.
-         *
-         * @param tup Tuple to remove first `N` elements from.
-         *
-         * Example:
-         * @code
-         * auto tup = std::make_tuple(1, 2, 3, 4);
-         * auto res = drop_front<2>(tup);
-         * // res == {3, 4}
-         * @endcode
-         */
-        template <size_t N, class Tup>
-        auto drop_front(Tup &&tup) GT_AUTO_RETURN(drop_front<N>()(std::forward<Tup>(tup)));
-
-        /**
-         * @brief Returns a functor that appends elements to a tuple.
-         *
-         * Example:
-         * @code
-         * auto pusher = push_back();
-         * auto tup = std::make_tuple(1, 2);
-         * auto res = pusher(tup, 3, 4);
-         * // res = {1, 2, 3, 4}
-         * @endcode
-         */
-        inline constexpr _impl::push_back_f push_back() { return {}; }
-
-        /**
-         * @brief Appends elements to a tuple.
-         *
-         * @tparam Tup Tuple-like type.
-         * @tparam Args Argument types to append.
-         *
-         * @param tup Tuple-like object.
-         * @param args Arguments to append.
-         *
-         * Example:
-         * @code
-         * auto tup = std::make_tuple(1, 2);
-         * auto res = push_back(tup, 3, 4);
-         * // res = {1, 2, 3, 4}
-         * @endcode
-         */
-        template <class Tup, class... Args>
-        auto push_back(Tup &&tup, Args &&... args)
-            GT_AUTO_RETURN(push_back()(std::forward<Tup>(tup), std::forward<Args>(args)...));
-
-        /**
-         * @brief Left fold on tuple-like objects.
-         *
-         * This function accepts either two or three arguments. If three arguments are given, the second is the initial
-         * state and the third a tuple-like object to fold. If only two arguments are given, the second is a tuple-like
-         * object where the first element acts as the initial state.
-         *
-         * @tparam Fun Binary function type.
-         * @tparam Arg Either the initial state if three arguments are given or the tuple to fold if two arguments are
-         * given.
-         * @tparam Args The tuple type to fold (if three arguments are given).
-         *
-         * @param fun Binary function object.
-         * @param arg Either the initial state if three arguments are given or the tuple to fold if two arguments are
-         * given.
-         * @param args The tuple to fold (if three arguments are given).
-         *
-         * Example:
-         * @code
-         * auto tup = std::make_tuple(1, 2, 3);
-         *
-         * // Three arguments
-         * auto res = fold(std::plus<int>{}, 0, tup);
-         * // res == 6
-         *
-         * // Two arguments
-         * auto res2 = fold(std::plus<int>{}, tup);
-         * // res2 == 6
-         * @endcode
-         */
-        template <class Fun, class Arg, class... Args>
-        auto fold(Fun &&fun, Arg &&arg, Args &&... args) GT_AUTO_RETURN(
-            _impl::fold_f<Fun>{std::forward<Fun>(fun)}(std::forward<Arg>(arg), std::forward<Args>(args)...));
-
-        /**
-         * @brief Returns a functor that performs a left fold on tuple-like objects.
-         *
-         * The returned functor accepts either one or two arguments. If two arguments are given, the first is the
-         * initial state and the second a tuple-like object to fold. If only one argument is given, the argument must be
-         * a tuple-like object where the first element acts as the initial state.
-         *
-         * @tparam Fun Binary function type.
-         * @param fun Binary function object.
-         *
-         * Example:
-         * @code
-         * auto tup = std::make_tuple(1, 2, 3);
-         * auto folder = fold(std::plus<int>{});
-         *
-         * // Three arguments
-         * auto res = folder(0, tup);
-         * // res == 6
-         *
-         * // Two arguments
-         * auto res2 = folder(tup);
-         * // res2 == 6
-         * @endcode
-         */
-        template <class Fun>
-        constexpr _impl::fold_f<Fun> fold(Fun fun) {
-            return {std::move(fun)};
-        }
-
-        /**
-         * @brief Returns a functor that replaces reference types by value types in a tuple
-         *
-         * Example:
-         * @code
-         * auto copyfun = deep_copy();
-         * int foo = 3;
-         * std::tuple<int&> tup(foo);
-         * auto tupcopy = copyfun(tup);
-         * ++foo;
-         * // tup == {4}, tupcopy == {3}
-         * @endcode
-         */
-        inline constexpr _impl::transform_f<clone> deep_copy() { return {}; }
-
-        /**
-         * @brief Replaces reference types by value types in a tuple.
-         *
-         * @tparam Tup Tuple-like type.
-         * @param tup Tuple-like object, possibly containing references.
-         *
-         * Example:
-         * @code
-         * int foo = 3;
-         * std::tuple<int&> tup(foo);
-         * auto tupcopy = deep_copy(tup);
-         * ++foo;
-         * // tup == {4}, tupcopy == {3}
-         * @endcode
-         */
-        template <class Tup>
-        auto deep_copy(Tup &&tup) GT_AUTO_RETURN(deep_copy()(std::forward<Tup>(tup)));
-
-        namespace _impl {
-            // in impl as it is not as powerful as std::invoke (does not support invoking member functions)
-            template <class Fun, class... Args>
-            auto invoke_impl(Fun &&f, Args &&... args)
-                GT_AUTO_RETURN(std::forward<Fun>(f)(std::forward<Args>(args)...));
-
-            template <class Fun, class Tup, std::size_t... Is>
-            constexpr auto apply_impl(Fun &&f, Tup &&tup, gt_index_sequence<Is...>)
-                GT_AUTO_RETURN(invoke_impl(std::forward<Fun>(f), get<Is>(std::forward<Tup>(tup))...));
-        } // namespace _impl
-
-        /**
-         * @brief Invoke callable f with tuple of arguments.
-         *
-         * @tparam Fun Functor type.
-         * @tparam Tup Tuple-like type.
-         * @param tup Tuple-like object containing arguments
-         * @param fun Function that should be called with the arguments in tup
-         *
-         * See std::apply (c++17), with the limitation that it only works for FunctionObjects (not for any Callable)
-         */
-        template <class Fun, class Tup>
-        constexpr auto apply(Fun &&fun, Tup &&tup) GT_AUTO_RETURN(_impl::apply_impl(
-            std::forward<Fun>(fun), std::forward<Tup>(tup), make_gt_index_sequence<size<decay_t<Tup>>::value>{}));
+        } // namespace host
 
     } // namespace tuple_util
     /** @} */
