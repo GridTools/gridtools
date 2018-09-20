@@ -115,7 +115,7 @@ namespace gridtools {
         }
 
         TEST(get, std_array) {
-            auto obj = std::array<int, 2>{1, 2};
+            auto obj = make<std::array>(1, 2);
             EXPECT_EQ(get<0>(obj), 1);
             EXPECT_EQ(get<1>(obj), 2);
             get<0>(obj) = 42;
@@ -157,14 +157,14 @@ namespace gridtools {
         }
 
         TEST(transform, array) {
-            std::array<int, 2> src{42, 5};
+            auto src = make<std::array>(42, 5);
             auto res = transform(add_2_f{}, src);
             static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
             EXPECT_THAT(res, testing::ElementsAre(44, 7));
         }
 
         TEST(transform, gt_array) {
-            gridtools::array<int, 2> src{42, 5};
+            auto src = make<gridtools::array>(42, 5);
             auto res = host_device::transform(add_2_f{}, src);
             static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
             EXPECT_THAT(res, testing::ElementsAre(44, 7));
@@ -177,8 +177,7 @@ namespace gridtools {
 
         TEST(transform, multiple_arrays) {
             EXPECT_THAT(
-                transform(
-                    [](int lhs, int rhs) { return lhs + rhs; }, std::array<int, 2>{1, 2}, std::array<int, 2>{10, 20}),
+                transform([](int lhs, int rhs) { return lhs + rhs; }, make<std::array>(1, 2), make<std::array>(10, 20)),
                 testing::ElementsAre(11, 22));
         }
 
@@ -198,7 +197,7 @@ namespace gridtools {
 
         TEST(for_each, array) {
             double acc = 0;
-            for_each(accumulate_f{acc}, std::array<double, 2>{42, 5.3});
+            for_each(accumulate_f{acc}, make<std::array>(42, 5.3));
             EXPECT_EQ(47.3, acc);
         }
 
@@ -224,7 +223,7 @@ namespace gridtools {
 
         TEST(for_each_in_cartesian_product, array) {
             double acc = 0;
-            for_each_in_cartesian_product(accumulate2_f{acc}, std::array<int, 2>{1, 2}, std::array<int, 2>{10, 20});
+            for_each_in_cartesian_product(accumulate2_f{acc}, make<std::array>(1, 2), make<std::array>(10, 20));
             EXPECT_EQ(90, acc);
         }
 
@@ -234,7 +233,7 @@ namespace gridtools {
         }
 
         TEST(flatten, array) {
-            EXPECT_THAT(flatten(std::make_tuple(std::array<int, 2>{1, 2}, std::array<int, 2>{3, 4})),
+            EXPECT_THAT(flatten(std::make_tuple(make<std::array>(1, 2), make<std::array>(3, 4))),
                 testing::ElementsAre(1, 2, 3, 4));
         }
 
@@ -249,13 +248,13 @@ namespace gridtools {
         TEST(drop_front, functional) { EXPECT_EQ(drop_front<2>(std::make_tuple(1, 2, 3, 4)), std::make_tuple(3, 4)); }
 
         TEST(drop_front, array) {
-            EXPECT_THAT(drop_front<2>(std::array<int, 4>{1, 2, 3, 4}), testing::ElementsAre(3, 4));
+            EXPECT_THAT(drop_front<2>(make<std::array>(1, 2, 3, 4)), testing::ElementsAre(3, 4));
         }
 
         TEST(push_back, functional) { EXPECT_EQ(push_back(std::make_tuple(1, 2), 3, 4), std::make_tuple(1, 2, 3, 4)); }
 
         TEST(push_back, array) {
-            EXPECT_THAT(push_back(std::array<int, 2>{1, 2}, 3, 4), testing::ElementsAre(1, 2, 3, 4));
+            EXPECT_THAT(push_back(make<std::array>(1, 2), 3, 4), testing::ElementsAre(1, 2, 3, 4));
         }
 
         TEST(fold, functional) {
@@ -270,7 +269,7 @@ namespace gridtools {
 
         TEST(fold, array) {
             auto f = [](int x, int y) { return x + y; };
-            EXPECT_EQ(fold(f, std::array<int, 6>{1, 2, 3, 4, 5, 6}), 21);
+            EXPECT_EQ(fold(f, make<std::array>(1, 2, 3, 4, 5, 6)), 21);
         }
 
         TEST(apply, lambda) {
@@ -281,7 +280,23 @@ namespace gridtools {
         }
 
         TEST(apply, array) {
-            EXPECT_EQ(3, apply([](int x, int y) { return x + y; }, std::array<int, 2>{1, 2}));
+            EXPECT_EQ(3, apply([](int x, int y) { return x + y; }, make<std::array>(1, 2)));
         }
+
+        TEST(make, functional) { EXPECT_EQ(make<std::tuple>(42, 5.3), std::make_tuple(42, 5.3)); }
+
+        TEST(tie, functional) {
+            int x = 0, y = 0;
+            tie<std::tuple>(x, y) = std::make_tuple(3, 4);
+            EXPECT_EQ(3, x);
+            EXPECT_EQ(4, y);
+        }
+
+        TEST(make, array) {
+            EXPECT_THAT(make<std::array>(3, 4), testing::ElementsAre(3, 4));
+            EXPECT_THAT((make<std::array>(3.5, 4)), testing::ElementsAre(3.5, 4.));
+            EXPECT_THAT((make<std::array, int>(3, 4.2)), testing::ElementsAre(3, 4));
+        }
+
     } // namespace tuple_util
 } // namespace gridtools

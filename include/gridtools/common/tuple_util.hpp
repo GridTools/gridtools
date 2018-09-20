@@ -325,6 +325,13 @@ namespace gridtools {
                 meta::transform,
                 (get_accessor<get_ref_kind<Tup>::value>::template apply, GT_META_CALL(to_types, Tup)));
 
+            template <class D, class... Ts>
+            struct make_array_helper {
+                using type = D;
+            };
+
+            template <class... Ts>
+            struct make_array_helper<void, Ts...> : std::common_type<Ts...> {};
         } // namespace _impl
     }     // namespace tuple_util
 } // namespace gridtools
@@ -1111,6 +1118,31 @@ namespace gridtools {
             template <class Fun, class Tup>
             GT_TARGET GT_FORCE_INLINE constexpr auto apply(Fun && fun, Tup && tup) GT_AUTO_RETURN(detail::apply_impl(
                 std::forward<Fun>(fun), std::forward<Tup>(tup), make_gt_index_sequence<size<decay_t<Tup>>::value>{}));
+
+            /// Generalization of `std::make_tuple`
+            //
+            template <template <class...> class L, class... Ts>
+            GT_TARGET GT_FORCE_INLINE L<Ts...> make(Ts const &... elems) {
+                return {elems...};
+            }
+
+            /// Generalization of `std::tie`
+            //
+            template <template <class...> class L, class... Ts>
+            GT_TARGET GT_FORCE_INLINE L<Ts &...> tie(Ts & ... elems) {
+                return {elems...};
+            }
+
+            /// Generalization of `std::experimental::make_array`
+            //
+            template <template <class, size_t> class Arr, class D = void, class... Ts>
+            GT_TARGET GT_FORCE_INLINE Arr<typename _impl::make_array_helper<D, Ts...>::type, sizeof...(Ts)> make(
+                Ts const &... elems) {
+                using common_type_t = typename _impl::make_array_helper<D, Ts...>::type;
+                GRIDTOOLS_STATIC_ASSERT(
+                    (conjunction<std::is_convertible<Ts, common_type_t>...>::value), "args must be converitble to D");
+                return {static_cast<common_type_t>(elems)...};
+            }
         }
     } // namespace tuple_util
 } // namespace gridtools
