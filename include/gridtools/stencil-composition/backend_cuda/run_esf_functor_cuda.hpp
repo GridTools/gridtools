@@ -54,7 +54,7 @@ namespace gridtools {
 
         template <class Stages, class ItDomain>
         GT_FUNCTION void exec_stage_group(ItDomain &it_domain) {
-            for_each_type<Stages>(exec_stage_f<ItDomain>{it_domain});
+            host_device::for_each_type<Stages>(exec_stage_f<ItDomain>{it_domain});
         }
 
         template <class ItDomain>
@@ -81,7 +81,7 @@ namespace gridtools {
 
             // execute the groups of independent stages calling `__syncthreads()` in between
             _impl::exec_stage_group<first_t>(it_domain);
-            for_each_type<rest_t>(_impl::exec_stage_group_f<ItDomain>{it_domain});
+            host_device::for_each_type<rest_t>(_impl::exec_stage_group_f<ItDomain>{it_domain});
 
             // call additional `__syncthreads()` at the end of the k-level if the domain has IJ caches
 #ifdef __CUDA_ARCH__
