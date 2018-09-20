@@ -48,15 +48,15 @@
 #include <cuda_runtime.h>
 #endif
 
-#if defined(__CUDACC__)
-#define GT_FORCE_INLINE __forceinline__
-#elif defined(__GNUC__)
-#define GT_FORCE_INLINE inline __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define GT_FORCE_INLINE inline __forceinline
-#else
+//#if defined(__CUDACC__)
+//#define GT_FORCE_INLINE __forceinline__
+//#elif defined(__GNUC__)
+//#define GT_FORCE_INLINE inline __attribute__((always_inline))
+//#elif defined(_MSC_VER)
+//#define GT_FORCE_INLINE inline __forceinline
+//#else
 #define GT_FORCE_INLINE inline
-#endif
+//#endif
 
 /* @def GT_FUNCTION Function attribute macro to be used for host-device functions. */
 /* @def GT_FUNCTION_HOST Function attribute macro to be used for host-only functions. */
