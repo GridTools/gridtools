@@ -128,7 +128,8 @@ namespace gridtools {
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
             static constexpr auto n_colors = LocationType::n_colors::value;
-            for_each_type<GT_META_CALL(meta::make_indices_c, n_colors)>(exec_for_color_f<ItDomain>{it_domain});
+            host_device::for_each_type<GT_META_CALL(meta::make_indices_c, n_colors)>(
+                exec_for_color_f<ItDomain>{it_domain});
             it_domain.template increment_c<-n_colors>();
         }
     };
