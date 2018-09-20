@@ -43,9 +43,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/generic_metafunctions/meta.hpp>
 #include <gridtools/common/generic_metafunctions/type_traits.hpp>
+#include <gridtools/common/host_device.hpp>
 
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
 #define NO_CONSTEXPR
@@ -122,7 +124,7 @@ namespace gridtools {
 
         struct add_2_f {
             template <class T>
-            T operator()(T val) const {
+            GT_FUNCTION T operator()(T val) const {
                 return val + 2;
             }
         };
@@ -157,6 +159,13 @@ namespace gridtools {
         TEST(transform, array) {
             std::array<int, 2> src{42, 5};
             auto res = transform(add_2_f{}, src);
+            static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
+            EXPECT_THAT(res, testing::ElementsAre(44, 7));
+        }
+
+        TEST(transform, gt_array) {
+            gridtools::array<int, 2> src{42, 5};
+            auto res = host_device::transform(add_2_f{}, src);
             static_assert(std::is_same<decltype(res), decltype(src)>{}, "");
             EXPECT_THAT(res, testing::ElementsAre(44, 7));
         }

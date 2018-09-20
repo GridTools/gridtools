@@ -1069,7 +1069,9 @@ namespace gridtools {
              * // tup == {4}, tupcopy == {3}
              * @endcode
              */
-            GT_TARGET inline constexpr detail::transform_f<clone> deep_copy() { return {}; }
+            GT_TARGET inline constexpr detail::transform_f<gridtools::GT_TARGET_NAMESPACE_NAME::clone> deep_copy() {
+                return {};
+            }
 
             /**
              * @brief Replaces reference types by value types in a tuple.
