@@ -72,7 +72,7 @@ namespace gridtools {
     struct regular_stage {
         GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
@@ -92,7 +92,7 @@ namespace gridtools {
     struct reduction_stage {
         GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 

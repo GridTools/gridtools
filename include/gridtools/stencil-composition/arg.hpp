@@ -57,16 +57,16 @@ namespace gridtools {
     struct plh;
 
     template <typename T>
-    struct is_arg : std::false_type {};
+    struct is_plh : std::false_type {};
 
     template <class Tag, typename DataStore, typename Location, bool Temporary>
-    struct is_arg<plh<Tag, DataStore, Location, Temporary>> : std::true_type {};
+    struct is_plh<plh<Tag, DataStore, Location, Temporary>> : std::true_type {};
 
     /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam DataStoreType)*/
     template <typename ArgType, typename DataStoreType>
     struct arg_storage_pair {
 
-        GRIDTOOLS_STATIC_ASSERT(is_arg<ArgType>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_plh<ArgType>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((std::is_same<typename ArgType::data_store_t, DataStoreType>::type::value),
             "DataStoreType type not compatible with placeholder storage type, when associating placeholder to actual "
             "data store");

@@ -149,7 +149,7 @@ namespace gridtools {
 
             template <typename X, typename Y>
             struct pair_arg_extent<boost::mpl::pair<X, Y>> {
-                static const bool value = is_arg<X>::value && is_extent<Y>::value;
+                static constexpr bool value = is_plh<X>::value && is_extent<Y>::value;
                 typedef boost::mpl::bool_<value> type;
             };
 
@@ -338,7 +338,7 @@ namespace gridtools {
     struct placeholder_to_extent_map {
       private:
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_computation_token>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value), GT_INTERNAL_ERROR);
 
         // This is where the data-dependence analysis happens
         template <typename PlaceholdersMap, typename Mss>
@@ -372,7 +372,7 @@ namespace gridtools {
 
         template <typename Element>
         struct is_extent_map_element {
-            typedef typename is_arg<typename Element::first>::type one;
+            typedef typename is_plh<typename Element::first>::type one;
             typedef typename is_extent<typename Element::second>::type two;
 
             typedef typename boost::mpl::and_<one, two>::type type;

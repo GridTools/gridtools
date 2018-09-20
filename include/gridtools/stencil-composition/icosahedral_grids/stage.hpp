@@ -95,7 +95,7 @@ namespace gridtools {
     struct stage {
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<_impl::functor_or_void, Functors>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(meta::length<Functors>::value == LocationType::n_colors::value, GT_INTERNAL_ERROR);
 

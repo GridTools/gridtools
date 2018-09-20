@@ -114,7 +114,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
         template <typename Index>
         struct apply {
-            typedef typename boost::mpl::if_<is_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
+            typedef typename boost::mpl::if_<is_plh<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
                 typename boost::mpl::if_<typename is_accessor_readonly<typename boost::mpl::
                                                  at<typename esf_arg_list<Esf>::type, Index>::type>::type,
                     boost::false_type,
