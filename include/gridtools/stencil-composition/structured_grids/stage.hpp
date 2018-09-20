@@ -96,7 +96,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
-            for_each_type<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(_impl::call_do_f<Functor, eval_t>{&eval});
+            host_device::for_each_type<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(
+                _impl::call_do_f<Functor, eval_t>{&eval});
         }
     };
 
