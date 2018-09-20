@@ -154,8 +154,17 @@ namespace gridtools {
             }
         };
 
+        template <class DataStorage>
+        struct view_info_data {
+            using view_t = typename get_view<DataStorage>::type;
+            using storage_info_t = typename DataStorage::storage_info_t;
+
+            boost::optional<view_t> m_view;
+            storage_info_t m_storage_info;
+        };
+
         template <class Arg, class DataStorage>
-        using view_info_t = boost::fusion::pair<Arg, boost::optional<typename get_view<DataStorage>::type>>;
+        using view_info_t = boost::fusion::pair<Arg, view_info_data<DataStorage>>;
 
         template <class Backend>
         struct make_view_info_f {
@@ -164,11 +173,13 @@ namespace gridtools {
                 const auto &storage = src.m_value;
                 if (storage.device_needs_update())
                     storage.sync();
-                return boost::make_optional(typename Backend::make_view_f{}(storage));
+
+                return view_info_data<DataStorage>{
+                    boost::make_optional(typename Backend::make_view_f{}(storage)), storage.info()};
             }
             template <class Arg, class DataStorage>
             view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
-                return src.template updated_view<Backend>();
+                return view_info_data<DataStorage>{src.template updated_view<Backend>(), src.m_data_storage.info()};
             }
         };
 
@@ -182,15 +193,19 @@ namespace gridtools {
             template <class Arg, class OptView, class LocalDomain>
             enable_if_t<local_domain_has_arg<LocalDomain, Arg>::value> operator()(
                 boost::fusion::pair<Arg, OptView> const &info, LocalDomain &local_domain) const {
-                if (!info.second)
+                if (!info.second.m_view)
                     return;
-                auto const &view = *info.second;
+                auto const &view = *info.second.m_view;
                 namespace f = boost::fusion;
                 // here we set data pointers
                 f::at_key<Arg>(local_domain.m_local_data_ptrs) = advanced::get_raw_pointer_of(view);
                 // here we set meta data pointers
                 auto const *storage_info = advanced::storage_info_raw_ptr(view);
-                *f::find<decltype(storage_info)>(local_domain.m_local_storage_info_ptrs) = storage_info;
+                constexpr auto storage_info_index =
+                    meta::st_position<typename LocalDomain::storage_info_ptr_list, decltype(storage_info)>::value;
+                f::at_c<storage_info_index>(local_domain.m_local_storage_info_ptrs) = storage_info;
+                local_domain.m_local_padded_total_lengths[storage_info_index] =
+                    info.second.m_storage_info.padded_total_length();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class OptView, class LocalDomain>

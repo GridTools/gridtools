@@ -281,8 +281,7 @@ namespace gridtools {
                 m_index[storage_info_index] +
                 compute_offset<storage_info_t>(strides().template get<storage_info_index>(), accessor);
 
-            assert(pointer_oob_check(
-                boost::fusion::at_c<storage_info_index>(m_local_domain.m_local_storage_info_ptrs), pointer_offset));
+            assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
@@ -303,11 +302,7 @@ namespace gridtools {
             data_t *RESTRICT real_storage_pointer =
                 static_cast<data_t *>(boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second);
 
-            assert(pointer_oob_check(
-                boost::fusion::at_c<
-                    meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value>(
-                    m_local_domain.m_local_storage_info_ptrs),
-                offset));
+            assert(pointer_oob_check<storage_info_t>(m_local_domain, offset));
 
             return static_cast<const IterateDomainImpl *>(this)
                 ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(

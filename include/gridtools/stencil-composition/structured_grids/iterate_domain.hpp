@@ -225,6 +225,20 @@ namespace gridtools {
             do_increment<Coordinate, Step>(local_domain, strides(), m_index);
         }
 
+        template <typename Accessor>
+        GT_FUNCTION int_t get_pointer_offset(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "invalid accessor type");
+            using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
+
+            // this index here describes the position of the storage info in the m_index array (can be different to the
+            // storage info id)
+            using storage_info_index_t = typename meta::st_position<typename local_domain_t::storage_info_ptr_list,
+                storage_info_t const *>::type;
+
+            return m_index[storage_info_index_t::value] +
+                   compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
+        }
+
       public:
         template <int_t Step = 1>
         GT_FUNCTION void increment_i() {
@@ -354,6 +368,27 @@ namespace gridtools {
             return get_value<true>(accessor, aux::get_data_pointer(local_domain, accessor));
         }
 
+        template <typename Accessor, typename = typename boost::enable_if_c<is_accessor<Accessor>::type::value>::type>
+        GT_FUNCTION typename get_arg_value_type_from_accessor<Accessor, local_domain_t>::type *get_gmem_ptr_in_bounds(
+            Accessor const &accessor) const {
+            using return_t = typename accessor_return_type<Accessor>::type;
+            using data_t = typename get_arg_value_type_from_accessor<Accessor, local_domain_t>::type;
+            using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
+            using storage_info_index_t = typename meta::st_position<typename local_domain_t::storage_info_ptr_list,
+                storage_info_t const *>::type;
+
+            // control your instincts: changing the following
+            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+            const int_t pointer_offset = get_pointer_offset(accessor);
+            if (pointer_oob_check<storage_info_t>(local_domain, pointer_offset)) {
+                data_t *RESTRICT real_storage_pointer =
+                    static_cast<data_t *>(aux::get_data_pointer(local_domain, accessor));
+                return real_storage_pointer + pointer_offset;
+            } else {
+                return nullptr;
+            }
+        }
+
         /**
          * @brief returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
          * nor expression)
@@ -384,16 +419,9 @@ namespace gridtools {
         Accessor const &accessor, void *RESTRICT storage_pointer) const {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
 
-        typedef typename accessor_return_type<Accessor>::type return_t;
-
-        // getting information about the storage
-        typedef typename Accessor::index_t index_t;
-        typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-        typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
-        typedef typename arg_t::data_store_t::data_t data_t;
-
-        // this index here describes the position of the storage info in the m_index array (can be different to the
-        // storage info id)
+        using return_t = typename accessor_return_type<Accessor>::type;
+        using data_t = typename get_arg_value_type_from_accessor<Accessor, local_domain_t>::type;
+        using storage_info_t = typename get_storage_accessor<local_domain_t, Accessor>::type::storage_info_t;
         using storage_info_index_t =
             typename meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::type;
 
@@ -402,14 +430,10 @@ namespace gridtools {
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-        const int_t pointer_offset =
-            m_index[storage_info_index_t::value] +
-            compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
+        const int_t pointer_offset = get_pointer_offset(accessor);
 
-        assert(pointer_oob_check(
-            boost::fusion::at<storage_info_index_t>(local_domain.m_local_storage_info_ptrs), pointer_offset));
+        assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
         return get_value_dispatch<return_t, Accessor, DirectGMemAccess>(real_storage_pointer, pointer_offset);
     }
-
 } // namespace gridtools
