@@ -144,7 +144,7 @@ namespace gridtools {
                 constexpr uint_t sync_size = (uint_t)(SyncEnd - SyncStart + 1);
                 using range = GT_META_CALL(meta::make_indices_c, sync_size);
                 auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
-                gridtools::for_each<range>(make_io_operator<CacheIOPolicy, Idx, SyncStart>(m_it_domain, cache_st));
+                host_device::for_each<range>(make_io_operator<CacheIOPolicy, Idx, SyncStart>(m_it_domain, cache_st));
             }
 
           public:
