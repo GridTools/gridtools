@@ -373,9 +373,11 @@ namespace gridtools {
      * once the base address is known it can be checked if the requested access lies within the
      * storages allocated memory.
      */
-    template <typename StorageInfo>
-    GT_FUNCTION bool pointer_oob_check(StorageInfo const *sinfo, int_t offset) {
-        return offset < sinfo->padded_total_length() && offset >= 0;
+    template <typename StorageInfo, typename LocalDomain>
+    GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
+        constexpr auto storage_info_index =
+            meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>::value;
+        return offset < local_domain.m_local_padded_total_lengths.template get<storage_info_index>() && offset >= 0;
     }
 
     /**
