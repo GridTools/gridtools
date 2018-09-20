@@ -162,7 +162,8 @@ namespace gridtools {
                 template <template <class, size_t> class Arr>
                 struct array_from_types {
                     template <class... Ts>
-                    using apply = Arr<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>;
+                    GT_META_DEFINE_ALIAS(
+                        apply, meta::id, (Arr<typename deduce_array_type<Ts...>::type, sizeof...(Ts)>));
                 };
 
                 /// getter for the standard "tuple like" entities: `std::tuple`, `std::pair` and `std::array`
@@ -205,7 +206,7 @@ namespace gridtools {
             // generic `tuple_from_types` that works for `std::tuple`, `std::pair` and its clones.
             // meta constructor 'L' is extracted and used to build the new "tuple like"
             template <template <class...> class L, class... Ts>
-            meta::curry<L> tuple_from_types(L<Ts...>);
+            meta::ctor<L<Ts...>> tuple_from_types(L<Ts...>);
 
             // arrays specialization.
             template <class T, size_t N>
@@ -235,45 +236,36 @@ namespace gridtools {
             // The versions in this namespace will be chosen if nothing is found by `ADL`.
             // it is important to have all builtins above this line.
             template <class T>
-            using getter = decltype(tuple_getter(std::declval<T>()));
+            GT_META_DEFINE_ALIAS(getter, meta::id, decltype(tuple_getter(std::declval<T>())));
 
             template <class T>
-            using to_types = decltype(tuple_to_types(std::declval<T>()));
+            GT_META_DEFINE_ALIAS(to_types, meta::id, decltype(tuple_to_types(std::declval<T>())));
 
             template <class T>
-            using from_types = decltype(tuple_from_types(std::declval<T>()));
+            GT_META_DEFINE_ALIAS(from_types, meta::id, decltype(tuple_from_types(std::declval<T>())));
         } // namespace traits
         /// @endcond
 
         ///  Generalization of std::tuple_size
         //
         template <class T>
-        GT_META_DEFINE_ALIAS(size, meta::length, traits::to_types<T>);
+        GT_META_DEFINE_ALIAS(size, meta::length, GT_META_CALL(traits::to_types, T));
 
         ///  Generalization of std::tuple_element
         //
         template <size_t I, class T>
-        GT_META_DEFINE_ALIAS(element, meta::at_c, (traits::to_types<T>, I));
+        GT_META_DEFINE_ALIAS(element, meta::at_c, (GT_META_CALL(traits::to_types, T), I));
 
         // Here goes the stuff that is common for all targets (meta functions)
         namespace _impl {
 
-#if GT_BROKEN_TEMPLATE_ALIASES
             template <class T>
-            struct to_types {
-                using type = traits::to_types<decay_t<T>>;
-            };
-            template <class Sample, class Types>
-            struct from_types
-                : meta::lazy::rename<meta::defer<traits::from_types<decay_t<Sample>>::template apply>::template apply,
-                      Types> {};
-#else
-            template <class T>
-            using to_types = traits::to_types<decay_t<T>>;
+            GT_META_DEFINE_ALIAS(to_types, traits::to_types, decay_t<T>);
 
-            template <class Sample, class Types>
-            using from_types = meta::rename<traits::from_types<decay_t<Sample>>::template apply, Types>;
-#endif
+            template <class Sample,
+                class Types,
+                class FromTypesMetaClass = GT_META_CALL(traits::from_types, decay_t<Sample>)>
+            GT_META_DEFINE_ALIAS(from_types, meta::rename, (FromTypesMetaClass::template apply, Types));
 
             enum class ref_kind { rvalue, lvalue, const_lvalue };
 
@@ -355,15 +347,15 @@ namespace gridtools {
              * @tparam T Tuple-like type.
              * @param obj Tuple-like object.
              */
-            template <size_t I, class T>
+            template <size_t I, class T, class Getter = GT_META_CALL(traits::getter, decay_t<T>)>
             GT_TARGET constexpr auto get(T && obj) noexcept GT_AUTO_RETURN(
-                traits::getter<decay_t<T>>::template get<I>(std::forward<T>(obj)));
+                Getter::template get<I>(std::forward<T>(obj)));
 
             template <size_t I>
             struct get_nth_f {
-                template <class T>
+                template <class T, class Getter = GT_META_CALL(traits::getter, decay_t<T>)>
                 GT_TARGET constexpr auto operator()(T &&obj) const
-                    noexcept GT_AUTO_RETURN(traits::getter<decay_t<T>>::template get<I>(std::forward<T>(obj)));
+                    noexcept GT_AUTO_RETURN(Getter::template get<I>(std::forward<T>(obj)));
             };
 
             namespace detail {
