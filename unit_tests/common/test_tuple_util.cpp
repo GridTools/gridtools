@@ -53,12 +53,6 @@
 #define NO_CONSTEXPR
 #endif
 
-#ifdef NO_CONSTEXPR
-#define CONSTEXPR
-#else
-#define CONSTEXPR constexpr
-#endif
-
 namespace custom {
     struct foo {
         int a;
@@ -66,7 +60,7 @@ namespace custom {
 
         struct getter {
             template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
-            static CONSTEXPR int get(foo const &obj) {
+            static constexpr int get(foo const &obj) {
                 return obj.a;
             }
             template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
@@ -74,11 +68,11 @@ namespace custom {
                 return obj.a;
             }
             template <size_t I, gridtools::enable_if_t<I == 0, int> = 0>
-            static CONSTEXPR int get(foo &&obj) {
+            static constexpr int get(foo &&obj) {
                 return obj.a;
             }
             template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
-            static CONSTEXPR double get(foo const &obj) {
+            static constexpr double get(foo const &obj) {
                 return obj.b;
             }
             template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
@@ -86,7 +80,7 @@ namespace custom {
                 return obj.b;
             }
             template <size_t I, gridtools::enable_if_t<I == 1, int> = 0>
-            static CONSTEXPR double get(foo &&obj) {
+            static constexpr double get(foo &&obj) {
                 return obj.b;
             }
         };

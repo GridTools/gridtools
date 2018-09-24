@@ -149,9 +149,8 @@ namespace gridtools {
             namespace _impl {
 
                 template <class... Ts>
-                struct deduce_array_type {
-                    using type = common_type_t<decay_t<Ts>...>;
-                };
+                struct deduce_array_type : std::common_type<Ts...> {};
+
                 template <>
                 struct deduce_array_type<> {
                     using type = meta::lazy::id<void>;
@@ -170,7 +169,8 @@ namespace gridtools {
                 //
                 struct std_getter {
                     template <size_t I, class T>
-                    static constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(std::get<I>(std::forward<T>(obj)));
+                    GT_FORCE_INLINE static constexpr auto get(T &&obj) noexcept GT_AUTO_RETURN(
+                        std::get<I>(std::forward<T>(obj)));
                 };
 
                 /// getter for gridtools clones of the standard "tuple like" entities
@@ -365,6 +365,9 @@ namespace gridtools {
                     noexcept GT_AUTO_RETURN(Getter::template get<I>(std::forward<T>(obj)));
             };
 
+            // Let as use `detail` for internal namesape of the target dependent namespace.
+            // This way we can refer `_impl::foo` for the entities that are independent on the target and
+            // `detail::bar` for the target depentent ones.
             namespace detail {
                 using _impl::from_types;
                 using _impl::get_accessors;
@@ -1123,25 +1126,25 @@ namespace gridtools {
             //
             template <template <class...> class L, class... Ts>
             GT_TARGET GT_FORCE_INLINE L<Ts...> make(Ts const &... elems) {
-                return {elems...};
+                return L<Ts...>{elems...};
             }
 
             /// Generalization of `std::tie`
             //
             template <template <class...> class L, class... Ts>
             GT_TARGET GT_FORCE_INLINE L<Ts &...> tie(Ts & ... elems) {
-                return {elems...};
+                return L<Ts &...>{elems...};
             }
 
             /// Generalization of `std::experimental::make_array`
             //
             template <template <class, size_t> class Arr, class D = void, class... Ts>
             GT_TARGET GT_FORCE_INLINE Arr<typename _impl::make_array_helper<D, Ts...>::type, sizeof...(Ts)> make(
-                Ts const &... elems) {
+                Ts && ... elems) {
                 using common_type_t = typename _impl::make_array_helper<D, Ts...>::type;
                 GRIDTOOLS_STATIC_ASSERT(
                     (conjunction<std::is_convertible<Ts, common_type_t>...>::value), "args must be converitble to D");
-                return {static_cast<common_type_t>(elems)...};
+                return {{static_cast<common_type_t>(std::forward<Ts>(elems))...}};
             }
         }
     } // namespace tuple_util
