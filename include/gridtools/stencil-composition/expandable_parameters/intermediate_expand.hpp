@@ -65,6 +65,19 @@ namespace gridtools {
             template <size_t I, class Tag>
             struct unrolled_tag;
 
+            /*
+             * The logic here is the following:
+             *   - `convert_plh` does the actual job;
+             *   - the way how it is implemented dictates that it should be lazy.
+             *   - so we are placing it into `lazy` namespace and use standard `meta` macro to expose it out.
+             *   - that macro supports only plain functions, not the functions that return meta classes
+             *     (in `meta` terminology)
+             *   - to use it later with `meta::transform` we need to bend `convert_plh<I, Plh>` into a function that
+             *     takes just `I` and returns a function that takes `Plh`.
+             *   - this is actually `convert_plh_f`. The suffix `_f` is used to stress that it returns a function
+             *     (meta class). He the inner name `apply` is not arbitrary. It just the requirement of meta class
+             *     concept.
+             */
             GT_META_LAZY_NAMESPASE {
                 template <size_t I, class Plh>
                 struct convert_plh {
