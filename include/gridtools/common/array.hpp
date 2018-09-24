@@ -38,11 +38,13 @@
 @file
 @brief Implementation of an array class
 */
+#include <algorithm>
+#include <iterator>
+#include <type_traits>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <type_traits>
 
 namespace gridtools {
 
@@ -78,13 +80,23 @@ namespace gridtools {
      */
     template <typename T, size_t D>
     class array {
-        typedef array<T, D> type;
+        using type = array;
 
       public:
         // we make the members public to make this class an aggregate
         typename impl_::array_traits<T, D>::type m_array;
 
-        typedef T value_type;
+        using value_type = T;
+        using size_type = size_t;
+        using difference_type = std::ptrdiff_t;
+        using reference = value_type &;
+        using const_reference = value_type const &;
+        using pointer = value_type *;
+        using const_pointer = value_type const *;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         GT_FUNCTION
         T const *begin() const { return &m_array[0]; }
