@@ -195,30 +195,13 @@ namespace gridtools {
             (that will be indicated with the gridtools::bound_bc::associate member function.)
 
             The function first perform communication then applies the boundary condition, in this way, a copy-boundary
-           form the inner region to the halo region will turns out to be correct for the point at the intersection
-           between the global boundary and the decomposition boundary.
+            form the inner region to the halo region will turns out to be correct for the point at the intersection
+            between the global boundary and the decomposition boundary.
 
             \param jobs Variadic list of jobs
         */
         template <typename... Jobs>
         void exchange(Jobs const &... jobs) {
-            exchange_apply(jobs...);
-        }
-
-        /**
-            @brief Member function to perform boundary condition and communication on a list of jobs.
-            A job is either a gridtools::data_store to be used during communication or a gridtools::bound_bc
-            to apply boundary conditions and halo_update operations for the data_stores that are not input-only
-            (that will be indicated with the gridtools::bound_bc::associate member function.)
-
-            The function first perform communication then applies the boundary condition, in this way, a copy-boundary
-           form the inner region to the halo region will turns out to be correct for the point at the intersection
-           between the global boundary and the decomposition boundary.
-
-            \param jobs Variadic list of jobs
-        */
-        template <typename... Jobs>
-        void exchange_apply(Jobs const &... jobs) {
 #ifdef __CUDACC__
             // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
             // This can be removed when nvcc supports it.
@@ -242,44 +225,6 @@ namespace gridtools {
                     std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
 
             boundary_only(jobs...);
-        }
-
-        /**
-            @brief Member function to perform boundary condition and communication on a list of jobs.
-            A job is either a gridtools::data_store to be used during communication or a gridtools::bound_bc
-            to apply boundary conditions and halo_update operations for the data_stores that are not input-only
-            (that will be indicated with the gridtools::bound_bc::associate member function.)
-
-            The function first boundary condition before performing the communication. See
-           distributed_boundary::exchange_apply to see the difference with the other case.
-
-            \param jobs Variadic list of jobs
-        */
-        template <typename... Jobs>
-        void apply_exchange(Jobs const &... jobs) {
-#ifdef __CUDACC__
-            // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
-            // This can be removed when nvcc supports it.
-            auto all_stores_for_exc = _workaround::tuple_cat(collect_stores(jobs)...);
-#else
-            auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
-#endif
-            if (m_max_stores < std::tuple_size<decltype(all_stores_for_exc)>::value) {
-                std::string err{"Too many data stores to be exchanged" +
-                                std::to_string(std::tuple_size<decltype(all_stores_for_exc)>::value) +
-                                " instead of the maximum allowed, which is " + std::to_string(m_max_stores)};
-                throw std::runtime_error(err);
-            }
-
-            boundary_only(jobs...);
-
-            call_pack(all_stores_for_exc,
-                typename make_gt_integer_sequence<uint_t,
-                    std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
-            m_he.exchange();
-            call_unpack(all_stores_for_exc,
-                typename make_gt_integer_sequence<uint_t,
-                    std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
         }
 
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
