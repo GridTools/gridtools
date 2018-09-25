@@ -51,7 +51,6 @@
 #endif
 #include "./grid_predicate.hpp"
 
-#include "../stencil-composition/stencil-composition.hpp"
 #include "./bound_bc.hpp"
 
 namespace gridtools {
