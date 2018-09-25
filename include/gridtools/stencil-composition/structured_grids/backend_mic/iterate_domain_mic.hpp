@@ -89,7 +89,7 @@ namespace gridtools {
 
           private:
             template <typename Arg>
-            GT_FUNCTION enable_if_t<Arg::is_temporary, int_t> fields_offset() const {
+            GT_FUNCTION enable_if_t<is_tmp_arg<Arg>::value, int_t> fields_offset() const {
                 using storage_info_ptr_t = typename Arg::data_store_t::storage_info_t const *;
                 constexpr auto storage_info_index =
                     meta::st_position<typename LocalDomain::storage_info_ptr_list, storage_info_ptr_t>::value;
@@ -103,7 +103,7 @@ namespace gridtools {
             }
 
             template <typename Arg>
-            GT_FUNCTION enable_if_t<!Arg::is_temporary, int_t> fields_offset() const {
+            GT_FUNCTION enable_if_t<!is_tmp_arg<Arg>::value, int_t> fields_offset() const {
                 return 0;
             }
         };
@@ -152,20 +152,8 @@ namespace gridtools {
         using accessor_is_ij_cached = typename accessor_is_cached<Accessor, ij_cache_indexset_t>::type;
 
       public:
-        //***************** types exposed in API
-        using readonly_args_indices_t =
-            typename compute_readonly_args_indices<typename IterateDomainArguments::esf_sequence_t>::type;
         using esf_args_t = typename local_domain_t::esf_args;
         //*****************
-
-        /**
-         * @brief metafunction that determines if a given accessor is associated with an placeholder holding a data
-         * field.
-         */
-        template <typename Accessor>
-        struct accessor_holds_data_field {
-            using type = typename aux::accessor_holds_data_field<Accessor, IterateDomainArguments>::type;
-        };
 
         /**
          * @brief metafunction that computes the return type of all operator() of an accessor.
@@ -293,7 +281,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second[0]);
+            return *static_cast<Res *>(boost::fusion::at<index_t>(local_domain.m_local_data_ptrs).second);
         }
 
         /**
@@ -303,7 +291,7 @@ namespace gridtools {
         template <typename Acc, typename... Args>
         GT_FUNCTION auto operator()(global_accessor_with_arguments<Acc, Args...> const &accessor) const /** @cond */
             GT_AUTO_RETURN(boost::fusion::invoke(
-                std::cref(**boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second.data()),
+                std::cref(*boost::fusion::at<typename Acc::index_t>(local_domain.m_local_data_ptrs).second),
                 accessor.get_arguments())) /** @endcond */;
 
         /**
@@ -315,10 +303,6 @@ namespace gridtools {
             boost::mpl::or_<boost::mpl::not_<is_accessor<Accessor>>, is_global_accessor<Accessor>>,
             typename accessor_return_type<Accessor>::type>::type
         operator()(Accessor const &accessor) {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
-
             return get_value(accessor, get_data_pointer(accessor));
         }
 

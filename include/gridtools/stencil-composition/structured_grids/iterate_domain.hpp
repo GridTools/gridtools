@@ -116,17 +116,10 @@ namespace gridtools {
 
         // **************** end of internal type definitions
         //***************** types exposed in API
-        typedef typename compute_readonly_args_indices<typename iterate_domain_arguments_t::esf_sequence_t>::type
-            readonly_args_indices_t;
+        typedef
+            typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
         typedef typename local_domain_t::esf_args esf_args_t;
         //*****************
-        /**
-         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
-         */
-        template <typename Accessor>
-        struct accessor_holds_data_field {
-            typedef typename aux::accessor_holds_data_field<Accessor, iterate_domain_arguments_t>::type type;
-        };
 
         /**
          * metafunction that determines if a given accessor is associated with an arg that is cached
@@ -334,7 +327,7 @@ namespace gridtools {
         template <uint_t I, class Res = typename accessor_return_type<global_accessor<I>>::type>
         GT_FUNCTION Res operator()(global_accessor<I> const &accessor) const {
             using index_t = typename global_accessor<I>::index_t;
-            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second[0]);
+            return *static_cast<Res *>(boost::fusion::at<index_t>(local_data_ptrs()).second);
         }
 
         /**
@@ -346,7 +339,7 @@ namespace gridtools {
             typedef typename Acc::index_t index_t;
             auto storage_ = boost::fusion::at<index_t>(local_data_ptrs()).second;
             return tuple_to_container(
-                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
+                *storage_, accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
         }
 
         // some aliases to ease the notation

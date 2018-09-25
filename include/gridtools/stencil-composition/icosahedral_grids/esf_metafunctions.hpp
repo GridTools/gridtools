@@ -128,4 +128,27 @@ namespace gridtools {
     struct esf_extent<esf_descriptor_with_extent<Functor, Grid, LocationType, Extent, Color, ArgSequence>> {
         using type = Extent;
     };
+
+    GT_META_LAZY_NAMESPASE {
+        template <class Esf, class Args>
+        struct esf_replace_args;
+
+        template <template <uint_t> class F, class Grid, class Location, class Color, class OldArgs, class NewArgs>
+        struct esf_replace_args<esf_descriptor<F, Grid, Location, Color, OldArgs>, NewArgs> {
+            using type = esf_descriptor<F, Grid, Location, Color, NewArgs>;
+        };
+
+        template <template <uint_t> class F,
+            class Grid,
+            class Location,
+            class Extent,
+            class Color,
+            class OldArgs,
+            class NewArgs>
+        struct esf_replace_args<esf_descriptor_with_extent<F, Grid, Location, Extent, Color, OldArgs>, NewArgs> {
+            using type = esf_descriptor_with_extent<F, Grid, Location, Extent, Color, NewArgs>;
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
+
 } // namespace gridtools

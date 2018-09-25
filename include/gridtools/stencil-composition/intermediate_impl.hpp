@@ -46,7 +46,6 @@
 #include "../common/functional.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/tuple_util.hpp"
-#include "../common/vector_traits.hpp"
 #include "./esf_metafunctions.hpp"
 #include "./extract_placeholders.hpp"
 #include "./local_domain.hpp"
@@ -88,13 +87,6 @@ namespace gridtools {
                 return {std::move(src), *stored};
             }
 
-            template <class DataStore, uint_t... N>
-            data_store_field<DataStore, N...> operator()(data_store_field<DataStore, N...> src) const {
-                for (auto &item : src.m_field)
-                    item = this->operator()(item);
-                return src;
-            }
-
             template <class Arg, class DataStore>
             arg_storage_pair<Arg, DataStore> operator()(arg_storage_pair<Arg, DataStore> const &src) const {
                 return this->operator()(src.m_value);
@@ -129,13 +121,6 @@ namespace gridtools {
             // we can use make_host_view here because the type is the
             // same for make_device_view and make_host_view.
             typedef decltype(make_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
-        };
-
-        template <typename Elem, access_mode AccessMode>
-        struct get_view<Elem, AccessMode, typename boost::enable_if<is_data_store_field<Elem>>::type> {
-            // we can use make_field_host_view here because the type is the
-            // same for make_field_device_view and make_field_host_view.
-            typedef decltype(make_field_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
         };
 
         /// This struct is used to hold bound storages. It holds a view.
@@ -213,7 +198,7 @@ namespace gridtools {
                 auto const &view = *info.second.m_view;
                 namespace f = boost::fusion;
                 // here we set data pointers
-                advanced::copy_raw_pointers(view, f::at_key<Arg>(local_domain.m_local_data_ptrs));
+                f::at_key<Arg>(local_domain.m_local_data_ptrs) = advanced::get_raw_pointer_of(view);
                 // here we set meta data pointers
                 auto const *storage_info = advanced::storage_info_raw_ptr(view);
                 constexpr auto storage_info_index =

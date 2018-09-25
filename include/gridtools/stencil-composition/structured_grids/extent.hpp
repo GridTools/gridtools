@@ -75,15 +75,6 @@ namespace gridtools {
     template <typename T>
     struct is_extent<const T> : is_extent<T> {};
 
-    template <int_t... Grid>
-    struct staggered : extent<Grid...> {};
-
-    template <typename>
-    struct is_staggered : std::false_type {};
-
-    template <int_t... Grid>
-    struct is_staggered<staggered<Grid...>> : std::true_type {};
-
     /**
      * Metafunction taking extents and yielding an extent containing them
      */
@@ -141,8 +132,8 @@ namespace gridtools {
      */
     template <typename Extent1, typename Extent2>
     struct sum_extent {
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent1>::value || is_staggered<Extent1>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_extent<Extent2>::value || is_staggered<Extent2>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent1>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent2>::value, GT_INTERNAL_ERROR);
 
         using type = extent<Extent1::iminus::value + Extent2::iminus::value,
             Extent1::iplus::value + Extent2::iplus::value,

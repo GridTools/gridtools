@@ -51,10 +51,9 @@ namespace gridtools {
 
     namespace _impl {
         namespace local_domain_details {
-            template <class Arg, class DataStore = typename Arg::data_store_t>
-            GT_META_DEFINE_ALIAS(get_data_ptrs_elem,
-                meta::id,
-                (boost::fusion::pair<Arg, array<typename DataStore::data_t *, DataStore::num_of_storages>>));
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(
+                get_data_ptrs_elem, meta::id, (boost::fusion::pair<Arg, typename Arg::data_store_t::data_t *>));
 
             template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
             GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, StorageInfo const *);
@@ -79,7 +78,7 @@ namespace gridtools {
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {
         GRIDTOOLS_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, EsfArgs>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
 
         using type = local_domain;
 

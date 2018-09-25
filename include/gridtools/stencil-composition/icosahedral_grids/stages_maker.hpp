@@ -43,6 +43,7 @@
 #include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../bind_functor_with_interval.hpp"
 #include "../compute_extents_metafunctions.hpp"
+#include "../fuse_stages.hpp"
 #include "../independent_esf.hpp"
 #include "../mss.hpp"
 #include "./esf.hpp"
@@ -52,15 +53,14 @@ namespace gridtools {
 
     namespace _impl {
 
-        template <class Index, class ExtentMap, size_t RepeatFactor>
+        template <class Index, class ExtentMap>
         struct stages_from_esf_f;
 
-        template <class Esfs, class Index, class ExtentMap, size_t RepeatFactor>
+        template <class Esfs, class Index, class ExtentMap>
         GT_META_DEFINE_ALIAS(stages_from_esfs,
             meta::filter,
             (meta::not_<meta::is_empty>::apply,
-                GT_META_CALL(
-                    meta::transform, (stages_from_esf_f<Index, ExtentMap, RepeatFactor>::template apply, Esfs))));
+                GT_META_CALL(meta::transform, (stages_from_esf_f<Index, ExtentMap>::template apply, Esfs))));
 
         template <class Index>
         struct bind_functor_with_interval_f {
@@ -95,33 +95,31 @@ namespace gridtools {
                         GT_META_CALL(meta::make_indices_c, Esf::location_type::n_colors::value)));
             };
 
-            template <class Functors, class Esf, class ExtentMap, size_t RepeatFactor, class = void>
+            template <class Functors, class Esf, class ExtentMap, class = void>
             struct stages_from_functors {
                 using extent_t = typename get_extent_for<Esf, ExtentMap>::type;
-                using type = meta::list<
-                    stage<Functors, extent_t, typename Esf::args_t, typename Esf::location_type, RepeatFactor>>;
+                using type = meta::list<stage<Functors, extent_t, typename Esf::args_t, typename Esf::location_type>>;
             };
-            template <class Functors, class Esf, class ExtentMap, size_t RepeatFactor>
+            template <class Functors, class Esf, class ExtentMap>
             struct stages_from_functors<Functors,
                 Esf,
                 ExtentMap,
-                RepeatFactor,
                 enable_if_t<meta::all_of<std::is_void, Functors>::value>> {
                 using type = meta::list<>;
             };
 
-            template <class Esf, class Index, class ExtentMap, size_t RepeatFactor>
+            template <class Esf, class Index, class ExtentMap>
             struct stages_from_esf : stages_from_functors<GT_META_CALL(meta::transform,
                                                               (bind_functor_with_interval_f<Index>::template apply,
                                                                   typename get_functors<Esf>::type)),
                                          Esf,
-                                         ExtentMap,
-                                         RepeatFactor> {};
+                                         ExtentMap> {};
 
-            template <class Index, class Esfs, class ExtentMap, size_t RepeatFactor>
-            struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap, RepeatFactor> {
-                using type = GT_META_CALL(
-                    meta::flatten, (GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap, RepeatFactor))));
+            template <class Index, class Esfs, class ExtentMap>
+            struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap> {
+                using stage_groups_t = GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap));
+                using stages_t = GT_META_CALL(meta::flatten, stage_groups_t);
+                using type = GT_META_CALL(fuse_stages, (compound_stage, stages_t));
             };
 
             template <class Esf, class Color>
@@ -129,15 +127,13 @@ namespace gridtools {
                 using type = typename Esf::template esf_function<Color::value>;
             };
         }
-        GT_META_DELEGATE_TO_LAZY(stages_from_esf,
-            (class Esf, class Index, class ExtentMap, size_t RepeatFactor),
-            (Esf, Index, ExtentMap, RepeatFactor));
+        GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
         GT_META_DELEGATE_TO_LAZY(esf_functor, (class Esf, class Color), (Esf, Color));
 
-        template <class Index, class ExtentMap, size_t RepeatFactor>
+        template <class Index, class ExtentMap>
         struct stages_from_esf_f {
             template <class Esf>
-            GT_META_DEFINE_ALIAS(apply, stages_from_esf, (Esf, Index, ExtentMap, RepeatFactor));
+            GT_META_DEFINE_ALIAS(apply, stages_from_esf, (Esf, Index, ExtentMap));
         };
 
         template <class Esf>
@@ -154,8 +150,6 @@ namespace gridtools {
      * @tparam ExtentMap -    a compile time map that maps placeholders to computed extents.
      *                        `stages_maker` uses ExtentMap parameter in an opaque way -- it just delegates it to
      *                        get_extent_for/reduction_get_extent_for when it is needed.
-     * @tparam RepeatFactor - how many times to call an elementary functor in a computation point
-     *                        (in normal case it is == 1, for expandable parameter >= 1)
      *
      *   This metafunction returns another metafunction (i.e. has nested `apply` metafunction) that accepts
      *   a single argument that has to be a level_index and returns the stages (classes that model Stage concept)
@@ -177,12 +171,12 @@ namespace gridtools {
      *
      *   TODO(anstaf): unit test!!!
      */
-    template <class MssDescriptor, class ExtentMap, size_t RepeatFactor>
+    template <class MssDescriptor, class ExtentMap>
     struct stages_maker;
 
-    template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap, size_t RepeatFactor>
-    struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap, RepeatFactor> {
+    template <class ExecutionEngine, class Esfs, class Caches, class ExtentMap>
+    struct stages_maker<mss_descriptor<ExecutionEngine, Esfs, Caches>, ExtentMap> {
         template <class LevelIndex>
-        GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap, RepeatFactor));
+        GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap));
     };
 } // namespace gridtools
