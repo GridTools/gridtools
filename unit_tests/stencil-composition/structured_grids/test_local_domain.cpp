@@ -85,8 +85,7 @@ typedef arg<0, storage_t> p_in;
 typedef arg<1, storage_buff_t> p_buff;
 typedef arg<2, storage_t> p_out;
 
-typedef intermediate<1,
-    false,
+typedef intermediate<false,
     backend<platform::x86, GRIDBACKEND, strategy::naive>,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,

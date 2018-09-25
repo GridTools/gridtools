@@ -35,17 +35,10 @@
 */
 #pragma once
 
-#include "./backend_metafunctions_fwd.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
+#include "./backend_fwd.hpp"
 
 namespace gridtools {
-
-    template <class BackendId, class GridId, class StrategyType>
-    struct is_backend<backend<BackendId, GridId, StrategyType>> : std::true_type {};
-
-    template <typename T>
-    struct backend_id;
-
-    template <class BackendId, class GridId, class StrategyType>
-    struct backend_id<backend<BackendId, GridId, StrategyType>> {};
-
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_backend, meta::is_instantiation_of, (backend, T));
 } // namespace gridtools

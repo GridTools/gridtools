@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 /**@file
    Expand factor for expandable parameters encoding the unrolling factor
    for the loop over the expandable parameters.
@@ -45,14 +47,12 @@ namespace gridtools {
     /** @brief factor determining the length of the "chunks" in an expandable parameters list
         \tparam Tile The unrlolling factor
      */
-    template <ushort_t Tile>
-    struct expand_factor {
-        static const ushort_t value = Tile;
-    };
+    template <size_t Value>
+    struct expand_factor : std::integral_constant<size_t, Value> {};
 
-    template <typename T>
-    struct is_expand_factor : boost::mpl::false_ {};
+    template <class>
+    struct is_expand_factor : std::false_type {};
 
-    template <ushort_t Tile>
-    struct is_expand_factor<expand_factor<Tile>> : boost::mpl::true_ {};
+    template <size_t Value>
+    struct is_expand_factor<expand_factor<Value>> : std::true_type {};
 } // namespace gridtools

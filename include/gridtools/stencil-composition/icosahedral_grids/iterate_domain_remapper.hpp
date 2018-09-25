@@ -103,9 +103,9 @@ namespace gridtools {
                 uint_t Color,
                 template <typename, typename, typename, uint_t> class Impl>
             struct iterate_domain_remapper_base_esf_args_map<Impl<IterateDomain, EsfArgs, EsfLocationType, Color>> {
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, EsfArgs>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
                 using domain_args_t = typename IterateDomain::esf_args_t;
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, domain_args_t>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, domain_args_t>::value), GT_INTERNAL_ERROR);
 
                 template <class Arg>
                 GT_META_DEFINE_ALIAS(get_domain_index, meta::st_position, (domain_args_t, Arg));
