@@ -194,9 +194,8 @@ namespace gridtools {
             to apply boundary conditions and halo_update operations for the data_stores that are not input-only
             (that will be indicated with the gridtools::bound_bc::associate member function.)
 
-            The function first perform communication then applies the boundary condition, in this way, a copy-boundary
-            form the inner region to the halo region will turns out to be correct for the point at the intersection
-            between the global boundary and the decomposition boundary.
+            The function first perform communication then applies the boundary condition. This allows a copy-boundary
+            from the inner region to the halo region to run as expected.
 
             \param jobs Variadic list of jobs
         */
