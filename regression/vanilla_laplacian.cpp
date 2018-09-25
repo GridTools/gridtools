@@ -33,11 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <cassert>
 #include <ctime>
 #include <fstream>
 #include <iostream>
 
-#include <ctime>
 #include <gridtools/common/defs.hpp>
 
 #define offs_(i, j, k, n, m, l) ((i) * (m) * (l) + (j) * (l) + (k))
