@@ -41,7 +41,7 @@
 namespace gridtools {
 
     namespace _impl {
-#ifdef GT_BROKEN_TEMPLATE_ALIASES
+#if GT_BROKEN_TEMPLATE_ALIASES
         template <class Stage>
         struct get_extent_from_stage {
             using type = typename Stage::extent_t;
@@ -92,8 +92,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(meta::length<Stages>::value > 1, GT_INTERNAL_ERROR);
             using all_extents_t = GT_META_CALL(meta::transform, (_impl::get_extent_from_stage, Stages));
             using extents_t = GT_META_CALL(meta::dedup, all_extents_t);
+            GRIDTOOLS_STATIC_ASSERT(!meta::is_empty<extents_t>::value, GT_INTERNAL_ERROR);
             using stages_grouped_by_extent_t = GT_META_CALL(
                 meta::transform, (_impl::stages_with_the_given_extent<Stages>::template apply, extents_t));
+            GRIDTOOLS_STATIC_ASSERT(
+                (!meta::any_of<meta::is_empty, stages_grouped_by_extent_t>::value), GT_INTERNAL_ERROR);
             using type = GT_META_CALL(meta::transform,
                 (_impl::fuse_stages_with_the_same_extent_f<CompoundStage>::template apply, stages_grouped_by_extent_t));
         };
