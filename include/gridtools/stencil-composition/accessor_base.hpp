@@ -61,8 +61,7 @@ namespace gridtools {
             struct type {
                 T data0, data1, data2;
 
-                constexpr type(array<T, 3> const &a)
-                    : data0(a.template get<0>()), data1(a.template get<1>()), data2(a.template get<2>()) {}
+                constexpr type(array<T, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
 
                 constexpr type() : data0(0), data1(0), data2(0) {}
 
