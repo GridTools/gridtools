@@ -136,9 +136,7 @@ endif()
 
 if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     # Controls preprocessor expansion of macros in Fortran source lines.
-    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -F")
-    # Turns .mod files into lowercase names for makefile flexibility.
-    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ef")
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
 # Note: It seems that FindOpenMP ignores CMP0054. As this is an

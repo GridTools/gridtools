@@ -122,9 +122,9 @@ install(TARGETS
         c_bindings_generator_main
         array_descriptor
     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
-install(FILES
-    "${PROJECT_BINARY_DIR}/mod/gt_handle.mod"
-    "${PROJECT_BINARY_DIR}/mod/array_descriptor.mod"
+# we need to install the whole directory because modules may be upper or lower case
+install(DIRECTORY
+    "${PROJECT_BINARY_DIR}/mod/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
 install(FILES
     "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
