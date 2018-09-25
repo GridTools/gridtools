@@ -102,6 +102,10 @@ namespace gridtools {
         struct fuse_stages<CompoundStage, L<Stage>> {
             using type = L<Stage>;
         };
+        template <template <class...> class CompoundStage, template <class...> class L>
+        struct fuse_stages<CompoundStage, L<>> {
+            using type = L<>;
+        };
     }
     /**
      *  Group the stages from the input by extent and substitute each group by compound stage.
