@@ -43,6 +43,7 @@
 #include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../bind_functor_with_interval.hpp"
 #include "../compute_extents_metafunctions.hpp"
+#include "../fuse_stages.hpp"
 #include "../independent_esf.hpp"
 #include "../mss.hpp"
 #include "./esf.hpp"
@@ -116,7 +117,9 @@ namespace gridtools {
 
             template <class Index, class Esfs, class ExtentMap>
             struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap> {
-                using type = GT_META_CALL(meta::flatten, (GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap))));
+                using stage_groups_t = GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap));
+                using stages_t = GT_META_CALL(meta::flatten, stage_groups_t);
+                using type = GT_META_CALL(fuse_stages, (compound_stage, stages_t));
             };
 
             template <class Esf, class Color>

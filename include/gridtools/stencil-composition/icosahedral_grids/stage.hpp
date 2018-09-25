@@ -134,6 +134,35 @@ namespace gridtools {
         }
     };
 
+    template <class Stage, class... Stages>
+    struct compound_stage {
+        using extent_t = typename Stage::extent_t;
+
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+
+        template <uint_t Color>
+        struct contains_color : disjunction<typename Stage::template contains_color<Color>,
+                                    typename Stages::template contains_color<Color>...> {};
+
+        template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            Stage::template exec<Color>(it_domain);
+            (void)(int[]){((void)Stages::template exec<Color>(it_domain), 0)...};
+        }
+
+        template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {}
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            Stage::exec(it_domain);
+            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
+        }
+    };
+
     template <size_t Color>
     struct stage_contains_color {
         template <class Stage>

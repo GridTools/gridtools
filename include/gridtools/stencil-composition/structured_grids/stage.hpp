@@ -54,9 +54,12 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/host_device.hpp"
 #include "../arg.hpp"
 #include "../hasdo.hpp"
@@ -105,4 +108,19 @@ namespace gridtools {
         }
     };
 
+    template <class Stage, class... Stages>
+    struct compound_stage {
+        using extent_t = typename Stage::extent_t;
+
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            Stage::exec(it_domain);
+            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
+        }
+    };
 } // namespace gridtools
