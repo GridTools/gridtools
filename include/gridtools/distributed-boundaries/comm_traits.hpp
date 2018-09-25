@@ -36,8 +36,6 @@
 
 #pragma once
 
-#include "../gridtools.hpp"
-
 #include "../common/boollist.hpp"
 #ifdef _GCL_MPI_
 #include "../communication/low-level/proc_grids_3D.hpp"

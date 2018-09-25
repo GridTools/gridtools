@@ -376,7 +376,7 @@ namespace gridtools {
     GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
         constexpr auto storage_info_index =
             meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>::value;
-        return offset < local_domain.m_local_padded_total_lengths.template get<storage_info_index>() && offset >= 0;
+        return offset < get<storage_info_index>(local_domain.m_local_padded_total_lengths) && offset >= 0;
     }
 
     /**

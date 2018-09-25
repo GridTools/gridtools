@@ -39,6 +39,7 @@
 #include "../common/generic_metafunctions/meta.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
 #include <stdexcept>
+#include <string>
 #include <type_traits>
 
 #include "array_descriptor.h"

@@ -118,12 +118,6 @@ namespace gridtools {
         GT_FUNCTION
         constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
-        template <size_t I>
-        GT_FUNCTION constexpr T get() const {
-            GRIDTOOLS_STATIC_ASSERT((I < D), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
-            return m_array[I];
-        }
-
         GT_FUNCTION
         T &operator[](size_t i) {
             assert((impl_::array_traits<T, D>::assert_range(i)));
@@ -157,16 +151,16 @@ namespace gridtools {
     }
 
     template <typename T>
-    struct is_array : boost::mpl::false_ {};
+    struct is_array : std::false_type {};
 
     template <typename T, size_t D>
-    struct is_array<array<T, D>> : boost::mpl::true_ {};
+    struct is_array<array<T, D>> : std::true_type {};
 
     template <typename Array, typename Value>
-    struct is_array_of : boost::mpl::false_ {};
+    struct is_array_of : std::false_type {};
 
     template <size_t D, typename Value>
-    struct is_array_of<array<Value, D>, Value> : boost::mpl::true_ {};
+    struct is_array_of<array<Value, D>, Value> : std::true_type {};
 
     template <typename T>
     struct tuple_size;

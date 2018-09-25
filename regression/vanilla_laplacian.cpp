@@ -39,7 +39,6 @@
 
 #include <ctime>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/gridtools.hpp>
 
 #define offs_(i, j, k, n, m, l) ((i) * (m) * (l) + (j) * (l) + (k))
 
