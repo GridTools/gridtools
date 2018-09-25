@@ -75,7 +75,7 @@ namespace gridtools {
         typedef typename super::strides_cached_t strides_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
-        typedef typename super::readonly_args_indices_t readonly_args_indices_t;
+        typedef typename super::readonly_args_t readonly_args_t;
 
         typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
@@ -149,8 +149,7 @@ namespace gridtools {
             typedef typename boost::mpl::at<local_domain_args_t,
                 boost::mpl::integral_c<int, Accessor::index_t::value>>::type arg_t;
 
-            typedef typename boost::mpl::has_key<readonly_args_indices_t,
-                boost::mpl::integral_c<int, arg_index<arg_t>::value>>::type type;
+            typedef typename boost::mpl::has_key<readonly_args_t, arg_t>::type type;
         };
 
         /**

@@ -48,7 +48,7 @@ namespace gridtools {
         template <typename Placeholders, typename Accessors>
         struct make_arg_with_extent_map {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value),
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value),
                 "The list of Placeholders seems to contain elements that are not placeholers (i.e., they are not of "
                 "type arg)");
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Accessors, is_accessor>::value), GT_INTERNAL_ERROR);

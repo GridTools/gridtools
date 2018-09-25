@@ -62,15 +62,6 @@ namespace gridtools {
     template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
     struct is_grid_accessor<accessor<ID, Intent, Extent, Number>> : boost::mpl::true_ {};
 
-    // TODO add documentation
-    template <typename Accessor, unsigned Ext>
-    struct accessor_extend;
-
-    template <ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, unsigned Ext>
-    struct accessor_extend<accessor<ID, Intent, Extent, Number>, Ext> {
-        typedef accessor<ID, Intent, Extent, (Number + Ext)> type;
-    };
-
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
      * to the corresponding entry in ArgsMap
