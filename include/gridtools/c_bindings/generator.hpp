@@ -412,11 +412,15 @@ namespace gridtools {
                                 c_loc += "lbound(" + var_name + ", " + std::to_string(i + 1) + ")";
                             }
                             c_loc += "))";
-                            strm << "      " << desc_name << "%rank = " << meta->rank << "\n"                 //
+                            strm << "      !$acc data present(" << var_name << ")\n"                          //
+                                 << "      !$acc host_data use_device(" << var_name << ")\n"                  //
+                                 << "      " << desc_name << "%rank = " << meta->rank << "\n"                 //
                                  << "      " << desc_name << "%type = " << meta->type << "\n"                 //
                                  << "      " << desc_name << "%dims = reshape(shape(" << var_name << "), &\n" //
                                  << "        shape(" << desc_name << "%dims), (/0/))\n"                       //
-                                 << "      " << desc_name << "%data = " << c_loc << "\n\n";
+                                 << "      " << desc_name << "%data = " << c_loc << "\n"                      //
+                                 << "      !$acc end host_data\n"                                             //
+                                 << "      !$acc end data\n\n";
                         }
                     });
 
