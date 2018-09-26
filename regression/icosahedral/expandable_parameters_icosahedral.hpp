@@ -51,8 +51,8 @@ namespace test_expandable_parameters_icosahedral {
     template <uint_t Color>
     struct functor_exp {
 
-        typedef vector_accessor<0, enumtype::inout, icosahedral_topology_t::cells> parameters_out;
-        typedef vector_accessor<1, enumtype::in, icosahedral_topology_t::cells> parameters_in;
+        typedef accessor<0, enumtype::inout, icosahedral_topology_t::cells> parameters_out;
+        typedef accessor<1, enumtype::in, icosahedral_topology_t::cells> parameters_in;
         typedef boost::mpl::vector<parameters_out, parameters_in> arg_list;
 
         template <typename Evaluation>

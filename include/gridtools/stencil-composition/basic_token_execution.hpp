@@ -87,27 +87,22 @@ namespace gridtools {
             Grid const &m_grid;
 
             template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value != 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t cur, int_t last) const {
+            GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
 
-                if (in_domain)
-                    m_domain.template begin_fill<IterationPolicy>();
-
-                for (; IterationPolicy::condition(cur, last);
+                for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
                     if (in_domain)
-                        m_domain.template fill_caches<IterationPolicy>(cur, m_grid);
+                        m_domain.template fill_caches<IterationPolicy>(cur == first);
 
                     RunEsfFunctor::template exec<Stages>(m_domain);
 
                     if (in_domain) {
-                        m_domain.template flush_caches<IterationPolicy>(cur, m_grid);
+                        m_domain.template flush_caches<IterationPolicy>(cur == last);
                         m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
-                if (in_domain)
-                    m_domain.template final_flush<IterationPolicy>();
             }
 
             template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value == 0, int> = 0>
@@ -141,7 +136,7 @@ namespace gridtools {
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
     GT_FUNCTION void run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
-        gridtools::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
+        host_device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{it_domain, grid});
     }
 } // namespace gridtools

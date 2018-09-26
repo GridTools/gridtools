@@ -97,26 +97,8 @@ namespace gridtools {
         /**
          * caches are not currently used in host backend
          */
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
-        }
-
-        /**
-         * caches are not currently used in host backend
-         */
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
-        }
-
-        /**
-         * caches are not currently used in host backend
-         */
         template <typename IterationPolicy>
-        GT_FUNCTION void final_flush() {
+        GT_FUNCTION void flush_caches(bool) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
@@ -124,7 +106,7 @@ namespace gridtools {
          * caches are not currently used in host backend
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void begin_fill() {
+        GT_FUNCTION void fill_caches(bool) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 

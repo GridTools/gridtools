@@ -91,4 +91,11 @@ namespace gridtools {
         EXPECT_EQ(cur, vals + 3);
         EXPECT_THAT(vals, testing::ElementsAre(0, 42, 3));
     }
+
+    TEST(for_each, targets) {
+        int *ptr = nullptr;
+        for_each<lst<>>(f{ptr});
+        host::for_each<lst<>>(f{ptr});
+        host_device::for_each<lst<>>(f{ptr});
+    }
 } // namespace gridtools

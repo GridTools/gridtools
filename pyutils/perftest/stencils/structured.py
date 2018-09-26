@@ -6,7 +6,7 @@ from perftest.stencils import Stencil
 
 
 def path(stencil):
-    return os.path.join('examples', stencil)
+    return os.path.join('regression', stencil)
 
 
 class Copy(Stencil):

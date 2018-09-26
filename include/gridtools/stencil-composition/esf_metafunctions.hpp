@@ -114,7 +114,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
         template <typename Index>
         struct apply {
-            typedef typename boost::mpl::if_<is_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
+            typedef typename boost::mpl::if_<is_plh<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
                 typename boost::mpl::if_<typename is_accessor_readonly<typename boost::mpl::
                                                  at<typename esf_arg_list<Esf>::type, Index>::type>::type,
                     boost::false_type,
@@ -223,18 +223,6 @@ namespace gridtools {
         typedef typename boost::mpl::fold<EsfSequence,
             boost::mpl::set0<>,
             extract_readonly_arg<boost::mpl::_1, boost::mpl::_2, readwrite_args_t>>::type type;
-    };
-
-    /**
-       @brief It computes an associative sequence of indices for all arg types specified by
-        the user that are readonly through all ESFs/MSSs
-     */
-    template <typename EsfSequence>
-    struct compute_readonly_args_indices {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Wrong type");
-        typedef typename boost::mpl::fold<typename compute_readonly_args<EsfSequence>::type,
-            boost::mpl::set0<>,
-            boost::mpl::insert<boost::mpl::_1, arg_index<boost::mpl::_2>>>::type type;
     };
 
     /*
