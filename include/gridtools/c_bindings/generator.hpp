@@ -111,7 +111,7 @@ namespace gridtools {
                 int &m_count;
 
                 template <class T>
-                void operator()(T) const {
+                void operator()(boxed<T>) const {
                     m_fun(m_type_to_str.template operator()<T>(), m_count);
                     ++m_count;
                 }
@@ -123,7 +123,7 @@ namespace gridtools {
                 int count = 0;
                 m::for_each<typename boost::function_types::parameter_types<Signature>::type, boxed<m::_>>(
                     for_each_param_helper_f<TypeToStr, Fun>{
-                        std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), std::ref(count)});
+                        std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
             };
 
             template <class CSignature>
