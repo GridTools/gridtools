@@ -43,8 +43,6 @@
 #include "../../common/defs.hpp"
 #include "../../storage/data_store.hpp"
 #include "../../storage/data_store_field.hpp"
-#include "../../storage/storage_cuda/data_field_view_helpers.hpp"
-#include "../../storage/storage_cuda/data_view_helpers.hpp"
 
 #include "../backend_traits_fwd.hpp"
 #include "../grid_traits_fwd.hpp"
