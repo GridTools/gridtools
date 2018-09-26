@@ -201,19 +201,6 @@ namespace gridtools {
         */
         template <typename... Jobs>
         void exchange(Jobs const &... jobs) {
-            apply_exchange(jobs...);
-        }
-
-        /**
-            @brief Member function to perform boundary condition and communication on a list of jobs.
-            A job is either a gridtools::data_store to be used during communication or a gridtools::bound_bc
-            to apply boundary conditions and halo_update operations for the data_stores that are not input-only
-            (that will be indicated with the gridtools::bound_bc::associate member function.)
-
-            \param jobs Variadic list of jobs
-        */
-        template <typename... Jobs>
-        void apply_exchange(Jobs const &... jobs) {
 #ifdef __CUDACC__
             // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
             // This can be removed when nvcc supports it.
