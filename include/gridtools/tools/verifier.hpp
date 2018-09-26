@@ -95,7 +95,7 @@ namespace gridtools {
             storage_info_rt meta_rt = make_storage_info_rt(*(expected_field.get_storage_info_ptr()));
             array<array<size_t, 2>, StorageType::storage_info_t::layout_t::masked_length> bounds;
             for (size_t i = 0; i < bounds.size(); ++i) {
-                bounds[i] = {halos[i][0], meta_rt.unaligned_dims()[i] - halos[i][1]};
+                bounds[i] = {halos[i][0], meta_rt.total_lengths()[i] - halos[i][1]};
             }
             auto cube_view = make_hypercube_view(bounds);
 
