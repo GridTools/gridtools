@@ -36,12 +36,11 @@
 
 #pragma once
 
-#include "../common/gt_assert.hpp"
+#include "../common/defs.hpp"
+#include "../common/layout_map.hpp"
 #include "../common/selector.hpp"
-#include "./common/definitions.hpp"
+#include "./common/halo.hpp"
 #include "./common/storage_traits_metafunctions.hpp"
-#include "./storage_mic/data_field_view_helpers.hpp"
-#include "./storage_mic/data_view_helpers.hpp"
 #include "./storage_mic/mic_storage.hpp"
 #include "./storage_mic/mic_storage_info.hpp"
 

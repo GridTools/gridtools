@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
-
 namespace gridtools {
     template <class BackendType, class GridType, class StrategyType>
     struct backend;

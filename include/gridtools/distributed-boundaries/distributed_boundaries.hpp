@@ -194,6 +194,9 @@ namespace gridtools {
             to apply boundary conditions and halo_update operations for the data_stores that are not input-only
             (that will be indicated with the gridtools::bound_bc::associate member function.)
 
+            The function first perform communication then applies the boundary condition. This allows a copy-boundary
+            from the inner region to the halo region to run as expected.
+
             \param jobs Variadic list of jobs
         */
         template <typename... Jobs>
@@ -279,7 +282,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.pack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
+            m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
@@ -290,7 +293,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
+            m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);

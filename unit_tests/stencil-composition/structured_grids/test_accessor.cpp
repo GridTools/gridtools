@@ -38,7 +38,6 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/global_accessor.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-#include <gridtools/stencil-composition/structured_grids/vector_accessor.hpp>
 
 #include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
 
@@ -56,30 +55,20 @@ TEST(accessor, is_accessor) {
 TEST(accessor, is_accessor_readonly) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<in_accessor<0>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<vector_accessor<0, enumtype::in>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<global_accessor<0>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<inout_accessor<0>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<accessor<0, enumtype::inout>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<vector_accessor<0, enumtype::inout>>::value), "");
     // TODO test accessor_mixed
 }
 
 TEST(accessor, is_grid_accessor) {
     GRIDTOOLS_STATIC_ASSERT((is_grid_accessor<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor<vector_accessor<0, enumtype::in>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_grid_accessor<global_accessor<0>>::value), "");
 }
 
 TEST(accessor, is_regular_accessor) {
     GRIDTOOLS_STATIC_ASSERT((is_regular_accessor<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor<vector_accessor<0, enumtype::in>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor<global_accessor<0>>::value), "");
-}
-
-TEST(accessor, is_vector_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_vector_accessor<vector_accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor<global_accessor<0>>::value), "");
 }
 
 TEST(accessor, copy_const) {
@@ -95,7 +84,7 @@ TEST(accessor, remap_accessor) {
     using accessor_t = accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3>;
     accessor_t in(1, 2, 3);
 
-    using ArgsMap = boost::mpl::map1<boost::mpl::pair<boost::mpl::integral_c<int, 0>, boost::mpl::integral_c<int, 8>>>;
+    using ArgsMap = std::tuple<std::integral_constant<size_t, 8>>;
     using remap_accessor_t = remap_accessor_type<accessor_t, ArgsMap>::type;
 
     GRIDTOOLS_STATIC_ASSERT((is_accessor<remap_accessor_t>::value), "");

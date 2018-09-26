@@ -98,7 +98,7 @@ if( ENABLE_CUDA )
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
-  
+
   # workaround for boost::optional with CUDA9.2
   if( ${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2 )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
@@ -173,7 +173,7 @@ else()
   if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
-  add_definitions("-DFLOAT_PRECISION=8") 
+  add_definitions("-DFLOAT_PRECISION=8")
   message(STATUS "Computations in double precision")
 endif()
 

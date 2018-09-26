@@ -42,6 +42,7 @@
 #include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../backend_base.hpp"
+#include "../backend_fwd.hpp"
 
 namespace gridtools {
 

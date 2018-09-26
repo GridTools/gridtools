@@ -41,11 +41,8 @@
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 
-#ifdef STRUCTURED_GRIDS
 #include "../structured_grids/backend_mic/execute_kernel_functor_mic.hpp"
-#endif
-
-#include "strategy_mic.hpp"
+#include "../structured_grids/backend_mic/strategy_mic.hpp"
 
 #ifdef ENABLE_METERS
 #include "timer_mic.hpp"
@@ -61,14 +58,12 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id<platform::mc> {
 
-        /** This is the functor used to generate view instances. According to the given storage (data_store,
-           data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
-        */
+        /** This is the functor used to generate view instances. According to the given storage an appropriate view is
+         * returned. When using the Host backend we return host view instances.
+         */
         struct make_view_f {
             template <typename S, typename SI>
             auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
-            template <typename S, uint_t... N>
-            auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
         template <uint_t Id>
@@ -98,23 +93,14 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-#ifdef STRUCTURED_GRIDS
                 strgrid::execute_kernel_functor_mic<RunFunctorArgs>(local_domain, grid, reduction_data)(execution_info);
-#else
-                strategy_from_id_mic<strategy::block>::template mss_loop<RunFunctorArgs>::template run(
-                    local_domain, grid, reduction_data, execution_info);
-#endif
             }
         };
 
-/**
- * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
- */
-#ifdef STRUCTURED_GRIDS
+        /**
+         * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
+         */
         using mss_fuse_esfs_strategy = std::true_type;
-#else
-        using mss_fuse_esfs_strategy = std::false_type;
-#endif
 
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template <typename BackendIds>
@@ -122,13 +108,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_mic<typename BackendIds::strategy_id_t> type;
         };
-
-#ifndef STRUCTURED_GRIDS
-        template <typename IterateDomainArguments>
-        struct select_iterate_domain_cache {
-            typedef empty_iterate_domain_cache type;
-        };
-#endif
 
 #ifdef ENABLE_METERS
         typedef timer_mic performance_meter_t;

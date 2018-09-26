@@ -1,0 +1,126 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+
+/**
+ *   @file
+ *
+ *   Stage concept represents elementary functor from the backend implementor point of view.
+ *
+ *   Stage must have the nested `extent_t` type or an alias that has to model Extent concept.
+ *   The meaning: the stage should be computed in the area that is extended from the user provided computation aria by
+ *   that much.
+ *
+ *   Stage also have static `exec` method that accepts an object by reference that models IteratorDomain.
+ *   `exec` should execute an elementary functor in the grid point that IteratorDomain points to.
+ *
+ *   Note that the Stage is (and should stay) backend independent. The core of gridtools passes stages [split by k-loop
+ *   intervals and independent groups] to the backend in the form of compile time only parameters.
+ *
+ *   TODO(anstaf): add `is_stage<T>` trait
+ */
+
+#pragma once
+
+#include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../common/host_device.hpp"
+#include "../arg.hpp"
+#include "../hasdo.hpp"
+#include "../iterate_domain_fwd.hpp"
+#include "./extent.hpp"
+#include "./iterate_domain_remapper.hpp"
+
+namespace gridtools {
+    /**
+     *   A stage that is associated with the non reduction elementary functor.
+     */
+    template <class Functor, class Extent, class Args>
+    struct regular_stage {
+        GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+
+        using extent_t = Extent;
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
+            eval_t eval{it_domain};
+            Functor::template Do<eval_t &>(eval);
+        }
+    };
+
+    /**
+     *   A stage that is associated with the reduction elementary functor.
+     */
+    template <class Functor, class Extent, class Args, class BinOp>
+    struct reduction_stage {
+        GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+
+        using extent_t = Extent;
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
+            eval_t eval{it_domain};
+            it_domain.set_reduction_value(BinOp{}(it_domain.reduction_value(), Functor::template Do<eval_t &>(eval)));
+        }
+    };
+
+    template <class Stage, class... Stages>
+    struct compound_stage {
+        using extent_t = typename Stage::extent_t;
+
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            Stage::exec(it_domain);
+            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
+        }
+    };
+} // namespace gridtools

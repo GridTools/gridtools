@@ -42,14 +42,10 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/gt_assert.hpp"
-
-#include "../../storage/data_store_field.hpp"
-
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../iteration_policy_fwd.hpp"
+#include "../iteration_policy.hpp"
 #include "../offset_computation.hpp"
-
 #include "cache_storage_metafunctions.hpp"
 #include "cache_traits.hpp"
 #include "meta_storage_cache.hpp"
@@ -144,13 +140,11 @@ namespace gridtools {
             typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ =
-                (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
-                (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
-                (extra_dims)*Color * meta_t::template stride<1>() +
-                padded_total_length() * get_datafield_offset<typename Arg::data_store_t>::get(accessor_) +
-                compute_offset_cache<meta_t>(accessor_);
-            assert((extra_) < (padded_total_length() * Arg::data_store_t::num_of_storages));
+            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
+                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
+                                  (extra_dims)*Color * meta_t::template stride<1>() +
+                                  compute_offset_cache<meta_t>(accessor_);
+            assert(extra_ < padded_total_length());
             return m_values[extra_];
         }
 
@@ -162,11 +156,9 @@ namespace gridtools {
         GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
             check_kcache_access(accessor_);
 
-            const int_t index_ =
-                (int_t)padded_total_length() * (int_t)get_datafield_offset<typename Arg::data_store_t>::get(accessor_) +
-                compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
+            const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
             assert(index_ >= 0);
-            assert(index_ < (padded_total_length() * Arg::data_store_t::num_of_storages));
+            assert(index_ < padded_total_length());
 
             return m_values[index_];
         }
@@ -179,12 +171,10 @@ namespace gridtools {
         GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
             check_kcache_access(accessor_);
 
-            const int_t index_ =
-                (int_t)padded_total_length() * (int_t)get_datafield_offset<typename Arg::data_store_t>::get(accessor_) +
-                compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
+            const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
-            assert(index_ < (padded_total_length() * Arg::data_store_t::num_of_storages));
+            assert(index_ < padded_total_length());
 
             return m_values[index_];
         }
@@ -210,7 +200,7 @@ namespace gridtools {
         }
 
       private:
-        value_type m_values[padded_total_length() * Arg::data_store_t::num_of_storages];
+        value_type m_values[padded_total_length()];
 
         template <typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION static void check_kcache_access_in_bounds(

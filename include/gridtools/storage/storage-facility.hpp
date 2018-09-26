@@ -43,9 +43,18 @@
 
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
+
+#include "storage_cuda/data_field_view_helpers.hpp"
+#include "storage_cuda/data_view_helpers.hpp"
 #endif
+
 #include "storage_traits_host.hpp"
 #include "storage_traits_mic.hpp"
+
+#include "storage_host/data_field_view_helpers.hpp"
+#include "storage_host/data_view_helpers.hpp"
+#include "storage_mic/data_field_view_helpers.hpp"
+#include "storage_mic/data_view_helpers.hpp"
 
 /**
  * \defgroup storage Storage

@@ -325,6 +325,12 @@ namespace gridtools {
         }
 
         /**
+         * @brief retrieve the underlying storage_info instance
+         * @return storage_info instance
+         */
+        storage_info_t const &info() const { return *m_shared_storage_info; }
+
+        /**
          * @brief retrieve a pointer to the underlying storage instance.
          * @return shared pointer to the underlying storage instance
          */

@@ -37,4 +37,3 @@
 
 #include "./backend_cuda/grid_traits_cuda.hpp"
 #include "./backend_host/grid_traits_host.hpp"
-#include "./backend_mic/grid_traits_mic.hpp"

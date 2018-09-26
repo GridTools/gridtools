@@ -42,7 +42,6 @@
 #include <gridtools/stencil-composition/accessor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/independent_esf.hpp>
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/storage/storage-facility.hpp>
@@ -70,7 +69,7 @@ namespace gridtools {
         using an_esf = decltype(make_stage<functor<I>>(p_in{}, p_out{}));
 
         template <class... Esfs>
-        using an_independent = independent_esf<boost::mpl::vector<Esfs...>>;
+        using an_independent = decltype(make_independent(Esfs{}...));
 
         template <class... Esfs>
         using an_mss = decltype(make_multistage(enumtype::execute<enumtype::forward>(), std::declval<Esfs>()...));

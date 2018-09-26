@@ -45,8 +45,8 @@ using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
 struct copy_functor {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -57,8 +57,8 @@ struct copy_functor {
 };
 
 struct copy_functor_with_expression {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -70,8 +70,8 @@ struct copy_functor_with_expression {
 };
 
 struct call_proc_copy_functor {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -82,8 +82,8 @@ struct call_proc_copy_functor {
 };
 
 struct call_copy_functor {
-    typedef vector_accessor<0, enumtype::inout> out;
-    typedef vector_accessor<1, enumtype::in> in;
+    typedef accessor<0, enumtype::inout> out;
+    typedef accessor<1, enumtype::in> in;
 
     typedef boost::mpl::vector<out, in> arg_list;
 
@@ -94,7 +94,7 @@ struct call_copy_functor {
 };
 
 struct shift_functor {
-    typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef boost::mpl::vector<out> arg_list;
 
@@ -106,7 +106,7 @@ struct shift_functor {
 
 template <class AxisInterval>
 struct call_shift_functor {
-    typedef vector_accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef boost::mpl::vector<out> arg_list;
 
