@@ -64,7 +64,7 @@
 
 #if __cplusplus >= 201402L // since c++14
 #define DEPRECATED [[deprecated]]
-#define DEPRECATED_REASON(msg) [[deprecated(#msg)]]
+#define DEPRECATED_REASON(msg) [[deprecated(msg)]]
 #else
 #ifdef __GNUC__
 #define DEPRECATED __attribute__((deprecated))

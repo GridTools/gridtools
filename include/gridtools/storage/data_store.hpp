@@ -289,7 +289,7 @@ namespace gridtools {
          * @brief deprecated, see total_length()
          */
         template <int Dim>
-        DEPRECATED_REASON("dim<Dim>() is deprecated, use total_lengths<Dim>()")
+        DEPRECATED_REASON("dim<Dim>() is deprecated, use total_lengths<Dim>() (deprecated after 1.07.00)")
         int dim() const {
             return total_length<Dim>();
         }
@@ -332,9 +332,8 @@ namespace gridtools {
         /**
          * @brief deprecated, see total_lengths()
          */
-        DEPRECATED_REASON("dims() is deprecated, use total_lengths()") auto dims() const -> decltype(total_lengths()) {
-            return total_lengths();
-        }
+        DEPRECATED_REASON("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
+        auto dims() const -> decltype(total_lengths()) { return total_lengths(); }
 
         /**
          * @brief forward strides() from storage_info
