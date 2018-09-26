@@ -228,7 +228,7 @@ namespace gridtools {
         /**
          * @brief deprecated, see total_lengths()
          */
-        DEPRECATED_REASON("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
+        GT_DEPRECATED("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
         GT_FUNCTION constexpr const array<uint_t, ndims> &dims() const { return total_lengths(); }
 
         /*
@@ -247,7 +247,7 @@ namespace gridtools {
          * @brief deprecated: see total_length()
          */
         template <uint_t Dim>
-        DEPRECATED_REASON("dim<Dim>() is deprecated, use total_length<Dim>() (deprecated after 1.07.00)")
+        GT_DEPRECATED("dim<Dim>() is deprecated, use total_length<Dim>() (deprecated after 1.07.00)")
         GT_FUNCTION constexpr uint_t dim() const {
             return total_length<Dim>();
         }

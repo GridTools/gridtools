@@ -52,15 +52,15 @@ namespace gridtools {
       public:
         using grid_type_t = grid_type::icosahedral;
 
-        DEPRECATED_REASON("Use constructor with halo_descriptors (deprecated after 1.05.02)")
+        GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
         GT_FUNCTION
         explicit grid(GridTopology const &grid_topology, const array<uint_t, 5> &i, const array<uint_t, 5> &j)
             : grid_base<Axis>(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
                   halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
               m_grid_topology(grid_topology) {}
 
-        DEPRECATED_REASON("This constructor does not initialize the vertical axis, use the constructor with 4 "
-                          "arguments.  (deprecated after 1.05.02)")
+        GT_DEPRECATED("This constructor does not initialize the vertical axis, use the constructor with 4 "
+                      "arguments.  (deprecated after 1.05.02)")
         GT_FUNCTION explicit grid(
             GridTopology const &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : grid_base<Axis>(direction_i, direction_j), m_grid_topology(grid_topology) {}

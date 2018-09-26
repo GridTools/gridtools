@@ -78,8 +78,8 @@ namespace gridtools {
         halo_descriptor m_direction_j;
 
       public:
-        DEPRECATED_REASON("This constructor does not initialize the vertical axis, use the constructor with 3 "
-                          "arguments. (deprecated after 1.05.02)")
+        GT_DEPRECATED("This constructor does not initialize the vertical axis, use the constructor with 3 "
+                      "arguments. (deprecated after 1.05.02)")
         GT_FUNCTION explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : m_direction_i(direction_i), m_direction_j(direction_j) {}
 
@@ -95,7 +95,7 @@ namespace gridtools {
             const array<uint_t, size> &value_list)
             : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
 
-        DEPRECATED_REASON("Use constructor with halo_descriptors (deprecated after 1.05.02)")
+        GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
         GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
             : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
