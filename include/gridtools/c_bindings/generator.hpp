@@ -104,30 +104,17 @@ namespace gridtools {
                 using type = boxed;
             };
 
-            struct apply_to_param_f {
-                template <class Fun, class TypeToStr, class T>
-                void operator()(Fun &&fun, TypeToStr &&type_to_str, int &count, boxed<T>) const {
-                    std::forward<Fun>(fun)(type_to_str.template operator()<T>(), count);
-                    ++count;
-                }
-            };
-
             template <class TypeToStr, class Fun>
-            class for_each_param_helper {
-              public:
-                template <typename T>
-                void operator()(T t) const {
-                    apply_to_param_f{}(m_fun, m_type_to_str, m_count, t);
-                }
-
-                template <class T, class F>
-                for_each_param_helper(T &&type_to_str, F &&fun, int &count)
-                    : m_type_to_str(std::forward<T>(type_to_str)), m_fun(std::forward<F>(fun)), m_count(count) {}
-
-              private:
-                typename std::decay<TypeToStr>::type m_type_to_str;
-                typename std::decay<Fun>::type m_fun;
+            struct for_each_param_helper_f {
+                TypeToStr m_type_to_str;
+                Fun m_fun;
                 int &m_count;
+
+                template <class T>
+                void operator()(T) const {
+                    m_fun(m_type_to_str.template operator()<T>(), m_count);
+                    ++m_count;
+                }
             };
 
             template <class Signature, class TypeToStr, class Fun>
@@ -135,7 +122,7 @@ namespace gridtools {
                 namespace m = boost::mpl;
                 int count = 0;
                 m::for_each<typename boost::function_types::parameter_types<Signature>::type, boxed<m::_>>(
-                    for_each_param_helper<TypeToStr, Fun>{
+                    for_each_param_helper_f<TypeToStr, Fun>{
                         std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), std::ref(count)});
             };
 
