@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include "host_device.hpp"
+
 namespace gridtools {
     namespace binop {
         struct sum {

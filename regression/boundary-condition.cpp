@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/gridtools.hpp>
 #include <iostream>
 
 #include <gridtools/boundary-conditions/boundary.hpp>
