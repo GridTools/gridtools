@@ -48,12 +48,10 @@
    implements flux-limiting
 */
 
-namespace gt = gridtools;
-
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
-    using out = gt::accessor<0, gt::enumtype::inout>;
-    using in = gt::accessor<1, gt::enumtype::in, gt::extent<-1, 1, -1, 1>>;
+    using out = gridtools::accessor<0, gridtools::enumtype::inout>;
+    using in = gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<-1, 1, -1, 1>>;
 
     using arg_list = boost::mpl::vector<out, in>;
 
@@ -66,9 +64,9 @@ struct lap_function {
 
 struct flx_function {
 
-    using out = gt::accessor<0, gt::enumtype::inout>;
-    using in = gt::accessor<1, gt::enumtype::in, gt::extent<0, 1, 0, 0>>;
-    using lap = gt::accessor<2, gt::enumtype::in, gt::extent<0, 1, 0, 0>>;
+    using out = gridtools::accessor<0, gridtools::enumtype::inout>;
+    using in = gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<0, 1, 0, 0>>;
+    using lap = gridtools::accessor<2, gridtools::enumtype::in, gridtools::extent<0, 1, 0, 0>>;
 
     typedef boost::mpl::vector<out, in, lap> arg_list;
 
@@ -87,9 +85,9 @@ struct flx_function {
 
 struct fly_function {
 
-    using out = gt::accessor<0, gt::enumtype::inout>;
-    using in = gt::accessor<1, gt::enumtype::in, gt::extent<0, 0, 0, 1>>;
-    using lap = gt::accessor<2, gt::enumtype::in, gt::extent<0, 0, 0, 1>>;
+    using out = gridtools::accessor<0, gridtools::enumtype::inout>;
+    using in = gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<0, 0, 0, 1>>;
+    using lap = gridtools::accessor<2, gridtools::enumtype::in, gridtools::extent<0, 0, 0, 1>>;
 
     using arg_list = boost::mpl::vector<out, in, lap>;
 
@@ -108,11 +106,11 @@ struct fly_function {
 
 struct out_function {
 
-    using out = gt::accessor<0, gt::enumtype::inout>;
-    using in = gt::accessor<1, gt::enumtype::in>;
-    using flx = gt::accessor<2, gt::enumtype::in, gt::extent<-1, 0, 0, 0>>;
-    using fly = gt::accessor<3, gt::enumtype::in, gt::extent<0, 0, -1, 0>>;
-    using coeff = gt::accessor<4, gt::enumtype::in>;
+    using out = gridtools::accessor<0, gridtools::enumtype::inout>;
+    using in = gridtools::accessor<1, gridtools::enumtype::in>;
+    using flx = gridtools::accessor<2, gridtools::enumtype::in, gridtools::extent<-1, 0, 0, 0>>;
+    using fly = gridtools::accessor<3, gridtools::enumtype::in, gridtools::extent<0, 0, -1, 0>>;
+    using coeff = gridtools::accessor<4, gridtools::enumtype::in>;
 
     using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
 
@@ -125,9 +123,9 @@ struct out_function {
 
 int main(int argc, char **argv) {
 
-    constexpr gt::uint_t halo_size = 2;
+    constexpr gridtools::uint_t halo_size = 2;
 
-    gt::uint_t d1, d2, d3;
+    gridtools::uint_t d1, d2, d3;
     if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " dimx dimy dimz\n";
         return 1;
@@ -137,9 +135,9 @@ int main(int argc, char **argv) {
         d3 = atoi(argv[3]);
     }
 
-    using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
-    using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
-    using storage_type = storage_tr::data_store_t<gt::float_type, storage_info_ijk_t>;
+    using storage_tr = gridtools::storage_traits<backend_t::backend_id_t>;
+    using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gridtools::halo<halo_size, halo_size, 0>>;
+    using storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ijk_t>;
 
     // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     storage_info_ijk_t sinfo{d1, d2, d3};
@@ -150,17 +148,17 @@ int main(int argc, char **argv) {
     storage_type coeff{sinfo, "coeff"};
 
     // Definition of placeholders. The order does not have any semantics
-    using p_lap = gt::tmp_arg<0, storage_type>; // This represent a
-                                                // temporary data (the
-                                                // library will take
-                                                // care of that and it
-                                                // is not observable
-                                                // by the user
-    using p_flx = gt::tmp_arg<1, storage_type>;
-    using p_fly = gt::tmp_arg<2, storage_type>;
-    using p_coeff = gt::arg<3, storage_type>; // This is a regular placeholder to some data
-    using p_in = gt::arg<4, storage_type>;
-    using p_out = gt::arg<5, storage_type>;
+    using p_lap = gridtools::tmp_arg<0, storage_type>; // This represent a
+                                                       // temporary data (the
+                                                       // library will take
+                                                       // care of that and it
+                                                       // is not observable
+                                                       // by the user
+    using p_flx = gridtools::tmp_arg<1, storage_type>;
+    using p_fly = gridtools::tmp_arg<2, storage_type>;
+    using p_coeff = gridtools::arg<3, storage_type>; // This is a regular placeholder to some data
+    using p_in = gridtools::arg<4, storage_type>;
+    using p_out = gridtools::arg<5, storage_type>;
 
     // Now we describe the itaration space. The frist two dimensions
     // are described with a tuple of values (minus, plus, begin, end,
@@ -171,28 +169,29 @@ int main(int argc, char **argv) {
     // is not needed, and will be removed in future versions, but we
     // keep it for now since the data structure used is the same used
     // in the communication library and there the length is used.
-    gt::halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-    gt::halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+    gridtools::halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+    gridtools::halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
     // The grid represent the iteration space. The third dimension is
     // indicated here as a size and the iteration space is deduced by
     // the fact that there is not an axis definition. More ocmplex
     // third dimensions are possible but not described in this
     // example.
-    auto grid = gt::make_grid(di, dj, d3);
+    auto grid = gridtools::make_grid(di, dj, d3);
 
     // Here we make the computation, specifying the backend, the gird
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
-    auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
+    auto horizontal_diffusion = gridtools::make_computation<backend_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
-        gt::make_multistage(gt::enumtype::execute<gt::enumtype::parallel, 20>{},
-            define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
-            gt::make_stage<lap_function>(p_lap{}, p_in{}),
-            gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
-                gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),
-            gt::make_stage<out_function>(p_out{}, p_in{}, p_flx{}, p_fly{}, p_coeff{})));
+        gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::parallel, 20>{},
+            define_caches(
+                gridtools::cache<gridtools::IJ, gridtools::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
+            gridtools::make_stage<lap_function>(p_lap{}, p_in{}),
+            gridtools::make_independent(gridtools::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
+                gridtools::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),
+            gridtools::make_stage<out_function>(p_out{}, p_in{}, p_flx{}, p_fly{}, p_coeff{})));
 
     // The execution happens here. Here we bind the placeholders to
     // the data. This binding can change at every `run` invokation
