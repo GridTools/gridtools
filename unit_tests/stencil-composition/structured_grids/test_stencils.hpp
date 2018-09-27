@@ -38,8 +38,6 @@
 #include "gtest/gtest.h"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include <gridtools/gridtools.hpp>
-
 #include <boost/fusion/include/make_vector.hpp>
 
 #include "backend_select.hpp"

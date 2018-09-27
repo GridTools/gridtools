@@ -36,10 +36,11 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <boost/mpl/arithmetic.hpp>
 #include <boost/mpl/comparison.hpp>
 #include <boost/mpl/integral_c_tag.hpp>
-#include <type_traits>
 
 namespace boost {
     namespace mpl {

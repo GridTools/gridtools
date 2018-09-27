@@ -35,28 +35,20 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include "./generic_metafunctions/mpl_tags.hpp"
+
 /** \ingroup common
     @{
     \defgroup defs Common Definitions
     @{
 */
 
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/vector.hpp>
-
 /**
    @file
    @brief global definitions
 */
-#include "./generic_metafunctions/mpl_tags.hpp"
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/logical.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <type_traits>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
@@ -132,7 +124,6 @@ namespace gridtools {
 } // namespace gridtools
 #endif
 
-#include <boost/mpl/integral_c.hpp>
 // macro defining empty copy constructors and assignment operators
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
     TypeName(const TypeName &);            \

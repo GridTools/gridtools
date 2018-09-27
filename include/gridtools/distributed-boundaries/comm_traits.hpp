@@ -36,16 +36,14 @@
 
 #pragma once
 
-#include "../gridtools.hpp"
-
-#include "../common/boollist.hpp"
+#include "../common/defs.hpp"
+#include "../common/layout_map.hpp"
+#include "../communication/GCL.hpp"
 #ifdef _GCL_MPI_
 #include "../communication/low-level/proc_grids_3D.hpp"
 #else
 #include "./mock_pattern.hpp"
 #endif
-
-#include "../stencil-composition/stencil-composition.hpp"
 
 namespace gridtools {
 
