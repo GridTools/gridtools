@@ -34,6 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
 #include "../defs.hpp"
 #include "../host_device.hpp"
 
@@ -81,7 +84,7 @@ namespace gridtools {
 
         template <typename Elem>
         static constexpr int_t find(const ushort_t pos = 0) {
-            return (boost::is_same<First, Elem>::value) ? pos : variadic_typedef<Args...>::template find<Elem>(pos + 1);
+            return std::is_same<First, Elem>::value ? pos : variadic_typedef<Args...>::template find<Elem>(pos + 1);
         }
 
         static constexpr ushort_t length = sizeof...(Args) + 1;

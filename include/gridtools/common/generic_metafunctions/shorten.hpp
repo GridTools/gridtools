@@ -34,6 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/identity.hpp>
+
 #include "../defs.hpp"
 
 namespace gridtools {

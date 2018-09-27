@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <gridtools/common/defs.hpp>
-#include <gridtools/gridtools.hpp>
 
 #include "gtest/gtest.h"
 
