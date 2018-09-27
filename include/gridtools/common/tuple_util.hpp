@@ -389,7 +389,7 @@ namespace gridtools {
                         return std::forward<Fun>(fun)(get<I>(std::forward<Tups>(tups))...);
                     }
 #elif (defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
-    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 10)
+    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10)
                     template <class Fun, class Tup>
                     GT_TARGET GT_FORCE_INLINE auto operator()(Fun &&fun, Tup &&tup) const
                         GT_AUTO_RETURN(std::forward<Fun>(fun)(get<I>(std::forward<Tup>(tup))));
