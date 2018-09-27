@@ -1210,23 +1210,13 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE constexpr auto convert_to(Tup const &tup)
                 GT_AUTO_RETURN(detail::convert_to_f<_impl::to_tuple_converter_helper<L>>{}(tup));
 
-            template <template <class, size_t> class Arr>
-            GT_TARGET GT_FORCE_INLINE constexpr detail::convert_to_f<_impl::to_array_converter_helper<Arr, void>>
-            convert_to() {
-                return {};
-            }
-
-            template <template <class, size_t> class Arr, class D>
+            template <template <class, size_t> class Arr, class D = void>
             GT_TARGET GT_FORCE_INLINE constexpr detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>
             convert_to() {
                 return {};
             }
 
-            template <template <class, size_t> class Arr, class Tup>
-            GT_TARGET GT_FORCE_INLINE constexpr auto convert_to(Tup const &tup)
-                GT_AUTO_RETURN((detail::convert_to_f<_impl::to_array_converter_helper<Arr, void>>{}(tup)));
-
-            template <template <class, size_t> class Arr, class D, class Tup>
+            template <template <class, size_t> class Arr, class D = void, class Tup>
             GT_TARGET GT_FORCE_INLINE constexpr auto convert_to(Tup const &tup)
                 GT_AUTO_RETURN((detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(tup)));
         }

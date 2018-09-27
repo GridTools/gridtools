@@ -300,9 +300,11 @@ namespace gridtools {
         }
 
         TEST(convert_to, array) {
+            EXPECT_THAT(convert_to<std::array>()(make<std::tuple>(3, 4)), testing::ElementsAre(3, 4));
             EXPECT_THAT(convert_to<std::array>(make<std::tuple>(3, 4)), testing::ElementsAre(3, 4));
             EXPECT_THAT(convert_to<std::array>(make<std::tuple>(3.5, 4)), testing::ElementsAre(3.5, 4.));
             EXPECT_THAT((convert_to<std::array, int>(make<std::tuple>(3.5, 4))), testing::ElementsAre(3, 4));
+            EXPECT_THAT((convert_to<std::array, int>()(make<std::tuple>(3.5, 4))), testing::ElementsAre(3, 4));
             EXPECT_THAT((convert_to<std::array, int>(make<std::array>(3.5, 4))), testing::ElementsAre(3, 4));
         }
     } // namespace tuple_util
