@@ -312,7 +312,7 @@ namespace gridtools {
         GT_FUNCTION constexpr int dim() const {
             GRIDTOOLS_STATIC_ASSERT(
                 (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
-            return m_total_lengths.template get<Coord>();
+            return get<Coord>(m_total_lengths);
         }
 
         /**
@@ -324,7 +324,7 @@ namespace gridtools {
         GT_FUNCTION constexpr int stride() const {
             GRIDTOOLS_STATIC_ASSERT(
                 (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
-            return m_strides.template get<Coord>();
+            return get<Coord>(m_strides);
         }
 
         /**
