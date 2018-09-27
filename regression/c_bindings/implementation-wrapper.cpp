@@ -98,7 +98,7 @@ namespace {
     using p_out = arg<1, data_store_t>;
 
     auto make_grid(data_store_t data_store) -> decltype(make_grid(0, 0, 0)) {
-        auto dims = data_store.dims();
+        auto dims = data_store.total_lengths();
         return gridtools::make_grid(dims[0], dims[1], dims[2]);
     }
 
