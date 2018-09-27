@@ -268,11 +268,14 @@ namespace gridtools {
             auto f = [](int x, int y) { return x + y; };
             auto t = std::make_tuple(1, 2);
 
-            EXPECT_EQ(3, apply(f, t));
+            EXPECT_EQ(
+                3, gridtools::tuple_util::apply(f, t)); // fully qualified to resolve ambiguity with c++17 std::apply
         }
 
         TEST(apply, array) {
-            EXPECT_EQ(3, apply([](int x, int y) { return x + y; }, make<std::array>(1, 2)));
+            EXPECT_EQ(3,
+                gridtools::tuple_util::apply([](int x, int y) { return x + y; },
+                    make<std::array>(1, 2))); // fully qualified to resolve ambiguity with c++17 std::apply
         }
 
         TEST(make, functional) { EXPECT_EQ(make<std::tuple>(42, 5.3), std::make_tuple(42, 5.3)); }

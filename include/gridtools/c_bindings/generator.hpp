@@ -40,6 +40,7 @@
 #include <functional>
 #include <map>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <vector>
 

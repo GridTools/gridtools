@@ -381,9 +381,9 @@ namespace gridtools {
                     noexcept GT_AUTO_RETURN(Getter::template get<I>(gt::forward<T>(obj)));
             };
 
-            // Let as use `detail` for internal namesape of the target dependent namespace.
+            // Let as use `detail` for internal namespace of the target dependent namespace.
             // This way we can refer `_impl::foo` for the entities that are independent on the target and
-            // `detail::bar` for the target depentent ones.
+            // `detail::bar` for the target dependent ones.
             namespace detail {
                 using _impl::from_types;
                 using _impl::get_accessors;
@@ -405,7 +405,7 @@ namespace gridtools {
                         return gt::forward<Fun>(fun)(get<I>(gt::forward<Tups>(tups))...);
                     }
 #elif (defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
-    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 10)
+    (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10)
                     template <class Fun, class Tup>
                     GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Fun &&fun, Tup &&tup) const
                         GT_AUTO_RETURN(gt::forward<Fun>(fun)(get<I>(gt::forward<Tup>(tup))));
