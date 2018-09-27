@@ -81,7 +81,8 @@ namespace gridtools {
 
             template <class Index, class Esfs, class ExtentMap>
             struct stages_from_esf<independent_esf<Esfs>, Index, ExtentMap> {
-                using stage_groups_t = GT_META_CALL(stages_from_esfs, (Esfs, Index, ExtentMap));
+                using stage_groups_t = GT_META_CALL(
+                    meta::transform, (stages_from_esf_f<Index, ExtentMap>::template apply, Esfs));
                 using stages_t = GT_META_CALL(meta::flatten, stage_groups_t);
                 using type = GT_META_CALL(fuse_stages, (compound_stage, stages_t));
             };
