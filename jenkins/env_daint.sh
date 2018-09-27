@@ -55,7 +55,7 @@ else
   exit_if_error 444
 fi
 
-export BOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_67_0
+export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
