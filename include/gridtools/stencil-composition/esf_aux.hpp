@@ -34,8 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/range_c.hpp>
 
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/size.hpp>
+
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "accessor_fwd.hpp"
 #include "arg.hpp"
 

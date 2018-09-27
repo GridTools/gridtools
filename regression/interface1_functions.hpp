@@ -35,7 +35,6 @@
 */
 #pragma once
 
-//#include <gridtools.hpp>
 #include "backend_select.hpp"
 #include "cache_flusher.hpp"
 #include "defs.hpp"

@@ -35,7 +35,6 @@
 */
 #include "shallow_water_enhanced.hpp"
 #include "gtest/gtest.h"
-#include <gridtools/gridtools.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 
 TEST(Communication, shallow_water_enhanced) {

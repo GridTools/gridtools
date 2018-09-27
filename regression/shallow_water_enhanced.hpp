@@ -37,7 +37,6 @@
 
 // [includes]
 #include <fstream>
-#include <gridtools/gridtools.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 #include <iostream>

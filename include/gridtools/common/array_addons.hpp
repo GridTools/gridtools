@@ -34,11 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <array>
+#include <iostream>
+#include <vector>
+
+#include <boost/implicit_cast.hpp>
+
 #include "array.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
-#include <array>
-#include <boost/implicit_cast.hpp>
-#include <vector>
 
 namespace gridtools {
     /** \addtogroup common
@@ -251,20 +255,6 @@ namespace gridtools {
 /** \addtogroup array
     @{
 */
-
-template <typename T, typename U, size_t D>
-bool same_elements(gridtools::array<T, D> const &a, gridtools::array<U, D> const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
-
-    // sort and check for equivalence
-    gridtools::array<T, D> a0 = a;
-    gridtools::array<U, D> b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
-}
 
 /** @} */
 /** @} */
