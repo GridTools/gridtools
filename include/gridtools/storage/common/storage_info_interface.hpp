@@ -74,9 +74,9 @@ namespace gridtools {
          */
         template <uint_t N, typename StorageInfo>
         GT_FUNCTION typename boost::enable_if_c<(N == 0), bool>::type equality_check(StorageInfo a, StorageInfo b) {
-            return (a.template dim<N>() == b.template dim<N>()) && (a.template stride<N>() == b.template stride<N>()) &&
-                   (a.length() == b.length()) && (a.total_length() == b.total_length()) &&
-                   (a.padded_total_length() == b.padded_total_length());
+            return (a.template total_length<N>() == b.template total_length<N>()) &&
+                   (a.template stride<N>() == b.template stride<N>()) && (a.length() == b.length()) &&
+                   (a.total_length() == b.total_length()) && (a.padded_total_length() == b.padded_total_length());
         }
 
         /**
@@ -86,8 +86,8 @@ namespace gridtools {
          */
         template <uint_t N, typename StorageInfo>
         GT_FUNCTION typename boost::enable_if_c<(N > 0), bool>::type equality_check(StorageInfo a, StorageInfo b) {
-            return (a.template dim<N>() == b.template dim<N>()) && (a.template stride<N>() == b.template stride<N>()) &&
-                   equality_check<N - 1>(a, b);
+            return (a.template total_length<N>() == b.template total_length<N>()) &&
+                   (a.template stride<N>() == b.template stride<N>()) && equality_check<N - 1>(a, b);
         }
     } // namespace impl_
 
@@ -121,9 +121,9 @@ namespace gridtools {
 
       private:
         using this_t = storage_info_interface<Id, layout_map<LayoutArgs...>, halo<Halos...>, Align>;
-        array<uint_t, layout_t::masked_length> m_total_lengths;
-        array<uint_t, layout_t::masked_length> m_padded_lengths;
-        array<uint_t, layout_t::masked_length> m_strides;
+        array<uint_t, ndims> m_total_lengths;
+        array<uint_t, ndims> m_padded_lengths;
+        array<uint_t, ndims> m_strides;
 
         /**
          * @brief private storage info interface constructor
@@ -220,21 +220,40 @@ namespace gridtools {
             return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_total_lengths, halo_t{});
         }
 
+        /**
+         * @brief Returns the array of total_lengths, the lengths including the halo points (the outer region)
+         */
+        GT_FUNCTION constexpr const array<uint_t, ndims> &total_lengths() const { return m_total_lengths; }
+
+        /**
+         * @brief deprecated, see total_lengths()
+         */
+        GT_DEPRECATED("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
+        GT_FUNCTION constexpr const array<uint_t, ndims> &dims() const { return total_lengths(); }
+
         /*
          * @brief Returns the length of a dimension including the halo points (the outer region)
          *
          * \tparam Dim The index of the dimension
          */
         template <uint_t Dim>
-        GT_FUNCTION constexpr uint_t total_length() const {
+        GT_FUNCTION constexpr int total_length() const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (Dim < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
             return m_total_lengths[Dim];
         }
 
         /**
-         * @brief Returns the length of a dimension including the halo
-         * points (the outer region) but excluding padding. This is
-         * the number of elements you would access when accessing all
-         * the relevant values stored in that dimensions.
+         * @brief deprecated: see total_length()
+         */
+        template <uint_t Dim>
+        GT_DEPRECATED("dim<Dim>() is deprecated, use total_length<Dim>() (deprecated after 1.07.00)")
+        GT_FUNCTION constexpr uint_t dim() const {
+            return total_length<Dim>();
+        }
+
+        /**
+         * @brief Returns the length of a dimension including the halo points (the outer region) and padding.
          *
          * \tparam Dim The index of the dimension
          */
@@ -244,7 +263,13 @@ namespace gridtools {
         }
 
         /**
-         * @brief Returns the length of a dimension excluding the halo points (only the inner region
+         * @brief Returns the array of padded_lengths, the lengths including the halo points (the outer region) and
+         * padding.
+         */
+        GT_FUNCTION constexpr const array<uint_t, ndims> &padded_lengths() const { return m_padded_lengths; }
+
+        /**
+         * @brief Returns the length of a dimension excluding the halo points (only the inner region)
          *
          * \tparam Dim The index of the dimension
          */
@@ -296,35 +321,15 @@ namespace gridtools {
         }
 
         /**
-         * @brief return the array of (aligned) dims, see dim() for details.
-         */
-        GT_FUNCTION constexpr const array<uint_t, ndims> &dims() const { return m_total_lengths; }
-
-        /**
-         * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
-         * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
-         * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
-         * in a container with size 100x128x80 because the "innermost" dimension gets aligned.
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template <int Coord>
-        GT_FUNCTION constexpr int dim() const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
-            return get<Coord>(m_total_lengths);
-        }
-
-        /**
          * @brief member function to retrieve the (aligned) stride (e.g., I, J, or K)
          * @tparam Coord queried coordinate
          * @return aligned stride size
          */
-        template <int Coord>
-        GT_FUNCTION constexpr int stride() const {
+        template <uint_t Dim>
+        GT_FUNCTION constexpr uint_t stride() const {
             GRIDTOOLS_STATIC_ASSERT(
-                (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
-            return get<Coord>(m_strides);
+                (Dim < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
+            return get<Dim>(m_strides);
         }
 
         /**

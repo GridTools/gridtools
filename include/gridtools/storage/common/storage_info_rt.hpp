@@ -54,40 +54,19 @@ namespace gridtools {
      */
     class storage_info_rt {
       private:
-        std::vector<uint_t> dims_;
-        std::vector<uint_t> unaligned_dims_;
-        std::vector<uint_t> strides_;
+        std::vector<uint_t> m_total_lengths;
+        std::vector<uint_t> m_padded_lengths;
+        std::vector<uint_t> m_strides;
 
       public:
-        storage_info_rt(std::vector<uint_t> dims, std::vector<uint_t> unaligned_dims, std::vector<uint_t> strides)
-            : dims_(dims), unaligned_dims_(unaligned_dims), strides_(strides) {}
+        storage_info_rt(
+            std::vector<uint_t> total_lengths, std::vector<uint_t> padded_lengths, std::vector<uint_t> strides)
+            : m_total_lengths(total_lengths), m_padded_lengths(padded_lengths), m_strides(strides) {}
 
-        const std::vector<uint_t> &dims() const { return dims_; }
-        const std::vector<uint_t> &unaligned_dims() const { return unaligned_dims_; }
-        const std::vector<uint_t> &strides() const { return strides_; }
+        const std::vector<uint_t> &total_lengths() const { return m_total_lengths; }
+        const std::vector<uint_t> &padded_lengths() const { return m_padded_lengths; }
+        const std::vector<uint_t> &strides() const { return m_strides; }
     };
-
-    namespace {
-        template <int Idx>
-        struct unaligned_dim_getter {
-            constexpr unaligned_dim_getter() {}
-
-            template <typename StorageInfo>
-            GT_FUNCTION static constexpr uint_t apply(const StorageInfo &storage_info_) {
-                return storage_info_.template total_length<Idx>();
-            }
-        };
-
-        template <template <int Idx> class Getter, typename StorageInfo>
-        gridtools::array<uint_t, StorageInfo::layout_t::masked_length> make_array_from(
-            const StorageInfo &storage_info) {
-            using seq = gridtools::apply_gt_integer_sequence<
-                typename gridtools::make_gt_integer_sequence<int, StorageInfo::layout_t::masked_length>::type>;
-            return gridtools::array<uint_t, StorageInfo::layout_t::masked_length>(
-                seq::template apply<gridtools::array<uint_t, StorageInfo::layout_t::masked_length>, Getter>(
-                    storage_info));
-        }
-    } // namespace
 
     /*
      * @brief Construct a storage_info_rt from a storage_info
@@ -95,21 +74,10 @@ namespace gridtools {
     template <typename StorageInfo>
     storage_info_rt make_storage_info_rt(const StorageInfo &storage_info) {
         return storage_info_rt( //
-            to_vector(storage_info.dims()),
-            to_vector(make_unaligned_dims_array(storage_info)),
+            to_vector(storage_info.total_lengths()),
+            to_vector(storage_info.padded_lengths()),
             to_vector(storage_info.strides()));
     }
-
-    /*
-     * @brief Constructs gridtools::array of unaligned_dims.
-     */
-    template <typename StorageInfo>
-    gridtools::array<uint_t, StorageInfo::layout_t::masked_length> make_unaligned_dims_array(
-        const StorageInfo &storage_info) {
-        GRIDTOOLS_STATIC_ASSERT((gridtools::is_storage_info<StorageInfo>::value), "Expected a StorageInfo");
-        return make_array_from<unaligned_dim_getter>(storage_info);
-    }
-
     /**
      * @}
      */

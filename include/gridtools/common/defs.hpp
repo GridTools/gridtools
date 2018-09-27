@@ -55,21 +55,17 @@
 #define GT_MAX_MSS 10
 
 #if __cplusplus >= 201402L // since c++14
-#define DEPRECATED(func) [[deprecated]] func
-#define DEPRECATED_REASON(func, msg) [[deprecated(#msg)]] func
+#define GT_DEPRECATED(msg) [[deprecated(msg)]]
 #else
 #ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__((deprecated))
-#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#define GT_DEPRECATED(msg) __attribute__((deprecated))
 #elif defined(_MSC_VER)
-#define DEPRECATED(func) __declspec(deprecated) func
-#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#define GT_DEPRECATED(msg) __declspec(deprecated)
 #else
 #ifndef SUPPRESS_MESSAGES
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#pragma message("WARNING: You need to implement GT_DEPRECATED for this compiler")
 #endif
-#define DEPRECATED(func) func
-#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#define GT_DEPRECATED(msg)
 #endif
 #endif
 

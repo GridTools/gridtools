@@ -52,5 +52,5 @@ using IJDataStore = typename storage_traits<platform::x86>::data_store_t<float_t
 
 TEST(generated_repository, simple_tests) {
     my_repository repo(3, 4, 5);
-    ASSERT_EQ(3, repo.u().dim<0>());
+    ASSERT_EQ(3, repo.u().total_length<0>());
 }
