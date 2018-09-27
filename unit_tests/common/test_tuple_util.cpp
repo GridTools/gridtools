@@ -49,10 +49,6 @@
 #include <gridtools/common/generic_metafunctions/type_traits.hpp>
 #include <gridtools/common/host_device.hpp>
 
-#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
-#define NO_CONSTEXPR
-#endif
-
 namespace custom {
     struct foo {
         int a;
@@ -118,7 +114,7 @@ namespace gridtools {
 
         struct add_2_f {
             template <class T>
-            GT_FUNCTION T operator()(T val) const {
+            GT_FUNCTION constexpr T operator()(T val) const {
                 return val + 2;
             }
         };
@@ -130,17 +126,19 @@ namespace gridtools {
             get<0>(obj) = 42;
             EXPECT_EQ(get<0>(obj), 42);
 
-#ifndef NO_CONSTEXPR
             constexpr custom::foo c_obj{2, 4};
             static_assert(get<0>(c_obj) == 2, "");
             static_assert(get<0>(custom::foo{3}) == 3, "");
-#endif
             static_assert(size<custom::foo>::value == 2, "");
 
             auto res = transform(add_2_f{}, custom::foo{42, 5.3});
             static_assert(std::is_same<decltype(res), custom::foo>{}, "");
             EXPECT_EQ(res.a, 44);
             EXPECT_EQ(res.b, 7.3);
+
+            constexpr auto c_res = transform(add_2_f{}, custom::foo{42, 5.3});
+            static_assert(c_res.a == 44, "");
+            static_assert(c_res.b == 7.3, "");
         }
 
         TEST(transform, functional) {
@@ -292,5 +290,17 @@ namespace gridtools {
             EXPECT_THAT((make<std::array, int>(3, 4.2)), testing::ElementsAre(3, 4));
         }
 
+        TEST(convert_to, tuple) {
+            EXPECT_EQ(make<std::tuple>(1, 2), convert_to<std::tuple>(make<std::array>(1, 2)));
+            EXPECT_EQ(make<std::tuple>(1, 2), convert_to<std::tuple>(make<gridtools::pair>(1, 2)));
+            EXPECT_EQ(make<std::pair>(1, 2), convert_to<std::pair>(make<gridtools::array>(1, 2)));
+        }
+
+        TEST(convert_to, array) {
+            EXPECT_THAT(convert_to<std::array>(make<std::tuple>(3, 4)), testing::ElementsAre(3, 4));
+            EXPECT_THAT(convert_to<std::array>(make<std::tuple>(3.5, 4)), testing::ElementsAre(3.5, 4.));
+            EXPECT_THAT((convert_to<std::array, int>(make<std::tuple>(3.5, 4))), testing::ElementsAre(3, 4));
+            EXPECT_THAT((convert_to<std::array, int>(make<std::array>(3.5, 4))), testing::ElementsAre(3, 4));
+        }
     } // namespace tuple_util
 } // namespace gridtools
