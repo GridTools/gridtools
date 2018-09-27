@@ -71,7 +71,7 @@
 #define GT_DEPRECATED(msg) __declspec(deprecated)
 #else
 #ifndef SUPPRESS_MESSAGES
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#pragma message("WARNING: You need to implement GT_DEPRECATED for this compiler")
 #endif
 #define GT_DEPRECATED(msg)
 #endif
