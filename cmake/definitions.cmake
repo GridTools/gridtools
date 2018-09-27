@@ -104,6 +104,13 @@ if( ENABLE_CUDA )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
   endif()
+  
+  if(${CXX_STANDARD} STREQUAL "c++14")
+    # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--expt-relaxed-constexpr")
+  elseif(${CXX_STANDARD} STREQUAL "c++17")
+    message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
+  endif()
 
   set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
 else()
