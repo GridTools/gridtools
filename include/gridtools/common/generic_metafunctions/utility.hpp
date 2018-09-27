@@ -39,7 +39,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace gridtools {
+namespace gt {
     // cuda < 9.2 doesn't have std::move/std::forward definded as `constexpr`
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
     template <class T>
@@ -59,4 +59,4 @@ namespace gridtools {
     using std::forward;
     using std::move;
 #endif
-} // namespace gridtools
+} // namespace gt
