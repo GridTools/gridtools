@@ -1198,6 +1198,7 @@ namespace gridtools {
              *
              *   convert_to<std::tuple>(some_tuple_like);
              *   convert_to<std::pair>()(some_tuple_like_with_two_elements);
+             *   convert_to<std::array>(some_tuple_like);
              *   convert_to<gridtools::array, int>(some_tuple_like);
              */
             template <template <class...> class L>

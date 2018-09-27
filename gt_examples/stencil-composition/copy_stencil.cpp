@@ -47,15 +47,15 @@
   @file
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
 */
-namespace gt = gridtools;
 
-using storage_info_t = gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
-using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<gt::float_type, storage_info_t>;
+using storage_info_t = gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
+using data_store_t =
+    gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<gridtools::float_type, storage_info_t>;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {
-    using in = gt::accessor<0, gt::enumtype::in>;
-    using out = gt::accessor<1, gt::enumtype::inout>;
+    using in = gridtools::accessor<0, gridtools::enumtype::in>;
+    using out = gridtools::accessor<1, gridtools::enumtype::inout>;
     using arg_list = boost::mpl::vector<in, out>;
 
     template <typename Evaluation>
@@ -65,8 +65,8 @@ struct copy_functor {
 };
 
 bool verify(data_store_t const &in, data_store_t const &out) {
-    auto in_v = gt::make_host_view(in);
-    auto out_v = gt::make_host_view(out);
+    auto in_v = gridtools::make_host_view(in);
+    auto out_v = gridtools::make_host_view(out);
     // check consistency
 
     assert(in_v.length<0>() == out_v.length<0>());
@@ -90,7 +90,7 @@ bool verify(data_store_t const &in, data_store_t const &out) {
 
 int main(int argc, char **argv) {
 
-    gt::uint_t d1, d2, d3;
+    gridtools::uint_t d1, d2, d3;
     if (argc != 4) {
         std::cerr << "Usage: " << argv[0] << " dimx dimy dimz\n";
         return 1;
@@ -104,8 +104,8 @@ int main(int argc, char **argv) {
     storage_info_t meta_data_{d1, d2, d3};
 
     // Definition of placeholders. The order does not have any semantics
-    using p_in = gt::arg<0, data_store_t>;
-    using p_out = gt::arg<1, data_store_t>;
+    using p_in = gridtools::arg<0, data_store_t>;
+    using p_out = gridtools::arg<1, data_store_t>;
 
     // Now we describe the itaration space. The first two dimensions
     // are described by halo_descriptors. In this case, since the
@@ -113,16 +113,16 @@ int main(int argc, char **argv) {
     // on centering the iteration space to avoid put-of-bound
     // access. The third dimension is indicated with a simple size,
     // since there is not specific axis definition.
-    auto grid = gt::make_grid(gt::halo_descriptor(d1), gt::halo_descriptor(d2), d3);
+    auto grid = gridtools::make_grid(gridtools::halo_descriptor(d1), gridtools::halo_descriptor(d2), d3);
 
     data_store_t in{meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"};
     data_store_t out{meta_data_, -1.0, "out"};
 
-    auto copy = gt::make_computation<backend_t>(grid,
+    auto copy = gridtools::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out{} = out,
-        gt::make_multistage(
-            gt::enumtype::execute<gt::enumtype::parallel>{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
+        gridtools::make_multistage(gridtools::enumtype::execute<gridtools::enumtype::parallel>{},
+            gridtools::make_stage<copy_functor>(p_in{}, p_out{})));
 
     copy.run();
 
