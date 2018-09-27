@@ -277,31 +277,28 @@ namespace gridtools {
          * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
          *
          * @tparam Coord queried coordinate
-         * @return size of dimension (corresponding to total_length, thus including halos but not padding)
+         * @return size of dimension (including halos but not padding)
          */
-        template <int Coord>
-        int dim() const {
+        template <int Dim>
+        auto total_length() const -> decltype(m_shared_storage_info->template total_length<Dim>()) {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template dim<Coord>();
+            return m_shared_storage_info->template total_length<Dim>();
         }
 
         /**
-         * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
-         *
-         * @tparam Coord queried coordinate
-         * @return size of dimension (including halos but not padding)
+         * @brief deprecated, see total_length()
          */
-        template <int Coord>
-        int total_length() const {
-            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template total_length<Coord>();
+        template <int Dim>
+        GT_DEPRECATED("dim<Dim>() is deprecated, use total_lengths<Dim>() (deprecated after 1.07.00)")
+        int dim() const {
+            return total_length<Dim>();
         }
 
         /**
          * @brief member function to retrieve the total size (dimensions, halos, padding).
          * @return total size
          */
-        int padded_total_length() const {
+        auto padded_total_length() const -> decltype(m_shared_storage_info->padded_total_length()) {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->padded_total_length();
         }
@@ -310,7 +307,7 @@ namespace gridtools {
          * @brief member function to retrieve the inner domain size + halo (dimensions, halos).
          * @return inner domain size + halo
          */
-        int total_length() const {
+        auto total_length() const -> decltype(m_shared_storage_info->total_length()) {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->total_length();
         }
@@ -319,10 +316,29 @@ namespace gridtools {
          * @brief member function to retrieve the inner domain size (dimensions, no halos).
          * @return inner domain size
          */
-        int length() const {
+        auto length() const -> decltype(m_shared_storage_info->length()) {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->length();
         }
+
+        /**
+         * @brief forward total_lengths() from storage_info
+         */
+        auto total_lengths() const -> decltype(m_shared_storage_info->total_lengths()) {
+            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
+            return m_shared_storage_info->total_lengths();
+        }
+
+        /**
+         * @brief deprecated, see total_lengths()
+         */
+        GT_DEPRECATED("dims() is deprecated, use total_lengths() (deprecated after 1.07.00)")
+        auto dims() const -> decltype(total_lengths()) { return total_lengths(); }
+
+        /**
+         * @brief forward strides() from storage_info
+         */
+        auto strides() const -> decltype(m_shared_storage_info->strides()) { return m_shared_storage_info->strides(); }
 
         /**
          * @brief retrieve the underlying storage_info instance
@@ -385,16 +401,6 @@ namespace gridtools {
          */
         std::string const &name() const { return m_name; }
 
-        /**
-         * @brief forward strides() from storage_info
-         */
-        auto strides() const -> decltype(m_shared_storage_info->strides()) { return m_shared_storage_info->strides(); }
-
-        /**
-         * @brief forward dims() from storage_info
-         */
-        auto dims() const -> decltype(m_shared_storage_info->dims()) { return m_shared_storage_info->dims(); }
-
         friend bool operator==(const data_store &lhs, const data_store &rhs) {
             return std::tie(lhs.m_name, lhs.m_shared_storage, lhs.m_shared_storage_info) ==
                    std::tie(rhs.m_name, rhs.m_shared_storage, rhs.m_shared_storage_info);
@@ -402,7 +408,7 @@ namespace gridtools {
         friend bool operator!=(const data_store &lhs, const data_store &rhs) { return !(lhs == rhs); }
 
         explicit operator bool() const { return valid(); }
-    };
+    }; // namespace gridtools
 
     /// @brief simple metafunction to check if a type is a data_store
     template <typename T>

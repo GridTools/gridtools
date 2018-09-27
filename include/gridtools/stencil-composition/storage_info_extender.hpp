@@ -93,7 +93,7 @@ namespace gridtools {
     static constexpr typename boost::enable_if_c<(N > 0 && M > 0), StorageInfo>::type get_storage_info_instance(
         OldStorageInfo const &os, int extradim_length, Args... args) {
         return get_storage_info_instance<N, M - 1, StorageInfo>(
-            os, extradim_length, args..., os.template dim<OldStorageInfo::layout_t::masked_length - M>());
+            os, extradim_length, args..., os.template total_length<OldStorageInfo::layout_t::masked_length - M>());
     }
 
     template <uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args>
