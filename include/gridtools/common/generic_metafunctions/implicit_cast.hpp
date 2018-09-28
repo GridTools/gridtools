@@ -33,5 +33,31 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#ifndef GT_TARGET_ITERATING
+// DON'T USE #pragma once HERE!!!
+#ifndef GRIDTOOLS_COMMON_GENERIC_METAFUNCTIONS_IMPLICIT_CAST_HPP_
+#define GRIDTOOLS_COMMON_GENERIC_METAFUNCTIONS_IMPLICIT_CAST_HPP_
 
-#include "test_array_addons.cpp"
+#include "../host_device.hpp"
+#include "meta.hpp"
+
+#define GT_FILENAME <gridtools/common/generic_metafunctions/implicit_cast.hpp>
+#include GT_ITERATE_ON_TARGETS()
+#undef GT_FILENAME
+
+#endif // GRIDTOOLS_COMMON_GENERIC_METAFUNCTIONS_IMPLICIT_CAST_HPP_
+#else
+namespace gridtools {
+    GT_TARGET_NAMESPACE {
+        /**
+         * `boost::implicit_cast` clone with constexpr and target specifiers
+         *
+         * The use of identity creates a non-deduced form, so that the explicit template argument must be supplied
+         */
+        template <class T>
+        GT_TARGET GT_FORCE_INLINE constexpr T implicit_cast(typename meta::lazy::id<T>::type x) {
+            return x;
+        }
+    }
+} // namespace gridtools
+#endif // GT_TARGET_ITERATING

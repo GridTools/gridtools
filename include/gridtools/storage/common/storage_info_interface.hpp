@@ -183,11 +183,8 @@ namespace gridtools {
             gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, ndims>::type>;
 
         GT_FUNCTION
-        constexpr storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
-            : m_total_lengths(
-                  seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(dims)),
-              m_strides(
-                  seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(strides)) {}
+        constexpr storage_info_interface(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
+            : m_total_lengths(dims), m_strides(strides) {}
 
         /**
          * @brief storage info copy constructor.
