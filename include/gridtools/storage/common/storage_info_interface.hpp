@@ -178,9 +178,6 @@ namespace gridtools {
               m_strides(get_strides<layout_t>::get_stride_array(pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
-        using seq =
-            gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, ndims>::type>;
-
         GT_FUNCTION
         constexpr storage_info_interface(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
             : m_total_lengths(dims), m_strides(strides) {}
