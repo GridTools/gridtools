@@ -280,9 +280,18 @@ namespace gridtools {
 
         TEST(make, functional) { EXPECT_EQ(make<std::tuple>(42, 5.3), std::make_tuple(42, 5.3)); }
 
+        TEST(make, pair) { EXPECT_EQ(make<std::pair>(42, 5.3), std::make_pair(42, 5.3)); }
+
         TEST(tie, functional) {
             int x = 0, y = 0;
             tie<std::tuple>(x, y) = std::make_tuple(3, 4);
+            EXPECT_EQ(3, x);
+            EXPECT_EQ(4, y);
+        }
+
+        TEST(tie, pair) {
+            int x = 0, y = 0;
+            tie<std::pair>(x, y) = std::make_pair(3, 4);
             EXPECT_EQ(3, x);
             EXPECT_EQ(4, y);
         }
