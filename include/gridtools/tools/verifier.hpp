@@ -38,6 +38,7 @@
 #include <iostream>
 
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/gt_math.hpp"
 #include "../common/hypercube_iterator.hpp"
 #include "../common/tuple_util.hpp"

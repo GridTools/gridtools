@@ -37,9 +37,7 @@
 #pragma once
 
 #include "array.hpp"
-#include "array_addons.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "host_device.hpp"
 #include "tuple_util.hpp"
 

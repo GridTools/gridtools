@@ -45,7 +45,6 @@
 #include <boost/type_traits.hpp>
 
 #include "../../common/array.hpp"
-#include "../../common/array_addons.hpp"
 #include "../../common/array_dot_product.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/generic_metafunctions/binary_ops.hpp"
