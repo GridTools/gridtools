@@ -1265,8 +1265,7 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE constexpr Arr<typename _impl::make_array_helper<D, Ts...>::type, sizeof...(Ts)>
             make(Ts && ... elems) {
                 using common_type_t = typename _impl::make_array_helper<D, Ts...>::type;
-                return {{gridtools::GT_TARGET_NAMESPACE_NAME::implicit_cast<common_type_t>(
-                    const_expr::forward<Ts>(elems))...}};
+                return {{implicit_cast<common_type_t>(const_expr::forward<Ts>(elems))...}};
             }
 
             /**
