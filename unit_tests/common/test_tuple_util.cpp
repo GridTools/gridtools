@@ -249,6 +249,10 @@ namespace gridtools {
             EXPECT_THAT(push_back(make<std::array>(1, 2), 3, 4), testing::ElementsAre(1, 2, 3, 4));
         }
 
+        TEST(push_front, functional) {
+            EXPECT_EQ(push_front(std::make_tuple(1, 2), 3, 4), std::make_tuple(3, 4, 1, 2));
+        }
+
         TEST(fold, functional) {
             auto f = [](int x, int y) { return x + y; };
             EXPECT_EQ(fold(f, std::make_tuple(1, 2, 3, 4, 5, 6)), 21);

@@ -594,6 +594,29 @@ namespace gridtools {
                     }
                 };
 
+                template <class, class>
+                struct push_front_impl_f;
+
+                template <template <class T, T...> class L, class Int, Int... Is, class Res>
+                struct push_front_impl_f<L<Int, Is...>, Res> {
+                    template <class Tup, class... Args>
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
+                        return Res{const_expr::forward<Args>(args)..., get<Is>(const_expr::forward<Tup>(tup))...};
+                    }
+                };
+
+                struct push_front_f {
+                    template <class Tup,
+                        class... Args,
+                        class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Res = GT_META_CALL(
+                            from_types, (Tup, GT_META_CALL(meta::push_front, (Accessors, Args &&...))))>
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
+                        return push_front_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
+                            const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...);
+                    }
+                };
+
                 template <class Fun>
                 struct fold_f {
 #if GT_BROKEN_TEMPLATE_ALIASES
@@ -1041,6 +1064,15 @@ namespace gridtools {
             template <class Tup, class... Args>
             GT_TARGET GT_FORCE_INLINE constexpr auto push_back(Tup && tup, Args && ... args)
                 GT_AUTO_RETURN(push_back()(const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...));
+
+            /**
+             * @brief Appends elements to a tuple from the front.
+             */
+            GT_TARGET GT_FORCE_INLINE constexpr detail::push_front_f push_front() { return {}; }
+
+            template <class Tup, class... Args>
+            GT_TARGET GT_FORCE_INLINE constexpr auto push_front(Tup && tup, Args && ... args)
+                GT_AUTO_RETURN(push_front()(const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...));
 
             /**
              * @brief Left fold on tuple-like objects.

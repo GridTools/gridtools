@@ -41,6 +41,7 @@
 #include "defs.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "host_device.hpp"
+#include "tuple_util.hpp"
 
 namespace gridtools {
     namespace impl_ {
@@ -104,7 +105,8 @@ namespace gridtools {
         typename std::enable_if<OuterD != 0 && InnerD == 2, int>::type = 0>
     GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
         auto &&transposed = transpose(std::forward<Container>(cube));
-        return {convert_to_array<size_t>(transposed[0]), convert_to_array<size_t>(transposed[1])};
+        return {tuple_util::host_device::convert_to<array, size_t>(transposed[0]),
+            tuple_util::host_device::convert_to<array, size_t>(transposed[1])};
     }
 
     /**
@@ -127,6 +129,6 @@ namespace gridtools {
         typename std::enable_if<D != 0 && std::is_convertible<size_t, typename tuple_element<0, Decayed>::type>::value,
             int>::type = 0>
     GT_FUNCTION impl_::hypercube_view<D> make_hypercube_view(Container &&sizes) {
-        return {convert_to_array<size_t>(std::forward<Container>(sizes))};
+        return {tuple_util::host_device::convert_to<array, size_t>(std::forward<Container>(sizes))};
     }
 } // namespace gridtools
