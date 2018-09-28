@@ -1177,6 +1177,14 @@ namespace gridtools {
                 return L<Ts...>{elems...};
             }
 
+            /// Generalization of `std::tie`
+            //
+            template <template <class...> class L, class... Ts>
+            GT_TARGET GT_FORCE_INLINE L<Ts &...> tie(Ts & ... elems) {
+                return L<Ts &...>{elems...};
+            }
+
+// cuda8 has problems with deducing generic `make`/`tie` in the case of `pair`
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
             template <template <class> class L, class T0>
             GT_TARGET GT_FORCE_INLINE constexpr L<T0> make(T0 const &elem0) {
@@ -1195,14 +1203,24 @@ namespace gridtools {
                 T0 const &elem0, T1 const &elem1, T2 const &elem2, T3 const &elem3) {
                 return L<T0, T1, T2, T3>{elem0, elem1, elem2, elem3};
             }
-#endif
 
-            /// Generalization of `std::tie`
-            //
-            template <template <class...> class L, class... Ts>
-            GT_TARGET GT_FORCE_INLINE L<Ts &...> tie(Ts & ... elems) {
-                return L<Ts &...>{elems...};
+            template <template <class> class L, class T0>
+            GT_TARGET GT_FORCE_INLINE L<T0 &> tie(T0 & elem0) {
+                return L<T0 &>{elem0};
             }
+            template <template <class, class> class L, class T0, class T1>
+            GT_TARGET GT_FORCE_INLINE L<T0 &, T1 &> tie(T0 & elem0, T1 & elem1) {
+                return L<T0 &, T1 &>{elem0, elem1};
+            }
+            template <template <class, class, class> class L, class T0, class T1, class T2>
+            GT_TARGET GT_FORCE_INLINE L<T0 &, T1 &, T2 &> tie(T0 & elem0, T1 & elem1, T2 & elem2) {
+                return L<T0 &, T1 &, T2 &>{elem0, elem1, elem2};
+            }
+            template <template <class, class, class, class> class L, class T0, class T1, class T2, class T3>
+            GT_TARGET GT_FORCE_INLINE L<T0 &, T1 &, T2 &, T3 &> tie(T0 & elem0, T1 & elem1, T2 & elem2, T3 & elem3) {
+                return L<T0 &, T1 &, T2 &, T3 &>{elem0, elem1, elem2, elem3};
+            }
+#endif
 
             /// Generalization of `std::experimental::make_array`
             //
