@@ -104,9 +104,9 @@ namespace gridtools {
         size_t InnerD = tuple_size<typename tuple_element<0, Decayed>::type>::value,
         typename std::enable_if<OuterD != 0 && InnerD == 2, int>::type = 0>
     GT_FUNCTION impl_::hypercube_view<OuterD> make_hypercube_view(Container &&cube) {
-        auto &&transposed = tuple_util::transpose(std::forward<Container>(cube));
-        return {tuple_util::host_device::convert_to<array, size_t>(tuple_util::get<0>(transposed)),
-            tuple_util::host_device::convert_to<array, size_t>(tuple_util::get<1>(transposed))};
+        auto &&transposed = tuple_util::host_device::transpose(std::forward<Container>(cube));
+        return {tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<0>(transposed)),
+            tuple_util::host_device::convert_to<array, size_t>(tuple_util::host_device::get<1>(transposed))};
     }
 
     /**
