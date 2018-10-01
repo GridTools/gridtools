@@ -23,6 +23,7 @@ namespace gridtools {
 
         using gt_view_rank = std::integral_constant<size_t, Layout::unmasked_length>;
         using gt_view_element_type = typename DataStore::data_t;
+        using gt_is_acc_present = bool_constant<true>;
 
         friend void transform(DataStore &dest, const fortran_array_adapter &src) {
             adapter{const_cast<fortran_array_adapter &>(src), dest}.from_array();
