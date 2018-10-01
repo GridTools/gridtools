@@ -35,8 +35,23 @@
 */
 #pragma once
 
-#include "../extent_metafunctions.hpp"
-#include "../grid_traits_fwd.hpp"
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/contains.hpp>
+#include <boost/mpl/erase_key.hpp>
+#include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/size.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "../extent.hpp"
+#include "./cache_traits.hpp"
 
 namespace gridtools {
 
@@ -53,13 +68,7 @@ namespace gridtools {
                 extent<>>::type default_extent_t;
 
             typedef typename boost::mpl::insert<typename boost::mpl::erase_key<ExtentsMap_, Cache>::type,
-                boost::mpl::pair<Cache,
-#if !defined(__CUDACC__)
-                    typename enclosing_extent_full<default_extent_t, Extent>::type>>::type
-#else
-                    GT_META_CALL(enclosing_extent, (default_extent_t, Extent))>>::type
-#endif
-                type;
+                boost::mpl::pair<Cache, GT_META_CALL(enclosing_extent, (default_extent_t, Extent))>>::type type;
         };
     } // namespace impl
 

@@ -70,10 +70,7 @@ namespace gridtools {
         value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
         value_type absolute_error = math::fabs(expected - actual);
         value_type relative_error = absolute_error / absmax;
-        if (relative_error <= precision || absolute_error < precision) {
-            return true;
-        }
-        return false;
+        return relative_error <= precision || absolute_error < precision;
     }
 
     class verifier {
