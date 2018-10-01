@@ -134,10 +134,6 @@ namespace aligned_copy_stencil {
         copy.run();
         copy.sync_bound_data_stores();
 
-#ifdef BENCHMARK
-        std::cout << copy.print_meter() << std::endl;
-#endif
-
         // check view consistency
         out.reactivate_host_write_views();
         in.reactivate_host_write_views();

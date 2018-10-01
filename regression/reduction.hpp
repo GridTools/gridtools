@@ -150,15 +150,6 @@ namespace test_reduction {
 
         float_type prod_redt = prod_red_.run();
 
-        success = success & compare_below_threshold(prod_ref, prod_redt, precision);
-#ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            flusher.flush();
-            prod_red_.run();
-        }
-        std::cout << "Prod Reduction : " << prod_red_.print_meter() << std::endl;
-#endif
-
-        return success;
+        return success & compare_below_threshold(prod_ref, prod_redt, precision);
     }
 } // namespace test_reduction

@@ -261,14 +261,6 @@ namespace horizontal_diffusion_functions {
             std::cout << "ERROR" << std::endl;
         }
 
-#ifdef BENCHMARK
-        for (uint_t t = 1; t < t_steps; ++t) {
-            flusher.flush();
-            horizontal_diffusion.run();
-        }
-        std::cout << horizontal_diffusion.print_meter() << std::endl;
-#endif
-
         return result;
     }
 

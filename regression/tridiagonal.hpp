@@ -210,10 +210,6 @@ namespace tridiagonal {
 
         solver.sync_bound_data_stores();
 
-#ifdef BENCHMARK
-        std::cout << solver.print_meter() << std::endl;
-#endif
-
 #if FLOAT_PRECISION == 4
         verifier verif(1e-6);
 #else

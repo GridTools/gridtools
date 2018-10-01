@@ -145,13 +145,7 @@ TEST(Laplace, test) {
     verifier verif(1e-12);
 #endif
     array<array<uint_t, 2>, 3> halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
-    bool result = verif.verify(grid, ref, out, halos);
-
-#ifdef BENCHMARK
-    std::cout << laplace.print_meter() << std::endl;
-#endif
-
-    ASSERT_TRUE(result);
+    EXPECT_TRUE(verif.verify(grid, ref, out, halos));
 }
 
 int main(int argc, char **argv) {
