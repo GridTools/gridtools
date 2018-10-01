@@ -118,7 +118,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
 
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.padded_length<0>()};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length<1>()};
-    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim<2>()};
+    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
 #ifndef _GCL_MPI_
@@ -328,7 +328,7 @@ TEST(DistributedBoundaries, Test) {
 
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.padded_length<0>()};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length<1>()};
-    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim<2>()};
+    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
     cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};

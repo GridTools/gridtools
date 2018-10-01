@@ -67,7 +67,7 @@ namespace gridtools {
 
         template <ushort_t Id>
         GT_FUNCTION static constexpr int_t dim() {
-            return meta_storage_t(Dims...).template dim<Id>();
+            return meta_storage_t(Dims...).template total_length<Id>();
         }
     };
 } // namespace gridtools

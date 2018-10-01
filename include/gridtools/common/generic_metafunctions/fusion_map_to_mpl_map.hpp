@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/fusion/container/map/convert.hpp>
-#include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/pair.hpp>
-#include <boost/fusion/support/pair.hpp>
+
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
 
 namespace gridtools {
     /** \ingroup common

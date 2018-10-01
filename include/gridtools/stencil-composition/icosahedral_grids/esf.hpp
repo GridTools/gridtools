@@ -43,7 +43,6 @@
 #include "color.hpp"
 #include "grid.hpp"
 #include "icosahedral_topology.hpp"
-#include "vector_accessor.hpp"
 #include <boost/mpl/equal.hpp>
 
 namespace gridtools {
@@ -67,7 +66,7 @@ namespace gridtools {
         typename Color,
         typename ArgSequence>
     struct esf_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgSequence, is_arg>::value),
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgSequence, is_plh>::value),
             "wrong types for the list of parameter placeholders\n"
             "check the make_stage syntax");
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");

@@ -78,10 +78,10 @@ TEST(icosahedral_topology, make_storage) {
                 "turu");
         auto ameta = *astorage.get_storage_info_ptr();
 
-        ASSERT_EQ(ameta.dim<0>(), 4);
-        ASSERT_EQ(ameta.dim<1>(), 3);
-        ASSERT_EQ(ameta.dim<2>(), 6);
-        ASSERT_EQ(ameta.dim<3>(), 7);
+        ASSERT_EQ(ameta.total_length<0>(), 4);
+        ASSERT_EQ(ameta.total_length<1>(), 3);
+        ASSERT_EQ(ameta.total_length<2>(), 6);
+        ASSERT_EQ(ameta.total_length<3>(), 7);
 #ifdef BACKEND_MIC
         // 3rd dimension is padded for MIC
         ASSERT_EQ(ameta.padded_length<0>(), 4);
@@ -104,10 +104,10 @@ TEST(icosahedral_topology, make_storage) {
             selector<1, 1, 1, 1, 1, 1>>("turu", 8, 9);
         auto ameta = *astorage.get_storage_info_ptr();
 
-        ASSERT_EQ(ameta.dim<0>(), 4);
-        ASSERT_EQ(ameta.dim<1>(), 3);
-        ASSERT_EQ(ameta.dim<2>(), 6);
-        ASSERT_EQ(ameta.dim<3>(), 7);
+        ASSERT_EQ(ameta.total_length<0>(), 4);
+        ASSERT_EQ(ameta.total_length<1>(), 3);
+        ASSERT_EQ(ameta.total_length<2>(), 6);
+        ASSERT_EQ(ameta.total_length<3>(), 7);
 #ifdef BACKEND_MIC
         // 3rd dimension is padded for MIC
         ASSERT_EQ(ameta.padded_length<3>(), 8);
@@ -115,8 +115,8 @@ TEST(icosahedral_topology, make_storage) {
 #ifdef BACKEND_CUDA
         ASSERT_EQ(ameta.padded_length<3>(), 32);
 #endif
-        ASSERT_EQ(ameta.dim<4>(), 8);
-        ASSERT_EQ(ameta.dim<5>(), 9);
+        ASSERT_EQ(ameta.total_length<4>(), 8);
+        ASSERT_EQ(ameta.total_length<5>(), 9);
     }
 }
 

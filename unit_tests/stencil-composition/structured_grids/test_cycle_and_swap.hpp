@@ -51,7 +51,7 @@ namespace test_cycle_and_swap {
     using namespace enumtype;
 
     struct functor {
-        typedef inout_accessor<0, extent<>, 5> p_i;
+        typedef inout_accessor<0> p_i;
         typedef boost::mpl::vector<p_i> arg_list;
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -62,13 +62,14 @@ namespace test_cycle_and_swap {
     constexpr dimension<1> i;
 
     struct functor_avg {
-        typedef inout_accessor<0, extent<>, 5> p_data;
-        typedef dimension<5> time;
+        using in = in_accessor<0, extent<-1, 1>>;
+        using out = inout_accessor<1>;
 
-        typedef boost::mpl::vector<p_data> arg_list;
+        typedef boost::mpl::vector<in, out> arg_list;
+
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
+            eval(out()) = (eval(in(i - 1)) + eval(in(i + 1))) * .5;
         }
     };
 
@@ -78,6 +79,7 @@ namespace test_cycle_and_swap {
             storage_info_t;
         typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<uint_t, storage_info_t, 2>
             data_store_field_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<uint_t, storage_info_t> data_store_t;
 
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
@@ -87,21 +89,20 @@ namespace test_cycle_and_swap {
 
         auto grid = make_grid((uint_t)1, (uint_t)1, (uint_t)1);
 
-        typedef arg<0, data_store_field_t> p_i_data;
+        arg<0, data_store_t> p_i_data;
 
         auto comp = gridtools::make_computation<backend_t>(
-            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor>(p_i_data())));
+            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor>(p_i_data)));
 
-        comp.run(p_i_data() = i_data);
+        comp.run(p_i_data = i_data.get<0, 0>());
         i_data.sync();
         swap<0, 0>::with<0, 1>(i_data);
-        comp.run(p_i_data() = i_data);
+        comp.run(p_i_data = i_data.get<0, 0>());
         i_data.sync();
         iv = make_field_host_view(i_data);
         return (iv.get<0, 0>()(0, 0, 0) == 2 && iv.get<0, 1>()(0, 0, 0) == 0);
     }
     bool test_3D() {
-
         const uint_t d1 = 13;
         const uint_t d2 = 9;
         const uint_t d3 = 7;
@@ -109,6 +110,7 @@ namespace test_cycle_and_swap {
         typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
         typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<uint_t, storage_info_t, 2>
             data_store_field_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<uint_t, storage_info_t> data_store_t;
 
         storage_info_t meta_(d1, d2, d3);
         data_store_field_t i_data(meta_);
@@ -135,10 +137,11 @@ namespace test_cycle_and_swap {
 
         auto grid = make_grid(di, dj, d3);
 
-        typedef arg<0, data_store_field_t> p_i_data;
+        arg<0, data_store_t> p_in;
+        arg<1, data_store_t> p_out;
 
         auto comp = gridtools::make_computation<backend_t>(
-            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor_avg>(p_i_data())));
+            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor_avg>(p_in, p_out)));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {
@@ -165,7 +168,7 @@ namespace test_cycle_and_swap {
                 }
             }
         }
-        comp.run(p_i_data() = i_data);
+        comp.run(p_in = i_data.get<0, 0>(), p_out = i_data.get<0, 1>());
         i_data.sync();
         swap<0, 0>::with<0, 1>(i_data);
 
@@ -173,7 +176,7 @@ namespace test_cycle_and_swap {
         // because the first line of
         // grid points at the boundaries has not been computed at the first run. However we just dont validate these
         // points with the verifier
-        comp.run(p_i_data() = i_data);
+        comp.run(p_in = i_data.get<0, 0>(), p_out = i_data.get<0, 1>());
         i_data.sync();
 
 #if FLOAT_PRECISION == 4
@@ -192,6 +195,7 @@ namespace test_cycle_and_swap {
         typedef gridtools::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
         typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<uint_t, storage_info_t, 3, 3, 4>
             data_store_field_t;
+        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<uint_t, storage_info_t> data_store_t;
         storage_info_t meta_(1u, 1u, 1u);
         data_store_field_t i_data(meta_);
         auto iv = make_field_host_view(i_data);
@@ -212,16 +216,16 @@ namespace test_cycle_and_swap {
 
         auto grid = make_grid(di, dj, (uint_t)1);
 
-        typedef arg<0, data_store_field_t> p_i_data;
+        arg<0, data_store_t> p_i_data;
 
         auto comp = gridtools::make_computation<backend_t>(
-            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor>(p_i_data())));
+            grid, gridtools::make_multistage(execute<forward>(), gridtools::make_stage<functor>(p_i_data)));
 
-        comp.run(p_i_data() = i_data);
+        comp.run(p_i_data = i_data.get<0, 0>());
         i_data.sync();
         cycle<0>::by<1>(i_data);
         cycle_all::by<1>(i_data);
-        comp.run(p_i_data() = i_data);
+        comp.run(p_i_data = i_data.get<0, 0>());
         i_data.sync();
 
         // renew the view, because it is not valid anymore

@@ -62,22 +62,6 @@ namespace gridtools {
      * \{
      */
 
-    /**substituting the std::vector type in the args<> with a correspondent
-       expandable_parameter placeholder*/
-    template <uint_t Size>
-    struct substitute_expandable_param {
-
-        template <typename Placeholder>
-        struct apply {
-            typedef Placeholder type;
-        };
-
-        template <ushort_t ID, typename DataStoreType, typename Location, bool Temporary>
-        struct apply<arg<ID, std::vector<DataStoreType>, Location, Temporary>> {
-            typedef arg<ID, data_store_field<DataStoreType, Size>, Location, Temporary> type;
-        };
-    };
-
     /** metafunction removing global accessors from an mpl_vector of pairs <extent, placeholders>.
         Note: the global accessors do not have extents (have mpl::void_ instead). */
     template <typename PlaceholderExtentPair>
@@ -165,7 +149,7 @@ namespace gridtools {
 
             template <typename X, typename Y>
             struct pair_arg_extent<boost::mpl::pair<X, Y>> {
-                static const bool value = is_arg<X>::value && is_extent<Y>::value;
+                static constexpr bool value = is_plh<X>::value && is_extent<Y>::value;
                 typedef boost::mpl::bool_<value> type;
             };
 
@@ -354,7 +338,7 @@ namespace gridtools {
     struct placeholder_to_extent_map {
       private:
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_computation_token>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value), GT_INTERNAL_ERROR);
 
         // This is where the data-dependence analysis happens
         template <typename PlaceholdersMap, typename Mss>
@@ -388,7 +372,7 @@ namespace gridtools {
 
         template <typename Element>
         struct is_extent_map_element {
-            typedef typename is_arg<typename Element::first>::type one;
+            typedef typename is_plh<typename Element::first>::type one;
             typedef typename is_extent<typename Element::second>::type two;
 
             typedef typename boost::mpl::and_<one, two>::type type;

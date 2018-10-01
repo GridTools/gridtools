@@ -33,34 +33,36 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-#include "../common/gt_assert.hpp"
-#include "arg_fwd.hpp"
-#include "arg_metafunctions_fwd.hpp"
+
+#include <type_traits>
+#include <utility>
 
 namespace gridtools {
-
     /**
-     * @struct arg_hods_data_field_h
-     * high order metafunction of arg_holds_data_field
+     *  `std::forward`/`std::move` versions that are guarantied to be constexpr
      */
-    template <typename Arg>
-    struct arg_holds_data_field_h {
-        typedef typename arg_holds_data_field<typename Arg::type>::type type;
-    };
-
-    template <uint_t I, typename DataStoreType, typename Location, bool Temporary>
-    struct arg_holds_data_field_h<arg<I, DataStoreType, Location, Temporary>> {
-        typedef typename arg_holds_data_field<arg<I, DataStoreType, Location, Temporary>>::type type;
-    };
-
-    // metafunction to access the storage type given the arg
-    template <typename T>
-    struct get_data_store_from_arg;
-
-    template <unsigned I, typename T, typename L, bool B>
-    struct get_data_store_from_arg<arg<I, T, L, B>> {
-        typedef T type;
-    };
-
+    namespace const_expr {
+        // cuda < 9.2 doesn't have std::move/std::forward definded as `constexpr`
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
+        template <class T>
+        constexpr __device__ __host__ typename std::remove_reference<T>::type &&move(T &&obj) noexcept {
+            return static_cast<typename std::remove_reference<T>::type &&>(obj);
+        }
+        template <class T>
+        constexpr __device__ __host__ T &&forward(typename std::remove_reference<T>::type &obj) noexcept {
+            return static_cast<T &&>(obj);
+        }
+        template <class T>
+        constexpr __device__ __host__ T &&forward(typename std::remove_reference<T>::type &&obj) noexcept {
+            static_assert(
+                !std::is_lvalue_reference<T>::value, "Error: obj is instantiated with an lvalue reference type");
+            return static_cast<T &&>(obj);
+        }
+#else
+        using std::forward;
+        using std::move;
+#endif
+    } // namespace const_expr
 } // namespace gridtools

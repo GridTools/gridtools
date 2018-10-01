@@ -53,7 +53,7 @@ namespace gridtools {
      * @tparam ExtentSizes the extent sizes of all the ESFs in this mss
      * @tparam RepeatFunctor the length of the chunks for expandable parameters
      */
-    template <typename MssDescriptor, typename ExtentMap, typename RepeatFunctor, typename Axis>
+    template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token<MssDescriptor>::value), GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
@@ -80,14 +80,9 @@ namespace gridtools {
         using loop_intervals_t = GT_META_CALL(order_loop_intervals,
             (execution_engine_t,
                 GT_META_CALL(make_loop_intervals,
-                    (stages_maker<MssDescriptor, ExtentMap, RepeatFunctor::value>::template apply,
-                        default_interval_t))));
+                    (stages_maker<MssDescriptor, ExtentMap>::template apply, default_interval_t))));
     };
 
     template <typename T>
-    struct is_mss_components : boost::mpl::false_ {};
-
-    template <typename MssDescriptor, typename ExtentMap, typename RepeatFunctor, typename Axis>
-    struct is_mss_components<mss_components<MssDescriptor, ExtentMap, RepeatFunctor, Axis>> : boost::mpl::true_ {};
-
+    GT_META_DEFINE_ALIAS(is_mss_components, meta::is_instantiation_of, (mss_components, T));
 } // namespace gridtools
