@@ -48,8 +48,6 @@
 #include "common/storage_info_interface.hpp"
 #include "common/storage_interface.hpp"
 
-#include "../common/array_addons.hpp"
-
 namespace gridtools {
 
     /** \ingroup storage

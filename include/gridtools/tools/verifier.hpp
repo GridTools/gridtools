@@ -35,13 +35,16 @@
 */
 #pragma once
 
+#include <iostream>
+
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/gt_math.hpp"
 #include "../common/hypercube_iterator.hpp"
+#include "../common/tuple_util.hpp"
 #include "../stencil-composition/grid_traits_fwd.hpp"
 #include "../storage/common/storage_info_rt.hpp"
 #include "../storage/storage-facility.hpp"
-#include <iostream>
 
 namespace gridtools {
 
@@ -67,20 +70,15 @@ namespace gridtools {
         value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
         value_type absolute_error = math::fabs(expected - actual);
         value_type relative_error = absolute_error / absmax;
-        if (relative_error <= precision || absolute_error < precision) {
-            return true;
-        }
-        return false;
+        return relative_error <= precision || absolute_error < precision;
     }
 
     class verifier {
-      private:
         double m_precision;
         size_t m_max_error;
 
       public:
         verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
-        ~verifier() {}
 
         template <typename Grid, typename StorageType>
         bool verify(Grid const &grid_ /*TODO: unused*/,
@@ -106,8 +104,8 @@ namespace gridtools {
 
             size_t error_count = 0;
             for (auto &&pos : cube_view) {
-                auto expected = expected_view(convert_to_array<int>(pos));
-                auto actual = actual_view(convert_to_array<int>(pos));
+                auto expected = expected_view(tuple_util::convert_to<array, int>(pos));
+                auto actual = actual_view(tuple_util::convert_to<array, int>(pos));
                 if (!compare_below_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected

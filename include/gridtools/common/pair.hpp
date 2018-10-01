@@ -35,6 +35,9 @@
 */
 #pragma once
 
+#include <type_traits>
+#include <utility>
+
 #include "defs.hpp"
 #include "host_device.hpp"
 
@@ -44,24 +47,6 @@ namespace gridtools {
         \defgroup pair Simple Pair
         @{
     */
-
-    /**
-       @brief simple wrapper for a pair of types
-     */
-    template <typename T, typename U>
-    struct pair_type {
-        typedef T first;
-        typedef U second;
-    };
-
-    /**
-       @brief simple wrapper for a pair of integral types
-     */
-    template <typename Value, Value T, Value U>
-    struct ipair_type {
-        static constexpr Value first = T;
-        static constexpr Value second = U;
-    };
 
     /**
        @brief simple pair with constexpr constructor
