@@ -71,7 +71,9 @@ namespace gridtools {
 
         template <typename Tuple>
         struct pairwise_tuple_cat<Tuple> {
-            static Tuple apply(Tuple t) { return t; }
+            static Tuple apply(Tuple t) {
+                return t;
+            }
         };
 
         template <typename Tuple1, typename Tuple2, typename... Rest>
@@ -169,6 +171,23 @@ namespace gridtools {
 
             m_he.setup(m_max_stores);
         }
+        distributed_boundaries(array<halo_descriptor, 3> halos,
+            array<int_t, 3> sizes,
+            boollist<3> period,
+            uint_t max_stores,
+            MPI_Comm CartComm)
+            : m_halos{halos}, m_sizes{sizes}, m_max_stores{max_stores}, m_he(period, CartComm) {
+            m_he.template add_halo<0>(
+                m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
+
+            m_he.template add_halo<1>(
+                m_halos[1].minus(), m_halos[1].plus(), m_halos[1].begin(), m_halos[1].end(), m_halos[1].total_length());
+
+            m_he.template add_halo<2>(
+                m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
+
+            m_he.setup(m_max_stores);
+        }
 
         /**
             @brief Member function to perform boundary condition only
@@ -183,7 +202,7 @@ namespace gridtools {
             \param jobs Variadic list of jobs
         */
         template <typename... Jobs>
-        void boundary_only(Jobs const &... jobs) {
+        void boundary_only(Jobs const&... jobs) {
             using execute_in_order = int[];
             (void)execute_in_order{(apply_boundary(jobs), 0)...};
         }
@@ -200,7 +219,7 @@ namespace gridtools {
             \param jobs Variadic list of jobs
         */
         template <typename... Jobs>
-        void exchange(Jobs const &... jobs) {
+        void exchange(Jobs const&... jobs) {
 #ifdef __CUDACC__
             // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
             // This can be removed when nvcc supports it.
@@ -226,12 +245,14 @@ namespace gridtools {
             boundary_only(jobs...);
         }
 
-        typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
+        typename CTraits::proc_grid_type const& proc_grid() const {
+            return m_he.comm();
+        }
 
       private:
         template <typename BoundaryApply, typename ArgsTuple, uint_t... Ids>
         static void call_apply(
-            BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence<uint_t, Ids...>) {
+            BoundaryApply boundary_apply, ArgsTuple const& args, gt_integer_sequence<uint_t, Ids...>) {
             boundary_apply.apply(std::get<Ids>(args)...);
         }
 
@@ -255,20 +276,20 @@ namespace gridtools {
 
         template <typename FirstJob>
         static auto collect_stores(
-            FirstJob const &firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void *>::type = nullptr)
+            FirstJob const& firstjob, typename std::enable_if<is_bound_bc<FirstJob>::value, void*>::type = nullptr)
             -> decltype(firstjob.exc_stores()) {
             return firstjob.exc_stores();
         }
 
         template <typename FirstJob>
-        static auto collect_stores(FirstJob const &first_job,
-            typename std::enable_if<not is_bound_bc<FirstJob>::value, void *>::type = nullptr)
+        static auto collect_stores(
+            FirstJob const& first_job, typename std::enable_if<not is_bound_bc<FirstJob>::value, void*>::type = nullptr)
             -> decltype(std::make_tuple(first_job)) {
             return std::make_tuple(first_job);
         }
 
         template <typename Stores, uint_t... Ids>
-        void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
+        void call_pack(Stores const& stores, gt_integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
@@ -276,10 +297,10 @@ namespace gridtools {
         }
 
         template <typename Stores, uint_t... Ids>
-        void call_pack(Stores const &stores, gt_integer_sequence<uint_t>) {}
+        void call_pack(Stores const& stores, gt_integer_sequence<uint_t>) {}
 
         template <typename Stores, uint_t... Ids>
-        void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
+        void call_unpack(Stores const& stores, gt_integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
@@ -287,7 +308,7 @@ namespace gridtools {
         }
 
         template <typename Stores, uint_t... Ids>
-        static void call_unpack(Stores const &stores, gt_integer_sequence<uint_t>) {}
+        static void call_unpack(Stores const& stores, gt_integer_sequence<uint_t>) {}
     };
 
     /** @} */
