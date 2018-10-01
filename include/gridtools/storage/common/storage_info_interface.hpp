@@ -36,26 +36,20 @@
 
 #pragma once
 
-#include <array>
-#include <numeric>
-#include <utility>
-
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 #include "../../common/array.hpp"
-#include "../../common/array_addons.hpp"
 #include "../../common/array_dot_product.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/error.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/generic_metafunctions/binary_ops.hpp"
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
-#include "../../common/gt_assert.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../common/host_device.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../common/layout_map_metafunctions.hpp"
-#include "../../common/variadic_pack_metafunctions.hpp"
 #include "alignment.hpp"
-#include "definitions.hpp"
 #include "halo.hpp"
 #include "storage_info_metafunctions.hpp"
 
@@ -73,7 +67,7 @@ namespace gridtools {
          * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
          */
         template <uint_t N, typename StorageInfo>
-        GT_FUNCTION typename boost::enable_if_c<(N == 0), bool>::type equality_check(StorageInfo a, StorageInfo b) {
+        GT_FUNCTION enable_if_t<N == 0, bool> equality_check(StorageInfo a, StorageInfo b) {
             return (a.template total_length<N>() == b.template total_length<N>()) &&
                    (a.template stride<N>() == b.template stride<N>()) && (a.length() == b.length()) &&
                    (a.total_length() == b.total_length()) && (a.padded_total_length() == b.padded_total_length());
@@ -85,7 +79,7 @@ namespace gridtools {
          * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
          */
         template <uint_t N, typename StorageInfo>
-        GT_FUNCTION typename boost::enable_if_c<(N > 0), bool>::type equality_check(StorageInfo a, StorageInfo b) {
+        GT_FUNCTION enable_if_t<N != 0, bool> equality_check(StorageInfo a, StorageInfo b) {
             return (a.template total_length<N>() == b.template total_length<N>()) &&
                    (a.template stride<N>() == b.template stride<N>()) && equality_check<N - 1>(a, b);
         }
@@ -171,7 +165,7 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template <typename... Dims,
-            typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
+            enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
         GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
@@ -179,15 +173,9 @@ namespace gridtools {
               m_strides(get_strides<layout_t>::get_stride_array(pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
-        using seq =
-            gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, ndims>::type>;
-
         GT_FUNCTION
-        constexpr storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
-            : m_total_lengths(
-                  seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(dims)),
-              m_strides(
-                  seq::template apply<array<uint_t, ndims>, impl::array_initializer<uint_t>::template type>(strides)) {}
+        constexpr storage_info_interface(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
+            : m_total_lengths(dims), m_strides(strides) {}
 
         /**
          * @brief storage info copy constructor.
@@ -345,7 +333,7 @@ namespace gridtools {
          */
 
         template <typename... Ints,
-            typename std::enable_if<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int>::type = 0>
+            enable_if_t<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int> = 0>
         GT_FUNCTION constexpr int index(Ints... idx) const {
 #ifdef NDEBUG
             return offset(typename make_gt_integer_sequence<uint_t, ndims>::type{}, idx...);
@@ -382,7 +370,7 @@ namespace gridtools {
 
     template <typename T>
     struct is_storage_info
-        : boost::is_base_of<
+        : std::is_base_of<
               storage_info_interface<T::id, typename T::layout_t, typename T::halo_t, typename T::alignment_t>,
               T> {};
 

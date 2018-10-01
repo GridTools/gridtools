@@ -34,4 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "test_array_addons.cpp"
+#pragma once
+
+#include "../host_device.hpp"
+#include "meta.hpp"
+
+namespace gridtools {
+    /**
+     * `boost::implicit_cast` clone with constexpr and target specifiers
+     *
+     * The use of identity creates a non-deduced form, so that the explicit template argument must be supplied
+     */
+    template <class T>
+    GT_FUNCTION constexpr T implicit_cast(typename meta::lazy::id<T>::type x) {
+        return x;
+    }
+} // namespace gridtools

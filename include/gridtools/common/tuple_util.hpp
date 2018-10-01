@@ -117,7 +117,6 @@
  *
  *  TODO list
  *  =========
- *  - add push_front
  *  - add for_each_index
  *  - add filter
  *
@@ -133,11 +132,10 @@
 #include <type_traits>
 #include <utility>
 
-#include <boost/implicit_cast.hpp>
-
 #include "array.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
+#include "generic_metafunctions/implicit_cast.hpp"
 #include "generic_metafunctions/meta.hpp"
 #include "generic_metafunctions/type_traits.hpp"
 #include "generic_metafunctions/utility.hpp"
@@ -284,45 +282,33 @@ namespace gridtools {
             template <class T>
             struct get_ref_kind<T const &> : std::integral_constant<ref_kind, ref_kind::const_lvalue> {};
 
-            template <ref_kind Kind, class Dst>
-            struct add_ref;
+            GT_META_LAZY_NAMESPASE {
+                template <ref_kind Kind, class Dst>
+                struct add_ref;
 
-            template <class T>
-            struct add_ref<ref_kind::rvalue, T> : std::add_rvalue_reference<T> {};
+                template <class T>
+                struct add_ref<ref_kind::rvalue, T> : std::add_rvalue_reference<T> {};
 
-            template <class T>
-            struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {};
+                template <class T>
+                struct add_ref<ref_kind::lvalue, T> : std::add_lvalue_reference<T> {};
 
-            template <class T>
-            struct add_ref<ref_kind::const_lvalue, T> : std::add_lvalue_reference<add_const_t<T>> {};
+                template <class T>
+                struct add_ref<ref_kind::const_lvalue, T> : std::add_lvalue_reference<add_const_t<T>> {};
+            }
+            GT_META_DELEGATE_TO_LAZY(add_ref, (ref_kind Kind, class Dst), (Kind, Dst));
 
-#if GT_BROKEN_TEMPLATE_ALIASES
             template <ref_kind Kind>
             struct get_accessor {
                 template <class T>
-                struct apply : add_ref<Kind, T> {};
+                GT_META_DEFINE_ALIAS(apply, add_ref, (Kind, T));
             };
 
             template <class Fun>
             struct get_fun_result {
                 template <class... Ts>
-                struct apply {
-                    using type = decltype(std::declval<Fun>()(std::declval<Ts>()...));
-                };
-            };
-#else
-            template <ref_kind Kind>
-            struct get_accessor {
-                template <class T>
-                using apply = typename add_ref<Kind, T>::type;
+                GT_META_DEFINE_ALIAS(apply, meta::id, decltype(std::declval<Fun>()(std::declval<Ts>()...)));
             };
 
-            template <class Fun>
-            struct get_fun_result {
-                template <class... Ts>
-                using apply = decltype(std::declval<Fun>()(std::declval<Ts>()...));
-            };
-#endif
             template <class Tup>
             GT_META_DEFINE_ALIAS(get_accessors,
                 meta::transform,
@@ -425,15 +411,8 @@ namespace gridtools {
 #endif
                 };
 
-#if GT_BROKEN_TEMPLATE_ALIASES
                 template <class I>
-                struct get_transform_generator {
-                    using type = transform_elem_f<I::value>;
-                };
-#else
-                template <class I>
-                using get_transform_generator = transform_elem_f<I::value>;
-#endif
+                GT_META_DEFINE_ALIAS(get_transform_generator, meta::id, transform_elem_f<I::value>);
 
                 template <class GeneratorList, class Res>
                 struct generate_f;
@@ -519,15 +498,8 @@ namespace gridtools {
                             GT_AUTO_RETURN(get<InnerI>(get<OuterI>(const_expr::forward<Tup>(tup))));
                     };
 
-#if GT_BROKEN_TEMPLATE_ALIASES
                     template <class OuterI, class InnerI>
-                    struct get_generator {
-                        using type = generator_f<OuterI::value, InnerI::value>;
-                    };
-#else
-                    template <class OuterI, class InnerI>
-                    using get_generator = generator_f<OuterI::value, InnerI::value>;
-#endif
+                    GT_META_DEFINE_ALIAS(get_generator, meta::id, (generator_f<OuterI::value, InnerI::value>));
 
                     template <class OuterI, class InnerTup>
                     GT_META_DEFINE_ALIAS(get_inner_generators,
@@ -551,15 +523,8 @@ namespace gridtools {
 
                 template <size_t N>
                 struct drop_front_f {
-#if GT_BROKEN_TEMPLATE_ALIASES
                     template <class I>
-                    struct get_drop_front_generator {
-                        using type = get_nth_f<N + I::value>;
-                    };
-#else
-                    template <class I>
-                    using get_drop_front_generator = get_nth_f<N + I::value>;
-#endif
+                    GT_META_DEFINE_ALIAS(get_drop_front_generator, meta::id, get_nth_f<N + I::value>);
 
                     template <class Tup,
                         class Accessors = GT_META_CALL(get_accessors, Tup &&),
@@ -590,6 +555,29 @@ namespace gridtools {
                             from_types, (Tup, GT_META_CALL(meta::push_back, (Accessors, Args &&...))))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
                         return push_back_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
+                            const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...);
+                    }
+                };
+
+                template <class, class>
+                struct push_front_impl_f;
+
+                template <template <class T, T...> class L, class Int, Int... Is, class Res>
+                struct push_front_impl_f<L<Int, Is...>, Res> {
+                    template <class Tup, class... Args>
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
+                        return Res{const_expr::forward<Args>(args)..., get<Is>(const_expr::forward<Tup>(tup))...};
+                    }
+                };
+
+                struct push_front_f {
+                    template <class Tup,
+                        class... Args,
+                        class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Res = GT_META_CALL(
+                            from_types, (Tup, GT_META_CALL(meta::push_front, (Accessors, Args &&...))))>
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
+                        return push_front_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
                             const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...);
                     }
                 };
@@ -686,6 +674,33 @@ namespace gridtools {
                                 GT_META_CALL(to_types, Res),
                                 GT_META_CALL(meta::make_indices_for, ToTypes)));
                         return generate_f<generators_t, Res>{}(tup);
+                    }
+                };
+
+                struct transpose_f {
+                    template <class Tup>
+                    struct get_inner_tuple_f {
+                        template <class Types>
+                        GT_META_DEFINE_ALIAS(apply, from_types, (Tup, Types));
+                    };
+
+                    template <class I>
+                    GT_META_DEFINE_ALIAS(get_generator, meta::id, transform_f<get_nth_f<I::value>>);
+
+                    template <class Tup,
+                        class First = GT_META_CALL(meta::first, GT_META_CALL(to_types, Tup)),
+                        class Accessors = GT_META_CALL(
+                            meta::transform, (get_accessors, GT_META_CALL(get_accessors, Tup &&))),
+                        class Types = GT_META_CALL(meta::transpose, Accessors),
+                        class InnerTuples = GT_META_CALL(
+                            meta::transform, (get_inner_tuple_f<Tup>::template apply, Types)),
+                        class Res = GT_META_CALL(from_types, (First, InnerTuples))>
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
+                        GRIDTOOLS_STATIC_ASSERT(
+                            tuple_util::size<decay_t<Tup>>::value, "tuple_util::transpose input should not be empty");
+                        using inner_indices_t = GT_META_CALL(meta::make_indices_for, GT_META_CALL(to_types, First));
+                        using generators_t = GT_META_CALL(meta::transform, (get_generator, inner_indices_t));
+                        return generate_f<generators_t, Res>{}(const_expr::forward<Tup>(tup));
                     }
                 };
             } // namespace detail
@@ -1043,6 +1058,15 @@ namespace gridtools {
                 GT_AUTO_RETURN(push_back()(const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...));
 
             /**
+             * @brief Appends elements to a tuple from the front.
+             */
+            GT_TARGET GT_FORCE_INLINE constexpr detail::push_front_f push_front() { return {}; }
+
+            template <class Tup, class... Args>
+            GT_TARGET GT_FORCE_INLINE constexpr auto push_front(Tup && tup, Args && ... args)
+                GT_AUTO_RETURN(push_front()(const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...));
+
+            /**
              * @brief Left fold on tuple-like objects.
              *
              * This function accepts either two or three arguments. If three arguments are given, the second is the
@@ -1105,6 +1129,19 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE constexpr detail::fold_f<Fun> fold(Fun fun) {
                 return {const_expr::move(fun)};
             }
+
+            /**
+             * transposes a `tuple like` of `tuple like`.
+             *
+             * Ex.
+             *   transpose(make<array>(make<array>(1, 2, 3), make<array>(10, 20, 30))) returns the same as
+             *   make<array>(make<array>(1, 10), make<array>(2, 20), make<array>(3, 30));
+             */
+            GT_TARGET GT_FORCE_INLINE constexpr detail::transpose_f transpose() { return {}; }
+
+            template <class Tup>
+            GT_TARGET GT_FORCE_INLINE constexpr auto transpose(Tup && tup)
+                GT_AUTO_RETURN(transpose()(const_expr::forward<Tup>(tup)));
 
             /**
              * @brief Returns a functor that replaces reference types by value types in a tuple
@@ -1228,7 +1265,7 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE constexpr Arr<typename _impl::make_array_helper<D, Ts...>::type, sizeof...(Ts)>
             make(Ts && ... elems) {
                 using common_type_t = typename _impl::make_array_helper<D, Ts...>::type;
-                return {{boost::implicit_cast<common_type_t>(const_expr::forward<Ts>(elems))...}};
+                return {{implicit_cast<common_type_t>(const_expr::forward<Ts>(elems))...}};
             }
 
             /**
