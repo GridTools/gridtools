@@ -107,12 +107,14 @@ namespace gridtools {
             }
 
             template <class T>
-            enable_if_t<(T::gt_view_rank::value > 0) && std::is_arithmetic<typename T::gt_view_element_type>::value,
+            enable_if_t<(T::gt_view_rank::value > 0) && std::is_arithmetic<typename T::gt_view_element_type>::value &&
+                            (T::gt_is_acc_present::value == T::gt_is_acc_present::value),
                 gt_fortran_array_descriptor>
             get_fortran_view_meta(T *) {
                 gt_fortran_array_descriptor descriptor;
                 descriptor.type = fortran_array_element_kind<typename T::gt_view_element_type>::value;
                 descriptor.rank = T::gt_view_rank::value;
+                descriptor.is_acc_present = T::gt_is_acc_present::value;
 
                 return descriptor;
             }
@@ -127,10 +129,12 @@ namespace gridtools {
          *   gt_fortran_array_descriptor get_fortran_view_meta(T*)
          *   @endcode
          *
-         *   which returns the meta-data of the type `T`. type and rank must be set correctly.
+         *   which returns the meta-data of the type `T`. type, rank and is_acc_present must be set correctly.
          *
-         * - T defines T::gt_view_element_type as the element types of the array and T::gt_view_rank is an integral
-         *   constant holding the rank of the type
+         * - T defines T::gt_view_element_type as the element type of the array, T::gt_view_rank is an integral
+         *   constant holding the rank of the type, and T::gt_is_acc_present is a bool_constant indicating whether
+         *   the data is present on device (when compiling with OpenACC, this will pass a device pointer to the
+         *   constructor).
          *
          * - T is a reference to a c-array.
          */
