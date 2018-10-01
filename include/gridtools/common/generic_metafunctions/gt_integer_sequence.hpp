@@ -35,10 +35,10 @@
 */
 #pragma once
 
+#include <type_traits>
+
 #include "../defs.hpp"
 #include "../host_device.hpp"
-#include <boost/proto/traits.hpp>
-#include <functional>
 
 namespace gridtools {
 
@@ -146,7 +146,7 @@ namespace gridtools {
     struct apply_gt_integer_sequence {
         template <typename Container, template <UInt T> class Lambda, typename... ExtraTypes>
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same<Container, Container>::value),
+            GRIDTOOLS_STATIC_ASSERT((std::is_same<Container, Container>::value),
                 "ERROR: apply_gt_integer_sequence only accepts a gt_integer_sequence type. Check the call");
             return Container(args_...);
         }
