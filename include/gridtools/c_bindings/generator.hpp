@@ -419,7 +419,7 @@ namespace gridtools {
                             tmp_strm << ", ";
                         if (meta) {
                             const auto desc_name = "descriptor" + std::to_string(i);
-                            tmp_strm << desc_name << i;
+                            tmp_strm << desc_name;
                         } else {
                             tmp_strm << "arg" << i;
                         }
