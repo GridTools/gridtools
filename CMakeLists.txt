@@ -101,13 +101,17 @@ if(ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
-# Add all targets to the build-tree export set
-export(TARGETS gcl
-  FILE "${PROJECT_BINARY_DIR}/cmake/GridToolsTargets.cmake")
-
 # Export the package for use from the build-tree
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE GridTools)
+
+
+add_custom_target(install-common COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=COMMON -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+install(DIRECTORY "include/gridtools/common" DESTINATION include COMPONENT COMMON)
+
+install(TARGETS gcl DESTINATION lib COMPONENT GCL)
+add_custom_target(install-gcl DEPENDS gcl install-common COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=GCL -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
+install(DIRECTORY "include/gridtools/communication" DESTINATION include COMPONENT GCL)
 
 configure_file(GridToolsConfig.cmake.in
   "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake" @ONLY)
