@@ -141,6 +141,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552")
 endif()
 
+
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+    # Controls preprocessor expansion of macros in Fortran source code.
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
+endif()
+
 # Note: It seems that FindOpenMP ignores CMP0054. As this is an
 # external code, we explicity turn that policy off.
 cmake_policy(PUSH)
