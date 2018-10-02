@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 enum gt_fortran_array_kind {
     gt_fk_Bool,
     gt_fk_Int,
