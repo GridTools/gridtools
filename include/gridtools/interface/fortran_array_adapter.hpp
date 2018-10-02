@@ -41,10 +41,7 @@ namespace gridtools {
                     return make_host_view(data_store).ptr_to_first_position();
                 } else {
 #ifdef __CUDACC__
-                    // TODO: We cannot use ptr_to_first_position (because this is a host function)
-                    auto view = make_device_view(data_store);
-                    auto si = *data_store.get_storage_info_ptr();
-                    return &view.data()[si.index(gridtools::array<int, DataStore::storage_info_t::ndims>{})];
+                    return make_device_view(data_store).ptr_to_first_position();
 #endif
                 }
             }
