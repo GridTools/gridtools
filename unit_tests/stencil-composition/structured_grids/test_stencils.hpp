@@ -40,7 +40,7 @@
 
 #include <boost/fusion/include/make_vector.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 /*
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
