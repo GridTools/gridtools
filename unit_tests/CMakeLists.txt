@@ -1,4 +1,4 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # collect tests
 fetch_host_tests(.)
@@ -14,4 +14,3 @@ add_subdirectory( distributed-boundaries )
 add_subdirectory( stencil-composition )
 add_subdirectory( storage )
 add_subdirectory( c_bindings )
-
