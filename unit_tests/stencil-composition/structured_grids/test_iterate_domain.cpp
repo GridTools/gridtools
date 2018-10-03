@@ -51,7 +51,7 @@
 #include <gridtools/stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp>
 #endif
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 namespace gridtools {
     namespace {
