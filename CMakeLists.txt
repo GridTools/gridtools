@@ -175,6 +175,43 @@ endif()
 export(PACKAGE GridTools)
 
 
+configure_file(GridToolsConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake" @ONLY)
+configure_file(GridToolsConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake" @ONLY)
+
+# Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
+install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
+
+# TODO this needs to be cleaned up when cleaning up the CMakeLists (FindGridtools)
+# We need to define which files go where (e.g. bindings.cmake)
+install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
+install(TARGETS
+        gcl
+        gtest
+        c_bindings_generator
+        c_bindings_handle
+        c_bindings_handle_fortran
+        c_bindings_generator_main
+        array_descriptor
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
+# We need to install the whole directory because filenames may be upper or lower case (cray compiler).
+# It exists a flag to generate lower-case file names with cray, but it will segfault when using them.
+install(DIRECTORY
+    "${PROJECT_BINARY_DIR}/mod/"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
+install(FILES
+    "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
+if ( INSTALL_GT_EXAMPLES )
+    install(DIRECTORY
+            gt_examples
+            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" )
+endif()
+
 
 ####REMOVE install(TARGETS gcl EXPORT libgcl COMPONENT GCL DESTINATION lib INCLUDES DESTINATION include)
 ####REMOVE add_custom_target(install-gcl DEPENDS gcl install-common COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=GCL -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
