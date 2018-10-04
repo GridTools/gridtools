@@ -31,6 +31,16 @@ include (definitions)
 include (testing)
 include (bindings)
 
+### The followinf function appends "install-" string to the list of arguments following 
+### the name of the variable you want to get the outout in.
+function(prepend_install outvar)
+   set(outlist "")
+   foreach(elem ${ARGN})
+      list(APPEND outlist "install-${elem}")
+   endforeach(elem)
+   set(${outvar} ${outlist} PARENT_SCOPE)
+endfunction(prepend_install)
+
 ### The following function works like this:
 ###
 ### First argument the name of the library as exported
@@ -76,8 +86,13 @@ function(generate_install_for name folder depend)
         add_custom_target(install-${name}
                           COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=${name}component -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
     else()
+        string(STRIP ${depend} depend)
+        string(REPLACE " " ";" depend ${depend})
+        prepend_install(depend ${depend})
+        string(REPLACE ";" " " depend "${depend}")
+        separate_arguments(depend)
         add_custom_target(install-${name}
-                          DEPENDS install-${depend} ${name}
+                          DEPENDS ${depend} ${name}
                           COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=${name}component -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
     endif()
 
@@ -87,7 +102,7 @@ generate_install_for(common common None)
 
 generate_install_for(boundary-conditions boundary-conditions common)
 
-generate_install_for(distributed-boundaries distributed-boundaries common)
+generate_install_for(distributed-boundaries distributed-boundaries "common boundary-conditions")
 
 generate_install_for(stencil-composition stencil-composition common)
 
