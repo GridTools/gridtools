@@ -110,18 +110,14 @@ generate_install_targets_for(common common None)
 generate_target_for(boundary-conditions)
 generate_install_targets_for(boundary-conditions boundary-conditions common)
 
-generate_target_for(distributed-boundaries)
-generate_install_targets_for(distributed-boundaries distributed-boundaries "common boundary-conditions")
-
 generate_target_for(stencil-composition)
 generate_install_targets_for(stencil-composition stencil-composition common)
 
-
-# ===============
-# compile gcl:
-# ===============
 generate_target_for(gcl src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
 generate_install_targets_for(gcl communication common)
+
+generate_target_for(distributed-boundaries)
+generate_install_targets_for(distributed-boundaries distributed-boundaries "common boundary-conditions gcl")
 
 set(exe_LIBS ${exe_LIBS} gcl)
 
