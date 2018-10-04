@@ -75,8 +75,10 @@ namespace gridtools {
         gridtools::array<int, ndims> m_coordinates;
 
       public:
-        MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other)
-            : m_communicator(other.m_communicator), m_cyclic(other.cyclic()), m_nprocs(other.m_nprocs) {
+        MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other) : m_cyclic(other.cyclic()), m_nprocs(other.m_nprocs) {
+
+            MPI_Comm_dup(other.m_communicator, &m_communicator);
+
             for (ushort_t i = 0; i < ndims; ++i) {
                 m_dimensions[i] = other.m_dimensions[i];
                 m_coordinates[i] = other.m_coordinates[i];
@@ -88,7 +90,9 @@ namespace gridtools {
             \param comm MPI Communicator describing the MPI 3D computing grid
         */
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm)
-            : m_communicator(comm), m_cyclic(c), m_nprocs(0), m_dimensions(), m_coordinates() {
+            : m_cyclic(c), m_nprocs(0), m_dimensions(), m_coordinates() {
+
+            MPI_Comm_dup(comm, &m_communicator);
 
             int period[ndims];
             MPI_Cart_get(comm, ndims, &m_dimensions[0], period, &m_coordinates[0]);
@@ -108,6 +112,11 @@ namespace gridtools {
             int period[3] = {1, 1, 1};
             MPI_Cart_create(comm, 3, &m_dimensions[0], period, false, &m_communicator);
             MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period /*does not really care*/, &m_coordinates[0]);
+        }
+
+        ~MPI_3D_process_grid_t() {
+            std::cout << "KILLED";
+            MPI_Comm_free(&m_communicator);
         }
 
         /**
