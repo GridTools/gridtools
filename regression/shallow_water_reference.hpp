@@ -35,8 +35,7 @@
 */
 #pragma once
 
-#include <gridtools/gridtools.hpp>
-
+#include <gridtools/common/defs.hpp>
 /**
    @file
    reference implementation of the shallow_water example.

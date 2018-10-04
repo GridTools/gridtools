@@ -39,7 +39,6 @@
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/construct.hpp>
 #include <common/halo_descriptor.hpp>
-#include <gridtools.hpp>
 
 #include <stencil-composition/stencil-composition.hpp>
 

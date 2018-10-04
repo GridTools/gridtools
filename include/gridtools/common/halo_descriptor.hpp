@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <string>
+
 #include "array.hpp"
 #include "gt_assert.hpp"
 
@@ -252,11 +254,6 @@ namespace gridtools {
                    (m_end == rhs.m_end) && (m_total_length == rhs.m_total_length);
         }
     };
-
-    inline std::ostream &operator<<(std::ostream &s, halo_descriptor const &hd) {
-        return s << "hd(" << hd.minus() << ", " << hd.plus() << ", " << hd.begin() << ", " << hd.end() << ", "
-                 << hd.total_length() << ")";
-    }
 
     /** @} */
     /** @} */

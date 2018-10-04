@@ -35,7 +35,6 @@
 */
 #pragma once
 #include "../common/defs.hpp"
-#include "../common/string_c.hpp"
 
 namespace gridtools {
     template <int_t I, ushort_t NColors>

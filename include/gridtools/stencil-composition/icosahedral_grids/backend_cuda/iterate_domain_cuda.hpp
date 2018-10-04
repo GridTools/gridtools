@@ -72,7 +72,7 @@ namespace gridtools {
         static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
 
       private:
-        typedef typename super::readonly_args_indices_t readonly_args_indices_t;
+        typedef typename super::readonly_args_t readonly_args_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
@@ -140,8 +140,7 @@ namespace gridtools {
             typedef typename boost::mpl::at<local_domain_args_t,
                 boost::mpl::integral_c<int, Accessor::index_t::value>>::type arg_t;
 
-            typedef typename boost::mpl::has_key<readonly_args_indices_t,
-                boost::mpl::integral_c<int, arg_index<arg_t>::value>>::type type;
+            typedef typename boost::mpl::has_key<readonly_args_t, arg_t>::type type;
         };
 
         /**
@@ -217,22 +216,12 @@ namespace gridtools {
         GT_FUNCTION void slide_caches() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
-        }
-        template <typename IterationPolicy, typename Grid>
-        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
-            GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), "error");
-        }
         template <typename IterationPolicy>
-        GT_FUNCTION void final_flush() {
+        GT_FUNCTION void flush_caches(bool) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
         template <typename IterationPolicy>
-        GT_FUNCTION void begin_fill() {
+        GT_FUNCTION void fill_caches(bool) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 

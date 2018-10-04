@@ -147,11 +147,12 @@
  *   where:
  *
  *   `my::host::foo` has no specifiers.
+ *   `my::foo` is resolved to `my::host::foo`
  *
  *   If compiling with CUDA, `my::device::foo` has `__device__` specifier, `my::host_device::foo` has
- *   `__host__ __device__` specifier, and `my::foo` is resolved to `my::host_device::foo`.
+ *   `__host__ __device__` specifier.
  *
- *   Otherwise `my::foo`, `my::device::foo` and `my::host_device::foo` are all resolved to my::host::foo.
+ *   Otherwise `my::device::foo` and `my::host_device::foo` are resolved to `my::host::foo`.
  */
 #define GT_ITERATE_ON_TARGETS() <gridtools/common/iterate_on_host_device.hpp>
 

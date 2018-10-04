@@ -45,6 +45,7 @@
 #include "../../common/generic_metafunctions/meta.hpp"
 #include "../accessor.hpp"
 #include "../arg.hpp"
+#include "../expressions/expr_base.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 
@@ -66,9 +67,9 @@ namespace gridtools {
 
             template <typename IterateDomain, typename EsfArgs, template <typename, typename> class Impl>
             struct iterate_domain_remapper_base_esf_args_map<Impl<IterateDomain, EsfArgs>> {
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, EsfArgs>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
                 using domain_args_t = typename IterateDomain::esf_args_t;
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, domain_args_t>::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, domain_args_t>::value), GT_INTERNAL_ERROR);
 
                 template <class Arg>
                 GT_META_DEFINE_ALIAS(get_domain_index, meta::st_position, (domain_args_t, Arg));
@@ -131,6 +132,14 @@ namespace gridtools {
                     remap_accessor_t;
                 return m_iterate_domain(remap_accessor_t(arg));
             }
+
+            /** @brief method called in the Do methods of the functors
+
+                Overload of the operator() for expressions.
+            */
+            template <class Op, class... Args>
+            GT_FUNCTION auto operator()(expr<Op, Args...> const &arg)
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
         };
 
         /**

@@ -45,7 +45,6 @@
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
 #include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
-#include <gridtools/stencil-composition/expandable_parameters/vector_accessor.hpp>
 #include <gridtools/stencil-composition/grid.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stage.hpp>
@@ -54,8 +53,8 @@
 
 namespace gridtools {
     struct test_functor {
-        using in = vector_accessor<0, enumtype::in, extent<>>;
-        using out = vector_accessor<1, enumtype::inout, extent<>>;
+        using in = accessor<0, enumtype::in, extent<>>;
+        using out = accessor<1, enumtype::inout, extent<>>;
         using arg_list = boost::mpl::vector<in, out>;
 
         template <typename Evaluation>

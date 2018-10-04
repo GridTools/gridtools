@@ -35,7 +35,6 @@
 */
 #include "copy_stencil_parallel.hpp"
 #include "gtest/gtest.h"
-#include <gridtools/gridtools.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 
 TEST(Communication, copy_stencil_parallel) {

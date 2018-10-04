@@ -54,40 +54,28 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/host_device.hpp"
 #include "../arg.hpp"
-#include "../expandable_parameters/iterate_domain_expandable_parameters.hpp"
 #include "../hasdo.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "./extent.hpp"
 #include "./iterate_domain_remapper.hpp"
 
 namespace gridtools {
-
-    namespace _impl {
-        template <class Functor, class Eval>
-        struct call_do_f {
-            Eval *m_eval;
-            template <class Index>
-            GT_FUNCTION void operator()() const {
-                using eval_t = iterate_domain_expandable_parameters<Eval, Index::value + 1>;
-                Functor::template Do<eval_t &>(*reinterpret_cast<eval_t *>(m_eval));
-            }
-        };
-
-    } // namespace _impl
-
     /**
      *   A stage that is associated with the non reduction elementary functor.
      */
-    template <class Functor, class Extent, class Args, size_t RepeatFactor>
+    template <class Functor, class Extent, class Args>
     struct regular_stage {
         GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
@@ -96,7 +84,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
-            for_each_type<GT_META_CALL(meta::make_indices_c, RepeatFactor)>(_impl::call_do_f<Functor, eval_t>{&eval});
+            Functor::template Do<eval_t &>(eval);
         }
     };
 
@@ -107,7 +95,7 @@ namespace gridtools {
     struct reduction_stage {
         GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, Args>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
@@ -120,4 +108,19 @@ namespace gridtools {
         }
     };
 
+    template <class Stage, class... Stages>
+    struct compound_stage {
+        using extent_t = typename Stage::extent_t;
+
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+
+        template <class ItDomain>
+        static GT_FUNCTION void exec(ItDomain &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            Stage::exec(it_domain);
+            (void)(int[]){((void)Stages::exec(it_domain), 0)...};
+        }
+    };
 } // namespace gridtools
