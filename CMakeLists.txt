@@ -43,15 +43,11 @@ endfunction(prepend_install)
 
 ### The following function works like this:
 ###
-### First argument the name of the library as exported
+### First argument the name of the library to build
 ###
-### Second is the folder in `include/gridtools` where the headers to be installed are
+### All other arguments are the sources for compiling the library. If this list is empty this will be a header-only library!
 ###
-### The Third argument the library upon which it depends (usually "common")
-###
-### All other arguments are the sources for compiling the library. If this is empty this will be a header-only library!
-###
-function(generate_install_for name folder depend)
+function(generate_target_for name)
 #    message(${ARGN} ${name}
     if ("${ARGN} " STREQUAL " ")
         add_library(${name} INTERFACE)
@@ -67,12 +63,22 @@ function(generate_install_for name folder depend)
                         ${CMAKE_CURRENT_SOURCE_DIR}/src
         )
     endif()
+endfunction(generate_target_for)
 
+### The following function works like this:
+###
+### First argument the name of the library as exported
+###
+### Second is the folder in `include/gridtools` where the headers to be installed are
+###
+### The Third argument the library upon which it depends (usually "common")
+###
+function(generate_install_targets_for name folder depend)
     install(TARGETS ${name} EXPORT ${name}targets
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib
       RUNTIME DESTINATION bin
-      PUBLIC_HEADER DESTINATION include
+      INCLUDES DESTINATION include
       COMPONENT ${name}component
     )
     install(EXPORT ${name}targets
@@ -96,21 +102,26 @@ function(generate_install_for name folder depend)
                           COMMAND "${CMAKE_COMMAND}" -DCMAKE_INSTALL_COMPONENT=${name}component -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
     endif()
 
-endfunction(generate_install_for)
+endfunction(generate_install_targets_for)
 
-generate_install_for(common common None)
+generate_target_for(common)
+generate_install_targets_for(common common None)
 
-generate_install_for(boundary-conditions boundary-conditions common)
+generate_target_for(boundary-conditions)
+generate_install_targets_for(boundary-conditions boundary-conditions common)
 
-generate_install_for(distributed-boundaries distributed-boundaries "common boundary-conditions")
+generate_target_for(distributed-boundaries)
+generate_install_targets_for(distributed-boundaries distributed-boundaries "common boundary-conditions")
 
-generate_install_for(stencil-composition stencil-composition common)
+generate_target_for(stencil-composition)
+generate_install_targets_for(stencil-composition stencil-composition common)
 
 
 # ===============
 # compile gcl:
 # ===============
-generate_install_for(gcl communication common src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+generate_target_for(gcl src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+generate_install_targets_for(gcl communication common)
 
 set(exe_LIBS ${exe_LIBS} gcl)
 
