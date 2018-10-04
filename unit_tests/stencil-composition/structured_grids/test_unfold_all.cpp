@@ -35,7 +35,6 @@
 */
 #include "backend_select.hpp"
 #include "gtest/gtest.h"
-#include <gridtools/gridtools.hpp>
 #include <gridtools/stencil-composition/conditionals/if_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 

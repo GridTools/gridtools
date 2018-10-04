@@ -33,39 +33,36 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-#include "../common/defs.hpp"
-#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/variadic_typedef.hpp"
-#include "../common/host_device.hpp"
-#include "../common/pair.hpp"
-#include "extent.hpp"
+
+#include <type_traits>
+#include <utility>
 
 namespace gridtools {
-
-    namespace impl {
-        template <int Idx, typename Pair>
-        struct get_component {
-
-            static constexpr int value = (Idx % 2) ? (Pair::first > Pair::second ? Pair::first : Pair::second)
-                                                   : (Pair::first < Pair::second ? Pair::first : Pair::second);
-        };
-    } // namespace impl
-
     /**
-     * Metafunction taking two extents and yielding a extent containing them
+     *  `std::forward`/`std::move` versions that are guarantied to be constexpr
      */
-    template <typename Extent1, typename Extent2>
-    struct enclosing_extent_full;
-
-    template <int_t... Vals1, int_t... Vals2>
-    struct enclosing_extent_full<extent<Vals1...>, extent<Vals2...>> {
-        GRIDTOOLS_STATIC_ASSERT((sizeof...(Vals1) == sizeof...(Vals2)), "Error: size of the two extents need to match");
-
-        using seq = gridtools::apply_gt_integer_sequence<
-            typename gridtools::make_gt_integer_sequence<int, sizeof...(Vals1)>::type>;
-
-        using type =
-            typename seq::template apply_t<extent, impl::get_component, ipair_type<int_t, Vals1, Vals2>...>::type;
-    };
+    namespace const_expr {
+        // cuda < 9.2 doesn't have std::move/std::forward definded as `constexpr`
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ < 9 || __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2)
+        template <class T>
+        constexpr __device__ __host__ typename std::remove_reference<T>::type &&move(T &&obj) noexcept {
+            return static_cast<typename std::remove_reference<T>::type &&>(obj);
+        }
+        template <class T>
+        constexpr __device__ __host__ T &&forward(typename std::remove_reference<T>::type &obj) noexcept {
+            return static_cast<T &&>(obj);
+        }
+        template <class T>
+        constexpr __device__ __host__ T &&forward(typename std::remove_reference<T>::type &&obj) noexcept {
+            static_assert(
+                !std::is_lvalue_reference<T>::value, "Error: obj is instantiated with an lvalue reference type");
+            return static_cast<T &&>(obj);
+        }
+#else
+        using std::forward;
+        using std::move;
+#endif
+    } // namespace const_expr
 } // namespace gridtools

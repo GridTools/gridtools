@@ -115,7 +115,7 @@ namespace gridtools {
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
             storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
-            return val + 1 <= storage_info.template dim<I>();
+            return val + 1 <= storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(

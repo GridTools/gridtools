@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <boost/mpl/for_each.hpp>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../backend_ids.hpp"

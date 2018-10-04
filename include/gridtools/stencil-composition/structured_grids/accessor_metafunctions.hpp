@@ -35,6 +35,9 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../accessor_metafunctions.hpp"
 #include "../expressions/expressions.hpp"
 #include "accessor.hpp"
@@ -91,9 +94,7 @@ namespace gridtools {
     };
 
     template <typename T, typename ArgsMap>
-    struct remap_accessor_type<T,
-        ArgsMap,
-        typename boost::enable_if<typename boost::is_arithmetic<T>::type, void>::type> {
+    struct remap_accessor_type<T, ArgsMap, enable_if_t<std::is_arithmetic<T>::value>> {
         // when a leaf don't do anything
         typedef T type;
     };

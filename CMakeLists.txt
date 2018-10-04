@@ -131,7 +131,8 @@ install(TARGETS
         c_bindings_generator_main
         array_descriptor
     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
-# we need to install the whole directory because modules may be upper or lower case
+# We need to install the whole directory because filenames may be upper or lower case (cray compiler).
+# It exists a flag to generate lower-case file names with cray, but it will segfault when using them.
 install(DIRECTORY
     "${PROJECT_BINARY_DIR}/mod/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
