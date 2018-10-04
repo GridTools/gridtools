@@ -37,16 +37,15 @@ namespace gridtools {
             using ElementType = typename DataStore::data_t;
 
             ElementType *get_ptr_to_first_element(DataStore &data_store) {
-                if (is_host_storage<typename DataStore::storage_t>::value) {
-                    return make_host_view(data_store).ptr_to_first_position();
-                } else {
 #ifdef __CUDACC__
-                    // TODO: We cannot use ptr_to_first_position (because this is a host function)
-                    auto view = make_device_view(data_store);
-                    auto si = *data_store.get_storage_info_ptr();
-                    return &view.data()[si.index(gridtools::array<int, DataStore::storage_info_t::ndims>{})];
+                if (is_cuda_storage<typename DataStore::storage_t>::value) {
+                    return make_device_view(data_store).ptr_to_first_position();
+                } else {
 #endif
+                    return make_host_view(data_store).ptr_to_first_position();
+#ifdef __CUDACC__
                 }
+#endif
             }
 
           public:
