@@ -31,7 +31,7 @@ include (definitions)
 include (testing)
 include (bindings)
 
-### The followinf function appends "install-" string to the list of arguments following 
+### The followinf function appends "install-" string to the list of arguments following
 ### the name of the variable you want to get the outout in.
 function(prepend_install outvar)
    set(outlist "")
@@ -125,15 +125,9 @@ set(exe_LIBS ${exe_LIBS} gcl)
 # compile c_bindings_generator:
 # ===============
 
-add_library(c_bindings_handle src/c_bindings/handle.cpp)
+generate_target_for(c_bindings_handle src/c_bindings/handle.cpp)
 set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-target_include_directories(c_bindings_handle
-                     PUBLIC
-                        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-                        $<INSTALL_INTERFACE:include>
-                     PRIVATE
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/c_bindings
-)
+generate_install_targets_for(c_bindings_handle c_bindings None)
 
 set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 
@@ -144,22 +138,18 @@ add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
 target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
 target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
-add_library(c_bindings_generator src/c_bindings/generator.cpp)
+generate_target_for(c_bindings_generator src/c_bindings/generator.cpp)
 set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-target_include_directories(c_bindings_generator
-                     PUBLIC
-                        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
-                        $<INSTALL_INTERFACE:include>
-                     PRIVATE
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src/c_bindings
-)
+generate_install_targets_for(c_bindings_generator c_bindings None)
 
 set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
 add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
 target_link_libraries(c_bindings_generator_main c_bindings_generator)
+generate_install_targets_for(c_bindings_generator_main c_bindings c_bindings_generator)
 
 add_library(array_descriptor src/c_bindings/array_descriptor.f90)
+generate_install_targets_for(array_descriptor c_bindings None)
 
 # ===============
 # examples and tests
