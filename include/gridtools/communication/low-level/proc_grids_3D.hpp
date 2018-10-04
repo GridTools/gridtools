@@ -114,10 +114,7 @@ namespace gridtools {
             MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period /*does not really care*/, &m_coordinates[0]);
         }
 
-        ~MPI_3D_process_grid_t() {
-            std::cout << "KILLED";
-            MPI_Comm_free(&m_communicator);
-        }
+        ~MPI_3D_process_grid_t() { MPI_Comm_free(&m_communicator); }
 
         /**
            Returns communicator
@@ -134,6 +131,18 @@ namespace gridtools {
             t_R = m_dimensions[0];
             t_C = m_dimensions[1];
             t_S = m_dimensions[2];
+        }
+
+        /** Returns the dimensions in an array of dimensions (at least of size 3)
+            \tparam The array type
+            \param array The array where to put the values
+        */
+        template <class Array>
+        void fill_dims(Array &array) const {
+            GRIDTOOLS_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
+            array[0] = m_dimensions[0];
+            array[1] = m_dimensions[1];
+            array[2] = m_dimensions[2];
         }
 
         void dims(int &t_R, int &t_C) const {

@@ -129,7 +129,17 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     }
 #endif
 
-    cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
+    int dims[3] = {0, 0, 0};
+
+    MPI_Dims_create(PROCS, 3, dims);
+
+    int period[3] = {1, 1, 1};
+
+    MPI_Comm CartComm;
+
+    MPI_Cart_create(GCL_WORLD, 3, dims, period, false, &CartComm);
+
+    cabc_t cabc{halos, {false, false, false}, 3, CartComm};
 
     int pi, pj, pk;
     cabc.proc_grid().coords(pi, pj, pk);
@@ -331,7 +341,17 @@ TEST(DistributedBoundaries, Test) {
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
-    cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
+    int dims[3] = {0, 0, 0};
+
+    MPI_Dims_create(PROCS, 3, dims);
+
+    int period[3] = {1, 1, 1};
+
+    MPI_Comm CartComm;
+
+    MPI_Cart_create(GCL_WORLD, 3, dims, period, false, &CartComm);
+
+    cabc_t cabc{halos, {false, false, false}, 3, CartComm};
 
     int pi, pj, pk;
     cabc.proc_grid().coords(pi, pj, pk);
