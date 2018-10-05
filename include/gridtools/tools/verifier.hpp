@@ -78,13 +78,14 @@ namespace gridtools {
         size_t m_max_error;
 
       public:
-        verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
+        verifier(double precision = _impl::default_precision<float_type>(), size_t max_error = 20)
+            : m_precision(precision), m_max_error(max_error) {}
 
         template <typename Grid, typename StorageType>
         bool verify(Grid const &grid_ /*TODO: unused*/,
             StorageType const &expected_field,
             StorageType const &actual_field,
-            const array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> &halos) {
+            array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> halos = {}) {
             if (StorageType::num_of_storages > 1)
                 throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
 

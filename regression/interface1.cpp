@@ -33,44 +33,100 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "interface1.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
-               "and tstep is the number of timesteps to run in a benchmark run\n");
-        return 1;
+#include "horizontal_diffusion_repository.hpp"
+
+using namespace gridtools;
+
+struct lap_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 1, -1, 1>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) =
+            float_type{4} * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1, 0)) + eval(in(0, -1)));
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+struct flx_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<0, 1, 0, 0>>;
+    using lap = in_accessor<2, extent<0, 1, 0, 0>>;
+
+    using arg_list = boost::mpl::vector<out, in, lap>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval(lap(1, 0)) - eval(lap(0, 0));
+        if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0))) > 0) {
+            eval(out()) = 0.;
+        }
     }
+};
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
+struct fly_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<0, 0, 0, 1>>;
+    using lap = in_accessor<2, extent<0, 0, 0, 1>>;
+
+    using arg_list = boost::mpl::vector<out, in, lap>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval(lap(0, 1)) - eval(lap(0, 0));
+        if (eval(out()) * (eval(in(0, 1)) - eval(in(0, 0))) > 0)
+            eval(out()) = 0.;
     }
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
+};
+
+struct out_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1>;
+    using flx = in_accessor<2, extent<-1, 0, 0, 0>>;
+    using fly = in_accessor<3, extent<0, 0, -1, 0>>;
+    using coeff = in_accessor<4>;
+
+    using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0)) + eval(fly()) - eval(fly(0, -1)));
     }
-    return RUN_ALL_TESTS();
-}
+};
 
-TEST(HorizontalDiffusion, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
+using HorizontalDiffusion = regression_fixture<2>;
 
-    if (t == 0)
-        t = 1;
+TEST_F(HorizontalDiffusion, Test) {
+    tmp_arg<0, storage_type> p_lap;
+    tmp_arg<1, storage_type> p_flx;
+    tmp_arg<2, storage_type> p_fly;
+    arg<3, storage_type> p_coeff;
+    arg<4, storage_type> p_in;
+    arg<5, storage_type> p_out;
 
-    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
+    auto out = make_storage(0.);
+
+    horizontal_diffusion_repository repo(d1(), d2(), d3());
+
+    auto comp = make_computation(p_in = make_storage(repo.in),
+        p_out = out,
+        p_coeff = make_storage(repo.coeff),
+        make_multistage(enumtype::execute<enumtype::parallel, 20>(),
+            define_caches(cache<IJ, cache_io_policy::local>(p_lap, p_flx, p_fly)),
+            make_stage<lap_function>(p_lap, p_in),
+            make_independent(
+                make_stage<flx_function>(p_flx, p_in, p_lap), make_stage<fly_function>(p_fly, p_in, p_lap)),
+            make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)));
+
+    comp.run();
+    verify(make_storage(repo.out), out);
+    benchmark(comp);
 }

@@ -33,38 +33,69 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "reduction.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/common/binops.hpp>
+#include <gridtools/stencil-composition/reductions/reductions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+using namespace gridtools;
+
+struct sum_red {
+    using in = in_accessor<0>;
+    using arg_list = boost::mpl::vector<in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static float_type Do(Evaluation eval) {
+        return eval(in());
+    }
+};
+
+// These are the stencil operators that compose the multistage stencil in this test
+struct desf {
+    using in = in_accessor<0>;
+    using out = inout_accessor<1>;
+    using arg_list = boost::mpl::vector<in, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval(in());
+    }
+};
+
+struct Reductions : regression_fixture<> {
+    arg<0, storage_type> p_in;
+    arg<1, storage_type> p_out;
+
+    static float_type data(int_t i, int_t j, int_t k) { return 1. / (1 + i + j + k); }
+
+    template <class BinOp>
+    float_type actual(BinOp, float_type init) {
+        return make_computation(p_in = make_storage(data),
+            p_out = make_storage(0.),
+            make_multistage(enumtype::execute<enumtype::forward>(), make_stage<desf>(p_in, p_out)),
+            make_reduction<sum_red, BinOp>(init, p_out))
+            .run();
     }
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    template <class BinOp>
+    float_type expected(BinOp op, float_type init) {
+        for (uint_t i = 0; i < d1(); ++i)
+            for (uint_t j = 0; j < d2(); ++j)
+                for (uint_t k = 0; k < d3(); ++k)
+                    init = op(init, data(i, j, k));
+        return init;
     }
 
-    if (argc == 5) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
+    template <class BinOp>
+    void verify(BinOp op, float_type init) {
+        EXPECT_FLOAT_EQ(expected(op, init), actual(op, init));
     }
+};
 
-    return RUN_ALL_TESTS();
-}
-
-TEST(Reductions, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(test_reduction::test(x, y, z, t));
+TEST_F(Reductions, Test) {
+    verify(binop::sum{}, 0);
+    verify(binop::prod{}, 1);
 }

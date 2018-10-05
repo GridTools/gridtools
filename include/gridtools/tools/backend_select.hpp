@@ -35,38 +35,22 @@
 */
 #pragma once
 
-#include <assert.h>
-#include <vector>
+#include "../common/defs.hpp"
+#include "../stencil-composition/backend.hpp"
 
-// class used to flush the cache for OpenMP codes
-// initialise with (n>=cache size) to flush all cache
-class cache_flusher {
-#ifdef __CUDACC__
-  public:
-    cache_flusher(int n){};
-    void flush(){};
+#ifdef BACKEND_HOST
+using ARCH = gridtools::platform::x86;
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::naive>;
 #else
-    std::vector<double> a_;
-    std::vector<double> b_;
-    std::vector<double> c_;
-    int n_;
-
-  public:
-    cache_flusher(int n) {
-        assert(n > 2);
-        n_ = n / 2;
-        a_.resize(n_);
-        b_.resize(n_);
-        c_.resize(n_);
-    };
-    void flush() {
-        double *a = &a_[0];
-        double *b = &b_[0];
-        double *c = &c_[0];
-        int i;
-#pragma omp parallel for private(i)
-        for (i = 0; i < n_; i++)
-            a[i] = b[i] * c[i];
-    };
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
 #endif
-};
+#elif defined(BACKEND_MIC)
+using ARCH = gridtools::platform::mc;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
+#elif defined(BACKEND_CUDA)
+using ARCH = gridtools::platform::cuda;
+using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
+#else
+#error "no backend selected"
+#endif

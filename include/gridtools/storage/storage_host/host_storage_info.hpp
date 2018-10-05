@@ -71,8 +71,7 @@ namespace gridtools {
          */
         template <typename... Dims,
             typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
-        explicit constexpr host_storage_info(Dims... dims)
-            : storage_info_interface<Id, Layout, Halo, Alignment>(dims...) {}
+        constexpr host_storage_info(Dims... dims) : storage_info_interface<Id, Layout, Halo, Alignment>(dims...) {}
 
         /*
          * @brief host_storage_info constructor.

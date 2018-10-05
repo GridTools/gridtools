@@ -51,6 +51,9 @@ set(exe_LIBS ${exe_LIBS} gcl)
 add_library(c_bindings_handle src/c_bindings/handle.cpp)
 set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
 
+add_library(regression_fixture src/tools/regression_fixture.cpp)
+set_target_properties(regression_fixture PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+
 set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 
 set(CMAKE_FORTRAN_MODOUT_FLAG ON)

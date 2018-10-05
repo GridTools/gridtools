@@ -38,7 +38,6 @@
 #include <cstdint>
 
 #include "backend_select.hpp"
-#include "benchmarker.hpp"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 typedef gridtools::halo<2, 2, 2> halo_t;

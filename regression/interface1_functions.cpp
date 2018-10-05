@@ -33,9 +33,123 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "interface1_functions.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
+
+#include "horizontal_diffusion_repository.hpp"
+
+using namespace gridtools;
+
+struct lap_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 1, -1, 1>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = 4. * eval(in()) - (eval(in(-1, 0)) + eval(in(0, -1)) + eval(in(0, 1)) + eval(in(1, 0)));
+    }
+};
+
+struct flx_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 2, -1, 1>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+#ifdef FUNCTIONS_MONOLITHIC
+        float_type _x_ = 4. * eval(in()) - (eval(in(-1, 0)) + eval(in(0, -1)) + eval(in(0, 1)) + eval(in(1, 0)));
+        float_type _y_ = 4. * eval(in(1, 0)) - (eval(in(0, 0)) + eval(in(1, -1)) + eval(in(1, 1)) + eval(in(2, 0)));
+#else
+#ifdef FUNCTIONS_PROCEDURES
+        float_type _x_;
+        call_proc<lap_function>::at<0, 0, 0>::with(eval, _x_, in());
+        float_type _y_;
+        call_proc<lap_function>::at<1, 0, 0>::with(eval, _y_, in());
+#else
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+        float_type _x_;
+        call_proc<lap_function>::with(eval, _x_, in());
+        float_type _y_;
+        call_proc<lap_function>::with(eval, _y_, in(1, 0, 0));
+#else
+#ifdef FUNCTIONS_OFFSETS
+        float_type _x_ = call<lap_function>::with(eval, in(0, 0, 0));
+        float_type _y_ = call<lap_function>::with(eval, in(1, 0, 0));
+#else
+        float_type _x_ = call<lap_function>::at<0, 0, 0>::with(eval, in());
+        float_type _y_ = call<lap_function>::at<1, 0, 0>::with(eval, in());
+#endif
+#endif
+#endif
+#endif
+        eval(out()) = _y_ - _x_;
+        eval(out()) = eval(out()) * (eval(in(1, 0)) - eval(in(0, 0))) > 0 ? 0.0 : eval(out());
+    }
+};
+
+struct fly_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 1, -1, 2>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+#ifdef FUNCTIONS_MONOLITHIC
+        float_type _x_ =
+            4. * eval(in()) - (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
+        float_type _y_ =
+            4. * eval(in(0, 1, 0)) - (eval(in(-1, 1, 0)) + eval(in(0, 0, 0)) + eval(in(0, 2, 0)) + eval(in(1, 1, 0)));
+#else
+#ifdef FUNCTIONS_PROCEDURES
+        float_type _x_;
+        call_proc<lap_function>::at<0, 0, 0>::with(eval, _x_, in());
+        float_type _y_;
+        call_proc<lap_function>::at<0, 1, 0>::with(eval, _y_, in());
+#else
+#ifdef FUNCTIONS_PROCEDURES_OFFSETS
+        float_type _x_;
+        call_proc<lap_function>::with(eval, _x_, in());
+        float_type _y_;
+        call_proc<lap_function>::with(eval, _y_, in(0, 1, 0));
+#else
+#ifdef FUNCTIONS_OFFSETS
+        float_type _x_ = call<lap_function>::with(eval, in(0, 0, 0));
+        float_type _y_ = call<lap_function>::with(eval, in(0, 1, 0));
+#else
+        float_type _x_ = call<lap_function>::at<0, 0, 0>::with(eval, in());
+        float_type _y_ = call<lap_function>::at<0, 1, 0>::with(eval, in());
+#endif
+#endif
+#endif
+#endif
+        eval(out()) = _y_ - _x_;
+        eval(out()) = eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0 ? 0.0 : eval(out());
+    }
+};
+
+struct out_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1>;
+    using flx = in_accessor<2, extent<-1, 0, 0, 0>>;
+    using fly = in_accessor<3, extent<0, 0, -1, 0>>;
+    using coeff = in_accessor<4>;
+
+    using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) =
+            eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
+    }
+};
 
 #ifdef FUNCTIONS_MONOLITHIC
 #define FTESTNAME(x) HorizontalDiffusionFunctionsMONOLITHIC
@@ -57,41 +171,27 @@
 #define FTESTNAME(x) HorizontalDiffusionFunctionsPROCEDURESOFFSETS
 #endif
 
-int main(int argc, char **argv) {
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+using FTESTNAME(x) = regression_fixture<2>;
 
-    if (argc < 4) {
-        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
-               "and tstep is the number of timesteps to run in a benchmark run\n");
-        return 1;
-    }
+TEST_F(FTESTNAME(x), Test) {
+    tmp_arg<0, storage_type> p_flx;
+    tmp_arg<1, storage_type> p_fly;
+    arg<1, storage_type> p_coeff;
+    arg<2, storage_type> p_in;
+    arg<3, storage_type> p_out;
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+    auto out = make_storage(0.);
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
+    horizontal_diffusion_repository repo(d1(), d2(), d3());
 
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
+    make_computation(p_in = make_storage(repo.in),
+        p_out = out,
+        p_coeff = make_storage(repo.coeff),
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            define_caches(cache<IJ, cache_io_policy::local>(p_flx, p_fly)),
+            make_independent(make_stage<flx_function>(p_flx, p_in), make_stage<fly_function>(p_fly, p_in)),
+            make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)))
+        .run();
 
-    return RUN_ALL_TESTS();
-}
-
-TEST(FTESTNAME(x), Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(horizontal_diffusion_functions::test(x, y, z, t, verify));
+    verify(make_storage(repo.out), out);
 }

@@ -44,7 +44,6 @@
  * We dont make use of the on_cells nor the grid topology of the icosahedral/octahedral grid here
  */
 #include "backend_select.hpp"
-#include "benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
@@ -160,10 +159,6 @@ namespace soeov {
                 {{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}, {0, 0}}};
             result = ver.verify(grid_, ref_weights, weight_edges, halos);
         }
-
-#ifdef BENCHMARK
-        benchmarker::run(stencil_, t_steps);
-#endif
         return result;
     }
 } // namespace soeov

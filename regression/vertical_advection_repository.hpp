@@ -35,242 +35,102 @@
 */
 #pragma once
 
+#include <cmath>
+#include <functional>
+
 #include "vertical_advection_defs.hpp"
-#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/common/defs.hpp>
 
-using gridtools::int_t;
-using gridtools::uint_t;
+namespace gridtools {
 
-namespace vertical_advection {
+    class vertical_advection_repository {
+        using fun_t = std::function<double(int_t, int_t, int_t)>;
 
-    class repository {
+        uint_t idim_, jdim_, kdim_;
+
+        double PI = 4 * std::atan(1);
+
+        double utens_stage_ref(int_t i, int_t j, int_t k) {
+            double x = 1. * i / idim_;
+            double y = 1. * j / jdim_;
+            return 7 + 1.25 * (2. + cos(PI * (x + y)) + sin(2 * PI * (x + y))) + .1 * k;
+        };
+
+        double ccol(int_t i, int_t j, int_t k) {
+            assert(k < kdim_ - 1);
+            if (k == 0) {
+                double tmp = .25 * BET_P * (wcon(i + 1, j, 1) + wcon(i, j, 1));
+                return tmp / (dtr_stage - tmp);
+            }
+            double gav = -0.25 * (wcon(i + 1, j, k) + wcon(i, j, k));
+            double gcv = 0.25 * (wcon(i + 1, j, k + 1) + wcon(i, j, k + 1));
+            double tmp = gcv * BET_P;
+            return tmp / (dtr_stage - tmp - gav * BET_P * (1 + ccol(i, j, k - 1)));
+        };
+
+        double dcol(int_t i, int_t j, int_t k) {
+            if (k == 0) {
+                double gcv = .25 * (wcon(i + 1, j, 1) + wcon(i, j, 1));
+                double correctionTerm = -gcv * BET_M * (u_stage(i, j, 1) - u_stage(i, j, 0));
+                return (dtr_stage * u_pos(i, j, 0) + utens(i, j, 0) + utens_stage_ref(i, j, 0) + correctionTerm) /
+                       (dtr_stage - gcv * BET_P);
+            }
+            double gav = -0.25 * (wcon(i + 1, j, k) + wcon(i, j, k));
+            double as = gav * BET_M;
+            double acol = gav * BET_P;
+            double bcol;
+            double correctionTerm;
+            if (k == kdim_ - 1) {
+                bcol = dtr_stage - acol;
+                correctionTerm = -as * (u_stage(i, j, k - 1) - u_stage(i, j, k));
+            } else {
+                double gcv = 0.25 * (wcon(i + 1, j, k + 1) + wcon(i, j, k + 1));
+                bcol = dtr_stage - acol - gcv * BET_P;
+                correctionTerm = -as * (u_stage(i, j, k - 1) - u_stage(i, j, k)) -
+                                 gcv * BET_M * (u_stage(i, j, k + 1) - u_stage(i, j, k));
+            }
+            return (dtr_stage * u_pos(i, j, k) + utens(i, j, k) + utens_stage_ref(i, j, k) + correctionTerm -
+                       dcol(i, j, k - 1) * acol) /
+                   (bcol - ccol(i, j, k - 1) * acol);
+        }
+
+        double datacol(int_t i, int_t j, int_t k) {
+            return k == kdim_ - 1 ? dcol(i, j, k) : dcol(i, j, k) - ccol(i, j, k) * datacol(i, j, k + 1);
+        }
+
       public:
-        using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gridtools::halo<3, 3, 0>>;
-        using storage_info_ij_t =
-            storage_tr::special_storage_info_t<1, gridtools::selector<1, 1, 0>, gridtools::halo<3, 3, 0>>;
-        using storage_info_scalar_t =
-            storage_tr::special_storage_info_t<2, gridtools::selector<0, 0, 0>, gridtools::halo<0, 0, 0>>;
+        double dtr_stage = 3. / 20.;
 
-        using storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ijk_t>;
-        using ij_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ij_t>;
-        using scalar_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_scalar_t>;
+        fun_t u_stage = [this](int_t i, int_t j, int_t) {
+            double x = 1. * i / idim_;
+            double y = 1. * j / jdim_;
+            // u values between 5 and 9
+            return 7 + std::cos(PI * (x + y)) + std::sin(2 * PI * (x + y));
+        };
 
-        repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info(idim, jdim, kdim), m_scalar_storage_info(1, 1, 1), // fake 3D
-              utens_stage_(m_storage_info, -1, "utens_stage"), utens_stage_ref_(m_storage_info, -1, "u_stage_ref"),
-              u_stage_(m_storage_info, -1, "u_stage"), wcon_(m_storage_info, -1, "wcon"),
-              u_pos_(m_storage_info, -1, "upos"), utens_(m_storage_info, -1, "utens"),
-              ipos_(m_storage_info, -1, "ipos"), jpos_(m_storage_info, "jpos"), kpos_(m_storage_info, -1, "kpos"),
-              dtr_stage_(m_scalar_storage_info, -1, "dtr_stage"), halo_size_(halo_size), idim_(idim), jdim_(jdim),
-              kdim_(kdim) {}
+        fun_t u_pos = u_stage;
 
-        void init_fields() {
-            // set the fields to advect
-            const double PI = std::atan(1.) * 4.;
+        fun_t wcon = [this](int_t i, int_t j, int_t k) {
+            double x = 1. * i / idim_;
+            double y = 1. * j / jdim_;
+            double z = 1. * k / kdim_;
 
-            const uint_t i_begin = 0;
-            const uint_t i_end = idim_;
-            const uint_t j_begin = 0;
-            const uint_t j_end = jdim_;
-            const uint_t k_begin = 0;
-            const uint_t k_end = kdim_;
+            // wcon values between -2e-4 and 2e-4 (with zero at k=0)
+            return 2e-4 * (-1.07 + (2 + cos(PI * (x + z)) + cos(PI * y)) / 2);
+        };
 
-            auto dtr_stage_v = make_host_view(dtr_stage_);
-            auto u_stage_v = make_host_view(u_stage_);
-            auto u_pos_v = make_host_view(u_pos_);
-            auto utens_v = make_host_view(utens_);
-            auto wcon_v = make_host_view(wcon_);
-            auto utens_stage_v = make_host_view(utens_stage_);
-            auto utens_stage_ref_v = make_host_view(utens_stage_ref_);
-            auto ipos_v = make_host_view(ipos_);
-            auto jpos_v = make_host_view(jpos_);
-            auto kpos_v = make_host_view(kpos_);
+        fun_t utens = [this](int_t i, int_t j, int_t k) {
+            double x = 1. * i / idim_;
+            double y = 1. * j / jdim_;
+            double z = 1. * k / kdim_;
 
-            double dtadv = (double)20. / 3.;
-            dtr_stage_v(0, 0, 0) = (double)1.0 / dtadv;
+            // utens values between -3e-6 and 3e-6 (with zero at k=0)
+            return 3e-6 * (-1.0235 + (2. + cos(PI * (x + y)) + cos(PI * y * z)) / 2);
+        };
 
-            double dx = 1. / (double)(i_end - i_begin);
-            double dy = 1. / (double)(j_end - j_begin);
-            double dz = 1. / (double)(k_end - k_begin);
+        fun_t utens_stage = [this](
+                                int_t i, int_t j, int_t k) { return dtr_stage * (datacol(i, j, k) - u_pos(i, j, k)); };
 
-            for (int j = j_begin; j < j_end; j++) {
-                for (int i = i_begin; i < i_end; i++) {
-                    double x = dx * (double)(i - i_begin);
-                    double y = dy * (double)(j - j_begin);
-                    for (int k = k_begin; k < k_end; k++) {
-                        double z = dz * (double)(k - k_begin);
-                        dtr_stage_v(i, j, k) = (double)1.0 / dtadv;
-
-                        // u values between 5 and 9
-                        u_stage_v(i, j, k) = 5. + 4 * (2. + cos(PI * (x + y)) + sin(2 * PI * (x + y))) / 4.;
-                        u_pos_v(i, j, k) = 5. + 4 * (2. + cos(PI * (x + y)) + sin(2 * PI * (x + y))) / 4.;
-                        // utens values between -3e-6 and 3e-6 (with zero at k=0)
-                        utens_v(i, j, k) = 3e-6 * (-1 + 2 * (2. + cos(PI * (x + y)) + cos(PI * y * z)) / 4. +
-                                                      0.05 * (0.5 - 24.0) / 50.);
-                        // wcon values between -2e-4 and 2e-4 (with zero at k=0)
-                        wcon_v(i, j, k) =
-                            2e-4 * (-1 + 2 * (2. + cos(PI * (x + z)) + cos(PI * y)) / 4. + 0.1 * (0.5 - 35.5) / 50.);
-
-                        utens_stage_v(i, j, k) =
-                            7. + 5 * (2. + cos(PI * (x + y)) + sin(2 * PI * (x + y))) / 4. + k * 0.1;
-                        utens_stage_ref_v(i, j, k) = utens_stage_v(i, j, k);
-                        ipos_v(i, j, k) = i;
-                        jpos_v(i, j, k) = j;
-                        kpos_v(i, j, k) = k;
-                    }
-                }
-            }
-        }
-
-        void generate_reference() {
-            storage_info_ij_t storage_info_ij(idim_, jdim_, (uint_t)1);
-            ij_storage_type datacol(storage_info_ij, 0.0);
-            storage_info_ijk_t storage_info_(idim_, jdim_, kdim_);
-            storage_type ccol(storage_info_, 0.0);
-            storage_type dcol(storage_info_, 0.0);
-
-            // Generate U
-            forward_sweep(1, 0, ccol, dcol);
-            backward_sweep(ccol, dcol, datacol);
-        }
-
-        void forward_sweep(int ishift, int jshift, storage_type &ccol, storage_type &dcol) {
-            auto dtr_stage_v = make_host_view(dtr_stage_);
-            auto wcon_v = make_host_view(wcon_);
-            auto ccol_v = make_host_view(ccol);
-            auto dcol_v = make_host_view(dcol);
-            auto u_stage_v = make_host_view(u_stage_);
-            auto utens_stage_ref_v = make_host_view(utens_stage_ref_);
-            auto utens_v = make_host_view(utens_);
-            auto u_pos_v = make_host_view(u_pos_);
-
-            double dtr_stage = dtr_stage_v(0, 0, 0);
-            // k minimum
-            int k = 0;
-            for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                    double gcv = (double)0.25 * (wcon_v(i + ishift, j + jshift, k + 1) + wcon_v(i, j, k + 1));
-                    double cs = gcv * BET_M;
-
-                    ccol_v(i, j, k) = gcv * BET_P;
-                    double bcol = dtr_stage_v(0, 0, 0) - ccol_v(i, j, k);
-
-                    // update the d column
-                    double correctionTerm = -cs * (u_stage_v(i, j, k + 1) - u_stage_v(i, j, k));
-                    dcol_v(i, j, k) =
-                        dtr_stage * u_pos_v(i, j, k) + utens_v(i, j, k) + utens_stage_ref_v(i, j, k) + correctionTerm;
-
-                    double divided = (double)1.0 / bcol;
-                    ccol_v(i, j, k) = ccol_v(i, j, k) * divided;
-                    dcol_v(i, j, k) = dcol_v(i, j, k) * divided;
-
-                    // if(i==3 && j == 3)
-                    // std::cout << "AT ref at  " << k << "  " << bcol << "  " << ccol(i,j,k) << " " << dcol(i,j,k) << "
-                    // " << gcv <<
-                    // "  " << wcon_(i,j,k+1) << "  " << wcon_(i+ishift, j+jshift, k+1) << std::endl;
-                }
-            }
-
-            // kbody
-            for (k = 1; k < kdim_ - 1; ++k) {
-                for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                        double gav = (double)-0.25 * (wcon_v(i + ishift, j + jshift, k) + wcon_v(i, j, k));
-                        double gcv = (double)0.25 * (wcon_v(i + ishift, j + jshift, k + 1) + wcon_v(i, j, k + 1));
-
-                        double as = gav * BET_M;
-                        double cs = gcv * BET_M;
-
-                        double acol = gav * BET_P;
-                        ccol_v(i, j, k) = gcv * BET_P;
-                        double bcol = dtr_stage - acol - ccol_v(i, j, k);
-
-                        double correctionTerm = -as * (u_stage_v(i, j, k - 1) - u_stage_v(i, j, k)) -
-                                                cs * (u_stage_v(i, j, k + 1) - u_stage_v(i, j, k));
-                        dcol_v(i, j, k) = dtr_stage * u_pos_v(i, j, k) + utens_v(i, j, k) + utens_stage_ref_v(i, j, k) +
-                                          correctionTerm;
-
-                        double divided = (double)1.0 / (bcol - (ccol_v(i, j, k - 1) * acol));
-                        ccol_v(i, j, k) = ccol_v(i, j, k) * divided;
-                        dcol_v(i, j, k) = (dcol_v(i, j, k) - (dcol_v(i, j, k - 1) * acol)) * divided;
-                        // if(i==3 && j == 3)
-                        // std::cout << "FORDW REF at  " << k << "  " << acol << "  " << bcol << "  " << ccol(i,j,k) <<
-                        // " " << dcol(i,j,k) << std::endl;
-                    }
-                }
-            }
-
-            // k maximum
-            k = kdim_ - 1;
-            for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                    double gav = -(double)0.25 * (wcon_v(i + ishift, j + jshift, k) + wcon_v(i, j, k));
-                    double as = gav * BET_M;
-
-                    double acol = gav * BET_P;
-                    double bcol = dtr_stage - acol;
-
-                    // update the d column
-                    double correctionTerm = -as * (u_stage_v(i, j, k - 1) - u_stage_v(i, j, k));
-                    dcol_v(i, j, k) =
-                        dtr_stage * u_pos_v(i, j, k) + utens_v(i, j, k) + utens_stage_ref_v(i, j, k) + correctionTerm;
-
-                    double divided = (double)1.0 / (bcol - (ccol_v(i, j, k - 1) * acol));
-                    dcol_v(i, j, k) = (dcol_v(i, j, k) - (dcol_v(i, j, k - 1) * acol)) * divided;
-                }
-            }
-        }
-
-        void backward_sweep(storage_type &ccol, storage_type &dcol, ij_storage_type &datacol) {
-            auto dtr_stage_v = make_host_view(dtr_stage_);
-            auto ccol_v = make_host_view(ccol);
-            auto dcol_v = make_host_view(dcol);
-            auto datacol_v = make_host_view(datacol);
-            auto utens_stage_ref_v = make_host_view(utens_stage_ref_);
-            auto u_pos_v = make_host_view(u_pos_);
-
-            double dtr_stage = dtr_stage_v(0, 0, 0);
-            // k maximum
-            int k = kdim_ - 1;
-            for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                    datacol_v(i, j, k) = dcol_v(i, j, k);
-                    ccol_v(i, j, k) = datacol_v(i, j, k);
-                    utens_stage_ref_v(i, j, k) = dtr_stage * (datacol_v(i, j, k) - u_pos_v(i, j, k));
-                }
-            }
-            // kbody
-            for (k = kdim_ - 2; k >= 0; --k) {
-                for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                        datacol_v(i, j, k) = dcol_v(i, j, k) - (ccol_v(i, j, k) * datacol_v(i, j, k + 1));
-                        ccol_v(i, j, k) = datacol_v(i, j, k);
-                        utens_stage_ref_v(i, j, k) = dtr_stage * (datacol_v(i, j, k) - u_pos_v(i, j, k));
-                    }
-                }
-            }
-        }
-
-        storage_type &utens_stage() { return utens_stage_; }
-        storage_type &wcon() { return wcon_; }
-        storage_type &u_pos() { return u_pos_; }
-        storage_type &utens() { return utens_; }
-        storage_type &ipos() { return ipos_; }
-        storage_type &jpos() { return jpos_; }
-        storage_type &kpos() { return kpos_; }
-        scalar_storage_type &dtr_stage() { return dtr_stage_; }
-
-        // output fields
-        storage_type &u_stage() { return u_stage_; }
-        storage_type &utens_stage_ref() { return utens_stage_ref_; }
-
-      private:
-        storage_info_ijk_t m_storage_info;
-        storage_info_scalar_t m_scalar_storage_info;
-        storage_type utens_stage_, u_stage_, wcon_, u_pos_, utens_, utens_stage_ref_;
-        storage_type ipos_, jpos_, kpos_;
-        scalar_storage_type dtr_stage_;
-        const uint_t halo_size_;
-        const uint_t idim_, jdim_, kdim_;
+        vertical_advection_repository(uint_t idim, uint_t jdim, uint_t kdim) : idim_(idim), jdim_(jdim), kdim_(kdim) {}
     };
-} // namespace vertical_advection
+} // namespace gridtools

@@ -33,44 +33,96 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "interface1_fused.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
-               "and tstep is the number of timesteps to run in a benchmark run\n");
-        return 1;
+#include "horizontal_diffusion_repository.hpp"
+
+using namespace gridtools;
+
+struct lap_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 1, -1, 1>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) =
+            float_type{4} * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1, 0)) + eval(in(0, -1)));
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+struct flx_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 2, -1, 1>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        auto lap_hi = call<lap_function>::with(eval, in(1, 0));
+        auto lap_lo = call<lap_function>::with(eval, in(0, 0));
+        auto flx = lap_hi - lap_lo;
+        eval(out()) = flx * (eval(in(1, 0)) - eval(in(0, 0))) > 0 ? 0 : flx;
     }
+};
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
+struct fly_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 1, -1, 2>>;
+
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        auto lap_hi = call<lap_function>::with(eval, in(0, 1));
+        auto lap_lo = call<lap_function>::with(eval, in(0, 0));
+        auto fly = lap_hi - lap_lo;
+        eval(out()) = fly * (eval(in(0, 1)) - eval(in(0, 0))) > 0 ? 0 : fly;
     }
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
+};
+
+struct out_function {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-2, 2, -2, 2>>;
+    using coeff = in_accessor<2>;
+
+    using arg_list = boost::mpl::vector<out, in, coeff>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        auto flx_hi = call<flx_function>::with(eval, in(0, 0));
+        auto flx_lo = call<flx_function>::with(eval, in(-1, 0));
+
+        auto fly_hi = call<fly_function>::with(eval, in(0, 0));
+        auto fly_lo = call<fly_function>::with(eval, in(0, -1));
+
+        eval(out()) = eval(in()) - eval(coeff()) * (flx_hi - flx_lo + fly_hi - fly_lo);
     }
-    return RUN_ALL_TESTS();
-}
+};
 
-TEST(HorizontalDiffusion, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
+using HorizontalDiffusion = regression_fixture<2>;
 
-    if (t == 0)
-        t = 1;
+TEST_F(HorizontalDiffusion, Test) {
+    arg<0, storage_type> p_coeff;
+    arg<1, storage_type> p_in;
+    arg<2, storage_type> p_out;
 
-    ASSERT_TRUE(horizontal_diffusion::test(x, y, z, t, verify));
+    auto out = make_storage(0.);
+
+    horizontal_diffusion_repository repo(d1(), d2(), d3());
+
+    auto comp = make_computation(p_in = make_storage(repo.in),
+        p_out = out,
+        p_coeff = make_storage(repo.coeff),
+        make_multistage(enumtype::execute<enumtype::parallel, 20>(), make_stage<out_function>(p_out, p_in, p_coeff)));
+
+    comp.run();
+    verify(make_storage(repo.out), out);
+    benchmark(comp);
 }
