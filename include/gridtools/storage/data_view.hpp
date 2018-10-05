@@ -156,8 +156,9 @@ namespace gridtools {
          * @return pointer to the first position
          */
         GT_FUNCTION
-        data_t *ptr_to_first_position() { return &operator()(gridtools::array<int, storage_info_t::ndims>{{}}); }
-
+        data_t *ptr_to_first_position() {
+            return &m_raw_ptrs[0][m_storage_info->index(gridtools::array<int, storage_info_t::ndims>{{}})];
+        }
         /**
          * return pointer to the first position
          */
