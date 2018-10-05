@@ -33,31 +33,36 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "positional_copy_stencil.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-int main(int argc, char **argv) {
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+using namespace gridtools;
 
-    if (argc != 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+static constexpr int _value_ = 1;
+
+struct init_functor {
+    using out = inout_accessor<0>;
+    using arg_list = boost::mpl::vector<out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval.i() + eval.j() + eval.k();
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using PositionalCopyStencil = regression_fixture<>;
 
-    return RUN_ALL_TESTS();
-}
+TEST_F(PositionalCopyStencil, Test) {
+    arg<0, storage_type> p_out;
 
-TEST(PositionalCopyStencil, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
+    auto out = make_storage(0.);
 
-    ASSERT_TRUE(positional_copy_stencil::test(x, y, z));
+    make_positional_computation<backend_t>(make_grid(),
+        p_out = out,
+        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<init_functor>(p_out)))
+        .run();
+
+    verify(make_storage([](int i, int j, int k) -> double { return i + j + k; }), out);
 }
