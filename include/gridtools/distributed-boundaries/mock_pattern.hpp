@@ -89,10 +89,9 @@ namespace gridtools {
         struct pattern_t {
             MPI_3D_process_grid_t<3> m_comm;
 
-            pattern_t(MPI_3D_process_grid_t<3> m_comm)
-                : m_comm{m_comm} {}
+            pattern_t(MPI_3D_process_grid_t<3> m_comm) : m_comm{m_comm} {}
 
-            MPI_3D_process_grid_t<3> proc_grid() const {return m_comm;}
+            MPI_3D_process_grid_t<3> proc_grid() const { return m_comm; }
         };
 
         template <typename, typename, typename, typename, typename, int>
@@ -115,7 +114,7 @@ namespace gridtools {
 
             void setup(uint_t){};
 
-            pattern_t pattern() const {return m_comm;}
+            pattern_t pattern() const { return m_comm; }
 
             void exchange() {}
 
