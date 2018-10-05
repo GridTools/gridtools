@@ -59,6 +59,9 @@ namespace gridtools {
                 t_S = 1;
             }
 
+            template <typename A>
+            void fill_dims(A &) const {}
+
             void coords(int &t_R, int &t_C, int &t_S) const {
                 t_R = 0;
                 t_C = 0;
@@ -83,13 +86,22 @@ namespace gridtools {
             int pid() const { return 0; }
         };
 
+        struct pattern_t {
+            MPI_3D_process_grid_t<3> m_comm;
+
+            pattern_t(MPI_3D_process_grid_t<3> m_comm)
+                : m_comm{m_comm} {}
+
+            MPI_3D_process_grid_t<3> proc_grid() const {return m_comm;}
+        };
+
         template <typename, typename, typename, typename, typename, int>
         struct halo_exchange_dynamic_ut {
             boollist<3> m_period;
             MPI_3D_process_grid_t<3> m_comm;
 
-            template <typename A, typename B>
-            halo_exchange_dynamic_ut(boollist<3> p, A, B) : m_period{p}, m_comm{p, 0} {
+            template <typename A>
+            halo_exchange_dynamic_ut(boollist<3> p, A) : m_period{p}, m_comm{p, 0} {
                 if ((m_period.value(0) != false) or (m_period.value(1) != false) or (m_period.value(2) != false)) {
                     throw(std::runtime_error(
                         "To use distributed-boundaries without MPI the communication pattern should not be periodic"));
@@ -102,6 +114,8 @@ namespace gridtools {
             void add_halo(As...) {}
 
             void setup(uint_t){};
+
+            pattern_t pattern() const {return m_comm;}
 
             void exchange() {}
 

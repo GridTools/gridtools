@@ -34,6 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#ifdef _GCL_MPI_
+#include <mpi.h>
+#endif
 #include "gtest/gtest.h"
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 #include <iomanip>
@@ -129,6 +132,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     }
 #endif
 
+#ifdef _GCL_MPI_
     int dims[3] = {0, 0, 0};
 
     MPI_Dims_create(PROCS, 3, dims);
@@ -138,6 +142,9 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     MPI_Comm CartComm;
 
     MPI_Cart_create(GCL_WORLD, 3, dims, period, false, &CartComm);
+#else
+    MPI_Comm CartComm = GCL_WORLD;
+#endif
 
     cabc_t cabc{halos, {false, false, false}, 3, CartComm};
 
@@ -341,6 +348,7 @@ TEST(DistributedBoundaries, Test) {
     halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
+#ifdef _GCL_MPI_
     int dims[3] = {0, 0, 0};
 
     MPI_Dims_create(PROCS, 3, dims);
@@ -350,6 +358,9 @@ TEST(DistributedBoundaries, Test) {
     MPI_Comm CartComm;
 
     MPI_Cart_create(GCL_WORLD, 3, dims, period, false, &CartComm);
+#else
+    MPI_Comm CartComm = GCL_WORLD;
+#endif
 
     cabc_t cabc{halos, {false, false, false}, 3, CartComm};
 
