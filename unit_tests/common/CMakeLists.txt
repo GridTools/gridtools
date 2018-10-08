@@ -1,3 +1,5 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 # collect all tests in current folder
 fetch_host_tests(.)
 fetch_mic_tests(.)
