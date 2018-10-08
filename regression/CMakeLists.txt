@@ -1,5 +1,6 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+if( COMPONENT_STENCIL_COMPOSITION )
 if(NOT STRUCTURED_GRIDS)
     add_subdirectory(icosahedral)
 else()
@@ -7,7 +8,7 @@ else()
   list ( APPEND INC_ALL ${INC_ALL_} )
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
-  
+
   list(APPEND PERFTEST_SRCFILES interface1 interface1_fused simple_hori_diff copy_stencil vertical_advection_dycore advection_pdbott_prepare_tracers)
   list(APPEND SRCFILES boundary-condition laplacian positional_copy_stencil tridiagonal alignment)
   list(APPEND SRCFILES extended_4D expandable_parameters expandable_parameters_single_kernel)
@@ -28,7 +29,7 @@ else()
       target_link_libraries(${srcfile}_host_block ${exe_LIBS} gtest_main)
       target_compile_definitions(${srcfile}_host_naive PUBLIC ${HOST_BACKEND_DEFINE} "BACKEND_STRATEGY_NAIVE")
       target_compile_definitions(${srcfile}_host_block PUBLIC ${HOST_BACKEND_DEFINE})
-  
+
       gridtools_add_test( tests.${srcfile}_host_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_host_block" "12 33 61")
       gridtools_add_test( tests.${srcfile}_host_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_host_block" "23 11 43")
       gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_host_naive" "12 33 21")
@@ -37,12 +38,12 @@ else()
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_host_block)
     endforeach()
-  
+
     add_executable(vanilla_laplacian_host  vanilla_laplacian.cpp)
     set_target_properties(vanilla_laplacian_host PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
     target_link_libraries(vanilla_laplacian_host ${exe_LIBS} )
     target_compile_definitions(vanilla_laplacian_host PUBLIC ${HOST_BACKEND_DEFINE})
-  
+
     foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS )
         string(TOLOWER ${variation} var_suffix)
         add_executable(interface1_functions_host_naive_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
@@ -58,13 +59,13 @@ else()
         gridtools_add_test( tests.interface1_functions_host_naive_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/interface1_functions_host_naive_${var_suffix}" "12 33 21")
         gridtools_add_test( tests.interface1_functions_host_block_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/interface1_functions_host_block_${var_suffix}" "23 11 23")
     endforeach(variation)
-  
+
     if( GCL_MPI )
         set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
         set(ldflags " ")
-  
+
         add_custom_mpi_host_test(copy_stencil_parallel_host ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
-  
+
         ## The next executable is not made into a test since it does not validate.
         ## The numerics need to be fixed (this is a task to be undertaken in the future)
         add_executable(shallow_water_enhanced_host  shallow_water_enhanced.cpp)
@@ -86,7 +87,7 @@ else()
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_mic)
     endforeach()
-    
+
 
     add_executable(vanilla_laplacian_mic  vanilla_laplacian.cpp)
     set_target_properties(vanilla_laplacian_mic PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
@@ -117,8 +118,6 @@ else()
         target_compile_definitions(shallow_water_enhanced_mic PUBLIC ${MIC_BACKEND_DEFINE})
     endif()
   endif(ENABLE_MIC)
-
-  add_subdirectory( c_bindings )
 
   if(ENABLE_CUDA)
 
@@ -155,7 +154,15 @@ else()
         cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS "${GPU_SPECIFIC_FLAGS} -D_GCL_MPI_" "-D${CUDA_BACKEND_DEFINE}")
         target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gtest_main)
      endif()
-
-    add_subdirectory( communication )
 endif(ENABLE_CUDA)
+
 endif(NOT STRUCTURED_GRIDS)
+endif( COMPONENT_STENCIL_COMPOSITION )
+
+if ( COMPONENT_GCL )
+    add_subdirectory( communication )
+endif()
+
+if ( COMPONENT_C_BINDINGS )
+  add_subdirectory( c_bindings )
+endif()

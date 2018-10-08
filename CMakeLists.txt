@@ -108,7 +108,7 @@ endif()
 # ===============
 include (fix_test_case_name)
 if(NOT DISABLE_TESTING)
-  #add_subdirectory(regression)
+  add_subdirectory(regression)
   add_subdirectory(unit_tests)
 endif()
 
