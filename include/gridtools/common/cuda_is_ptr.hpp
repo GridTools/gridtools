@@ -53,7 +53,11 @@ namespace gridtools {
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
-            return ptrAttributes.memoryType == cudaMemoryTypeDevice;
+#if defined(GT_CUDA_VERSION_MAJOR) && GT_CUDA_VERSION_MAJOR < 10
+            return ptrAttributes.memoryType == cudaMemoryTypeDevice; // deprecated in CUDA 10
+#else
+            return ptrAttributes.type == cudaMemoryTypeDevice;
+#endif
         else if (error == cudaErrorInvalidValue) {
             cudaGetLastError(); // clear the error code
             return false;       // it is not a ptr allocated with cudaMalloc, cudaMallocHost, ...

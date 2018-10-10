@@ -85,7 +85,7 @@ namespace gridtools {
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                host_for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
                     mss_functor<MssComponents,
                         Grid,
                         LocalDomainListArray,

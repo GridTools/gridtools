@@ -62,22 +62,6 @@ namespace gridtools {
      * \{
      */
 
-    /**substituting the std::vector type in the args<> with a correspondent
-       expandable_parameter placeholder*/
-    template <uint_t Size>
-    struct substitute_expandable_param {
-
-        template <typename Placeholder>
-        struct apply {
-            typedef Placeholder type;
-        };
-
-        template <ushort_t ID, typename DataStoreType, typename Location, bool Temporary>
-        struct apply<arg<ID, std::vector<DataStoreType>, Location, Temporary>> {
-            typedef arg<ID, data_store_field<DataStoreType, Size>, Location, Temporary> type;
-        };
-    };
-
     /** metafunction removing global accessors from an mpl_vector of pairs <extent, placeholders>.
         Note: the global accessors do not have extents (have mpl::void_ instead). */
     template <typename PlaceholderExtentPair>
@@ -150,8 +134,8 @@ namespace gridtools {
                     GRIDTOOLS_STATIC_ASSERT((is_extent<typename PlcRangePair::second>::value), GT_INTERNAL_ERROR);
 
                     typedef typename sum_extent<CurrentRange, typename PlcRangePair::second>::type candidate_extent;
-                    typedef typename enclosing_extent<candidate_extent,
-                        typename boost::mpl::at<CurrentMap, typename PlcRangePair::first>::type>::type extent;
+                    using extent = GT_META_CALL(enclosing_extent,
+                        (candidate_extent, typename boost::mpl::at<CurrentMap, typename PlcRangePair::first>::type));
                     typedef typename boost::mpl::erase_key<CurrentMap, typename PlcRangePair::first>::type map_erased;
                     typedef typename boost::mpl::insert<map_erased,
                         boost::mpl::pair<typename PlcRangePair::first, extent>>::type type; // new map
@@ -165,7 +149,7 @@ namespace gridtools {
 
             template <typename X, typename Y>
             struct pair_arg_extent<boost::mpl::pair<X, Y>> {
-                static const bool value = is_arg<X>::value && is_extent<Y>::value;
+                static constexpr bool value = is_plh<X>::value && is_extent<Y>::value;
                 typedef boost::mpl::bool_<value> type;
             };
 
@@ -190,9 +174,8 @@ namespace gridtools {
             */
             template <typename Extents>
             struct min_enclosing_extents_of_outputs {
-                typedef
-                    typename boost::mpl::fold<Extents, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-                        type;
+                typedef typename boost::mpl::
+                    fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type type;
             };
 
             /**
@@ -355,7 +338,7 @@ namespace gridtools {
     struct placeholder_to_extent_map {
       private:
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_computation_token>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value), GT_INTERNAL_ERROR);
 
         // This is where the data-dependence analysis happens
         template <typename PlaceholdersMap, typename Mss>
@@ -389,7 +372,7 @@ namespace gridtools {
 
         template <typename Element>
         struct is_extent_map_element {
-            typedef typename is_arg<typename Element::first>::type one;
+            typedef typename is_plh<typename Element::first>::type one;
             typedef typename is_extent<typename Element::second>::type two;
 
             typedef typename boost::mpl::and_<one, two>::type type;
@@ -426,7 +409,7 @@ namespace gridtools {
 
     template <typename Esf, typename ExtentMap>
     struct reduction_get_extent_for {
-        typedef typename esf_args<Esf>::type w_plcs;
+        typedef typename Esf::args_t w_plcs;
         typedef typename boost::mpl::at_c<w_plcs, 0>::type first_out;
         typedef typename boost::mpl::at<ExtentMap, first_out>::type extent;
 

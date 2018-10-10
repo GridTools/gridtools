@@ -42,10 +42,6 @@
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
-#include "../expandable_parameters/vector_accessor.hpp"
-#include "../sfinae.hpp"
-#include "accessor.hpp"
-#include "accessor_mixed.hpp"
 
 /**
    @file
@@ -115,9 +111,9 @@ namespace gridtools {
     /**
      * @brief Descriptors for Elementary Stencil Function (ESF)
      */
-    template <typename ESF, typename ArgArray, typename Staggering = staggered<0, 0, 0, 0, 0, 0>>
+    template <typename ESF, typename ArgArray>
     struct esf_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_arg>::value),
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgArray, is_plh>::value),
             "wrong types for the list of parameter placeholders\n"
             "check the make_stage syntax");
 
@@ -128,7 +124,6 @@ namespace gridtools {
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
         typedef
             typename impl::make_arg_with_extent_map<args_t, typename esf_function::arg_list>::type args_with_extents;
-        typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
         BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
@@ -172,23 +167,16 @@ namespace gridtools {
         //////////////////////////////////////////////////////////////////////////////////////////////////////
     };
 
-    template <typename T, typename V>
-    std::ostream &operator<<(std::ostream &s, esf_descriptor<T, V> const7) {
-        return s << "esf_desctiptor< " << T() << " with "
-                 << boost::mpl::size<typename esf_descriptor<T, V>::args_t>::type::value << " arguments (double check "
-                 << boost::mpl::size<typename esf_descriptor<T, V>::esf_function::arg_list>::type::value << ")";
-    }
+    template <typename ESF, typename ArgArray>
+    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray>> : boost::mpl::true_ {};
 
-    template <typename ESF, typename ArgArray, typename Staggering>
-    struct is_esf_descriptor<esf_descriptor<ESF, ArgArray, Staggering>> : boost::mpl::true_ {};
-
-    template <typename ESF, typename Extent, typename ArgArray, typename Staggering = staggered<0, 0, 0, 0, 0, 0>>
-    struct esf_descriptor_with_extent : public esf_descriptor<ESF, ArgArray, Staggering> {
+    template <typename ESF, typename Extent, typename ArgArray>
+    struct esf_descriptor_with_extent : esf_descriptor<ESF, ArgArray> {
         GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), "stage descriptor is expecting a extent type");
     };
 
-    template <typename ESF, typename Extent, typename ArgArray, typename Staggering>
-    struct is_esf_descriptor<esf_descriptor_with_extent<ESF, Extent, ArgArray, Staggering>> : boost::mpl::true_ {};
+    template <typename ESF, typename Extent, typename ArgArray>
+    struct is_esf_descriptor<esf_descriptor_with_extent<ESF, Extent, ArgArray>> : boost::mpl::true_ {};
 
     template <typename ESF>
     struct is_esf_with_extent : boost::mpl::false_ {
@@ -196,7 +184,7 @@ namespace gridtools {
             GT_INTERNAL_ERROR_MSG("is_esf_with_extents expects an esf_descripto as template argument"));
     };
 
-    template <typename ESF, typename Extent, typename ArgArray, typename Staggering>
-    struct is_esf_with_extent<esf_descriptor_with_extent<ESF, Extent, ArgArray, Staggering>> : boost::mpl::true_ {};
+    template <typename ESF, typename Extent, typename ArgArray>
+    struct is_esf_with_extent<esf_descriptor_with_extent<ESF, Extent, ArgArray>> : boost::mpl::true_ {};
 
 } // namespace gridtools

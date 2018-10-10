@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <boost/mpl/for_each.hpp>
+
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../backend_ids.hpp"
@@ -109,10 +111,6 @@ namespace gridtools {
 
                 // getting the architecture and grid dependent traits
                 typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
-
-                typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
 
                 kernel_functor_executor_t{local_domain,
                     grid,
@@ -193,9 +191,6 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
                 typedef typename kernel_functor_executor<backend_ids_t, RunFunctorArgs>::type kernel_functor_executor_t;
-
-                typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<functor_list_t>::value == 1), GT_INTERNAL_ERROR);
 
                 auto block_size_f = [](uint_t total, uint_t block_size, uint_t block_no) {
                     auto n = (total + block_size - 1) / block_size;

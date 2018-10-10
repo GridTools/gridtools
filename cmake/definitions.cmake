@@ -98,11 +98,18 @@ if( ENABLE_CUDA )
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
-  
+
   # workaround for boost::optional with CUDA9.2
-  if( ${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2 )
+  if( (${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2) OR (${CUDA_VERSION_MAJOR} EQUAL 10) )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
+  endif()
+  
+  if(${CXX_STANDARD} STREQUAL "c++14")
+    # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--expt-relaxed-constexpr")
+  elseif(${CXX_STANDARD} STREQUAL "c++17")
+    message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
 
   set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
@@ -132,6 +139,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-subscript-in-range -qoverride-limits")
     # disable failed vectorization warnings for OpenMP SIMD loops
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552")
+endif()
+
+
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+    # Controls preprocessor expansion of macros in Fortran source code.
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
 # Note: It seems that FindOpenMP ignores CMP0054. As this is an
@@ -168,7 +181,7 @@ else()
   if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
-  add_definitions("-DFLOAT_PRECISION=8") 
+  add_definitions("-DFLOAT_PRECISION=8")
   message(STATUS "Computations in double precision")
 endif()
 

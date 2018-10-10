@@ -39,12 +39,12 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
+#include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
-#include "./run_esf_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -76,8 +76,6 @@ namespace gridtools {
                 typename RunFunctorArguments::grid_t>;
 
             using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
-
-            typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
             typedef backend_traits_from_id<platform::cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
@@ -163,14 +161,12 @@ namespace gridtools {
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
-            typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
-            typedef typename index_to_level<typename interval::first>::type from;
-            typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
+            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+            using from_t = GT_META_CALL(meta::first, interval_t);
 
             const int_t kblock = execution_type_t::iteration == enumtype::parallel
                                      ? blockIdx.z * execution_type_t::block_size - grid.k_min()
-                                     : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
+                                     : grid.template value_at<from_t>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});

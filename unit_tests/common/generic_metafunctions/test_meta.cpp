@@ -116,6 +116,7 @@ namespace gridtools {
         // at
         static_assert(std::is_same<GT_META_CALL(at_c, (f<int, double>, 0)), int>{}, "");
         static_assert(std::is_same<GT_META_CALL(at_c, (f<int, double>, 1)), double>{}, "");
+        static_assert(std::is_same<GT_META_CALL(last, (f<int, double>)), double>{}, "");
 
         // conjunction
         static_assert(conjunction_fast<>{}, "");

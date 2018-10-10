@@ -34,7 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "generic_metafunctions/accumulate.hpp"
+
+#include <type_traits>
+
+#include "defs.hpp"
 #include "host_device.hpp"
 
 namespace gridtools {
@@ -55,53 +58,24 @@ namespace gridtools {
     */
     template <ushort_t Coordinate>
     struct dimension {
+        GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
         GT_FUNCTION constexpr dimension() : value(0) {}
 
         template <typename IntType>
-        GT_FUNCTION constexpr dimension(IntType val) : value{(int_t)val} {
-            GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
-            GRIDTOOLS_STATIC_ASSERT(
-                Coordinate > 0, "The coordinate values passed to the accessor must be positive integers");
-        }
+        GT_FUNCTION constexpr dimension(IntType val) : value{(int_t)val} {}
 
-        /**@brief Constructor*/
-        GT_FUNCTION
-        constexpr dimension(dimension const &other) : value(other.value) {}
+        dimension(dimension const &) = default;
 
-        static const ushort_t index = Coordinate;
+        static constexpr ushort_t index = Coordinate;
         int_t value;
-
-        /**@brief syntactic sugar for user interface
-
-           overloaded operators return Index types which provide the proper dimension object.
-           Clarifying example:
-           defining
-           \code{.cpp}
-           typedef dimension<5> t;
-           \endcode
-           we can use thefollowing alias
-           \code{.cpp}
-           t+2 <--> dimension<5>(2)
-           \endcode
-
-         */
     };
 
     template <typename T>
-    struct is_dimension : boost::mpl::false_ {};
+    struct is_dimension : std::false_type {};
 
     template <ushort_t Id>
-    struct is_dimension<dimension<Id>> : boost::mpl::true_ {};
-
-    // metafunction that determines if a variadic pack are valid accessor ctr arguments
-    template <typename... Types>
-    struct all_dimensions {
-        typedef typename boost::enable_if_c<accumulate(logical_and(), is_dimension<Types>::type::value...), bool>::type
-            type;
-    };
-    template <>
-    struct all_dimensions<> : boost::mpl::true_ {};
+    struct is_dimension<dimension<Id>> : std::true_type {};
 
     /** @} */
     /** @} */

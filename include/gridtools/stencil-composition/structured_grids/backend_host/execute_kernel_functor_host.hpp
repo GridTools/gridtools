@@ -90,13 +90,8 @@ namespace gridtools {
 
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 
-            typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
-            typedef typename RunFunctorArguments::execution_type_t execution_type_t;
-
-            typedef typename boost::mpl::front<loop_intervals_t>::type interval;
-            typedef typename index_to_level<typename interval::first>::type from;
-            typedef typename index_to_level<typename interval::second>::type to;
-            typedef ::gridtools::_impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
+            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+            using from_t = GT_META_CALL(meta::first, interval_t);
 
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
@@ -131,8 +126,7 @@ namespace gridtools {
                     m_block_no,
                     {extent_t::iminus::value,
                         extent_t::jminus::value,
-                        static_cast<int_t>(
-                            m_grid.template value_at<typename iteration_policy_t::from>() - m_grid.k_min())});
+                        static_cast<int_t>(m_grid.template value_at<from_t>() - m_grid.k_min())});
 
                 // run the nested ij loop
                 typename iterate_domain_t::array_index_t irestore_index, jrestore_index;

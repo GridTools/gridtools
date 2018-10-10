@@ -123,7 +123,11 @@ if [ "x$TARGET" == "xgpu" ]; then
 else
     ENABLE_HOST=ON
     ENABLE_CUDA=OFF
-    ENABLE_MIC=ON
+    if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
+        ENABLE_MIC=ON
+    else
+        ENABLE_MIC=OFF
+    fi
 fi
 echo "ENABLE_CUDA=$ENABLE_CUDA"
 echo "ENABLE_HOST=$ENABLE_HOST"

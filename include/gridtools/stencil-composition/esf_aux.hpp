@@ -34,8 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/range_c.hpp>
 
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/size.hpp>
+
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "accessor_fwd.hpp"
 #include "arg.hpp"
 
@@ -48,7 +56,7 @@ namespace gridtools {
         template <typename Placeholders, typename Accessors>
         struct make_arg_with_extent_map {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_arg>::value),
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value),
                 "The list of Placeholders seems to contain elements that are not placeholers (i.e., they are not of "
                 "type arg)");
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Accessors, is_accessor>::value), GT_INTERNAL_ERROR);
