@@ -56,7 +56,7 @@ struct gt_fortran_array_descriptor {
     int rank;
     int dims[7];
     void *data;
-    bool is_acc_present = false;
+    bool is_acc_present;
     // TODO: add support for strides, bounds end type gt_fortran_array_descriptor
 };
 typedef struct gt_fortran_array_descriptor gt_fortran_array_descriptor;

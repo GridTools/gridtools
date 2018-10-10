@@ -85,6 +85,7 @@ namespace gridtools {
         gt_fortran_array_descriptor descriptor;
         descriptor.type = c_bindings::fortran_array_element_kind<typename T::data_t>::value;
         descriptor.rank = 3;
+        descriptor.is_acc_present = false;
         return descriptor;
     }
 
