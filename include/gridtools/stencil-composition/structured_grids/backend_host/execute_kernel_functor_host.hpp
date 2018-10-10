@@ -86,7 +86,7 @@ namespace gridtools {
                 meta::lazy::id<positional_iterate_domain<iterate_domain_host_t>>,
                 meta::lazy::id<iterate_domain_host_t>>::type;
 
-            typedef backend_traits_from_id<platform::x86> backend_traits_t;
+            typedef backend_traits_from_id<target::x86> backend_traits_t;
 
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 

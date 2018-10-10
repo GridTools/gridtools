@@ -56,7 +56,7 @@
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the mic backend*/
     template <>
-    struct backend_traits_from_id<platform::mc> {
+    struct backend_traits_from_id<target::mc> {
 
         /** This is the functor used to generate view instances. According to the given storage an appropriate view is
          * returned. When using the Host backend we return host view instances.

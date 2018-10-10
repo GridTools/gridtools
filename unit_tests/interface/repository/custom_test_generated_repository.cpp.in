@@ -42,10 +42,10 @@
 
 using namespace gridtools;
 
-using IJKStorageInfo = typename storage_traits<platform::x86>::storage_info_t<0, 3>;
-using IJKDataStore = typename storage_traits<platform::x86>::data_store_t<float_type, IJKStorageInfo>;
-using IJStorageInfo = typename storage_traits<platform::x86>::storage_info_t<1, 2>;
-using IJDataStore = typename storage_traits<platform::x86>::data_store_t<float_type, IJStorageInfo>;
+using IJKStorageInfo = typename storage_traits<target::x86>::storage_info_t<0, 3>;
+using IJKDataStore = typename storage_traits<target::x86>::data_store_t<float_type, IJKStorageInfo>;
+using IJStorageInfo = typename storage_traits<target::x86>::storage_info_t<1, 2>;
+using IJDataStore = typename storage_traits<target::x86>::data_store_t<float_type, IJStorageInfo>;
 
 // We include a repository file which is generated from preprocessor output
 #include "@GENERATED_REPOSITORY@"

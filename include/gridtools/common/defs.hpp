@@ -160,12 +160,12 @@ namespace gridtools {
         @{
     */
 
-    /** tags specifying the platform to use */
-    namespace platform {
+    /** tags specifying the target to use */
+    namespace target {
         struct cuda {};
         struct mc {};
         struct x86 {};
-    } // namespace platform
+    } // namespace target
 
     /** tags specifying the strategy to use */
     namespace strategy {
