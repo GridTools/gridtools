@@ -42,7 +42,7 @@
 namespace gridtools {
 
     /**
-     *  @brief Execution info class for MIC backend.
+     *  @brief Execution info class for MC backend.
      *  Used for stencils that are executed serially along the k-axis.
      */
     struct execinfo_block_kserial_mc {
@@ -53,7 +53,7 @@ namespace gridtools {
     };
 
     /**
-     *  @brief Execution info class for MIC backend.
+     *  @brief Execution info class for MC backend.
      *  Used for stencils that are executed in parallel along the k-axis.
      */
     struct execinfo_block_kparallel_mc {

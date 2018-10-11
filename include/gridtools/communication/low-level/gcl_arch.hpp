@@ -59,7 +59,7 @@ namespace gridtools {
      */
     struct gcl_gpu {};
 
-    /** Indicates that the data is on the memory of a MIC card.
+    /** Indicates that the data is on the memory of a MC card.
 
         Note: Not supported, placed here only for illustration.
      */

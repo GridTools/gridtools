@@ -111,7 +111,7 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     * @brief Iterate domain class for the MIC backend.
+     * @brief Iterate domain class for the MC backend.
      */
     template <typename IterateDomainArguments>
     class iterate_domain_mc : public iterate_domain_reduction<IterateDomainArguments> {

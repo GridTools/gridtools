@@ -11,7 +11,7 @@
         80
     ],
     "runtime": {
-        "backend": "mic",
+        "backend": "mc",
         "compiler": "/opt/intel/compilers_and_libraries_2017.4.196/linux/bin/intel64/icpc",
         "datetime": "2018-07-24T12:48:40.000000+0000",
         "grid": "icosahedral",

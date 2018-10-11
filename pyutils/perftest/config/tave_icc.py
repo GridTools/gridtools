@@ -4,12 +4,12 @@ from perftest.config import tave_common as default
 
 
 modules = default.modules | {'PrgEnv-intel',
-                             'craype-mic-knl'}
+                             'craype-mc-knl'}
 
 env = dict(default.env,
            CXX='icpc',
            CC='icc',
-           CXXFLAGS='-xmic-avx512',
+           CXXFLAGS='-xmc-avx512',
            OMP_NUM_THREADS=128,
            KMP_AFFINITY='balanced')
 

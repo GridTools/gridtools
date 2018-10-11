@@ -44,7 +44,7 @@ using backend_t = gridtools::backend<gridtools::platform::x86, GRIDBACKEND, grid
 #else
 using backend_t = gridtools::backend<gridtools::platform::x86, GRIDBACKEND, gridtools::strategy::block>;
 #endif
-#elif defined(BACKEND_MIC)
+#elif defined(BACKEND_MC)
 using backend_t = gridtools::backend<gridtools::platform::mc, GRIDBACKEND, gridtools::strategy::block>;
 #elif defined(BACKEND_CUDA)
 using backend_t = gridtools::backend<gridtools::platform::cuda, GRIDBACKEND, gridtools::strategy::block>;
