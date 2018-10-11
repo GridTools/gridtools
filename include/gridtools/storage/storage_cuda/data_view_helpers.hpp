@@ -58,7 +58,7 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename CudaDataStore,
-        typename DecayedCDS = typename std::decay<CudaDataStore>::type>
+        typename DecayedCDS = decay_t<CudaDataStore>>
     enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
                     is_cuda_storage_info<typename DecayedCDS::storage_info_t>::value &&
                     is_data_store<DecayedCDS>::value,
@@ -88,7 +88,7 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename CudaDataStore,
-        typename DecayedCDS = typename std::decay<CudaDataStore>::type>
+        typename DecayedCDS = decay_t<CudaDataStore>>
     enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
                     is_cuda_storage_info<typename DecayedCDS::storage_info_t>::value &&
                     is_data_store<DecayedCDS>::value,
@@ -118,7 +118,7 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename CudaDataStore,
-        typename DecayedCDS = typename std::decay<CudaDataStore>::type>
+        typename DecayedCDS = decay_t<CudaDataStore>>
     enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
                     is_cuda_storage_info<typename DecayedCDS::storage_info_t>::value &&
                     is_data_store<DecayedCDS>::value,
@@ -135,8 +135,8 @@ namespace gridtools {
      */
     template <typename DataStore,
         typename DataView,
-        typename DecayedDS = typename std::decay<DataStore>::type,
-        typename DecayedDV = typename std::decay<DataView>::type>
+        typename DecayedDS = decay_t<DataStore>,
+        typename DecayedDV = decay_t<DataView>>
     enable_if_t<is_cuda_storage<typename DecayedDS::storage_t>::value &&
                     is_cuda_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>

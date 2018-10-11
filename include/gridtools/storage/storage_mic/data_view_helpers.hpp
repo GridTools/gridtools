@@ -55,7 +55,7 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStore,
-        typename DecayedDS = typename std::decay<DataStore>::type>
+        typename DecayedDS = decay_t<DataStore>>
     enable_if_t<is_mic_storage<typename DecayedDS::storage_t>::value &&
                     is_mic_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         data_view<DataStore, AccessMode>>
@@ -75,7 +75,7 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStore,
-        typename DecayedDS = typename std::decay<DataStore>::type>
+        typename DecayedDS = decay_t<DataStore>>
     enable_if_t<is_mic_storage<typename DecayedDS::storage_t>::value &&
                     is_mic_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         data_view<DataStore, AccessMode>>
@@ -91,8 +91,8 @@ namespace gridtools {
      */
     template <typename DataStore,
         typename DataView,
-        typename DecayedDS = typename std::decay<DataStore>::type,
-        typename DecayedDV = typename std::decay<DataView>::type>
+        typename DecayedDS = decay_t<DataStore>,
+        typename DecayedDV = decay_t<DataView>>
     enable_if_t<is_mic_storage<typename DecayedDS::storage_t>::value &&
                     is_mic_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>
