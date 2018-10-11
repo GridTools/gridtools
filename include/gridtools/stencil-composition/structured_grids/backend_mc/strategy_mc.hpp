@@ -51,12 +51,12 @@
 #include "../../mss_functor.hpp"
 #include "../../reductions/reduction_data.hpp"
 
-#include "./execinfo_mic.hpp"
+#include "./execinfo_mc.hpp"
 
 namespace gridtools {
 
     template <class>
-    struct strategy_from_id_mic;
+    struct strategy_from_id_mc;
 
     namespace _impl {
 
@@ -85,7 +85,7 @@ namespace gridtools {
      * @brief Specialization for the \ref gridtools::strategy::block strategy.
      */
     template <>
-    struct strategy_from_id_mic<strategy::block> {
+    struct strategy_from_id_mc<strategy::block> {
         /**
          * @brief Loops over all blocks and executes sequentially all MSS functors for each block.
          * Implementation for stencils with serial execution along k-axis.
@@ -108,9 +108,9 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execinfo_mic::block_kserial_t>;
+                    execinfo_mc::block_kserial_t>;
 
-                execinfo_mic exinfo(grid);
+                execinfo_mc exinfo(grid);
                 const int_t i_blocks = exinfo.i_blocks();
                 const int_t j_blocks = exinfo.j_blocks();
 #pragma omp parallel for collapse(2)
@@ -149,9 +149,9 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execinfo_mic::block_kparallel_t>;
+                    execinfo_mc::block_kparallel_t>;
 
-                execinfo_mic exinfo(grid);
+                execinfo_mc exinfo(grid);
                 const int_t i_blocks = exinfo.i_blocks();
                 const int_t j_blocks = exinfo.j_blocks();
                 const int_t k_first = grid.k_min();

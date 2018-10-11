@@ -58,7 +58,7 @@ namespace gridtools {
      * methods, etc.
      */
     template <typename DataType>
-    struct mic_storage : storage_interface<mic_storage<DataType>> {
+    struct mc_storage : storage_interface<mc_storage<DataType>> {
         typedef DataType data_t;
         typedef data_t *ptrs_t;
         typedef state_machine state_machine_t;
@@ -69,16 +69,16 @@ namespace gridtools {
         ownership m_ownership = ownership::Full;
 
       public:
-        mic_storage(mic_storage const &) = delete;
-        mic_storage &operator=(mic_storage const &) = delete;
+        mc_storage(mc_storage const &) = delete;
+        mc_storage &operator=(mc_storage const &) = delete;
         /*
-         * @brief mic_storage constructor. Allocates data aligned to 2MB pages (to encourage the system to use
+         * @brief mc_storage constructor. Allocates data aligned to 2MB pages (to encourage the system to use
          * transparent huge pages) and adds an additional samll offset which changes for every allocation to reduce the
          * risk of L1 cache set conflicts.
          * @param size defines the size of the storage and the allocated space.
          */
         template <uint_t Align = 1>
-        mic_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{}) {
+        mc_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{}) {
             // New will align addresses according to the size(data_t)
             static std::atomic<uint_t> s_data_offset(64);
             uint_t data_offset = s_data_offset.load(std::memory_order_relaxed);
@@ -104,44 +104,44 @@ namespace gridtools {
         }
 
         /*
-         * @brief mic_storage constructor. Does not allocate memory but uses an external pointer.
+         * @brief mc_storage constructor. Does not allocate memory but uses an external pointer.
          * Reason for having this is to support externally allocated memory (e.g., from Fortran or Python).
          * @param size defines the size of the storage and the allocated space.
          * @param external_ptr a pointer to the external data
          * @param own ownership information (in this case only externalCPU is valid)
          */
-        explicit constexpr mic_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
+        explicit constexpr mc_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
             : m_cpu_ptr(external_ptr),
               m_ownership(error_or_return(
-                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using mic_storage")) {}
+                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using mc_storage")) {}
 
         /*
-         * @brief mic_storage constructor. Allocate memory on Mic and initialize the memory according to the given
+         * @brief mc_storage constructor. Allocate memory on Mic and initialize the memory according to the given
          * initializer.
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
         template <typename Funct, uint_t Align = 1>
-        mic_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
-            : mic_storage(size, offset_to_align, a) {
+        mc_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
+            : mc_storage(size, offset_to_align, a) {
             for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer(i);
             }
         }
 
         /*
-         * @brief mic_storage destructor.
+         * @brief mc_storage destructor.
          */
-        ~mic_storage() {
+        ~mc_storage() {
             if (m_ownership == ownership::Full && m_allocated_ptr) {
                 free(m_allocated_ptr);
             }
         }
 
         /*
-         * @brief swap implementation for mic_storage
+         * @brief swap implementation for mc_storage
          */
-        void swap_impl(mic_storage &other) {
+        void swap_impl(mc_storage &other) {
             using std::swap;
             swap(m_cpu_ptr, other.m_cpu_ptr);
             swap(m_allocated_ptr, other.m_allocated_ptr);
@@ -149,7 +149,7 @@ namespace gridtools {
         }
 
         /*
-         * @brief retrieve the mic data pointer.
+         * @brief retrieve the mc data pointer.
          * @return data pointer
          */
         data_t *get_cpu_ptr() const {
@@ -158,60 +158,60 @@ namespace gridtools {
         }
 
         /*
-         * @brief get_ptrs implementation for mic_storage.
+         * @brief get_ptrs implementation for mc_storage.
          */
         ptrs_t get_ptrs_impl() const { return m_cpu_ptr; }
 
         /*
-         * @brief valid implementation for mic_storage.
+         * @brief valid implementation for mc_storage.
          */
         bool valid_impl() const { return m_cpu_ptr; }
 
         /*
-         * @brief clone_to_device implementation for mic_storage.
+         * @brief clone_to_device implementation for mc_storage.
          */
         void clone_to_device_impl(){};
 
         /*
-         * @brief clone_from_device implementation for mic_storage.
+         * @brief clone_from_device implementation for mc_storage.
          */
         void clone_from_device_impl(){};
 
         /*
-         * @brief synchronization implementation for mic_storage.
+         * @brief synchronization implementation for mc_storage.
          */
         void sync_impl(){};
 
         /*
-         * @brief device_needs_update implementation for mic_storage.
+         * @brief device_needs_update implementation for mc_storage.
          */
         bool device_needs_update_impl() const { return false; }
 
         /*
-         * @brief host_needs_update implementation for mic_storage.
+         * @brief host_needs_update implementation for mc_storage.
          */
         bool host_needs_update_impl() const { return false; }
 
         /*
-         * @brief reactivate_device_write_views implementation for mic_storage.
+         * @brief reactivate_device_write_views implementation for mc_storage.
          */
         void reactivate_device_write_views_impl() {}
 
         /*
-         * @brief reactivate_host_write_views implementation for mic_storage.
+         * @brief reactivate_host_write_views implementation for mc_storage.
          */
         void reactivate_host_write_views_impl() {}
 
         /*
-         * @brief get_state_machine_ptr implementation for mic_storage.
+         * @brief get_state_machine_ptr implementation for mc_storage.
          */
         state_machine *get_state_machine_ptr_impl() { return nullptr; }
     };
 
-    // simple metafunction to check if a type is a mic storage
+    // simple metafunction to check if a type is a mc storage
     template <typename T>
-    struct is_mic_storage : boost::mpl::false_ {};
+    struct is_mc_storage : boost::mpl::false_ {};
 
     template <typename T>
-    struct is_mic_storage<mic_storage<T>> : boost::mpl::true_ {};
+    struct is_mc_storage<mc_storage<T>> : boost::mpl::true_ {};
 } // namespace gridtools

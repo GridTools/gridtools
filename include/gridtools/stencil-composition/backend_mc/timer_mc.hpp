@@ -35,14 +35,47 @@
 */
 #pragma once
 
-#include "../../../common/defs.hpp"
-#include "../../backend_ids.hpp"
-#include "../../grid_traits_fwd.hpp"
-#include "./execute_kernel_functor_mic_fwd.hpp"
+#include "../../common/defs.hpp"
+#include "../timer.hpp"
 
 namespace gridtools {
-    template <class Args>
-    struct kernel_functor_executor<backend_ids<platform::mc, grid_type::structured, strategy::block>, Args> {
-        using type = strgrid::execute_kernel_functor_mic<Args>;
+
+    /**
+     * @class timer_mc
+     * mc implementation of the Timer interface
+     */
+    class timer_mc : public timer<timer_mc> // CRTP
+    {
+      public:
+        timer_mc(std::string name) : timer<timer_mc>(name) { startTime_ = 0.0; }
+        ~timer_mc() {}
+
+        /**
+         * Reset counters
+         */
+        void set_impl(double const &time_) { startTime_ = time_; }
+
+        /**
+         * Start the stop watch
+         */
+        void start_impl() {
+#if defined(_OPENMP)
+            startTime_ = omp_get_wtime();
+#endif
+        }
+
+        /**
+         * Pause the stop watch
+         */
+        double pause_impl() {
+#if defined(_OPENMP)
+            return omp_get_wtime() - startTime_;
+#else
+            return -100;
+#endif
+        }
+
+      private:
+        double startTime_;
     };
 } // namespace gridtools

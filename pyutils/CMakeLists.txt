@@ -30,8 +30,8 @@ if(ENABLE_CUDA)
     set(PERFTEST_BACKEND "cuda")
 endif()
 
-if(ENABLE_MIC)
-    set(PERFTEST_BACKEND "mic")
+if(ENABLE_MC)
+    set(PERFTEST_BACKEND "mc")
 endif()
 
 file(COPY . DESTINATION . FILES_MATCHING PATTERN *.py)

@@ -44,8 +44,8 @@
 #include "../../common/gt_assert.hpp"
 #include "../data_store.hpp"
 #include "../data_view.hpp"
-#include "mic_storage.hpp"
-#include "mic_storage_info.hpp"
+#include "mc_storage.hpp"
+#include "mc_storage_info.hpp"
 
 namespace gridtools {
 
@@ -53,13 +53,13 @@ namespace gridtools {
      * @brief function used to create views to data stores (read-write/read-only).
      * @tparam AccessMode access mode information (default is read-write).
      * @param ds data store
-     * @return a mic view to the given data store.
+     * @return a mc view to the given data store.
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStore,
         typename DecayedDS = typename boost::decay<DataStore>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDS::storage_t>,
-                                  is_mic_storage_info<typename DecayedDS::storage_info_t>,
+    typename boost::enable_if<boost::mpl::and_<is_mc_storage<typename DecayedDS::storage_t>,
+                                  is_mc_storage_info<typename DecayedDS::storage_info_t>,
                                   is_data_store<DecayedDS>>,
         data_view<DataStore, AccessMode>>::type
     make_host_view(DataStore const &ds) {
@@ -80,8 +80,8 @@ namespace gridtools {
         typename DataView,
         typename DecayedDS = typename boost::decay<DataStore>::type,
         typename DecayedDV = typename boost::decay<DataView>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDS::storage_t>,
-                                  is_mic_storage_info<typename DecayedDS::storage_info_t>,
+    typename boost::enable_if<boost::mpl::and_<is_mc_storage<typename DecayedDS::storage_t>,
+                                  is_mc_storage_info<typename DecayedDS::storage_info_t>,
                                   is_data_store<DecayedDS>>,
         bool>::type
     check_consistency(DataStore const &ds, DataView const &dv) {

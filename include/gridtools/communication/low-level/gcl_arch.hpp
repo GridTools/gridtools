@@ -41,7 +41,7 @@
     defined. The Architectures specifies where the data to be
     exchanged by communication patterns are residing. The possible
     choices are: \link gridtools::gcl_cpu \endlink , \link gridtools::gcl_gpu
-    \endlink , end, for illustration purpose only, \link gridtools::gcl_mic
+    \endlink , end, for illustration purpose only, \link gridtools::gcl_mc
     \endlink , which is not supported at the moment.
 
     The assumption is that data to be exchanged is in the same place
@@ -63,7 +63,7 @@ namespace gridtools {
 
         Note: Not supported, placed here only for illustration.
      */
-    struct gcl_mic {}; // Not supported, placed here only for illustration.
+    struct gcl_mc {}; // Not supported, placed here only for illustration.
 } // namespace gridtools
 
 #endif

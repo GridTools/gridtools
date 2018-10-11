@@ -45,7 +45,7 @@ namespace gridtools {
      *  @brief Execution info class for MIC backend.
      *  Used for stencils that are executed serially along the k-axis.
      */
-    struct execinfo_block_kserial_mic {
+    struct execinfo_block_kserial_mc {
         int_t i_first;      /** First index in block along i-axis. */
         int_t j_first;      /** First index in block along j-axis. */
         int_t i_block_size; /** Size of block along i-axis. */
@@ -56,7 +56,7 @@ namespace gridtools {
      *  @brief Execution info class for MIC backend.
      *  Used for stencils that are executed in parallel along the k-axis.
      */
-    struct execinfo_block_kparallel_mic {
+    struct execinfo_block_kparallel_mc {
         int_t i_first;      /** First index in block along i-axis. */
         int_t j_first;      /** First index in block along j-axis. */
         int_t k;            /** Position along k-axis. */
@@ -67,13 +67,13 @@ namespace gridtools {
     /**
      * @brief Helper class for block handling.
      */
-    class execinfo_mic {
+    class execinfo_mc {
       public:
-        using block_kserial_t = execinfo_block_kserial_mic;
-        using block_kparallel_t = execinfo_block_kparallel_mic;
+        using block_kserial_t = execinfo_block_kserial_mc;
+        using block_kparallel_t = execinfo_block_kparallel_mc;
 
         template <class Grid>
-        GT_FUNCTION execinfo_mic(const Grid &grid)
+        GT_FUNCTION execinfo_mc(const Grid &grid)
             : m_i_grid_size(grid.i_high_bound() - grid.i_low_bound() + 1),
               m_j_grid_size(grid.j_high_bound() - grid.j_low_bound() + 1), m_i_low_bound(grid.i_low_bound()),
               m_j_low_bound(grid.j_low_bound()) {

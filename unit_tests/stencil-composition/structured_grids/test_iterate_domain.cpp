@@ -47,8 +47,8 @@
 #include <gridtools/stencil-composition/structured_grids/backend_host/iterate_domain_host.hpp>
 #endif
 
-#ifdef BACKEND_MIC
-#include <gridtools/stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp>
+#ifdef BACKEND_MC
+#include <gridtools/stencil-composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
 #endif
 
 #include "backend_select.hpp"
@@ -120,8 +120,8 @@ namespace gridtools {
                     boost::mpl::false_,
                     notype>;
 
-#ifdef BACKEND_MIC
-            using it_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
+#ifdef BACKEND_MC
+            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
 #endif
 
 #ifdef BACKEND_HOST
@@ -133,7 +133,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
 
-#ifndef BACKEND_MIC
+#ifndef BACKEND_MC
             typedef typename it_domain_t::strides_cached_t strides_t;
             strides_t strides;
 
@@ -143,7 +143,7 @@ namespace gridtools {
 #endif
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-#ifndef BACKEND_MIC
+#ifndef BACKEND_MC
             it_domain.initialize({}, {}, {});
 #endif
             auto inv = make_host_view(in);
@@ -169,7 +169,7 @@ namespace gridtools {
             ASSERT_EQ(0, index[0]);
             ASSERT_EQ(0, index[1]);
             ASSERT_EQ(0, index[2]);
-#ifndef BACKEND_MIC
+#ifndef BACKEND_MC
             index[0] += 3;
             index[1] += 2;
             index[2] += 1;
@@ -185,7 +185,7 @@ namespace gridtools {
             auto mdb = buff.get_storage_info_ptr();
             auto mdi = in.get_storage_info_ptr();
 
-#ifdef BACKEND_MIC
+#ifdef BACKEND_MC
             it_domain.set_i_block_index(1);
             it_domain.set_j_block_index(1);
             it_domain.set_k_block_index(1);
@@ -202,7 +202,7 @@ namespace gridtools {
             EXPECT_EQ(index[1] + mdb->stride<0>() + mdb->stride<1>() + mdb->stride<2>(), new_index[1]);
             EXPECT_EQ(index[2] + mdo->stride<0>() + mdo->stride<1>(), new_index[2]);
 
-#ifndef BACKEND_MIC
+#ifndef BACKEND_MC
             // check strides initialization
             // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
             EXPECT_EQ(mdi->stride<3>(), strides.get<0>()[0]);

@@ -64,7 +64,7 @@ namespace gridtools {
          * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
         inline float thread_factor() {
-            thread_local static const float value = (float) omp_get_thread_num() / omp_get_max_threads();
+            thread_local static const float value = (float)omp_get_thread_num() / omp_get_max_threads();
             return value;
         }
 
@@ -114,7 +114,7 @@ namespace gridtools {
      * @brief Iterate domain class for the MIC backend.
      */
     template <typename IterateDomainArguments>
-    class iterate_domain_mic : public iterate_domain_reduction<IterateDomainArguments> {
+    class iterate_domain_mc : public iterate_domain_reduction<IterateDomainArguments> {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
@@ -191,7 +191,7 @@ namespace gridtools {
 
         // helper class for index array generation, only needed for the index() function
         struct index_getter {
-            index_getter(iterate_domain_mic const &it_domain, array_index_t &index_array)
+            index_getter(iterate_domain_mc const &it_domain, array_index_t &index_array)
                 : m_it_domain(it_domain), m_index_array(index_array) {}
 
             template <class StorageInfoIndex>
@@ -206,7 +206,7 @@ namespace gridtools {
             }
 
           private:
-            iterate_domain_mic const &m_it_domain;
+            iterate_domain_mc const &m_it_domain;
             array<int_t, N_META_STORAGES> &m_index_array;
         };
 
@@ -226,7 +226,7 @@ namespace gridtools {
 
       public:
         GT_FUNCTION
-        iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
+        iterate_domain_mc(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_i_block_index(0),
               m_j_block_index(0), m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
               m_enable_ij_caches(false) {
@@ -456,8 +456,8 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     template <typename Accessor, typename StoragePointer>
-    GT_FUNCTION typename iterate_domain_mic<IterateDomainArguments>::template accessor_return_type<Accessor>::type
-    iterate_domain_mic<IterateDomainArguments>::get_value(
+    GT_FUNCTION typename iterate_domain_mc<IterateDomainArguments>::template accessor_return_type<Accessor>::type
+    iterate_domain_mc<IterateDomainArguments>::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
         // getting information about the storage
         using arg_t = typename local_domain_t::template get_arg<typename Accessor::index_t>::type;
@@ -486,6 +486,6 @@ namespace gridtools {
     }
 
     template <typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_mic<IterateDomainArguments>> : boost::mpl::true_ {};
+    struct is_iterate_domain<iterate_domain_mc<IterateDomainArguments>> : boost::mpl::true_ {};
 
 } // namespace gridtools

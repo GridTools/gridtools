@@ -42,8 +42,8 @@
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../loop_interval.hpp"
-#include "./execinfo_mic.hpp"
-#include "./iterate_domain_mic.hpp"
+#include "./execinfo_mc.hpp"
+#include "./iterate_domain_mc.hpp"
 
 namespace gridtools {
 
@@ -52,7 +52,7 @@ namespace gridtools {
         template <class RunFunctorArguments>
         GT_META_DEFINE_ALIAS(get_iterate_domain_type,
             meta::id,
-            (iterate_domain_mic<iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
+            (iterate_domain_mc<iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
                     typename RunFunctorArguments::local_domain_t,
                     typename RunFunctorArguments::esf_sequence_t,
                     typename RunFunctorArguments::extent_sizes_t,
@@ -76,7 +76,7 @@ namespace gridtools {
                    missing vector-sized k-caches and possibly alignment issues. */
                 false>;
 
-        constexpr int_t veclength_mic = 64 / sizeof(float_type);
+        constexpr int_t veclength_mc = 64 / sizeof(float_type);
 
         /**
          * @brief Class for inner (block-level) looping.
@@ -87,14 +87,14 @@ namespace gridtools {
          * @tparam To the last K-axis level to process.
          */
         template <typename RunFunctorArguments, typename From, typename To>
-        class inner_functor_mic_kserial_fused {
+        class inner_functor_mc_kserial_fused {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
 
           public:
-            GT_FUNCTION inner_functor_mic_kserial_fused(iterate_domain_t &it_domain,
+            GT_FUNCTION inner_functor_mc_kserial_fused(iterate_domain_t &it_domain,
                 const grid_t &grid,
-                const execinfo_block_kserial_mic &execution_info,
+                const execinfo_block_kserial_mc &execution_info,
                 int_t i_vecfirst,
                 int_t i_veclast)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info), m_i_vecfirst(i_vecfirst),
@@ -136,7 +136,7 @@ namespace gridtools {
           private:
             iterate_domain_t &m_it_domain;
             const grid_t &m_grid;
-            const execinfo_block_kserial_mic &m_execution_info;
+            const execinfo_block_kserial_mc &m_execution_info;
             const int_t m_i_vecfirst, m_i_veclast;
         };
 
@@ -149,13 +149,13 @@ namespace gridtools {
          * @tparam To the last K-axis level to process.
          */
         template <typename RunFunctorArguments, typename From, typename To>
-        class inner_functor_mic_kserial {
+        class inner_functor_mc_kserial {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
-            GT_FUNCTION inner_functor_mic_kserial(
-                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mic &execution_info)
+            GT_FUNCTION inner_functor_mc_kserial(
+                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mc &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
             /**
@@ -195,7 +195,7 @@ namespace gridtools {
           private:
             iterate_domain_t &m_it_domain;
             const grid_t &m_grid;
-            const execinfo_block_kserial_mic &m_execution_info;
+            const execinfo_block_kserial_mc &m_execution_info;
         };
 
         /**
@@ -207,9 +207,9 @@ namespace gridtools {
          * @tparam To the last K-axis level to process.
          */
         template <typename ItDomain>
-        struct inner_functor_mic_kparallel {
+        struct inner_functor_mc_kparallel {
             ItDomain &m_it_domain;
-            const execinfo_block_kparallel_mic &m_execution_info;
+            const execinfo_block_kparallel_mc &m_execution_info;
 
             /**
              * @brief Executes the corresponding functor on a single k-level inside the block.
@@ -245,22 +245,22 @@ namespace gridtools {
          * @brief Class for per-block looping on a single interval.
          */
         template <typename RunFunctorArguments, typename ExecutionInfo, typename Enable = void>
-        class interval_functor_mic;
+        class interval_functor_mc;
 
         /**
          * @brief Class for per-block looping on a single interval.
          * Specialization for stencils with serial execution along k-axis and max extent of 0.
          */
         template <typename RunFunctorArguments>
-        class interval_functor_mic<RunFunctorArguments,
-            execinfo_block_kserial_mic,
+        class interval_functor_mc<RunFunctorArguments,
+            execinfo_block_kserial_mc,
             enable_if_t<enable_inner_k_fusion<RunFunctorArguments>::value>> {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
-            GT_FUNCTION interval_functor_mic(
-                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mic &execution_info)
+            GT_FUNCTION interval_functor_mc(
+                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mc &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
             /**
@@ -272,7 +272,7 @@ namespace gridtools {
                 using stages_t = GT_META_CALL(meta::flatten, StageGroups);
                 using indices_t = GT_META_CALL(meta::make_indices_for, stages_t);
                 using stages_and_indices_t = GT_META_CALL(meta::zip, (stages_t, indices_t));
-                using inner_functor_t = inner_functor_mic_kserial_fused<RunFunctorArguments, From, To>;
+                using inner_functor_t = inner_functor_mc_kserial_fused<RunFunctorArguments, From, To>;
 
                 const int_t i_first = extent_t::iminus::value;
                 const int_t i_last = m_execution_info.i_block_size + extent_t::iplus::value;
@@ -282,9 +282,8 @@ namespace gridtools {
                 m_it_domain.set_block_base(m_execution_info.i_first, m_execution_info.j_first);
                 for (int_t j = j_first; j < j_last; ++j) {
                     m_it_domain.set_j_block_index(j);
-                    for (int_t i_vecfirst = i_first; i_vecfirst < i_last; i_vecfirst += veclength_mic) {
-                        const int_t i_veclast =
-                            i_vecfirst + veclength_mic > i_last ? i_last : i_vecfirst + veclength_mic;
+                    for (int_t i_vecfirst = i_first; i_vecfirst < i_last; i_vecfirst += veclength_mc) {
+                        const int_t i_veclast = i_vecfirst + veclength_mc > i_last ? i_last : i_vecfirst + veclength_mc;
                         gridtools::for_each<stages_and_indices_t>(
                             inner_functor_t(m_it_domain, m_grid, m_execution_info, i_vecfirst, i_veclast));
                     }
@@ -294,7 +293,7 @@ namespace gridtools {
           private:
             iterate_domain_t &m_it_domain;
             const grid_t &m_grid;
-            const execinfo_block_kserial_mic &m_execution_info;
+            const execinfo_block_kserial_mc &m_execution_info;
         };
 
         /**
@@ -302,15 +301,15 @@ namespace gridtools {
          * Specialization for stencils with serial execution along k-axis and non-zero max extent.
          */
         template <typename RunFunctorArguments>
-        class interval_functor_mic<RunFunctorArguments,
-            execinfo_block_kserial_mic,
+        class interval_functor_mc<RunFunctorArguments,
+            execinfo_block_kserial_mc,
             enable_if_t<!enable_inner_k_fusion<RunFunctorArguments>::value>> {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
-            GT_FUNCTION interval_functor_mic(
-                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mic &execution_info)
+            GT_FUNCTION interval_functor_mc(
+                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kserial_mc &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {}
 
             /**
@@ -319,13 +318,13 @@ namespace gridtools {
             template <class From, class To, class StageGroups>
             GT_FUNCTION void operator()(loop_interval<From, To, StageGroups>) const {
                 gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
-                    inner_functor_mic_kserial<RunFunctorArguments, From, To>(m_it_domain, m_grid, m_execution_info));
+                    inner_functor_mc_kserial<RunFunctorArguments, From, To>(m_it_domain, m_grid, m_execution_info));
             }
 
           private:
             iterate_domain_t &m_it_domain;
             const grid_t &m_grid;
-            const execinfo_block_kserial_mic &m_execution_info;
+            const execinfo_block_kserial_mc &m_execution_info;
         };
 
         /**
@@ -333,13 +332,13 @@ namespace gridtools {
          * Specialization for stencils with parallel execution along k-axis.
          */
         template <typename RunFunctorArguments, typename Enable>
-        class interval_functor_mic<RunFunctorArguments, execinfo_block_kparallel_mic, Enable> {
+        class interval_functor_mc<RunFunctorArguments, execinfo_block_kparallel_mc, Enable> {
             using grid_t = typename RunFunctorArguments::grid_t;
             using iterate_domain_t = GT_META_CALL(get_iterate_domain_type, RunFunctorArguments);
 
           public:
-            GT_FUNCTION interval_functor_mic(
-                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kparallel_mic &execution_info)
+            GT_FUNCTION interval_functor_mc(
+                iterate_domain_t &it_domain, const grid_t &grid, const execinfo_block_kparallel_mc &execution_info)
                 : m_it_domain(it_domain), m_grid(grid), m_execution_info(execution_info) {
                 // enable ij-caches
                 m_it_domain.enable_ij_caches();
@@ -355,13 +354,13 @@ namespace gridtools {
 
                 if (k_first <= m_execution_info.k && m_execution_info.k <= k_last)
                     gridtools::for_each<GT_META_CALL(meta::flatten, StageGroups)>(
-                        inner_functor_mic_kparallel<iterate_domain_t>{m_it_domain, m_execution_info});
+                        inner_functor_mc_kparallel<iterate_domain_t>{m_it_domain, m_execution_info});
             }
 
           private:
             iterate_domain_t &m_it_domain;
             const grid_t &m_grid;
-            const execinfo_block_kparallel_mic &m_execution_info;
+            const execinfo_block_kparallel_mc &m_execution_info;
         };
 
     } // namespace _impl
@@ -372,13 +371,13 @@ namespace gridtools {
          * @brief Class for executing all functors on a single block.
          */
         template <typename RunFunctorArguments>
-        class execute_kernel_functor_mic {
+        class execute_kernel_functor_mc {
             using grid_t = typename RunFunctorArguments::grid_t;
             using local_domain_t = typename RunFunctorArguments::local_domain_t;
             using reduction_data_t = typename RunFunctorArguments::reduction_data_t;
 
           public:
-            GT_FUNCTION execute_kernel_functor_mic(
+            GT_FUNCTION execute_kernel_functor_mc(
                 const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
                 : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data) {}
 
@@ -389,7 +388,7 @@ namespace gridtools {
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
                 gridtools::for_each<typename RunFunctorArguments::loop_intervals_t>(
-                    gridtools::_impl::interval_functor_mic<RunFunctorArguments, ExecutionInfo>(
+                    gridtools::_impl::interval_functor_mc<RunFunctorArguments, ExecutionInfo>(
                         it_domain, m_grid, execution_info));
 
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());

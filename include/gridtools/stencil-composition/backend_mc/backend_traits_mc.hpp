@@ -41,11 +41,11 @@
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
 
-#include "../structured_grids/backend_mic/execute_kernel_functor_mic.hpp"
-#include "../structured_grids/backend_mic/strategy_mic.hpp"
+#include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
+#include "../structured_grids/backend_mc/strategy_mc.hpp"
 
 #ifdef ENABLE_METERS
-#include "timer_mic.hpp"
+#include "timer_mc.hpp"
 #else
 #include "../timer_dummy.hpp"
 #endif
@@ -54,7 +54,7 @@
 @brief type definitions and structures specific for the Mic backend
 */
 namespace gridtools {
-    /**Traits struct, containing the types which are specific for the mic backend*/
+    /**Traits struct, containing the types which are specific for the mc backend*/
     template <>
     struct backend_traits_from_id<platform::mc> {
 
@@ -93,7 +93,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
-                strgrid::execute_kernel_functor_mic<RunFunctorArgs>(local_domain, grid, reduction_data)(execution_info);
+                strgrid::execute_kernel_functor_mc<RunFunctorArgs>(local_domain, grid, reduction_data)(execution_info);
             }
         };
 
@@ -106,11 +106,11 @@ namespace gridtools {
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_mic<typename BackendIds::strategy_id_t> type;
+            typedef strategy_from_id_mc<typename BackendIds::strategy_id_t> type;
         };
 
 #ifdef ENABLE_METERS
-        typedef timer_mic performance_meter_t;
+        typedef timer_mc performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;
 #endif

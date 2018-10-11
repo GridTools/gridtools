@@ -51,7 +51,7 @@
 #include "./backend_cuda/backend_traits_cuda.hpp"
 #endif
 #include "./backend_host/backend_traits_host.hpp"
-#include "./backend_mic/backend_traits_mic.hpp"
+#include "./backend_mc/backend_traits_mc.hpp"
 
 /**
    @file

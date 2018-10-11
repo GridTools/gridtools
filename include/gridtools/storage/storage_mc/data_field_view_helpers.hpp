@@ -43,8 +43,8 @@
 #include "../../common/gt_assert.hpp"
 #include "../data_field_view.hpp"
 #include "../data_store_field.hpp"
-#include "mic_storage.hpp"
-#include "mic_storage_info.hpp"
+#include "mc_storage.hpp"
+#include "mc_storage_info.hpp"
 
 namespace gridtools {
 
@@ -57,8 +57,8 @@ namespace gridtools {
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStoreField,
         typename DecayedDSF = typename boost::decay<DataStoreField>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDSF::storage_t>,
-                                  is_mic_storage_info<typename DecayedDSF::storage_info_t>,
+    typename boost::enable_if<boost::mpl::and_<is_mc_storage<typename DecayedDSF::storage_t>,
+                                  is_mc_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         data_field_view<DecayedDSF, AccessMode>>::type
     make_field_host_view(DataStoreField &ds) {
@@ -91,8 +91,8 @@ namespace gridtools {
         typename DataFieldView,
         typename DecayedDSF = typename boost::decay<DataStoreField>::type,
         typename DecayedDFV = typename boost::decay<DataFieldView>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDSF::storage_t>,
-                                  is_mic_storage_info<typename DecayedDSF::storage_info_t>,
+    typename boost::enable_if<boost::mpl::and_<is_mc_storage<typename DecayedDSF::storage_t>,
+                                  is_mc_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         bool>::type
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {
