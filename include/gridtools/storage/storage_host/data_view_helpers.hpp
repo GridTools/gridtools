@@ -75,23 +75,6 @@ namespace gridtools {
     }
 
     /**
-     * @brief Create a view to the target (host view for host storage, device view for cuda storage)
-     * @tparam AccessMode access mode information (default is read-write).
-     * @param ds data store
-     * @return a host view to the given data store.
-     */
-    template <access_mode AccessMode = access_mode::ReadWrite,
-        typename DataStore,
-        typename DecayedDS = typename boost::decay<DataStore>::type>
-    typename boost::enable_if<boost::mpl::and_<is_host_storage<typename DecayedDS::storage_t>,
-                                  is_host_storage_info<typename DecayedDS::storage_info_t>,
-                                  is_data_store<DecayedDS>>,
-        data_view<DataStore, AccessMode>>::type
-    make_target_view(DataStore const &ds) {
-        return make_host_view<AccessMode>(ds);
-    }
-
-    /**
      * @brief function that can be used to check if a view is in a consistent state
      * @param ds data store
      * @param dv data view
