@@ -38,9 +38,7 @@
 
 #include <assert.h>
 
-#include <boost/type_traits.hpp>
-#include <boost/utility.hpp>
-
+#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../data_store.hpp"
 #include "../data_view.hpp"
@@ -57,11 +55,10 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStore,
-        typename DecayedDS = typename boost::decay<DataStore>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDS::storage_t>,
-                                  is_mic_storage_info<typename DecayedDS::storage_info_t>,
-                                  is_data_store<DecayedDS>>,
-        data_view<DataStore, AccessMode>>::type
+        typename DecayedDS = typename std::decay<DataStore>::type>
+    enable_if_t<is_mic_storage<typename DecayedDS::storage_t>::value &&
+                    is_mic_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+        data_view<DataStore, AccessMode>>
     make_host_view(DataStore const &ds) {
         return ds.valid() ? data_view<DecayedDS, AccessMode>(ds.get_storage_ptr()->get_cpu_ptr(),
                                 ds.get_storage_info_ptr().get(),
@@ -78,11 +75,10 @@ namespace gridtools {
      */
     template <access_mode AccessMode = access_mode::ReadWrite,
         typename DataStore,
-        typename DecayedDS = typename boost::decay<DataStore>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDS::storage_t>,
-                                  is_mic_storage_info<typename DecayedDS::storage_info_t>,
-                                  is_data_store<DecayedDS>>,
-        data_view<DataStore, AccessMode>>::type
+        typename DecayedDS = typename std::decay<DataStore>::type>
+    enable_if_t<is_mic_storage<typename DecayedDS::storage_t>::value &&
+                    is_mic_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+        data_view<DataStore, AccessMode>>
     make_target_view(DataStore const &ds) {
         return make_host_view<AccessMode>(ds);
     }
@@ -95,12 +91,11 @@ namespace gridtools {
      */
     template <typename DataStore,
         typename DataView,
-        typename DecayedDS = typename boost::decay<DataStore>::type,
-        typename DecayedDV = typename boost::decay<DataView>::type>
-    typename boost::enable_if<boost::mpl::and_<is_mic_storage<typename DecayedDS::storage_t>,
-                                  is_mic_storage_info<typename DecayedDS::storage_info_t>,
-                                  is_data_store<DecayedDS>>,
-        bool>::type
+        typename DecayedDS = typename std::decay<DataStore>::type,
+        typename DecayedDV = typename std::decay<DataView>::type>
+    enable_if_t<is_mic_storage<typename DecayedDS::storage_t>::value &&
+                    is_mic_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+        bool>
     check_consistency(DataStore const &ds, DataView const &dv) {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_view<DecayedDV>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_view type"));
