@@ -37,15 +37,15 @@
 
 #include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/type_traits.hpp"
-#include "../../backend_host/basic_token_execution_host.hpp"
+#include "../../backend_x86/basic_token_execution_x86.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../grid_traits.hpp"
 #include "../stage.hpp"
-#include "./iterate_domain_host.hpp"
-#include "./run_esf_functor_host.hpp"
+#include "./iterate_domain_x86.hpp"
+#include "./run_esf_functor_x86.hpp"
 
 namespace gridtools {
 
@@ -91,7 +91,7 @@ namespace gridtools {
             void operator()(Color) const {
                 for (uint_t j = 0; j != m_loop_size; ++j) {
                     auto memorized_index = m_it_domain.index();
-                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_host<Color::value>>(
+                    run_functors_on_interval<RunFunctorArguments, run_esf_functor_x86<Color::value>>(
                         m_it_domain, m_grid);
                     m_it_domain.set_index(memorized_index);
                     m_it_domain.increment_j();
@@ -111,7 +111,7 @@ namespace gridtools {
          * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
          */
         template <typename RunFunctorArguments>
-        struct execute_kernel_functor_host {
+        struct execute_kernel_functor_x86 {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
@@ -123,7 +123,7 @@ namespace gridtools {
 
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
-            // in the host backend there should be only one esf per mss
+            // in the x86 backend there should be only one esf per mss
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size<typename RunFunctorArguments::extent_sizes_t>::value == 1), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
@@ -137,7 +137,7 @@ namespace gridtools {
                 typename RunFunctorArguments::cache_sequence_t,
                 grid_t>;
 
-            using iterate_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
+            using iterate_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
 
             typedef backend_traits_from_id<platform::x86> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
@@ -145,7 +145,7 @@ namespace gridtools {
             using from_t = GT_META_CALL(meta::first, interval_t);
 
             template <class ReductionData>
-            execute_kernel_functor_host(const local_domain_t &local_domain,
+            execute_kernel_functor_x86(const local_domain_t &local_domain,
                 const grid_t &grid,
                 ReductionData &&,
                 uint_t block_size_i,

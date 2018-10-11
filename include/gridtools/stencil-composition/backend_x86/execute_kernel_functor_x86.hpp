@@ -35,18 +35,8 @@
 */
 #pragma once
 
-#include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/host_device.hpp"
-
-namespace gridtools {
-    struct run_esf_functor_host {
-        template <class StageGroups, class ItDomain>
-        GT_FUNCTION static void exec(ItDomain &it_domain) {
-            using stages_t = GT_META_CALL(meta::flatten, StageGroups);
-            GRIDTOOLS_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
-            using stage_t = GT_META_CALL(meta::first, stages_t);
-            stage_t::exec(it_domain);
-        }
-    };
-} // namespace gridtools
+#ifdef STRUCTURED_GRIDS
+#include "../structured_grids/backend_x86/execute_kernel_functor_x86.hpp"
+#else
+#include "../icosahedral_grids/backend_x86/execute_kernel_functor_x86.hpp"
+#endif

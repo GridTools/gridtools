@@ -43,8 +43,8 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
 
-#ifdef BACKEND_HOST
-#include <gridtools/stencil-composition/structured_grids/backend_host/iterate_domain_host.hpp>
+#ifdef BACKEND_X86
+#include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
 #endif
 
 #ifdef BACKEND_MC
@@ -124,8 +124,8 @@ namespace gridtools {
             using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
 #endif
 
-#ifdef BACKEND_HOST
-            using it_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
+#ifdef BACKEND_X86
+            using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
 #endif
 
             it_domain_t it_domain(local_domain1, 0);

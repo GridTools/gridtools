@@ -38,6 +38,6 @@
 namespace gridtools {
     namespace strgrid {
         template <typename RunFunctorArguments>
-        struct execute_kernel_functor_host;
+        struct execute_kernel_functor_x86;
     }
 } // namespace gridtools

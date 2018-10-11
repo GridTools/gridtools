@@ -43,16 +43,16 @@
 namespace gridtools {
 
     /**
-     * @brief iterate domain class for the Host backend
+     * @brief iterate domain class for the X86 backend
      */
     template <typename IterateDomainArguments>
-    class iterate_domain_host
-        : public iterate_domain<iterate_domain_host<IterateDomainArguments>, IterateDomainArguments> // CRTP
+    class iterate_domain_x86
+        : public iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
+        DISALLOW_COPY_AND_ASSIGN(iterate_domain_x86);
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
-        typedef iterate_domain<iterate_domain_host<IterateDomainArguments>, IterateDomainArguments> super;
+        typedef iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> super;
 
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         typedef typename super::reduction_type_t reduction_type_t;
@@ -63,8 +63,7 @@ namespace gridtools {
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_host(
-            local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
+        explicit iterate_domain_x86(local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
             : super(local_domain, reduction_initial_value), m_strides(0) {}
 
         strides_cached_t &RESTRICT strides_impl() {
@@ -82,7 +81,7 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        iterate_domain_host const &get() const { return *this; }
+        iterate_domain_x86 const &get() const { return *this; }
 
         template <typename ReturnType, typename Accessor, typename StorageType>
         GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
@@ -91,7 +90,7 @@ namespace gridtools {
         }
 
         /**
-         * caches are not currently used in host backend
+         * caches are not currently used in x86 backend
          */
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
@@ -99,7 +98,7 @@ namespace gridtools {
         }
 
         /**
-         * caches are not currently used in host backend
+         * caches are not currently used in x86 backend
          */
         template <typename IterationPolicy>
         GT_FUNCTION void flush_caches(bool) {
@@ -107,7 +106,7 @@ namespace gridtools {
         }
 
         /**
-         * caches are not currently used in host backend
+         * caches are not currently used in x86 backend
          */
         template <typename IterationPolicy>
         GT_FUNCTION void fill_caches(bool) {
@@ -124,5 +123,5 @@ namespace gridtools {
     };
 
     template <typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_host<IterateDomainArguments>> : public boost::mpl::true_ {};
+    struct is_iterate_domain<iterate_domain_x86<IterateDomainArguments>> : public boost::mpl::true_ {};
 } // namespace gridtools
