@@ -173,6 +173,7 @@ namespace gridtools {
 #else
         using offsets_t = array<int_t, Dim>;
         offsets_t m_offsets;
+        int_t m_workaround;
 #endif
 
       public:
@@ -184,32 +185,13 @@ namespace gridtools {
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
-            offsets...
-        }
-#ifdef __INTEL_COMPILER
-        , m_workaround(Dim)
-#endif
-        {
-        }
+        GT_FUNCTION explicit accessor_base(Ints... offsets) : m_offsets{offsets...}, m_workaround(Dim) {}
 
-        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
-            : m_offsets(src)
-#ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
-#endif
-        {
-        }
+        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src) : m_offsets(src), m_workaround(Dim) {}
 
         template <ushort_t I, ushort_t... Is>
         GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
-#ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
-#endif
-        {
+            : m_offsets(_impl::make_offsets<Dim>(d, ds...)), m_workaround(Dim) {
             GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
         }
