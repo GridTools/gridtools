@@ -95,7 +95,6 @@ namespace gridtools {
                 gt_fortran_array_descriptor descriptor;
                 descriptor.rank = Rank;
                 descriptor.type = gt_fk_Double;
-                descriptor.is_acc_present = false;
                 for (size_t i = 0; i < Rank; ++i) {
                     descriptor.dims[i] = 2;
                 }
@@ -261,7 +260,6 @@ namespace gridtools {
 
                 using gt_view_element_type = double;
                 using gt_view_rank = std::integral_constant<size_t, Rank>;
-                using gt_is_acc_present = bool_constant<false>;
 
               private:
                 double *data_;
