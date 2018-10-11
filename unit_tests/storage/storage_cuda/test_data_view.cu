@@ -205,7 +205,6 @@ TEST(DataViewTest, TargetView) {
 
     auto target_view = make_target_view<access_mode::ReadOnly>(ds);
     auto device_view = make_device_view<access_mode::ReadOnly>(ds);
-    auto host_view = make_host_view<access_mode::ReadOnly>(ds);
 
     ASSERT_EQ(advanced::get_raw_pointer_of(device_view), advanced::get_raw_pointer_of(target_view));
 }
