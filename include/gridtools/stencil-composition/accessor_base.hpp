@@ -46,11 +46,21 @@
 #include "../common/host_device.hpp"
 
 namespace gridtools {
-#ifdef __INTEL_COMPILER
+
+#if defined(__INTEL_COMPILER) ||      \
+    (defined(__CUDACC_VER_MAJOR__) && \
+        (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)))
+// Intel: Has problems vectorizing the accessor_base class with a normal array member.
+// NVCC (CUDA 9.2 && CUDA 10)
+#define GT_ACCESSOR_BASE_WORKAROUND
+#endif
+
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
     namespace _impl {
-        /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
-         * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
-         * in the most common case. */
+        /*
+         * Pseudo-array class. Currently only the 3D case is specialized to allow for good vectorization in the most
+         * common case.
+         */
         template <typename T, std::size_t Dim>
         struct pseudo_array_type {
             using type = array<T, Dim>;
@@ -164,7 +174,7 @@ namespace gridtools {
     class accessor_base {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
-#ifdef __INTEL_COMPILER
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
         /* The Intel compiler does not want to vectorize when we use a real array here. */
         using offsets_t = typename _impl::pseudo_array_type<int_t, Dim>::type;
         offsets_t m_offsets;
@@ -173,7 +183,6 @@ namespace gridtools {
 #else
         using offsets_t = array<int_t, Dim>;
         offsets_t m_offsets;
-        int_t m_workaround;
 #endif
 
       public:
@@ -185,13 +194,32 @@ namespace gridtools {
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
-        GT_FUNCTION explicit accessor_base(Ints... offsets) : m_offsets{offsets...}, m_workaround(Dim) {}
+        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
+            offsets...
+        }
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
+        , m_workaround(Dim)
+#endif
+        {
+        }
 
-        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src) : m_offsets(src), m_workaround(Dim) {}
+        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
+            : m_offsets(src)
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
+              ,
+              m_workaround(Dim)
+#endif
+        {
+        }
 
         template <ushort_t I, ushort_t... Is>
         GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-            : m_offsets(_impl::make_offsets<Dim>(d, ds...)), m_workaround(Dim) {
+            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
+              ,
+              m_workaround(Dim)
+#endif
+        {
             GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
                 "all dimensions should be of different indicies");
         }
