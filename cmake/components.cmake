@@ -1,31 +1,20 @@
 ### This file define the GridTools components and their dependencies
 
-
-### The followinf function appends "install-" string to the list of arguments following
-### the name of the variable you want to get the outout in.
-function(prepend_install outvar)
-   set(outlist "")
-   foreach(elem ${ARGN})
-      list(APPEND outlist "install-${elem}")
-   endforeach(elem)
-   set(${outvar} ${outlist} PARENT_SCOPE)
-endfunction(prepend_install)
-
 ### The following function works like this:
 ###
 ### First argument the name of the library to build
 ###
 ### All other arguments are the sources for compiling the library. If this list is empty this will be a header-only library!
 ###
-function(generate_target_for name)
-#    message(${ARGN} ${name}
-    if ("${ARGN} " STREQUAL " ")
-        add_library(${name} INTERFACE)
-        target_include_directories(${name} INTERFACE $<BUILD_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/include/"> $<INSTALL_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/include/"> )
+function(generate_target_for)
+    cmake_parse_arguments(TARGET "" "NAME" "SOURCES" ${ARGN})
+    if ("${TARGET_SOURCES} " STREQUAL " ")
+        add_library(${TARGET_NAME} INTERFACE)
+        target_include_directories(${TARGET_NAME} INTERFACE $<BUILD_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/include/"> $<INSTALL_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/include/"> )
 
     else ()
-        add_library(${name} ${ARGN})
-        target_include_directories(${name}
+        add_library(${TARGET_NAME} ${TARGET_SOURCES})
+        target_include_directories(${TARGET_NAME}
                      PUBLIC
                         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
                         $<INSTALL_INTERFACE:include>
@@ -47,7 +36,7 @@ function(generate_install_targets_for name folder)
       ARCHIVE DESTINATION lib
       RUNTIME DESTINATION bin
       INCLUDES DESTINATION include
-      COMPONENT ${name}component
+      COMPONENT ${name}
     )
     install(EXPORT ${name}targets
       FILE ${name}Targets.cmake
@@ -55,7 +44,7 @@ function(generate_install_targets_for name folder)
       DESTINATION lib/cmake/${name}
     )
 
-    install(DIRECTORY "include/gridtools/${folder}" DESTINATION include COMPONENT ${name}component )
+    install(DIRECTORY "include/gridtools/${folder}" DESTINATION include/gridtools COMPONENT ${name} )
 endfunction(generate_install_targets_for)
 
 

@@ -49,10 +49,8 @@ function(fetch_host_tests subfolder)
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
             target_compile_definitions(${unit_test} PUBLIC ${HOST_BACKEND_DEFINE})
             target_include_directories(${unit_test}
-                 PUBLIC
-                    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                    $<INSTALL_INTERFACE:include>
                  PRIVATE
+                    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
             )
             add_test (NAME ${unit_test} COMMAND ${exe} )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
@@ -82,10 +80,8 @@ function(fetch_mic_tests subfolder)
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
             target_compile_definitions(${unit_test} PUBLIC ${MIC_BACKEND_DEFINE})
             target_include_directories(${unit_test}
-                 PUBLIC
-                    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                    $<INSTALL_INTERFACE:include>
                  PRIVATE
+                    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
             )
             add_test (NAME ${unit_test} COMMAND ${exe} )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
@@ -115,10 +111,8 @@ function(fetch_gpu_tests subfolder)
             cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
             target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
             target_include_directories(${unit_test}
-                 PUBLIC
-                    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                    $<INSTALL_INTERFACE:include>
                  PRIVATE
+                    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
             )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )
@@ -139,10 +133,8 @@ function(add_custom_host_test name sources cc_flags ld_flags)
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_compile_definitions(${name} PUBLIC ${HOST_BACKEND_DEFINE})
         target_include_directories(${name}
-             PUBLIC
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                $<INSTALL_INTERFACE:include>
              PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         add_test (NAME ${name} COMMAND ${exe} )
         gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
@@ -162,10 +154,8 @@ function(add_custom_mic_test name sources cc_flags ld_flags)
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_compile_definitions(${name} PUBLIC ${MIC_BACKEND_DEFINE})
         target_include_directories(${name}
-             PUBLIC
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                $<INSTALL_INTERFACE:include>
              PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         add_test (NAME ${name} COMMAND ${exe} )
         gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
@@ -184,10 +174,8 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
         set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags} COMPILE_FLAGS ${GPU_SPECIFIC_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX)
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
-             PUBLIC
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                $<INSTALL_INTERFACE:include>
              PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
     endif (ENABLE_CUDA)
@@ -206,10 +194,8 @@ function(add_custom_mpi_host_test name sources cc_flags ld_flags)
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
         target_compile_definitions(${name} PUBLIC ${HOST_BACKEND_DEFINE})
         target_include_directories(${name}
-             PUBLIC
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                $<INSTALL_INTERFACE:include>
              PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         gridtools_add_mpi_test(${name} ${exe})
     endif (ENABLE_HOST)
@@ -227,10 +213,8 @@ function(add_custom_mpi_mic_test name sources cc_flags ld_flags)
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
         target_compile_definitions(${name} PUBLIC ${MIC_BACKEND_DEFINE})
         target_include_directories(${name}
-             PUBLIC
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                $<INSTALL_INTERFACE:include>
              PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         gridtools_add_mpi_test(${name} ${exe})
     endif (ENABLE_MIC)
@@ -248,10 +232,8 @@ function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
         set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags} ${GPU_SPECIFIC_FLAGS}" )
         target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
         target_include_directories(${name}
-             PUBLIC
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
-                $<INSTALL_INTERFACE:include>
              PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         gridtools_add_cuda_mpi_test(${name} ${exe})
     endif (ENABLE_CUDA)

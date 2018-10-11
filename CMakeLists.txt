@@ -33,33 +33,33 @@ include (bindings)
 include (components)
 
 if( COMPONENT_COMMON )
-    generate_target_for(common)
+    generate_target_for(NAME common)
     generate_install_targets_for(common common)
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
-    generate_target_for(boundary-conditions)
+    generate_target_for(NAME boundary-conditions)
     generate_install_targets_for(boundary-conditions boundary-conditions)
 endif()
 
 if( COMPONENT_STENCIL_COMPOSITION )
-    generate_target_for(stencil-composition)
+    generate_target_for(NAME stencil-composition)
     generate_install_targets_for(stencil-composition stencil-composition)
 endif()
 
 if( COMPONENT_GCL )
-    generate_target_for(gcl src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
     generate_install_targets_for(gcl communication)
     set(exe_LIBS ${exe_LIBS} gcl)
 endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
-    generate_target_for(distributed-boundaries)
+    generate_target_for(NAME distributed-boundaries)
     generate_install_targets_for(distributed-boundaries distributed-boundaries)
 endif()
 
 if( COMPONENT_STORAGE )
-    generate_target_for(storage)
+    generate_target_for(NAME storage)
     generate_install_targets_for(storage storage)
 endif()
 
@@ -68,38 +68,38 @@ endif()
 # ===============
 
 if( COMPONENT_C_BINDINGS )
-generate_target_for(c_bindings_handle src/c_bindings/handle.cpp)
-set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-generate_install_targets_for(c_bindings_handle c_bindings None)
+    generate_target_for(NAME c_bindings_handle SOURCES src/c_bindings/handle.cpp)
+    set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    generate_install_targets_for(c_bindings_handle c_bindings None)
 
-set(exe_LIBS ${exe_LIBS} c_bindings_handle)
+    set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 
-set(CMAKE_FORTRAN_MODOUT_FLAG ON)
-set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
+    set(CMAKE_FORTRAN_MODOUT_FLAG ON)
+    set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
 
-add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
-target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
-target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
+    target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
+    target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
-generate_target_for(c_bindings_generator src/c_bindings/generator.cpp)
-set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-generate_install_targets_for(c_bindings_generator c_bindings None)
+    generate_target_for(NAME c_bindings_generator SOURCES src/c_bindings/generator.cpp)
+    set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    generate_install_targets_for(c_bindings_generator c_bindings None)
 
-set(exe_LIBS ${exe_LIBS} c_bindings_generator)
+    set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
-add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
-target_link_libraries(c_bindings_generator_main c_bindings_generator)
-generate_install_targets_for(c_bindings_generator_main c_bindings c_bindings_generator)
+    add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
+    target_link_libraries(c_bindings_generator_main c_bindings_generator)
+    generate_install_targets_for(c_bindings_generator_main c_bindings c_bindings_generator)
 
-add_library(array_descriptor src/c_bindings/array_descriptor.f90)
-generate_install_targets_for(array_descriptor c_bindings None)
+    add_library(array_descriptor src/c_bindings/array_descriptor.f90)
+    generate_install_targets_for(array_descriptor c_bindings None)
 
-install(DIRECTORY
-    "${PROJECT_BINARY_DIR}/mod/"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
-install(FILES
-    "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    install(DIRECTORY
+        "${PROJECT_BINARY_DIR}/mod/"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
+    install(FILES
+        "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
+        DESTINATION "${CMAKE_INSTALL_PREFIX}")
 
 endif()
 

@@ -1,5 +1,3 @@
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 add_subdirectory(repository)
 
 # collect test cases
