@@ -6,7 +6,7 @@ from perftest.config import default
 
 
 modules = default.modules | {'daint-gpu',
-                             'cudatoolkit/9.0.103_3.7-6.0.4.1_2.1__g72b395b',
+                             'cudatoolkit/9.0.103_3.15-6.0.7.0_14.1__ge802626',
                              'CMake'}
 
 env = dict(default.env,
