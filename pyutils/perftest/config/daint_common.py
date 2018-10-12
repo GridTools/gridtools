@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import textwrap
+import os
 
 from perftest.config import default
-
 
 modules = default.modules | {'daint-gpu',
                              'cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52',
@@ -16,7 +16,7 @@ env = dict(default.env,
            OMP_NUM_THREADS=24)
 
 cmake_command = default.cmake_command + [
-    '-DBOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0']
+    '-DBOOST_ROOT=' + os.environ['SCRATCH'] + '/../jenkins/install/boost/boost_1_67_0']
 make_command = ['srun', '--constraint=gpu', '--account=c14',
                 '--time=00:30:00', 'make', '-j24']
 
