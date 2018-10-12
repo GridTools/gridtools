@@ -55,7 +55,7 @@ set(INSTALL_COMMON OFF CACHE BOOL "Common component")
 set(INSTALL_STENCIL_COMPOSITION OFF CACHE BOOL "Stencil composition component")
 set(INSTALL_STORAGE OFF CACHE BOOL "Storage component")
 set(INSTALL_C_BINDINGS OFF CACHE BOOL "Install all")
-set(INSTALL_ALL OFF CACHE BOOL "Install all")
+set(INSTALL_ALL ON CACHE BOOL "Install all")
 
 macro( turn_on comp )
        if ( ${comp} )
