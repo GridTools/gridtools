@@ -11,7 +11,7 @@
         80
     ],
     "runtime": {
-        "backend": "host",
+        "backend": "x86,
         "compiler": "/apps/escha/UES/jenkins/RH7.3-gnu_PE17.02/easybuild/software/gcccore/5.4.0/bin/g++",
         "datetime": "2018-09-19T07:13:07.000000+0000",
         "grid": "structured",
