@@ -38,6 +38,7 @@
 #include <assert.h>
 #include <vector>
 #include <random>
+#include <functional>
 
 // class used to flush the cache for OpenMP codes
 // initialise with (n>=cache size) to flush all cache
