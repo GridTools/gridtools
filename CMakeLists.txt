@@ -12,7 +12,7 @@ if( GRIDTOOLS_MODULES )
 else()
 
 cmake_minimum_required(VERSION 3.0)
-set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 if(POLICY CMP0060)
   # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
@@ -152,7 +152,8 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
 if ( INSTALL_GT_EXAMPLES )
     install(DIRECTORY
             gt_examples
-            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" )
+            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" 
+            FILES_MATCHING REGEX ".*cpp|.*hpp")
 endif()
 
 # ===========

@@ -10,16 +10,16 @@ function(generate_target_for)
     cmake_parse_arguments(TARGET "" "NAME" "SOURCES" ${ARGN})
     if ("${TARGET_SOURCES} " STREQUAL " ")
         add_library(${TARGET_NAME} INTERFACE)
-        target_include_directories(${TARGET_NAME} INTERFACE $<BUILD_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/include/"> $<INSTALL_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/include/"> )
+        target_include_directories(${TARGET_NAME} INTERFACE $<BUILD_INTERFACE:"${CMAKE_SOURCE_DIR}/include/"> $<INSTALL_INTERFACE:"${CMAKE_SOURCE_DIR}/include/"> )
 
     else ()
         add_library(${TARGET_NAME} ${TARGET_SOURCES})
         target_include_directories(${TARGET_NAME}
                      PUBLIC
-                        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+                        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
                         $<INSTALL_INTERFACE:include>
                      PRIVATE
-                        ${CMAKE_CURRENT_SOURCE_DIR}/src
+                        ${CMAKE_SOURCE_DIR}/src
         )
     endif()
 endfunction(generate_target_for)
