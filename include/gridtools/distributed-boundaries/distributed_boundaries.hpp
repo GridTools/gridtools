@@ -153,11 +153,14 @@ namespace gridtools {
            true mean the dimension is periodic
             \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a
            runtime error (probably segmentation fault), passing less will underutilize the memory
-            \param CartComm MPI communicator to use in the halo update operation.
+            \param CartComm MPI communicator to use in the halo update operation [must be a cartesian communicator]
         */
         distributed_boundaries(
             array<halo_descriptor, 3> halos, boollist<3> period, uint_t max_stores, MPI_Comm CartComm)
-            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm, m_sizes) {
+            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm) {
+
+            m_he.pattern().proc_grid().fill_dims(m_sizes);
+
             m_he.template add_halo<0>(
                 m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
 
