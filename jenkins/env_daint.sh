@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit/9.0.103_3.7-6.0.4.1_2.1__g72b395b
+module load cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52 
 module rm   PrgEnv-cray
 module load CMake
 
@@ -27,6 +27,9 @@ if [[ ${COMPILER} == "gcc" ]]; then
       ;;
     "7.1")
       module swap gcc/7.1.0
+      ;;
+    "7.3")
+      module swap gcc/7.3.0
       ;;
     *)
       module swap gcc/4.9.3
