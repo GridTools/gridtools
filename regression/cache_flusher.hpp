@@ -66,7 +66,7 @@ class cache_flusher {
         double *c = &c_[0];
         std::default_random_engine gen;
         std::uniform_int_distribution<int> distr(0,n_-1);
-        auto dice = std::bind(dist, gen);
+        auto dice = std::bind(distr, gen);
 #pragma omp parallel for
 #pragma vector nontemporal(a)
         for (int i = 0; i < n_; i++)
