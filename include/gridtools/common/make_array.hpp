@@ -36,23 +36,14 @@
 #pragma once
 
 #include "array.hpp"
+#include "defs.hpp"
+#include "generic_metafunctions/utility.hpp"
+#include "tuple_util.hpp"
 
 namespace gridtools {
     /** \ingroup common
         @{
      */
-
-    namespace impl_ {
-        template <typename ForceType, typename... Types>
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
-
-        template <typename... Types>
-        struct forced_or_common_type<void, Types...> {
-            using type = typename std::common_type<Types...>::type;
-        };
-    } // namespace impl_
 
     /** \ingroup array
         @{
@@ -72,12 +63,8 @@ namespace gridtools {
         \param values List of values to put in the array. The length of the list set the size of the array.
      */
     template <typename ForceType = void, typename... Types>
-    constexpr GT_FUNCTION
-        gridtools::array<typename impl_::forced_or_common_type<ForceType, Types...>::type, sizeof...(Types)>
-        make_array(Types... values) {
-        return gridtools::array<typename impl_::forced_or_common_type<ForceType, Types...>::type, sizeof...(Types)>{
-            static_cast<typename impl_::forced_or_common_type<ForceType, Types...>::type>(values)...};
-    }
+    constexpr GT_FUNCTION auto make_array(Types &&... values)
+        GT_AUTO_RETURN((tuple_util::host_device::make<array, ForceType>(const_expr::forward<Types>(values)...)));
 
     /** @} */
     /** @} */

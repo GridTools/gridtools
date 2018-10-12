@@ -49,15 +49,15 @@ TEST(StorageInfoRT, Make3D) {
 
     auto storage_info_rt_ = make_storage_info_rt(si);
 
-    auto dims = storage_info_rt_.dims();
-    ASSERT_EQ(si.dim<0>(), dims[0]);
-    ASSERT_EQ(si.dim<1>(), dims[1]);
-    ASSERT_EQ(si.dim<2>(), dims[2]);
+    auto dims = storage_info_rt_.total_lengths();
+    ASSERT_EQ(si.total_length<0>(), dims[0]);
+    ASSERT_EQ(si.total_length<1>(), dims[1]);
+    ASSERT_EQ(si.total_length<2>(), dims[2]);
 
-    auto unaligned_dims = storage_info_rt_.unaligned_dims();
-    ASSERT_EQ(si.total_length<0>(), unaligned_dims[0]);
-    ASSERT_EQ(si.total_length<1>(), unaligned_dims[1]);
-    ASSERT_EQ(si.total_length<2>(), unaligned_dims[2]);
+    auto padded_lengths = storage_info_rt_.padded_lengths();
+    ASSERT_EQ(si.padded_length<0>(), padded_lengths[0]);
+    ASSERT_EQ(si.padded_length<1>(), padded_lengths[1]);
+    ASSERT_EQ(si.padded_length<2>(), padded_lengths[2]);
 
     auto strides = storage_info_rt_.strides();
     ASSERT_EQ(si.stride<0>(), strides[0]);
@@ -71,15 +71,15 @@ TEST(StorageInfoRT, Make3Dmasked) {
 
     auto storage_info_rt_ = make_storage_info_rt(si);
 
-    auto dims = storage_info_rt_.dims();
-    ASSERT_EQ(si.dim<0>(), dims[0]);
-    ASSERT_EQ(si.dim<1>(), dims[1]);
-    ASSERT_EQ(si.dim<2>(), dims[2]);
+    auto total_lengths = storage_info_rt_.total_lengths();
+    ASSERT_EQ(si.total_length<0>(), total_lengths[0]);
+    ASSERT_EQ(si.total_length<1>(), total_lengths[1]);
+    ASSERT_EQ(si.total_length<2>(), total_lengths[2]);
 
-    auto unaligned_dims = storage_info_rt_.unaligned_dims();
-    ASSERT_EQ(si.total_length<0>(), unaligned_dims[0]);
-    ASSERT_EQ(si.total_length<1>(), unaligned_dims[1]);
-    ASSERT_EQ(si.total_length<2>(), unaligned_dims[2]);
+    auto padded_lengths = storage_info_rt_.padded_lengths();
+    ASSERT_EQ(si.padded_length<0>(), padded_lengths[0]);
+    ASSERT_EQ(si.padded_length<1>(), padded_lengths[1]);
+    ASSERT_EQ(si.padded_length<2>(), padded_lengths[2]);
 
     auto strides = storage_info_rt_.strides();
     ASSERT_EQ(si.stride<0>(), strides[0]);

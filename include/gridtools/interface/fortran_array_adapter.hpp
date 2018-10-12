@@ -52,7 +52,7 @@ namespace gridtools {
             adapter(fortran_array_adapter &view, DataStore &data_store) {
 
                 storage_info_rt si = make_storage_info_rt(*data_store.get_storage_info_ptr());
-                m_dims = si.dims();
+                m_dims = si.total_lengths();
                 m_cpp_strides = si.strides();
                 m_fortran_pointer = static_cast<ElementType *>(view.m_descriptor.data);
                 m_cpp_pointer = get_ptr_to_first_element(data_store);

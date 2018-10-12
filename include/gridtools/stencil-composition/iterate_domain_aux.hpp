@@ -160,8 +160,10 @@ namespace gridtools {
             class LayoutMap,
             uint_t I,
             class Strides,
-            int Cur = LayoutMap::template at_unsafe<Coordinate>(),
-            int Max = LayoutMap::max(),
+            // work-arround for gcc7 (force compile-time evaluation)
+            int Cur = std::integral_constant<int, LayoutMap::template at_unsafe<Coordinate>()>::value,
+            // work-arround for gcc7 (force compile-time evaluation)
+            int Max = std::integral_constant<int, LayoutMap::max()>::value,
             enable_if_t<Cur<0, int> = 0> GT_FUNCTION int_t get_stride(Strides const &) {
             return 0;
         }
@@ -170,8 +172,10 @@ namespace gridtools {
             class LayoutMap,
             uint_t I,
             class Strides,
-            int Cur = LayoutMap::template at_unsafe<Coordinate>(),
-            int Max = LayoutMap::max(),
+            // work-arround for gcc7 (force compile-time evaluation)
+            int Cur = std::integral_constant<int, LayoutMap::template at_unsafe<Coordinate>()>::value,
+            // work-arround for gcc7 (force compile-time evaluation)
+            int Max = std::integral_constant<int, LayoutMap::max()>::value,
             enable_if_t<Cur >= 0 && Cur == Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &) {
             return 1;
@@ -181,8 +185,10 @@ namespace gridtools {
             class LayoutMap,
             uint_t I,
             class Strides,
-            int Cur = LayoutMap::template at_unsafe<Coordinate>(),
-            int Max = LayoutMap::max(),
+            // work-arround for gcc7 (force compile-time evaluation)
+            int Cur = std::integral_constant<int, LayoutMap::template at_unsafe<Coordinate>()>::value,
+            // work-arround for gcc7 (force compile-time evaluation)
+            int Max = std::integral_constant<int, LayoutMap::max()>::value,
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
         GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
             return strides.template get<I>()[Cur];
@@ -376,7 +382,7 @@ namespace gridtools {
     GT_FUNCTION bool pointer_oob_check(LocalDomain const &local_domain, int_t offset) {
         constexpr auto storage_info_index =
             meta::st_position<typename LocalDomain::storage_info_ptr_list, StorageInfo const *>::value;
-        return offset < local_domain.m_local_padded_total_lengths.template get<storage_info_index>() && offset >= 0;
+        return offset < get<storage_info_index>(local_domain.m_local_padded_total_lengths) && offset >= 0;
     }
 
     /**

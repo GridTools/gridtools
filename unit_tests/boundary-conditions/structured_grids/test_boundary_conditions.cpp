@@ -37,7 +37,6 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/halo_descriptor.hpp>
-#include <gridtools/gridtools.hpp>
 
 #include <gridtools/boundary-conditions/boundary.hpp>
 

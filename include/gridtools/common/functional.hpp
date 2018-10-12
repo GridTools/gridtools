@@ -72,8 +72,8 @@ namespace gridtools {
         template <typename T>
         struct ctor {
             template <typename... Args>
-            GT_TARGET T operator()(Args &&... args) const {
-                return {std::forward<Args>(args)...};
+            GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&... args) const {
+                return T{std::forward<Args>(args)...};
             }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
@@ -85,7 +85,7 @@ namespace gridtools {
         //
         struct noop {
             template <typename... Args>
-            GT_TARGET void operator()(Args &&...) const {}
+            GT_TARGET GT_FORCE_INLINE void operator()(Args &&...) const {}
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
             using result_type = void;
@@ -96,7 +96,7 @@ namespace gridtools {
         //
         struct identity {
             template <typename Arg>
-            GT_TARGET Arg operator()(Arg &&arg) const {
+            GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg &&arg) const {
                 return arg;
             }
 
@@ -114,7 +114,7 @@ namespace gridtools {
         //
         struct clone {
             template <typename Arg>
-            GT_TARGET Arg operator()(Arg const &arg) const {
+            GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg const &arg) const {
                 return arg;
             }
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE

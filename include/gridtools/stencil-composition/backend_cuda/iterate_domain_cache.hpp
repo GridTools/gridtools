@@ -49,6 +49,7 @@
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/for_each.hpp>
 #include <boost/mpl/transform_view.hpp>
 
 #include "../../common/defs.hpp"
