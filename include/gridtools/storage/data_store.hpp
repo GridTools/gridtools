@@ -287,7 +287,7 @@ namespace gridtools {
          * @brief deprecated, see total_length()
          */
         template <int Dim>
-        GT_DEPRECATED("dim<Dim>() is deprecated, use total_lengths<Dim>() (deprecated after 1.07.00)")
+        GT_DEPRECATED("dim<Dim>() is deprecated, use total_length<Dim>() (deprecated after 1.07.00)")
         int dim() const {
             return total_length<Dim>();
         }
