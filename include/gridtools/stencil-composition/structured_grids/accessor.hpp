@@ -77,21 +77,61 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
+
+    //    namespace _impl {
+    //        template <ushort_t I>
+    //        struct get_dimension_value_f {
+    //            template <ushort_t J>
+    //            GT_FUNCTION constexpr int_t operator()(dimension<J> src) const {
+    //                return 0;
+    //            }
+    //            GT_FUNCTION constexpr int_t operator()(dimension<I> src) const { return src.value; }
+    //        };
+    //
+    //        template <ushort_t I>
+    //        GT_FUNCTION constexpr int_t sum_dimensions() {
+    //            return 0;
+    //        }
+    //
+    //        template <ushort_t I, class T, class... Ts>
+    //        GT_FUNCTION constexpr int_t sum_dimensions(T src, Ts... srcs) {
+    //            return get_dimension_value_f<I>{}(src) + sum_dimensions<I>(srcs...);
+    //        }
+    //
+    //        template <ushort_t Dim, ushort_t... Is, class... Ts>
+    //        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(gt_integer_sequence<ushort_t, Is...>, Ts...
+    //        srcs) {
+    //            return {sum_dimensions<Is + 1>(srcs...)...};
+    //        }
+    //
+    //        template <ushort_t Dim, class... Ts>
+    //        GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
+    //            return make_offsets_impl<Dim>(make_gt_integer_sequence<ushort_t, Dim>{}, srcs...);
+    //        }
+    //    } // namespace _impl
+
     template <uint_t ID,
         enumtype::intent Intent = enumtype::in,
         typename Extent = extent<0, 0, 0, 0, 0, 0>,
         ushort_t Number = 3>
-    struct accessor : accessor_base<Number> {
+    struct accessor : accessor_base<make_gt_index_sequence<Number>> {
         using index_t = static_uint<ID>;
         static constexpr enumtype::intent intent = Intent;
         using extent_t = Extent;
 
         /**inheriting all constructors from accessor_base*/
-        using accessor_base<Number>::accessor_base;
+        using accessor_base<make_gt_index_sequence<Number>>::accessor_base;
 
         template <uint_t OtherID, typename std::enable_if<ID != OtherID, int>::type = 0>
         GT_FUNCTION constexpr accessor(accessor<OtherID, Intent, Extent, Number> const &src)
-            : accessor_base<Number>(src) {}
+            : accessor_base<make_gt_index_sequence<Number>>(src) {}
+        //
+        //        template <ushort_t I, ushort_t... Is>
+        //        GT_FUNCTION constexpr explicit accessor(dimension<I> d, dimension<Is>... ds)
+        //            : accessor_base<Number>(make_gt_index_sequence<Number>{}, _impl::make_offsets<Number>(d, ds...)) {
+        //            GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
+        //                "all dimensions should be of different indicies");
+        //        }
     };
 
     template <uint_t ID, typename Extent = extent<0, 0, 0, 0, 0, 0>, ushort_t Number = 3>

@@ -64,7 +64,7 @@ namespace gridtools {
          * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
         inline float thread_factor() {
-            thread_local static const float value = (float) omp_get_thread_num() / omp_get_max_threads();
+            thread_local static const float value = (float)omp_get_thread_num() / omp_get_max_threads();
             return value;
         }
 
@@ -201,8 +201,8 @@ namespace gridtools {
                         StorageInfoIndex>::type;
                 using storage_info_t = typename std::remove_const<typename std::remove_pointer<
                     typename std::remove_reference<storage_info_ptrref_t>::type>::type>::type;
-                m_index_array[StorageInfoIndex::value] =
-                    m_it_domain.compute_offset<storage_info_t>(accessor_base<storage_info_t::ndims>());
+                m_index_array[StorageInfoIndex::value] = m_it_domain.compute_offset<storage_info_t>(
+                    accessor_base<make_gt_index_sequence<storage_info_t::ndims>>());
             }
 
           private:

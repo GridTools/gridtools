@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include <tuple>
 #include <type_traits>
 
 #include "../common/array.hpp"
@@ -44,6 +45,8 @@
 #include "../common/generic_metafunctions/meta.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/host_device.hpp"
+#include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
 
 namespace gridtools {
 #ifdef __INTEL_COMPILER
@@ -160,8 +163,59 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Extent Bounds over which the function access the argument
      */
-    template <ushort_t Dim>
-    class accessor_base {
+    //    template <ushort_t Dim>
+    //    using offsets_t = int[Dim];
+
+    //        template <ushort_t RequestedI, >
+
+    //    template<ushort_t RequestedI
+
+    //    template <ushort_t...>
+    //    struct my_impl;
+    //
+    //    template <ushort_t RequestedI, ushort_t I, ushort... Is>
+    //    struct my_impl<RequestedI, I, Is...> {
+    //        GT_FUNCTION constexpr enable_if_t<RequestedI == I, int> operator()() const { return 0; }
+    //        //        using type = typename std::conditional<RequestedI == I, int, typename my_impl<RequestedI,
+    //        //        Is...>::type>::type;
+    //    };
+    //
+    ////    template <ushort_t RequestedI, ushort... Is>
+    ////    struct my_impl<RequestedI, RequestedI, Is...> {
+    ////        GT_FUNCTION constexpr int operator()() const { return 0; }
+    ////    };
+    //
+    //    template <ushort_t RequestedI>
+    //    struct my_impl<RequestedI> {
+    //        GT_FUNCTION constexpr int operator()() const { return 0; }
+    //    };
+
+    //    template <ushort_t RequestedI>
+    //    struct init_from_dimensions {
+    //        template <ushort_t I, ushort_t... Is>
+    //        GT_FUNCTION constexpr enable_if_t<I == RequestedI, int> operator()(
+    //            dimension<I> const &d, dimension<Is> const &... ds) const {
+    //            return d.value;
+    //        }
+    //        template <ushort_t I, ushort_t... Is>
+    //        GT_FUNCTION constexpr enable_if_t<I != RequestedI, int> operator()(
+    //            dimension<I> const &d, dimension<Is> const &... ds) const {
+    //            return operator()(ds...);
+    //        }
+    //
+    //        GT_FUNCTION constexpr int operator()() const { return 0; }
+    //    };
+    //    template <ushort_t RequestedI, typename... Dims>
+    //    GT_FUNCTION constexpr int my_func(Dims const &... ds) {
+    //        return RequestedI;
+    //    }
+
+    template <typename>
+    struct accessor_base;
+
+    template <size_t... Enumeration>
+    struct accessor_base<gt_index_sequence<Enumeration...>> {
+        static constexpr size_t Dim = sizeof...(Enumeration);
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
 #ifdef __INTEL_COMPILER
@@ -171,73 +225,87 @@ namespace gridtools {
         /* The Intel compiler likes to generate calls to memset if we don't have this additional member.*/
         int_t m_workaround;
 #else
-        using offsets_t = array<int_t, Dim>;
-        offsets_t m_offsets;
+        //        typedef int offsets_t[Dim];
+        //        offsets_t<Dim> m_offsets;
+        int m_offsets[Dim];
 #endif
 
-      public:
         static constexpr ushort_t n_dimensions = Dim;
 
-        GT_FUNCTION constexpr offsets_t const &offsets() const { return m_offsets; }
-        GT_FUNCTION offsets_t &offsets() { return m_offsets; }
+        GT_FUNCTION constexpr int *const &offsets() const { return m_offsets; }
+        GT_FUNCTION int *&offsets() { return m_offsets; }
 
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
-        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
-            offsets...
-        }
-#ifdef __INTEL_COMPILER
-        , m_workaround(Dim)
-#endif
-        {
-        }
+        GT_FUNCTION constexpr accessor_base(Ints... offsets) : m_offsets{offsets...} {}
 
-        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
-            : m_offsets(src)
-#ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
-#endif
-        {
-        }
+        constexpr accessor_base(accessor_base const &src) = default;
+        //        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
+        //            : m_offsets(src)
+        //              //#ifdef __INTEL_COMPILER
+        //              ,
+        //              m_workaround(Dim)
+        //        //#endif
+        //        {}
+
+        struct fill {
+            template <ushort_t I>
+            GT_FUNCTION void operator()(dimension<I> d) {
+                m_offsets[I] = d.value;
+            }
+        };
 
         template <ushort_t I, ushort_t... Is>
-        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
-#ifdef __INTEL_COMPILER
-              ,
-              m_workaround(Dim)
-#endif
-        {
-            GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>, dimension<Is>...>>::value),
-                "all dimensions should be of different indicies");
-        }
+        GT_FUNCTION constexpr accessor_base(dimension<I> d, dimension<Is>... ds)
+            : m_offsets{_impl::make_offsets<Dim>(d, ds...)[Enumeration]...} {}
+        //                    : m_offsets{/*init_from_dimensions<Is>{}(ds...)... my_func<Is>(ds...)...*/} {}
 
-        GT_FUNCTION
-        constexpr int_t const &operator[](size_t i) const { return m_offsets[i]; }
+        //        template <ushort_t I, ushort_t... Is>
+        //        GT_FUNCTION accessor_base(dimension<I> d, dimension<Is>... ds) {
+        //            tuple_util::host_device::for_each(fill{}, std::tuple<dimension<I>,
+        //            dimension<Is>...>{d, ds...});
+        //        }
+        //            : m_offsets{/*init_from_dimensions<Is>{}(ds...)... my_func<Is>(ds...)...*/} {}
+
+        //        template <ushort_t I, ushort_t... Is>
+        //        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+        //            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
+        //#ifdef __INTEL_COMPILER
+        //              ,
+        //              m_workaround(Dim)
+        //#endif
+        //        {
+        //            GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>,
+        //            dimension<Is>...>>::value),
+        //                "all dimensions should be of different indicies");
+        //        }
+
+        GT_FUNCTION constexpr int_t const &operator[](size_t i) const { return m_offsets[i]; }
 
         GT_FUNCTION
         int_t &operator[](size_t i) { return m_offsets[i]; }
     };
 
-    template <short_t Idx, ushort_t Dim>
-    GT_FUNCTION constexpr int_t &get(accessor_base<Dim> &acc) noexcept {
+    template <int_t Idx, size_t... Enumeration>
+    GT_FUNCTION constexpr int_t &get(accessor_base<gt_index_sequence<Enumeration...>> &acc) noexcept {
         GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-        GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-        return get<Idx>(acc.offsets());
+        GRIDTOOLS_STATIC_ASSERT(
+            Idx < sizeof...(Enumeration), "requested accessor index larger than the available dimensions");
+        return acc.m_offsets[Idx]; // get<Idx>(acc.offsets());
     }
 
-    template <short_t Idx, ushort_t Dim>
-    GT_FUNCTION constexpr const int_t &get(const accessor_base<Dim> &acc) noexcept {
+    template <int_t Idx, size_t... Enumeration>
+    GT_FUNCTION constexpr const int_t &get(const accessor_base<gt_index_sequence<Enumeration...>> &acc) noexcept {
         GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-        GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
-        return get<Idx>(acc.offsets());
+        GRIDTOOLS_STATIC_ASSERT(
+            Idx < sizeof...(Enumeration), "requested accessor index larger than the available dimensions");
+        return acc.m_offsets[Idx];
     }
 
-    template <short_t Idx, ushort_t Dim>
-    GT_FUNCTION constexpr int_t &&get(accessor_base<Dim> &&acc) noexcept {
-        return std::move(get<Idx>(acc));
+    template <int_t Idx, size_t... Enumeration>
+    GT_FUNCTION constexpr int_t &&get(accessor_base<gt_index_sequence<Enumeration...>> &&acc) noexcept {
+        return std::move(acc.m_offsets[Idx]);
     }
 
 } // namespace gridtools
