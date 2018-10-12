@@ -37,6 +37,7 @@
 
 #include <assert.h>
 #include <vector>
+#include <random>
 
 // class used to flush the cache for OpenMP codes
 // initialise with (n>=cache size) to flush all cache
@@ -63,10 +64,13 @@ class cache_flusher {
         double *a = &a_[0];
         double *b = &b_[0];
         double *c = &c_[0];
-        int i;
-#pragma omp parallel for private(i)
-        for (i = 0; i < n_; i++)
-            a[i] = b[i] * c[i];
+        std::default_random_engine gen;
+        std::uniform_int_distribution<int> distr(0,n_-1);
+        auto dice = std::bind(dist, gen);
+#pragma omp parallel for
+#pragma vector nontemporal(a)
+        for (int i = 0; i < n_; i++)
+            a[i] = b[dice()] * c[dice()];
     };
 #endif
 };
