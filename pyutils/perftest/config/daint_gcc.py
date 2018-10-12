@@ -3,7 +3,7 @@
 from perftest.config import daint_common as default
 
 modules = default.modules | {'PrgEnv-gnu',
-                             'gcc/5.3.0'}
+                             'gcc/7.3.0'}
 
 env = dict(default.env,
            CXX='g++',
