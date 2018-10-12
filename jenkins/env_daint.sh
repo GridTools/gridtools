@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52 
+module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
 module rm   PrgEnv-cray
 module load CMake
 
