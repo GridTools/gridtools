@@ -166,7 +166,7 @@ namespace gridtools {
          */
         template <typename... Dims,
             enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
-        GT_FUNCTION explicit storage_info_interface(Dims... dims_)
+        GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...},
