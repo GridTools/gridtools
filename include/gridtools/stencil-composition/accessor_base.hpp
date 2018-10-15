@@ -106,17 +106,15 @@ namespace gridtools {
     template <typename>
     struct accessor_base;
 
+    // size_t... Enumeration instead of just the number of dimensions is to workaround bug #1040 (CUDA9.2, CUDA10)
     template <size_t... Enumeration>
     struct accessor_base<gt_index_sequence<Enumeration...>> {
         static constexpr size_t Dim = sizeof...(Enumeration);
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
-        int m_offsets[Dim];
+        int m_offsets[Dim]; // c-array instead of std::array to workaround bug #1040
 
         static constexpr ushort_t n_dimensions = Dim;
-
-        GT_FUNCTION constexpr int *const &offsets() const { return m_offsets; }
-        GT_FUNCTION int *&offsets() { return m_offsets; }
 
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
@@ -140,7 +138,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
         GRIDTOOLS_STATIC_ASSERT(
             Idx < sizeof...(Enumeration), "requested accessor index larger than the available dimensions");
-        return acc.m_offsets[Idx]; // get<Idx>(acc.offsets());
+        return acc.m_offsets[Idx];
     }
 
     template <int_t Idx, size_t... Enumeration>
