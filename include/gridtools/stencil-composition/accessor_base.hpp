@@ -49,66 +49,6 @@
 #include "../common/tuple_util.hpp"
 
 namespace gridtools {
-#ifdef __INTEL_COMPILER
-    namespace _impl {
-        /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
-         * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
-         * in the most common case. */
-        template <typename T, std::size_t Dim>
-        struct pseudo_array_type {
-            using type = array<T, Dim>;
-        };
-
-        template <typename T>
-        struct pseudo_array_type<T, 3> {
-            struct type {
-                T data0, data1, data2;
-
-                constexpr type(array<T, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
-
-                constexpr type() : data0(0), data1(0), data2(0) {}
-
-                constexpr type(T const &data0, T const &data1, T const &data2)
-                    : data0(data0), data1(data1), data2(data2) {}
-
-                GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
-            };
-        };
-    } // namespace _impl
-
-    template <std::size_t Idx>
-    GT_FUNCTION constexpr typename std::enable_if<Idx == 0, int_t const &>::type get(
-        typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
-        return arr.data0;
-    }
-    template <std::size_t Idx>
-    GT_FUNCTION constexpr typename std::enable_if<Idx == 1, int_t const &>::type get(
-        typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
-        return arr.data1;
-    }
-    template <std::size_t Idx>
-    GT_FUNCTION constexpr typename std::enable_if<Idx == 2, int_t const &>::type get(
-        typename _impl::pseudo_array_type<int_t, 3>::type const &arr) noexcept {
-        return arr.data2;
-    }
-    template <std::size_t Idx>
-    GT_FUNCTION constexpr typename std::enable_if<Idx == 0, int_t &>::type get(
-        typename _impl::pseudo_array_type<int_t, 3>::type &arr) noexcept {
-        return arr.data0;
-    }
-    template <std::size_t Idx>
-    GT_FUNCTION constexpr typename std::enable_if<Idx == 1, int_t &>::type get(
-        typename _impl::pseudo_array_type<int_t, 3>::type &arr) noexcept {
-        return arr.data1;
-    }
-    template <std::size_t Idx>
-    GT_FUNCTION constexpr typename std::enable_if<Idx == 2, int_t &>::type get(
-        typename _impl::pseudo_array_type<int_t, 3>::type &arr) noexcept {
-        return arr.data2;
-    }
-
-#endif
-
     namespace _impl {
         template <ushort_t I>
         struct get_dimension_value_f {
@@ -163,53 +103,6 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Extent Bounds over which the function access the argument
      */
-    //    template <ushort_t Dim>
-    //    using offsets_t = int[Dim];
-
-    //        template <ushort_t RequestedI, >
-
-    //    template<ushort_t RequestedI
-
-    //    template <ushort_t...>
-    //    struct my_impl;
-    //
-    //    template <ushort_t RequestedI, ushort_t I, ushort... Is>
-    //    struct my_impl<RequestedI, I, Is...> {
-    //        GT_FUNCTION constexpr enable_if_t<RequestedI == I, int> operator()() const { return 0; }
-    //        //        using type = typename std::conditional<RequestedI == I, int, typename my_impl<RequestedI,
-    //        //        Is...>::type>::type;
-    //    };
-    //
-    ////    template <ushort_t RequestedI, ushort... Is>
-    ////    struct my_impl<RequestedI, RequestedI, Is...> {
-    ////        GT_FUNCTION constexpr int operator()() const { return 0; }
-    ////    };
-    //
-    //    template <ushort_t RequestedI>
-    //    struct my_impl<RequestedI> {
-    //        GT_FUNCTION constexpr int operator()() const { return 0; }
-    //    };
-
-    //    template <ushort_t RequestedI>
-    //    struct init_from_dimensions {
-    //        template <ushort_t I, ushort_t... Is>
-    //        GT_FUNCTION constexpr enable_if_t<I == RequestedI, int> operator()(
-    //            dimension<I> const &d, dimension<Is> const &... ds) const {
-    //            return d.value;
-    //        }
-    //        template <ushort_t I, ushort_t... Is>
-    //        GT_FUNCTION constexpr enable_if_t<I != RequestedI, int> operator()(
-    //            dimension<I> const &d, dimension<Is> const &... ds) const {
-    //            return operator()(ds...);
-    //        }
-    //
-    //        GT_FUNCTION constexpr int operator()() const { return 0; }
-    //    };
-    //    template <ushort_t RequestedI, typename... Dims>
-    //    GT_FUNCTION constexpr int my_func(Dims const &... ds) {
-    //        return RequestedI;
-    //    }
-
     template <typename>
     struct accessor_base;
 
@@ -218,17 +111,7 @@ namespace gridtools {
         static constexpr size_t Dim = sizeof...(Enumeration);
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
-#ifdef __INTEL_COMPILER
-        /* The Intel compiler does not want to vectorize when we use a real array here. */
-        using offsets_t = typename _impl::pseudo_array_type<int_t, Dim>::type;
-        offsets_t m_offsets;
-        /* The Intel compiler likes to generate calls to memset if we don't have this additional member.*/
-        int_t m_workaround;
-#else
-        //        typedef int offsets_t[Dim];
-        //        offsets_t<Dim> m_offsets;
         int m_offsets[Dim];
-#endif
 
         static constexpr ushort_t n_dimensions = Dim;
 
@@ -240,46 +123,11 @@ namespace gridtools {
                 int>::type = 0>
         GT_FUNCTION constexpr accessor_base(Ints... offsets) : m_offsets{offsets...} {}
 
-        constexpr accessor_base(accessor_base const &src) = default;
-        //        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
-        //            : m_offsets(src)
-        //              //#ifdef __INTEL_COMPILER
-        //              ,
-        //              m_workaround(Dim)
-        //        //#endif
-        //        {}
-
-        struct fill {
-            template <ushort_t I>
-            GT_FUNCTION void operator()(dimension<I> d) {
-                m_offsets[I] = d.value;
-            }
-        };
+        constexpr explicit accessor_base(accessor_base const &src) = default;
 
         template <ushort_t I, ushort_t... Is>
         GT_FUNCTION constexpr accessor_base(dimension<I> d, dimension<Is>... ds)
             : m_offsets{_impl::make_offsets<Dim>(d, ds...)[Enumeration]...} {}
-        //                    : m_offsets{/*init_from_dimensions<Is>{}(ds...)... my_func<Is>(ds...)...*/} {}
-
-        //        template <ushort_t I, ushort_t... Is>
-        //        GT_FUNCTION accessor_base(dimension<I> d, dimension<Is>... ds) {
-        //            tuple_util::host_device::for_each(fill{}, std::tuple<dimension<I>,
-        //            dimension<Is>...>{d, ds...});
-        //        }
-        //            : m_offsets{/*init_from_dimensions<Is>{}(ds...)... my_func<Is>(ds...)...*/} {}
-
-        //        template <ushort_t I, ushort_t... Is>
-        //        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
-        //            : m_offsets(_impl::make_offsets<Dim>(d, ds...))
-        //#ifdef __INTEL_COMPILER
-        //              ,
-        //              m_workaround(Dim)
-        //#endif
-        //        {
-        //            GRIDTOOLS_STATIC_ASSERT((meta::is_set<meta::list<dimension<I>,
-        //            dimension<Is>...>>::value),
-        //                "all dimensions should be of different indicies");
-        //        }
 
         GT_FUNCTION constexpr int_t const &operator[](size_t i) const { return m_offsets[i]; }
 
