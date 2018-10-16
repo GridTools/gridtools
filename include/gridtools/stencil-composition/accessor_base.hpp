@@ -46,11 +46,21 @@
 #include "../common/host_device.hpp"
 
 namespace gridtools {
-#ifdef __INTEL_COMPILER
+
+#if defined(__INTEL_COMPILER) ||      \
+    (defined(__CUDACC_VER_MAJOR__) && \
+        (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)))
+// Intel: Has problems vectorizing the accessor_base class with a normal array member.
+// NVCC (CUDA 9.2 && CUDA 10)
+#define GT_ACCESSOR_BASE_WORKAROUND
+#endif
+
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
     namespace _impl {
-        /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
-         * class with a normal array member. Currently only the 3D case is specialized to allow for good vectorization
-         * in the most common case. */
+        /*
+         * Pseudo-array class. Currently only the 3D case is specialized to allow for good vectorization in the most
+         * common case.
+         */
         template <typename T, std::size_t Dim>
         struct pseudo_array_type {
             using type = array<T, Dim>;
@@ -61,11 +71,11 @@ namespace gridtools {
             struct type {
                 T data0, data1, data2;
 
-                constexpr type(array<T, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
+                GT_FUNCTION constexpr type(array<T, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
 
-                constexpr type() : data0(0), data1(0), data2(0) {}
+                GT_FUNCTION constexpr type() : data0(0), data1(0), data2(0) {}
 
-                constexpr type(T const &data0, T const &data1, T const &data2)
+                GT_FUNCTION constexpr type(T const &data0, T const &data1, T const &data2)
                     : data0(data0), data1(data1), data2(data2) {}
 
                 GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
@@ -164,7 +174,7 @@ namespace gridtools {
     class accessor_base {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
-#ifdef __INTEL_COMPILER
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
         /* The Intel compiler does not want to vectorize when we use a real array here. */
         using offsets_t = typename _impl::pseudo_array_type<int_t, Dim>::type;
         offsets_t m_offsets;
@@ -187,7 +197,7 @@ namespace gridtools {
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
             offsets...
         }
-#ifdef __INTEL_COMPILER
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
         , m_workaround(Dim)
 #endif
         {
@@ -195,7 +205,7 @@ namespace gridtools {
 
         GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
             : m_offsets(src)
-#ifdef __INTEL_COMPILER
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
               ,
               m_workaround(Dim)
 #endif
@@ -205,7 +215,7 @@ namespace gridtools {
         template <ushort_t I, ushort_t... Is>
         GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : m_offsets(_impl::make_offsets<Dim>(d, ds...))
-#ifdef __INTEL_COMPILER
+#ifdef GT_ACCESSOR_BASE_WORKAROUND
               ,
               m_workaround(Dim)
 #endif
