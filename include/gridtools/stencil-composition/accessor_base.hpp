@@ -46,6 +46,15 @@
 #include "../common/host_device.hpp"
 
 namespace gridtools {
+
+// workaround for https://github.com/eth-cscs/gridtools/issues/1040: no constexpr ctor for CUDA 9.2 and CUDA 10
+#if defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2))
+#define GT_ACCESSOR_BASE_CONSTEXPR_WORKAROUND
+#else
+#define GT_ACCESSOR_BASE_CONSTEXPR_WORKAROUND constexpr
+#endif
+
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
@@ -184,7 +193,7 @@ namespace gridtools {
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
-        GT_FUNCTION explicit accessor_base(Ints... offsets) : m_offsets {
+        GT_FUNCTION GT_ACCESSOR_BASE_CONSTEXPR_WORKAROUND explicit accessor_base(Ints... offsets) : m_offsets {
             offsets...
         }
 #ifdef __INTEL_COMPILER
@@ -193,7 +202,7 @@ namespace gridtools {
         {
         }
 
-        GT_FUNCTION explicit accessor_base(offsets_t const &src)
+        GT_FUNCTION GT_ACCESSOR_BASE_CONSTEXPR_WORKAROUND explicit accessor_base(offsets_t const &src)
             : m_offsets(src)
 #ifdef __INTEL_COMPILER
               ,
@@ -203,7 +212,7 @@ namespace gridtools {
         }
 
         template <ushort_t I, ushort_t... Is>
-        GT_FUNCTION explicit accessor_base(dimension<I> d, dimension<Is>... ds)
+        GT_FUNCTION GT_ACCESSOR_BASE_CONSTEXPR_WORKAROUND explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : m_offsets(_impl::make_offsets<Dim>(d, ds...))
 #ifdef __INTEL_COMPILER
               ,
