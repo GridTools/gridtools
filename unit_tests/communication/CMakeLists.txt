@@ -4,10 +4,10 @@ fetch_mic_tests(.)
 fetch_gpu_tests(.)
 
 
-add_custom_host_test(boolist boolist.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
-add_custom_host_test(ndloops ndloops.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
-add_custom_mic_test(boolist boolist.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
-add_custom_mic_test(ndloops ndloops.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
+add_custom_host_test(boolist boolist.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
+add_custom_host_test(ndloops ndloops.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
+add_custom_mic_test(boolist boolist.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
+add_custom_mic_test(ndloops ndloops.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
 
 # custom test cases
 if( NOT GCL_ONLY )

@@ -69,7 +69,8 @@ endif()
 
 if( COMPONENT_C_BINDINGS )
     generate_target_for(NAME c_bindings_handle SOURCES src/c_bindings/handle.cpp)
-    set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    target_compile_options(c_bindings_handle PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
+   # set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     generate_install_targets_for(c_bindings_handle c_bindings None)
 
     set(exe_LIBS ${exe_LIBS} c_bindings_handle)
@@ -82,12 +83,15 @@ if( COMPONENT_C_BINDINGS )
     target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
     generate_target_for(NAME c_bindings_generator SOURCES src/c_bindings/generator.cpp)
-    set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    target_compile_options(c_bindings_generator PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
+    #set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     generate_install_targets_for(c_bindings_generator c_bindings None)
 
     set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
     add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
+    target_compile_options(c_bindings_generator_main PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
+  #  set_target_properties(c_bindings_generator_main PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     target_link_libraries(c_bindings_generator_main c_bindings_generator)
     generate_install_targets_for(c_bindings_generator_main c_bindings c_bindings_generator)
 

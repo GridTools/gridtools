@@ -1,4 +1,3 @@
-set( OLD_OPTIONS "${CMAKE_CXX_FLAGS}" )
 set(CUDA_SEPARABLE_COMPILATION OFF)
 
 ### Executables
@@ -17,7 +16,6 @@ else(GCL_ONLY)
 
 
   if( ENABLE_CUDA )
-    ##set(CMAKE_CXX_FLAGS "${OLD_OPTIONS}")
     if( GCL_MPI )
       include_directories( ${MPI_INCLUDE_PATH} )
     endif( GCL_MPI )

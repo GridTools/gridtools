@@ -47,7 +47,7 @@ function(fetch_host_tests subfolder)
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_definitions(${unit_test} PUBLIC ${HOST_BACKEND_DEFINE})
+            target_compile_definitions(${unit_test} PUBLIC "${GT_CXX_FLAGS} ${HOST_BACKEND_DEFINE}")
             target_include_directories(${unit_test}
                  PRIVATE
                     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -78,7 +78,7 @@ function(fetch_mic_tests subfolder)
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_definitions(${unit_test} PUBLIC ${MIC_BACKEND_DEFINE})
+            target_compile_definitions(${unit_test} PUBLIC "${GT_CXX_FLAGS} ${MIC_BACKEND_DEFINE}")
             target_include_directories(${unit_test}
                  PRIVATE
                     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -108,7 +108,7 @@ function(fetch_gpu_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
-            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
+            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE}")
             target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
             target_include_directories(${unit_test}
                  PRIVATE
@@ -152,7 +152,7 @@ function(add_custom_mic_test name sources cc_flags ld_flags)
         set(cflags "${cc_flags} ${CMAKE_CXX_FLAGS}" )
         set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
-        target_compile_definitions(${name} PUBLIC ${MIC_BACKEND_DEFINE})
+        target_compile_definitions(${name} PUBLIC "${GT_CXX_FLAGS} ${MIC_BACKEND_DEFINE}")
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -170,7 +170,7 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         set(CUDA_SEPARABLE_COMPILATION OFF)
-        cuda_add_executable (${name} ${test_source} OPTIONS "-D${CUDA_BACKEND_DEFINE}")
+        cuda_add_executable (${name} ${test_source} OPTIONS "${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE}")
         set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags} COMPILE_FLAGS ${GPU_SPECIFIC_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX)
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
