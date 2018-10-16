@@ -62,7 +62,7 @@ namespace copy_stencil {
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            eval(out()) = eval(in());
+            eval(out()) = eval(in(1, 0, 0));
         }
     };
 
@@ -89,10 +89,10 @@ namespace copy_stencil {
         // gridtools::grid< axis > grid;
         copy_stencil_test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool m_verify)
             : d1(x), d2(y), d3(z), t_steps(t_steps), m_verify(m_verify), meta_data_(x, y, z),
-              in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"), out(meta_data_, -1.0, "out"),
-              grid(halo_descriptor(d1),
-                  halo_descriptor(d2),
-                  _impl::intervals_to_indices(gridtools::axis<1>{d3}.interval_sizes()))
+              in(meta_data_, [](int i, int j, int k) { return i * 10000 + j * 100 + k; }, "in"),
+              out(meta_data_, -1.0, "out"), grid(halo_descriptor{0, 1, 0, d1 - 2, d1},
+                                                halo_descriptor(d2),
+                                                _impl::intervals_to_indices(gridtools::axis<1>{d3}.interval_sizes()))
 
         {}
 
@@ -105,12 +105,12 @@ namespace copy_stencil {
 
             bool success = true;
             if (m_verify) {
-                for (uint_t i = 0; i < d1; ++i) {
+                for (uint_t i = 0; i < d1 - 1; ++i) {
                     for (uint_t j = 0; j < d2; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
-                            if (in_v(i, j, k) != out_v(i, j, k)) { // TODO use verifier
+                            if (in_v(i + 1, j, k) != out_v(i, j, k)) { // TODO use verifier
                                 std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                          << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
+                                          << "in = " << in_v(i + 1, j, k) << ", out = " << out_v(i, j, k) << std::endl;
                                 success = false;
                             }
                         }

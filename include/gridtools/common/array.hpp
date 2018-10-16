@@ -119,7 +119,7 @@ namespace gridtools {
         constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
         GT_FUNCTION
-        T &operator[](size_t i) {
+        GT_CXX14CONSTEXPR T &operator[](size_t i) {
             assert((impl_::array_traits<T, D>::assert_range(i)));
             return m_array[i];
         }

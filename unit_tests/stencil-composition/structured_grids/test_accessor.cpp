@@ -103,14 +103,14 @@ TEST(accessor, trivial) {
     EXPECT_EQ(-1, get<2>(first));
 }
 
-TEST(accessor, array) {
-    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
-
-    EXPECT_EQ(3, get<0>(first));
-    EXPECT_EQ(2, get<1>(first));
-    EXPECT_EQ(-1, get<2>(first));
-}
+// TEST(accessor, array) {
+//    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
+//    GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
+//
+//    EXPECT_EQ(3, get<0>(first));
+//    EXPECT_EQ(2, get<1>(first));
+//    EXPECT_EQ(-1, get<2>(first));
+//}
 
 /**
  * @brief interface with out-of-order optional arguments

@@ -106,7 +106,7 @@ namespace assembly {
     template <typename ValueType, typename Layout, uint_t... Dims>
     struct elemental {
         typedef ValueType value_type;
-        typedef meta_storage_cache<Layout, Dims...> meta_t;
+        using storage_info_t = storage_info_interface<0, Layout>;
 
         // default constructor useless, but required in the storage implementation
         GT_FUNCTION
@@ -120,7 +120,19 @@ namespace assembly {
 
         template <typename... Ints>
         GT_FUNCTION value_type const &operator()(Ints &&... args_) const {
-            return m_values[meta_t{}.index(args_...)];
+#if defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2))
+            // workaround for issue #1040
+            array<uint_t, sizeof...(Dims)> dims_array{Dims...};
+            array<uint_t, sizeof...(Dims)> strides_array;
+            strides_array[0] = 1;
+            for (size_t i = 1; i < strides_array.size(); ++i) {
+                strides_array[i] = strides_array[i - 1] * dims_array[i];
+            }
+            return m_values[storage_info_t{dims_array, strides_array}.index(args_...)];
+#else
+            return m_values[storage_info_t{Dims...}.index(args_...)];
+#endif
         }
 
         value_type m_values[accumulate(multiplies(), Dims...)];
