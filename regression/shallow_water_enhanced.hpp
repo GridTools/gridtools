@@ -295,7 +295,7 @@ namespace shallow_water {
             gridtools::version_manual>
             pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false, false, false), GCL_WORLD, dimensions);
+        pattern_type he(gridtools::boollist<3>(false, false, false), CartComm);
         //! [pattern_type]
 
         auto c_grid = he.comm();
