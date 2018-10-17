@@ -40,9 +40,9 @@
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-using IJKStorageInfo = typename gridtools::storage_traits<gridtools::platform::x86>::storage_info_t<0, 3>;
+using IJKStorageInfo = typename gridtools::storage_traits<gridtools::target::x86>::storage_info_t<0, 3>;
 using IJKDataStore =
-    typename gridtools::storage_traits<gridtools::platform::x86>::data_store_t<gridtools::float_type, IJKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<gridtools::float_type, IJKStorageInfo>;
 
 TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;

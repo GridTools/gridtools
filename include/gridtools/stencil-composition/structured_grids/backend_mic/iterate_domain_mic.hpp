@@ -64,7 +64,7 @@ namespace gridtools {
          * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
         inline float thread_factor() {
-            thread_local static const float value = (float) omp_get_thread_num() / omp_get_max_threads();
+            thread_local static const float value = (float)omp_get_thread_num() / omp_get_max_threads();
             return value;
         }
 
@@ -122,7 +122,7 @@ namespace gridtools {
 
         using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
         using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
-        using backend_traits_t = backend_traits_from_id<platform::mc>;
+        using backend_traits_t = backend_traits_from_id<target::mc>;
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
         using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;

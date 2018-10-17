@@ -58,18 +58,18 @@ namespace gridtools {
         struct select_apply;
 
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<platform::x86, BoundaryFunction, Predicate> {
+        struct select_apply<target::x86, BoundaryFunction, Predicate> {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<platform::mc, BoundaryFunction, Predicate> {
+        struct select_apply<target::mc, BoundaryFunction, Predicate> {
             using type = boundary_apply<BoundaryFunction, Predicate>;
         };
 
 #ifdef __CUDACC__
         template <typename BoundaryFunction, typename Predicate>
-        struct select_apply<platform::cuda, BoundaryFunction, Predicate>
+        struct select_apply<target::cuda, BoundaryFunction, Predicate>
 
         {
             using type = boundary_apply_gpu<BoundaryFunction, Predicate>;
@@ -80,14 +80,14 @@ namespace gridtools {
         struct proper_view;
 
         template <access_mode AM, typename DataF>
-        struct proper_view<platform::x86, AM, DataF> {
+        struct proper_view<target::x86, AM, DataF> {
             using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
         };
 
         template <access_mode AM, typename DataF>
-        struct proper_view<platform::mc, AM, DataF> {
+        struct proper_view<target::mc, AM, DataF> {
             using proper_view_t = decltype(make_host_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_host_view<AM>(df); }
@@ -95,7 +95,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
         template <access_mode AM, typename DataF>
-        struct proper_view<platform::cuda, AM, DataF> {
+        struct proper_view<target::cuda, AM, DataF> {
             using proper_view_t = decltype(make_device_view<AM, DataF>(std::declval<DataF>()));
 
             static proper_view_t make(DataF const &df) { return make_device_view<AM>(df); }
@@ -112,7 +112,7 @@ namespace gridtools {
        @brief Main interface for boundary condition application.
 
        \tparam BoundaryFunction The boundary condition functor
-       \tparam Arch The platform where the data is (e.g., Host or Cuda)
+       \tparam Arch The target where the data is (e.g., Host or Cuda)
        \tparam Predicate Runtime predicate for deciding if to apply boundary conditions or not on certain regions based
        on runtime values (useful to deal with non-priodic distributed examples
      */
