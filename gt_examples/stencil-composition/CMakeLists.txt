@@ -8,8 +8,8 @@ if( STRUCTURED_GRIDS )
           add_executable(${srcfile}_host_block_ex   ${srcfile}.cpp ${INC_ALL})
           target_link_libraries(${srcfile}_host_naive_ex ${exe_LIBS})
           target_link_libraries(${srcfile}_host_block_ex ${exe_LIBS})
-          target_compile_definitions(${srcfile}_host_naive_ex PUBLIC ${HOST_BACKEND_DEFINE} "BACKEND_STRATEGY_NAIVE")
-          target_compile_definitions(${srcfile}_host_block_ex PUBLIC ${HOST_BACKEND_DEFINE})
+          target_compile_options(${srcfile}_host_naive_ex PUBLIC ${GT_CXX_FLAGS} -D${HOST_BACKEND_DEFINE} -DBACKEND_STRATEGY_NAIVE)
+          target_compile_options(${srcfile}_host_block_ex PUBLIC ${GT_CXX_FLAGS} -D${HOST_BACKEND_DEFINE})
           target_include_directories(${srcfile}_host_naive_ex
                PRIVATE
                   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -32,7 +32,7 @@ if( STRUCTURED_GRIDS )
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
           add_executable(${srcfile}_mic_ex   ${srcfile}.cpp ${INC_ALL})
           target_link_libraries(${srcfile}_mic_ex ${exe_LIBS})
-          target_compile_definitions(${srcfile}_mic_ex PUBLIC ${MIC_BACKEND_DEFINE})
+          target_compile_options(${srcfile}_mic_ex PUBLIC ${GT_CXX_FLAGS} -D${MIC_BACKEND_DEFINE})
           target_include_directories(${srcfile}_mic_ex
                PRIVATE
                   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>

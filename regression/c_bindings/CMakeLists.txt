@@ -7,6 +7,8 @@ if (ENABLE_HOST)
     add_executable(driver driver.c)
     target_link_libraries(driver implementation_c)
 
+    target_compile_options(driver PRIVATE ${GT_C_BUILDING_FLAGS})
+
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 
     add_executable(fdriver fdriver.f90)

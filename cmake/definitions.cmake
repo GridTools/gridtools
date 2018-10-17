@@ -2,15 +2,18 @@ set(GT_CXX_MANDATORY_FLAGS)    # Flags that are needed to compile GT ap plicatio
 set(GT_CXX_BUILDING_FLAGS)     # Flags needed to compile unit tests and such, but not for export
 set(GT_CXX_OPTIONAL_FLAGS)     # Flags that are optional for compiling, like removing warnings and such
 set(GT_CXX_OPTIMIZATION_FLAGS) # Flags used for optimization
+set(GT_C_BUILDING_FLAGS)       # Flags for the C components (driver.c)
 
 ## set suppress messages ##
 if(SUPPRESS_MESSAGES)
     set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DSUPPRESS_MESSAGES )
+    set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS}  -DSUPPRESS_MESSAGES )
 endif(SUPPRESS_MESSAGES)
 
 ## set verbose mode ##
 if(VERBOSE)
-    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DVERBOSE )
+    set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS}  -DVERBOSE )
+    set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS}  -DVERBOSE )
 endif(VERBOSE)
 
 ## enable boost variadic PP
@@ -36,7 +39,6 @@ find_package( Boost 1.58 REQUIRED )
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
   foreach(dir ${Boost_INCLUDE_DIRS})
-    message( ">>> ${dir} <<<" )
     set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -isystem${dir} )
   endforeach()
   set(exe_LIBS ${Boost_LIBRARIES} ${exe_LIBS})
@@ -183,6 +185,7 @@ if(SINGLE_PRECISION)
   endif()
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=4" )
   set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
+  set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
   message(STATUS "Computations in single precision")
 else()
   if(ENABLE_CUDA)
@@ -190,6 +193,7 @@ else()
   endif()
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=8" )
   set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DFLOAT_PRECISION=8 )
+  set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS} -DFLOAT_PRECISION=8 )
   message(STATUS "Computations in double precision")
 endif()
 
@@ -216,9 +220,7 @@ endif()
 
 set( GT_CXX_FLAGS ${GT_CXX_BUILDING_FLAGS} ${GT_CXX_OPTIONAL_FLAGS} ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} )
 string(STRIP "${GT_CXX_FLAGS}" GT_CXX_FLAGS)
-#set( GT_CXX_FLAGS "${GT_CXX_FLAGS}" )
-#set( GT_CXX_FLAGS "--std=c++11 -DENABLE_METER -DFLOAT_PRECISION=4 -DFUSION_MAX_VECTOR_SIZE=20 -DFUSION_MAX_MAP_SIZE=20 -isystem/scratch/snx1600/jenkins/install/boost/boost_1_67_0/include -fopenmp -mtune=native -march=native -DBOOST_PP_VARIADICS=1" )
-message( " --> *${GT_CXX_FLAGS}* <-- ")
+
 
 
 # add a target to generate API documentation with Doxygen

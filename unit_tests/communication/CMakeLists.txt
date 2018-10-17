@@ -4,18 +4,18 @@ fetch_mic_tests(.)
 fetch_gpu_tests(.)
 
 
-add_custom_host_test(boolist boolist.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
-add_custom_host_test(ndloops ndloops.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
-add_custom_mic_test(boolist boolist.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
-add_custom_mic_test(ndloops ndloops.cpp ${GT_CXX_FLAGS} ${exe_LIBS})
+add_custom_host_test( TARGET boolist SOURCES boolist.cpp)
+add_custom_host_test( TARGET ndloops SOURCES ndloops.cpp)
+add_custom_mic_test( TARGET boolist SOURCES boolist.cpp)
+add_custom_mic_test( TARGET ndloops SOURCES ndloops.cpp)
 
 # custom test cases
 if( NOT GCL_ONLY )
     if( USE_MPI )
-        set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
+        set(ccflags ${HOST_SPECIFIC_OPTIONS} )
         set(ldflags " ")
-        
-        if( NOT "${DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "CPU") 
+
+        if( NOT "${DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "CPU")
             add_custom_mpi_host_test(halo_exchange_3D halo_exchange_3D.cpp ${ccflags} ${ldflags})
 
             add_custom_mpi_host_test(all_to_all_halo_3D ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_all_to_all_halo_3D.cpp ${ccflags} ${ldflags})
