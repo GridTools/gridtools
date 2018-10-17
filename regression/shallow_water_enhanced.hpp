@@ -272,8 +272,13 @@ namespace shallow_water {
         arg<2, sol_type> p_v;
 
         //! [proc_grid_dims]
+        MPI_Comm CartComm;
         array<int, 3> dimensions{0, 0, 1};
-        MPI_Dims_create(PROCS, 3, &dimensions[0]);
+        int period[3] = {1, 1, 1};
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
+        assert(dimensions[2] == 1);
+
+        MPI_Cart_create(MPI_COMM_WORLD, 3, &dimensions[0], period, false, &CartComm);
 
         //! [proc_grid_dims]
 
