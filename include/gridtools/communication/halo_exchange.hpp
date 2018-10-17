@@ -361,6 +361,9 @@ namespace gridtools {
            The behavior is like MPI_Dims_create.
         */
         template <typename ValueType, size_t Size>
+        GT_DEPRECATED(
+            "halo_exchange_dynamic_ut(period, MPI_Comm, dims) is deprecated, since it creates an additional "
+            "communicator that is not freed. Use the constructor without dims and pass to it a Cartesian communicator")
         explicit halo_exchange_dynamic_ut(
             typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &&dims)
             : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
@@ -377,6 +380,9 @@ namespace gridtools {
            The behavior is like MPI_Dims_create.
          */
         template <typename ValueType, size_t Size>
+        GT_DEPRECATED("halo_exchange_dynamic_ut(period, MPI_Comm, dims) is deprecated, since it creates an "
+                      "additional communicator that is not freed. Use the constructor without dims and pass to it "
+                      "a Cartesian communicator")
         explicit halo_exchange_dynamic_ut(
             typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &dims)
             : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
