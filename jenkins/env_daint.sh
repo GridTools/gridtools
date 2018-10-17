@@ -71,7 +71,7 @@ export MPI_HOST_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
 export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=64"
 export MPI_NODES=4
 export MPI_TASKS=4
-export DEFAULT_QUEUE=cscsci
+export DEFAULT_QUEUE=normal
 export MAKE_THREADS=24
 export SRUN_BUILD_COMMAND="srun -C gpu --account c14 -p cscsci --time=00:20:00"
 
