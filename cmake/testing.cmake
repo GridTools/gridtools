@@ -183,7 +183,7 @@ function(add_custom_gpu_test)
         # create the test
         set(CUDA_SEPARABLE_COMPILATION OFF)
         add_executable (${name} ${___SOURCES})
-        target_compile_flags (${name} PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE})
+        target_compile_options (${name} PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE})
 
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
