@@ -2,6 +2,12 @@ set(GT_CXX_MANDATORY_FLAGS)    # Flags that are needed to compile GT ap plicatio
 set(GT_CXX_BUILDING_FLAGS)     # Flags needed to compile unit tests and such, but not for export
 set(GT_CXX_OPTIONAL_FLAGS)     # Flags that are optional for compiling, like removing warnings and such
 set(GT_CXX_OPTIMIZATION_FLAGS) # Flags used for optimization
+
+set(GT_CUDA_MANDATORY_FLAGS)    # Flags that are needed to compile GT ap plications correctly
+set(GT_CUDA_BUILDING_FLAGS)     # Flags needed to compile unit tests and such, but not for export
+set(GT_CUDA_OPTIONAL_FLAGS)     # Flags that are optional for compiling, like removing warnings and such
+set(GT_CUDA_OPTIMIZATION_FLAGS) # Flags used for optimization
+
 set(GT_C_BUILDING_FLAGS)       # Flags for the C components (driver.c)
 
 ## set suppress messages ##
@@ -39,7 +45,11 @@ find_package( Boost 1.58 REQUIRED )
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
   foreach(dir ${Boost_INCLUDE_DIRS})
-    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -isystem${dir} )
+    if( ENABLE_CUDA )
+      set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -I${dir} )
+    else()
+      set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -isystem${dir} )
+    endif()
   endforeach()
   set(exe_LIBS ${Boost_LIBRARIES} ${exe_LIBS})
 endif()
@@ -73,15 +83,15 @@ endif(ENABLE_HOST)
 ## cuda support ##
 if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   if( ${CUDA_VERSION} VERSION_LESS "80" )
     message(ERROR " CUDA 7.X or lower is not supported")
   endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
+    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
@@ -92,29 +102,29 @@ if( ENABLE_CUDA )
   set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}")
+  set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "-arch=${CUDA_ARCH}")
 
   # suppress because of a warning coming from gtest.h
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable")
+  set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable")
 
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
     # suppress because of boost::fusion::vector ctor
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=esa_on_defaulted_function_ignored")
+    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS}" "-Xcudafe" "--diag_suppress=esa_on_defaulted_function_ignored")
   endif()
 
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
+    set(GT_CUDA_OPTIONAL_FLAGS "${GT_CUDA_OPTIONAL_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
 
   # workaround for boost::optional with CUDA9.2
   if( (${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2) OR (${CUDA_VERSION_MAJOR} EQUAL 10) )
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
+    set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
+    set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
   endif()
 
   if(${CXX_STANDARD} STREQUAL "c++14")
     # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--expt-relaxed-constexpr")
+    set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "--expt-relaxed-constexpr")
   elseif(${CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
@@ -162,10 +172,12 @@ find_package( OpenMP )
 cmake_policy(POP)
 
 ## openmp ##
-if(OPENMP_FOUND)
-    set(  GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  ${OpenMP_CXX_FLAGS} )
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
-    set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
+if(NOT ENABLE_CUDA)
+  if(OPENMP_FOUND)
+      set(  GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  ${OpenMP_CXX_FLAGS} )
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
+      set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
+  endif()
 endif()
 
 ## performance meters ##
@@ -181,7 +193,7 @@ set ( exe_LIBS -lpthread ${exe_LIBS} )
 ## precision ##
 if(SINGLE_PRECISION)
   if(ENABLE_CUDA)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} " "-DFLOAT_PRECISION=4 ")
+    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} " "-DFLOAT_PRECISION=4 ")
   endif()
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=4" )
   set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
@@ -189,7 +201,7 @@ if(SINGLE_PRECISION)
   message(STATUS "Computations in single precision")
 else()
   if(ENABLE_CUDA)
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} " "-DFLOAT_PRECISION=8 ")
+    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} " "-DFLOAT_PRECISION=8 ")
   endif()
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=8" )
   set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DFLOAT_PRECISION=8 )
@@ -220,6 +232,8 @@ endif()
 
 set( GT_CXX_FLAGS ${GT_CXX_BUILDING_FLAGS} ${GT_CXX_OPTIONAL_FLAGS} ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} )
 string(STRIP "${GT_CXX_FLAGS}" GT_CXX_FLAGS)
+set( GT_CUDA_FLAGS ${GT_CUDA_BUILDING_FLAGS} ${GT_CUDA_OPTIONAL_FLAGS} ${GT_CUDA_OPTIMIZATION_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
+string(STRIP "${GT_CUDA_FLAGS}" GT_CUDA_FLAGS)
 
 
 

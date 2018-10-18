@@ -108,7 +108,7 @@ function(fetch_gpu_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
-            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE}")
+            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS "${GT_CXX_FLAGS} ${GT_CUDA_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE}")
             target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
             target_include_directories(${unit_test}
                  PRIVATE
@@ -169,15 +169,20 @@ function(add_custom_mic_test)
 endfunction(add_custom_mic_test)
 
 # This function can be used to add a custom gpu test
-function(add_custom_gpu_test name sources cc_flags ld_flags)
+function(add_custom_gpu_test)
+    set(options)
+    set(one_value_args TARGET)
+    set(multi_value_args SOURCES ADDITIONAL_FLAGS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
     if (ENABLE_CUDA)
-        set(name "${name}_cuda")
+        set(name "${___TARGET}_cuda")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         set(CUDA_SEPARABLE_COMPILATION OFF)
-        cuda_add_executable (${name} ${test_source} OPTIONS "${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE}")
-        set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags} COMPILE_FLAGS ${GPU_SPECIFIC_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX)
+        cuda_add_executable (${name} ${___SOURCES} OPTIONS "${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE}")
+        set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags} COMPILE_FLAGS ${GPU_SPECIFIC_FLAGS} "${___ADDITIONAL_FLAGS}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX)
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
              PRIVATE
