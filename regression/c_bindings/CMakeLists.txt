@@ -1,11 +1,13 @@
 if (ENABLE_HOST)
     add_bindings_library(implementation implementation.cpp)
     add_bindings_library(implementation_wrapper implementation-wrapper.cpp)
-    target_compile_definitions(implementation PUBLIC ${HOST_BACKEND_DEFINE})
-    target_compile_definitions(implementation_wrapper PUBLIC ${HOST_BACKEND_DEFINE})
+    target_compile_options(implementation PRIVATE ${GT_CXX_FLAGS};-D${HOST_BACKEND_DEFINE})
+    target_compile_options(implementation_wrapper PRIVATE ${GT_CXX_FLAGS};-D${HOST_BACKEND_DEFINE})
 
     add_executable(driver driver.c)
     target_link_libraries(driver implementation_c)
+
+    target_compile_options(driver PRIVATE ${GT_C_BUILDING_FLAGS})
 
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 
