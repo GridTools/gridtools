@@ -11,14 +11,16 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googlemock/inc
 
 # ===============
 add_library(gtest ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
+target_compile_options( gtest PUBLIC ${GT_CXX_FLAGS} )
 add_library(gtest_main ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
+target_compile_options( gtest_main PUBLIC ${GT_CXX_FLAGS} )
 if( NOT GCL_ONLY )
     if( USE_MPI )
         if ( ENABLE_CUDA )
             include_directories ( "${CUDA_INCLUDE_DIRS}" )
         endif()
         add_library( mpi_gtest_main include/gridtools/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
-        set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${GPU_SPECIFIC_FLAGS}" )
+        target_compile_options( mpi_gtest_main PUBLIC ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
         #target_link_libraries(mpi_gtest_main ${exe_LIBS} )
     endif()
 endif()
@@ -183,7 +185,7 @@ function(add_custom_gpu_test)
         # create the test
         set(CUDA_SEPARABLE_COMPILATION OFF)
         add_executable (${name} ${___SOURCES})
-        target_compile_options (${name} PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE})
+        target_compile_options (${name} PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
 
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
@@ -195,14 +197,19 @@ function(add_custom_gpu_test)
 endfunction(add_custom_gpu_test)
 
 
-function(add_custom_mpi_host_test name sources cc_flags ld_flags)
+function(add_custom_mpi_host_test)
+    set(options)
+    set(one_value_args TARGET)
+    set(multi_value_args SOURCES ADDITIONAL_FLAGS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
     if (ENABLE_HOST)
-        set(name "${name}_host")
+        set(name "${___TARGET}_host")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
-        add_executable (${name} ${sources})
-        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${cc_flags} -D${HOST_BACKEND_DEFINE})
+        add_executable (${name} ${___SOURCES})
+        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${HOST_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
         target_include_directories(${name}
              PRIVATE
@@ -212,15 +219,20 @@ function(add_custom_mpi_host_test name sources cc_flags ld_flags)
     endif (ENABLE_HOST)
 endfunction(add_custom_mpi_host_test)
 
-function(add_custom_mpi_mic_test name sources cc_flags ld_flags)
+function(add_custom_mpi_mic_test)
+    set(options)
+    set(one_value_args TARGET)
+    set(multi_value_args SOURCES ADDITIONAL_FLAGS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
     if (ENABLE_MIC)
-        set(name "${name}_mic")
+        set(name "${___TARGET}_mic")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
-        add_executable (${name} ${sources})
+        add_executable (${name} ${___SOURCES})
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
-        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${cc_flags} -D${MIC_BACKEND_DEFINE})
+        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${MIC_BACKEND_DEFINE})
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -230,15 +242,20 @@ function(add_custom_mpi_mic_test name sources cc_flags ld_flags)
 endfunction(add_custom_mpi_mic_test)
 
 # This function can be used to add a custom gpu test
-function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
+function(add_custom_mpi_gpu_test)
+    set(options)
+    set(one_value_args TARGET)
+    set(multi_value_args SOURCES ADDITIONAL_FLAGS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
     if (ENABLE_CUDA)
-        set(name "${name}_cuda")
+        set(name "${___TARGET}_cuda")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         #set(CUDA_SEPARABLE_COMPILATION OFF)
-        add_executable (${name} ${sources} )
-        target_compile_options (${name} PUBLIC ${GPU_SPECIFIC_FLAGS} ${cc_flags} -D${CUDA_BACKEND_DEFINE})
+        add_executable (${name} ${___SOURCES} )
+        target_compile_options (${name} PUBLIC ${GPU_SPECIFIC_FLAGS} ${GT_CXX_FLAGS} ${GT_CUDA_FLAGS} ${___ADDITIONAL_FLAGS} -D${CUDA_BACKEND_DEFINE})
 
         target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
         target_include_directories(${name}

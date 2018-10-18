@@ -70,7 +70,10 @@ set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -fprofile-arcs )
 message (STATUS "Building profiled executables")
 endif()
 
-set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  --std=${CXX_STANDARD} )
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CUDA_STANDARD 11)
+
 
 if(ENABLE_HOST)
   set(HOST_BACKEND_DEFINE "BACKEND_HOST")
@@ -90,7 +93,7 @@ if( ENABLE_CUDA )
     set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
+  set(GPU_SPECIFIC_FLAGS -D_USE_GPU_ -D_GCL_GPU_)
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
@@ -98,10 +101,10 @@ if( ENABLE_CUDA )
   set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
-  set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "-arch=${CUDA_ARCH}")
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -arch=${CUDA_ARCH})
 
   # suppress because of a warning coming from gtest.h
-  set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable")
+  set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe --diag_suppress=code_is_unreachable)
 
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
     # suppress because of boost::fusion::vector ctor
@@ -136,22 +139,22 @@ endif( ENABLE_MIC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
-    set( GT_CXX_BUILDING_FLAGS ${CMAKE_BUILDING_FLAGS}  "-ftemplate-depth-1024 ")
+    set( GT_CXX_BUILDING_FLAGS ${CMAKE_BUILDING_FLAGS}  -ftemplate-depth-1024 )
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set( GT_CXX_BUILDING_FLAGS ${CMAKE_BUILDING_FLAGS}  "-Wno-pass-failed ")
+    set( GT_CXX_BUILDING_FLAGS ${CMAKE_BUILDING_FLAGS}  -Wno-pass-failed )
 endif()
 
 ## Intel compiler ##
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
     # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
-    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  "-DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)' ")
+    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)' )
     # force boost to use decltype() for boost::result_of, required to compile without errors (ICC 17)
-    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  "-DBOOST_RESULT_OF_USE_DECLTYPE ")
+    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_RESULT_OF_USE_DECLTYPE )
     # slightly improve performance
-    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  "-qopt-subscript-in-range -qoverride-limits ")
+    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -qopt-subscript-in-range -qoverride-limits )
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  "-diag-disable=15518,15552 ")
+    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -diag-disable=15518,15552 )
 endif()
 
 
@@ -160,15 +163,15 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
-# Note: It seems that FindOpenMP ignores CMP0054. As this is an
-# external code, we explicity turn that policy off.
-cmake_policy(PUSH)
-cmake_policy(SET CMP0054 OLD)
-find_package( OpenMP )
-cmake_policy(POP)
-
-## openmp ##
 if(NOT ENABLE_CUDA)
+  # Note: It seems that FindOpenMP ignores CMP0054. As this is an
+  # external code, we explicity turn that policy off.
+  cmake_policy(PUSH)
+  cmake_policy(SET CMP0054 OLD)
+  find_package( OpenMP )
+  cmake_policy(POP)
+
+  ## openmp ##
   if(OPENMP_FOUND)
       set(  GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  ${OpenMP_CXX_FLAGS} )
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
@@ -189,7 +192,7 @@ set ( exe_LIBS -lpthread ${exe_LIBS} )
 ## precision ##
 if(SINGLE_PRECISION)
   if(ENABLE_CUDA)
-    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} " "-DFLOAT_PRECISION=4 ")
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
   endif()
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=4" )
   set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
@@ -197,7 +200,7 @@ if(SINGLE_PRECISION)
   message(STATUS "Computations in single precision")
 else()
   if(ENABLE_CUDA)
-    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} " "-DFLOAT_PRECISION=8 ")
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -DFLOAT_PRECISION=8)
   endif()
   set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=8" )
   set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DFLOAT_PRECISION=8 )
@@ -215,7 +218,6 @@ if( USE_MPI )
   endif()
   if ( MPI_CXX_INCLUDE_PATH )
       set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS} -I${MPI_CXX_INCLUDE_PATH} )
-      ##include_directories( "${MPI_CXX_INCLUDE_PATH}" )
   endif()
   list(APPEND exe_LIBS ${MPI_CXX_LIBRARIES})
 endif()
