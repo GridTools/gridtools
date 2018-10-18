@@ -35,7 +35,6 @@
 */
 
 #pragma once
-#include "backend_select.hpp"
 #include "operator_defs.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/expressions/expressions.hpp>
