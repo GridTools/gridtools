@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "backend_select.hpp"
+#include "../backend_select.hpp"
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/verifier.hpp>
 
