@@ -69,7 +69,7 @@ namespace gridtools {
     /**
      * @brief storage traits used to retrieve the correct storage_info, data_store, and data_store_field types.
      * Additionally to the default types, specialized and custom storage_info types can be retrieved
-     * @tparam T used platform (e.g., Cuda or Host)
+     * @tparam T used target (e.g., Cuda or Host)
      */
     template <class BackendId>
     struct storage_traits : gridtools::storage_traits_from_id<BackendId> {

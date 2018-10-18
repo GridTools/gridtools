@@ -77,7 +77,7 @@ namespace gridtools {
 
             using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
 
-            typedef backend_traits_from_id<platform::cuda> backend_traits_t;
+            typedef backend_traits_from_id<target::cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);

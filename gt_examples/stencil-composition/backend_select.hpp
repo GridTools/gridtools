@@ -40,14 +40,14 @@
 
 #ifdef BACKEND_HOST
 #ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<gridtools::platform::x86, GRIDBACKEND, gridtools::strategy::naive>;
+using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::naive>;
 #else
-using backend_t = gridtools::backend<gridtools::platform::x86, GRIDBACKEND, gridtools::strategy::block>;
+using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::block>;
 #endif
 #elif defined(BACKEND_MC)
-using backend_t = gridtools::backend<gridtools::platform::mc, GRIDBACKEND, gridtools::strategy::block>;
+using backend_t = gridtools::backend<gridtools::target::mc, GRIDBACKEND, gridtools::strategy::block>;
 #elif defined(BACKEND_CUDA)
-using backend_t = gridtools::backend<gridtools::platform::cuda, GRIDBACKEND, gridtools::strategy::block>;
+using backend_t = gridtools::backend<gridtools::target::cuda, GRIDBACKEND, gridtools::strategy::block>;
 #else
 #error "no backend selected"
 #endif

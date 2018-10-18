@@ -147,12 +147,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
-# Note: It seems that FindOpenMP ignores CMP0054. As this is an
-# external code, we explicity turn that policy off.
-cmake_policy(PUSH)
-cmake_policy(SET CMP0054 OLD)
 find_package( OpenMP )
-cmake_policy(POP)
 
 ## openmp ##
 if(OPENMP_FOUND)
