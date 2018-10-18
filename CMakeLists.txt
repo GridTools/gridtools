@@ -1,6 +1,20 @@
 cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
-enable_language (CXX Fortran CUDA)
+
+cmake_minimum_required(VERSION 3.0)
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# ===============
+# Load some cmake modules.
+# 1) define what flags should be available,
+
+include (flags)
+
+if (ENABLE_CUDA)
+    enable_language (CXX Fortran CUDA)
+else()
+    enable_language (CXX Fortran)
+endif()
 
 if( GRIDTOOLS_MODULES )
 # To be completed!
@@ -9,9 +23,6 @@ if( GRIDTOOLS_MODULES )
 
 else()
 
-cmake_minimum_required(VERSION 3.0)
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
 if(POLICY CMP0060)
   # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
   cmake_policy(SET CMP0060 NEW)
@@ -19,12 +30,10 @@ endif()
 
 # ===============
 # Load some cmake modules.
-# 1) define what flags should be available,
 # 2) package by name finder
 # 3) testing methods
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
-include (flags)
 include (definitions)
 include (testing)
 include (bindings)
