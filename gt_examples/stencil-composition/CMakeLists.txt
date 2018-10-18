@@ -48,7 +48,8 @@ if( STRUCTURED_GRIDS )
 
     if(ENABLE_CUDA)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
-           cuda_add_executable( ${srcfile}_cuda_ex ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
+           add_executable( ${srcfile}_cuda_ex ${srcfile}.cu ${GTEST_FILES} )
+           target_compile_options( ${srcfile}_cuda_ex PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
            target_link_libraries(${srcfile}_cuda_ex ${exe_LIBS})
            target_include_directories(${srcfile}_cuda_ex
                PRIVATE
