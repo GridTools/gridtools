@@ -13,12 +13,10 @@ if (ENABLE_HOST)
 
     add_executable(fdriver fdriver.f90)
     target_link_libraries(fdriver implementation_fortran)
-    target_compile_options(fdriver PRIVATE ${GT_CXX_FLAGS})
     set_target_properties(fdriver PROPERTIES LINKER_LANGUAGE Fortran)
 
     add_executable(fdriver_wrapper fdriver-wrapper.f90)
     target_link_libraries(fdriver_wrapper implementation_wrapper_fortran)
-    target_compile_options(fdriver PRIVATE ${GT_CXX_FLAGS})
     set_target_properties(fdriver_wrapper PROPERTIES LINKER_LANGUAGE Fortran)
 
 endif(ENABLE_HOST)
