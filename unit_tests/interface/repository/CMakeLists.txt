@@ -7,7 +7,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         # pretend to generate an object file ...
         add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
         # ... but actually generate the preprocessed file
-        target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS} )
+        target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
 
         # now use the preprocessed file to generate a library (which we will never use) ...
         add_library( dummy_${cpp_file} STATIC EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)

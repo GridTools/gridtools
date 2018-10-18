@@ -1,8 +1,6 @@
 cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
-enable_language (CXX Fortran)
-
-enable_language (CXX Fortran)
+enable_language (CXX Fortran CUDA)
 
 if( GRIDTOOLS_MODULES )
 # To be completed!

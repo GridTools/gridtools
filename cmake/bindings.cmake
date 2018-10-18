@@ -20,6 +20,7 @@ macro(add_bindings_library)
     add_custom_command(OUTPUT ${target_name}_empty.cpp COMMAND touch ${target_name}_empty.cpp)
     add_executable(${target_name}_decl_generator
             ${CMAKE_CURRENT_BINARY_DIR}/${target_name}_empty.cpp)
+    set_target_properties(${target_name}_decl_generator PROPERTIES LINK_FLAGS -pthread)
     if (${APPLE})
           target_link_libraries(${target_name}_decl_generator
               -Wl,-force_load ${target_name} ${bindings_main}
