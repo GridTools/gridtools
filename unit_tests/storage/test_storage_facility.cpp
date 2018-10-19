@@ -107,11 +107,11 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
 #ifdef STRUCTURED_GRIDS
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                                mic_storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                                mc_storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                                mic_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                                mc_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -119,11 +119,11 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
 #ifdef STRUCTURED_GRIDS
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                                mic_storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                                mc_storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                                mic_storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+                                mc_storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -135,7 +135,7 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
         (boost::is_same<typename data_store_t::data_t, double>::type::value), "data store value type is wrong");
 
     // storage check
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mic_storage<double>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
         "data store storage type is wrong");
 
     /*########## DATA STORE FIELD CHECKS ########## */

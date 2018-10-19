@@ -39,7 +39,7 @@
 #include "./apply_gpu.hpp"
 #endif
 #include "../storage/storage_host/data_view_helpers.hpp"
-#include "../storage/storage_mic/data_view_helpers.hpp"
+#include "../storage/storage_mc/data_view_helpers.hpp"
 #include "./apply.hpp"
 
 #include "./predicate.hpp"

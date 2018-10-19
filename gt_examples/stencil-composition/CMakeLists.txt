@@ -19,19 +19,19 @@ if( STRUCTURED_GRIDS )
         endforeach()
     endif(ENABLE_HOST)
 
-    if(ENABLE_MIC)
+    if(ENABLE_MC)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
-          add_executable(${srcfile}_mic_ex   ${srcfile}.cpp ${INC_ALL})
-          target_link_libraries(${srcfile}_mic_ex ${exe_LIBS})
-          target_compile_definitions(${srcfile}_mic_ex PUBLIC ${MIC_BACKEND_DEFINE})
+          add_executable(${srcfile}_mc_ex   ${srcfile}.cpp ${INC_ALL})
+          target_link_libraries(${srcfile}_mc_ex ${exe_LIBS})
+          target_compile_definitions(${srcfile}_mc_ex PUBLIC ${MC_BACKEND_DEFINE})
 
           if ( INSTALL_GT_EXAMPLES )
               install(TARGETS
-                      ${srcfile}_mic_ex
+                      ${srcfile}_mc_ex
                       DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/bin" )
           endif()
         endforeach()
-    endif(ENABLE_MIC)
+    endif(ENABLE_MC)
 
     if(ENABLE_CUDA)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
