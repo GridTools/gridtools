@@ -37,7 +37,6 @@
 #pragma once
 #include <assert.h>
 #include <iostream>
-//#include <utility>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/alignment.hpp"
@@ -196,10 +195,10 @@ namespace gridtools {
 
     // simple metafunction to check if a type is a host storage
     template <typename T>
-    struct is_host_storage : boost::mpl::false_ {};
+    struct is_host_storage : std::false_type {};
 
     template <typename T>
-    struct is_host_storage<host_storage<T>> : boost::mpl::true_ {};
+    struct is_host_storage<host_storage<T>> : std::true_type {};
 
     /**
      * @}

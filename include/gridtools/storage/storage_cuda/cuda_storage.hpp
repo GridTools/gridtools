@@ -39,8 +39,6 @@
 #include <array>
 #include <utility>
 
-#include <boost/mpl/bool.hpp>
-
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
@@ -277,10 +275,10 @@ namespace gridtools {
 
     // simple metafunction to check if a type is a cuda storage
     template <typename T>
-    struct is_cuda_storage : boost::mpl::false_ {};
+    struct is_cuda_storage : std::false_type {};
 
     template <typename T>
-    struct is_cuda_storage<cuda_storage<T>> : boost::mpl::true_ {};
+    struct is_cuda_storage<cuda_storage<T>> : std::true_type {};
 
     /**
      * @}
