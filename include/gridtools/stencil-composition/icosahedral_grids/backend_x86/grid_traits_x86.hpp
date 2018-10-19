@@ -38,7 +38,7 @@
 #include "../../../common/defs.hpp"
 #include "../../backend_ids.hpp"
 #include "../../grid_traits_fwd.hpp"
-#include "./execute_kernel_functor_host_fwd.hpp"
+#include "execute_kernel_functor_x86_fwd.hpp"
 
 namespace gridtools {
     template <class Strategy, class Args>

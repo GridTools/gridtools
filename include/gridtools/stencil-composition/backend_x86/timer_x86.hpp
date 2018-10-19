@@ -41,14 +41,14 @@
 namespace gridtools {
 
     /**
-     * @class timer_host
+     * @class timer_x86
      * host implementation of the Timer interface
      */
-    class timer_host : public timer<timer_host> // CRTP
+    class timer_x86 : public timer<timer_x86> // CRTP
     {
       public:
-        timer_host(std::string name) : timer<timer_host>(name) { startTime_ = 0.0; }
-        ~timer_host() {}
+        timer_x86(std::string name) : timer<timer_x86>(name) { startTime_ = 0.0; }
+        ~timer_x86() {}
 
         /**
          * Reset counters
