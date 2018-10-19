@@ -41,7 +41,7 @@
 
 namespace gridtools {
     template <uint_t Color>
-    struct run_esf_functor_host {
+    struct run_esf_functor_x86 {
         template <class StageGroups, class ItDomain>
         GT_FUNCTION static void exec(ItDomain &it_domain) {
             using stages_t = GT_META_CALL(meta::flatten, StageGroups);

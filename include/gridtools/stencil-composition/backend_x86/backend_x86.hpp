@@ -43,5 +43,5 @@
 #include "../../storage/storage-facility.hpp"
 #include "../backend_fwd.hpp"
 #include "../iteration_policy.hpp"
-#include "backend_traits_host.hpp"
-#include "strategy_host.hpp"
+#include "backend_traits_86.hpp"
+#include "strategy_x86.hpp"
