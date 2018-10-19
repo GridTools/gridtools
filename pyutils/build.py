@@ -19,8 +19,8 @@ def build_and_test(args):
 
     # backend selection
     cmake_args['ENABLE_CUDA'] = False
-    cmake_args['ENABLE_HOST'] = False
-    cmake_args['ENABLE_MIC'] = False
+    cmake_args['ENABLE_X86'] = False
+    cmake_args['ENABLE_MC'] = False
     cmake_args['ENABLE_' + args.backend.upper()] = True
 
     # precision

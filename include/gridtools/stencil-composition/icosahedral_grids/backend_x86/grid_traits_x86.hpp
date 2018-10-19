@@ -43,6 +43,6 @@
 namespace gridtools {
     template <class Strategy, class Args>
     struct kernel_functor_executor<backend_ids<target::x86, grid_type::icosahedral, Strategy>, Args> {
-        using type = icgrid::execute_kernel_functor_host<Args>;
+        using type = icgrid::execute_kernel_functor_x86<Args>;
     };
 } // namespace gridtools
