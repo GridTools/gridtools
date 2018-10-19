@@ -70,7 +70,7 @@ if __name__ == '__main__':
     group = parser.add_argument_group('configuration')
     group.add_argument('--build-type', '-t', choices=['release', 'debug'],
                        required=True)
-    group.add_argument('--backend', '-b', choices=['cuda', 'x86, 'mc'],
+    group.add_argument('--backend', '-b', choices=['cuda', 'x86', 'mc'],
                        required=True)
     group.add_argument('--precision', '-p', choices=['float', 'double'],
                        required=True)
