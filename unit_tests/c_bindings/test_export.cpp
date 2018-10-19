@@ -87,6 +87,7 @@ namespace {
         gt_fortran_array_descriptor d;
         d.rank = 2;
         d.type = gt_fk_Int;
+        d.is_acc_present = false;
         return d;
     }
     void test_c_bindings_and_wrapper_compatible_type_impl(c_bindings_compatible_type, wrapper_compatible_type) {}

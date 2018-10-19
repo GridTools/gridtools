@@ -147,12 +147,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
-# Note: It seems that FindOpenMP ignores CMP0054. As this is an
-# external code, we explicity turn that policy off.
-cmake_policy(PUSH)
-cmake_policy(SET CMP0054 OLD)
 find_package( OpenMP )
-cmake_policy(POP)
 
 ## openmp ##
 if(OPENMP_FOUND)
@@ -207,6 +202,13 @@ if(DOXYGEN_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif()
 
+file(WRITE ${TEST_MANIFEST} "# Executed tests with arguments\n")
+
+function(add_to_test_manifest)
+    file(APPEND ${TEST_MANIFEST} "${ARGN}\n")
+endfunction(add_to_test_manifest)
+
+
 ## test script generator ##
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
 file(APPEND ${TEST_SCRIPT} "hostname\n")
@@ -215,6 +217,7 @@ function(gridtools_add_test test_name test_script test_exec)
   file(APPEND ${test_script} "echo ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "res=$((res || $? ))\n")
+  add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_test)
 
 ## test script generator for MPI tests ##
@@ -223,6 +226,7 @@ function(gridtools_add_mpi_test test_name test_exec)
   file(APPEND ${TEST_MPI_SCRIPT} "echo \$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_MPI_SCRIPT} "res=$((res || $? ))\n")
+  add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_mpi_test)
 
 file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
@@ -230,6 +234,7 @@ function(gridtools_add_cuda_mpi_test test_name test_exec)
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "echo \$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
+  add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_cuda_mpi_test)
 
 ## caching ##
