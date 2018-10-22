@@ -73,18 +73,18 @@ add_library(array_descriptor src/c_bindings/array_descriptor.f90)
 # ===============
 # examples and tests
 # ===============
-include (fix_test_case_name)
-if(NOT DISABLE_TESTING)
-  add_subdirectory(regression)
-  add_subdirectory(unit_tests)
-endif()
-
 if( INSTALL_GT_EXAMPLES )
    SET(COMPILE_EXAMPLES ON)
 endif()
 
 if( COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
+endif()
+
+include (fix_test_case_name)
+if(NOT DISABLE_TESTING)
+  add_subdirectory(regression)
+  add_subdirectory(unit_tests)
 endif()
 
 # ===============
@@ -131,9 +131,10 @@ install(TARGETS
         c_bindings_generator_main
         array_descriptor
     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
-install(FILES
-    "${PROJECT_BINARY_DIR}/mod/gt_handle.mod"
-    "${PROJECT_BINARY_DIR}/mod/array_descriptor.mod"
+# We need to install the whole directory because filenames may be upper or lower case (cray compiler).
+# It exists a flag to generate lower-case file names with cray, but it will segfault when using them.
+install(DIRECTORY
+    "${PROJECT_BINARY_DIR}/mod/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
 install(FILES
     "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"

@@ -40,9 +40,9 @@
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-using IJKStorageInfo = typename gridtools::storage_traits<gridtools::platform::x86>::storage_info_t<0, 3>;
+using IJKStorageInfo = typename gridtools::storage_traits<gridtools::target::x86>::storage_info_t<0, 3>;
 using IJKDataStore =
-    typename gridtools::storage_traits<gridtools::platform::x86>::data_store_t<gridtools::float_type, IJKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<gridtools::float_type, IJKStorageInfo>;
 
 TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;
@@ -57,6 +57,7 @@ TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     descriptor.dims[2] = z_size;
     descriptor.type = std::is_same<gridtools::float_type, float>::value ? gt_fk_Float : gt_fk_Double;
     descriptor.data = fortran_array;
+    descriptor.is_acc_present = false;
 
     gridtools::fortran_array_adapter<IJKDataStore> fortran_array_adapter{descriptor};
     IJKDataStore data_store{IJKStorageInfo{x_size, y_size, z_size}};
@@ -91,6 +92,7 @@ TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
     descriptor.dims[2] = z_size;
     descriptor.type = std::is_same<gridtools::float_type, float>::value ? gt_fk_Float : gt_fk_Double;
     descriptor.data = fortran_array;
+    descriptor.is_acc_present = false;
 
     gridtools::fortran_array_adapter<IJKDataStore> fortran_array_adapter{descriptor};
     IJKDataStore data_store{IJKStorageInfo{x_size, y_size, z_size}};

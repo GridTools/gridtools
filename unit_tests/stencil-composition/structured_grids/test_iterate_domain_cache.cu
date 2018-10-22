@@ -56,8 +56,8 @@ using krange1 = axis_t::get_interval<0>;
 using krange2 = axis_t::get_interval<1>::modify<0, -1>;
 using kmaximum = axis_t::full_interval::last_level;
 
-typedef storage_traits<platform::x86>::storage_info_t<0, 2> storage_info_ij_t;
-typedef storage_traits<platform::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
+typedef storage_traits<target::x86>::storage_info_t<0, 2> storage_info_ij_t;
+typedef storage_traits<target::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
 
 typedef arg<0, storage_type> p_in1;
 typedef arg<1, storage_type> p_in2;
@@ -120,7 +120,7 @@ TEST(iterate_domain_cache, flush) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -158,7 +158,7 @@ TEST(iterate_domain_cache, fill) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -195,7 +195,7 @@ TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::vector5<cachef1_t, cachef2_t, cachef3_t, cachef4_t, cachef5_t> cachesf_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -237,7 +237,7 @@ TEST(iterate_domain_cache, bpfill) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,

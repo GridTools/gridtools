@@ -51,7 +51,7 @@
 #include "./backend_cuda/backend_traits_cuda.hpp"
 #endif
 #include "./backend_host/backend_traits_host.hpp"
-#include "./backend_mic/backend_traits_mic.hpp"
+#include "./backend_mc/backend_traits_mc.hpp"
 
 /**
    @file
@@ -109,7 +109,7 @@ namespace gridtools {
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, platform::cuda>::value),
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, target::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");
