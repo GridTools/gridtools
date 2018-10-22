@@ -36,8 +36,7 @@
 
 #pragma once
 
-#include <boost/mpl/and.hpp>
-#include <boost/type_traits.hpp>
+#include <type_traits>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
@@ -83,10 +82,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_host_storage_info : boost::mpl::false_ {};
+    struct is_host_storage_info : std::false_type {};
 
     template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    struct is_host_storage_info<host_storage_info<Id, Layout, Halo, Alignment>> : boost::mpl::true_ {};
+    struct is_host_storage_info<host_storage_info<Id, Layout, Halo, Alignment>> : std::true_type {};
 
     /**
      * @}

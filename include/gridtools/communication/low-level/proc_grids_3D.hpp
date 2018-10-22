@@ -75,8 +75,10 @@ namespace gridtools {
         gridtools::array<int, ndims> m_coordinates;
 
       public:
-        MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other)
-            : m_communicator(other.m_communicator), m_cyclic(other.cyclic()), m_nprocs(other.m_nprocs) {
+        MPI_3D_process_grid_t(MPI_3D_process_grid_t const &other) : m_cyclic(other.cyclic()), m_nprocs(other.m_nprocs) {
+
+            MPI_Comm_dup(other.m_communicator, &m_communicator);
+
             for (ushort_t i = 0; i < ndims; ++i) {
                 m_dimensions[i] = other.m_dimensions[i];
                 m_coordinates[i] = other.m_coordinates[i];
@@ -88,7 +90,9 @@ namespace gridtools {
             \param comm MPI Communicator describing the MPI 3D computing grid
         */
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm)
-            : m_communicator(comm), m_cyclic(c), m_nprocs(0), m_dimensions(), m_coordinates() {
+            : m_cyclic(c), m_nprocs(0), m_dimensions(), m_coordinates() {
+
+            MPI_Comm_dup(comm, &m_communicator);
 
             int period[ndims];
             MPI_Cart_get(comm, ndims, &m_dimensions[0], period, &m_coordinates[0]);
@@ -110,6 +114,8 @@ namespace gridtools {
             MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period /*does not really care*/, &m_coordinates[0]);
         }
 
+        ~MPI_3D_process_grid_t() { MPI_Comm_free(&m_communicator); }
+
         /**
            Returns communicator
         */
@@ -125,6 +131,18 @@ namespace gridtools {
             t_R = m_dimensions[0];
             t_C = m_dimensions[1];
             t_S = m_dimensions[2];
+        }
+
+        /** Returns the dimensions in an array of dimensions (at least of size 3)
+            \tparam The array type
+            \param array The array where to put the values
+        */
+        template <class Array>
+        void fill_dims(Array &array) const {
+            GRIDTOOLS_STATIC_ASSERT(ndims == 3, "this interface supposes ndims=3");
+            array[0] = m_dimensions[0];
+            array[1] = m_dimensions[1];
+            array[2] = m_dimensions[2];
         }
 
         void dims(int &t_R, int &t_C) const {
