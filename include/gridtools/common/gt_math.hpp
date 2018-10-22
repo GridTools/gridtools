@@ -214,6 +214,17 @@ namespace gridtools {
         using std::pow;
 #endif
 
+#ifdef __CUDA_ARCH__
+        /**
+         * Function computing the power function
+         */
+        GT_FUNCTION float sqrt(const float x, const float y) { return ::sqrtf(x, y); }
+
+        GT_FUNCTION double sqrt(const double x, const double y) { return ::sqrt(x, y); }
+#else
+        using std::sqrt;
+#endif
+
 #ifdef __CUDACC__
         // providing the same overload pattern as the std library
         // auto return type to ensure that we do not accidentally cast
