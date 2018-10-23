@@ -215,9 +215,9 @@ namespace gridtools {
 #endif
 
 #ifdef __CUDA_ARCH__
-        GT_FUNCTION float sqrt(const float x, const float y) { return ::sqrtf(x, y); }
+        GT_FUNCTION float sqrt(const float x) { return ::sqrtf(x); }
 
-        GT_FUNCTION double sqrt(const double x, const double y) { return ::sqrt(x, y); }
+        GT_FUNCTION double sqrt(const double x) { return ::sqrt(x); }
 #else
         using std::sqrt;
 #endif
