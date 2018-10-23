@@ -76,7 +76,7 @@
 #include "./pos3.hpp"
 
 #include "./backend_cuda/tmp_storage.hpp"
-#include "./backend_host/tmp_storage.hpp"
+#include "./backend_x86/tmp_storage.hpp"
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/tmp_storage.hpp"

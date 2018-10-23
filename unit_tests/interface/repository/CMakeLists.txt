@@ -59,7 +59,7 @@ else()
 endif()
 
 # collect test cases
-fetch_host_tests(.)
+fetch_x86_tests(.)
 fetch_gpu_tests(.)
 
 add_bindings_library(repository exported_repository.cpp)
@@ -70,8 +70,8 @@ target_compile_options(repository_fortran_lib PRIVATE "-cpp")
 target_include_directories(repository_fortran_lib PRIVATE ${CMAKE_BINARY_DIR})
 target_link_libraries(repository_fortran_lib array_descriptor repository_fortran)
 
-if (ENABLE_HOST)
-    target_link_libraries(test_repository_host repository_fortran_lib)
+if (ENABLE_X86)
+    target_link_libraries(test_repository_x86 repository_fortran_lib)
 endif()
 if (ENABLE_CUDA)
     target_link_libraries(test_repository_cuda repository_fortran_lib)

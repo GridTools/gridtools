@@ -35,13 +35,8 @@
 */
 #pragma once
 
-// This file contains all header files required by the host backend
-#ifdef _OPENMP
-#include <omp.h>
+#ifdef STRUCTURED_GRIDS
+#include "../structured_grids/backend_x86/execute_kernel_functor_x86.hpp"
+#else
+#include "../icosahedral_grids/backend_x86/execute_kernel_functor_x86.hpp"
 #endif
-
-#include "../../storage/storage-facility.hpp"
-#include "../backend_fwd.hpp"
-#include "../iteration_policy.hpp"
-#include "backend_traits_host.hpp"
-#include "strategy_host.hpp"

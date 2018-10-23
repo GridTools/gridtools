@@ -35,14 +35,9 @@
 */
 #pragma once
 
-#include "../../../common/defs.hpp"
-#include "../../backend_ids.hpp"
-#include "../../grid_traits_fwd.hpp"
-#include "./execute_kernel_functor_host_fwd.hpp"
-
 namespace gridtools {
-    template <class Strategy, class Args>
-    struct kernel_functor_executor<backend_ids<target::x86, grid_type::structured, Strategy>, Args> {
-        using type = strgrid::execute_kernel_functor_host<Args>;
-    };
+    namespace icgrid {
+        template <typename RunFunctorArguments>
+        struct execute_kernel_functor_x86;
+    }
 } // namespace gridtools
