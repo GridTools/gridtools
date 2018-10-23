@@ -36,18 +36,13 @@
 #pragma once
 
 #include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/host_device.hpp"
+#include "../../backend_ids.hpp"
+#include "../../grid_traits_fwd.hpp"
+#include "./execute_kernel_functor_x86_fwd.hpp"
 
 namespace gridtools {
-    template <uint_t Color>
-    struct run_esf_functor_host {
-        template <class StageGroups, class ItDomain>
-        GT_FUNCTION static void exec(ItDomain &it_domain) {
-            using stages_t = GT_META_CALL(meta::flatten, StageGroups);
-            GRIDTOOLS_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
-            using stage_t = GT_META_CALL(meta::first, stages_t);
-            stage_t::template exec<Color>(it_domain);
-        }
+    template <class Strategy, class Args>
+    struct kernel_functor_executor<backend_ids<target::x86, grid_type::structured, Strategy>, Args> {
+        using type = strgrid::execute_kernel_functor_x86<Args>;
     };
 } // namespace gridtools

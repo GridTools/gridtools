@@ -53,7 +53,7 @@
  *
  *  Ideally for backends where block size is compile time, it is enough to define only constexpr version.
  *  And for backends where block size is run time, it is enough to define only the version with two args.
- *  However Host/Naive backend still have to define constexpr version that returns 0.
+ *  However X86/Naive backend still have to define constexpr version that returns 0.
  *  TODO(anstaf): fix that
  *
  */
@@ -64,7 +64,7 @@
 #include "./grid.hpp"
 
 #include "./backend_cuda/block.hpp"
-#include "./backend_host/block.hpp"
+#include "./backend_x86/block.hpp"
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/block.hpp"

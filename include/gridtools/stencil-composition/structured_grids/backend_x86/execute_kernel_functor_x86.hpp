@@ -34,20 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 /*
- * execute_kernel_functor_host.h
+ * execute_kernel_functor_x86.h
  *
  *  Created on: Apr 25, 2015
  *      Author: cosuna
  */
 
 #pragma once
-#include "../../backend_host/basic_token_execution_host.hpp"
+#include "../../backend_x86/basic_token_execution_x86.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../pos3.hpp"
 #include "../positional_iterate_domain.hpp"
-#include "./iterate_domain_host.hpp"
-#include "./run_esf_functor_host.hpp"
+#include "./iterate_domain_x86.hpp"
+#include "./run_esf_functor_x86.hpp"
 
 namespace gridtools {
 
@@ -58,7 +58,7 @@ namespace gridtools {
          * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
          */
         template <typename RunFunctorArguments>
-        struct execute_kernel_functor_host {
+        struct execute_kernel_functor_x86 {
           private:
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
@@ -66,7 +66,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
             typedef typename reduction_data_t::reduction_type_t reduction_type_t;
 
-            // in the host backend there should be only one esf per mss
+            // in the x86 backend there should be only one esf per mss
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size<typename RunFunctorArguments::extent_sizes_t>::value == 1), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
@@ -81,10 +81,10 @@ namespace gridtools {
                 grid_t,
                 typename RunFunctorArguments::is_reduction_t,
                 reduction_type_t>;
-            using iterate_domain_host_t = iterate_domain_host<iterate_domain_arguments_t>;
+            using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
             using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
-                meta::lazy::id<positional_iterate_domain<iterate_domain_host_t>>,
-                meta::lazy::id<iterate_domain_host_t>>::type;
+                meta::lazy::id<positional_iterate_domain<iterate_domain_x86_t>>,
+                meta::lazy::id<iterate_domain_x86_t>>::type;
 
             typedef backend_traits_from_id<target::x86> backend_traits_t;
 
@@ -100,7 +100,7 @@ namespace gridtools {
             pos3<uint_t> m_block_no;
 
           public:
-            execute_kernel_functor_host(const local_domain_t &local_domain,
+            execute_kernel_functor_x86(const local_domain_t &local_domain,
                 const grid_t &grid,
                 reduction_data_t &reduction_data,
                 uint_t block_size_i,
@@ -134,7 +134,7 @@ namespace gridtools {
                     irestore_index = it_domain.index();
                     for (uint_t j = 0; j != m_size.j; ++j) {
                         jrestore_index = it_domain.index();
-                        run_functors_on_interval<RunFunctorArguments, run_esf_functor_host>(it_domain, m_grid);
+                        run_functors_on_interval<RunFunctorArguments, run_esf_functor_x86>(it_domain, m_grid);
                         it_domain.set_index(jrestore_index);
                         it_domain.increment_j();
                     }
