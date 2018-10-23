@@ -36,7 +36,7 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT ENABLE_CUDA AND NOT ENABLE_MIC)
+if(NOT ENABLE_CUDA AND NOT ENABLE_MC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
 endif()
 
@@ -117,9 +117,9 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
-if( ENABLE_MIC )
-    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
-endif( ENABLE_MIC )
+if( ENABLE_MC )
+    set(MC_BACKEND_DEFINE "BACKEND_MC")
+endif( ENABLE_MC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
@@ -147,12 +147,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
-# Note: It seems that FindOpenMP ignores CMP0054. As this is an
-# external code, we explicity turn that policy off.
-cmake_policy(PUSH)
-cmake_policy(SET CMP0054 OLD)
 find_package( OpenMP )
-cmake_policy(POP)
 
 ## openmp ##
 if(OPENMP_FOUND)
