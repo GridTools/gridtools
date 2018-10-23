@@ -105,7 +105,6 @@ TEST(accessor, trivial) {
 
 TEST(accessor, array) {
     accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    //    GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
 
     EXPECT_EQ(3, get<0>(first));
     EXPECT_EQ(2, get<1>(first));
@@ -138,8 +137,6 @@ TEST(accessor, alternative2) {
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
     accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
-
-    //    GRIDTOOLS_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
 
     EXPECT_EQ(-5, get<0>(first));
     EXPECT_EQ(0, get<1>(first));

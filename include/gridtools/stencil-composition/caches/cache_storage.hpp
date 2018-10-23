@@ -136,9 +136,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor<Accessor>::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
-            //            typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
-            //            typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
-
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
                                   (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
