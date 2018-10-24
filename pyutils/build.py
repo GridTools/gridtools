@@ -19,8 +19,8 @@ def build_and_test(args):
 
     # backend selection
     cmake_args['ENABLE_CUDA'] = False
-    cmake_args['ENABLE_HOST'] = False
-    cmake_args['ENABLE_MIC'] = False
+    cmake_args['ENABLE_X86'] = False
+    cmake_args['ENABLE_MC'] = False
     cmake_args['ENABLE_' + args.backend.upper()] = True
 
     # precision
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     group = parser.add_argument_group('configuration')
     group.add_argument('--build-type', '-t', choices=['release', 'debug'],
                        required=True)
-    group.add_argument('--backend', '-b', choices=['cuda', 'host', 'mic'],
+    group.add_argument('--backend', '-b', choices=['cuda', 'x86', 'mc'],
                        required=True)
     group.add_argument('--precision', '-p', choices=['float', 'double'],
                        required=True)

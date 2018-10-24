@@ -18,20 +18,20 @@ else()
     set(PERFTEST_GRID "icosahedral")
 endif()
 
-if(ENABLE_HOST AND ENABLE_CUDA)
+if(ENABLE_X86 AND ENABLE_CUDA)
     message(FATAL_ERROR "Performance tests can only be enabled for a single backend")
 endif()
 
-if(ENABLE_HOST)
-    set(PERFTEST_BACKEND "host")
+if(ENABLE_X86)
+    set(PERFTEST_BACKEND "x86")
 endif()
 
 if(ENABLE_CUDA)
     set(PERFTEST_BACKEND "cuda")
 endif()
 
-if(ENABLE_MIC)
-    set(PERFTEST_BACKEND "mic")
+if(ENABLE_MC)
+    set(PERFTEST_BACKEND "mc")
 endif()
 
 file(COPY . DESTINATION . FILES_MATCHING PATTERN *.py)

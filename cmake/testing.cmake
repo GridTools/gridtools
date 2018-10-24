@@ -30,10 +30,10 @@ set( exe_LIBS ${exe_LIBS} gtest)
 ######################### ADDITIONAL TEST MODULE FUNCTIONS #########################
 ####################################################################################
 
-# This function will fetch all host test cases in the given directory.
+# This function will fetch all x86 test cases in the given directory.
 # Only used for gcc or clang compilations
-function(fetch_host_tests subfolder)
-    if (ENABLE_HOST)
+function(fetch_x86_tests subfolder)
+    if (ENABLE_X86)
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
@@ -43,13 +43,13 @@ function(fetch_host_tests subfolder)
         foreach( test_source ${test_sources} )
             # create a nice name for the test case
             get_filename_component (unit_test ${test_source} NAME_WE )
-            set(unit_test "${unit_test}_host")
+            set(unit_test "${unit_test}_x86")
             # set binary output name and dir
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${HOST_BACKEND_DEFINE})
+            target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
             target_include_directories(${unit_test}
                  PRIVATE
                     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -58,13 +58,13 @@ function(fetch_host_tests subfolder)
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added test " ${unit_test} )
         endforeach(test_source)
-    endif(ENABLE_HOST)
-endfunction(fetch_host_tests)
+    endif(ENABLE_X86)
+endfunction(fetch_x86_tests)
 
-# This function will fetch all mic test cases in the given directory.
+# This function will fetch all mc test cases in the given directory.
 # Only used for gcc or clang compilations
-function(fetch_mic_tests subfolder)
-    if (ENABLE_MIC)
+function(fetch_mc_tests subfolder)
+    if (ENABLE_MC)
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
@@ -74,13 +74,13 @@ function(fetch_mic_tests subfolder)
         foreach( test_source ${test_sources} )
             # create a nice name for the test case
             get_filename_component (unit_test ${test_source} NAME_WE )
-            set(unit_test "${unit_test}_mic")
+            set(unit_test "${unit_test}_mc")
             # set binary output name and dir
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${MIC_BACKEND_DEFINE})
+            target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE})
             target_include_directories(${unit_test}
                  PRIVATE
                     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -89,8 +89,8 @@ function(fetch_mic_tests subfolder)
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added test " ${unit_test} )
         endforeach(test_source)
-    endif(ENABLE_MIC)
-endfunction(fetch_mic_tests)
+    endif(ENABLE_MC)
+endfunction(fetch_mc_tests)
 
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
@@ -123,20 +123,20 @@ function(fetch_gpu_tests subfolder)
     endif(ENABLE_CUDA)
 endfunction(fetch_gpu_tests)
 
-# This function can be used to add a custom host test
-function(add_custom_host_test)
+# This function can be used to add a custom x86 test
+function(add_custom_x86_test)
     set(options )
     set(one_value_args TARGET)
     set(multi_value_args SOURCES ADDITIONAL_FLAGS)
     cmake_parse_arguments(HT "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    if (ENABLE_HOST)
-        set(name "${HT_TARGET}_host")
+    if (ENABLE_X86)
+        set(name "${HT_TARGET}_x86")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         add_executable (${name} ${HT_SOURCES})
-        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} -D${HOST_BACKEND_DEFINE} ${HT_ADDITIONAL_FLAGS})
+        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE} ${HT_ADDITIONAL_FLAGS})
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
              PRIVATE
@@ -144,23 +144,23 @@ function(add_custom_host_test)
         )
         add_test (NAME ${name} COMMAND ${exe} )
         gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-    endif (ENABLE_HOST)
-endfunction(add_custom_host_test)
+    endif (ENABLE_X86)
+endfunction(add_custom_x86_test)
 
-# This function can be used to add a custom mic test
-function(add_custom_mic_test)
+# This function can be used to add a custom mc test
+function(add_custom_mc_test)
     set(options)
     set(one_value_args TARGET)
     set(multi_value_args SOURCES ADDITIONAL_FLAGS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    if (ENABLE_MIC)
-        set(name "${___TARGET}_mic")
+    if (ENABLE_MC)
+        set(name "${___TARGET}_mc")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         add_executable (${name} ${___SOURCES})
-        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} -D${MIC_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
+        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
         target_include_directories(${name}
              PRIVATE
@@ -168,8 +168,8 @@ function(add_custom_mic_test)
         )
         add_test (NAME ${name} COMMAND ${exe} )
         gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-    endif (ENABLE_MIC)
-endfunction(add_custom_mic_test)
+    endif (ENABLE_MC)
+endfunction(add_custom_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test)
@@ -197,49 +197,49 @@ function(add_custom_gpu_test)
 endfunction(add_custom_gpu_test)
 
 
-function(add_custom_mpi_host_test)
+function(add_custom_mpi_x86_test)
     set(options)
     set(one_value_args TARGET)
     set(multi_value_args SOURCES ADDITIONAL_FLAGS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    if (ENABLE_HOST)
-        set(name "${___TARGET}_host")
+    if (ENABLE_X86)
+        set(name "${___TARGET}_x86")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         add_executable (${name} ${___SOURCES})
-        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${HOST_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
+        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${X86_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         gridtools_add_mpi_test(${name} ${exe})
-    endif (ENABLE_HOST)
-endfunction(add_custom_mpi_host_test)
+    endif (ENABLE_X86)
+endfunction(add_custom_mpi_x86_test)
 
-function(add_custom_mpi_mic_test)
+function(add_custom_mpi_mc_test)
     set(options)
     set(one_value_args TARGET)
     set(multi_value_args SOURCES ADDITIONAL_FLAGS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-    if (ENABLE_MIC)
-        set(name "${___TARGET}_mic")
+    if (ENABLE_MC)
+        set(name "${___TARGET}_mc")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         add_executable (${name} ${___SOURCES})
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
-        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${MIC_BACKEND_DEFINE})
+        target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${MC_BACKEND_DEFINE})
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
         )
         gridtools_add_mpi_test(${name} ${exe})
-    endif (ENABLE_MIC)
-endfunction(add_custom_mpi_mic_test)
+    endif (ENABLE_MC)
+endfunction(add_custom_mpi_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test)

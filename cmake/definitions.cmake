@@ -50,7 +50,7 @@ if(Boost_FOUND)
   set(exe_LIBS ${Boost_LIBRARIES} ${exe_LIBS})
 endif()
 
-if(NOT ENABLE_CUDA AND NOT ENABLE_MIC)
+if(NOT ENABLE_CUDA AND NOT ENABLE_MC)
     set( GT_CXX_OPTIMIZATION_FLAGS ${GT_CXX_OPTIMIZATION_FLAGS}  -mtune=native -march=native )
 endif()
 
@@ -75,9 +75,9 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CUDA_STANDARD 11)
 
 
-if(ENABLE_HOST)
-  set(HOST_BACKEND_DEFINE "BACKEND_HOST")
-endif(ENABLE_HOST)
+if(ENABLE_X86)
+  set(X86_BACKEND_DEFINE "BACKEND_X86")
+endif(ENABLE_X86)
 
 ## cuda support ##
 if( ENABLE_CUDA )
@@ -133,9 +133,9 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
-if( ENABLE_MIC )
-    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
-endif( ENABLE_MIC )
+if( ENABLE_MC )
+    set(MC_BACKEND_DEFINE "BACKEND_MC")
+endif( ENABLE_MC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
@@ -148,7 +148,7 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
     # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
-    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)' )
+    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED "-DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'" )
     # force boost to use decltype() for boost::result_of, required to compile without errors (ICC 17)
     set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_RESULT_OF_USE_DECLTYPE )
     # slightly improve performance

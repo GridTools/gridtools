@@ -27,8 +27,8 @@ macro(add_bindings_library)
               ${binding_main_lib})
     else()
           target_link_libraries(${target_name}_decl_generator
-              -Wl,--whole-archive ${target_name}
-              -Wl,--no-whole-archive ${binding_main_lib})
+              -Xlinker --whole-archive ${target_name}
+              -Xlinker --no-whole-archive ${binding_main_lib})
     endif()
     add_custom_command(OUTPUT ${target_name}.h ${target_name}.f90
             COMMAND ${target_name}_decl_generator ${target_name}.h ${target_name}.f90 ${target_name}

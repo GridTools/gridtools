@@ -37,7 +37,7 @@
 
 namespace gridtools {
     namespace icgrid {
-        template <enumtype::platform BackendId>
+        template <enumtype::target BackendId>
         struct grid_traits_arch;
     }
 } // namespace gridtools

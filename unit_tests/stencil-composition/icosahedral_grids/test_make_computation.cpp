@@ -57,7 +57,7 @@ namespace make_computation_test {
     using level_t = level<Splitter, Offset, level_offset_limit>;
 
     typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> axis;
-    using backend_t = backend<platform::x86, grid_type::icosahedral, strategy::block>;
+    using backend_t = backend<target::x86, grid_type::icosahedral, strategy::block>;
     using icosahedral_topology_t = gridtools::icosahedral_topology<backend_t>;
 
     struct test_functor {

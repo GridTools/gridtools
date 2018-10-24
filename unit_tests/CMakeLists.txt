@@ -1,7 +1,7 @@
 
 # collect tests
-fetch_host_tests(.)
-fetch_mic_tests(.)
+fetch_x86_tests(.)
+fetch_mc_tests(.)
 fetch_gpu_tests(.)
 
 # include all subdirs

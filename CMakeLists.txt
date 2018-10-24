@@ -117,18 +117,18 @@ endif()
 # ===============
 # examples and tests
 # ===============
-include (fix_test_case_name)
-if(NOT DISABLE_TESTING)
-  add_subdirectory(regression)
-  add_subdirectory(unit_tests)
-endif()
-
 if( INSTALL_GT_EXAMPLES )
    SET(COMPILE_EXAMPLES ON)
 endif()
 
 if( COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
+endif()
+
+include (fix_test_case_name)
+if(NOT DISABLE_TESTING)
+  add_subdirectory(regression)
+  add_subdirectory(unit_tests)
 endif()
 
 # ===============

@@ -195,6 +195,20 @@ TEST(DataViewTest, Looping) {
     }
 }
 
+TEST(DataViewTest, TargetView) {
+    typedef cuda_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>> storage_info_t;
+    storage_info_t si(2 + 2, 2 + 4, 2 + 6);
+
+    typedef data_store<cuda_storage<triplet>, storage_info_t> data_store_t;
+
+    data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
+
+    auto target_view = make_target_view<access_mode::ReadOnly>(ds);
+    auto device_view = make_device_view<access_mode::ReadOnly>(ds);
+
+    ASSERT_EQ(advanced::get_raw_pointer_of(device_view), advanced::get_raw_pointer_of(target_view));
+}
+
 TEST(DataViewTest, CheckMemorySpace) {
     typedef cuda_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>> storage_info_t;
     storage_info_t si(2 + 2 * 1, 2 + 2 * 3, 2 + 2 * 3);

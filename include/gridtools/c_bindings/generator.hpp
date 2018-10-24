@@ -105,11 +105,16 @@ namespace gridtools {
                 using type = boxed;
             };
 
-            struct apply_to_param_f {
-                template <class Fun, class TypeToStr, class T>
-                void operator()(Fun &&fun, TypeToStr &&type_to_str, int &count, boxed<T>) const {
-                    std::forward<Fun>(fun)(type_to_str.template operator()<T>(), count);
-                    ++count;
+            template <class TypeToStr, class Fun>
+            struct for_each_param_helper_f {
+                TypeToStr m_type_to_str;
+                Fun m_fun;
+                int &m_count;
+
+                template <class T>
+                void operator()(boxed<T>) const {
+                    m_fun(m_type_to_str.template operator()<T>(), m_count);
+                    ++m_count;
                 }
             };
 
@@ -118,11 +123,8 @@ namespace gridtools {
                 namespace m = boost::mpl;
                 int count = 0;
                 m::for_each<typename boost::function_types::parameter_types<Signature>::type, boxed<m::_>>(
-                    std::bind(apply_to_param_f{},
-                        std::forward<Fun>(fun),
-                        std::forward<TypeToStr>(type_to_str),
-                        std::ref(count),
-                        std::placeholders::_1));
+                    for_each_param_helper_f<TypeToStr, Fun>{
+                        std::forward<TypeToStr>(type_to_str), std::forward<Fun>(fun), count});
             };
 
             template <class CSignature>
@@ -398,11 +400,19 @@ namespace gridtools {
                                 c_loc += "lbound(" + var_name + ", " + std::to_string(i + 1) + ")";
                             }
                             c_loc += "))";
+                            if (meta->is_acc_present)
+                                strm << "      !$acc data present(" << var_name << ")\n" //
+                                     << "      !$acc host_data use_device(" << var_name << ")\n";
+
                             strm << "      " << desc_name << "%rank = " << meta->rank << "\n"                 //
                                  << "      " << desc_name << "%type = " << meta->type << "\n"                 //
                                  << "      " << desc_name << "%dims = reshape(shape(" << var_name << "), &\n" //
                                  << "        shape(" << desc_name << "%dims), (/0/))\n"                       //
-                                 << "      " << desc_name << "%data = " << c_loc << "\n\n";
+                                 << "      " << desc_name << "%data = " << c_loc << "\n";
+                            if (meta->is_acc_present)
+                                strm << "      !$acc end host_data\n" //
+                                     << "      !$acc end data\n";
+                            strm << "\n";
                         }
                     });
 
@@ -417,7 +427,8 @@ namespace gridtools {
                         if (i)
                             tmp_strm << ", ";
                         if (meta) {
-                            tmp_strm << "descriptor" << i;
+                            const auto desc_name = "descriptor" + std::to_string(i);
+                            tmp_strm << desc_name;
                         } else {
                             tmp_strm << "arg" << i;
                         }
