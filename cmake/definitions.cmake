@@ -90,7 +90,7 @@ if( ENABLE_CUDA )
   endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
-    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   set(GPU_SPECIFIC_FLAGS -D_USE_GPU_ -D_GCL_GPU_)
@@ -108,22 +108,22 @@ if( ENABLE_CUDA )
 
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
     # suppress because of boost::fusion::vector ctor
-    set(GT_CUDA_BUILDING_FLAGS "${GT_CUDA_BUILDING_FLAGS}" "-Xcudafe" "--diag_suppress=esa_on_defaulted_function_ignored")
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored)
   endif()
 
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
-    set(GT_CUDA_OPTIONAL_FLAGS "${GT_CUDA_OPTIONAL_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
+    set(GT_CUDA_OPTIONAL_FLAGS ${GT_CUDA_OPTIONAL_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS})
   endif()
 
   # workaround for boost::optional with CUDA9.2
   if( (${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2) OR (${CUDA_VERSION_MAJOR} EQUAL 10) )
-    set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
-    set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
+    set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
+    set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
   endif()
 
   if(${CXX_STANDARD} STREQUAL "c++14")
     # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-    set(GT_CUDA_MANDATORY_FLAGS "${GT_CUDA_MANDATORY_FLAGS}" "--expt-relaxed-constexpr")
+    set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} --expt-relaxed-constexpr)
   elseif(${CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
