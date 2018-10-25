@@ -62,9 +62,8 @@ if( COMPONENT_STENCIL_COMPOSITION )
     
         if( GCL_MPI )
             set(ccflags " ${X86_SPECIFIC_OPTIONS}" )
-            set(ldflags " ")
     
-            add_custom_mpi_x86_test(copy_stencil_parallel_x86 ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
+            add_custom_mpi_x86_test(TARGET copy_stencil_parallel_x86 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ADDITIONAL_FLAGS ${ccflags})
     
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -103,9 +102,8 @@ if( COMPONENT_STENCIL_COMPOSITION )
     
         if( GCL_MPI )
             set(ccflags " ${MC_SPECIFIC_OPTIONS}" )
-            set(ldflags " ")
     
-            add_custom_mpi_mc_test(copy_stencil_parallel_mc ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
+            add_custom_mpi_mc_test(TARGET copy_stencil_parallel_mc SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ADDITIONAL_FLAGS ${ccflags})
     
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)

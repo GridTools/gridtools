@@ -35,7 +35,7 @@ if( NOT GCL_ONLY )
 
             set(ccflags " ${X86_SPECIFIC_OPTIONS}" )
 
-            add_custom_mpi_mc_test(TARGET halo_exchange_3D halo_exchange_3D.cpp ADDITIONAL_FLAGS ${ccflags})
+            add_custom_mpi_mc_test(TARGET halo_exchange_3D SOURCES halo_exchange_3D.cpp ADDITIONAL_FLAGS ${ccflags})
 
             add_custom_mpi_mc_test(TARGET all_to_all_halo_3D SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_all_to_all_halo_3D.cpp ADDITIONAL_FLAGS ${ccflags})
 
