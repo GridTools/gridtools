@@ -25,7 +25,7 @@ if( NOT GCL_ONLY )
             add_custom_mpi_x86_test(TARGET halo_exchange_3D_generic SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ADDITIONAL_FLAGS ${ccflags})
             add_custom_mpi_x86_test(TARGET halo_exchange_3D_generic_full SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ADDITIONAL_FLAGS ${ccflags})
 
-            set(ccflags " ${X86_SPECIFIC_OPTIONS} -DVECTOR_INTERFACE" )
+            set(ccflags  ${X86_SPECIFIC_OPTIONS} -DVECTOR_INTERFACE )
 
             add_custom_mpi_x86_test(TARGET halo_exchange_3D_all_v SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cpp ADDITIONAL_FLAGS ${ccflags})
             add_custom_mpi_x86_test(TARGET halo_exchange_3D_all_2_v SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cpp ADDITIONAL_FLAGS ${ccflags})
@@ -33,7 +33,7 @@ if( NOT GCL_ONLY )
             add_custom_mpi_x86_test(TARGET halo_exchange_3D_generic_v SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ADDITIONAL_FLAGS ${ccflags})
             add_custom_mpi_x86_test(TARGET halo_exchange_3D_generic_full_v SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ADDITIONAL_FLAGS ${ccflags})
 
-            set(ccflags " ${X86_SPECIFIC_OPTIONS}" )
+            set(ccflags  ${X86_SPECIFIC_OPTIONS} )
 
             add_custom_mpi_mc_test(TARGET halo_exchange_3D SOURCES halo_exchange_3D.cpp ADDITIONAL_FLAGS ${ccflags})
 
@@ -45,7 +45,7 @@ if( NOT GCL_ONLY )
             add_custom_mpi_mc_test(TARGET halo_exchange_3D_generic SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ADDITIONAL_FLAGS ${ccflags})
             add_custom_mpi_mc_test(TARGET halo_exchange_3D_generic_full SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ADDITIONAL_FLAGS ${ccflags})
 
-            set(ccflags " ${X86_SPECIFIC_OPTIONS} -DVECTOR_INTERFACE" )
+            set(ccflags  ${X86_SPECIFIC_OPTIONS} -DVECTOR_INTERFACE )
 
             add_custom_mpi_mc_test(TARGET halo_exchange_3D_all_v SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cpp ADDITIONAL_FLAGS ${ccflags})
             add_custom_mpi_mc_test(TARGET halo_exchange_3D_all_2_v SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cpp ADDITIONAL_FLAGS ${ccflags})

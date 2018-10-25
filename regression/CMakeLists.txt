@@ -47,8 +47,8 @@ if( COMPONENT_STENCIL_COMPOSITION )
     
         foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS )
             string(TOLOWER ${variation} var_suffix)
-            add_executable(interface1_functions_x86_naive_${var_suffix}   interface1_functions.cpp)
-            add_executable(interface1_functions_x86_block_${var_suffix}   interface1_functions.cpp)
+            add_executable(interface1_functions_x86_naive_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
+            add_executable(interface1_functions_x86_block_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
             target_compile_options(interface1_functions_x86_naive_${var_suffix} PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE} -DBACKEND_STRATEGY_NAIVE -DFUNCTIONS_${variation})
             target_compile_options(interface1_functions_x86_block_${var_suffix} PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE} -DFUNCTIONS_${variation})
             target_link_libraries(interface1_functions_x86_naive_${var_suffix} ${exe_LIBS} gtest_main)
@@ -61,7 +61,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         endforeach(variation)
     
         if( GCL_MPI )
-            set(ccflags " ${X86_SPECIFIC_OPTIONS}" )
+            set(ccflags ${X86_SPECIFIC_OPTIONS} )
     
             add_custom_mpi_x86_test(TARGET copy_stencil_parallel_x86 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ADDITIONAL_FLAGS ${ccflags})
     
@@ -95,13 +95,13 @@ if( COMPONENT_STENCIL_COMPOSITION )
             string(TOLOWER ${variation} var_suffix)
             add_executable(interface1_functions_mc_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
             target_link_libraries(interface1_functions_mc_${var_suffix} ${exe_LIBS} gtest_main)
-            target_compile_options(interface1_functions_mc_${var_suffix} PUBLIC ${GT_CXX_FLAGS} -DFUNCTIONS_${variation} ${MC_BACKEND_DEFINE})
+            target_compile_options(interface1_functions_mc_${var_suffix} PUBLIC ${GT_CXX_FLAGS} -DFUNCTIONS_${variation} -D${MC_BACKEND_DEFINE})
             gridtools_add_test( tests.interface1_functions_mc_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/interface1_functions_mc_${var_suffix}" "23 11 43")
             gridtools_add_test( tests.interface1_functions_mc_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/interface1_functions_mc_${var_suffix}" "23 11 23")
         endforeach(variation)
     
         if( GCL_MPI )
-            set(ccflags " ${MC_SPECIFIC_OPTIONS}" )
+            set(ccflags ${MC_SPECIFIC_OPTIONS} )
     
             add_custom_mpi_mc_test(TARGET copy_stencil_parallel_mc SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ADDITIONAL_FLAGS ${ccflags})
     
