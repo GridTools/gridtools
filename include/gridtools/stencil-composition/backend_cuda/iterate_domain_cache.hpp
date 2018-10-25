@@ -291,8 +291,9 @@ namespace gridtools {
             if (first_level) {
                 using filling_indexes_t =
                     typename boost::mpl::joint_view<k_filling_caches_indexes_t, k_bpfilling_caches_indexes_t>::type;
-                using begin_indexes_t = typename impl_::
-                    filter_indexes<k_caches_map_t, impl_::is_begin_index<IterationPolicy>, filling_indexes_t>::type;
+                // using begin_indexes_t = typename impl_::
+                // filter_indexes<k_caches_map_t, impl_::is_begin_index<IterationPolicy>, filling_indexes_t>::type;
+                using begin_indexes_t = filling_indexes_t;
 
                 boost::mpl::for_each<begin_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                     k_caches_map_t,
@@ -301,9 +302,10 @@ namespace gridtools {
                     cache_io_policy::fill>(it_domain, m_k_caches_tuple));
             }
 
-            using indexes_t = typename impl_::filter_indexes<k_caches_map_t,
-                impl_::is_active_index<IterationPolicy>,
-                k_filling_caches_indexes_t>::type;
+            // using indexes_t = typename impl_::filter_indexes<k_caches_map_t,
+            // impl_::is_active_index<IterationPolicy>,
+            // k_filling_caches_indexes_t>::type;
+            using indexes_t = k_filling_caches_indexes_t;
 
             boost::mpl::for_each<indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
@@ -321,9 +323,10 @@ namespace gridtools {
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            using indexes_t = typename impl_::filter_indexes<k_caches_map_t,
-                impl_::is_active_index<IterationPolicy>,
-                k_flushing_caches_indexes_t>::type;
+            // using indexes_t = typename impl_::filter_indexes<k_caches_map_t,
+            // impl_::is_active_index<IterationPolicy>,
+            // k_flushing_caches_indexes_t>::type;
+            using indexes_t = k_flushing_caches_indexes_t;
 
             boost::mpl::for_each<indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
@@ -334,8 +337,9 @@ namespace gridtools {
             if (last_level) {
                 using flushing_indexes_t =
                     typename boost::mpl::joint_view<k_flushing_caches_indexes_t, k_epflushing_caches_indexes_t>::type;
-                using end_indexes_t = typename impl_::
-                    filter_indexes<k_caches_map_t, impl_::is_end_index<IterationPolicy>, flushing_indexes_t>::type;
+                // using end_indexes_t = typename impl_::
+                // filter_indexes<k_caches_map_t, impl_::is_end_index<IterationPolicy>, flushing_indexes_t>::type;
+                using end_indexes_t = flushing_indexes_t;
 
                 boost::mpl::for_each<end_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                     k_caches_map_t,

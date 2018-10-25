@@ -78,7 +78,7 @@ namespace gridtools {
         struct cache_impl {
             GRIDTOOLS_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
             using arg_t = Arg;
-            using interval_t = Interval;
+            using _ = Interval;
             static constexpr cache_type cacheType = CacheType;
             static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
