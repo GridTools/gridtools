@@ -53,3 +53,7 @@ struct ASSERT_TYPE_EQ<expected, actual__, typename std::enable_if<!std::is_same<
     static_assert(sizeof(expected) >= 0, "forces template instantiation");
     static_assert(sizeof(actual__) >= 0, "forces template instantiation");
 };
+
+#define ASSERT_STATIC_EQ(expected, actual)                                                          \
+    ASSERT_TYPE_EQ<std::integral_constant<typename std::decay<decltype(expected)>::type, expected>, \
+        std::integral_constant<typename std::decay<decltype(actual)>::type, actual>>{};

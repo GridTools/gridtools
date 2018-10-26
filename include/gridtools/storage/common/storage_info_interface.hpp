@@ -119,13 +119,8 @@ namespace gridtools {
         array<uint_t, ndims> m_padded_lengths;
         array<uint_t, ndims> m_strides;
 
-        /**
-         * @brief private storage info interface constructor
-         */
-        GT_FUNCTION constexpr storage_info_interface() {}
-
         /*
-            When compputing the size of a storage, either lengh,
+            When computing the size of a storage, either length,
             total_length, or padded_total_length, we need to multiply
             the dimensions for those dimensions that are not
             associated to a -1 (masked-dimension).
@@ -160,13 +155,15 @@ namespace gridtools {
       public:
         constexpr static uint_t id = Id;
 
+        storage_info_interface() = delete;
+
         /**
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template <typename... Dims,
             enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
-        GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
+        GT_FUNCTION explicit storage_info_interface(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...},
@@ -174,13 +171,13 @@ namespace gridtools {
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
         GT_FUNCTION
-        constexpr storage_info_interface(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
+        storage_info_interface(array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
             : m_total_lengths(dims), m_strides(strides) {}
 
         /**
          * @brief storage info copy constructor.
          */
-        constexpr storage_info_interface(storage_info_interface const &other) = default;
+        storage_info_interface(storage_info_interface const &other) = default;
 
         /**
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
