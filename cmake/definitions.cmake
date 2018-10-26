@@ -58,9 +58,9 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD}")
 
-if(ENABLE_HOST)
-  set(HOST_BACKEND_DEFINE "BACKEND_HOST")
-endif(ENABLE_HOST)
+if(ENABLE_X86)
+  set(X86_BACKEND_DEFINE "BACKEND_X86")
+endif(ENABLE_X86)
 
 ## cuda support ##
 if( ENABLE_CUDA )
@@ -104,7 +104,7 @@ if( ENABLE_CUDA )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
   endif()
-  
+
   if(${CXX_STANDARD} STREQUAL "c++14")
     # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--expt-relaxed-constexpr")

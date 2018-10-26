@@ -28,10 +28,10 @@ set( exe_LIBS ${exe_LIBS} gtest)
 ######################### ADDITIONAL TEST MODULE FUNCTIONS #########################
 ####################################################################################
 
-# This function will fetch all host test cases in the given directory.
+# This function will fetch all x86 test cases in the given directory.
 # Only used for gcc or clang compilations
-function(fetch_host_tests subfolder)
-    if (ENABLE_HOST)
+function(fetch_x86_tests subfolder)
+    if (ENABLE_X86)
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
@@ -41,19 +41,19 @@ function(fetch_host_tests subfolder)
         foreach( test_source ${test_sources} )
             # create a nice name for the test case
             get_filename_component (unit_test ${test_source} NAME_WE )
-            set(unit_test "${unit_test}_host")
+            set(unit_test "${unit_test}_x86")
             # set binary output name and dir
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
             target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_definitions(${unit_test} PUBLIC ${HOST_BACKEND_DEFINE})
+            target_compile_definitions(${unit_test} PUBLIC ${X86_BACKEND_DEFINE})
             add_test (NAME ${unit_test} COMMAND ${exe} )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added test " ${unit_test} )
         endforeach(test_source)
-    endif(ENABLE_HOST)
-endfunction(fetch_host_tests)
+    endif(ENABLE_X86)
+endfunction(fetch_x86_tests)
 
 # This function will fetch all mc test cases in the given directory.
 # Only used for gcc or clang compilations
@@ -108,10 +108,10 @@ function(fetch_gpu_tests subfolder)
     endif(ENABLE_CUDA)
 endfunction(fetch_gpu_tests)
 
-# This function can be used to add a custom host test
-function(add_custom_host_test name sources cc_flags ld_flags)
-    if (ENABLE_HOST)
-        set(name "${name}_host")
+# This function can be used to add a custom x86 test
+function(add_custom_x86_test name sources cc_flags ld_flags)
+    if (ENABLE_X86)
+        set(name "${name}_x86")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
@@ -119,11 +119,11 @@ function(add_custom_host_test name sources cc_flags ld_flags)
         set(cflags "${cc_flags} ${CMAKE_CXX_FLAGS}" )
         set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )
         target_link_libraries(${name} ${exe_LIBS} gtest_main)
-        target_compile_definitions(${name} PUBLIC ${HOST_BACKEND_DEFINE})
+        target_compile_definitions(${name} PUBLIC ${X86_BACKEND_DEFINE})
         add_test (NAME ${name} COMMAND ${exe} )
         gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-    endif (ENABLE_HOST)
-endfunction(add_custom_host_test)
+    endif (ENABLE_X86)
+endfunction(add_custom_x86_test)
 
 # This function can be used to add a custom mc test
 function(add_custom_mc_test name sources cc_flags ld_flags)
@@ -158,9 +158,9 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
 endfunction(add_custom_gpu_test)
 
 
-function(add_custom_mpi_host_test name sources cc_flags ld_flags)
-    if (ENABLE_HOST)
-        set(name "${name}_host")
+function(add_custom_mpi_x86_test name sources cc_flags ld_flags)
+    if (ENABLE_X86)
+        set(name "${name}_x86")
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
@@ -168,10 +168,10 @@ function(add_custom_mpi_host_test name sources cc_flags ld_flags)
         set(cflags "${CMAKE_CXX_FLAGS} ${cc_flags}" )
         set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
         target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
-        target_compile_definitions(${name} PUBLIC ${HOST_BACKEND_DEFINE})
+        target_compile_definitions(${name} PUBLIC ${X86_BACKEND_DEFINE})
         gridtools_add_mpi_test(${name} ${exe})
-    endif (ENABLE_HOST)
-endfunction(add_custom_mpi_host_test)
+    endif (ENABLE_X86)
+endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_mc_test name sources cc_flags ld_flags)
     if (ENABLE_MC)

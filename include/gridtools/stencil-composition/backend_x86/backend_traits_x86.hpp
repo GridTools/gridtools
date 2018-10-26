@@ -40,24 +40,24 @@
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../empty_iterate_domain_cache.hpp"
-#include "strategy_host.hpp"
+#include "strategy_x86.hpp"
 
 #ifdef ENABLE_METERS
-#include "timer_host.hpp"
+#include "timer_x86.hpp"
 #else
 #include "../timer_dummy.hpp"
 #endif
 
 /**@file
- * @brief type definitions and structures specific for the Host backend
+ * @brief type definitions and structures specific for the X86 backend
  */
 namespace gridtools {
-    /**Traits struct, containing the types which are specific for the host backend*/
+    /**Traits struct, containing the types which are specific for the x86 backend*/
     template <>
     struct backend_traits_from_id<target::x86> {
 
         /** This is the functor used to generate view instances. According to the given storage an appropriate view is
-         * returned. When using the Host backend we return host view instances.
+         * returned. When using the X86 backend we return x86 view instances.
          */
         struct make_view_f {
             template <typename S, typename SI>
@@ -86,13 +86,13 @@ namespace gridtools {
             static void run(LocalDomain const &local_domain,
                 Grid const &grid,
                 ReductionData &reduction_data,
-                const execution_info_host &execution_info) {
+                const execution_info_x86 &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
                 // each strategy executes a different high level loop for a mss
-                strategy_from_id_host<typename backend_ids_t::strategy_id_t>::template mss_loop<
+                strategy_from_id_x86<typename backend_ids_t::strategy_id_t>::template mss_loop<
                     RunFunctorArgs>::template run(local_domain, grid, reduction_data, execution_info);
             }
         };
@@ -106,7 +106,7 @@ namespace gridtools {
         template <typename BackendIds>
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-            typedef strategy_from_id_host<typename BackendIds::strategy_id_t> type;
+            typedef strategy_from_id_x86<typename BackendIds::strategy_id_t> type;
         };
 
         template <typename IterateDomainArguments>
@@ -115,7 +115,7 @@ namespace gridtools {
         };
 
 #ifdef ENABLE_METERS
-        typedef timer_host performance_meter_t;
+        typedef timer_x86 performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;
 #endif

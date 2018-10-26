@@ -45,17 +45,17 @@
 #include "../mss_components.hpp"
 #include "../mss_functor.hpp"
 #include "../reductions/reduction_data.hpp"
-#include "./execute_kernel_functor_host.hpp"
+#include "./execute_kernel_functor_x86.hpp"
 
 namespace gridtools {
 
     template <class>
-    struct strategy_from_id_host;
+    struct strategy_from_id_x86;
 
     /**
      * @brief struct holding backend-specific runtime information about stencil execution.
      */
-    struct execution_info_host {
+    struct execution_info_x86 {
         uint_t bi, bj;
     };
 
@@ -63,7 +63,7 @@ namespace gridtools {
        @brief specialization for the \ref strategy::naive strategy
     */
     template <>
-    struct strategy_from_id_host<strategy::naive> {
+    struct strategy_from_id_x86<strategy::naive> {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -87,7 +87,7 @@ namespace gridtools {
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    execution_info_host>{local_domain_lists, grid, reduction_data, {0, 0}});
+                    execution_info_x86>{local_domain_lists, grid, reduction_data, {0, 0}});
             }
         };
 
@@ -104,7 +104,7 @@ namespace gridtools {
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const execution_info_host &execution_info) {
+                const execution_info_x86 &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
@@ -128,7 +128,7 @@ namespace gridtools {
        The loops over i and j are split according to the values of BI and BJ
     */
     template <>
-    struct strategy_from_id_host<strategy::block> {
+    struct strategy_from_id_x86<strategy::block> {
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
          * @tparam MssComponents a meta array with the mss components of all MSS
@@ -163,7 +163,7 @@ namespace gridtools {
                                 LocalDomainListArray,
                                 BackendIds,
                                 ReductionData,
-                                execution_info_host>(local_domain_lists, grid, reduction_data, {bi, bj}));
+                                execution_info_x86>(local_domain_lists, grid, reduction_data, {bi, bj}));
                         }
                     }
                 }
@@ -185,7 +185,7 @@ namespace gridtools {
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const execution_info_host &execution_info) {
+                const execution_info_x86 &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);

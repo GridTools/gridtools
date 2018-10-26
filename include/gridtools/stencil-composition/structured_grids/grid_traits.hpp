@@ -38,5 +38,5 @@
 #ifdef __CUDACC__
 #include "./backend_cuda/grid_traits_cuda.hpp"
 #endif
-#include "./backend_host/grid_traits_host.hpp"
 #include "./backend_mc/grid_traits_mc.hpp"
+#include "./backend_x86/grid_traits_x86.hpp"

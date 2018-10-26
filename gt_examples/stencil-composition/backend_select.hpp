@@ -38,7 +38,7 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 
-#ifdef BACKEND_HOST
+#ifdef BACKEND_X86
 #ifdef BACKEND_STRATEGY_NAIVE
 using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::naive>;
 #else
