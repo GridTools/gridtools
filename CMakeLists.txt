@@ -57,6 +57,7 @@ endif()
 if( COMPONENT_GCL )
     generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
     generate_install_targets_for(gcl communication)
+    target_compile_options(gcl PUBLIC ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
     set(exe_LIBS ${exe_LIBS} gcl)
 endif()
 
@@ -163,7 +164,7 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
 if ( INSTALL_GT_EXAMPLES )
     install(DIRECTORY
             gt_examples
-            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src" 
+            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src"
             FILES_MATCHING REGEX ".*cpp|.*hpp")
 endif()
 
