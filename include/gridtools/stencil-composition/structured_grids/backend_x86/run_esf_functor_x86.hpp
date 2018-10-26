@@ -35,47 +35,18 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../timer.hpp"
+#include "../../../common/defs.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
+#include "../../../common/host_device.hpp"
 
 namespace gridtools {
-
-    /**
-     * @class timer_host
-     * host implementation of the Timer interface
-     */
-    class timer_host : public timer<timer_host> // CRTP
-    {
-      public:
-        timer_host(std::string name) : timer<timer_host>(name) { startTime_ = 0.0; }
-        ~timer_host() {}
-
-        /**
-         * Reset counters
-         */
-        void set_impl(double const &time_) { startTime_ = time_; }
-
-        /**
-         * Start the stop watch
-         */
-        void start_impl() {
-#if defined(_OPENMP)
-            startTime_ = omp_get_wtime();
-#endif
+    struct run_esf_functor_x86 {
+        template <class StageGroups, class ItDomain>
+        GT_FUNCTION static void exec(ItDomain &it_domain) {
+            using stages_t = GT_META_CALL(meta::flatten, StageGroups);
+            GRIDTOOLS_STATIC_ASSERT(meta::length<stages_t>::value == 1, GT_INTERNAL_ERROR);
+            using stage_t = GT_META_CALL(meta::first, stages_t);
+            stage_t::exec(it_domain);
         }
-
-        /**
-         * Pause the stop watch
-         */
-        double pause_impl() {
-#if defined(_OPENMP)
-            return omp_get_wtime() - startTime_;
-#else
-            return -100;
-#endif
-        }
-
-      private:
-        double startTime_;
     };
 } // namespace gridtools

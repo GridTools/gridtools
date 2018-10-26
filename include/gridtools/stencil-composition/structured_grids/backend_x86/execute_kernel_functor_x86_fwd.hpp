@@ -35,8 +35,9 @@
 */
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "../structured_grids/backend_host/execute_kernel_functor_host.hpp"
-#else
-#include "../icosahedral_grids/backend_host/execute_kernel_functor_host.hpp"
-#endif
+namespace gridtools {
+    namespace strgrid {
+        template <typename RunFunctorArguments>
+        struct execute_kernel_functor_x86;
+    }
+} // namespace gridtools

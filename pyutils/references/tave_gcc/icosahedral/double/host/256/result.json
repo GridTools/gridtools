@@ -11,7 +11,7 @@
         80
     ],
     "runtime": {
-        "backend": "host",
+        "backend": "x86",
         "compiler": "/opt/gcc/6.2.0/bin/g++",
         "datetime": "2018-09-19T07:13:07.000000+0000",
         "grid": "icosahedral",
