@@ -106,11 +106,11 @@ if( ENABLE_CUDA )
   set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -arch=${CUDA_ARCH})
 
   # suppress because of a warning coming from gtest.h
-  set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe --diag_suppress=code_is_unreachable)
+  set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=code_is_unreachable)
 
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
     # suppress because of boost::fusion::vector ctor
-    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored)
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored)
   endif()
 
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
@@ -218,8 +218,8 @@ if( USE_MPI )
   if (NOT MPI_CXX_FOUND)
     message(FATAL_ERROR "Could not find MPI")
   endif()
-  if ( MPI_CXX_INCLUDE_PATH )
-      set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS} -I${MPI_CXX_INCLUDE_PATH} )
+  if ( MPI_CXX_INCLUDE_DIRS )
+      set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS} -I${MPI_CXX_INCLUDE_DIRS} )
   endif()
   list(APPEND exe_LIBS ${MPI_CXX_LIBRARIES})
 endif()
