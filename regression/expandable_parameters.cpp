@@ -33,39 +33,48 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "expandable_parameters.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
+#include <vector>
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: expandable_parameters_<whatever> dimx dimy dimz\n where args are integer sizes of the data "
-               "fields\n");
-        return 1;
+using namespace gridtools;
+
+struct functor_exp {
+    using parameters_out = inout_accessor<0>;
+    using parameters_in = accessor<1>;
+
+    using arg_list = boost::mpl::vector<parameters_out, parameters_in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        eval(parameters_out{}) = eval(parameters_in{});
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using ExpandableParameters = regression_fixture<>;
 
-    if (argc == 5) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
+TEST_F(ExpandableParameters, Test) {
+    std::vector<storage_type> out = {
+        make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
+    std::vector<storage_type> in = {
+        make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    return RUN_ALL_TESTS();
-}
+    arg<0, std::vector<storage_type>> p_out;
+    arg<1, std::vector<storage_type>> p_in;
+    tmp_arg<2, std::vector<storage_type>> p_tmp;
 
-TEST(ExpandableParameters, Test) {
-    gridtools::uint_t x = Options::getInstance().m_size[0];
-    gridtools::uint_t y = Options::getInstance().m_size[1];
-    gridtools::uint_t z = Options::getInstance().m_size[2];
-    gridtools::uint_t t = Options::getInstance().m_size[3];
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(test_expandable_parameters::test(x, y, z, t));
+    gridtools::make_computation<backend_t>(expand_factor<2>(),
+        make_grid(),
+        p_out = out,
+        p_in = in,
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            define_caches(cache<IJ, cache_io_policy::local>(p_tmp)),
+            make_stage<functor_exp>(p_tmp, p_in),
+            make_stage<functor_exp>(p_out, p_tmp)))
+        .run();
+    for (size_t i = 0; i != in.size(); ++i)
+        verify(in[i], out[i]);
 }

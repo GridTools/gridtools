@@ -33,39 +33,99 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "expandable_parameters_single_kernel.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
+#undef FUSION_MAX_VECTOR_SIZE
+#undef FUSION_MAX_MAP_SIZE
+#define FUSION_MAX_VECTOR_SIZE 40
+#define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
-int main(int argc, char **argv) {
+#include <vector>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gtest/gtest.h>
 
-    if (argc < 4) {
-        printf("Usage: expandable_parameters_<whatever> dimx dimy dimz\n where args are integer sizes of the data "
-               "fields\n");
-        return 1;
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
+
+using namespace gridtools;
+
+struct functor_single_kernel {
+    using parameters1_out = inout_accessor<0>;
+    using parameters2_out = inout_accessor<1>;
+    using parameters3_out = inout_accessor<2>;
+    using parameters4_out = inout_accessor<3>;
+    using parameters5_out = inout_accessor<4>;
+
+    using parameters1_in = in_accessor<5>;
+    using parameters2_in = in_accessor<6>;
+    using parameters3_in = in_accessor<7>;
+    using parameters4_in = in_accessor<8>;
+    using parameters5_in = in_accessor<9>;
+
+    using arg_list = boost::mpl::vector<parameters1_out,
+        parameters2_out,
+        parameters3_out,
+        parameters4_out,
+        parameters5_out,
+        parameters1_in,
+        parameters2_in,
+        parameters3_in,
+        parameters4_in,
+        parameters5_in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(parameters1_out()) = eval(parameters1_in());
+        eval(parameters2_out()) = eval(parameters2_in());
+        eval(parameters3_out()) = eval(parameters3_in());
+        eval(parameters4_out()) = eval(parameters4_in());
+        eval(parameters5_out()) = eval(parameters5_in());
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using ExpandableParameters = regression_fixture<>;
 
-    if (argc == 5) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
+TEST_F(ExpandableParameters, Test) {
+    std::vector<storage_type> out = {
+        make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
+    std::vector<storage_type> in = {
+        make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    return RUN_ALL_TESTS();
-}
+    arg<0, storage_type> p_0_out;
+    arg<1, storage_type> p_1_out;
+    arg<2, storage_type> p_2_out;
+    arg<3, storage_type> p_3_out;
+    arg<4, storage_type> p_4_out;
 
-TEST(ExpandableParameters, Test) {
-    gridtools::uint_t x = Options::getInstance().m_size[0];
-    gridtools::uint_t y = Options::getInstance().m_size[1];
-    gridtools::uint_t z = Options::getInstance().m_size[2];
-    gridtools::uint_t t = Options::getInstance().m_size[3];
-    if (t == 0)
-        t = 1;
+    arg<5, storage_type> p_0_in;
+    arg<6, storage_type> p_1_in;
+    arg<7, storage_type> p_2_in;
+    arg<8, storage_type> p_3_in;
+    arg<9, storage_type> p_4_in;
 
-    ASSERT_TRUE(test_expandable_parameters::test(x, y, z, t));
+    tmp_arg<10, storage_type> p_0_tmp;
+    tmp_arg<11, storage_type> p_1_tmp;
+    tmp_arg<12, storage_type> p_2_tmp;
+    tmp_arg<13, storage_type> p_3_tmp;
+    tmp_arg<14, storage_type> p_4_tmp;
+
+    make_computation(p_0_out = out[0],
+        p_1_out = out[1],
+        p_2_out = out[2],
+        p_3_out = out[3],
+        p_4_out = out[4],
+        p_0_in = in[0],
+        p_1_in = in[1],
+        p_2_in = in[2],
+        p_3_in = in[3],
+        p_4_in = in[4],
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            define_caches(cache<IJ, cache_io_policy::local>(p_0_tmp, p_1_tmp, p_2_tmp, p_3_tmp, p_4_tmp)),
+            make_stage<functor_single_kernel>(
+                p_0_tmp, p_1_tmp, p_2_tmp, p_3_tmp, p_4_tmp, p_0_in, p_1_in, p_2_in, p_3_in, p_4_in),
+            make_stage<functor_single_kernel>(
+                p_0_out, p_1_out, p_2_out, p_3_out, p_4_out, p_0_tmp, p_1_tmp, p_2_tmp, p_3_tmp, p_4_tmp)))
+        .run();
+    for (size_t i = 0; i != in.size(); ++i)
+        verify(in[i], out[i]);
 }

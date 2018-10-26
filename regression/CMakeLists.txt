@@ -34,6 +34,7 @@ else()
       gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_host_naive" "12 33 21")
       gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_host_naive" "23 11 23")
     endforeach(srcfile)
+
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_host_block)
     endforeach()

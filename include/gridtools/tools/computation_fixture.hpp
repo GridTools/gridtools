@@ -75,6 +75,10 @@ namespace gridtools {
         uint_t d2() const { return m_d2; }
         uint_t d3() const { return m_d3; }
 
+        uint_t &d1() { return m_d1; }
+        uint_t &d2() { return m_d2; }
+        uint_t &d3() { return m_d3; }
+
         halo_descriptor i_halo_descriptor() const {
             return {halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1};
         }
