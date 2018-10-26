@@ -112,7 +112,7 @@ function(fetch_gpu_tests subfolder)
             set(CUDA_SEPARABLE_COMPILATION OFF)
             add_executable( ${unit_test} ${test_source} ${test_headers} )
             target_compile_options (${unit_test} PUBLIC ${GT_CXX_FLAGS} ${GT_CUDA_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE})
-            target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
+            target_link_libraries(${unit_test}  ${exe_LIBS} gtest_main )
             target_include_directories(${unit_test}
                  PRIVATE
                     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
