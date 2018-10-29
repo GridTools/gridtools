@@ -141,9 +141,9 @@ endif( ENABLE_MC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
-    set( GT_CXX_BUILDING_FLAGS ${CMAKE_BUILDING_FLAGS}  -ftemplate-depth-1024 )
+    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -ftemplate-depth-1024 )
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set( GT_CXX_BUILDING_FLAGS ${CMAKE_BUILDING_FLAGS}  -Wno-pass-failed )
+    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -Wno-pass-failed )
 endif()
 
 ## Intel compiler ##
