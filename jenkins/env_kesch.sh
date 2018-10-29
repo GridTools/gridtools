@@ -7,7 +7,8 @@ module load cray-libsci
 module load cudatoolkit/8.0.61
 module load mvapich2gdr_gnu/2.2_cuda_8.0
 module load gcc/5.4.0-2.26
-module load cmake/3.9.1
+module rm cmake
+module load /users/jenkins/easybuild/kesch/modules/all/cmake/3.12.0
 
 export HOST_COMPILER=`which g++`
 export Boost_NO_SYSTEM_PATHS=true
