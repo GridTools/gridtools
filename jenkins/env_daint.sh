@@ -11,7 +11,9 @@ function exit_if_error {
 module load daint-gpu
 module load cudatoolkit
 module rm   PrgEnv-cray
-module load CMake
+module rm CMake
+module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.0
+
 
 if [[ ${COMPILER} == "gcc" ]]; then
   module load PrgEnv-gnu
