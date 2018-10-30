@@ -13,10 +13,6 @@ else()
   list(APPEND SRCFILES extended_4D expandable_parameters expandable_parameters_single_kernel)
   list(APPEND X86_SRCFILES reduction)
 
-  set( GTEST_FILES Options.hpp Options.cpp)
-
-  add_definitions("-DBENCHMARK")
-
   # special target for executables which are used from performance benchmarks
   add_custom_target(perftests)
 
@@ -128,8 +124,8 @@ else()
       else()
         foreach(srcfile IN LISTS PERFTEST_SRCFILES SRCFILES )
              #set(CUDA_SEPARABLE_COMPILATION ON)
-             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
-             target_link_libraries(${srcfile}_cuda ${exe_LIBS} gtest_main)
+             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
+             target_link_libraries(${srcfile}_cuda ${exe_LIBS} regression_fixture gtest)
 
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_cuda" "47 38 61")
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_cuda" "63 38 10")
@@ -141,8 +137,8 @@ else()
 
     foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS)
         string(TOLOWER ${variation} var_suffix)
-        cuda_add_executable(interface1_functions_cuda_${var_suffix}   interface1_functions.cu ${GTEST_FILES} OPTIONS "-DFUNCTIONS_${variation} ${GPU_SPECIFIC_FLAGS}" "-D${CUDA_BACKEND_DEFINE}")
-        target_link_libraries(interface1_functions_cuda_${var_suffix} ${exe_LIBS} gtest_main)
+        cuda_add_executable(interface1_functions_cuda_${var_suffix}   interface1_functions.cu OPTIONS "-DFUNCTIONS_${variation} ${GPU_SPECIFIC_FLAGS}" "-D${CUDA_BACKEND_DEFINE}")
+        target_link_libraries(interface1_functions_cuda_${var_suffix} ${exe_LIBS} regression_fixture gtest)
         gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/interface1_functions_cuda_${var_suffix}" "23 38 43")
         gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/interface1_functions_cuda_${var_suffix}" "23 38 23")
     endforeach(variation)

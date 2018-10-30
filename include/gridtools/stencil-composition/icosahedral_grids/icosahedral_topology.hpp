@@ -62,6 +62,7 @@
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../storage/common/halo.hpp"
 #include "../location_type.hpp"
 #include "position_offset_type.hpp"
 

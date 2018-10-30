@@ -35,19 +35,68 @@
 */
 #pragma once
 
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
+#include <cassert>
+#include <iostream>
+#include <memory>
+#include <vector>
 
-#ifdef BACKEND_X86
-#ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::naive>;
+#include <gridtools/common/defs.hpp>
+
+const int cache_flusher_size = 1024 * 1024 * 21;
+
+// class used to flush the cache for OpenMP codes
+// initialise with (n>=cache size) to flush all cache
+class cache_flusher {
+#ifdef __CUDACC__
+  public:
+    cache_flusher(int n){};
+    void flush(){};
 #else
-using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::block>;
+    std::vector<double> a_;
+    std::vector<double> b_;
+    std::vector<double> c_;
+    int n_;
+
+  public:
+    cache_flusher(int n) {
+        assert(n > 2);
+        n_ = n / 2;
+        a_.resize(n_);
+        b_.resize(n_);
+        c_.resize(n_);
+    };
+    void flush() {
+        double *a = &a_[0];
+        double *b = &b_[0];
+        double *c = &c_[0];
+        int i;
+#pragma omp parallel for private(i)
+        for (i = 0; i < n_; i++)
+            a[i] = b[i] * c[i];
+    };
 #endif
-#elif defined(BACKEND_MC)
-using backend_t = gridtools::backend<gridtools::target::mc, GRIDBACKEND, gridtools::strategy::block>;
-#elif defined(BACKEND_CUDA)
-using backend_t = gridtools::backend<gridtools::target::cuda, GRIDBACKEND, gridtools::strategy::block>;
-#else
-#error "no backend selected"
-#endif
+};
+
+namespace gridtools {
+
+    struct benchmarker {
+
+        template <class Stencil>
+        static void run(Stencil &stencil, uint_t tsteps) {
+            cache_flusher flusher(cache_flusher_size);
+            // we run a first time the stencil, since if there is data allocation before by other codes, the first run
+            // of the stencil
+            // is very slow (we dont know why). The flusher should make sure we flush the cache
+            stencil.run();
+            flusher.flush();
+
+            stencil.reset_meter();
+            for (uint_t t = 0; t < tsteps; ++t) {
+                flusher.flush();
+                stencil.run();
+            }
+
+            std::cout << stencil.print_meter() << std::endl;
+        }
+    };
+} // namespace gridtools

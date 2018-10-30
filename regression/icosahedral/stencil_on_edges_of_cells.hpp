@@ -43,11 +43,11 @@
  * We use it in a user functor with a manual loop over the 3 edges.
  * We dont make use of the on_cells nor the grid topology of the icosahedral/octahedral grid here
  */
-#include "backend_select.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;

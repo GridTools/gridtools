@@ -37,6 +37,7 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp>
+#include <gridtools/stencil-composition/location_type.hpp>
 
 using namespace gridtools;
 
