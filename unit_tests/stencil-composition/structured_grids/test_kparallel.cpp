@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gtest/gtest.h>
 
 #include <boost/fusion/include/make_vector.hpp>
 
-#include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using gridtools::accessor;
 using gridtools::arg;

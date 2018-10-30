@@ -35,14 +35,6 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
-#include <tuple>
-
-#include "gtest/gtest.h"
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-
 #ifdef BACKEND_X86
 #include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
 #endif
@@ -51,7 +43,15 @@
 #include <gridtools/stencil-composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
 #endif
 
-#include "backend_select.hpp"
+#include <tuple>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {
     namespace {

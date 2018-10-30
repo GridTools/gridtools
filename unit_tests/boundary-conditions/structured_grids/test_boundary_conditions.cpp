@@ -34,30 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-
-#include <gridtools/common/halo_descriptor.hpp>
-
-#include <gridtools/boundary-conditions/boundary.hpp>
-
-#include <gridtools/boundary-conditions/copy.hpp>
-#include <gridtools/boundary-conditions/value.hpp>
-#include <gridtools/boundary-conditions/zero.hpp>
-
-using gridtools::direction;
-using gridtools::minus_;
-using gridtools::plus_;
-using gridtools::sign;
-using gridtools::zero_;
-
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <boost/utility/enable_if.hpp>
 
-#include "backend_select.hpp"
+#include <gtest/gtest.h>
+
+#include <gridtools/boundary-conditions/boundary.hpp>
+#include <gridtools/boundary-conditions/copy.hpp>
+#include <gridtools/boundary-conditions/value.hpp>
+#include <gridtools/boundary-conditions/zero.hpp>
+#include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
