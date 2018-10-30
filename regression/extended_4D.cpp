@@ -184,13 +184,14 @@ TEST_F(Extended4D, Test) {
     };
     auto result = make_storage(0.);
 
-    run_computation(p_phi = backend_t::make_global_parameter(elemental{phi}),
+    make_computation(p_phi = backend_t::make_global_parameter(elemental{phi}),
         p_psi = backend_t::make_global_parameter(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
         p_f = make_storage(f),
         p_result = result,
         make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)));
+            enumtype::execute<enumtype::forward>(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)))
+        .run();
 
     verify(make_storage(ref), result);
 }

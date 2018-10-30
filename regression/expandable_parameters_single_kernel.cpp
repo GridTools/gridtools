@@ -91,7 +91,7 @@ TEST_F(ExpandableParameters, Test) {
     std::vector<storage_type> in = {
         make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    run_computation(p_0 = out[0],
+    make_computation(p_0 = out[0],
         p_1 = out[1],
         p_2 = out[2],
         p_3 = out[3],
@@ -104,7 +104,8 @@ TEST_F(ExpandableParameters, Test) {
         make_multistage(enumtype::execute<enumtype::forward>(),
             define_caches(cache<IJ, cache_io_policy::local>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
             make_stage<functor_single_kernel>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4, p_5, p_6, p_7, p_8, p_9),
-            make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)));
+            make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)))
+        .run();
 
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);

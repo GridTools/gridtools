@@ -199,8 +199,11 @@ struct vertical_advection_dycore : regression_fixture<3, axis_t> {
 
     storage_type utens_stage = make_storage(repo.utens_stage_in);
 
-    template <class UpStage, class DownStage>
-    auto make_comp(UpStage up, DownStage down) GT_AUTO_RETURN(make_computation(p_utens_stage = utens_stage,
+    void verify_utens_stage() { verify(make_storage(repo.utens_stage_out), utens_stage); }
+};
+
+TEST_F(vertical_advection_dycore, test) {
+    auto comp = make_computation(p_utens_stage = utens_stage,
         p_u_stage = make_storage(repo.u_stage),
         p_wcon = make_storage(repo.wcon),
         p_u_pos = make_storage(repo.u_pos),
@@ -212,34 +215,35 @@ struct vertical_advection_dycore : regression_fixture<3, axis_t> {
                 cache<K, cache_io_policy::flush, kfull>(p_ccol),
                 cache<K, cache_io_policy::flush, kfull>(p_dcol),
                 cache<K, cache_io_policy::fill, kfull>(p_u_stage)),
-            up),
+            make_stage<u_forward_function>(
+                p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
         make_multistage(enumtype::execute<enumtype::backward>(),
             define_caches(cache<K, cache_io_policy::local, kfull>(p_data_col)),
-            down)));
-
-    void verify_utens_stage() { verify(make_storage(repo.utens_stage_out), utens_stage); }
-};
-
-TEST_F(vertical_advection_dycore, test) {
-    auto up_stage = make_stage<u_forward_function>(
-        p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol);
-
-    auto down_stage = make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col);
-
-    auto comp = make_comp(up_stage, down_stage);
-
+            make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)));
     comp.run();
     verify_utens_stage();
     benchmark(comp);
 }
 
 TEST_F(vertical_advection_dycore, with_extents) {
-    auto up_stage = make_stage_with_extent<u_forward_function, extent<>>(
-        p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol);
-
-    auto down_stage = make_stage_with_extent<u_backward_function, extent<>>(
-        p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col);
-
-    make_comp(up_stage, down_stage).run();
+    make_computation(p_utens_stage = utens_stage,
+        p_u_stage = make_storage(repo.u_stage),
+        p_wcon = make_storage(repo.wcon),
+        p_u_pos = make_storage(repo.u_pos),
+        p_utens = make_storage(repo.utens),
+        p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_acol),
+                cache<K, cache_io_policy::local, kfull>(p_bcol),
+                cache<K, cache_io_policy::flush, kfull>(p_ccol),
+                cache<K, cache_io_policy::flush, kfull>(p_dcol),
+                cache<K, cache_io_policy::fill, kfull>(p_u_stage)),
+            make_stage_with_extent<u_forward_function, extent<>>(
+                p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
+        make_multistage(enumtype::execute<enumtype::backward>(),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_data_col)),
+            make_stage_with_extent<u_backward_function, extent<>>(
+                p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)))
+        .run();
     verify_utens_stage();
 }

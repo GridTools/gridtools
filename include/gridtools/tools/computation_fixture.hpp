@@ -126,9 +126,6 @@ namespace gridtools {
         auto make_computation(Args &&... args)
             GT_AUTO_RETURN(::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...));
 
-        template <class... Args>
-        auto run_computation(Args &&... args) GT_AUTO_RETURN(make_computation(std::forward<Args>(args)...).run());
-
         template <class Expected, class Actual>
         void verify(Expected const &expected, Actual const &actual) const {
             EXPECT_TRUE(verifier{}.verify(

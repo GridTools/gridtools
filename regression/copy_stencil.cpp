@@ -69,9 +69,10 @@ TEST_F(CopyStencil, Test) {
 }
 
 TEST_F(CopyStencil, WithExtents) {
-    run_computation(make_multistage(enumtype::execute<enumtype::parallel, 20>(),
-                        make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)),
-        p_0 = in,
-        p_1 = out);
+    make_computation(p_0 = in,
+        p_1 = out,
+        make_multistage(
+            enumtype::execute<enumtype::parallel, 20>(), make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)))
+        .run();
     verify(in, out);
 }

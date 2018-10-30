@@ -184,13 +184,14 @@ TEST_F(FTESTNAME(x), Test) {
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 
-    run_computation(p_in = make_storage(repo.in),
+    make_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
         make_multistage(enumtype::execute<enumtype::forward>(),
             define_caches(cache<IJ, cache_io_policy::local>(p_flx, p_fly)),
             make_independent(make_stage<flx_function>(p_flx, p_in), make_stage<fly_function>(p_fly, p_in)),
-            make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)));
+            make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)))
+        .run();
 
     verify(make_storage(repo.out), out);
 }

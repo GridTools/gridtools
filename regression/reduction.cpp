@@ -58,7 +58,7 @@ struct Reductions : regression_fixture<> {
 
     template <class BinOp>
     float_type actual(BinOp, float_type init) {
-        return run_computation(p_0 = make_storage(data), make_reduction<sum_red, BinOp>(init, p_0));
+        return make_computation(p_0 = make_storage(data), make_reduction<sum_red, BinOp>(init, p_0)).run();
     }
 
     template <class BinOp>
