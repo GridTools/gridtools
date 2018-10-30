@@ -87,10 +87,10 @@ struct divflux_function {
 using SimpleHorizontalDiffusion = regression_fixture<2>;
 
 TEST_F(SimpleHorizontalDiffusion, Test) {
-    tmp_arg<0, storage_type> p_lap;
-    arg<1, storage_type> p_coeff;
-    arg<2, storage_type> p_in;
-    arg<3, storage_type> p_out;
+    tmp_arg<0> p_lap;
+    arg<1> p_coeff;
+    arg<2> p_in;
+    arg<3> p_out;
     arg<4, j_storage_type> p_crlato;
     arg<5, j_storage_type> p_crlatu;
 

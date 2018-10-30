@@ -62,13 +62,9 @@ TEST_F(Laplace, test) {
     };
     auto out = make_storage(-7.3);
 
-    arg<0, storage_type> p_in;
-    arg<1, storage_type> p_out;
-
-    make_computation(p_in = make_storage(in),
-        p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<lap_function>(p_out, p_in)))
-        .run();
+    run_computation(p_0 = out,
+        p_1 = make_storage(in),
+        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<lap_function>(p_0, p_1)));
 
     verify(make_storage(ref), out);
 }

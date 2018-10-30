@@ -36,78 +36,36 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
 /**
   @file
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend,
-  in which a misaligned storage is aligned
+  This file shows an implementation of the stencil in which a misaligned storage is aligned
 */
 
 using namespace gridtools;
-using namespace enumtype;
-
-// These are the stencil operators that compose the multistage stencil in this test
-struct copy_functor {
-    using in = in_accessor<0>;
-    using out = inout_accessor<1>;
-    using arg_list = boost::mpl::vector<in, out>;
-
-#ifdef __CUDACC__
-    /** @brief checking all storages alignment using a specific storage_info
-
-        \tparam Index index of the storage which alignment should be checked
-        \tparam ItDomain iterate domain type
-        \param it_domain iterate domain, used to get the pointers and offsets
-        \param alignment ordinal number identifying the alignment
-    */
-    template <typename Ptr>
-    GT_FUNCTION static bool check_pointer_alignment(Ptr const *ptr, uint_t alignment) {
-        return threadIdx.x != 0 && (uintptr_t)ptr % alignment == 0;
-    }
-#endif
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
-
-#ifdef __CUDACC__
-#ifndef NDEBUG
-        if (!check_pointer_alignment(&eval(in()), sizeof(float_type) * meta_data_t::alignment_t::value) ||
-            !check_pointer_alignment(&eval(out()), sizeof(float_type) * meta_data_t::alignment_t::value)) {
-            printf("alignment error in some storages with first meta_storage \n");
-            assert(false);
-        }
-#endif
-#endif
-        eval(out()) = eval(in());
-    }
-};
 
 using AlignedCopyStencil = regression_fixture<2>;
 
+struct functor {
+    using acc = inout_accessor<0>;
+    using arg_list = boost::mpl::vector<acc>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        auto *ptr = &eval(acc{});
+        constexpr auto aligment = sizeof(decltype(*ptr)) * AlignedCopyStencil::storage_info_t::alignment_t::value;
+        constexpr auto halo_size = AlignedCopyStencil::halo_size;
+        if (eval.i() == halo_size && eval.j() == halo_size)
+            assert((uintptr_t)ptr % aligment == 0);
+    }
+};
+
 TEST_F(AlignedCopyStencil, Test) {
-    using halo_t = halo<2, 2, 2>;
-    using meta_data_t = backend_t::storage_traits_t::storage_info_t<0, 3, halo_t>;
-    using storage_t = backend_t::storage_traits_t::data_store_t<float_type, meta_data_t>;
-
-    meta_data_t meta_data_(d1() + 2 * halo_t::at<0>(), d2() + 2 * halo_t::at<1>(), d3() + 2 * halo_t::at<2>());
-
-    halo_descriptor di{halo_t::at<0>(), 0, halo_t::at<0>(), d1() + halo_t::at<0>() - 1, d1() + halo_t::at<0>()};
-    halo_descriptor dj{halo_t::at<1>(), 0, halo_t::at<1>(), d2() + halo_t::at<1>() - 1, d2() + halo_t::at<1>()};
-    grid<axis<1>::axis_interval_t> grid(di, dj, {halo_t::at<2>(), d3() + halo_t::at<2>()});
-
-    // Definition of the actual data fields that are used for input/output
-    storage_t out(meta_data_, -1.);
-    storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; });
-
-    arg<0, storage_t> p_in;
-    arg<1, storage_t> p_out;
-
-    gridtools::make_positional_computation<backend_t>(grid,
-        p_in = in,
-        p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<copy_functor>(p_in, p_out)))
+    make_positional_computation<backend_t>(make_grid(),
+        p_0 = make_storage(0.),
+        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p_0)))
         .run();
-    verify(in, out);
 }

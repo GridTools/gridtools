@@ -183,21 +183,21 @@ struct u_backward_function {
 };
 
 struct vertical_advection_dycore : regression_fixture<3, axis_t> {
-    arg<0, storage_type> p_utens_stage;
-    arg<1, storage_type> p_u_stage;
-    arg<2, storage_type> p_wcon;
-    arg<3, storage_type> p_u_pos;
-    arg<4, storage_type> p_utens;
+    arg<0> p_utens_stage;
+    arg<1> p_u_stage;
+    arg<2> p_wcon;
+    arg<3> p_u_pos;
+    arg<4> p_utens;
     arg<5, scalar_storage_type> p_dtr_stage;
-    tmp_arg<0, storage_type> p_acol;
-    tmp_arg<1, storage_type> p_bcol;
-    tmp_arg<2, storage_type> p_ccol;
-    tmp_arg<3, storage_type> p_dcol;
-    tmp_arg<4, storage_type> p_data_col;
+    tmp_arg<0> p_acol;
+    tmp_arg<1> p_bcol;
+    tmp_arg<2> p_ccol;
+    tmp_arg<3> p_dcol;
+    tmp_arg<4> p_data_col;
 
-    storage_type utens_stage = make_storage(-1.);
+    vertical_advection_repository repo{d1(), d2(), d3()};
 
-    vertical_advection_repository repo = {d1(), d2(), d3()};
+    storage_type utens_stage = make_storage(repo.utens_stage_in);
 
     template <class UpStage, class DownStage>
     auto make_comp(UpStage up, DownStage down) GT_AUTO_RETURN(make_computation(p_utens_stage = utens_stage,
@@ -214,10 +214,10 @@ struct vertical_advection_dycore : regression_fixture<3, axis_t> {
                 cache<K, cache_io_policy::fill, kfull>(p_u_stage)),
             up),
         make_multistage(enumtype::execute<enumtype::backward>(),
-            define_caches(cache<K, cache_io_policy::flush, kfull>(p_data_col)),
+            define_caches(cache<K, cache_io_policy::local, kfull>(p_data_col)),
             down)));
 
-    void verify_utens_stage() { verify(make_storage(repo.utens_stage), utens_stage); }
+    void verify_utens_stage() { verify(make_storage(repo.utens_stage_out), utens_stage); }
 };
 
 TEST_F(vertical_advection_dycore, test) {

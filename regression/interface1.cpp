@@ -105,12 +105,12 @@ struct out_function {
 using HorizontalDiffusion = regression_fixture<2>;
 
 TEST_F(HorizontalDiffusion, Test) {
-    tmp_arg<0, storage_type> p_lap;
-    tmp_arg<1, storage_type> p_flx;
-    tmp_arg<2, storage_type> p_fly;
-    arg<3, storage_type> p_coeff;
-    arg<4, storage_type> p_in;
-    arg<5, storage_type> p_out;
+    tmp_arg<0> p_lap;
+    tmp_arg<1> p_flx;
+    tmp_arg<2> p_fly;
+    arg<3> p_coeff;
+    arg<4> p_in;
+    arg<5> p_out;
 
     auto out = make_storage(0.);
 

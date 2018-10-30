@@ -174,24 +174,23 @@ struct out_function {
 using FTESTNAME(x) = regression_fixture<2>;
 
 TEST_F(FTESTNAME(x), Test) {
-    tmp_arg<0, storage_type> p_flx;
-    tmp_arg<1, storage_type> p_fly;
-    arg<1, storage_type> p_coeff;
-    arg<2, storage_type> p_in;
-    arg<3, storage_type> p_out;
+    tmp_arg<0> p_flx;
+    tmp_arg<1> p_fly;
+    arg<1> p_coeff;
+    arg<2> p_in;
+    arg<3> p_out;
 
     auto out = make_storage(0.);
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 
-    make_computation(p_in = make_storage(repo.in),
+    run_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
         make_multistage(enumtype::execute<enumtype::forward>(),
             define_caches(cache<IJ, cache_io_policy::local>(p_flx, p_fly)),
             make_independent(make_stage<flx_function>(p_flx, p_in), make_stage<fly_function>(p_fly, p_in)),
-            make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)))
-        .run();
+            make_stage<out_function>(p_out, p_in, p_flx, p_fly, p_coeff)));
 
     verify(make_storage(repo.out), out);
 }

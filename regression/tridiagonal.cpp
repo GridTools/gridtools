@@ -131,13 +131,13 @@ TEST_F(TridiagonalSolve, Test) {
     auto sup = make_storage(1.);
     auto rhs = make_storage([](int_t, int_t, int_t k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; });
 
-    arg<0, storage_type> p_inf;  // a
-    arg<1, storage_type> p_diag; // b
-    arg<2, storage_type> p_sup;  // c
-    arg<3, storage_type> p_rhs;  // d
-    arg<4, storage_type> p_out;
+    arg<0> p_inf;  // a
+    arg<1> p_diag; // b
+    arg<2> p_sup;  // c
+    arg<3> p_rhs;  // d
+    arg<4> p_out;
 
-    make_computation(p_inf = make_storage(-1.),
+    run_computation(p_inf = make_storage(-1.),
         p_diag = make_storage(3.),
         p_sup = sup,
         p_rhs = rhs,
@@ -145,8 +145,7 @@ TEST_F(TridiagonalSolve, Test) {
         make_multistage(
             enumtype::execute<enumtype::forward>(), make_stage<forward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)),
         make_multistage(
-            enumtype::execute<enumtype::backward>(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)))
-        .run();
+            enumtype::execute<enumtype::backward>(), make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
 
     verify(make_storage(1.), out);
 }

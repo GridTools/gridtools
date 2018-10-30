@@ -54,17 +54,14 @@ struct copy_functor {
 };
 
 struct CopyStencil : regression_fixture<0> {
-    arg<0, storage_type> p_in;
-    arg<1, storage_type> p_out;
-
     storage_type in = make_storage([](int i, int j, int k) { return i + j + k; });
     storage_type out = make_storage(-1.);
 };
 
 TEST_F(CopyStencil, Test) {
-    auto comp = make_computation(p_in = in,
-        p_out = out,
-        make_multistage(enumtype::execute<enumtype::parallel>(), make_stage<copy_functor>(p_in, p_out)));
+    auto comp = make_computation(p_0 = in,
+        p_1 = out,
+        make_multistage(enumtype::execute<enumtype::parallel>(), make_stage<copy_functor>(p_0, p_1)));
 
     comp.run();
     verify(in, out);
@@ -72,8 +69,9 @@ TEST_F(CopyStencil, Test) {
 }
 
 TEST_F(CopyStencil, WithExtents) {
-    make_computation(make_multistage(enumtype::execute<enumtype::parallel, 20>(),
-                         make_stage_with_extent<copy_functor, extent<>>(p_in, p_out)))
-        .run(p_in = in, p_out = out);
+    run_computation(make_multistage(enumtype::execute<enumtype::parallel, 20>(),
+                        make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)),
+        p_0 = in,
+        p_1 = out);
     verify(in, out);
 }

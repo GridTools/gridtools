@@ -35,101 +35,134 @@
 */
 #pragma once
 
+#include <array>
+#include <cassert>
 #include <cmath>
 #include <functional>
+#include <map>
+#include <utility>
+#include <vector>
 
-#include "vertical_advection_defs.hpp"
 #include <gridtools/common/defs.hpp>
 
+#include "vertical_advection_defs.hpp"
+
 namespace gridtools {
-
     class vertical_advection_repository {
-        using fun_t = std::function<double(int_t, int_t, int_t)>;
 
+        using column_t = std::vector<double>;
+
+        template <class Fun>
+        struct cached_f {
+            Fun m_fun;
+            mutable std::map<std::array<int_t, 2>, column_t> m_cach;
+
+            double operator()(int_t i, int_t j, int_t k) const {
+                auto it = m_cach.find({i, j});
+                if (it == m_cach.end())
+                    it = m_cach.insert(it, {{i, j}, m_fun(i, j)});
+                assert(it != m_cach.end());
+                return it->second[k];
+            }
+        };
+        template <class Fun>
+        static cached_f<Fun> cache(Fun &&fun) {
+            return {std::forward<Fun>(fun)};
+        }
+
+        const double PI = std::atan(1) * 4;
         uint_t idim_, jdim_, kdim_;
 
-        double PI = 4 * std::atan(1);
-
-        double utens_stage_ref(int_t i, int_t j, int_t k) {
-            double x = 1. * i / idim_;
-            double y = 1. * j / jdim_;
-            return 7 + 1.25 * (2. + cos(PI * (x + y)) + sin(2 * PI * (x + y))) + .1 * k;
-        };
-
-        double ccol(int_t i, int_t j, int_t k) {
-            assert(k < kdim_ - 1);
-            if (k == 0) {
-                double tmp = .25 * BET_P * (wcon(i + 1, j, 1) + wcon(i, j, 1));
-                return tmp / (dtr_stage - tmp);
-            }
-            double gav = -0.25 * (wcon(i + 1, j, k) + wcon(i, j, k));
-            double gcv = 0.25 * (wcon(i + 1, j, k + 1) + wcon(i, j, k + 1));
-            double tmp = gcv * BET_P;
-            return tmp / (dtr_stage - tmp - gav * BET_P * (1 + ccol(i, j, k - 1)));
-        };
-
-        double dcol(int_t i, int_t j, int_t k) {
-            if (k == 0) {
-                double gcv = .25 * (wcon(i + 1, j, 1) + wcon(i, j, 1));
-                double correctionTerm = -gcv * BET_M * (u_stage(i, j, 1) - u_stage(i, j, 0));
-                return (dtr_stage * u_pos(i, j, 0) + utens(i, j, 0) + utens_stage_ref(i, j, 0) + correctionTerm) /
-                       (dtr_stage - gcv * BET_P);
-            }
-            double gav = -0.25 * (wcon(i + 1, j, k) + wcon(i, j, k));
-            double as = gav * BET_M;
-            double acol = gav * BET_P;
-            double bcol;
-            double correctionTerm;
-            if (k == kdim_ - 1) {
-                bcol = dtr_stage - acol;
-                correctionTerm = -as * (u_stage(i, j, k - 1) - u_stage(i, j, k));
-            } else {
-                double gcv = 0.25 * (wcon(i + 1, j, k + 1) + wcon(i, j, k + 1));
-                bcol = dtr_stage - acol - gcv * BET_P;
-                correctionTerm = -as * (u_stage(i, j, k - 1) - u_stage(i, j, k)) -
-                                 gcv * BET_M * (u_stage(i, j, k + 1) - u_stage(i, j, k));
-            }
-            return (dtr_stage * u_pos(i, j, k) + utens(i, j, k) + utens_stage_ref(i, j, k) + correctionTerm -
-                       dcol(i, j, k - 1) * acol) /
-                   (bcol - ccol(i, j, k - 1) * acol);
-        }
-
-        double datacol(int_t i, int_t j, int_t k) {
-            return k == kdim_ - 1 ? dcol(i, j, k) : dcol(i, j, k) - ccol(i, j, k) * datacol(i, j, k + 1);
-        }
+        double x(int_t i) const { return 1. * i / idim_; }
+        double y(int_t j) const { return 1. * j / jdim_; }
+        double z(int_t k) const { return 1. * k / kdim_; }
 
       public:
+        using fun_t = std::function<double(int_t, int_t, int_t)>;
+
         double dtr_stage = 3. / 20.;
 
-        fun_t u_stage = [this](int_t i, int_t j, int_t) {
-            double x = 1. * i / idim_;
-            double y = 1. * j / jdim_;
+        const fun_t u_stage = [this](int_t i, int_t j, int_t) {
+            double t = x(i) + y(j);
             // u values between 5 and 9
-            return 7 + std::cos(PI * (x + y)) + std::sin(2 * PI * (x + y));
+            return 7 + std::cos(PI * t) + std::sin(2 * PI * t);
         };
 
-        fun_t u_pos = u_stage;
-
-        fun_t wcon = [this](int_t i, int_t j, int_t k) {
-            double x = 1. * i / idim_;
-            double y = 1. * j / jdim_;
-            double z = 1. * k / kdim_;
-
+        const fun_t wcon = [this](int_t i, int_t j, int_t k) {
             // wcon values between -2e-4 and 2e-4 (with zero at k=0)
-            return 2e-4 * (-1.07 + (2 + cos(PI * (x + z)) + cos(PI * y)) / 2);
+            return 2e-4 * (-1.07 + (2 + cos(PI * (x(i) + z(k))) + cos(PI * y(j))) / 2);
         };
 
-        fun_t utens = [this](int_t i, int_t j, int_t k) {
-            double x = 1. * i / idim_;
-            double y = 1. * j / jdim_;
-            double z = 1. * k / kdim_;
-
+        const fun_t utens = [this](int_t i, int_t j, int_t k) {
             // utens values between -3e-6 and 3e-6 (with zero at k=0)
-            return 3e-6 * (-1.0235 + (2. + cos(PI * (x + y)) + cos(PI * y * z)) / 2);
+            return 3e-6 * (-1.0235 + (2. + cos(PI * (x(i) + y(j))) + cos(PI * y(j) * z(k))) / 2);
         };
 
-        fun_t utens_stage = [this](
-                                int_t i, int_t j, int_t k) { return dtr_stage * (datacol(i, j, k) - u_pos(i, j, k)); };
+        const fun_t u_pos = u_stage;
+
+        const fun_t utens_stage_in = [this](int_t i, int_t j, int_t k) {
+            double t = x(i) + y(j);
+            return 7 + 1.25 * (2. + cos(PI * t) + sin(2 * PI * t)) + .1 * k;
+        };
+
+        const fun_t utens_stage_out = cache([this](int_t i, int_t j) {
+            constexpr int_t IShift = 1;
+            constexpr int_t JShift = 0;
+            column_t c(kdim_), d(kdim_), res(kdim_);
+            // forward
+            // k minimum
+            int k = 0;
+            {
+                double gcv = .25 * (wcon(i + IShift, j + JShift, k + 1) + wcon(i, j, k + 1));
+                double cs = gcv * BET_M;
+                c[k] = gcv * BET_P;
+                double b = dtr_stage - c[k];
+                // update the d column
+                double correctionTerm = -cs * (u_stage(i, j, k + 1) - u_stage(i, j, k));
+                d[k] = dtr_stage * u_pos(i, j, k) + utens(i, j, k) + utens_stage_in(i, j, k) + correctionTerm;
+                c[k] /= b;
+                d[k] /= b;
+            }
+            // kbody
+            for (++k; k < kdim_ - 1; ++k) {
+                double gav = -.25 * (wcon(i + IShift, j + JShift, k) + wcon(i, j, k));
+                double gcv = .25 * (wcon(i + IShift, j + JShift, k + 1) + wcon(i, j, k + 1));
+                double as = gav * BET_M;
+                double cs = gcv * BET_M;
+                double a = gav * BET_P;
+                c[k] = gcv * BET_P;
+                double bcol = dtr_stage - a - c[k];
+                double correctionTerm =
+                    -as * (u_stage(i, j, k - 1) - u_stage(i, j, k)) - cs * (u_stage(i, j, k + 1) - u_stage(i, j, k));
+                d[k] = dtr_stage * u_pos(i, j, k) + utens(i, j, k) + utens_stage_in(i, j, k) + correctionTerm;
+                double divided = 1 / (bcol - (c[k - 1] * a));
+                c[k] *= divided;
+                d[k] = (d[k] - d[k - 1] * a) * divided;
+            }
+            // k maximum
+            {
+                double gav = -.25 * (wcon(i + IShift, j + JShift, k) + wcon(i, j, k));
+                double as = gav * BET_M;
+                double a = gav * BET_P;
+                double b = dtr_stage - a;
+                // update the d column
+                double correctionTerm = -as * (u_stage(i, j, k - 1) - u_stage(i, j, k));
+                d[k] = dtr_stage * u_pos(i, j, k) + utens(i, j, k) + utens_stage_in(i, j, k) + correctionTerm;
+                double divided = 1 / (b - (c[k - 1] * a));
+                d[k] = (d[k] - d[k - 1] * a) * divided;
+            }
+            // backward
+            double data = d[k];
+            c[k] = data;
+            res[k] = dtr_stage * (data - u_pos(i, j, k));
+            // kbody
+            for (--k; k >= 0; --k) {
+                data = d[k] - c[k] * data;
+                c[k] = data;
+                res[k] = dtr_stage * (data - u_pos(i, j, k));
+            }
+            return res;
+        });
 
         vertical_advection_repository(uint_t idim, uint_t jdim, uint_t kdim) : idim_(idim), jdim_(jdim), kdim_(kdim) {}
     };

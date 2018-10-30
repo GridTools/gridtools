@@ -91,41 +91,21 @@ TEST_F(ExpandableParameters, Test) {
     std::vector<storage_type> in = {
         make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    arg<0, storage_type> p_0_out;
-    arg<1, storage_type> p_1_out;
-    arg<2, storage_type> p_2_out;
-    arg<3, storage_type> p_3_out;
-    arg<4, storage_type> p_4_out;
-
-    arg<5, storage_type> p_0_in;
-    arg<6, storage_type> p_1_in;
-    arg<7, storage_type> p_2_in;
-    arg<8, storage_type> p_3_in;
-    arg<9, storage_type> p_4_in;
-
-    tmp_arg<10, storage_type> p_0_tmp;
-    tmp_arg<11, storage_type> p_1_tmp;
-    tmp_arg<12, storage_type> p_2_tmp;
-    tmp_arg<13, storage_type> p_3_tmp;
-    tmp_arg<14, storage_type> p_4_tmp;
-
-    make_computation(p_0_out = out[0],
-        p_1_out = out[1],
-        p_2_out = out[2],
-        p_3_out = out[3],
-        p_4_out = out[4],
-        p_0_in = in[0],
-        p_1_in = in[1],
-        p_2_in = in[2],
-        p_3_in = in[3],
-        p_4_in = in[4],
+    run_computation(p_0 = out[0],
+        p_1 = out[1],
+        p_2 = out[2],
+        p_3 = out[3],
+        p_4 = out[4],
+        p_5 = in[0],
+        p_6 = in[1],
+        p_7 = in[2],
+        p_8 = in[3],
+        p_9 = in[4],
         make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_0_tmp, p_1_tmp, p_2_tmp, p_3_tmp, p_4_tmp)),
-            make_stage<functor_single_kernel>(
-                p_0_tmp, p_1_tmp, p_2_tmp, p_3_tmp, p_4_tmp, p_0_in, p_1_in, p_2_in, p_3_in, p_4_in),
-            make_stage<functor_single_kernel>(
-                p_0_out, p_1_out, p_2_out, p_3_out, p_4_out, p_0_tmp, p_1_tmp, p_2_tmp, p_3_tmp, p_4_tmp)))
-        .run();
+            define_caches(cache<IJ, cache_io_policy::local>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
+            make_stage<functor_single_kernel>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4, p_5, p_6, p_7, p_8, p_9),
+            make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)));
+
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);
 }

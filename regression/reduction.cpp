@@ -53,31 +53,12 @@ struct sum_red {
     }
 };
 
-// These are the stencil operators that compose the multistage stencil in this test
-struct desf {
-    using in = in_accessor<0>;
-    using out = inout_accessor<1>;
-    using arg_list = boost::mpl::vector<in, out>;
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
-        eval(out()) = eval(in());
-    }
-};
-
 struct Reductions : regression_fixture<> {
-    arg<0, storage_type> p_in;
-    arg<1, storage_type> p_out;
-
     static float_type data(int_t i, int_t j, int_t k) { return 1. / (1 + i + j + k); }
 
     template <class BinOp>
     float_type actual(BinOp, float_type init) {
-        return make_computation(p_in = make_storage(data),
-            p_out = make_storage(0.),
-            make_multistage(enumtype::execute<enumtype::forward>(), make_stage<desf>(p_in, p_out)),
-            make_reduction<sum_red, BinOp>(init, p_out))
-            .run();
+        return run_computation(p_0 = make_storage(data), make_reduction<sum_red, BinOp>(init, p_0));
     }
 
     template <class BinOp>
