@@ -5,7 +5,7 @@ if (ENABLE_X86)
     target_compile_options(implementation_wrapper PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
 
     add_executable(driver driver.c)
-    target_link_libraries(driver implementation_c)
+    target_link_libraries(driver implementation_c ${exe_LIBS})
 
     target_compile_options(driver PRIVATE ${GT_C_BUILDING_FLAGS})
 
