@@ -11,17 +11,16 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googlemock/inc
 
 # ===============
 add_library(gtest ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
-target_compile_options( gtest PUBLIC ${GT_CXX_FLAGS} )
+target_compile_options( gtest PRIVATE ${GT_CXX_FLAGS} -std=c++11)
 add_library(gtest_main ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
-target_compile_options( gtest_main PUBLIC ${GT_CXX_FLAGS} )
+target_compile_options( gtest_main PRIVATE ${GT_CXX_FLAGS} -std=c++11 )
 if( NOT GCL_ONLY )
     if( USE_MPI )
         if ( ENABLE_CUDA )
             include_directories ( "${CUDA_INCLUDE_DIRS}" )
         endif()
         add_library( mpi_gtest_main include/gridtools/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
-        target_compile_options( mpi_gtest_main PUBLIC ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
-        #target_link_libraries(mpi_gtest_main ${exe_LIBS} )
+        target_compile_options( mpi_gtest_main PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} -std=c++11)
     endif()
 endif()
 set( exe_LIBS ${exe_LIBS} gtest)
@@ -48,7 +47,7 @@ function(fetch_x86_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
+            target_link_libraries(${unit_test} ${exe_LIBS} ${OMP_LIBS} gtest_main )
             target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
             target_include_directories(${unit_test}
                  PRIVATE
@@ -79,7 +78,7 @@ function(fetch_mc_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
+            target_link_libraries(${unit_test} ${exe_LIBS} ${OMP_LIBS} gtest_main )
             target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE})
             target_include_directories(${unit_test}
                  PRIVATE
@@ -112,7 +111,7 @@ function(fetch_gpu_tests subfolder)
             set(CUDA_SEPARABLE_COMPILATION OFF)
             add_executable( ${unit_test} ${test_source} ${test_headers} )
             target_compile_options (${unit_test} PUBLIC ${GT_CXX_FLAGS} ${GT_CUDA_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE})
-            target_link_libraries(${unit_test}  ${exe_LIBS} gtest_main )
+            target_link_libraries(${unit_test}  ${exe_LIBS} ${OMP_LIBS} gtest_main )
             target_include_directories(${unit_test}
                  PRIVATE
                     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -137,7 +136,7 @@ function(add_custom_x86_test)
         # create the test
         add_executable (${name} ${HT_SOURCES})
         target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE} ${HT_ADDITIONAL_FLAGS})
-        target_link_libraries(${name} ${exe_LIBS} gtest_main)
+        target_link_libraries(${name} ${exe_LIBS} ${OMP_LIBS} gtest_main)
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -161,7 +160,7 @@ function(add_custom_mc_test)
         # create the test
         add_executable (${name} ${___SOURCES})
         target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
-        target_link_libraries(${name} ${exe_LIBS} gtest_main)
+        target_link_libraries(${name} ${exe_LIBS} ${OMP_LIBS} gtest_main)
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -187,7 +186,7 @@ function(add_custom_gpu_test)
         add_executable (${name} ${___SOURCES})
         target_compile_options (${name} PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -D${CUDA_BACKEND_DEFINE} ${___ADDITIONAL_FLAGS})
 
-        target_link_libraries(${name} ${exe_LIBS} gtest_main)
+        target_link_libraries(${name} ${exe_LIBS} ${OMP_LIBS} gtest_main)
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -210,7 +209,7 @@ function(add_custom_mpi_x86_test)
         # create the test
         add_executable (${name} ${___SOURCES})
         target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${X86_BACKEND_DEFINE} )
-        target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
+        target_link_libraries(${name} mpi_gtest_main ${exe_LIBS} ${OMP_LIBS} )
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
@@ -231,7 +230,7 @@ function(add_custom_mpi_mc_test)
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
         # create the test
         add_executable (${name} ${___SOURCES})
-        target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
+        target_link_libraries(${name} mpi_gtest_main ${exe_LIBS} ${OMP_LIBS} )
         target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${MC_BACKEND_DEFINE})
         target_include_directories(${name}
              PRIVATE
@@ -257,7 +256,7 @@ function(add_custom_mpi_gpu_test)
         add_executable (${name} ${___SOURCES} )
         target_compile_options (${name} PUBLIC ${GPU_SPECIFIC_FLAGS} ${GT_CXX_FLAGS} ${GT_CUDA_FLAGS} ${___ADDITIONAL_FLAGS} -D${CUDA_BACKEND_DEFINE})
 
-        target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
+        target_link_libraries(${name} ${exe_LIBS} ${OMP_LIBS} mpi_gtest_main)
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>

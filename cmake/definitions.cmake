@@ -113,6 +113,11 @@ if( ENABLE_CUDA )
     set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored)
   endif()
 
+  if (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang")
+      set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -ccbin=${CMAKE_CXX_COMPILER})
+      message("WAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCK")
+  endif()
+
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
     set(GT_CUDA_OPTIONAL_FLAGS ${GT_CUDA_OPTIONAL_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS})
   endif()
@@ -141,9 +146,9 @@ endif( ENABLE_MC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
-    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -ftemplate-depth-1024 )
+    set( GT_CXX_HOST_ONLY_FLAGS ${GT_CXX_HOST_ONLY_FLAGS}  -ftemplate-depth-1024 )
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -Wno-pass-failed )
+    set( GT_CXX_HOST_ONLY_FLAGS ${GT_CXX_HOST_ONLY_FLAGS}  -Wno-pass-failed )
 endif()
 
 ## Intel compiler ##
@@ -176,8 +181,17 @@ if(NOT ENABLE_CUDA)
   ## openmp ##
   if(OPENMP_FOUND)
       set(  GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  ${OpenMP_CXX_FLAGS} )
-      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
-      set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
+      #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
+      if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
+          foreach( tmp ${OpenMP_CXX_LIBRARIES})
+              string(STRIP ${tmp} tmp)
+              set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${tmp}")
+              set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${tmp}")
+          endforeach()
+          set(OMP_LIBS ${OpenMP_CXX_LIBRARIES})
+      else()
+          set( CMAKE_Fortran_FLAGS ${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS} )
+      endif()
   endif()
 endif()
 
