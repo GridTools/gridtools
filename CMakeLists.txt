@@ -98,13 +98,9 @@ install(TARGETS
         gcl
         gtest
     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
-# We need to install the whole directory because filenames may be upper or lower case (cray compiler).
-# It exists a flag to generate lower-case file names with cray, but it will segfault when using them.
-install(DIRECTORY
-    "${PROJECT_BINARY_DIR}/mod/"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
 install(FILES
     "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake"
+    "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
     DESTINATION "cmake")
 install(FILES
     "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"

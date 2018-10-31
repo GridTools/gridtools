@@ -71,7 +71,12 @@ macro(add_bindings_library target_name)
         endif()
     
         add_custom_target(${target_name}_declarations
-            COMMAND ${CMAKE_COMMAND} -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename} -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename} -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME} -P ${CMAKE_SOURCE_DIR}/cmake/gt_bindings_generate.cmake #TODO needs to be path with is install compatible
+            COMMAND ${CMAKE_COMMAND}
+                -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator
+                -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename}
+                -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename}
+                -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME}
+                -P ${bindings_generator_path_to_src}/../cmake/gt_bindings_generate.cmake #TODO FIXME
             BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
             DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
     else()
