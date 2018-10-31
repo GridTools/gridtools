@@ -61,8 +61,8 @@ struct functor {
         constexpr auto halo_size = AlignedCopyStencil::halo_size;
         if (eval.i() == halo_size && eval.j() == halo_size)
             assert((uintptr_t)ptr % aligment == 0);
-    }
 #endif
+    }
 };
 
 TEST_F(AlignedCopyStencil, Test) {
