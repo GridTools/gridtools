@@ -28,7 +28,7 @@ export MPI_CUDA_JOB_ENV="${JOB_ENV_COMMON}; export G2G=2; export MV2_USE_GPUDIRE
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
-export FC=`which mpif90` -Wno-missing-include-dirs
+export FC="`which mpif90` -Wno-missing-include-dirs"
 export MAKE_THREADS=12
 export SRUN_BUILD_COMMAND="srun -p pp-short -c 12 --time=00:30:00"
 
