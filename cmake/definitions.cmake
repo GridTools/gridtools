@@ -32,9 +32,13 @@ set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_PP_VARIADICS=1  )
 set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE} )
 set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE} )
 
+if ( (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "Intel") )
+   set(WERROR OFF)
+endif()
+
 ## enable -Werror
 if( WERROR )
-  set( CMAKE_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -Werror )
+    set( CMAKE_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -Werror )
 endif()
 
 ## structured grids ##
@@ -117,7 +121,6 @@ if( ENABLE_CUDA )
 
   if (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang")
       set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -ccbin=${CMAKE_CXX_COMPILER})
-      message("WAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCKWAHT THE FUCK")
   endif()
 
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
@@ -183,7 +186,6 @@ if(NOT ENABLE_CUDA)
   ## openmp ##
   if(OPENMP_FOUND)
       set(  GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  ${OpenMP_CXX_FLAGS} )
-      #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
       if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
           foreach( tmp ${OpenMP_CXX_LIBRARIES})
               string(STRIP ${tmp} tmp)
@@ -198,6 +200,7 @@ if(NOT ENABLE_CUDA)
               string(STRIP ${tmp} tmp)
               set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${tmp}")
           endforeach()
+          set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
       endif()
   endif()
 endif()

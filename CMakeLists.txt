@@ -11,9 +11,9 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include (flags)
 
 if (ENABLE_CUDA)
-    enable_language (CXX Fortran CUDA)
+    enable_language (CXX Fortran CUDA C)
 else()
-    enable_language (CXX Fortran)
+    enable_language (CXX Fortran C)
 endif()
 
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -101,7 +101,6 @@ if( COMPONENT_C_BINDINGS )
 
     add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
     target_compile_options(c_bindings_generator_main PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
-  #  set_target_properties(c_bindings_generator_main PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     target_link_libraries(c_bindings_generator_main c_bindings_generator)
     generate_install_targets_for(c_bindings_generator_main c_bindings c_bindings_generator)
 
