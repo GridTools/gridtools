@@ -62,13 +62,19 @@ endif()
 fetch_x86_tests(.)
 fetch_gpu_tests(.)
 
+add_library(unittests_c_bindings_handle ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.cpp)
+add_library(unittests_fortran_bindings ${CMAKE_SOURCE_DIR}/src/c_bindings/array_descriptor.f90 ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.f90)
+target_link_libraries(unittests_fortran_bindings unittests_c_bindings_handle)
+
 add_bindings_library(repository SOURCES exported_repository.cpp)
 target_link_libraries(repository gtest)
+target_link_libraries(repository unittests_fortran_bindings)
 
 add_library(repository_fortran_lib test_repository.f90)
 target_compile_options(repository_fortran_lib PRIVATE "-cpp")
-target_include_directories(repository_fortran_lib PRIVATE ${CMAKE_BINARY_DIR})
-target_link_libraries(repository_fortran_lib array_descriptor repository_fortran)
+target_link_libraries(repository_fortran_lib repository_fortran)
+
+# TODO enable MIC (ensure cross-compilation is enabled) and make bindings part of repo with float/double variant)
 
 if (ENABLE_X86)
     target_link_libraries(test_repository_x86 repository_fortran_lib)

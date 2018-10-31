@@ -11,7 +11,10 @@ if (ENABLE_X86)
         target_compile_definitions(implementation_wrapper_double PUBLIC ${X86_BACKEND_DEFINE})
     endif()
 
+    # the convention is that the user has to compile handle and array_descriptor
     add_library(c_bindings_handle ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.cpp)
+    add_library(fortran_bindings ${CMAKE_SOURCE_DIR}/src/c_bindings/array_descriptor.f90 ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.f90)
+    target_link_libraries(fortran_bindings c_bindings_handle)
 
     add_executable(driver driver.c)
     target_link_libraries(driver implementation_c)
@@ -19,8 +22,6 @@ if (ENABLE_X86)
 
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 
-    add_library(fortran_bindings ${CMAKE_SOURCE_DIR}/src/c_bindings/array_descriptor.f90 ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.f90)
-    target_link_libraries(fortran_bindings c_bindings_handle)
 
     add_executable(fdriver fdriver.f90)
     if(SINGLE_PRECISION)

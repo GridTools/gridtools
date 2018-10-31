@@ -51,53 +51,39 @@ macro(add_bindings_library target_name)
     add_library(${target_name} ${ARG_SOURCES})
     target_link_libraries(${target_name} ${binding_libs} c_bindings_generator)
 
-    # generator
-    add_executable(${target_name}_decl_generator
-        ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
-    target_link_libraries(${target_name}_decl_generator c_bindings_generator)
-    set_target_properties(${target_name}_decl_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-
-    if (${APPLE})
-        target_link_libraries(${target_name}_decl_generator
-            -Wl,-force_load ${target_name})
-    else()
-        target_link_libraries(${target_name}_decl_generator
-            -Xlinker --whole-archive ${target_name}
-            -Xlinker --no-whole-archive)
-    endif()
-    
     set(bindings_c_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.h)
     set(bindings_fortran_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90)
-    
-    # if generated files already exist: check if they changed
-    # rename the files on cmake configure time
-#    if(EXISTS ${bindings_c_decl_filename})
-#        file(RENAME ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig)
-#        add_custom_target(${target_name}_backup_file COMMAND ${CMAKE_COMMAND} -E compare ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig || touch ${bindings_c_decl_filename}_changed)
-#    endif()
-#    if(EXISTS ${bindings_fortran_decl_filename})
-#        file(RENAME ${bindings_fortran_decl_filename} ${bindings_fortran_decl_filename}.orig)
-#    endif()
-    
-#    add_custom_command(OUTPUT ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
-#        COMMAND ${target_name}_decl_generator ${bindings_c_decl_filename} ${bindings_fortran_decl_filename} ${ARG_FORTRAN_MODULE_NAME}
-#        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
 
-#    add_custom_command(OUTPUT ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
-#        COMMAND ${CMAKE_COMMAND} -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename} -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename} -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME} -P ${CMAKE_SOURCE_DIR}/cmake/gt_bindings_generate.cmake #TODO needs to be path with is install compatible
-##        COMMAND ${CMAKE_COMMAND} -E remove ${bindings_c_decl_filename}_changed
-##        COMMAND ${CMAKE_COMMAND} -E compare_files ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig || touch ${bindings_c_decl_filename}_changed
-#        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
-#        
-#    add_custom_target(${target_name}_declarations
-#        DEPENDS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename})
-
-    add_custom_target(${target_name}_declarations
-        COMMAND ${CMAKE_COMMAND} -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename} -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename} -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME} -P ${CMAKE_SOURCE_DIR}/cmake/gt_bindings_generate.cmake #TODO needs to be path with is install compatible
-#        COMMAND ${CMAKE_COMMAND} -E remove ${bindings_c_decl_filename}_changed
-#        COMMAND ${CMAKE_COMMAND} -E compare_files ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig || touch ${bindings_c_decl_filename}_changed
-        BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
-        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
+    if(NOT GT_BINDINGS_CROSS_COMPILATION)
+        # generator
+        add_executable(${target_name}_decl_generator
+            ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
+        target_link_libraries(${target_name}_decl_generator c_bindings_generator)
+        set_target_properties(${target_name}_decl_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    
+        if (${APPLE})
+            target_link_libraries(${target_name}_decl_generator
+                -Wl,-force_load ${target_name})
+        else()
+            target_link_libraries(${target_name}_decl_generator
+                -Xlinker --whole-archive ${target_name}
+                -Xlinker --no-whole-archive)
+        endif()
+    
+        add_custom_target(${target_name}_declarations
+            COMMAND ${CMAKE_COMMAND} -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename} -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename} -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME} -P ${CMAKE_SOURCE_DIR}/cmake/gt_bindings_generate.cmake #TODO needs to be path with is install compatible
+            BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
+            DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
+    else()
+        if(EXISTS ${bindings_c_decl_filename} AND (EXISTS ${bindings_fortran_decl_filename}))
+            add_custom_target(${target_name}_declarations) # noop, the dependencies are satisfied if the files exist
+        else()
+            message(FATAL_ERROR "Cross-compilation for bindings is enabled: no bindings will be generated, but "
+                "${bindings_c_decl_filename} and/or "
+                "${bindings_fortran_decl_filename} "
+                "are missing. Generate the bindings and consider making them part of your repository.") 
+        endif()
+    endif()
 
     # bindings c library
     add_library(${target_name}_c INTERFACE)
