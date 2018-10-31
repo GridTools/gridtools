@@ -55,12 +55,14 @@ struct functor {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
+#ifndef NDEBUG
         auto *ptr = &eval(acc{});
         constexpr auto aligment = sizeof(decltype(*ptr)) * AlignedCopyStencil::storage_info_t::alignment_t::value;
         constexpr auto halo_size = AlignedCopyStencil::halo_size;
         if (eval.i() == halo_size && eval.j() == halo_size)
             assert((uintptr_t)ptr % aligment == 0);
     }
+#endif
 };
 
 TEST_F(AlignedCopyStencil, Test) {
