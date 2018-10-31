@@ -69,12 +69,35 @@ macro(add_bindings_library target_name)
     set(bindings_c_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.h)
     set(bindings_fortran_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90)
     
-    add_custom_command(OUTPUT ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
-        COMMAND ${target_name}_decl_generator ${bindings_c_decl_filename} ${bindings_fortran_decl_filename} ${ARG_FORTRAN_MODULE_NAME}
-        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
+    # if generated files already exist: check if they changed
+    # rename the files on cmake configure time
+#    if(EXISTS ${bindings_c_decl_filename})
+#        file(RENAME ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig)
+#        add_custom_target(${target_name}_backup_file COMMAND ${CMAKE_COMMAND} -E compare ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig || touch ${bindings_c_decl_filename}_changed)
+#    endif()
+#    if(EXISTS ${bindings_fortran_decl_filename})
+#        file(RENAME ${bindings_fortran_decl_filename} ${bindings_fortran_decl_filename}.orig)
+#    endif()
+    
+#    add_custom_command(OUTPUT ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
+#        COMMAND ${target_name}_decl_generator ${bindings_c_decl_filename} ${bindings_fortran_decl_filename} ${ARG_FORTRAN_MODULE_NAME}
+#        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
+
+#    add_custom_command(OUTPUT ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
+#        COMMAND ${CMAKE_COMMAND} -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename} -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename} -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME} -P ${CMAKE_SOURCE_DIR}/cmake/gt_bindings_generate.cmake #TODO needs to be path with is install compatible
+##        COMMAND ${CMAKE_COMMAND} -E remove ${bindings_c_decl_filename}_changed
+##        COMMAND ${CMAKE_COMMAND} -E compare_files ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig || touch ${bindings_c_decl_filename}_changed
+#        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
+#        
+#    add_custom_target(${target_name}_declarations
+#        DEPENDS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename})
 
     add_custom_target(${target_name}_declarations
-        DEPENDS ${CMAKE_CURRENT_LIST_DIR}/${target_name}.h ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90)
+        COMMAND ${CMAKE_COMMAND} -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename} -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename} -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME} -P ${CMAKE_SOURCE_DIR}/cmake/gt_bindings_generate.cmake #TODO needs to be path with is install compatible
+#        COMMAND ${CMAKE_COMMAND} -E remove ${bindings_c_decl_filename}_changed
+#        COMMAND ${CMAKE_COMMAND} -E compare_files ${bindings_c_decl_filename} ${bindings_c_decl_filename}.orig || touch ${bindings_c_decl_filename}_changed
+        BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
+        DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
 
     # bindings c library
     add_library(${target_name}_c INTERFACE)
