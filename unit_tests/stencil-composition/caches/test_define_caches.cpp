@@ -69,8 +69,7 @@ TEST(define_caches, test_sequence_caches) {
     static constexpr int_t level_offset_limit = 1;
     typedef gridtools::interval<level<0, -1, level_offset_limit>, level<1, -1, level_offset_limit>> interval_;
 
-    typedef decltype(
-        gridtools::cache<K, cache_io_policy::flush, interval_>(arg0_t(), arg1_t())) caches_ret_sequence_4_t;
+    typedef decltype(gridtools::cache<K, cache_io_policy::flush>(arg0_t(), arg1_t())) caches_ret_sequence_4_t;
     typedef decltype(gridtools::cache<IJ, cache_io_policy::fill>(arg0_t(), arg1_t(), arg2_t())) caches_ret_sequence_3_t;
     typedef decltype(gridtools::cache<IJK, cache_io_policy::fill>(arg0_t(), arg1_t())) caches_ret_sequence_2_t;
     typedef decltype(gridtools::cache<IJ, cache_io_policy::fill>(arg0_t())) caches_ret_sequence_1_t;
