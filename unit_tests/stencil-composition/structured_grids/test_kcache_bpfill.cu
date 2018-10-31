@@ -154,7 +154,7 @@ TEST_F(kcachef, bpfilll_forward) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_in())),
+            define_caches(cache<K, cache_io_policy::bpfill>(p_in())),
             make_stage<shift_acc_forward_bpfilll>(p_in(), p_out())));
 
     kcache_stencil.run();
@@ -192,7 +192,7 @@ TEST_F(kcachef, bpfilll_backward) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_in())),
+            define_caches(cache<K, cache_io_policy::bpfill>(p_in())),
             make_stage<shift_acc_backward_bpfilll>(p_in(), p_out())));
 
     kcache_stencil.run();
@@ -235,7 +235,7 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
         p_buff() = buff,
         p_out() = m_out,
         make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_buff())),
+            define_caches(cache<K, cache_io_policy::bpfill>(p_buff())),
             make_stage<self_update_forward_bpfilll>(p_buff(), p_out())));
 
     kcache_stencil.run();
@@ -279,7 +279,7 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
         p_buff() = buff,
         p_out() = m_out,
         make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, kfull>(p_buff())),
+            define_caches(cache<K, cache_io_policy::bpfill>(p_buff())),
             make_stage<self_update_backward_bpfilll>(p_buff(), p_out())));
 
     kcache_stencil.run();

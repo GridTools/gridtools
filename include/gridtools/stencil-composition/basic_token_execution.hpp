@@ -99,6 +99,9 @@ namespace gridtools {
                     RunEsfFunctor::template exec<Stages>(m_domain);
 
                     if (in_domain) {
+                        if (blockIdx.x == 0 && blockIdx.y == 0 && threadIdx.x == 0 && threadIdx.y == 0 &&
+                            blockIdx.z == 0 && threadIdx.z == 0)
+                            printf("k_loop: cur = %i, last = %i\n", cur, last);
                         m_domain.template flush_caches<IterationPolicy>(is_last && cur == last);
                         m_domain.template slide_caches<IterationPolicy>();
                     }

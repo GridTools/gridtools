@@ -224,6 +224,13 @@ namespace gridtools {
                 constexpr int_t kminus = kcache_storage_t::kminus_t::value;
                 constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
+                if (blockIdx.x == 0 && blockIdx.y == 0 && threadIdx.x == 0 && threadIdx.y == 0 && blockIdx.z == 0 &&
+                    threadIdx.z == 0)
+                    if (boost::mpl::at<KCachesMap, Idx>::type::cache_t::ccacheIOPolicy == cache_io_policy::bpfill)
+                        printf("operator() bpfill %i: %i -> %i\n", Idx::value, kminus, kplus);
+                    else if (boost::mpl::at<KCachesMap, Idx>::type::cache_t::ccacheIOPolicy == cache_io_policy::epflush)
+                        printf("operator() epflush %i: %i -> %i\n", Idx::value, kminus, kplus);
+
                 // sync full cache
                 base::template sync<Idx, kminus, kplus>();
             }
@@ -247,6 +254,13 @@ namespace gridtools {
                 // choose lower and upper cache index for syncing
                 constexpr int_t sync_start = kminus + kminus_offset;
                 constexpr int_t sync_end = kplus + kplus_offset;
+
+                if (blockIdx.x == 0 && blockIdx.y == 0 && threadIdx.x == 0 && threadIdx.y == 0 && blockIdx.z == 0 &&
+                    threadIdx.z == 0)
+                    if (boost::mpl::at<KCachesMap, Idx>::type::cache_t::ccacheIOPolicy == cache_io_policy::fill)
+                        printf("operator() fill %i: %i -> %i\n", Idx::value, kminus, kplus);
+                    else
+                        printf("operator() flush %i: %i -> %i\n", Idx::value, kminus, kplus);
 
                 base::template sync<Idx, sync_start, sync_end>();
             }
