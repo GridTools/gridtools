@@ -31,13 +31,8 @@ option(GT_BINDINGS_CROSS_COMPILATION "If turned on, bindings will not be generat
 
 if(DEFINED GRIDTOOLS_LIBRARIES_DIR)
     set(bindings_generator_path_to_src ${GRIDTOOLS_LIBRARIES_DIR}/../src)
-    set(binding_libs ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_handle.a)
-    set(binding_f90_libs ${GRIDTOOLS_LIBRARIES_DIR}/libc_bindings_handle_fortran.a
-        ${GRIDTOOLS_LIBRARIES_DIR}/libarray_descriptor.a)
 else()
     set(bindings_generator_path_to_src ${CMAKE_SOURCE_DIR}/src)
-    set(binding_libs c_bindings_handle)
-    set(binding_f90_libs c_bindings_handle_fortran array_descriptor)
 endif()
 
 add_library(c_bindings_generator ${bindings_generator_path_to_src}/c_bindings/generator.cpp)
@@ -80,13 +75,10 @@ macro(add_bindings_library target_name)
     add_library(${target_name}_c INTERFACE)
     target_link_libraries(${target_name}_c INTERFACE ${target_name})
     add_dependencies(${target_name}_c ${target_name}_declarations)
-    #target_include_directories(${target_name}_c INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
 
     # bindings Fortran library
     add_library(${target_name}_fortran ${bindings_fortran_decl_filename})
     target_link_libraries(${target_name}_fortran ${target_name} ${binding_f90_libs})
     add_dependencies(${target_name}_fortran ${target_name}_declarations)
-    #target_include_directories(${target_name}_fortran INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
-
 endmacro()
 

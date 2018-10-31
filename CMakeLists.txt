@@ -45,32 +45,6 @@ set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPE
 set(exe_LIBS ${exe_LIBS} gcl)
 
 # ===============
-# compile c_bindings_generator:
-# ===============
-
-add_library(c_bindings_handle src/c_bindings/handle.cpp)
-set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-
-set(exe_LIBS ${exe_LIBS} c_bindings_handle)
-
-set(CMAKE_FORTRAN_MODOUT_FLAG ON)
-set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
-
-add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
-target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
-target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-
-#add_library(c_bindings_generator src/c_bindings/generator.cpp)
-#set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-
-#set(exe_LIBS ${exe_LIBS} c_bindings_generator)
-
-#add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
-#target_link_libraries(c_bindings_generator_main c_bindings_generator)
-
-add_library(array_descriptor src/c_bindings/array_descriptor.f90)
-
-# ===============
 # examples and tests
 # ===============
 if( INSTALL_GT_EXAMPLES )
@@ -125,9 +99,6 @@ install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
 install(TARGETS
         gcl
         gtest
-        c_bindings_handle
-        c_bindings_handle_fortran
-        array_descriptor
     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
 # We need to install the whole directory because filenames may be upper or lower case (cray compiler).
 # It exists a flag to generate lower-case file names with cray, but it will segfault when using them.
@@ -142,7 +113,7 @@ install(FILES
     "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
     "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
     "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
-    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp" #TODO not sure if needed
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp"
     DESTINATION "src/c_bindings")
 
 if ( INSTALL_GT_EXAMPLES )
