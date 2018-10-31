@@ -65,7 +65,9 @@ namespace gridtools {
             comp.run();
             comp.reset_meter();
             for (size_t i = 0; i != s_steps; ++i) {
+#ifndef __CUDACC__
                 flush_cache();
+#endif
                 comp.run();
             }
             std::cout << comp.print_meter() << std::endl;

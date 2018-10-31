@@ -36,6 +36,7 @@
 #include <gridtools/tools/regression_fixture_impl.hpp>
 
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #include <gtest/gtest.h>
@@ -51,16 +52,14 @@ namespace gridtools {
         bool regression_fixture_base::s_needs_verification = true;
 
         void regression_fixture_base::flush_cache() {
-#ifndef __NVCC__
-            static auto constexpr n = 1024 * 1024 * 21 / 2;
+            static int constexpr n = 1024 * 1024 * 21 / 2;
             static double a[n];
             static double b[n];
             static double c[n];
             int i;
 #pragma omp parallel for private(i)
-            for (i = 0; i != n; i++)
+            for (i = 0; i < n; i++)
                 a[i] = b[i] * c[i];
-#endif
         }
 
         void regression_fixture_base::init(int argc, char **argv) {
