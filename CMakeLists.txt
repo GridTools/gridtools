@@ -2,8 +2,6 @@ cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
 enable_language (CXX Fortran)
 
-enable_language (CXX Fortran)
-
 if( GRIDTOOLS_MODULES )
 # To be completed!
 
@@ -29,7 +27,7 @@ endif()
 include (flags)
 include (definitions)
 include (testing)
-#include (gt_bindings) TODO remvoe
+include (gt_bindings)
 
 # ===============
 # library header files

@@ -2,12 +2,13 @@
 #
 # Usage of this module:
 #
-#  add_bindings_library(<library-name> SOURCES <sources>[...] [FORTRAN_OUTPUT_DIR fortran_dir] [C_OUTPUT_DIR c_dir])
+#  add_bindings_library(<library-name> SOURCES <sources>[...] [FORTRAN_OUTPUT_DIR fortran_dir] [C_OUTPUT_DIR c_dir] [FORTRAN_MODULE_NAME name])
 #
 #  Arguments:
 #   SOURCES: sources of the library
 #   FORTRAN_OUTPUT_DIR: destination for generated Fortran files (default: ${CMAKE_CURRENT_LIST_DIR})
 #   C_OUTPUT_DIR: destination for generated C files (default: ${CMAKE_CURRENT_LIST_DIR})
+#   FORTRAN_MODULE_NAME: name for the Fortran module (default: <library-name>)
 #
 # Variables used by this module:
 #
@@ -39,9 +40,13 @@ add_library(c_bindings_generator ${bindings_generator_path_to_src}/c_bindings/ge
 
 macro(add_bindings_library target_name)
     set(options)
-    set(one_value_args FORTRAN_OUTPUT_DIR C_OUTPUT_DIR)
+    set(one_value_args FORTRAN_OUTPUT_DIR C_OUTPUT_DIR FORTRAN_MODULE_NAME) # TODO use OUTPUT_DIR!!!
     set(multi_value_args SOURCES)
     cmake_parse_arguments(ARG "${options}" "${one_value_args};" "${multi_value_args}" ${ARGN})
+
+    if(NOT DEFINED ARG_FORTRAN_MODULE_NAME)
+        set(ARG_FORTRAN_MODULE_NAME ${target_name}) # default value
+    endif()
 
     add_library(${target_name} ${ARG_SOURCES})
     target_link_libraries(${target_name} ${binding_libs} c_bindings_generator)
@@ -65,7 +70,7 @@ macro(add_bindings_library target_name)
     set(bindings_fortran_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90)
     
     add_custom_command(OUTPUT ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
-        COMMAND ${target_name}_decl_generator ${bindings_c_decl_filename} ${bindings_fortran_decl_filename} ${target_name}
+        COMMAND ${target_name}_decl_generator ${bindings_c_decl_filename} ${bindings_fortran_decl_filename} ${ARG_FORTRAN_MODULE_NAME}
         DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
 
     add_custom_target(${target_name}_declarations
