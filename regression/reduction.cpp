@@ -56,13 +56,13 @@ struct sum_red {
 struct Reductions : regression_fixture<> {
     static float_type data(int_t i, int_t j, int_t k) { return 1. / (1 + i + j + k); }
 
-    template <class BinOp>
-    float_type actual(BinOp, float_type init) {
+    template <class BinOp, class T>
+    float_type actual(BinOp, T init) {
         return make_computation(p_0 = make_storage(data), make_reduction<sum_red, BinOp>(init, p_0)).run();
     }
 
-    template <class BinOp>
-    float_type expected(BinOp op, float_type init) {
+    template <class BinOp, class T>
+    float_type expected(BinOp op, T init) {
         for (uint_t i = 0; i < d1(); ++i)
             for (uint_t j = 0; j < d2(); ++j)
                 for (uint_t k = 0; k < d3(); ++k)
@@ -70,13 +70,13 @@ struct Reductions : regression_fixture<> {
         return init;
     }
 
-    template <class BinOp>
-    void verify(BinOp op, float_type init) {
+    template <class BinOp, class T>
+    void verify(BinOp op, T init) {
         EXPECT_FLOAT_EQ(expected(op, init), actual(op, init));
     }
 };
 
 TEST_F(Reductions, Test) {
-    verify(binop::sum{}, 0);
-    verify(binop::prod{}, 1);
+    verify(binop::sum{}, 0.);
+    verify(binop::prod{}, 1.);
 }
