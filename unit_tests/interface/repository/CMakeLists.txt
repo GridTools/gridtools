@@ -62,7 +62,7 @@ endif()
 fetch_x86_tests(.)
 fetch_gpu_tests(.)
 
-add_bindings_library(repository exported_repository.cpp)
+add_bindings_library(repository SOURCES exported_repository.cpp)
 target_link_libraries(repository gtest)
 
 add_library(repository_fortran_lib test_repository.f90)

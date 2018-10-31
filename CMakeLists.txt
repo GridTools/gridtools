@@ -29,7 +29,7 @@ endif()
 include (flags)
 include (definitions)
 include (testing)
-include (bindings)
+#include (gt_bindings) TODO remvoe
 
 # ===============
 # library header files
@@ -60,13 +60,13 @@ add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
 target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
 target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 
-add_library(c_bindings_generator src/c_bindings/generator.cpp)
-set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+#add_library(c_bindings_generator src/c_bindings/generator.cpp)
+#set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
 
-set(exe_LIBS ${exe_LIBS} c_bindings_generator)
+#set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
-add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
-target_link_libraries(c_bindings_generator_main c_bindings_generator)
+#add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
+#target_link_libraries(c_bindings_generator_main c_bindings_generator)
 
 add_library(array_descriptor src/c_bindings/array_descriptor.f90)
 
@@ -125,10 +125,8 @@ install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
 install(TARGETS
         gcl
         gtest
-        c_bindings_generator
         c_bindings_handle
         c_bindings_handle_fortran
-        c_bindings_generator_main
         array_descriptor
     DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
 # We need to install the whole directory because filenames may be upper or lower case (cray compiler).
@@ -137,8 +135,15 @@ install(DIRECTORY
     "${PROJECT_BINARY_DIR}/mod/"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
 install(FILES
-    "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake"
+    DESTINATION "cmake")
+install(FILES
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
+    "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp" #TODO not sure if needed
+    DESTINATION "src/c_bindings")
 
 if ( INSTALL_GT_EXAMPLES )
     install(DIRECTORY

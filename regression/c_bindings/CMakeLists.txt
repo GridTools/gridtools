@@ -1,6 +1,6 @@
 if (ENABLE_X86)
-    add_bindings_library(implementation implementation.cpp)
-    add_bindings_library(implementation_wrapper implementation-wrapper.cpp)
+    add_bindings_library(implementation SOURCES implementation.cpp)
+    add_bindings_library(implementation_wrapper SOURCES implementation-wrapper.cpp)
     target_compile_definitions(implementation PUBLIC ${X86_BACKEND_DEFINE})
     target_compile_definitions(implementation_wrapper PUBLIC ${X86_BACKEND_DEFINE})
 
