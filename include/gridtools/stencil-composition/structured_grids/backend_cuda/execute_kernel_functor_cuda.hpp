@@ -167,10 +167,12 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            // initialize the indices
-            const int_t kblock = execution_type_t::iteration == enumtype::parallel
-                                     ? blockIdx.z * execution_type_t::block_size - grid.k_min()
-                                     : grid.template value_at<from_t>() - grid.k_min();
+            // initialize the indices. Note: We subtract grid.k_min() here as it will be added again in
+            // it_domain.initialize()
+            const int_t kblock =
+                execution_type_t::iteration == enumtype::parallel
+                    ? max(blockIdx.z * execution_type_t::block_size, grid.template value_at<from_t>()) - grid.k_min()
+                    : grid.template value_at<from_t>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
