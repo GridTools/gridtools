@@ -67,6 +67,18 @@ namespace {
             eval(out()) = 2 * eval(in());
         }
     };
+
+    template <typename Axis>
+    struct parallel_functor_on_upper_interval {
+        typedef accessor<0> in;
+        typedef accessor<1, inout> out;
+        typedef boost::mpl::vector<in, out> arg_list;
+
+        template <typename Evaluation>
+        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+            eval(out()) = eval(in());
+        }
+    };
 } // namespace
 
 template <typename Axis>
@@ -169,4 +181,49 @@ TEST(structured_grid, kparallel_with_temporary) { //
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary) {
     run_test_with_temporary<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
+}
+
+TEST(structured_grid, kparallel_with_unused_intervals) {
+    using Axis = gridtools::axis<3>;
+
+    constexpr uint_t d1 = 7;
+    constexpr uint_t d2 = 8;
+    constexpr uint_t d3_1 = 14;
+    constexpr uint_t d3_2 = 16;
+    constexpr uint_t d3_3 = 18;
+
+    using storage_info_t = typename backend_t::storage_traits_t::storage_info_t<1, 3, gridtools::halo<0, 0, 0>>;
+    using storage_t = backend_t::storage_traits_t::data_store_t<double, storage_info_t>;
+
+    storage_info_t storage_info(d1, d2, d3_1 + d3_2 + d3_3);
+
+    storage_t in(storage_info, [](int i, int j, int k) { return (double)(i * 1000 + j * 100 + k); });
+    storage_t out(storage_info, (double)1.5);
+
+    typedef arg<0, storage_t> p_in;
+    typedef arg<1, storage_t> p_out;
+
+    auto grid = gridtools::make_grid(d1, d2, Axis(d3_1, d3_2, d3_3));
+
+    auto comp = gridtools::make_computation<backend_t>(grid,
+        p_in() = in,
+        p_out() = out,
+        gridtools::make_multistage(
+            execute<parallel, 20>(), gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
+
+    comp.run();
+
+    comp.sync_bound_data_stores();
+
+    auto outv = make_host_view(out);
+    auto inv = make_host_view(in);
+    for (int i = 0; i < d1; ++i)
+        for (int j = 0; j < d2; ++j) {
+            for (int k = 0; k < d3_1; ++k)
+                EXPECT_EQ(1.5, outv(i, j, k));
+            for (int k = d3_1; k < d3_1 + d3_2; ++k)
+                EXPECT_EQ(inv(i, j, k), outv(i, j, k));
+            for (int k = d3_1 + d3_2; k < d3_1 + d3_2 + d3_3; ++k)
+                EXPECT_EQ(1.5, outv(i, j, k));
+        }
 }
