@@ -180,7 +180,7 @@ TEST_F(FTESTNAME(x), Test) {
     arg<2> p_in;
     arg<3> p_out;
 
-    auto out = make_storage(0.);
+    auto out = make_storage();
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 

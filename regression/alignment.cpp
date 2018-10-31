@@ -67,7 +67,7 @@ struct functor {
 
 TEST_F(AlignedCopyStencil, Test) {
     make_positional_computation<backend_t>(make_grid(),
-        p_0 = make_storage(0.),
+        p_0 = make_storage(),
         make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p_0)))
         .run();
 }

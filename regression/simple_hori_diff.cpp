@@ -94,7 +94,7 @@ TEST_F(SimpleHorizontalDiffusion, Test) {
     arg<4, j_storage_type> p_crlato;
     arg<5, j_storage_type> p_crlatu;
 
-    auto out = make_storage(0.);
+    auto out = make_storage();
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 

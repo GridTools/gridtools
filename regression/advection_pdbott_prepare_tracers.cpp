@@ -68,7 +68,7 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
     storages_t in, out;
 
     for (size_t i = 0; i < 11; ++i) {
-        out.push_back(make_storage(0.));
+        out.push_back(make_storage());
         in.push_back(make_storage(1. * i));
     }
 

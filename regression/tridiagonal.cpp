@@ -127,7 +127,7 @@ using TridiagonalSolve = regression_fixture<>;
 TEST_F(TridiagonalSolve, Test) {
     d3() = 6;
 
-    auto out = make_storage(0.);
+    auto out = make_storage();
     auto sup = make_storage(1.);
     auto rhs = make_storage([](int_t, int_t, int_t k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; });
 

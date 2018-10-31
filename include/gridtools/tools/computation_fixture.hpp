@@ -122,8 +122,18 @@ namespace gridtools {
             return {{m_d1, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
+        template <class Storage = storage_type>
+        Storage make_storage(double val) const {
+            return {{m_d1, m_d2, m_d3}, (float_type)val};
+        }
+
+        template <class Storage = storage_type>
+        Storage make_storage() const {
+            return {{m_d1, m_d2, m_d3}, 0.};
+        }
+
         template <class... Args>
-        auto make_computation(Args &&... args)
+        auto make_computation(Args &&... args) const
             GT_AUTO_RETURN(::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...));
 
         template <class Expected, class Actual>

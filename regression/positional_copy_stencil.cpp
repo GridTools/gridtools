@@ -55,7 +55,7 @@ struct init_functor {
 using PositionalCopyStencil = regression_fixture<>;
 
 TEST_F(PositionalCopyStencil, Test) {
-    auto out = make_storage(0.);
+    auto out = make_storage();
 
     make_positional_computation<backend_t>(
         make_grid(), p_0 = out, make_multistage(enumtype::execute<enumtype::forward>(), make_stage<init_functor>(p_0)))

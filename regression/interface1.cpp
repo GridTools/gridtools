@@ -112,7 +112,7 @@ TEST_F(HorizontalDiffusion, Test) {
     arg<4> p_in;
     arg<5> p_out;
 
-    auto out = make_storage(0.);
+    auto out = make_storage();
 
     horizontal_diffusion_repository repo(d1(), d2(), d3());
 
