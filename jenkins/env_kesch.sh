@@ -7,7 +7,7 @@ module load cray-libsci
 module load cudatoolkit/8.0.61
 module load mvapich2gdr_gnu/2.2_cuda_8.0
 module load gcc/5.4.0-2.26
-module load /users/jenkins/easybuild/kesch/modules/all/cmake/3.12.0
+module load cmake/3.9.1
 
 export HOST_COMPILER=`which g++`
 export Boost_NO_SYSTEM_PATHS=true
@@ -28,7 +28,7 @@ export MPI_CUDA_JOB_ENV="${JOB_ENV_COMMON}; export G2G=2; export MV2_USE_GPUDIRE
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
-export FC="`which mpif90` -Wno-missing-include-dirs"
+export FC="`which gfortran`
 export MAKE_THREADS=12
 export SRUN_BUILD_COMMAND="srun -p pp-short -c 12 --time=00:30:00"
 
