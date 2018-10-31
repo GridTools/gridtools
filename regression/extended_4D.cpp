@@ -182,7 +182,7 @@ TEST_F(Extended4D, Test) {
                    8;
         return res;
     };
-    auto result = make_storage(0.);
+    auto result = make_storage(float_type{0.});
 
     make_computation(p_phi = backend_t::make_global_parameter(elemental{phi}),
         p_psi = backend_t::make_global_parameter(elemental{psi}),
