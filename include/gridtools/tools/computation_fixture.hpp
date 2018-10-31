@@ -73,7 +73,7 @@ namespace gridtools {
         using arg = gridtools::arg<I, T>;
 
         template <uint_t I, typename T = storage_type>
-        using tmp_arg = tmp_arg<I, T>;
+        using tmp_arg = gridtools::tmp_arg<I, T>;
 
         static constexpr arg<0> p_0 = {};
         static constexpr arg<1> p_1 = {};
