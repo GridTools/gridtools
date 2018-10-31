@@ -10,8 +10,6 @@ set(GT_CUDA_OPTIMIZATION_FLAGS) # Flags used for optimization
 
 set(GT_C_BUILDING_FLAGS)       # Flags for the C components (driver.c)
 
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -Wno-missing-include-dirs")
-
 ## set suppress messages ##
 if(SUPPRESS_MESSAGES)
     set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DSUPPRESS_MESSAGES )
