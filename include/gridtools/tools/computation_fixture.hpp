@@ -97,6 +97,7 @@ namespace gridtools {
         static constexpr tmp_arg<8> p_tmp_8 = {};
         static constexpr tmp_arg<9> p_tmp_9 = {};
 
+        /// Fixture constructor takes the dimensions of the computation
         computation_fixture(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
 
         uint_t d1() const { return m_d1; }
