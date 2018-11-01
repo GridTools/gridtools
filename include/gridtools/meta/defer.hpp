@@ -36,4 +36,17 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+namespace gridtools {
+    namespace meta {
+        /**
+         *  Add laziness to a function
+         */
+        template <template <class...> class F>
+        struct defer {
+            template <class... Args>
+            struct apply {
+                using type = F<Args...>;
+            };
+        };
+    } // namespace meta
+} // namespace gridtools

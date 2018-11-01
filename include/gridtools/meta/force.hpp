@@ -36,4 +36,15 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+namespace gridtools {
+    namespace meta {
+        /**
+         *  Remove laziness from a function
+         */
+        template <template <class...> class F>
+        struct force {
+            template <class... Args>
+            using apply = typename F<Args...>::type;
+        };
+    } // namespace meta
+} // namespace gridtools

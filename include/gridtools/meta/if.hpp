@@ -36,4 +36,21 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include <type_traits>
+
+#include "macros.hpp"
+
+namespace gridtools {
+    namespace meta {
+        GT_META_LAZY_NAMESPASE {
+            /**
+             *  Normalized std::conditional version, which is proper function in the terms of meta library.
+             *
+             *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
+             */
+            template <class Cond, class Lhs, class Rhs>
+            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
+        }
+        GT_META_DELEGATE_TO_LAZY(if_, (class Cond, class Lhs, class Rhs), (Cond, Lhs, Rhs));
+    } // namespace meta
+} // namespace gridtools

@@ -36,4 +36,18 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include <type_traits>
+
+#include "type_traits.hpp"
+
+namespace gridtools {
+    namespace meta {
+        /**
+         *  Check if the class has inner `type`
+         */
+        template <class, class = void>
+        struct has_type : std::false_type {};
+        template <class T>
+        struct has_type<T, void_t<typename T::type>> : std::true_type {};
+    } // namespace meta
+} // namespace gridtools

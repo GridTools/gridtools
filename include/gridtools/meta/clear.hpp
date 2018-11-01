@@ -36,4 +36,18 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include "macros.hpp"
+
+namespace gridtools {
+    namespace meta {
+        GT_META_LAZY_NAMESPASE {
+            template <class>
+            struct clear;
+            template <template <class...> class L, class... Ts>
+            struct clear<L<Ts...>> {
+                using type = L<>;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(clear, class List, List);
+    } // namespace meta
+} // namespace gridtools

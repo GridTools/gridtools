@@ -36,4 +36,37 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include "defs.hpp"
+#include "iseq_to_list.hpp"
+#include "length.hpp"
+#include "macros.hpp"
+#include "utility.hpp"
+
+namespace gridtools {
+    namespace meta {
+        GT_META_LAZY_NAMESPASE {
+            /**
+             *  Make a list of integral constants of indices from 0 to N
+             */
+            template <size_t N>
+            GT_META_DEFINE_ALIAS(make_indices_c, iseq_to_list, make_index_sequence<N>);
+
+            template <class N>
+            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, make_index_sequence<N::value>);
+
+            /**
+             *  Make a list of integral constants of indices from 0 to length< List >
+             */
+            template <class List>
+            GT_META_DEFINE_ALIAS(make_indices_for, iseq_to_list, make_index_sequence<length<List>::value>);
+        }
+#if !GT_BROKEN_TEMPLATE_ALIASES
+        template <size_t N>
+        using make_indices_c = typename lazy::iseq_to_list<make_index_sequence<N>>::type;
+        template <class N>
+        using make_indices = typename lazy::iseq_to_list<make_index_sequence<N::value>>::type;
+        template <class List>
+        using make_indices_for = typename lazy::iseq_to_list<make_index_sequence<length<List>::value>>::type;
+#endif
+    } // namespace meta
+} // namespace gridtools

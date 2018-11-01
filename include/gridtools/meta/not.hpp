@@ -36,4 +36,18 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include "macros.hpp"
+#include "type_traits.hpp"
+
+namespace gridtools {
+    namespace meta {
+        /**
+         *  returns predicate that is the opposite of Pred
+         */
+        template <template <class...> class Pred>
+        struct not_ {
+            template <class T>
+            GT_META_DEFINE_ALIAS(apply, negation, Pred<T>);
+        };
+    } // namespace meta
+} // namespace gridtools

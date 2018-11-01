@@ -33,7 +33,18 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+namespace gridtools {
+    namespace meta {
+        /**
+         *   The default list constructor.
+         *
+         *   Used within the library when it needed to produce something, that satisfy list concept.
+         */
+        template <class...>
+        struct list {
+            using type = list;
+        };
+    } // namespace meta
+} // namespace gridtools

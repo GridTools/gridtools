@@ -36,4 +36,25 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include "defs.hpp"
+#include "id.hpp"
+#include "macros.hpp"
+
+namespace gridtools {
+    namespace meta {
+        GT_META_LAZY_NAMESPASE {
+            template <class T>
+            struct always {
+                template <class...>
+                struct apply : id<T> {};
+            };
+        }
+#if !GT_BROKEN_TEMPLATE_ALIASES
+        template <class T>
+        struct always {
+            template <class...>
+            using apply = T;
+        };
+#endif
+    } // namespace meta
+} // namespace gridtools

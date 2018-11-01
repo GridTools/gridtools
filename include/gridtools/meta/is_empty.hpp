@@ -36,4 +36,13 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include "length.hpp"
+#include "macros.hpp"
+#include "type_traits.hpp"
+
+namespace gridtools {
+    namespace meta {
+        template <class T>
+        GT_META_DEFINE_ALIAS(is_empty, bool_constant, length<T>::value == 0);
+    } // namespace meta
+} // namespace gridtools

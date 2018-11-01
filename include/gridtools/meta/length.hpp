@@ -36,4 +36,13 @@
 
 #pragma once
 
-#include "../../meta/type_traits.hpp"
+#include <type_traits>
+
+namespace gridtools {
+    namespace meta {
+        template <class>
+        struct length;
+        template <template <class...> class L, class... Ts>
+        struct length<L<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
+    } // namespace meta
+} // namespace gridtools
