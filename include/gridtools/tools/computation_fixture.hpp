@@ -117,19 +117,14 @@ namespace gridtools {
         auto make_grid() const
             GT_AUTO_RETURN(::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}));
 
-        template <class Storage = storage_type, class T>
-        Storage make_storage(T &&obj) const {
+        template <class Storage = storage_type, class T = typename Storage::data_t>
+        Storage make_storage(T &&obj = {}) const {
             return {{m_d1, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
         template <class Storage = storage_type>
         Storage make_storage(double val) const {
-            return {{m_d1, m_d2, m_d3}, (float_type)val};
-        }
-
-        template <class Storage = storage_type>
-        Storage make_storage() const {
-            return {{m_d1, m_d2, m_d3}, 0.};
+            return {{m_d1, m_d2, m_d3}, (typename Storage::data_t)val};
         }
 
         template <class... Args>

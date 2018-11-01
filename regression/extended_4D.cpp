@@ -145,8 +145,8 @@ struct Extended4D : regression_fixture<> {
     static constexpr uint_t b2 = 2;
     static constexpr uint_t b3 = 2;
 
-    template <class T>
-    storage_t make_storage(T &&obj) {
+    template <class T = float_type>
+    storage_t make_storage(T &&obj = {}) {
         return {{d1(), d2(), d3(), b1, b2, b3}, std::forward<T>(obj)};
     }
 
@@ -170,7 +170,7 @@ TEST_F(Extended4D, Test) {
     arg<3, storage_t> p_f;
     arg<4, storage_t> p_result;
 
-    double phi = 10, psi = 11, f = 1.3;
+    float_type phi = 10, psi = 11, f = 1.3;
     auto jac = [](int i, int j, int k, int q) { return 1. + q; };
     auto ref = [=](int i, int j, int k, int I, int J, int K) {
         float_type res = 0;
@@ -182,12 +182,12 @@ TEST_F(Extended4D, Test) {
                    8;
         return res;
     };
-    auto result = make_storage(float_type{0.});
+    auto result = make_storage();
 
     make_computation(p_phi = backend_t::make_global_parameter(elemental{phi}),
         p_psi = backend_t::make_global_parameter(elemental{psi}),
         p_jac = storage_global_quad_t{{d1(), d2(), d3(), nbQuadPt}, jac},
-        p_f = make_storage(float_type{f}),
+        p_f = make_storage(f),
         p_result = result,
         make_multistage(
             enumtype::execute<enumtype::forward>(), make_stage<integration>(p_phi, p_psi, p_jac, p_f, p_result)))
