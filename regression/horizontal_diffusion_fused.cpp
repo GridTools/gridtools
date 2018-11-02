@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+// TODO(fthaler): merge this with horizontal_diffusion_functions and benchmark all the horizontal_diffusion versions
+
 #include <gtest/gtest.h>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
@@ -106,9 +108,9 @@ struct out_function {
     }
 };
 
-using HorizontalDiffusion = regression_fixture<2>;
+using horizontal_diffusion_fused = regression_fixture<2>;
 
-TEST_F(HorizontalDiffusion, Test) {
+TEST_F(horizontal_diffusion_fused, test) {
     arg<0> p_coeff;
     arg<1> p_in;
     arg<2> p_out;
@@ -120,7 +122,7 @@ TEST_F(HorizontalDiffusion, Test) {
     auto comp = make_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
-        make_multistage(enumtype::execute<enumtype::parallel, 20>(), make_stage<out_function>(p_out, p_in, p_coeff)));
+        make_multistage(enumtype::execute<enumtype::parallel>(), make_stage<out_function>(p_out, p_in, p_coeff)));
 
     comp.run();
     verify(make_storage(repo.out), out);

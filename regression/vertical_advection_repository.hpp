@@ -71,11 +71,11 @@ namespace gridtools {
         }
 
         const double PI = std::atan(1) * 4;
-        uint_t idim_, jdim_, kdim_;
+        uint_t m_d1, m_d2, m_d3;
 
-        double x(int_t i) const { return 1. * i / idim_; }
-        double y(int_t j) const { return 1. * j / jdim_; }
-        double z(int_t k) const { return 1. * k / kdim_; }
+        double x(int_t i) const { return 1. * i / m_d1; }
+        double y(int_t j) const { return 1. * j / m_d2; }
+        double z(int_t k) const { return 1. * k / m_d3; }
 
       public:
         using fun_t = std::function<double(int_t, int_t, int_t)>;
@@ -108,7 +108,7 @@ namespace gridtools {
         const fun_t utens_stage_out = cache([this](int_t i, int_t j) {
             constexpr int_t IShift = 1;
             constexpr int_t JShift = 0;
-            column_t c(kdim_), d(kdim_), res(kdim_);
+            column_t c(m_d3), d(m_d3), res(m_d3);
             // forward
             // k minimum
             int k = 0;
@@ -124,7 +124,7 @@ namespace gridtools {
                 d[k] /= b;
             }
             // kbody
-            for (++k; k < kdim_ - 1; ++k) {
+            for (++k; k < m_d3 - 1; ++k) {
                 double gav = -.25 * (wcon(i + IShift, j + JShift, k) + wcon(i, j, k));
                 double gcv = .25 * (wcon(i + IShift, j + JShift, k + 1) + wcon(i, j, k + 1));
                 double as = gav * BET_M;
@@ -148,8 +148,7 @@ namespace gridtools {
                 // update the d column
                 double correctionTerm = -as * (u_stage(i, j, k - 1) - u_stage(i, j, k));
                 d[k] = dtr_stage * u_pos(i, j, k) + utens(i, j, k) + utens_stage_in(i, j, k) + correctionTerm;
-                double divided = 1 / (b - (c[k - 1] * a));
-                d[k] = (d[k] - d[k - 1] * a) * divided;
+                d[k] = (d[k] - d[k - 1] * a) / (b - (c[k - 1] * a));
             }
             // backward
             double data = d[k];
@@ -164,6 +163,6 @@ namespace gridtools {
             return res;
         });
 
-        vertical_advection_repository(uint_t idim, uint_t jdim, uint_t kdim) : idim_(idim), jdim_(jdim), kdim_(kdim) {}
+        vertical_advection_repository(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
     };
 } // namespace gridtools

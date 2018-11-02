@@ -44,22 +44,21 @@ namespace gridtools {
     class horizontal_diffusion_repository {
         using fun_t = std::function<double(int_t, int_t, int_t)>;
         using j_fun_t = std::function<double(int_t)>;
-        uint_t idim_, jdim_, kdim_;
+        uint_t m_d1, m_d2, m_d3;
 
-        double delta0_ = (0.995156 - 0.994954) / (jdim_ - 1.);
-        double delta1_ = (0.995143 - 0.994924) / (jdim_ - 1.);
+        double m_delta0 = (0.995156 - 0.994954) / (m_d2 - 1.);
+        double m_delta1 = (0.995143 - 0.994924) / (m_d2 - 1.);
 
-        j_fun_t crlat0_ = [this](int_t j) { return 0.994954 + j * delta0_; };
-        j_fun_t crlat1_ = [this](int_t j) { return 0.994924 + j * delta1_; };
+        j_fun_t m_crlat0 = [this](int_t j) { return 0.994954 + j * m_delta0; };
+        j_fun_t m_crlat1 = [this](int_t j) { return 0.994924 + j * m_delta1; };
 
       public:
-        horizontal_diffusion_repository(uint_t idim, uint_t jdim, uint_t kdim)
-            : idim_(idim), jdim_(jdim), kdim_(kdim) {}
+        horizontal_diffusion_repository(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
 
         fun_t in = [this](int_t i, int_t j, int_t) {
             const double PI = std::atan(1.) * 4.;
-            double dx = 1. / idim_;
-            double dy = 1. / jdim_;
+            double dx = 1. / m_d1;
+            double dy = 1. / m_d2;
             double x = dx * i;
             double y = dy * j;
             // in values between 5 and 9
@@ -68,9 +67,9 @@ namespace gridtools {
 
         fun_t coeff = [](int_t, int_t, int_t) { return 0.025; };
 
-        fun_t crlato = [this](int_t, int_t j, int_t) { return crlat1_(j) / crlat0_(j); };
+        fun_t crlato = [this](int_t, int_t j, int_t) { return m_crlat1(j) / m_crlat0(j); };
 
-        fun_t crlatu = [this](int_t, int_t j, int_t) { return j == 0 ? 0 : crlat1_(j - 1) / crlat0_(j); };
+        fun_t crlatu = [this](int_t, int_t j, int_t) { return j == 0 ? 0 : m_crlat1(j - 1) / m_crlat0(j); };
 
         fun_t out = [this](int_t i, int_t j, int_t k) {
             auto lap = [=](int_t ii, int_t jj) {

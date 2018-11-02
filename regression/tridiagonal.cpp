@@ -57,9 +57,7 @@ using namespace expressions;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = axis<1>;
-using x_internal = axis_t::full_interval::modify<1, -1>;
-using x_first = axis_t::full_interval::first_level;
-using x_last = axis_t::full_interval::last_level;
+using full_t = axis_t::full_interval;
 
 struct forward_thomas {
     // four vectors: output, and the 3 diagonals
@@ -71,23 +69,13 @@ struct forward_thomas {
     using arg_list = boost::mpl::vector<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void shared_kernel(Evaluation &eval) {
+    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, 0>) {
         eval(sup{}) = eval(sup{} / (diag{} - sup{0, 0, -1} * inf{}));
         eval(rhs{}) = eval((rhs{} - inf{} * rhs{0, 0, -1}) / (diag{} - sup{0, 0, -1} * inf{}));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, x_internal) {
-        shared_kernel(eval);
-    }
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, x_last) {
-        shared_kernel(eval);
-    }
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, x_first) {
+    GT_FUNCTION static void Do(Evaluation eval, full_t::first_level) {
         eval(sup{}) = eval(sup{}) / eval(diag{});
         eval(rhs{}) = eval(rhs{}) / eval(diag{});
     }
@@ -102,29 +90,19 @@ struct backward_thomas {
     using arg_list = boost::mpl::vector<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void shared_kernel(Evaluation &eval) {
+    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, 1>) {
         eval(out{}) = eval(rhs{} - sup{} * out{0, 0, 1});
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, x_internal) {
-        shared_kernel(eval);
-    }
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, x_first) {
-        shared_kernel(eval);
-    }
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, x_last) {
+    GT_FUNCTION static void Do(Evaluation eval, full_t::last_level) {
         eval(out{}) = eval(rhs{});
     }
 };
 
-using TridiagonalSolve = regression_fixture<>;
+using tridiagonal = regression_fixture<>;
 
-TEST_F(TridiagonalSolve, Test) {
+TEST_F(tridiagonal, test) {
     d3() = 6;
 
     auto out = make_storage();

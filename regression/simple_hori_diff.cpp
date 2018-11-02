@@ -84,9 +84,9 @@ struct divflux_function {
     }
 };
 
-using SimpleHorizontalDiffusion = regression_fixture<2>;
+using simple_hori_diff = regression_fixture<2>;
 
-TEST_F(SimpleHorizontalDiffusion, Test) {
+TEST_F(simple_hori_diff, test) {
     tmp_arg<0> p_lap;
     arg<1> p_coeff;
     arg<2> p_in;
@@ -103,7 +103,7 @@ TEST_F(SimpleHorizontalDiffusion, Test) {
         p_out = out,
         p_crlato = make_storage<j_storage_type>(repo.crlato),
         p_crlatu = make_storage<j_storage_type>(repo.crlatu),
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(enumtype::execute<enumtype::parallel>(),
             define_caches(cache<IJ, cache_io_policy::local>(p_lap)),
             make_stage<wlap_function>(p_lap, p_in, p_crlato, p_crlatu),
             make_stage<divflux_function>(p_out, p_in, p_lap, p_crlato, p_coeff)));

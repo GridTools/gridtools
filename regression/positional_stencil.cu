@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "interface1_fused.cpp"
+#include "positional_stencil.cpp"

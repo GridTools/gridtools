@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "positional_copy_stencil.cpp"
+#include "horizontal_diffusion_fused.cpp"

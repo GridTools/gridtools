@@ -104,8 +104,6 @@ struct integration {
         for (short_t I = 0; I < 2; ++I)
             for (short_t J = 0; J < 2; ++J)
                 for (short_t K = 0; K < 2; ++K) {
-                    // check the initialization to 0
-                    assert(eval(result(i, j, k, di + I, dj + J, dk + K)) == 0.);
                     for (short_t q = 0; q < 2; ++q) {
                         eval(result(di + I, dj + J, dk + K)) +=
                             eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
@@ -126,7 +124,7 @@ struct integration {
     }
 };
 
-struct Extended4D : regression_fixture<> {
+struct extended_4d : regression_fixture<> {
     using layout_map_t = conditional_t<std::is_same<backend_t::backend_id_t, target::x86>::value,
         layout_map<3, 4, 5, 0, 1, 2>,
         layout_map<5, 4, 3, 2, 1, 0>>;
@@ -162,7 +160,7 @@ struct Extended4D : regression_fixture<> {
     };
 };
 
-TEST_F(Extended4D, Test) {
+TEST_F(extended_4d, test) {
     using global_par_storage_t = decltype(backend_t::make_global_parameter(elemental{}));
     arg<0, global_par_storage_t> p_phi;
     arg<1, global_par_storage_t> p_psi;

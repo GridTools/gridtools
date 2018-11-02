@@ -42,7 +42,7 @@
 
 using namespace gridtools;
 
-struct functor_exp {
+struct copy_functor {
     using parameters_out = inout_accessor<0>;
     using parameters_in = accessor<1>;
 
@@ -54,9 +54,9 @@ struct functor_exp {
     }
 };
 
-using ExpandableParameters = regression_fixture<>;
+using expandable_parameters = regression_fixture<>;
 
-TEST_F(ExpandableParameters, Test) {
+TEST_F(expandable_parameters, test) {
     std::vector<storage_type> out = {
         make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
     std::vector<storage_type> in = {
@@ -72,8 +72,8 @@ TEST_F(ExpandableParameters, Test) {
         p_in = in,
         make_multistage(enumtype::execute<enumtype::forward>(),
             define_caches(cache<IJ, cache_io_policy::local>(p_tmp)),
-            make_stage<functor_exp>(p_tmp, p_in),
-            make_stage<functor_exp>(p_out, p_tmp)))
+            make_stage<copy_functor>(p_tmp, p_in),
+            make_stage<copy_functor>(p_out, p_tmp)))
         .run();
     for (size_t i = 0; i != in.size(); ++i)
         verify(in[i], out[i]);

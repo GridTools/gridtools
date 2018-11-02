@@ -40,22 +40,20 @@
 
 using namespace gridtools;
 
-struct lap_function {
-    using out_acc = inout_accessor<0>;
-    using in_acc = in_accessor<1, extent<-1, 1, -1, 1>>;
-    using arg_list = boost::mpl::vector<out_acc, in_acc>;
+struct lap {
+    using out = inout_accessor<0>;
+    using in = in_accessor<1, extent<-1, 1, -1, 1>>;
+    using arg_list = boost::mpl::vector<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
-        eval(out_acc()) = 4 * eval(in_acc()) - (eval(in_acc(1, 0, 0)) + eval(in_acc(0, 1, 0)) + eval(in_acc(-1, 0, 0)) +
-                                                   eval(in_acc(0, -1, 0)));
+        eval(out()) = 4 * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1, 0)) + eval(in(0, -1)));
     }
 };
 
-using Laplace = regression_fixture<1>;
+using laplacian = regression_fixture<1>;
 
-TEST_F(Laplace, test) {
-
+TEST_F(laplacian, test) {
     auto in = [](int_t, int_t, int_t) { return -1.; };
     auto ref = [in](int_t i, int_t j, int_t k) {
         return 4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
@@ -64,7 +62,7 @@ TEST_F(Laplace, test) {
 
     make_computation(p_0 = out,
         p_1 = make_storage(in),
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<lap_function>(p_0, p_1)))
+        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<lap>(p_0, p_1)))
         .run();
 
     verify(make_storage(ref), out);

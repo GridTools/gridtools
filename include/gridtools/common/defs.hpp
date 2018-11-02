@@ -201,12 +201,6 @@ namespace gridtools {
 
     } // namespace enumtype
 
-#ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND ::gridtools::grid_type::structured
-#else
-#define GRIDBACKEND ::gridtools::grid_type::icosahedral
-#endif
-
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 
 #define GT_INTERNAL_ERROR                                                                                       \

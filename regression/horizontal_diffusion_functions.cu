@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "interface1_functions.cpp"
+#include "horizontal_diffusion_functions.cpp"

@@ -102,9 +102,9 @@ struct out_function {
     }
 };
 
-using HorizontalDiffusion = regression_fixture<2>;
+using horizontal_diffusion = regression_fixture<2>;
 
-TEST_F(HorizontalDiffusion, Test) {
+TEST_F(horizontal_diffusion, test) {
     tmp_arg<0> p_lap;
     tmp_arg<1> p_flx;
     tmp_arg<2> p_fly;
@@ -119,7 +119,7 @@ TEST_F(HorizontalDiffusion, Test) {
     auto comp = make_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
-        make_multistage(enumtype::execute<enumtype::parallel, 20>(),
+        make_multistage(enumtype::execute<enumtype::parallel>(),
             define_caches(cache<IJ, cache_io_policy::local>(p_lap, p_flx, p_fly)),
             make_stage<lap_function>(p_lap, p_in),
             make_independent(

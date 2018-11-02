@@ -33,33 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gtest/gtest.h>
-
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/regression_fixture.hpp>
-
-using namespace gridtools;
-
-static constexpr int _value_ = 1;
-
-struct init_functor {
-    using out = inout_accessor<0>;
-    using arg_list = boost::mpl::vector<out>;
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
-        eval(out()) = eval.i() + eval.j() + eval.k();
-    }
-};
-
-using PositionalCopyStencil = regression_fixture<>;
-
-TEST_F(PositionalCopyStencil, Test) {
-    auto out = make_storage();
-
-    make_positional_computation<backend_t>(
-        make_grid(), p_0 = out, make_multistage(enumtype::execute<enumtype::forward>(), make_stage<init_functor>(p_0)))
-        .run();
-
-    verify(make_storage([](int i, int j, int k) -> double { return i + j + k; }), out);
-}
+#include "horizontal_diffusion.cpp"

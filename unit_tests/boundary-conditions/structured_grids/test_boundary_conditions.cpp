@@ -156,7 +156,7 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
     in.sync();
-    gridtools::boundary<bc_basic, ARCH>(halos, bc_basic()).apply(in);
+    gridtools::boundary<bc_basic, target_t>(halos, bc_basic()).apply(in);
 
     in.sync();
 

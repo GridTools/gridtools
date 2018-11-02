@@ -83,9 +83,9 @@ struct functor_single_kernel {
     }
 };
 
-using ExpandableParameters = regression_fixture<>;
+using expandable_parameters_single_kernel = regression_fixture<>;
 
-TEST_F(ExpandableParameters, Test) {
+TEST_F(expandable_parameters_single_kernel, test) {
     std::vector<storage_type> out = {
         make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
     std::vector<storage_type> in = {

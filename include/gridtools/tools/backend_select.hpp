@@ -38,19 +38,27 @@
 #include "../common/defs.hpp"
 #include "../stencil-composition/backend.hpp"
 
-#ifdef BACKEND_X86
-using ARCH = gridtools::target::x86;
-#ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::naive>;
+#ifdef STRUCTURED_GRIDS
+using grid_type_t = gridtools::grid_type::structured;
 #else
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
+using grid_type_t = gridtools::grid_type::icosahedral;
+#endif
+
+#ifdef BACKEND_X86
+using target_t = gridtools::target::x86;
+#ifdef BACKEND_STRATEGY_NAIVE
+using strategy_t = gridtools::strategy::naive;
+#else
+using strategy_t = gridtools::strategy::block;
 #endif
 #elif defined(BACKEND_MC)
-using ARCH = gridtools::target::mc;
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
+using target_t = gridtools::target::mc;
+using strategy_t = gridtools::strategy::block;
 #elif defined(BACKEND_CUDA)
-using ARCH = gridtools::target::cuda;
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
+using target_t = gridtools::target::cuda;
+using strategy_t = gridtools::strategy::block;
 #else
 #error "no backend selected"
 #endif
+
+using backend_t = gridtools::backend<target_t, grid_type_t, strategy_t>;

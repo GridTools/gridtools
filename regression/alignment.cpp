@@ -36,7 +36,6 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
@@ -47,27 +46,30 @@
 
 using namespace gridtools;
 
-using AlignedCopyStencil = regression_fixture<2>;
+using alignment_test = regression_fixture<2>;
 
-struct functor {
+struct not_aligned {
     using acc = inout_accessor<0>;
-    using arg_list = boost::mpl::vector<acc>;
+    using out = inout_accessor<1>;
+    using arg_list = boost::mpl::vector<acc, out>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
-#ifndef NDEBUG
         auto *ptr = &eval(acc{});
-        constexpr auto aligment = sizeof(decltype(*ptr)) * AlignedCopyStencil::storage_info_t::alignment_t::value;
-        constexpr auto halo_size = AlignedCopyStencil::halo_size;
-        if (eval.i() == halo_size && eval.j() == halo_size)
-            assert((uintptr_t)ptr % aligment == 0);
-#endif
+        constexpr auto alignment = sizeof(decltype(*ptr)) * alignment_test::storage_info_t::alignment_t::value;
+        constexpr auto halo_size = alignment_test::halo_size;
+        eval(out{}) = eval.i() == halo_size && reinterpret_cast<ptrdiff_t>(ptr) % alignment;
     }
 };
 
-TEST_F(AlignedCopyStencil, Test) {
+TEST_F(alignment_test, test) {
+    using bool_storage = storage_tr::data_store_t<bool, storage_info_t>;
+    arg<0, bool_storage> p_out;
+    auto out = make_storage<bool_storage>();
     make_positional_computation<backend_t>(make_grid(),
         p_0 = make_storage(),
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p_0)))
+        p_out = out,
+        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<not_aligned>(p_0, p_out)))
         .run();
+    verify(make_storage<bool_storage>(false), out);
 }

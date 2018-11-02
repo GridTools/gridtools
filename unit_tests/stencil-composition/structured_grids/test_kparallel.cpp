@@ -106,7 +106,7 @@ void run_test() {
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
-            execute<parallel, 20>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
+            execute<parallel>(), gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_out())));
 
     comp.run();
 
@@ -148,7 +148,7 @@ void run_test_with_temporary() {
     auto comp = gridtools::make_computation<backend_t>(grid,
         p_in() = in,
         p_out() = out,
-        gridtools::make_multistage(execute<parallel, 20>(),
+        gridtools::make_multistage(execute<parallel>(),
             gridtools::make_stage<parallel_functor<Axis>>(p_in(), p_tmp()),
             gridtools::make_stage<parallel_functor<Axis>>(p_tmp(), p_out())));
 
@@ -209,7 +209,7 @@ TEST(structured_grid, kparallel_with_unused_intervals) {
         p_in() = in,
         p_out() = out,
         gridtools::make_multistage(
-            execute<parallel, 20>(), gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
+            execute<parallel>(), gridtools::make_stage<parallel_functor_on_upper_interval<Axis>>(p_in(), p_out())));
 
     comp.run();
 

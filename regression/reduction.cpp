@@ -43,7 +43,7 @@
 
 using namespace gridtools;
 
-struct sum_red {
+struct functor {
     using in = in_accessor<0>;
     using arg_list = boost::mpl::vector<in>;
 
@@ -53,12 +53,12 @@ struct sum_red {
     }
 };
 
-struct Reductions : regression_fixture<> {
+struct reduction : regression_fixture<> {
     static float_type data(int_t i, int_t j, int_t k) { return 1. / (1 + i + j + k); }
 
     template <class BinOp, class T>
     float_type actual(BinOp, T init) {
-        return make_computation(p_0 = make_storage(data), make_reduction<sum_red, BinOp>(init, p_0)).run();
+        return make_computation(p_0 = make_storage(data), make_reduction<functor, BinOp>(init, p_0)).run();
     }
 
     template <class BinOp, class T>
@@ -76,7 +76,7 @@ struct Reductions : regression_fixture<> {
     }
 };
 
-TEST_F(Reductions, Test) {
+TEST_F(reduction, test) {
     verify(binop::sum{}, 0.);
     verify(binop::prod{}, 1.);
 }
