@@ -56,9 +56,8 @@ namespace gridtools {
             static double a[n];
             static double b[n];
             static double c[n];
-            int i;
-#pragma omp parallel for private(i)
-            for (i = 0; i < n; i++)
+#pragma omp parallel for
+            for (int i = 0; i < n; i++)
                 a[i] = b[i] * c[i];
         }
 
