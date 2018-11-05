@@ -34,9 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <cmath>
+
+#include "defs.hpp"
 #include "host_device.hpp"
 
-#include <cmath>
 namespace gridtools {
 
     /** \ingroup common

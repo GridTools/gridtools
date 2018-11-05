@@ -36,9 +36,11 @@
 #pragma once
 
 #include <iostream>
+#include <type_traits>
 
 #include "../common/array.hpp"
 #include "../common/array_addons.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_math.hpp"
 #include "../common/hypercube_iterator.hpp"
 #include "../common/tuple_util.hpp"
@@ -64,13 +66,16 @@ namespace gridtools {
         const double default_precision<double>::value = 1e-14;
     } // namespace _impl
 
-    template <typename value_type>
-    GT_FUNCTION bool compare_below_threshold(
-        value_type expected, value_type actual, double precision = _impl::default_precision<value_type>()) {
-        value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
-        value_type absolute_error = math::fabs(expected - actual);
-        value_type relative_error = absolute_error / absmax;
-        return relative_error <= precision || absolute_error < precision;
+    template <typename T, enable_if_t<std::is_floating_point<T>::value, int> = 0>
+    GT_FUNCTION bool expect_with_threshold(T expected, T actual, double precision = _impl::default_precision<T>()) {
+        auto abs_error = math::fabs(expected - actual);
+        auto abs_max = math::max(math::fabs(expected), math::fabs(actual));
+        return abs_error < precision || abs_error < abs_max * precision;
+    }
+
+    template <typename T, typename Dummy, enable_if_t<!std::is_floating_point<T>::value, int> = 0>
+    GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, Dummy &&) {
+        return actual == expected;
     }
 
     class verifier {
@@ -107,11 +112,10 @@ namespace gridtools {
             for (auto &&pos : cube_view) {
                 auto expected = expected_view(tuple_util::convert_to<array, int>(pos));
                 auto actual = actual_view(tuple_util::convert_to<array, int>(pos));
-                if (!compare_below_threshold(expected, actual, m_precision)) {
+                if (!expect_with_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected
-                                  << " ; actual : " << actual << "  " << std::fabs((expected - actual) / (expected))
-                                  << "\n";
+                                  << " ; actual : " << actual << "\n";
                     error_count++;
                 }
             }
