@@ -36,7 +36,7 @@ else()
     set(bindings_generator_path_to_src ${CMAKE_SOURCE_DIR}/src)
 endif()
 
-add_library(c_bindings_generator ${bindings_generator_path_to_src}/c_bindings/generator.cpp)
+add_library(c_bindings_generator ${bindings_generator_path_to_src}/c_bindings/generator.cpp ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
 
 macro(add_bindings_library target_name)
     set(options)

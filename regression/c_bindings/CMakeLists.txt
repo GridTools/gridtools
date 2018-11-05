@@ -18,7 +18,11 @@ if (ENABLE_X86)
     target_link_libraries(fortran_bindings c_bindings_handle)
 
     add_executable(driver driver.c)
-    target_link_libraries(driver implementation_c)
+    if(SINGLE_PRECISION)
+        target_link_libraries(driver implementation_float_c)
+    else()
+        target_link_libraries(driver implementation_double_c)
+    endif() 
     target_link_libraries(driver c_bindings_handle)
 
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")

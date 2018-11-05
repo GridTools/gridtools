@@ -63,10 +63,6 @@ fetch_x86_tests(.)
 fetch_gpu_tests(.)
 fetch_mc_tests(.)
 
-add_library(unittests_c_bindings_handle ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.cpp)
-add_library(unittests_fortran_bindings ${CMAKE_SOURCE_DIR}/src/c_bindings/array_descriptor.f90 ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.f90)
-target_link_libraries(unittests_fortran_bindings unittests_c_bindings_handle)
-
 if(SINGLE_PRECISION)
     add_bindings_library(repository_float SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
     target_link_libraries(repository_float gtest)
