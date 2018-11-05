@@ -76,7 +76,7 @@ add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_
 target_link_libraries(repository_${prec} gtest)
 target_link_libraries(repository_${prec} ${exe_LIBS})
 target_link_libraries(repository_${prec} unittests_fortran_bindings)
-target_compile_options(repository_${prec} PRIVATE ${GT_CXX_FLAGS})
+target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} -D${X86_BACKEND_DEFINE})
 
 add_library(repository_fortran_lib test_repository.f90)
 target_compile_options(repository_fortran_lib PRIVATE "-cpp")
