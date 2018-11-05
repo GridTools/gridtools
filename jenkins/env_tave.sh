@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module rm   PrgEnv-cray
-module load CMake
+module load /users/jenkins/easybuild/tave/modules/all/CMake/3.12.0 
 
 if [[ ${COMPILER} == "gcc" ]]; then
   module load PrgEnv-gnu
