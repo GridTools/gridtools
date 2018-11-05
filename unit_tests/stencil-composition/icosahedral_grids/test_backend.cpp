@@ -39,7 +39,7 @@
 #include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 using namespace gridtools;
 

@@ -46,7 +46,7 @@
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 #include "gtest/gtest.h"
 
 namespace gridtools {

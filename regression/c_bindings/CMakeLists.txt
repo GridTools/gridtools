@@ -2,18 +2,19 @@
 if (ENABLE_X86)
     if(SINGLE_PRECISION)
         add_bindings_library(implementation_float SOURCES implementation.cpp FORTRAN_MODULE_NAME implementation)
-        target_compile_definitions(implementation_float PUBLIC ${X86_BACKEND_DEFINE})
+        target_compile_options(implementation_float PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
         add_bindings_library(implementation_wrapper_float SOURCES implementation-wrapper.cpp FORTRAN_MODULE_NAME implementation_wrapper)
-        target_compile_definitions(implementation_wrapper_float PUBLIC ${X86_BACKEND_DEFINE})
+        target_compile_options(implementation_wrapper_float PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
     else()
         add_bindings_library(implementation_double SOURCES implementation.cpp FORTRAN_MODULE_NAME implementation)
-        target_compile_definitions(implementation_double PUBLIC ${X86_BACKEND_DEFINE})
+        target_compile_options(implementation_double PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
         add_bindings_library(implementation_wrapper_double SOURCES implementation-wrapper.cpp FORTRAN_MODULE_NAME implementation_wrapper)
-        target_compile_definitions(implementation_wrapper_double PUBLIC ${X86_BACKEND_DEFINE})
+        target_compile_options(implementation_wrapper_double PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
     endif()
 
     # the convention is that the user has to compile handle and array_descriptor
     add_library(c_bindings_handle ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.cpp)
+    target_include_directories(c_bindings_handle PUBLIC ${CMAKE_SOURCE_DIR}/include)
     add_library(fortran_bindings ${CMAKE_SOURCE_DIR}/src/c_bindings/array_descriptor.f90 ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.f90)
     target_link_libraries(fortran_bindings c_bindings_handle)
 
@@ -24,6 +25,7 @@ if (ENABLE_X86)
         target_link_libraries(driver implementation_double_c)
     endif() 
     target_link_libraries(driver c_bindings_handle)
+    target_compile_options(driver PRIVATE ${GT_C_BUILDING_FLAGS})
 
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 

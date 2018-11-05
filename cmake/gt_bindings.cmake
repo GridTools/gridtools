@@ -37,6 +37,7 @@ else()
 endif()
 
 add_library(c_bindings_generator ${bindings_generator_path_to_src}/c_bindings/generator.cpp ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
+target_include_directories(c_bindings_generator PUBLIC ${bindings_generator_path_to_src}/../include)
 
 macro(add_bindings_library target_name)
     set(options)

@@ -1,29 +1,47 @@
+set(GT_CXX_MANDATORY_FLAGS)    # Flags that are needed to compile GT ap plications correctly
+set(GT_CXX_BUILDING_FLAGS)     # Flags needed to compile unit tests and such, but not for export
+set(GT_CXX_OPTIONAL_FLAGS)     # Flags that are optional for compiling, like removing warnings and such
+set(GT_CXX_OPTIMIZATION_FLAGS) # Flags used for optimization
+
+set(GT_CUDA_MANDATORY_FLAGS)    # Flags that are needed to compile GT ap plications correctly
+set(GT_CUDA_BUILDING_FLAGS)     # Flags needed to compile unit tests and such, but not for export
+set(GT_CUDA_OPTIONAL_FLAGS)     # Flags that are optional for compiling, like removing warnings and such
+set(GT_CUDA_OPTIMIZATION_FLAGS) # Flags used for optimization
+
+set(GT_C_BUILDING_FLAGS)       # Flags for the C components (driver.c)
+
 ## set suppress messages ##
 if(SUPPRESS_MESSAGES)
-    add_definitions(-DSUPPRESS_MESSAGES)
+    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DSUPPRESS_MESSAGES )
+    set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS}  -DSUPPRESS_MESSAGES )
 endif(SUPPRESS_MESSAGES)
 
 ## set verbose mode ##
 if(VERBOSE)
-    add_definitions(-DVERBOSE)
+    set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS}  -DVERBOSE )
+    set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS}  -DVERBOSE )
 endif(VERBOSE)
 
 ## enable boost variadic PP
 ## (for nvcc this is not done automatically by boost as it is no tested compiler)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_PP_VARIADICS=1")
+set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_PP_VARIADICS=1  )
 
 ## set boost fusion sizes ##
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
+set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE} )
+set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE} )
+
+if ( (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "Intel") )
+   set(WERROR OFF)
+endif()
 
 ## enable -Werror
 if( WERROR )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Werror" )
+    set( CMAKE_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -Werror )
 endif()
 
 ## structured grids ##
 if(STRUCTURED_GRIDS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
+    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DSTRUCTURED_GRIDS )
 endif()
 
 find_package( Boost 1.58 REQUIRED )
@@ -31,13 +49,13 @@ find_package( Boost 1.58 REQUIRED )
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
   foreach(dir ${Boost_INCLUDE_DIRS})
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${dir}")
+      include_directories( SYSTEM ${dir})
   endforeach()
-  set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
+  set(exe_LIBS ${Boost_LIBRARIES} ${exe_LIBS})
 endif()
 
 if(NOT ENABLE_CUDA AND NOT ENABLE_MC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
+    set( GT_CXX_OPTIMIZATION_FLAGS ${GT_CXX_OPTIMIZATION_FLAGS}  -mtune=native -march=native )
 endif()
 
 ## clang tools ##
@@ -45,18 +63,21 @@ find_package(ClangTools)
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lgcov")
+set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  --coverage )
+set( CMAKE_EXE_LINKER_FLAGS  ${CMAKE_EXE_LINKER_FLAGS}  -lgcov )
 message (STATUS "Building executables for coverage tests")
 endif()
 
 ## gnu profiling information ##
 if(GNU_PROFILE)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
+set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -fprofile-arcs )
 message (STATUS "Building profiled executables")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD}")
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CUDA_STANDARD 11)
+
 
 if(ENABLE_X86)
   set(X86_BACKEND_DEFINE "BACKEND_X86")
@@ -65,49 +86,54 @@ endif(ENABLE_X86)
 ## cuda support ##
 if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
+  set(GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
+  set(GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   if( ${CUDA_VERSION} VERSION_LESS "80" )
     message(ERROR " CUDA 7.X or lower is not supported")
   endif()
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
+  set(GPU_SPECIFIC_FLAGS -D_USE_GPU_ -D_GCL_GPU_)
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
   set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}")
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -arch=${CUDA_ARCH})
 
   # suppress because of a warning coming from gtest.h
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable")
+  set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=code_is_unreachable)
 
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
     # suppress because of boost::fusion::vector ctor
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=esa_on_defaulted_function_ignored")
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored)
+  endif()
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang")
+      set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -ccbin=${CMAKE_CXX_COMPILER})
   endif()
 
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
+    set(GT_CUDA_OPTIONAL_FLAGS ${GT_CUDA_OPTIONAL_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS})
   endif()
 
   # workaround for boost::optional with CUDA9.2
   if( (${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2) OR (${CUDA_VERSION_MAJOR} EQUAL 10) )
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
+    set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
+    set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
   endif()
 
   if(${CXX_STANDARD} STREQUAL "c++14")
     # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--expt-relaxed-constexpr")
+    set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} --expt-relaxed-constexpr)
   elseif(${CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
@@ -123,22 +149,22 @@ endif( ENABLE_MC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
+    set( GT_CXX_HOST_ONLY_FLAGS ${GT_CXX_HOST_ONLY_FLAGS}  -ftemplate-depth-1024 )
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pass-failed")
+    set( GT_CXX_HOST_ONLY_FLAGS ${GT_CXX_HOST_ONLY_FLAGS}  -Wno-pass-failed )
 endif()
 
 ## Intel compiler ##
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
     # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'")
+    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED "-DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'" )
     # force boost to use decltype() for boost::result_of, required to compile without errors (ICC 17)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_RESULT_OF_USE_DECLTYPE")
+    set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -DBOOST_RESULT_OF_USE_DECLTYPE )
     # slightly improve performance
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-subscript-in-range -qoverride-limits")
+    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -qopt-subscript-in-range -qoverride-limits )
     # disable failed vectorization warnings for OpenMP SIMD loops
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552")
+    set( GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  -diag-disable=15518,15552 )
 endif()
 
 
@@ -147,27 +173,45 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
-if(${CMAKE_VERSION} VERSION_LESS "3.12.0")  
-    # TODO remove this as soon as we bump our required version to 3.12
-    # Note: It seems that FindOpenMP ignores CMP0054. As this is an
-    # external code, we explicity turn that policy off.
-    cmake_policy(PUSH)
-    cmake_policy(SET CMP0054 OLD)
-    find_package( OpenMP )
-    cmake_policy(POP)
-else()
-    find_package( OpenMP )
-endif()
+if(NOT ENABLE_CUDA)
+    if(${CMAKE_VERSION} VERSION_LESS "3.12.0")  
+        # TODO remove this as soon as we bump our required version to 3.12
+        # Note: It seems that FindOpenMP ignores CMP0054. As this is an
+        # external code, we explicity turn that policy off.
+        cmake_policy(PUSH)
+        cmake_policy(SET CMP0054 OLD)
+        find_package( OpenMP )
+        cmake_policy(POP)
+    else()
+        find_package( OpenMP )
+    endif()
 
-## openmp ##
-if(OPENMP_FOUND)
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
-    set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
+
+  ## openmp ##
+    if(OPENMP_FOUND)
+        set(  GT_CXX_OPTIONAL_FLAGS ${GT_CXX_OPTIONAL_FLAGS}  ${OpenMP_CXX_FLAGS} )
+        if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
+            foreach( tmp ${OpenMP_CXX_LIBRARIES})
+                string(STRIP ${tmp} tmp)
+                set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${tmp}")
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${tmp}")
+            endforeach()
+            set(OMP_LIBS ${OpenMP_CXX_LIBRARIES})
+        else()
+            set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}" )
+            set( exe_LIBS ${exe_LIBS} ${OpenMP_CXX_LIBRARIES} )
+            foreach( tmp ${OpenMP_C_LIBRARIES})
+                string(STRIP ${tmp} tmp)
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${tmp}")
+            endforeach()
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS} ")
+        endif()
+    endif()
 endif()
 
 ## performance meters ##
 if(ENABLE_PERFORMANCE_METERS)
-    add_definitions(-DENABLE_METERS)
+    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DENABLE_METERS)
 endif(ENABLE_PERFORMANCE_METERS)
 
 # always use lpthread as cc/ld flags
@@ -178,31 +222,52 @@ set ( exe_LIBS -lpthread ${exe_LIBS} )
 ## precision ##
 if(SINGLE_PRECISION)
   if(ENABLE_CUDA)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
   endif()
-  add_definitions("-DFLOAT_PRECISION=4")
+  set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=4" )
+  set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
+  set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS} -DFLOAT_PRECISION=4 )
   message(STATUS "Computations in single precision")
 else()
   if(ENABLE_CUDA)
-    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -DFLOAT_PRECISION=8)
   endif()
-  add_definitions("-DFLOAT_PRECISION=8")
+  set( CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DFLOAT_PRECISION=8" )
+  set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DFLOAT_PRECISION=8 )
+  set( GT_C_BUILDING_FLAGS ${GT_C_BUILDING_FLAGS} -DFLOAT_PRECISION=8 )
   message(STATUS "Computations in double precision")
 endif()
 
 ## mpi ##
 if( USE_MPI )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
+  set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS}  -D_GCL_MPI_ )
   find_package(MPI)
   # only test for C++, Fortran MPI is not required
   if (NOT MPI_CXX_FOUND)
     message(FATAL_ERROR "Could not find MPI")
   endif()
   if ( MPI_CXX_INCLUDE_PATH )
-      include_directories( "${MPI_CXX_INCLUDE_PATH}" )
+      set( GT_CXX_MANDATORY_FLAGS ${GT_CXX_MANDATORY_FLAGS} -I${MPI_CXX_INCLUDE_PATH} )
+  else()
+      if(ENABLE_CUDA)
+          set(CMAKE_CUDA_LINK_EXECUTABLE "<CMAKE_CXX_COMPILER>  <FLAGS> <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS>  -o <TARGET> <LINK_LIBRARIES>")
+      endif()
   endif()
   list(APPEND exe_LIBS ${MPI_CXX_LIBRARIES})
 endif()
+
+## caching ##
+if( NOT ENABLE_CACHING )
+    set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS} -D__DISABLE_CACHING__ )
+endif()
+
+
+set( GT_CXX_FLAGS ${GT_CXX_BUILDING_FLAGS} ${GT_CXX_OPTIONAL_FLAGS} ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} )
+string(STRIP "${GT_CXX_FLAGS}" GT_CXX_FLAGS)
+set( GT_CUDA_FLAGS ${GT_CUDA_BUILDING_FLAGS} ${GT_CUDA_OPTIONAL_FLAGS} ${GT_CUDA_OPTIMIZATION_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
+string(STRIP "${GT_CUDA_FLAGS}" GT_CUDA_FLAGS)
+
+
 
 # add a target to generate API documentation with Doxygen
 find_package(Doxygen)
@@ -246,11 +311,6 @@ function(gridtools_add_cuda_mpi_test test_name test_exec)
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
   add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_cuda_mpi_test)
-
-## caching ##
-if( NOT ENABLE_CACHING )
-    add_definitions( -D__DISABLE_CACHING__ )
-endif()
 
 add_definitions(-DGTEST_COLOR )
 include_directories( ${GTEST_INCLUDE_DIR} )

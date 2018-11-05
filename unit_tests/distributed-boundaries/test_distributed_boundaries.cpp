@@ -47,7 +47,7 @@
 #include <gridtools/boundary-conditions/copy.hpp>
 #include <gridtools/boundary-conditions/value.hpp>
 
-#include "backend_select.hpp"
+#include "../backend_select.hpp"
 
 #include "../tools/triplet.hpp"
 
