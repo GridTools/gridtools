@@ -41,7 +41,7 @@ target_include_directories(c_bindings_generator PUBLIC ${bindings_generator_path
 
 macro(add_bindings_library target_name)
     set(options)
-    set(one_value_args FORTRAN_OUTPUT_DIR C_OUTPUT_DIR FORTRAN_MODULE_NAME) # TODO use OUTPUT_DIR!!!
+    set(one_value_args FORTRAN_OUTPUT_DIR C_OUTPUT_DIR FORTRAN_MODULE_NAME)
     set(multi_value_args SOURCES)
     cmake_parse_arguments(ARG "${options}" "${one_value_args};" "${multi_value_args}" ${ARGN})
 
@@ -49,19 +49,19 @@ macro(add_bindings_library target_name)
         set(ARG_FORTRAN_MODULE_NAME ${target_name}) # default value
     endif()
 
-    add_library(${target_name} ${ARG_SOURCES})
-    target_link_libraries(${target_name} c_bindings_generator)
-
     if(ARG_C_OUTPUT_DIR)
         set(bindings_c_decl_filename ${ARG_C_OUTPUT_DIR}/${target_name}.h)
     else()
-        set(bindings_c_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.h)
+        set(bindings_c_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.h) # default value
     endif()
     if(ARG_FORTRAN_OUTPUT_DIR)
         set(bindings_fortran_decl_filename ${ARG_FORTRAN_OUTPUT_DIR}/${target_name}.f90)
     else()
-        set(bindings_fortran_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90)
+        set(bindings_fortran_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90) # default value
     endif()
+
+    add_library(${target_name} ${ARG_SOURCES})
+    target_link_libraries(${target_name} c_bindings_generator)
 
     if(NOT GT_BINDINGS_CROSS_COMPILATION)
         # generator
