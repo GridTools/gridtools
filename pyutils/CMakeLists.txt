@@ -1,6 +1,6 @@
 string(TOLOWER "${CMAKE_BUILD_TYPE}" PERFTEST_BUILD_TYPE)
 
-if(ENABLE_CUDA)
+if(GT_ENABLE_CUDA)
     set(PERFTEST_COMPILER "${CUDA_NVCC_EXECUTABLE}")
 else()
     set(PERFTEST_COMPILER "${CMAKE_CXX_COMPILER}")
@@ -18,19 +18,19 @@ else()
     set(PERFTEST_GRID "icosahedral")
 endif()
 
-if(ENABLE_X86 AND ENABLE_CUDA)
+if(GT_ENABLE_X86 AND GT_ENABLE_CUDA)
     message(FATAL_ERROR "Performance tests can only be enabled for a single backend")
 endif()
 
-if(ENABLE_X86)
+if(GT_ENABLE_X86)
     set(PERFTEST_BACKEND "x86")
 endif()
 
-if(ENABLE_CUDA)
+if(GT_ENABLE_CUDA)
     set(PERFTEST_BACKEND "cuda")
 endif()
 
-if(ENABLE_MC)
+if(GT_ENABLE_MC)
     set(PERFTEST_BACKEND "mc")
 endif()
 

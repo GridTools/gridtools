@@ -1,7 +1,7 @@
 cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.9)
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # ===============
@@ -9,30 +9,47 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # 1) define what flags should be available,
 
 enable_language (CXX Fortran C)
-include(CheckLanguage)
-check_language (CUDA)
-# enable CUDA if either support is required by the user, or if CUDA is available but the user
-# this not define ENABLE_CUDA.
-if ((DEFINED ENABLE_CUDA AND ENABLE_CUDA) OR (NOT DEFINED ENABLE_CUDA AND CMAKE_CUDA_COMPILER))
+if (NOT DEFINED GT_ENABLE_CUDA)
+    # detect CUDA support
+    include(CheckLanguage)
+    check_language (CUDA)
+
+    if (CMAKE_CUDA_COMPILER)
+        enable_language (CUDA)
+        message (STATUS "CUDA enabled")
+        set (CUDA_AVAILABLE ON)
+    else ()
+        message (STATUS "CUDA disabled")
+        set (CUDA_AVAILABLE OFF)
+    endif ()
+elseif (GT_ENABLE_CUDA)
     enable_language (CUDA)
     message (STATUS "CUDA enabled")
     set (CUDA_AVAILABLE ON)
 else ()
-    set (CUDA_AVAILABLE OFF)
     message (STATUS "CUDA disabled")
+    set (CUDA_AVAILABLE OFF)
+endif ()
+
+if (NOT DEFINED GT_USE_MPI)
+    find_package(MPI)
+    if (MPI_FOUND)
+        message (STATUS "MPI enabled")
+        set (MPI_AVAILABLE ON)
+    else ()
+        message (STATUS "MPI disabled")
+        set (MPI_AVAILABLE OFF)
+    endif()
+elseif (GT_USE_MPI)
+    find_package(MPI REQUIRED)
+    message (STATUS "MPI enabled")
+    set (MPI_AVAILABLE ON)
+else ()
+    message (STATUS "MPI disabled")
+    set (MPI_AVAILABLE OFF)
 endif()
 
 include (flags)
-
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CUDA_EXTENSIONS OFF)
-
-if( GRIDTOOLS_MODULES )
-  # To be completed!
-
-  add_subdirectory( modules/storage )
-
-else()
 
 if(POLICY CMP0060)
   # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
@@ -52,13 +69,17 @@ include (components)
 
 if( COMPONENT_COMMON )
     find_package( Boost 1.58 REQUIRED )
+    find_package( OpenMP REQUIRED )
+    find_package( Threads REQUIRED )
 
     generate_target_for(NAME common)
     generate_install_targets_for(common common)
-    target_link_libraries( common INTERFACE Boost::boost )
-    target_compile_options( common INTERFACE ${GPU_SPECIFIC_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
-    if (ENABLE_CUDA)
+    target_link_libraries( common INTERFACE Boost::boost OpenMP::OpenMP_CXX Threads::Threads)
+    target_compile_options( common INTERFACE ${GT_CXX_MANDATORY_FLAGS} )
+    if (GT_ENABLE_CUDA)
+        target_compile_options( common INTERFACE ${GPU_SPECIFIC_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
         target_include_directories( common INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+        target_link_libraries( common INTERFACE ${CUDA_CUDART_LIBRARY} )
     endif()
 
 endif()
@@ -78,9 +99,8 @@ endif()
 if( COMPONENT_GCL )
     generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
     generate_install_targets_for(gcl communication)
-    target_compile_options(gcl PUBLIC ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
     target_link_libraries(gcl common)
-    if( USE_MPI )
+    if( GT_USE_MPI )
         target_link_libraries(gcl MPI::MPI_CXX)
     endif()
 endif()
@@ -108,8 +128,6 @@ if( COMPONENT_C_BINDINGS )
     generate_install_targets_for(c_bindings_handle c_bindings None)
     target_link_libraries(c_bindings_handle common)
 
-    set(exe_LIBS ${exe_LIBS} c_bindings_handle)
-
     set(CMAKE_FORTRAN_MODOUT_FLAG ON)
     set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
 
@@ -122,8 +140,6 @@ if( COMPONENT_C_BINDINGS )
     #set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     generate_install_targets_for(c_bindings_generator c_bindings None)
     target_link_libraries(c_bindings_generator common)
-
-    set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
     add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
     target_compile_options(c_bindings_generator_main PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
@@ -169,7 +185,7 @@ endif()
 # ===============
 # Python scripts
 # ===============
-if(ENABLE_PYUTILS)
+if(GT_ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
@@ -202,5 +218,3 @@ endif()
 # Apply final actions
 # ===========
 include (post_config_actions)
-
-endif()

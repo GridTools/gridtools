@@ -12,7 +12,7 @@ include( ../cmake/gridtools.cmake )
 # =============
 
 ## Options and configuration ##
-gridtools_add_option( ENABLE_CUDA    DEFAULT ON  DESCRIPTION "Compile with GPU support (CUDA)" )
+gridtools_add_option( GT_ENABLE_CUDA    DEFAULT ON  DESCRIPTION "Compile with GPU support (CUDA)" )
 gridtools_add_option( ENABLE_WERROR  DEFAULT OFF DESCRIPTION "Treat warnings as errors" )
 set( GPU_DEVICE "GPU_DEVICE-NOTFOUND" CACHE STRING "GPU device (e.g. K40, K80, P100)" )
 
@@ -85,7 +85,7 @@ foreach( _flag ${GRIDTOOLS_CXX_FLAGS} )
   message( STATUS "  ${_flag}")
 endforeach()
 
-if( ENABLE_CUDA AND NOT GRIDTOOLS_HAVE_CUDA )
+if( GT_ENABLE_CUDA AND NOT GRIDTOOLS_HAVE_CUDA )
   message( STATUS "!!! GridTools installation does not support CUDA !!!" )
 elseif( GRIDTOOLS_HAVE_CUDA )
   message( STATUS "GridTools installation supports CUDA with CUDA_ARCH=${CUDA_ARCH}" )
