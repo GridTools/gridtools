@@ -38,28 +38,46 @@
 
 #include <type_traits>
 
+#include "defs.hpp"
+#include "first.hpp"
+#include "iseq_to_list.hpp"
+#include "length.hpp"
 #include "macros.hpp"
+#include "mp_find.hpp"
+#include "second.hpp"
+#include "utility.hpp"
+#include "zip.hpp"
 
 namespace gridtools {
     namespace meta {
+        /**
+         *   Take Nth element of the List
+         */
         GT_META_LAZY_NAMESPASE {
-            /**
-             *  Normalized std::conditional version, which is proper function in the terms of meta library.
-             *
-             *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
-             */
-            template <class Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
+            template <class List, size_t N>
+            struct at_c;
 
-            template <bool Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_c, std::conditional, (Cond, Lhs, Rhs));
+            template <class List>
+            struct at_c<List, 0> : first<List> {};
+
+            template <class List>
+            struct at_c<List, 1> : second<List> {};
+
+            template <class List, size_t N>
+            struct at_c
+                : second<typename mp_find<
+                      typename zip<typename iseq_to_list<make_index_sequence<length<List>::value>>::type, List>::type,
+                      std::integral_constant<size_t, N>>::type> {};
+
+            template <class List, class N>
+            GT_META_DEFINE_ALIAS(at, at_c, (List, N::value));
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
-        template <class Cond, class Lhs, class Rhs>
-        using if_ = typename std::conditional<Cond::value, Lhs, Rhs>::type;
-
-        template <bool Cond, class Lhs, class Rhs>
-        using if_c = typename std::conditional<Cond, Lhs, Rhs>::type;
+        // 'direct' versions of lazy functions
+        template <class List, class N>
+        using at = typename lazy::at_c<List, N::value>::type;
+        template <class List, size_t N>
+        using at_c = typename lazy::at_c<List, N>::type;
 #endif
     } // namespace meta
 } // namespace gridtools

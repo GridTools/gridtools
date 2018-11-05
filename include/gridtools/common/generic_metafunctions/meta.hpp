@@ -81,78 +81,6 @@ namespace gridtools {
 
         GT_META_LAZY_NAMESPASE {
 
-            /// some forward declarations is needed here for technical reason.
-            template <template <class...> class, class...>
-            struct filter;
-        }
-
-#if !GT_BROKEN_TEMPLATE_ALIASES
-
-        // 'direct' versions of lazy functions
-        template <template <class...> class F, class... Args>
-        using filter = typename lazy::filter<F, Args...>::type;
-
-#endif
-
-        GT_META_LAZY_NAMESPASE {
-
-            // internals
-            template <template <class...> class Pred>
-            struct filter_helper_impl {
-                template <class T>
-                GT_META_DEFINE_ALIAS(apply, meta::if_, (Pred<T>, list<T>, list<>));
-            };
-
-            /**
-             *  Filter the list based of predicate
-             */
-            template <template <class...> class Pred>
-            struct filter<Pred> {
-                using type = curry_fun<meta::filter, Pred>;
-            };
-            template <template <class...> class Pred, class List>
-            struct filter<Pred, List>
-                : flatten<typename concat<list<typename clear<List>::type>,
-                      typename transform<filter_helper_impl<Pred>::template apply, List>::type>::type> {};
-
-            // internals
-            template <class S, class T>
-            GT_META_DEFINE_ALIAS(dedup_step_impl, meta::if_, (st_contains<S, T>, S, typename push_back<S, T>::type));
-
-            /**
-             *  Removes duplicates from the List.
-             */
-            template <class List>
-            GT_META_DEFINE_ALIAS(dedup, lfold, (dedup_step_impl, typename clear<List>::type, List));
-
-            template <class List>
-            struct first;
-            template <template <class...> class L, class T, class... Ts>
-            struct first<L<T, Ts...>> {
-                using type = T;
-            };
-            template <class List>
-            struct second;
-            template <template <class...> class L, class T, class U, class... Ts>
-            struct second<L<T, U, Ts...>> {
-                using type = U;
-            };
-
-            /**
-             *   Take Nth element of the List
-             */
-            template <class List, class N>
-            struct at;
-            template <class List, template <class I, I> class Const, class Int>
-            struct at<List, Const<Int, 0>> : first<List> {};
-            template <class List, template <class I, I> class Const, class Int>
-            struct at<List, Const<Int, 1>> : second<List> {};
-            template <class List, class N>
-            struct at
-                : second<typename mp_find<typename zip<typename make_indices_for<List>::type, List>::type, N>::type> {};
-            template <class List, size_t N>
-            GT_META_DEFINE_ALIAS(at_c, at, (List, std::integral_constant<size_t, N>));
-
             template <class List>
             GT_META_DEFINE_ALIAS(last, at_c, (List, length<List>::value - 1));
 
@@ -401,18 +329,6 @@ namespace gridtools {
         using lazy::st_position;
 
 #if !GT_BROKEN_TEMPLATE_ALIASES
-        // 'direct' versions of lazy functions
-        template <class List>
-        using first = typename lazy::first<List>::type;
-        template <class List>
-        using second = typename lazy::second<List>::type;
-        template <class List, class N>
-        using at = typename lazy::at<List, N>::type;
-
-        template <class List>
-        using dedup = typename lazy::dedup<List>::type;
-        template <class List, size_t N>
-        using at_c = typename lazy::at_c<List, N>::type;
         template <class List>
         using last = typename lazy::last<List>::type;
         template <template <class...> class Pred, template <class...> class F, class List>

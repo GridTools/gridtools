@@ -36,30 +36,31 @@
 
 #pragma once
 
-#include <type_traits>
-
+#include "clear.hpp"
+#include "defs.hpp"
+#include "fold.hpp"
+#include "if.hpp"
 #include "macros.hpp"
+#include "push_back.hpp"
+#include "st_contains.hpp"
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
-            /**
-             *  Normalized std::conditional version, which is proper function in the terms of meta library.
-             *
-             *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
-             */
-            template <class Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
+        // internals
+        template <class S, class T>
+        GT_META_DEFINE_ALIAS(
+            dedup_step_impl, if_c, (st_contains<S, T>::value, S, typename lazy::push_back<S, T>::type));
 
-            template <bool Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_c, std::conditional, (Cond, Lhs, Rhs));
+        /**
+         *  Removes duplicates from the List.
+         */
+        GT_META_LAZY_NAMESPASE {
+            template <class List>
+            GT_META_DEFINE_ALIAS(dedup, lfold, (dedup_step_impl, typename clear<List>::type, List));
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
-        template <class Cond, class Lhs, class Rhs>
-        using if_ = typename std::conditional<Cond::value, Lhs, Rhs>::type;
-
-        template <bool Cond, class Lhs, class Rhs>
-        using if_c = typename std::conditional<Cond, Lhs, Rhs>::type;
+        template <class List>
+        using dedup = typename lazy::lfold<dedup_step_impl, typename lazy::clear<List>::type, List>::type;
 #endif
     } // namespace meta
 } // namespace gridtools

@@ -36,30 +36,38 @@
 
 #pragma once
 
-#include <type_traits>
-
+#include "concat.hpp"
+#include "curry_fun.hpp"
 #include "macros.hpp"
 
 namespace gridtools {
+    /**
+     *  Filter the list based of predicate
+     */
     namespace meta {
         GT_META_LAZY_NAMESPASE {
-            /**
-             *  Normalized std::conditional version, which is proper function in the terms of meta library.
-             *
-             *  Note: `std::conditional` should be named `if_c` according to `meta` name convention.
-             */
-            template <class Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_, std::conditional, (Cond::value, Lhs, Rhs));
-
-            template <bool Cond, class Lhs, class Rhs>
-            GT_META_DEFINE_ALIAS(if_c, std::conditional, (Cond, Lhs, Rhs));
+            template <template <class...> class, class...>
+            struct filter;
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
-        template <class Cond, class Lhs, class Rhs>
-        using if_ = typename std::conditional<Cond::value, Lhs, Rhs>::type;
+        GT_META_DELEGATE_TO_LAZY(filter, (template <class...> class F, class... Args), (F, Args...));
 
-        template <bool Cond, class Lhs, class Rhs>
-        using if_c = typename std::conditional<Cond, Lhs, Rhs>::type;
-#endif
+        GT_META_LAZY_NAMESPASE {
+            template <bool, template <class...> class L, class T>
+            struct wrap_if_impl {
+                using type = L<T>;
+            };
+
+            template <template <class...> class L, class T>
+            struct wrap_if_impl<false, L, T> {
+                using type = L<>;
+            };
+
+            template <template <class...> class Pred>
+            struct filter<Pred> {
+                using type = curry_fun<meta::filter, Pred>;
+            };
+            template <template <class...> class Pred, template <class...> class L, class... Ts>
+            struct filter<Pred, L<Ts...>> : concat<L<>, typename wrap_if_impl<Pred<Ts>::value, L, Ts>::type...> {};
+        }
     } // namespace meta
 } // namespace gridtools
