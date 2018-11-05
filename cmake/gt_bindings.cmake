@@ -31,13 +31,13 @@
 option(GT_BINDINGS_CROSS_COMPILATION "If turned on, bindings will not be generated." OFF)
 
 if(DEFINED GRIDTOOLS_LIBRARIES_DIR)
-    set(bindings_generator_path_to_src ${GRIDTOOLS_LIBRARIES_DIR}/../src)
+    set(local_GRIDTOOLS_ROOT ${GRIDTOOLS_LIBRARIES_DIR}/..)
 else()
-    set(bindings_generator_path_to_src ${CMAKE_SOURCE_DIR}/src)
+    set(local_GRIDTOOLS_ROOT ${CMAKE_SOURCE_DIR})
 endif()
 
-add_library(c_bindings_generator ${bindings_generator_path_to_src}/c_bindings/generator.cpp ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
-target_include_directories(c_bindings_generator PUBLIC ${bindings_generator_path_to_src}/../include)
+add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator_main.cpp)
+target_include_directories(c_bindings_generator PUBLIC ${local_GRIDTOOLS_ROOT}/include)
 
 macro(add_bindings_library target_name)
     set(options)
@@ -66,7 +66,7 @@ macro(add_bindings_library target_name)
     if(NOT GT_BINDINGS_CROSS_COMPILATION)
         # generator
         add_executable(${target_name}_decl_generator
-            ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
+            ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator_main.cpp)
         target_link_libraries(${target_name}_decl_generator c_bindings_generator)
     
         if (${APPLE})
@@ -84,7 +84,7 @@ macro(add_bindings_library target_name)
                 -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename}
                 -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename}
                 -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME}
-                -P ${bindings_generator_path_to_src}/../cmake/gt_bindings_generate.cmake #TODO FIXME
+                -P ${local_GRIDTOOLS_ROOT}/cmake/gt_bindings_generate.cmake
             BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
             DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
     else()
