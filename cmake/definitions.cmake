@@ -44,16 +44,6 @@ if(STRUCTURED_GRIDS)
     set( GT_CXX_BUILDING_FLAGS ${GT_CXX_BUILDING_FLAGS}  -DSTRUCTURED_GRIDS )
 endif()
 
-find_package( Boost 1.58 REQUIRED )
-
-if(Boost_FOUND)
-  # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
-  foreach(dir ${Boost_INCLUDE_DIRS})
-      include_directories( SYSTEM ${dir})
-  endforeach()
-  set(exe_LIBS ${Boost_LIBRARIES} ${exe_LIBS})
-endif()
-
 if(NOT ENABLE_CUDA AND NOT ENABLE_MC)
     set( GT_CXX_OPTIMIZATION_FLAGS ${GT_CXX_OPTIMIZATION_FLAGS}  -mtune=native -march=native )
 endif()
@@ -102,23 +92,21 @@ if( ENABLE_CUDA )
   set(GPU_SPECIFIC_FLAGS -D_USE_GPU_ -D_GCL_GPU_)
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
-  include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
-
   set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
-  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -arch=${CUDA_ARCH})
+  set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} $<$<COMPILE_LANGUAGE:CUDA>:-arch=${CUDA_ARCH}>)
 
   # suppress because of a warning coming from gtest.h
-  set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=code_is_unreachable)
+  set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=code_is_unreachable>)
 
   if( ${CUDA_VERSION_MAJOR} GREATER_EQUAL 9 )
     # suppress because of boost::fusion::vector ctor
-    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} -Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored)
+    set(GT_CUDA_BUILDING_FLAGS ${GT_CUDA_BUILDING_FLAGS} $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
   endif()
 
   if (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang")
-      set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} -ccbin=${CMAKE_CXX_COMPILER})
+      set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} $<$<COMPILE_LANGUAGE:CUDA>:-ccbin=${CMAKE_CXX_COMPILER}>)
   endif()
 
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
@@ -307,5 +295,3 @@ function(gridtools_add_cuda_mpi_test test_name test_exec)
 endfunction(gridtools_add_cuda_mpi_test)
 
 add_definitions(-DGTEST_COLOR )
-include_directories( ${GTEST_INCLUDE_DIR} )
-include_directories( ${GMOCK_INCLUDE_DIR} )

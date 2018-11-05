@@ -8,18 +8,27 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Load some cmake modules.
 # 1) define what flags should be available,
 
-include (flags)
-
-if (ENABLE_CUDA)
-    enable_language (CXX Fortran CUDA C)
-else()
-    enable_language (CXX Fortran C)
+enable_language (CXX Fortran C)
+include(CheckLanguage)
+check_language (CUDA)
+# enable CUDA if either support is required by the user, or if CUDA is available but the user
+# this not define ENABLE_CUDA.
+if ((DEFINED ENABLE_CUDA AND ENABLE_CUDA) OR (NOT DEFINED ENABLE_CUDA AND CMAKE_CUDA_COMPILER))
+    enable_language (CUDA)
+    message (STATUS "CUDA enabled")
+    set (CUDA_AVAILABLE ON)
+else ()
+    set (CUDA_AVAILABLE OFF)
+    message (STATUS "CUDA disabled")
 endif()
 
+include (flags)
+
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CUDA_EXTENSIONS OFF)
 
 if( GRIDTOOLS_MODULES )
-# To be completed!
+  # To be completed!
 
   add_subdirectory( modules/storage )
 
@@ -42,35 +51,50 @@ include (bindings)
 include (components)
 
 if( COMPONENT_COMMON )
+    find_package( Boost 1.58 REQUIRED )
+
     generate_target_for(NAME common)
     generate_install_targets_for(common common)
+    target_link_libraries( common INTERFACE Boost::boost )
+    target_compile_options( common INTERFACE ${GPU_SPECIFIC_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
+    if (ENABLE_CUDA)
+        target_include_directories( common INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+    endif()
+
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
     generate_target_for(NAME boundary-conditions)
     generate_install_targets_for(boundary-conditions boundary-conditions)
+    target_link_libraries( boundary-conditions INTERFACE common )
 endif()
 
 if( COMPONENT_STENCIL_COMPOSITION )
     generate_target_for(NAME stencil-composition)
     generate_install_targets_for(stencil-composition stencil-composition)
+    target_link_libraries( stencil-composition INTERFACE common )
 endif()
 
 if( COMPONENT_GCL )
     generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
     generate_install_targets_for(gcl communication)
-    target_compile_options(gcl PUBLIC ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} PRIVATE -std=c++11)
-    set(exe_LIBS ${exe_LIBS} gcl)
+    target_compile_options(gcl PUBLIC ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
+    target_link_libraries(gcl common)
+    if( USE_MPI )
+        target_link_libraries(gcl MPI::MPI_CXX)
+    endif()
 endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
     generate_target_for(NAME distributed-boundaries)
     generate_install_targets_for(distributed-boundaries distributed-boundaries)
+    target_link_libraries( distributed-boundaries INTERFACE boundary-conditions gcl )
 endif()
 
 if( COMPONENT_STORAGE )
     generate_target_for(NAME storage)
     generate_install_targets_for(storage storage)
+    target_link_libraries( distributed-boundaries INTERFACE common )
 endif()
 
 # ===============
@@ -80,8 +104,9 @@ endif()
 if( COMPONENT_C_BINDINGS )
     generate_target_for(NAME c_bindings_handle SOURCES src/c_bindings/handle.cpp)
     target_compile_options(c_bindings_handle PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
-   # set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    # set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     generate_install_targets_for(c_bindings_handle c_bindings None)
+    target_link_libraries(c_bindings_handle common)
 
     set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 
@@ -96,6 +121,7 @@ if( COMPONENT_C_BINDINGS )
     target_compile_options(c_bindings_generator PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
     #set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     generate_install_targets_for(c_bindings_generator c_bindings None)
+    target_link_libraries(c_bindings_generator common)
 
     set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
@@ -151,16 +177,19 @@ endif()
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE GridTools)
 
-
-configure_file(GridToolsConfig.cmake.in
-  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake" @ONLY)
-configure_file(GridToolsConfigVersion.cmake.in
-  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake" @ONLY)
+include(CMakePackageConfigHelpers)
+configure_package_config_file(GridToolsConfig.cmake.in
+  ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
+  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
+write_basic_package_version_file(
+  ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
+  VERSION 1.2.3
+  COMPATIBILITY SameMajorVersion )
 
 # Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
-install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
-  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
+install(FILES "${PROJECT_BINARY_DIR}/GridToolsConfig.cmake"
+  "${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
 
 if ( INSTALL_GT_EXAMPLES )
     install(DIRECTORY

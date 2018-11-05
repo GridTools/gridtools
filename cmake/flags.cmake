@@ -1,11 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
-
 option( SUPPRESS_MESSAGES "suppress compilation messages" ON)
 option( VERBOSE "set verbosity for output" OFF)
 set( BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
 set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 option( ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
-option( ENABLE_CUDA "Compile CUDA GPU backend examples and unit tests" OFF)
+option( ENABLE_CUDA "Compile CUDA GPU backend examples and unit tests" ${CUDA_AVAILABLE})
 option( ENABLE_X86 "Compile x86 backend examples and unit tests" ON )
 option( ENABLE_MC "Compile MC backend examples and unit tests" OFF )
 option( COMPILE_TO_PTX "Compile to intermediate representation" OFF )

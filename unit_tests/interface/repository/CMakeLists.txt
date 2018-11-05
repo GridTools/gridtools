@@ -1,5 +1,3 @@
-include_directories(${CMAKE_SOURCE_DIR}/include/)
-
 # The following macro is a trick to generate a file containing pre-processed compiler output (-E flag)
 macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     # check if ${cpp_file} is a file that exists (to protect that the user passes in multiple files or something else)
@@ -8,6 +6,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
         # ... but actually generate the preprocessed file
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
+        target_link_libraries( ${cpp_file}_OBJECTS common )
 
         # now use the preprocessed file to generate a library (which we will never use) ...
         add_library( dummy_${cpp_file} STATIC EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)

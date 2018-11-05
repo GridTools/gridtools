@@ -16,9 +16,6 @@ else(GCL_ONLY)
 
 
   if( ENABLE_CUDA )
-    if( GCL_MPI )
-      include_directories( ${MPI_INCLUDE_PATH} )
-    endif( GCL_MPI )
     if( USE_MPI )
       if(NOT MSVC)
         add_executable( cuda_test_halo_exchange_3D_all ../../regression/communication/test_halo_exchange_3D_all.cu )

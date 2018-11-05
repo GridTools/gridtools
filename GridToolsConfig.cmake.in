@@ -12,3 +12,21 @@ set(GRIDTOOLS_CXX_OPTIMIZATION_FLAGS "@GT_CXX_OPTIMIZATION_FLAGS@")
 set(GRIDTOOLS_CXX_FLAGS "@GT_CXX_FLAGS@")
 
 set(GRIDTOOLS_TPLS "@exe_LIBS@")
+
+find_package(MPI REQUIRED)
+find_package(Boost 1.58 REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/array_descriptorTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/boundary-conditionsTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/c_bindings_generatorTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/c_bindings_generator_mainTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/c_bindings_handleTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/commonTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/distributed-boundariesTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/gclTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/stencil-compositionTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/storageTargets.cmake")
+
+@PACKAGE_INIT@
+
+check_required_components(gridtools)
