@@ -6,9 +6,9 @@ if (ENABLE_X86)
     endif()
 
     add_bindings_library(implementation_${prec} SOURCES implementation.cpp FORTRAN_MODULE_NAME implementation)
-    target_compile_options(implementation_${prec} PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
+    target_compile_options(implementation_${prec} PRIVATE ${GT_CXX_BUILDING_FLAGS} ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} -D${X86_BACKEND_DEFINE})
     add_bindings_library(implementation_wrapper_${prec} SOURCES implementation-wrapper.cpp FORTRAN_MODULE_NAME implementation_wrapper)
-    target_compile_options(implementation_wrapper_${prec} PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
+    target_compile_options(implementation_wrapper_${prec} PRIVATE ${GT_CXX_BUILDING_FLAGS} ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} -D${X86_BACKEND_DEFINE})
 
     # the convention is that the user has to compile handle and array_descriptor
     add_library(c_bindings_handle ${CMAKE_SOURCE_DIR}/src/c_bindings/handle.cpp)
@@ -32,5 +32,4 @@ if (ENABLE_X86)
     target_link_libraries(fdriver_wrapper implementation_wrapper_${prec}_fortran)
     target_link_libraries(fdriver_wrapper fortran_bindings)
     set_target_properties(fdriver_wrapper PROPERTIES LINKER_LANGUAGE Fortran)
-
 endif(ENABLE_X86)
