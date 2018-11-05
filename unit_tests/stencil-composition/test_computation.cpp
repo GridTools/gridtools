@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "backend_select.hpp"
+#include "../backend_select.hpp"
 #include <boost/any.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>

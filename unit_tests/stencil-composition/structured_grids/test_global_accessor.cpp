@@ -40,7 +40,7 @@
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

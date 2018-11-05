@@ -38,7 +38,7 @@
    @brief File containing tests for the define_cache construct
 */
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/common/gt_assert.hpp>

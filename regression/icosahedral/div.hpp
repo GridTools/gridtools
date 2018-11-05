@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "benchmarker.hpp"
+#include "../backend_select.hpp"
+#include "../benchmarker.hpp"
 #include "div_functors.hpp"
 #include "operator_defs.hpp"
 #include "operators_repository.hpp"

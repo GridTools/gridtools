@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "benchmarker.hpp"
+#include "../backend_select.hpp"
+#include "../benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>

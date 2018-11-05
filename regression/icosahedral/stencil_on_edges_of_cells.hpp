@@ -43,8 +43,8 @@
  * We use it in a user functor with a manual loop over the 3 edges.
  * We dont make use of the on_cells nor the grid topology of the icosahedral/octahedral grid here
  */
-#include "backend_select.hpp"
-#include "benchmarker.hpp"
+#include "../backend_select.hpp"
+#include "../benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>

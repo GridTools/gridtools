@@ -39,7 +39,7 @@
 #include <gridtools/storage/common/storage_info_rt.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 using namespace gridtools;
 
