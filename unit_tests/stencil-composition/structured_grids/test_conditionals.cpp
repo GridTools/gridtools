@@ -37,7 +37,7 @@
 #include <gridtools/stencil-composition/conditionals/if_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 namespace test_conditionals {
     using namespace gridtools;

@@ -37,7 +37,7 @@
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

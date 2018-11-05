@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>

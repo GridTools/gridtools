@@ -42,7 +42,7 @@
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-#include "backend_select.hpp"
+#include "../backend_select.hpp"
 
 using namespace gridtools;
 

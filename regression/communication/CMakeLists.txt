@@ -1,4 +1,3 @@
-set( OLD_OPTIONS "${CMAKE_CXX_FLAGS}" )
 set(CUDA_SEPARABLE_COMPILATION OFF)
 
 ### Executables
@@ -17,29 +16,33 @@ else(GCL_ONLY)
 
 
   if( ENABLE_CUDA )
-    ##set(CMAKE_CXX_FLAGS "${OLD_OPTIONS}")
     if( GCL_MPI )
       include_directories( ${MPI_INCLUDE_PATH} )
     endif( GCL_MPI )
     if( USE_MPI )
       if(NOT MSVC)
-        cuda_add_executable( cuda_test_halo_exchange_3D_all ../../regression/communication/test_halo_exchange_3D_all.cu OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
+        add_executable( cuda_test_halo_exchange_3D_all ../../regression/communication/test_halo_exchange_3D_all.cu )
+        target_compile_options( cuda_test_halo_exchange_3D_all PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_all gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_all   ${exe_LIBS} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_all_2 ../../regression/communication/test_halo_exchange_3D_all_2.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
+        add_executable( cuda_test_halo_exchange_3D_all_2 ../../regression/communication/test_halo_exchange_3D_all_2.cu )
+        target_compile_options( cuda_test_halo_exchange_3D_all_2 PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_all_2 gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_all_2   ${exe_LIBS} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_all_3 ../../regression/communication/test_halo_exchange_3D_all_3.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
+        add_executable( cuda_test_halo_exchange_3D_all_3 ../../regression/communication/test_halo_exchange_3D_all_3.cu )
+        target_compile_options( cuda_test_halo_exchange_3D_all_3 PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_all_3 gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_all_3   ${exe_LIBS} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_generic ../../regression/communication/test_halo_exchange_3D_generic.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
+        add_executable( cuda_test_halo_exchange_3D_generic ../../regression/communication/test_halo_exchange_3D_generic.cu )
+        target_compile_options( cuda_test_halo_exchange_3D_generic PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_generic gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_generic  ${exe_LIBS} )
 
-        cuda_add_executable( cuda_test_halo_exchange_3D_generic_full ../../regression/communication/test_halo_exchange_3D_generic_full.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
+        add_executable( cuda_test_halo_exchange_3D_generic_full ../../regression/communication/test_halo_exchange_3D_generic_full.cu )
+        target_compile_options( cuda_test_halo_exchange_3D_generic_full PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_generic_full gcl )
         target_link_libraries( cuda_test_halo_exchange_3D_generic_full  ${exe_LIBS} )
 
