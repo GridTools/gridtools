@@ -50,7 +50,7 @@ macro(add_bindings_library target_name)
     endif()
 
     add_library(${target_name} ${ARG_SOURCES})
-    target_link_libraries(${target_name} ${binding_libs} c_bindings_generator)
+    target_link_libraries(${target_name} c_bindings_generator)
 
     set(bindings_c_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.h)
     set(bindings_fortran_decl_filename ${CMAKE_CURRENT_LIST_DIR}/${target_name}.f90)
@@ -60,7 +60,6 @@ macro(add_bindings_library target_name)
         add_executable(${target_name}_decl_generator
             ${bindings_generator_path_to_src}/c_bindings/generator_main.cpp)
         target_link_libraries(${target_name}_decl_generator c_bindings_generator)
-        set_target_properties(${target_name}_decl_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
     
         if (${APPLE})
             target_link_libraries(${target_name}_decl_generator
