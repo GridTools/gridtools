@@ -45,7 +45,7 @@
 
 #include "gtest/gtest.h"
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>

@@ -38,7 +38,7 @@
 #include <gridtools/stencil-composition/conditionals/switch_.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 namespace test_conditional_switches {
     using namespace gridtools;

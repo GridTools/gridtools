@@ -39,7 +39,7 @@
 
 #include <boost/fusion/include/make_vector.hpp>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 
 using gridtools::accessor;
 using gridtools::arg;

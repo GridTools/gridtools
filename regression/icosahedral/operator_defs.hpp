@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "backend_select.hpp"
+#include "../backend_select.hpp"
 
 using namespace gridtools;
 

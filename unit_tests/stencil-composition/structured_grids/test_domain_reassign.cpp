@@ -36,7 +36,7 @@
 #include <boost/mpl/vector.hpp>
 #include <gtest/gtest.h>
 
-#include "backend_select.hpp"
+#include "../../backend_select.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/stencil-composition/accessor.hpp>
