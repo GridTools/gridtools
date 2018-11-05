@@ -6,6 +6,7 @@ target_link_libraries(unittests_fortran_bindings unittests_c_bindings_handle)
 
 set(exe_LIBS ${exe_LIBS} unittests_fortran_bindings)
 set(exe_LIBS ${exe_LIBS} c_bindings_generator)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # collect tests
 fetch_x86_tests(.)

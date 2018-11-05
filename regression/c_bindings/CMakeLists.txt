@@ -27,7 +27,6 @@ if (ENABLE_X86)
 
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
 
-
     add_executable(fdriver fdriver.f90)
     if(SINGLE_PRECISION)
         target_link_libraries(fdriver implementation_float_fortran)
