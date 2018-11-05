@@ -147,7 +147,17 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
     set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
 endif()
 
-find_package( OpenMP )
+if(${CMAKE_VERSION} VERSION_LESS "3.12.0")  
+    # TODO remove this as soon as we bump our required version to 3.12
+    # Note: It seems that FindOpenMP ignores CMP0054. As this is an
+    # external code, we explicity turn that policy off.
+    cmake_policy(PUSH)
+    cmake_policy(SET CMP0054 OLD)
+    find_package( OpenMP )
+    cmake_policy(POP)
+else()
+    find_package( OpenMP )
+endif()
 
 ## openmp ##
 if(OPENMP_FOUND)
