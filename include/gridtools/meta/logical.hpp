@@ -77,22 +77,17 @@ namespace gridtools {
         template <class... Ts>
         GT_META_DEFINE_ALIAS(disjunction_fast, negation, conjunction_fast<negation<Ts>...>);
 
-/**
- *   all/some elements in lists are true
- */
-#if GT_BROKEN_TEMPLATE_ALIASES
+        /**
+         *   all elements in lists are true
+         */
         template <class List>
-        struct all : rename<conjunction_fast, List>::type {};
+        struct all : lazy::rename<conjunction_fast, List>::type {};
 
+        /**
+         *   some elements in lists are true
+         */
         template <class List>
-        struct any : rename<disjunction_fast, List>::type {};
-#else
-        template <class List>
-        using all = rename<conjunction_fast, List>;
-
-        template <class List>
-        using any = rename<disjunction_fast, List>;
-#endif
+        struct any : lazy::rename<disjunction_fast, List>::type {};
 
         /**
          *  All elements satisfy predicate
