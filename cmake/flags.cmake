@@ -14,7 +14,6 @@ option( SINGLE_PRECISION "Option determining number of bytes used to represent t
 option( STRUCTURED_GRIDS "compile for rectangular grids" ON )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
 option( ENABLE_CACHING "Enable caching functionality" ON)
-set( NVCC_CLANG_SPECIFIC_OPTIONS "" CACHE STRING "Options passed to NVCC when compiling with clang as host compiler" )
 option( GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors" OFF )
 set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
