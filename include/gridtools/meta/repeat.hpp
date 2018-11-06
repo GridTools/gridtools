@@ -60,7 +60,7 @@ namespace gridtools {
                 using type = list<T, T, T, Ts..., Ts...>;
             };
 
-            template <size_t N, class T>
+            template <std::size_t N, class T>
             struct repeat_c {
                 using type = typename repeat_impl_expand<typename repeat_c<N / 2, T>::type, N % 2>::type;
             };
@@ -79,7 +79,7 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(repeat, repeat_c, (N::value, T));
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
-        template <size_t N, class T>
+        template <std::size_t N, class T>
         using repeat_c = typename lazy::repeat_c<N, T>::type;
         template <class N, class T>
         using repeat = typename lazy::repeat_c<N::value, T>::type;

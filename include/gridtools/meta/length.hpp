@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <type_traits>
 
 namespace gridtools {
@@ -43,6 +45,6 @@ namespace gridtools {
         template <class>
         struct length;
         template <template <class...> class L, class... Ts>
-        struct length<L<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
+        struct length<L<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)> {};
     } // namespace meta
 } // namespace gridtools

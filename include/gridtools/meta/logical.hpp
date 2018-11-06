@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <type_traits>
 
 #include "list.hpp"
@@ -53,7 +54,7 @@ namespace gridtools {
          */
 #ifdef __NVCC__
         template <class... Ts>
-        struct sizeof_3_dots : std::integral_constant<size_t, sizeof...(Ts)> {};
+        struct sizeof_3_dots : std::integral_constant<std::size_t, sizeof...(Ts)> {};
 
 #define GT_SIZEOF_3_DOTS(Ts) ::gridtools::meta::sizeof_3_dots<Ts...>::value
 #else

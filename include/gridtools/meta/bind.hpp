@@ -45,7 +45,7 @@
 
 namespace gridtools {
     namespace meta {
-        template <size_t>
+        template <std::size_t>
         struct placeholder;
 
         using _1 = placeholder<0>;
@@ -62,7 +62,7 @@ namespace gridtools {
         template <class Arg, class... Params>
         struct replace_placeholders_impl : lazy::id<Arg> {};
 
-        template <size_t I, class... Params>
+        template <std::size_t I, class... Params>
         struct replace_placeholders_impl<placeholder<I>, Params...> : lazy::at_c<list<Params...>, I> {};
 
         /**

@@ -42,6 +42,7 @@
  * to know more about them.
  */
 
+#include <cstddef>
 #include <utility>
 
 namespace gridtools {
@@ -49,24 +50,24 @@ namespace gridtools {
         template <typename Int, Int... Indices>
         struct integer_sequence {
             using value_type = Int;
-            static constexpr size_t size() noexcept { return sizeof...(Indices); }
+            static constexpr std::size_t size() noexcept { return sizeof...(Indices); }
         };
 
         namespace _impl {
-            template <typename Seq, size_t Size, size_t Rem>
+            template <typename Seq, std::size_t Size, size_t Rem>
             struct expand_integer_sequence;
 
-            template <typename Int, Int... Is, size_t Size>
+            template <typename Int, Int... Is, std::size_t Size>
             struct expand_integer_sequence<integer_sequence<Int, Is...>, Size, 0> {
                 using type = integer_sequence<Int, Is..., (Size + Is)...>;
             };
 
-            template <typename Int, Int... Is, size_t Size>
+            template <typename Int, Int... Is, std::size_t Size>
             struct expand_integer_sequence<integer_sequence<Int, Is...>, Size, 1> {
                 using type = integer_sequence<Int, Is..., (Size + Is)..., 2 * Size>;
             };
 
-            template <typename Int, size_t N>
+            template <typename Int, std::size_t N>
             struct generate_integer_sequence {
                 using type = typename expand_integer_sequence<typename generate_integer_sequence<Int, N / 2>::type,
                     N / 2,
@@ -82,11 +83,11 @@ namespace gridtools {
         template <typename Int, Int N>
         using make_integer_sequence = typename _impl::generate_integer_sequence<Int, N>::type;
 
-        template <size_t... Indices>
-        using index_sequence = integer_sequence<size_t, Indices...>;
+        template <std::size_t... Indices>
+        using index_sequence = integer_sequence<std::size_t, Indices...>;
 
-        template <size_t N>
-        using make_index_sequence = make_integer_sequence<size_t, N>;
+        template <std::size_t N>
+        using make_index_sequence = make_integer_sequence<std::size_t, N>;
 
         template <class... Ts>
         using index_sequence_for = make_index_sequence<sizeof...(Ts)>;

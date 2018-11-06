@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <type_traits>
 
 #include <boost/preprocessor.hpp>
@@ -101,14 +102,14 @@ namespace gridtools {
                 GT_META_INTERNAL_LAZY_PARAM(replace_values_impl<NewVals...>::template apply),
                 Map));
 
-        template <size_t N, class New>
+        template <std::size_t N, class New>
         struct replace_at_impl {
             template <class T, class I>
             struct apply {
                 using type = T;
             };
             template <class T>
-            struct apply<T, std::integral_constant<size_t, N>> {
+            struct apply<T, std::integral_constant<std::size_t, N>> {
                 using type = New;
             };
         };
@@ -116,7 +117,7 @@ namespace gridtools {
         /**
          *  replace element at given position
          */
-        template <class List, size_t N, class New>
+        template <class List, std::size_t N, class New>
         GT_META_DEFINE_ALIAS(replace_at_c,
             transform,
             (GT_META_INTERNAL_LAZY_PARAM((replace_at_impl<N, New>::template apply)),

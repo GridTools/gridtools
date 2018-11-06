@@ -60,10 +60,10 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(combine, (template <class...> class F, class... Args), (F, Args...));
 
         GT_META_LAZY_NAMESPASE {
-            template <template <class...> class F, class List, size_t N>
+            template <template <class...> class F, class List, std::size_t N>
             struct combine_impl {
                 static_assert(N > 0, "N in combine_impl<F, List, N> must be positive");
-                static constexpr size_t m = N / 2;
+                static constexpr std::size_t m = N / 2;
                 using type = GT_META_CALL(F,
                     (typename combine_impl<F, List, m>::type,
                         typename combine_impl<F, typename drop_front_c<m, List>::type, N - m>::type));
