@@ -214,7 +214,7 @@ function(add_custom_mpi_x86_test)
         # create the test
         add_executable (${name} ${___SOURCES})
         target_compile_options(${name} PUBLIC ${GT_CXX_FLAGS} ${___ADDITIONAL_FLAGS} -D${X86_BACKEND_DEFINE} )
-        target_link_libraries(${name} gmock gtest_main gcl stencil-composition)
+        target_link_libraries(${name} gmock mpi_gtest_main gcl stencil-composition)
         target_include_directories(${name}
              PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
