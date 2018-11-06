@@ -12,7 +12,7 @@ module load daint-gpu
 module load cudatoolkit
 module rm   PrgEnv-cray
 module rm CMake
-module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.0
+module load /users/mlukas/easybuild/daint/haswell/modules/all/CMake/3.12.4
 
 
 if [[ ${COMPILER} == "gcc" ]]; then
