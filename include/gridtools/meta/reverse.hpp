@@ -33,44 +33,55 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "defs.hpp"
-#include "id.hpp"
-#include "list.hpp"
+#include <cstddef>
+
 #include "macros.hpp"
-#include "repeat.hpp"
+#include "push_back.hpp"
 
 namespace gridtools {
     namespace meta {
         /**
-         *  Drop N elements from the front of the list
-         *
-         *  Complexity is amortized O(1).
+         *   reverse algorithm.
+         *   Complexity is O(N)
+         *   Making specializations for the first M allows to divide complexity by M.
+         *   At a moment M = 4 (in boost::mp11 implementation it is 10).
+         *   For the optimizers: fill free to add more specializations if needed.
          */
         GT_META_LAZY_NAMESPASE {
-            template <class SomeList, class List>
-            class drop_front_impl;
-            template <class... Us, template <class...> class L, class... Ts>
-            class drop_front_impl<list<Us...>, L<Ts...>> {
-                template <class... Vs>
-                static L<Vs...> select(Us *..., id<Vs> *...);
+            template <class>
+            struct reverse;
 
-              public:
-                using type = decltype(select(((id<Ts> *)0)...));
+            template <template <class...> class L>
+            struct reverse<L<>> {
+                using type = L<>;
             };
-
-            template <class N, class List>
-            GT_META_DEFINE_ALIAS(drop_front, drop_front_impl, (typename repeat_c<N::value, void>::type, List));
-
-            template <size_t N, class List>
-            GT_META_DEFINE_ALIAS(drop_front_c, drop_front_impl, (typename repeat_c<N, void>::type, List));
+            template <template <class...> class L, class T>
+            struct reverse<L<T>> {
+                using type = L<T>;
+            };
+            template <template <class...> class L, class T0, class T1>
+            struct reverse<L<T0, T1>> {
+                using type = L<T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2>
+            struct reverse<L<T0, T1, T2>> {
+                using type = L<T2, T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2, class T3>
+            struct reverse<L<T0, T1, T2, T3>> {
+                using type = L<T3, T2, T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2, class T3, class T4>
+            struct reverse<L<T0, T1, T2, T3, T4>> {
+                using type = L<T4, T3, T2, T1, T0>;
+            };
+            template <template <class...> class L, class T0, class T1, class T2, class T3, class T4, class... Ts>
+            struct reverse<L<T0, T1, T2, T3, T4, Ts...>>
+                : push_back<typename reverse<L<Ts...>>::type, T4, T3, T2, T1, T0> {};
         }
-#if !GT_BROKEN_TEMPLATE_ALIASES
-        template <size_t N, class List>
-        using drop_front_c = typename lazy::drop_front_impl<typename repeat_c<N, void>::type, List>::type;
-        template <class N, class List>
-        using drop_front = typename lazy::drop_front_impl<typename repeat_c<N::value, void>::type, List>::type;
-#endif
+        GT_META_DELEGATE_TO_LAZY(reverse, class List, List);
     } // namespace meta
 } // namespace gridtools

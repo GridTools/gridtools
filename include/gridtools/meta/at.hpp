@@ -40,12 +40,10 @@
 
 #include "defs.hpp"
 #include "first.hpp"
-#include "iseq_to_list.hpp"
-#include "length.hpp"
 #include "macros.hpp"
+#include "make_indices.hpp"
 #include "mp_find.hpp"
 #include "second.hpp"
-#include "utility.hpp"
 #include "zip.hpp"
 
 namespace gridtools {
@@ -64,10 +62,8 @@ namespace gridtools {
             struct at_c<List, 1> : second<List> {};
 
             template <class List, size_t N>
-            struct at_c
-                : second<typename mp_find<
-                      typename zip<typename iseq_to_list<make_index_sequence<length<List>::value>>::type, List>::type,
-                      std::integral_constant<size_t, N>>::type> {};
+            struct at_c : second<typename mp_find<typename zip<typename make_indices_for<List>::type, List>::type,
+                              std::integral_constant<size_t, N>>::type> {};
 
             template <class List, class N>
             GT_META_DEFINE_ALIAS(at, at_c, (List, N::value));

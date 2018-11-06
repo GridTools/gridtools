@@ -33,6 +33,29 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../../meta.hpp"
+#include <type_traits>
+
+#include "length.hpp"
+#include "macros.hpp"
+#include "make_indices.hpp"
+#include "mp_find.hpp"
+#include "second.hpp"
+#include "zip.hpp"
+
+namespace gridtools {
+    namespace meta {
+        /**
+         * return the position of T in the Set. If there is no T, it returns the length of the Set.
+         *
+         *  @pre All elements in Set are different.
+         */
+        template <class Set,
+            class T,
+            class Pair = GT_META_CALL(mp_find, (GT_META_CALL(zip, (Set, GT_META_CALL(make_indices_for, Set))), T))>
+        struct st_position : std::conditional<std::is_void<Pair>::value, length<Set>, lazy::second<Pair>>::type::type {
+        };
+    } // namespace meta
+} // namespace gridtools

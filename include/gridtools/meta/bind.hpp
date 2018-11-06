@@ -33,6 +33,45 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../../meta.hpp"
+#include <cstddef>
+
+#include "at.hpp"
+#include "id.hpp"
+#include "list.hpp"
+#include "macros.hpp"
+
+namespace gridtools {
+    namespace meta {
+        template <size_t>
+        struct placeholder;
+
+        using _1 = placeholder<0>;
+        using _2 = placeholder<1>;
+        using _3 = placeholder<2>;
+        using _4 = placeholder<3>;
+        using _5 = placeholder<4>;
+        using _6 = placeholder<5>;
+        using _7 = placeholder<6>;
+        using _8 = placeholder<7>;
+        using _9 = placeholder<8>;
+        using _10 = placeholder<9>;
+
+        template <class Arg, class... Params>
+        struct replace_placeholders_impl : lazy::id<Arg> {};
+
+        template <size_t I, class... Params>
+        struct replace_placeholders_impl<placeholder<I>, Params...> : lazy::at_c<list<Params...>, I> {};
+
+        /**
+         *  bind for functions
+         */
+        template <template <class...> class F, class... BoundArgs>
+        struct bind {
+            template <class... Params>
+            GT_META_DEFINE_ALIAS(apply, F, (typename replace_placeholders_impl<BoundArgs, Params...>::type...));
+        };
+    } // namespace meta
+} // namespace gridtools

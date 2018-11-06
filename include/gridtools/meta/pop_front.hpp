@@ -33,6 +33,22 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "../../meta.hpp"
+#include "macros.hpp"
+
+namespace gridtools {
+    namespace meta {
+        GT_META_LAZY_NAMESPASE {
+            template <class>
+            struct pop_front;
+
+            template <template <class...> class L, class T, class... Ts>
+            struct pop_front<L<T, Ts...>> {
+                using type = L<Ts...>;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(pop_front, class List, List);
+    } // namespace meta
+} // namespace gridtools
