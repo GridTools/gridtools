@@ -17,7 +17,7 @@ if(NOT GT_GCL_ONLY)
     endforeach(srcfile)
 
 
-    if( GT_ENABLE_CUDA )
+    if( GT_ENABLE_TARGET_CUDA )
       if(NOT MSVC)
         add_executable( cuda_test_halo_exchange_3D_all test_halo_exchange_3D_all.cu )
         target_compile_options( cuda_test_halo_exchange_3D_all PUBLIC ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} -DSTANDALONE ${GPU_SPECIFIC_FLAGS})

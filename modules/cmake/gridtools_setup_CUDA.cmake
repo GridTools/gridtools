@@ -3,7 +3,7 @@ macro( gridtools_setup_CUDA )
 
   set( GRIDTOOLS_HAVE_CUDA 0 )
 
-  if( GT_ENABLE_CUDA )
+  if( GT_ENABLE_TARGET_CUDA )
     if( ENABLE_CUDA_REQUIRED )
       set( _find_cuda REQUIRED )
     else()
