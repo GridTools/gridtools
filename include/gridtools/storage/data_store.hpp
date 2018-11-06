@@ -38,6 +38,7 @@
 
 #include <array>
 #include <assert.h>
+#include <functional>
 #include <memory>
 #include <string>
 
