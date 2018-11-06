@@ -73,7 +73,7 @@ namespace gridtools {
             s_d2 = std::atoi(argv[2]);
             s_d3 = std::atoi(argv[3]);
             s_steps = argc > 4 ? std::atoi(argv[4]) : 0;
-            s_needs_verification = argc < 5 || std::strcmp(argv[5], "-d") != 0;
+            s_needs_verification = argc < 6 || std::strcmp(argv[5], "-d") != 0;
         }
     } // namespace _impl
 } // namespace gridtools
