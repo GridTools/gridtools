@@ -30,7 +30,8 @@ if [[ ${COMPILER} == "gcc" ]]; then
     *)
       module swap gcc/4.9.3
   esac
-  export HOST_COMPILER=`which CC`
+  export CXX=`which CC`
+  export CC=`which cc`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
   case ${VERSION} in
@@ -43,7 +44,8 @@ elif [[ ${COMPILER} == "icc" ]]; then
     *)
       module swap intel/18.0.2.199
   esac
-  export HOST_COMPILER=`which icpc`
+  export CXX=`which icpc`
+  export CC=`which icc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
