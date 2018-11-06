@@ -5,6 +5,7 @@ enable_testing()
 ####################################################################################
 
 # ===============
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest")
 
 if( NOT GT_GCL_ONLY )
@@ -40,7 +41,7 @@ function(fetch_x86_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} stencil-composition c_bindings_generator c_bindings_handle gmock gtest_main )
+            target_link_libraries(${unit_test} stencil-composition c_bindings_generator c_bindings_handle gtest gmock_main)
             target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
             target_include_directories(${unit_test}
                  PRIVATE
@@ -71,7 +72,7 @@ function(fetch_mc_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the test
             add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} stencil-composition c_bindings_generator c_bindings_handle gmock gtest_main )
+            target_link_libraries(${unit_test} stencil-composition c_bindings_generator c_bindings_handle gtest gmock_main )
             target_compile_options(${unit_test} PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE})
             target_include_directories(${unit_test}
                  PRIVATE
@@ -104,7 +105,7 @@ function(fetch_gpu_tests subfolder)
             set(CUDA_SEPARABLE_COMPILATION OFF)
             add_executable( ${unit_test} ${test_source} ${test_headers} )
             target_compile_options (${unit_test} PUBLIC ${GT_CXX_FLAGS} ${GT_CUDA_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE})
-            target_link_libraries(${unit_test}  stencil-composition c_bindings_generator c_bindings_handle gmock gtest_main )
+            target_link_libraries(${unit_test}  stencil-composition c_bindings_generator c_bindings_handle gtest gmock_main )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )
         endforeach(test_source)
