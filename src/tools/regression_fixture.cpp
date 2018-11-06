@@ -38,6 +38,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -52,10 +53,11 @@ namespace gridtools {
         bool regression_fixture_base::s_needs_verification = true;
 
         void regression_fixture_base::flush_cache() {
-            static int constexpr n = 1024 * 1024 * 21 / 2;
-            static double a[n];
-            static double b[n];
-            static double c[n];
+            static std::size_t n = 1024 * 1024 * 21 / 2;
+            static std::vector<double> a_(n), b_(n), c_(n);
+            double *a = a_.data();
+            double *b = b_.data();
+            double *c = c_.data();
 #pragma omp parallel for
             for (int i = 0; i < n; i++)
                 a[i] = b[i] * c[i];
