@@ -299,9 +299,7 @@ namespace gridtools {
                     cache_io_policy::fill>(it_domain, m_k_caches_tuple));
             }
 
-            using indexes_t = k_filling_caches_indexes_t;
-
-            boost::mpl::for_each<indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
+            boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
                 IterationPolicy,
@@ -317,9 +315,8 @@ namespace gridtools {
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            using indexes_t = k_flushing_caches_indexes_t;
 
-            boost::mpl::for_each<indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
+            boost::mpl::for_each<k_flushing_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
                 IterationPolicy,
