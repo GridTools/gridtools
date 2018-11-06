@@ -5,6 +5,7 @@ list(APPEND PERFTEST_SRCFILES stencil_on_edges_multiplefields stencil_on_cells s
 
 add_library(unstructured_grid ../Options.cpp unstructured_grid.cpp)
 target_compile_options(unstructured_grid PUBLIC ${GT_CXX_FLAGS})
+target_link_libraries(unstructured_grid stencil-composition)
 
 add_definitions("-DBENCHMARK")
 
@@ -17,8 +18,8 @@ if(GT_ENABLE_TARGET_X86)
         add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
         target_compile_options(${srcfile}_x86_naive PRIVATE ${GT_CXX_FLAGS}  -D${X86_BACKEND_DEFINE} -DBACKEND_STRATEGY_NAIVE)
         target_compile_options(${srcfile}_x86_block PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
-        target_link_libraries(${srcfile}_x86_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
-        target_link_libraries(${srcfile}_x86_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
+        target_link_libraries(${srcfile}_x86_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
+        target_link_libraries(${srcfile}_x86_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
 
         gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_block" "12 33 61")
         gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_block" "23 11 43")
@@ -33,7 +34,7 @@ endif(GT_ENABLE_TARGET_X86)
 if(GT_ENABLE_TARGET_MC)
     foreach(srcfile IN LISTS SRCFILES PERFTEST_SRCFILES)
         add_executable(${srcfile}_mc   ${srcfile}.cpp)
-        target_link_libraries(${srcfile}_mc ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
+        target_link_libraries(${srcfile}_mc ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
         target_compile_options(${srcfile}_mc PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE})
 
 
@@ -50,7 +51,7 @@ if(GT_ENABLE_TARGET_CUDA)
          set(CUDA_SEPARABLE_COMPILATION OFF)
          add_executable( ${srcfile}_cuda ${srcfile}.cu  )
          target_compile_options( ${srcfile}_cuda PRIVATE ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE})
-         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
+         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
 
          if( ${srcfile} STREQUAL "stencil_on_vertexes")
              # K lenght larger than 48 fails for stencil_on_vertexes_cuda... this need to be investigated
