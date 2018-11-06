@@ -42,7 +42,6 @@
 #include <gridtools/stencil-composition/block_size.hpp>
 #include <gridtools/stencil-composition/caches/cache_metafunctions.hpp>
 #include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
-#include <gridtools/stencil-composition/empty_extent.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
@@ -65,8 +64,8 @@ struct functor1 {
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
-typedef storage_traits<platform::x86>::storage_info_t<0, 2> storage_info_ij_t;
-typedef storage_traits<platform::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
+typedef storage_traits<target::x86>::storage_info_t<0, 2> storage_info_ij_t;
+typedef storage_traits<target::x86>::data_store_t<float_type, storage_info_ij_t> storage_type;
 
 typedef arg<0, storage_type> p_in;
 typedef arg<2, storage_type> p_out;
@@ -112,11 +111,10 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
     typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -141,11 +139,10 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
     typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -169,13 +166,12 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
     typedef local_domain<std::tuple<p_in, p_buff, p_out>, extent<>, false> local_domain_t;
 
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
     typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -207,11 +203,10 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
     typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
-    typedef
-        typename boost::mpl::fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>>::type
-            max_extent_t;
+    typedef typename boost::mpl::
+        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,

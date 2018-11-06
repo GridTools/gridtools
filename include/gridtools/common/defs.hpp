@@ -35,49 +35,37 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include "./generic_metafunctions/mpl_tags.hpp"
+
 /** \ingroup common
     @{
     \defgroup defs Common Definitions
     @{
 */
 
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/vector.hpp>
-
 /**
    @file
    @brief global definitions
 */
-#include "./generic_metafunctions/mpl_tags.hpp"
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/logical.hpp>
-#include <boost/type_traits.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <type_traits>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
 #define GT_MAX_MSS 10
 
 #if __cplusplus >= 201402L // since c++14
-#define DEPRECATED(func) [[deprecated]] func
-#define DEPRECATED_REASON(func, msg) [[deprecated(#msg)]] func
+#define GT_DEPRECATED(msg) [[deprecated(msg)]]
 #else
 #ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__((deprecated))
-#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#define GT_DEPRECATED(msg) __attribute__((deprecated))
 #elif defined(_MSC_VER)
-#define DEPRECATED(func) __declspec(deprecated) func
-#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#define GT_DEPRECATED(msg) __declspec(deprecated)
 #else
 #ifndef SUPPRESS_MESSAGES
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+#pragma message("WARNING: You need to implement GT_DEPRECATED for this compiler")
 #endif
-#define DEPRECATED(func) func
-#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#define GT_DEPRECATED(msg)
 #endif
 #endif
 
@@ -132,7 +120,6 @@ namespace gridtools {
 } // namespace gridtools
 #endif
 
-#include <boost/mpl/integral_c.hpp>
 // macro defining empty copy constructors and assignment operators
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
     TypeName(const TypeName &);            \
@@ -143,7 +130,7 @@ namespace gridtools {
 #if defined(__CUDACC_VER_MAJOR__)
 // CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
 // instantiation) see https://github.com/eth-cscs/gridtools/issues/976
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ < 2))
+#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
 #elif defined(__INTEL_COMPILER)
 #define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
 #elif defined(__clang__)
@@ -173,12 +160,12 @@ namespace gridtools {
         @{
     */
 
-    /** tags specifying the platform to use */
-    namespace platform {
+    /** tags specifying the target to use */
+    namespace target {
         struct cuda {};
         struct mc {};
         struct x86 {};
-    } // namespace platform
+    } // namespace target
 
     /** tags specifying the strategy to use */
     namespace strategy {

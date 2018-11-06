@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit/9.0.103_3.7-6.0.4.1_2.1__g72b395b
+module load cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52 
 module rm   PrgEnv-cray
 module load CMake
 
@@ -27,6 +27,9 @@ if [[ ${COMPILER} == "gcc" ]]; then
       ;;
     "7.1")
       module swap gcc/7.1.0
+      ;;
+    "7.3")
+      module swap gcc/7.3.0
       ;;
     *)
       module swap gcc/4.9.3
@@ -55,7 +58,7 @@ else
   exit_if_error 444
 fi
 
-export BOOST_ROOT=/scratch/snx3000/jenkins/install/boost/boost_1_67_0
+export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
@@ -70,5 +73,5 @@ export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export MAKE_THREADS=24
-export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:20:00"
+export SRUN_BUILD_COMMAND="srun -C gpu --account c14 -p cscsci --time=00:20:00"
 

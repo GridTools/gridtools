@@ -36,7 +36,7 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT ENABLE_CUDA AND NOT ENABLE_MIC)
+if(NOT ENABLE_CUDA AND NOT ENABLE_MC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
 endif()
 
@@ -98,11 +98,18 @@ if( ENABLE_CUDA )
   if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
-  
+
   # workaround for boost::optional with CUDA9.2
-  if( ${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2 )
+  if( (${CUDA_VERSION_MAJOR} EQUAL 9 AND ${CUDA_VERSION_MINOR} EQUAL 2) OR (${CUDA_VERSION_MAJOR} EQUAL 10) )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL")
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-DBOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE")
+  endif()
+  
+  if(${CXX_STANDARD} STREQUAL "c++14")
+    # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--expt-relaxed-constexpr")
+  elseif(${CXX_STANDARD} STREQUAL "c++17")
+    message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
 
   set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
@@ -110,9 +117,9 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
-if( ENABLE_MIC )
-    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
-endif( ENABLE_MIC )
+if( ENABLE_MC )
+    set(MC_BACKEND_DEFINE "BACKEND_MC")
+endif( ENABLE_MC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
@@ -134,12 +141,13 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable=15518,15552")
 endif()
 
-# Note: It seems that FindOpenMP ignores CMP0054. As this is an
-# external code, we explicity turn that policy off.
-cmake_policy(PUSH)
-cmake_policy(SET CMP0054 OLD)
+
+if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
+    # Controls preprocessor expansion of macros in Fortran source code.
+    set (CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -eF")
+endif()
+
 find_package( OpenMP )
-cmake_policy(POP)
 
 ## openmp ##
 if(OPENMP_FOUND)
@@ -168,7 +176,7 @@ else()
   if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
-  add_definitions("-DFLOAT_PRECISION=8") 
+  add_definitions("-DFLOAT_PRECISION=8")
   message(STATUS "Computations in double precision")
 endif()
 
@@ -194,6 +202,13 @@ if(DOXYGEN_FOUND)
     ${CMAKE_CURRENT_BINARY_DIR} COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif()
 
+file(WRITE ${TEST_MANIFEST} "# Executed tests with arguments\n")
+
+function(add_to_test_manifest)
+    file(APPEND ${TEST_MANIFEST} "${ARGN}\n")
+endfunction(add_to_test_manifest)
+
+
 ## test script generator ##
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
 file(APPEND ${TEST_SCRIPT} "hostname\n")
@@ -202,6 +217,7 @@ function(gridtools_add_test test_name test_script test_exec)
   file(APPEND ${test_script} "echo ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "res=$((res || $? ))\n")
+  add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_test)
 
 ## test script generator for MPI tests ##
@@ -210,6 +226,7 @@ function(gridtools_add_mpi_test test_name test_exec)
   file(APPEND ${TEST_MPI_SCRIPT} "echo \$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_MPI_SCRIPT} "res=$((res || $? ))\n")
+  add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_mpi_test)
 
 file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
@@ -217,6 +234,7 @@ function(gridtools_add_cuda_mpi_test test_name test_exec)
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "echo \$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
+  add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_cuda_mpi_test)
 
 ## caching ##

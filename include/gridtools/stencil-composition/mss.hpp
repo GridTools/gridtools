@@ -41,6 +41,7 @@
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "caches/cache_traits.hpp"
 #include "esf.hpp"
+#include "execution_types.hpp"
 
 /**
 @file
@@ -49,7 +50,7 @@
 namespace gridtools {
 
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = boost::mpl::vector0<>>
+    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = std::tuple<>>
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);

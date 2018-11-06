@@ -114,7 +114,7 @@ namespace gridtools {
     template <cache_type cacheType>
     struct cache_is_type {
         template <typename Cache>
-        struct apply : static_bool<Cache::cacheType == cacheType> {
+        struct apply : boost::integral_constant<bool, Cache::cacheType == cacheType> {
             GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         };
     };
@@ -155,7 +155,7 @@ namespace gridtools {
             typedef typename LocalDomain::template get_arg<IndexT>::type arg_t;
             using block_size_t = typename boost::mpl::if_<is_k_cache<Cache>, block_size<1, 1, 1>, BlockSize>::type;
 
-            typedef typename boost::mpl::if_<is_arg<arg_t>,
+            typedef typename boost::mpl::if_<is_plh<arg_t>,
                 cache_storage<Cache, block_size_t, typename boost::mpl::at<CacheExtentsMap, Cache>::type, arg_t>,
                 boost::mpl::void_>::type type;
         };

@@ -28,6 +28,7 @@ function help {
    echo "-k      build only the given Makefile targets    "
    echo "-o      compile only (not tests are run)         "
    echo "-p      enable performance testing               "
+   echo "-C      Only run CMAKE configure and generation  "
    exit 1
 }
 
@@ -37,9 +38,10 @@ ABSOLUTEPATH_SCRIPT=${INITPATH}/${BASEPATH_SCRIPT#$INITPATH}
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
+GENERATE_ONLY="OFF"
 PERFORMANCE_TESTING="OFF"
 
-while getopts "hb:t:f:l:zmsidvq:x:incok:p" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
     case "$opt" in
     h|\?)
         help
@@ -78,6 +80,8 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:p" opt; do
     o) COMPILE_ONLY="ON"
         ;;
     p) PERFORMANCE_TESTING="ON"
+        ;;
+    C) GENERATE_ONLY="ON"
         ;;
     esac
 done
@@ -123,7 +127,11 @@ if [ "x$TARGET" == "xgpu" ]; then
 else
     ENABLE_HOST=ON
     ENABLE_CUDA=OFF
-    ENABLE_MIC=ON
+    if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
+        ENABLE_MIC=ON
+    else
+        ENABLE_MIC=OFF
+    fi
 fi
 echo "ENABLE_CUDA=$ENABLE_CUDA"
 echo "ENABLE_HOST=$ENABLE_HOST"
@@ -226,6 +234,9 @@ echo "cmake \
 -DENABLE_PYUTILS=$PERFORMANCE_TESTING \
 ../
 "
+if [ "x$GENERATE_ONLY" == "xON" ]; then
+    exit 0
+fi
 
 exit_if_error $?
 

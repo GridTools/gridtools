@@ -43,9 +43,18 @@
 
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
+
+#include "storage_cuda/data_field_view_helpers.hpp"
+#include "storage_cuda/data_view_helpers.hpp"
 #endif
+
 #include "storage_traits_host.hpp"
-#include "storage_traits_mic.hpp"
+#include "storage_traits_mc.hpp"
+
+#include "storage_host/data_field_view_helpers.hpp"
+#include "storage_host/data_view_helpers.hpp"
+#include "storage_mc/data_field_view_helpers.hpp"
+#include "storage_mc/data_view_helpers.hpp"
 
 /**
  * \defgroup storage Storage
@@ -60,7 +69,7 @@ namespace gridtools {
     /**
      * @brief storage traits used to retrieve the correct storage_info, data_store, and data_store_field types.
      * Additionally to the default types, specialized and custom storage_info types can be retrieved
-     * @tparam T used platform (e.g., Cuda or Host)
+     * @tparam T used target (e.g., Cuda or Host)
      */
     template <class BackendId>
     struct storage_traits : gridtools::storage_traits_from_id<BackendId> {

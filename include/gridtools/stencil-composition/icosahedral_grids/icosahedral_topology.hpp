@@ -58,13 +58,12 @@
 #include <boost/mpl/vector.hpp>
 
 #include "../../common/array.hpp"
-#include "../../common/array_addons.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../location_type.hpp"
-#include "../position_offset_type.hpp"
+#include "position_offset_type.hpp"
 
 #include "icosahedral_topology_metafunctions.hpp"
 

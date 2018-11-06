@@ -52,7 +52,7 @@ namespace test_iterate_domain {
     typedef layout_map<0, 1, 2> layout_kji_t;
     typedef layout_map<0, 1> layout_ij_t;
 
-    typedef gridtools::backend<platform::cuda, grid_type::structured, strategy::block> backend_t;
+    typedef gridtools::backend<target::cuda, grid_type::structured, strategy::block> backend_t;
     typedef gridtools::cuda_storage_info<0, layout_ijk_t> meta_ijk_t;
     typedef gridtools::cuda_storage_info<0, layout_kji_t> meta_kji_t;
     typedef gridtools::cuda_storage_info<0, layout_ij_t> meta_ij_t;
@@ -141,7 +141,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         p_shared_mem_arg(),
         p_kcache_arg())) esf_t;
 
-    typedef iterate_domain_cuda<iterate_domain_arguments<backend_ids<platform::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_cuda<iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
         decay_t<decltype(std::get<0>(computation_.local_domains()))>,
         boost::mpl::vector1<esf_t>,
         boost::mpl::vector1<extent<0, 0, 0, 0>>,

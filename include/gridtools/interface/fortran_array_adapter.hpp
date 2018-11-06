@@ -23,6 +23,7 @@ namespace gridtools {
 
         using gt_view_rank = std::integral_constant<size_t, Layout::unmasked_length>;
         using gt_view_element_type = typename DataStore::data_t;
+        using gt_is_acc_present = bool_constant<true>;
 
         friend void transform(DataStore &dest, const fortran_array_adapter &src) {
             adapter{const_cast<fortran_array_adapter &>(src), dest}.from_array();
@@ -35,14 +36,20 @@ namespace gridtools {
         class adapter {
             using ElementType = typename DataStore::data_t;
 
+            ElementType *get_ptr_to_first_element(DataStore &data_store) {
+                auto si = *data_store.get_storage_info_ptr();
+                auto view = make_target_view(data_store);
+                return &view.data()[si.index(gridtools::array<int, DataStore::storage_info_t::ndims>{})];
+            }
+
           public:
             adapter(fortran_array_adapter &view, DataStore &data_store) {
 
                 storage_info_rt si = make_storage_info_rt(*data_store.get_storage_info_ptr());
-                m_dims = si.dims();
+                m_dims = si.total_lengths();
                 m_cpp_strides = si.strides();
                 m_fortran_pointer = static_cast<ElementType *>(view.m_descriptor.data);
-                m_cpp_pointer = make_host_view(data_store).ptr_to_first_position();
+                m_cpp_pointer = get_ptr_to_first_element(data_store);
 
                 if (!m_fortran_pointer)
                     throw std::runtime_error("No array to assigned to!");

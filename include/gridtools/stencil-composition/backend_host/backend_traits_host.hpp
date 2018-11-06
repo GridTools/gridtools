@@ -54,16 +54,14 @@
 namespace gridtools {
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
-    struct backend_traits_from_id<platform::x86> {
+    struct backend_traits_from_id<target::x86> {
 
-        /** This is the functor used to generate view instances. According to the given storage (data_store,
-           data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
-        */
+        /** This is the functor used to generate view instances. According to the given storage an appropriate view is
+         * returned. When using the Host backend we return host view instances.
+         */
         struct make_view_f {
             template <typename S, typename SI>
             auto operator()(data_store<S, SI> const &src) const GT_AUTO_RETURN(make_host_view(src));
-            template <typename S, uint_t... N>
-            auto operator()(data_store_field<S, N...> const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
         template <uint_t Id>

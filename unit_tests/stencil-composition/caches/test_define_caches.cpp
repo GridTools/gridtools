@@ -60,11 +60,10 @@ TEST(define_caches, test_sequence_caches) {
         cache<IJK, cache_io_policy::flush>(arg1_t()),
         cache<K, cache_io_policy::local>(arg2_t()))) cache_sequence_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<cache_sequence_t,
-            boost::mpl::vector3<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill, boost::mpl::void_>,
-                detail::cache_impl<IJK, arg1_t, cache_io_policy::flush, boost::mpl::void_>,
-                detail::cache_impl<K, arg2_t, cache_io_policy::local, boost::mpl::void_>>>::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<cache_sequence_t,
+                                boost::mpl::vector3<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill, void>,
+                                    detail::cache_impl<IJK, arg1_t, cache_io_policy::flush, void>,
+                                    detail::cache_impl<K, arg2_t, cache_io_policy::local, void>>>::value),
         "Failed TEST");
 
     static constexpr int_t level_offset_limit = 1;
@@ -81,21 +80,17 @@ TEST(define_caches, test_sequence_caches) {
                                     detail::cache_impl<K, arg1_t, cache_io_policy::flush, interval_>>>::value),
         "Failed TEST");
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<caches_ret_sequence_3_t,
-            boost::mpl::vector3<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill, boost::mpl::void_>,
-                detail::cache_impl<IJ, arg1_t, cache_io_policy::fill, boost::mpl::void_>,
-                detail::cache_impl<IJ, arg2_t, cache_io_policy::fill, boost::mpl::void_>>>::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_3_t,
+                                boost::mpl::vector3<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill, void>,
+                                    detail::cache_impl<IJ, arg1_t, cache_io_policy::fill, void>,
+                                    detail::cache_impl<IJ, arg2_t, cache_io_policy::fill, void>>>::value),
         "Failed TEST");
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<caches_ret_sequence_2_t,
-            boost::mpl::vector2<detail::cache_impl<IJK, arg0_t, cache_io_policy::fill, boost::mpl::void_>,
-                detail::cache_impl<IJK, arg1_t, cache_io_policy::fill, boost::mpl::void_>>>::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_2_t,
+                                boost::mpl::vector2<detail::cache_impl<IJK, arg0_t, cache_io_policy::fill, void>,
+                                    detail::cache_impl<IJK, arg1_t, cache_io_policy::fill, void>>>::value),
         "Failed TEST");
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal<caches_ret_sequence_1_t,
-            boost::mpl::vector1<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill, boost::mpl::void_>>>::value),
+            boost::mpl::vector1<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill, void>>>::value),
         "Failed TEST");
-
-    ASSERT_TRUE(true);
 }

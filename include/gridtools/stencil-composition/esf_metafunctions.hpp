@@ -70,12 +70,10 @@ namespace gridtools {
        from false_type), or map between placeholders in this ESF and the extents
        associated with it (if Pred derives from true_type)
      */
-    template <typename Esf, typename Pred = boost::false_type>
+    template <typename Esf>
     struct esf_args {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_predicate<Pred>::type::value), "Not a Predicate");
-
-        typedef typename boost::mpl::if_<Pred, typename Esf::args_with_extents, typename Esf::args_t>::type type;
+        typedef typename Esf::args_t type;
     };
 
     /**
@@ -116,7 +114,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
         template <typename Index>
         struct apply {
-            typedef typename boost::mpl::if_<is_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
+            typedef typename boost::mpl::if_<is_plh<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
                 typename boost::mpl::if_<typename is_accessor_readonly<typename boost::mpl::
                                                  at<typename esf_arg_list<Esf>::type, Index>::type>::type,
                     boost::false_type,
@@ -227,18 +225,6 @@ namespace gridtools {
             extract_readonly_arg<boost::mpl::_1, boost::mpl::_2, readwrite_args_t>>::type type;
     };
 
-    /**
-       @brief It computes an associative sequence of indices for all arg types specified by
-        the user that are readonly through all ESFs/MSSs
-     */
-    template <typename EsfSequence>
-    struct compute_readonly_args_indices {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), "Wrong type");
-        typedef typename boost::mpl::fold<typename compute_readonly_args<EsfSequence>::type,
-            boost::mpl::set0<>,
-            boost::mpl::insert<boost::mpl::_1, arg_index<boost::mpl::_2>>>::type type;
-    };
-
     /*
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
@@ -267,9 +253,6 @@ namespace gridtools {
 
         typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
-
-    template <typename T>
-    struct is_esf_descriptor<independent_esf<T>> : boost::mpl::true_ {};
 
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
     template <typename ESFList>

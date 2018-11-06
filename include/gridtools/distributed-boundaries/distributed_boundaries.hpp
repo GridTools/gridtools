@@ -51,8 +51,6 @@
 #endif
 #include "./grid_predicate.hpp"
 
-#include "../gridtools.hpp"
-#include "../stencil-composition/stencil-composition.hpp"
 #include "./bound_bc.hpp"
 
 namespace gridtools {
@@ -153,11 +151,14 @@ namespace gridtools {
            true mean the dimension is periodic
             \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a
            runtime error (probably segmentation fault), passing less will underutilize the memory
-            \param CartComm MPI communicator to use in the halo update operation.
+            \param CartComm MPI communicator to use in the halo update operation [must be a cartesian communicator]
         */
         distributed_boundaries(
             array<halo_descriptor, 3> halos, boollist<3> period, uint_t max_stores, MPI_Comm CartComm)
-            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm, m_sizes) {
+            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm) {
+
+            m_he.pattern().proc_grid().fill_dims(m_sizes);
+
             m_he.template add_halo<0>(
                 m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
 
@@ -194,6 +195,9 @@ namespace gridtools {
             to apply boundary conditions and halo_update operations for the data_stores that are not input-only
             (that will be indicated with the gridtools::bound_bc::associate member function.)
 
+            The function first perform communication then applies the boundary condition. This allows a copy-boundary
+            from the inner region to the halo region to run as expected.
+
             \param jobs Variadic list of jobs
         */
         template <typename... Jobs>
@@ -212,8 +216,6 @@ namespace gridtools {
                 throw std::runtime_error(err);
             }
 
-            boundary_only(jobs...);
-
             call_pack(all_stores_for_exc,
                 typename make_gt_integer_sequence<uint_t,
                     std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
@@ -221,6 +223,8 @@ namespace gridtools {
             call_unpack(all_stores_for_exc,
                 typename make_gt_integer_sequence<uint_t,
                     std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
+
+            boundary_only(jobs...);
         }
 
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
@@ -266,7 +270,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.pack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
+            m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
@@ -277,7 +281,7 @@ namespace gridtools {
 
         template <typename Stores, uint_t... Ids>
         void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
-            m_he.unpack(advanced::get_address_of(_impl::proper_view<typename CTraits::compute_arch,
+            m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
                     make(std::get<Ids>(stores)))...);
