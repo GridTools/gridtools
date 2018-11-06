@@ -278,8 +278,7 @@ namespace gridtools {
                     // dereference its address (it_domain_evaluator) and gather back all the arguments while calling the
                     // user lambda
                     // (Reduction)
-                    using seq =
-                        apply_gt_integer_sequence<typename make_gt_integer_sequence<int, sizeof...(Accessors)>::type>;
+                    using seq = apply_gt_integer_sequence<make_gt_integer_sequence<int, sizeof...(Accessors)>>;
 
                     reducer.m_result = seq::template apply_lambda<ValueType,
                         Reduction,

@@ -102,8 +102,9 @@ namespace gridtools {
         static constexpr int extra_dims = 0;
 #endif
 
-        typedef typename _impl::generate_layout_map<
-            typename make_gt_integer_sequence<uint_t, sizeof...(Tiles) + (extra_dims)>::type>::type layout_t;
+        typedef
+            typename _impl::generate_layout_map<make_gt_integer_sequence<uint_t, sizeof...(Tiles) + (extra_dims)>>::type
+                layout_t;
 
         using iminus_t = typename boost::mpl::at_c<typename minus_t::type, 0>::type;
         using jminus_t = typename boost::mpl::at_c<typename minus_t::type, 1>::type;

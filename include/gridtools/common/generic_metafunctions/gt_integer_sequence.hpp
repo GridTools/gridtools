@@ -83,7 +83,7 @@ namespace gridtools {
         @tparam N size of the integer sequence
      */
     template <typename UInt, UInt N>
-    using make_gt_integer_sequence = meta::integer_sequence<UInt, N>;
+    using make_gt_integer_sequence = meta::make_integer_sequence<UInt, N>;
 
     template <size_t... Ints>
     using gt_index_sequence = meta::index_sequence<Ints...>;

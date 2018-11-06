@@ -134,7 +134,7 @@ namespace gridtools {
             template <typename... ExtraInts>
             GT_FUNCTION static constexpr array<UInt, ArraySize> apply(
                 const array<uint_t, 3> space_dims, ExtraInts... extra_dims) {
-                using seq = apply_gt_integer_sequence<typename make_gt_integer_sequence<int, ArraySize>::type>;
+                using seq = apply_gt_integer_sequence<make_gt_integer_sequence<int, ArraySize>>;
 
                 return seq::template apply<array<UInt, ArraySize>,
                     array_elem_initializer<UInt, LocationType>::template init_elem>(space_dims, extra_dims...);

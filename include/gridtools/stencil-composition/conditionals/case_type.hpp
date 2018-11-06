@@ -34,7 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-/**@file*/
+
+#include <type_traits>
+
 namespace gridtools {
 
     /**@brief construct for storing a case in a @ref gridtools::switch_ statement
@@ -75,14 +77,14 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_case_type : boost::mpl::false_ {};
+    struct is_case_type : std::false_type {};
 
     template <typename T, typename Mss>
-    struct is_case_type<case_type<T, Mss>> : boost::mpl::true_ {};
+    struct is_case_type<case_type<T, Mss>> : std::true_type {};
 
     template <typename T>
-    struct is_default_type : boost::mpl::false_ {};
+    struct is_default_type : std::false_type {};
 
     template <typename Mss>
-    struct is_default_type<default_type<Mss>> : boost::mpl::true_ {};
+    struct is_default_type<default_type<Mss>> : std::true_type {};
 } // namespace gridtools
