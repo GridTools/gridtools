@@ -78,6 +78,11 @@ add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_
 target_link_libraries(repository_${prec} gtest)
 target_link_libraries(repository_${prec} pthread)
 target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS})
+if(SINGLE_PRECISION)
+    target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=4)
+else()
+    target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=8)
+endif()
 
 add_library(repository_fortran_lib test_repository.f90)
 target_compile_options(repository_fortran_lib PRIVATE "-cpp")
