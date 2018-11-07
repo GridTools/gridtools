@@ -73,6 +73,16 @@ if( COMPONENT_STORAGE )
     generate_install_targets_for(storage storage)
 endif()
 
+if( COMPONENT_INTERFACE )
+    generate_target_for(NAME interface)
+    generate_install_targets_for(interface interface)
+endif()
+
+if( COMPONENT_TOOLS )
+    generate_target_for(NAME tools)
+    generate_install_targets_for(tools tools)
+endif()
+
 # ===============
 # examples and tests
 # ===============
@@ -121,6 +131,8 @@ install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
 
 # TODO for GC-546: move this to an appropriate location
 if(COMPONENT_C_BINDINGS)
+    generate_target_for(NAME c_bindings)
+    generate_install_targets_for(c_bindings c_bindings)
     install(FILES
         "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake"
         "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"

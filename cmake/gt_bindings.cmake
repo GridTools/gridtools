@@ -39,6 +39,32 @@ endif()
 add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator_main.cpp)
 target_include_directories(c_bindings_generator PUBLIC ${local_GRIDTOOLS_ROOT}/include)
 
+# we add a target explictly (in case Fortran was enabled after add_bindings_library() was called)
+macro(enable_bindings_library_fortran target_name)
+    get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+    if("Fortran" IN_LIST languages)
+        if(NOT TARGET c_bindings_handle)
+            add_library(c_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.cpp)
+            target_include_directories(c_bindings_handle PUBLIC ${local_GRIDTOOLS_ROOT}/include)
+        endif()
+        if(NOT TARGET fortran_bindings_handle)
+            add_library(fortran_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/array_descriptor.f90 ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.f90)
+            target_link_libraries(fortran_bindings_handle PUBLIC c_bindings_handle)
+            target_include_directories(fortran_bindings_handle PUBLIC ${CMAKE_CURRENT_BINARY_DIR}) #for the .mod files
+        endif()
+        if(NOT TARGET ${target_name}_fortran)
+            set_source_files_properties(${${target_name}_fortran_bindings_path} PROPERTIES GENERATED TRUE)
+            add_library(${target_name}_fortran EXCLUDE_FROM_ALL ${${target_name}_fortran_bindings_path})
+            target_link_libraries(${target_name}_fortran ${target_name})
+            target_link_libraries(${target_name}_fortran fortran_bindings_handle)
+            target_include_directories(${target_name}_fortran PUBLIC ${CMAKE_CURRENT_BINARY_DIR}) # location of mod file
+            add_dependencies(${target_name}_fortran ${target_name}_declarations)
+        endif()
+    elseif(NOT ${ARGN})
+        message(FATAL_ERROR "Please enable_language(Fortran) to compile the Fortran bindings.")
+    endif()
+endmacro()
+
 macro(add_bindings_library target_name)
     set(options)
     set(one_value_args FORTRAN_OUTPUT_DIR C_OUTPUT_DIR FORTRAN_MODULE_NAME)
@@ -79,6 +105,7 @@ macro(add_bindings_library target_name)
         endif()
     
         add_custom_target(${target_name}_declarations
+            ALL
             COMMAND ${CMAKE_COMMAND}
                 -DGENERATOR=${CMAKE_CURRENT_BINARY_DIR}/${target_name}_decl_generator
                 -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename}
@@ -98,14 +125,13 @@ macro(add_bindings_library target_name)
         endif()
     endif()
 
-    # bindings c library
+    # bindings c library (TODO similar to Fortran: compile the handle.cpp and create a dependency)
     add_library(${target_name}_c INTERFACE)
     target_link_libraries(${target_name}_c INTERFACE ${target_name})
     add_dependencies(${target_name}_c ${target_name}_declarations)
 
     # bindings Fortran library
-    add_library(${target_name}_fortran ${bindings_fortran_decl_filename})
-    target_link_libraries(${target_name}_fortran ${target_name} ${binding_f90_libs})
-    add_dependencies(${target_name}_fortran ${target_name}_declarations)
+    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename})
+    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename} PARENT_SCOPE)
+    enable_bindings_library_fortran(${target_name} TRUE)
 endmacro()
-
