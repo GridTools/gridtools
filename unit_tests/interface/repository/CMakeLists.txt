@@ -76,7 +76,8 @@ endif()
 
 add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
 target_link_libraries(repository_${prec} gtest)
-target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} -D${X86_BACKEND_DEFINE})
+target_link_libraries(repository_${prec} pthread)
+target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS})
 
 add_library(repository_fortran_lib test_repository.f90)
 target_compile_options(repository_fortran_lib PRIVATE "-cpp")
