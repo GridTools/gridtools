@@ -35,208 +35,73 @@
 */
 #pragma once
 
-#include "backend_select.hpp"
-#include <gridtools/storage/storage-facility.hpp>
+#include <cmath>
+#include <functional>
 
-namespace horizontal_diffusion {
+#include <gridtools/common/defs.hpp>
 
-    using storage_tr = gridtools::storage_traits<backend_t::backend_id_t>;
+namespace gridtools {
+    class horizontal_diffusion_repository {
+        using fun_t = std::function<double(int_t, int_t, int_t)>;
+        using j_fun_t = std::function<double(int_t)>;
+        uint_t m_d1, m_d2, m_d3;
 
-    using gridtools::int_t;
-    using gridtools::uint_t;
+        double m_delta0 = (0.995156 - 0.994954) / (m_d2 - 1.);
+        double m_delta1 = (0.995143 - 0.994924) / (m_d2 - 1.);
 
-    using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gridtools::halo<2, 2, 0>>;
-    using storage_info_ij_t =
-        storage_tr::special_storage_info_t<1, gridtools::selector<1, 1, 0>, gridtools::halo<2, 2, 0>>;
-    using storage_info_j_t =
-        storage_tr::special_storage_info_t<2, gridtools::selector<0, 1, 0>, gridtools::halo<0, 0, 0>>;
-    using storage_info_scalar_t =
-        storage_tr::special_storage_info_t<3, gridtools::selector<0, 0, 0>, gridtools::halo<0, 0, 0>>;
-
-    class repository {
-      public:
-        using storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ijk_t>;
-        using ij_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_ij_t>;
-        using j_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_j_t>;
-        using scalar_storage_type = storage_tr::data_store_t<gridtools::float_type, storage_info_scalar_t>;
-
-        storage_info_ijk_t m_storage_info_ijk;
-        storage_info_j_t m_storage_info_j;
-
-      private:
-        storage_info_ij_t m_storage_info_ij;
-        storage_info_scalar_t m_storage_info_scalar;
-        storage_type in_, out_, out_ref_, coeff_;
-        j_storage_type crlato_, crlatu_, crlat0_, crlat1_;
-        const uint_t halo_size_;
-        const uint_t idim_, jdim_, kdim_;
+        j_fun_t m_crlat0 = [this](int_t j) { return 0.994954 + j * m_delta0; };
+        j_fun_t m_crlat1 = [this](int_t j) { return 0.994924 + j * m_delta1; };
 
       public:
-        repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info_ijk(idim, jdim, kdim), m_storage_info_ij(idim, jdim, kdim), m_storage_info_j(1, jdim, 1),
-              m_storage_info_scalar(1, 1, 1), in_(m_storage_info_ijk, "in"), crlato_(m_storage_info_j, "crlato"),
-              crlatu_(m_storage_info_j, "crlatu"), crlat0_(m_storage_info_j, "crlat0"),
-              crlat1_(m_storage_info_j, "crlat1"), out_(m_storage_info_ijk, "out"),
-              out_ref_(m_storage_info_ijk, "out_ref"), coeff_(m_storage_info_ijk, "coeff"), halo_size_(halo_size),
-              idim_(idim), jdim_(jdim), kdim_(kdim) {}
+        horizontal_diffusion_repository(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
 
-        void init_fields() {
+        fun_t in = [this](int_t i, int_t j, int_t) {
             const double PI = std::atan(1.) * 4.;
-            init_field_to_value(out_, 0.0);
-            init_field_to_value(out_ref_, 0.0);
+            double dx = 1. / m_d1;
+            double dy = 1. / m_d2;
+            double x = dx * i;
+            double y = dy * j;
+            // in values between 5 and 9
+            return 5. + 8 * (2. + cos(PI * (x + 1.5 * y)) + sin(2 * PI * (x + 1.5 * y))) / 4.;
+        };
 
-            auto v_in = make_host_view(in_);
-            auto v_coeff = make_host_view(coeff_);
-            auto v_crlato = make_host_view(crlato_);
-            auto v_crlatu = make_host_view(crlatu_);
-            auto v_crlat0 = make_host_view(crlat0_);
-            auto v_crlat1 = make_host_view(crlat1_);
+        fun_t coeff = [](int_t, int_t, int_t) { return 0.025; };
 
-            const uint_t i_begin = 0;
-            const uint_t i_end = idim_;
-            const uint_t j_begin = 0;
-            const uint_t j_end = jdim_;
-            const uint_t k_begin = 0;
-            const uint_t k_end = kdim_;
+        fun_t crlato = [this](int_t, int_t j, int_t) { return m_crlat1(j) / m_crlat0(j); };
 
-            double dx = 1. / (double)(i_end - i_begin);
-            double dy = 1. / (double)(j_end - j_begin);
+        fun_t crlatu = [this](int_t, int_t j, int_t) { return j == 0 ? 0 : m_crlat1(j - 1) / m_crlat0(j); };
 
-            double delta0 = (0.995156 - 0.994954) / (double)(jdim_ - 1);
-            double delta1 = (0.995143 - 0.994924) / (double)(jdim_ - 1);
+        fun_t out = [this](int_t i, int_t j, int_t k) {
+            auto lap = [=](int_t ii, int_t jj) {
+                return 4 * in(ii, jj, k) -
+                       (in(ii + 1, jj, k) + in(ii, jj + 1, k) + in(ii - 1, jj, k) + in(ii, jj - 1, k));
+            };
+            auto flx = [=](int_t ii, int_t jj) {
+                double res = lap(ii + 1, jj) - lap(ii, jj);
+                if (res * (in(ii + 1, jj, k) - in(ii, jj, k)) > 0)
+                    res = 0.;
+                return res;
+            };
+            auto fly = [=](int_t ii, int_t jj) {
+                auto res = lap(ii, jj + 1) - lap(ii, jj);
+                if (res * (in(ii, jj + 1, k) - in(ii, jj, k)) > 0)
+                    res = 0.;
+                return res;
+            };
+            return in(i, j, k) - coeff(i, j, k) * (flx(i, j) - flx(i - 1, j) + fly(i, j) - fly(i, j - 1));
+        };
 
-            for (uint_t j = j_begin; j < j_end; j++) {
-                v_crlat0(0, j, 0) = 0.994954 + (double)(j)*delta0;
-                v_crlat1(0, j, 0) = 0.994924 + (double)(j)*delta1;
-
-                for (uint_t i = i_begin; i < i_end; i++) {
-                    double x = dx * (double)(i - i_begin);
-                    double y = dy * (double)(j - j_begin);
-                    for (uint_t k = k_begin; k < k_end; k++) {
-                        // in values between 5 and 9
-                        v_in(i, j, k) = 5. + 8 * (2. + cos(PI * (x + 1.5 * y)) + sin(2 * PI * (x + 1.5 * y))) / 4.;
-
-                        // coefficient values
-                        v_coeff(i, j, k) = 0.025;
-                    }
-                }
-            }
-            for (uint_t j = j_begin + 1; j < j_end; j++) {
-                v_crlato(0, j, 0) = v_crlat1(0, j, 0) / v_crlat0(0, j, 0);
-                v_crlatu(0, j, 0) = v_crlat1(0, j - 1, 0) / v_crlat0(0, j, 0);
-            }
-            v_crlato(0, j_begin, 0) = v_crlat1(0, j_begin, 0) / v_crlat0(0, j_begin, 0);
-        }
-
-        template <typename TStorage_type, typename TValue_type>
-        void init_field_to_value(TStorage_type field, TValue_type value) {
-            const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at<0>() == -1) ? 1 : idim_;
-            const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at<1>() == -1) ? 1 : jdim_;
-            const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at<2>() == -1) ? 1 : kdim_;
-
-            auto v = make_host_view(field);
-            for (uint_t k = 0; k < dim2; ++k) {
-                for (uint_t i = 0; i < dim0; ++i) {
-                    for (uint_t j = 0; j < dim1; ++j) {
-                        v(i, j, k) = value;
-                    }
-                }
-            }
-        }
-
-        void generate_reference() {
-            ij_storage_type lap(m_storage_info_ij, "lap");
-            ij_storage_type flx(m_storage_info_ij, "flx");
-            ij_storage_type fly(m_storage_info_ij, "fly");
-
-            init_field_to_value(lap, 0.0);
-
-            auto v_in = make_host_view(in_);
-            auto v_lap = make_host_view(lap);
-            auto v_flx = make_host_view(flx);
-            auto v_fly = make_host_view(fly);
-
-            auto v_out = make_host_view(out());
-            auto v_out_ref = make_host_view(out_ref_);
-            auto v_coeff = make_host_view(coeff_);
-
-            // kbody
-            for (uint_t k = 0; k < kdim_; ++k) {
-                for (uint_t i = halo_size_ - 1; i < idim_ - halo_size_ + 1; ++i) {
-                    for (uint_t j = halo_size_ - 1; j < jdim_ - halo_size_ + 1; ++j) {
-                        v_lap(i, j, (uint_t)0) =
-                            (gridtools::float_type)4 * v_in(i, j, k) -
-                            (v_in(i + 1, j, k) + v_in(i, j + 1, k) + v_in(i - 1, j, k) + v_in(i, j - 1, k));
-                    }
-                }
-                for (uint_t i = halo_size_ - 1; i < idim_ - halo_size_; ++i) {
-                    for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                        v_flx(i, j, (uint_t)0) = v_lap(i + 1, j, (uint_t)0) - v_lap(i, j, (uint_t)0);
-                        if (v_flx(i, j, (uint_t)0) * (v_in(i + 1, j, k) - v_in(i, j, k)) > 0)
-                            v_flx(i, j, (uint_t)0) = 0.;
-                    }
-                }
-                for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (uint_t j = halo_size_ - 1; j < jdim_ - halo_size_; ++j) {
-                        v_fly(i, j, (uint_t)0) = v_lap(i, j + 1, (uint_t)0) - v_lap(i, j, (uint_t)0);
-                        if (v_fly(i, j, (uint_t)0) * (v_in(i, j + 1, k) - v_in(i, j, k)) > 0)
-                            v_fly(i, j, (uint_t)0) = 0.;
-                    }
-                }
-                for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                        v_out_ref(i, j, k) =
-                            v_in(i, j, k) - v_coeff(i, j, k) * (v_flx(i, j, (uint_t)0) - v_flx(i - 1, j, (uint_t)0) +
-                                                                   v_fly(i, j, (uint_t)0) - v_fly(i, j - 1, (uint_t)0));
-                    }
-                }
-            }
-        }
-
-        void generate_reference_simple() {
-            ij_storage_type lap(m_storage_info_ij, "lap");
-
-            init_field_to_value(lap, 0.0);
-
-            auto v_in = make_host_view(in_);
-            auto v_lap = make_host_view(lap);
-            auto v_crlato = make_host_view(crlato_);
-            auto v_crlatu = make_host_view(crlatu_);
-
-            auto v_out_ref = make_host_view(out_ref_);
-            auto v_coeff = make_host_view(coeff_);
-
-            // kbody
-            for (uint_t k = 0; k < kdim_; ++k) {
-                for (uint_t i = halo_size_ - 1; i < idim_ - halo_size_ + 1; ++i) {
-                    for (uint_t j = halo_size_ - 1; j < jdim_ - halo_size_ + 1; ++j) {
-                        v_lap(i, j, (uint_t)0) = v_in(i + 1, j, k) + v_in(i - 1, j, k) -
-                                                 (gridtools::float_type)2 * v_in(i, j, k) +
-                                                 v_crlato(i, j, k) * (v_in(i, j + 1, k) - v_in(i, j, k)) +
-                                                 v_crlatu(i, j, k) * (v_in(i, j - 1, k) - v_in(i, j, k));
-                    }
-                }
-                for (uint_t i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (uint_t j = halo_size_; j < jdim_ - halo_size_; ++j) {
-                        gridtools::float_type fluxx = v_lap(i + 1, j, k) - v_lap(i, j, k);
-                        gridtools::float_type fluxx_m = v_lap(i, j, k) - v_lap(i - 1, j, k);
-
-                        gridtools::float_type fluxy = v_crlato(i, j, k) * (v_lap(i, j + 1, k) - v_lap(i, j, k));
-                        gridtools::float_type fluxy_m = v_crlato(i, j, k) * (v_lap(i, j, k) - v_lap(i, j - 1, k));
-
-                        v_out_ref(i, j, k) = v_in(i, j, k) + ((fluxx_m - fluxx) + (fluxy_m - fluxy)) * v_coeff(i, j, k);
-                    }
-                }
-            }
-        }
-
-        storage_type &in() { return in_; }
-        storage_type &out() { return out_; }
-        storage_type &out_ref() { return out_ref_; }
-        storage_type &coeff() { return coeff_; }
-        j_storage_type &crlato() { return crlato_; }
-        j_storage_type &crlatu() { return crlatu_; }
-
-        storage_info_ijk_t &storage_info_ijk() { return m_storage_info_ijk; }
+        fun_t out_simple = [this](int_t i, int_t j, int_t k) {
+            auto lap = [=](int_t ii, int_t jj) {
+                return in(ii + 1, jj, k) + in(ii - 1, jj, k) - 2 * in(ii, jj, k) +
+                       crlato(ii, jj, k) * (in(ii, jj + 1, k) - in(ii, jj, k)) +
+                       crlatu(ii, jj, k) * (in(ii, jj - 1, k) - in(ii, jj, k));
+            };
+            auto fluxx = lap(i + 1, j) - lap(i, j);
+            auto fluxx_m = lap(i, j) - lap(i - 1, j);
+            auto fluxy = crlato(i, j, k) * (lap(i, j + 1) - lap(i, j));
+            auto fluxy_m = crlato(i, j, k) * (lap(i, j) - lap(i, j - 1));
+            return in(i, j, k) + ((fluxx_m - fluxx) + (fluxy_m - fluxy)) * coeff(i, j, k);
+        };
     };
-} // namespace horizontal_diffusion
+} // namespace gridtools

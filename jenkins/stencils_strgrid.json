@@ -826,7 +826,7 @@
                 2,
                 2
             ],
-            "exec": "examples/interface1"
+            "exec": "examples/horizontal_diffusion"
         },
         "copy_stencil": {
             "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest",

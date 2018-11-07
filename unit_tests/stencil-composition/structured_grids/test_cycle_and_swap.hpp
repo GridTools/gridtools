@@ -39,9 +39,8 @@
 #define PEDANTIC_DISABLED
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
-
-#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace expressions;

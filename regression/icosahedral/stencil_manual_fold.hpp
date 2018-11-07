@@ -48,12 +48,12 @@
  *
  */
 
-#include "backend_select.hpp"
 #include "benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;

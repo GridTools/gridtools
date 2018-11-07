@@ -35,12 +35,15 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
-#include "gtest/gtest.h"
+#include <iostream>
+
+#include <gtest/gtest.h>
+
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-#include <iostream>
+#include <gridtools/tools/backend_select.hpp>
 
 namespace test_iterate_domain {
     using namespace gridtools;
@@ -83,7 +86,7 @@ TEST(testdomain, iterate_domain_with_extents) {
     {
         auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
-        auto computation_ = make_computation<backend<target::x86, GRIDBACKEND, strategy::naive>>(grid, mss_);
+        auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -93,7 +96,7 @@ TEST(testdomain, iterate_domain_with_extents) {
         auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
-        auto computation_ = make_computation<backend<target::x86, GRIDBACKEND, strategy::naive>>(grid, mss_);
+        auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -108,7 +111,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
-        auto computation_ = make_computation<backend<target::x86, GRIDBACKEND, strategy::naive>>(grid, mss1_, mss2_);
+        auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(
@@ -123,7 +126,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
-        auto computation_ = make_computation<backend<target::x86, GRIDBACKEND, strategy::naive>>(grid, mss1_, mss2_);
+        auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss1_, mss2_);
 
         typedef decltype(computation_) intermediate_t;
         static_assert(

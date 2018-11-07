@@ -33,12 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
@@ -147,9 +146,6 @@ namespace soneoc {
 
             result = ver.verify(grid_, ref_on_edges, out_cells, halos);
         }
-#ifdef BENCHMARK
-        benchmarker::run(stencil_edges, t_steps);
-#endif
         return result;
     }
 

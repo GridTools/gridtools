@@ -39,9 +39,9 @@
 #include <iostream>
 
 #include <boost/mpl/vector.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 /**
   @file
