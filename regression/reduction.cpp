@@ -33,38 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "reduction.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/common/binops.hpp>
+#include <gridtools/stencil-composition/reductions/reductions.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+using namespace gridtools;
+
+struct functor {
+    using in = in_accessor<0>;
+    using arg_list = boost::mpl::vector<in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static float_type Do(Evaluation eval) {
+        return eval(in());
+    }
+};
+
+struct reduction : regression_fixture<> {
+    static float_type data(int_t i, int_t j, int_t k) { return 1. / (1 + i + j + k); }
+
+    template <class BinOp, class T>
+    float_type actual(BinOp, T init) {
+        return make_computation(p_0 = make_storage(data), make_reduction<functor, BinOp>(init, p_0)).run();
     }
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    template <class BinOp, class T>
+    float_type expected(BinOp op, T init) {
+        for (uint_t i = 0; i < d1(); ++i)
+            for (uint_t j = 0; j < d2(); ++j)
+                for (uint_t k = 0; k < d3(); ++k)
+                    init = op(init, data(i, j, k));
+        return init;
     }
 
-    if (argc == 5) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
+    template <class BinOp, class T>
+    void verify(BinOp op, T init) {
+        EXPECT_FLOAT_EQ(expected(op, init), actual(op, init));
     }
+};
 
-    return RUN_ALL_TESTS();
-}
-
-TEST(Reductions, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(test_reduction::test(x, y, z, t));
+TEST_F(reduction, test) {
+    verify(binop::sum{}, 0.);
+    verify(binop::prod{}, 1.);
 }

@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-
-#include "../../backend_select.hpp"
-#include <gridtools/common/defs.hpp>
-#include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 
@@ -119,5 +119,3 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<5>(), 9);
     }
 }
-
-TEST(icosahedral_topology, make_tmp_storage) {}

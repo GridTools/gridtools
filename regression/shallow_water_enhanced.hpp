@@ -37,13 +37,12 @@
 
 // [includes]
 #include <fstream>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/storage/storage-facility.hpp>
 #include <iostream>
 
-#include "backend_select.hpp"
 #include <gridtools/communication/halo_exchange.hpp>
-
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 // [includes]
