@@ -30,8 +30,8 @@ if [[ ${COMPILER} == "gcc" ]]; then
     *)
       module swap gcc/4.9.3
   esac
-  export CXX=`which CC`
-  export CC=`which cc`
+  export CXX=`which g++`
+  export CC=`which gcc`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
   case ${VERSION} in
