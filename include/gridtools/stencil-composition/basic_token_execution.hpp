@@ -87,26 +87,26 @@ namespace gridtools {
             Grid const &m_grid;
 
             template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value != 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t first, int_t last) const {
+            GT_FUNCTION void k_loop(int_t first, int_t last, bool is_first, bool is_last) const {
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
 
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
                     if (in_domain)
-                        m_domain.template fill_caches<IterationPolicy>(cur == first);
+                        m_domain.template fill_caches<IterationPolicy>(is_first && cur == first);
 
                     RunEsfFunctor::template exec<Stages>(m_domain);
 
                     if (in_domain) {
-                        m_domain.template flush_caches<IterationPolicy>(cur == last);
+                        m_domain.template flush_caches<IterationPolicy>(is_last && cur == last);
                         m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
             }
 
             template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value == 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t cur, int_t last) const {
+            GT_FUNCTION void k_loop(int_t cur, int_t last, bool, bool) const {
                 // TODO(anstaf): supplement iteration_policy with the function that is functionally equivalent with
                 //               this loop. smth. like: dry_run(from, to, it_domain);
                 //
@@ -126,10 +126,16 @@ namespace gridtools {
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
                 using iteration_policy_t = iteration_policy<from_t, to_t, execution_engine::iteration>;
+                using first_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+                using last_t = GT_META_CALL(meta::at_c,
+                    (typename RunFunctorArguments::loop_intervals_t,
+                        meta::length<typename RunFunctorArguments::loop_intervals_t>::value - 1));
                 const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
                     typename RunFunctorArguments::execution_type_t{},
                     m_grid);
-                k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second);
+                constexpr auto is_first = std::is_same<LoopInterval, first_t>::value;
+                constexpr auto is_last = std::is_same<LoopInterval, last_t>::value;
+                k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second, is_first, is_last);
             }
         };
     } // namespace _impl
