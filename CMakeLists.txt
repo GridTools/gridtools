@@ -8,6 +8,8 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Load some cmake modules.
 # 1) define what flags should be available,
 
+include (workarounds)
+
 enable_language (CXX Fortran C)
 if (NOT DEFINED GT_ENABLE_TARGET_CUDA)
     # detect CUDA support
@@ -48,6 +50,7 @@ else ()
     message (STATUS "MPI disabled")
     set (MPI_AVAILABLE OFF)
 endif()
+_fix_mpi_flags()
 
 include (flags)
 
