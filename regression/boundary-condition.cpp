@@ -33,24 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools/common/halo_descriptor.hpp>
 #include <iostream>
-
-#include <gridtools/boundary-conditions/boundary.hpp>
-
-using gridtools::direction;
-using gridtools::minus_;
-using gridtools::plus_;
-using gridtools::sign;
-using gridtools::zero_;
-
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 
-#include "backend_select.hpp"
+#include <gridtools/boundary-conditions/boundary.hpp>
+#include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

@@ -38,12 +38,14 @@
    @brief File containing tests for the define_cache construct
 */
 
-#include "../../backend_select.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
 #include <boost/mpl/equal.hpp>
+
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/caches/define_caches.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

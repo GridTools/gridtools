@@ -33,31 +33,32 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "positional_copy_stencil.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
+#pragma once
 
-int main(int argc, char **argv) {
+#include "../common/defs.hpp"
+#include "../stencil-composition/backend.hpp"
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#ifdef STRUCTURED_GRIDS
+using grid_type_t = gridtools::grid_type::structured;
+#else
+using grid_type_t = gridtools::grid_type::icosahedral;
+#endif
 
-    if (argc != 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
-    }
+#ifdef BACKEND_X86
+using target_t = gridtools::target::x86;
+#ifdef BACKEND_STRATEGY_NAIVE
+using strategy_t = gridtools::strategy::naive;
+#else
+using strategy_t = gridtools::strategy::block;
+#endif
+#elif defined(BACKEND_MC)
+using target_t = gridtools::target::mc;
+using strategy_t = gridtools::strategy::block;
+#elif defined(BACKEND_CUDA)
+using target_t = gridtools::target::cuda;
+using strategy_t = gridtools::strategy::block;
+#else
+#error "no backend selected"
+#endif
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-TEST(PositionalCopyStencil, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-
-    ASSERT_TRUE(positional_copy_stencil::test(x, y, z));
-}
+using backend_t = gridtools::backend<target_t, grid_type_t, strategy_t>;

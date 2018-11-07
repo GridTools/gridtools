@@ -1,7 +1,0 @@
-#!/bin/bash
-export MODULEPATH="/opt/totalview-support/1.1.4/modulefiles:/opt/cray/craype/default/modulefiles:/opt/cray/ari/modulefiles:/opt/cray/modulefiles:/opt/modulefiles:/cm/local/modulefiles:/cm/shared/modulefiles:/apps/daint/modulefiles"
-module() { eval `/opt/modules/3.2.6.7/bin/modulecmd bash $*`; }
-
-module load boost;
-aprun "/scratch/daint/jenkins/~/test/real_type/$REAL_TYPE/slave/daint/target/$TARGET/build/build/tests_gpu"
-/scratch/daint/jenkins/~/test/real_type/float/slave/daint/target/gpu

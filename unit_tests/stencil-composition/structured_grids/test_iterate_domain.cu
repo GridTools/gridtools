@@ -40,6 +40,7 @@
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -141,7 +142,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         p_shared_mem_arg(),
         p_kcache_arg())) esf_t;
 
-    typedef iterate_domain_cuda<iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_cuda<iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         decay_t<decltype(std::get<0>(computation_.local_domains()))>,
         boost::mpl::vector1<esf_t>,
         boost::mpl::vector1<extent<0, 0, 0, 0>>,

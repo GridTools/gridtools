@@ -33,65 +33,56 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "interface1_functions.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
+#include <gridtools/tools/regression_fixture_impl.hpp>
 
-#ifdef FUNCTIONS_MONOLITHIC
-#define FTESTNAME(x) HorizontalDiffusionFunctionsMONOLITHIC
-#endif
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <vector>
 
-#ifdef FUNCTIONS_CALL
-#define FTESTNAME(x) HorizontalDiffusionFunctionsCALL
-#endif
+#include <gtest/gtest.h>
 
-#ifdef FUNCTIONS_OFFSETS
-#define FTESTNAME(x) HorizontalDiffusionFunctionsOFFSETS
-#endif
+#include <gridtools/common/defs.hpp>
 
-#ifdef FUNCTIONS_PROCEDURES
-#define FTESTNAME(x) HorizontalDiffusionFunctionsPROCEDURES
-#endif
+namespace gridtools {
+    namespace _impl {
+        uint_t regression_fixture_base::s_d1 = 0;
+        uint_t regression_fixture_base::s_d2 = 0;
+        uint_t regression_fixture_base::s_d3 = 0;
+        uint_t regression_fixture_base::s_steps = 0;
+        bool regression_fixture_base::s_needs_verification = true;
 
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-#define FTESTNAME(x) HorizontalDiffusionFunctionsPROCEDURESOFFSETS
-#endif
+        void regression_fixture_base::flush_cache() {
+            static std::size_t n = 1024 * 1024 * 21 / 2;
+            static std::vector<double> a_(n), b_(n), c_(n);
+            double *a = a_.data();
+            double *b = b_.data();
+            double *c = c_.data();
+#pragma omp parallel for
+            for (int i = 0; i < n; i++)
+                a[i] = b[i] * c[i];
+        }
+
+        void regression_fixture_base::init(int argc, char **argv) {
+            if (argc < 4) {
+                std::cerr << "Usage: " << argv[0]
+                          << "dimx dimy dimz tsteps\n\twhere args are integer sizes of the data fields and tsteps "
+                             "is the number of time steps to run in a benchmark run"
+                          << std::endl;
+                exit(1);
+            }
+            s_d1 = std::atoi(argv[1]);
+            s_d2 = std::atoi(argv[2]);
+            s_d3 = std::atoi(argv[3]);
+            s_steps = argc > 4 ? std::atoi(argv[4]) : 0;
+            s_needs_verification = argc < 6 || std::strcmp(argv[5], "-d") != 0;
+        }
+    } // namespace _impl
+} // namespace gridtools
 
 int main(int argc, char **argv) {
     // Pass command line arguments to googltest
     ::testing::InitGoogleTest(&argc, argv);
-
-    if (argc < 4) {
-        printf("Usage: interface1_<whatever> dimx dimy dimz tsteps \n where args are integer sizes of the data fields "
-               "and tstep is the number of timesteps to run in a benchmark run\n");
-        return 1;
-    }
-
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
-
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
+    gridtools::_impl::regression_fixture_base::init(argc, argv);
     return RUN_ALL_TESTS();
-}
-
-TEST(FTESTNAME(x), Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(horizontal_diffusion_functions::test(x, y, z, t, verify));
 }

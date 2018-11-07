@@ -33,5 +33,31 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-const int cache_flusher_size = 1024 * 1024 * 21;
+#include <gtest/gtest.h>
+
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
+
+using namespace gridtools;
+
+struct functor {
+    using out = inout_accessor<0>;
+    using arg_list = boost::mpl::vector<out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval.i() + eval.j() + eval.k();
+    }
+};
+
+using positional_stencil = regression_fixture<>;
+
+TEST_F(positional_stencil, test) {
+    auto out = make_storage();
+
+    make_positional_computation<backend_t>(
+        make_grid(), p_0 = out, make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p_0)))
+        .run();
+
+    verify(make_storage([](int i, int j, int k) { return i + j + k; }), out);
+}

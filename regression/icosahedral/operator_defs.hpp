@@ -36,7 +36,9 @@
 
 #pragma once
 
-#include "../backend_select.hpp"
+#include <gridtools/stencil-composition/axis.hpp>
+#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 

@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gtest/gtest.h>
 
-#include "../../backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

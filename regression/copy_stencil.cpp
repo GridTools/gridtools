@@ -33,47 +33,46 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "copy_stencil.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+using namespace gridtools;
+
+struct copy_functor {
+    using in = in_accessor<0>;
+    using out = inout_accessor<1>;
+
+    using arg_list = boost::mpl::vector<in, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out()) = eval(in());
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+struct copy_stencil : regression_fixture<0> {
+    storage_type in = make_storage([](int i, int j, int k) { return i + j + k; });
+    storage_type out = make_storage(-1.);
+};
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
+TEST_F(copy_stencil, test) {
+    auto comp = make_computation(p_0 = in,
+        p_1 = out,
+        make_multistage(enumtype::execute<enumtype::parallel>(), make_stage<copy_functor>(p_0, p_1)));
 
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
-    return RUN_ALL_TESTS();
+    comp.run();
+    verify(in, out);
+    benchmark(comp);
 }
 
-TEST(CopyStencil, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    copy_stencil::copy_stencil_test copy_test(x, y, z, t, verify);
-    ASSERT_TRUE(copy_test.test());
-    ASSERT_TRUE(copy_test.test_with_extents());
+TEST_F(copy_stencil, with_extents) {
+    make_computation(p_0 = in,
+        p_1 = out,
+        make_multistage(
+            enumtype::execute<enumtype::parallel>(), make_stage_with_extent<copy_functor, extent<>>(p_0, p_1)))
+        .run();
+    verify(in, out);
 }

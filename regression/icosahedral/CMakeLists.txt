@@ -3,7 +3,7 @@ list(APPEND SRCFILES stencil_on_edges stencil_on_edges_of_cells stencil_fused  s
 list(APPEND SRCFILES stencil_on_vertices curl div lap)
 list(APPEND PERFTEST_SRCFILES stencil_on_edges_multiplefields stencil_on_cells stencil_on_neighcell_of_edges stencil_manual_fold)
 
-add_library(unstructured_grid ../Options.cpp unstructured_grid.cpp)
+add_library(unstructured_grid Options.cpp unstructured_grid.cpp)
 target_compile_options(unstructured_grid PUBLIC ${GT_CXX_FLAGS})
 target_link_libraries(unstructured_grid stencil-composition)
 

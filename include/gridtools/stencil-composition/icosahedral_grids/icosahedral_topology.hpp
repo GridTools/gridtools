@@ -62,6 +62,7 @@
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../storage/common/halo.hpp"
 #include "../location_type.hpp"
 #include "position_offset_type.hpp"
 
@@ -764,42 +765,23 @@ namespace gridtools {
             typename std::enable_if<is_all_integral<IntTypes...>::value, int>::type = 0>
         data_store_t<LocationType, ValueType, Halo, Selector> make_storage(
             char const *name, IntTypes... extra_dims) const {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "ERROR: location type is wrong");
-            GRIDTOOLS_STATIC_ASSERT((is_selector<Selector>::value), "ERROR: dimension selector is wrong");
-
+            GRIDTOOLS_STATIC_ASSERT(is_location_type<LocationType>::value, "ERROR: location type is wrong");
+            GRIDTOOLS_STATIC_ASSERT(is_selector<Selector>::value, "ERROR: dimension selector is wrong");
             GRIDTOOLS_STATIC_ASSERT(
-                (Selector::size == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
+                Selector::size == sizeof...(IntTypes) + 4, "ERROR: Mismatch between Selector and extra-dimensions");
 
             using meta_storage_type = meta_storage_t<LocationType, Halo, Selector>;
-            GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::masked_length),
+            GRIDTOOLS_STATIC_ASSERT(Selector::size == meta_storage_type::layout_t::masked_length,
                 "ERROR: Mismatch between Selector and space dimensions");
 
-            array<uint_t, meta_storage_type::layout_t::masked_length> metastorage_sizes =
-                impl::array_dim_initializers<uint_t,
-                    meta_storage_type::layout_t::masked_length,
-                    LocationType,
-                    Selector>::apply(m_dims, extra_dims...);
-            auto ameta = impl::get_storage_info_from_array<meta_storage_type>(metastorage_sizes);
-            return {ameta, name};
-        }
-
-        template <typename LocationType>
-        GT_FUNCTION array<int_t, 4> ll_indices(array<int_t, 3> const &i, LocationType) const {
-            auto out = array<int_t, 4>{i[0],
-                i[1] % static_cast<int_t>(LocationType::n_colors::value),
-                i[1] / static_cast<int>(LocationType::n_colors::value),
-                i[2]};
-            return array<int_t, 4>{i[0],
-                i[1] % static_cast<int_t>(LocationType::n_colors::value),
-                i[1] / static_cast<int>(LocationType::n_colors::value),
-                i[2]};
+            return {{m_dims[0], LocationType::n_colors::value, m_dims[1], m_dims[2], extra_dims...}, name};
         }
     };
 
     template <typename T>
-    struct is_grid_topology : boost::mpl::false_ {};
+    struct is_grid_topology : std::false_type {};
 
     template <typename Backend>
-    struct is_grid_topology<icosahedral_topology<Backend>> : boost::mpl::true_ {};
+    struct is_grid_topology<icosahedral_topology<Backend>> : std::true_type {};
 
 } // namespace gridtools

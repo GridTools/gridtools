@@ -35,19 +35,22 @@
 */
 #pragma once
 
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
+#include "../common/defs.hpp"
 
-#ifdef BACKEND_X86
-#ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::naive>;
-#else
-using backend_t = gridtools::backend<gridtools::target::x86, GRIDBACKEND, gridtools::strategy::block>;
-#endif
-#elif defined(BACKEND_MC)
-using backend_t = gridtools::backend<gridtools::target::mc, GRIDBACKEND, gridtools::strategy::block>;
-#elif defined(BACKEND_CUDA)
-using backend_t = gridtools::backend<gridtools::target::cuda, GRIDBACKEND, gridtools::strategy::block>;
-#else
-#error "no backend selected"
-#endif
+namespace gridtools {
+    namespace _impl {
+        class regression_fixture_base {
+          protected:
+            static uint_t s_d1;
+            static uint_t s_d2;
+            static uint_t s_d3;
+            static uint_t s_steps;
+            static bool s_needs_verification;
+
+            static void flush_cache();
+
+          public:
+            static void init(int argc, char **argv);
+        };
+    } // namespace _impl
+} // namespace gridtools
