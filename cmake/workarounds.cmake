@@ -12,10 +12,10 @@ function (_fix_mpi_flags)
         get_property(mpi_compile_options TARGET MPI::MPI_CXX PROPERTY INTERFACE_COMPILE_OPTIONS)
         set (new_compile_options )
         foreach(mpi_compile_option IN LISTS mpi_compile_options)
-            list (APPEND new_compile_options $<$<COMPILE_LANGUAGE:CXX>:${mpi_compile_option}>>)
+            list (APPEND new_compile_options $<$<COMPILE_LANGUAGE:CXX>:${mpi_compile_option}>)
         endforeach()
 
-        set_property(TARGET MPI::MPI_CXX PROPERTY INTERFACE_COMPILE_OPTIONS ${new_mpi_compile_options})
+        set_property(TARGET MPI::MPI_CXX PROPERTY INTERFACE_COMPILE_OPTIONS ${new_compile_options})
 
     endif()
 

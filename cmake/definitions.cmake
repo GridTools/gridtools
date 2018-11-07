@@ -238,5 +238,3 @@ function(gridtools_add_cuda_mpi_test test_name test_exec)
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
   add_to_test_manifest(${test_name} ${ARGN})
 endfunction(gridtools_add_cuda_mpi_test)
-
-add_definitions(-DGTEST_COLOR )
