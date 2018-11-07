@@ -41,12 +41,12 @@
  * sum_reduce(edges) {sign_edge * lengh_edge}
  * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
  */
-#include "../backend_select.hpp"
-#include "../benchmarker.hpp"
+#include "benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
@@ -162,6 +162,7 @@ namespace soem {
             array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = ver.verify(grid_, ref_edges, out_edges, halos);
         }
+
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);
 #endif

@@ -129,6 +129,8 @@ endif()
 
 include (fix_test_case_name)
 if(NOT DISABLE_TESTING)
+  generate_target_for(NAME regression_fixture SOURCES src/tools/regression_fixture.cpp)
+  target_compile_options(regression_fixture PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
 endif()

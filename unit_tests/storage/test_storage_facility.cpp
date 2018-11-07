@@ -34,15 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits.hpp>
 
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/storage-facility.hpp>
-
-#include "../backend_select.hpp"
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 

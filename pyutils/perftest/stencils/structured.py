@@ -19,17 +19,17 @@ class Copy(Stencil):
 
 class HorizontalDiffusion(Stencil):
     stella_filter = 'HoriDiffBenchmark.4Stages'
-    gridtools_cuda = path('interface1_cuda')
-    gridtools_x86= path('interface1_x86_block')
-    gridtools_mc = path('interface1_mc')
+    gridtools_cuda = path('horizontal_diffusion_cuda')
+    gridtools_x86= path('horizontal_diffusion_x86_block')
+    gridtools_mc = path('horizontal_diffusion_mc')
     halo = 2
 
 
 class HorizontalDiffusionFused(Stencil):
     stella_filter = 'HoriDiffBenchmark.4Stages'
-    gridtools_cuda = path('interface1_fused_cuda')
-    gridtools_x86= path('interface1_fused_x86_block')
-    gridtools_mc = path('interface1_fused_mc')
+    gridtools_cuda = path('horizontal_diffusion_fused_cuda')
+    gridtools_x86= path('horizontal_diffusion_fused_x86_block')
+    gridtools_mc = path('horizontal_diffusion_fused_mc')
     halo = 2
 
 

@@ -33,11 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <boost/mpl/equal.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "../../backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -48,12 +46,6 @@ template <uint_t Splitter, int_t Offset>
 using level_t = level<Splitter, Offset, level_offset_limit>;
 
 typedef interval<level_t<0, -1>, level_t<1, -1>> x_interval;
-struct print_r {
-    template <typename T>
-    void operator()(T const &) const {
-        std::cout << typename T::first() << " " << typename T::second() << std::endl;
-    }
-};
 
 struct functor0 {
     typedef accessor<0, enumtype::in, extent<0, 0, -1, 3, -2, 0>> in0;
