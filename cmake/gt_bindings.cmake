@@ -42,11 +42,17 @@ target_include_directories(c_bindings_generator PUBLIC ${local_GRIDTOOLS_ROOT}/i
 add_library(c_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.cpp)
 target_include_directories(c_bindings_handle PUBLIC ${local_GRIDTOOLS_ROOT}/include)
 
-# we add a target explictly (in case Fortran was enabled after add_bindings_library() was called)
+# enable_bindings_library_fortran()
+#
+# Create a target to compile the generated Fortran module.
+# In the default case, when Fortran is enabled on the call to add_bindings_library(), this target is automatically created.
+# In case when the Fortran language was not enabled, we cannot create a library (add_library()) with Fortran files.
+# However if the user wants to use the target at a later stage, e.g. in testing (with Fortran enabled), the target can
+# be created by a call to enable_bindings_library_fortran().
 macro(enable_bindings_library_fortran target_name)
     get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
     cmake_policy(PUSH)
-    cmake_policy(SET CMP0057 NEW)
+    cmake_policy(SET CMP0057 NEW) # some versions of CMake require this to use IN_LIST
     if("Fortran" IN_LIST languages)
         if(NOT TARGET fortran_bindings_handle)
             add_library(fortran_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/array_descriptor.f90 ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.f90)
@@ -61,7 +67,7 @@ macro(enable_bindings_library_fortran target_name)
             target_include_directories(${target_name}_fortran PUBLIC ${CMAKE_CURRENT_BINARY_DIR}) # location of mod file
             add_dependencies(${target_name}_fortran ${target_name}_declarations)
         endif()
-    elseif(NOT ${ARGN})
+    elseif(NOT ${ARGN}) # internal: the second (optional) parameter can be used to surpress this fatal error
         message(FATAL_ERROR "Please enable_language(Fortran) to compile the Fortran bindings.")
     endif()
     cmake_policy(POP)
@@ -134,7 +140,9 @@ macro(add_bindings_library target_name)
     add_dependencies(${target_name}_c ${target_name}_declarations)
 
     # bindings Fortran library
-    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename})
-    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename} PARENT_SCOPE)
+    # Export the name of the generated file in this scope and the parent scope.
+    # Reason: see description of enable_bindings_library_fortran().
+    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename}) # needed if the target is directly created
+    set(${target_name}_fortran_bindings_path ${bindings_fortran_decl_filename} PARENT_SCOPE) # if the target is created by the user
     enable_bindings_library_fortran(${target_name} TRUE)
 endmacro()
