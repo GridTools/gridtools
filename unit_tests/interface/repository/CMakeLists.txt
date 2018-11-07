@@ -1,3 +1,5 @@
+enable_language(C Fortran)
+
 include_directories(${CMAKE_SOURCE_DIR}/include/)
 
 # The following macro is a trick to generate a file containing pre-processed compiler output (-E flag)
@@ -74,7 +76,6 @@ endif()
 
 add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
 target_link_libraries(repository_${prec} gtest)
-target_link_libraries(repository_${prec} unittests_fortran_bindings)
 target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS} -D${X86_BACKEND_DEFINE})
 
 add_library(repository_fortran_lib test_repository.f90)

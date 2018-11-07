@@ -10,10 +10,9 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include (flags)
 
+enable_language(CXX)
 if (ENABLE_CUDA)
-    enable_language (CXX Fortran CUDA C)
-else()
-    enable_language (CXX Fortran C)
+    enable_language (CUDA)
 endif()
 
 set(CMAKE_CXX_EXTENSIONS OFF)
