@@ -45,6 +45,7 @@
 #include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -120,7 +121,7 @@ TEST(iterate_domain_cache, flush) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -158,7 +159,7 @@ TEST(iterate_domain_cache, fill) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -195,7 +196,7 @@ TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::vector5<cachef1_t, cachef2_t, cachef3_t, cachef4_t, cachef5_t> cachesf_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -237,7 +238,7 @@ TEST(iterate_domain_cache, bpfill) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,

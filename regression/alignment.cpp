@@ -33,31 +33,43 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "alignment.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc != 4) {
-        printf("Usage: alignment_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+/**
+  @file
+  This file shows an implementation of the stencil in which a misaligned storage is aligned
+*/
+
+using namespace gridtools;
+
+using alignment_test = regression_fixture<2>;
+
+struct not_aligned {
+    using acc = inout_accessor<0>;
+    using out = inout_accessor<1>;
+    using arg_list = boost::mpl::vector<acc, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        auto *ptr = &eval(acc{});
+        constexpr auto alignment = sizeof(decltype(*ptr)) * alignment_test::storage_info_t::alignment_t::value;
+        constexpr auto halo_size = alignment_test::halo_size;
+        eval(out{}) = eval.i() == halo_size && reinterpret_cast<ptrdiff_t>(ptr) % alignment;
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-TEST(AlignedCopyStencil, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-
-    ASSERT_TRUE(aligned_copy_stencil::test(x, y, z));
+TEST_F(alignment_test, test) {
+    using bool_storage = storage_tr::data_store_t<bool, storage_info_t>;
+    arg<0, bool_storage> p_out;
+    auto out = make_storage<bool_storage>();
+    make_positional_computation<backend_t>(make_grid(),
+        p_0 = make_storage(),
+        p_out = out,
+        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<not_aligned>(p_0, p_out)))
+        .run();
+    verify(make_storage<bool_storage>(false), out);
 }

@@ -33,24 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-
-#ifdef BACKEND_X86
-using ARCH = gridtools::target::x86;
-#ifdef BACKEND_STRATEGY_NAIVE
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::naive>;
-#else
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
-#endif
-#elif defined(BACKEND_MC)
-using ARCH = gridtools::target::mc;
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
-#elif defined(BACKEND_CUDA)
-using ARCH = gridtools::target::cuda;
-using backend_t = gridtools::backend<ARCH, GRIDBACKEND, gridtools::strategy::block>;
-#else
-#error "no backend selected"
-#endif
+#include "horizontal_diffusion_functions.cpp"

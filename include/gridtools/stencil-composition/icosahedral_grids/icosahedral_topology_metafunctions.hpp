@@ -36,13 +36,10 @@
 
 #pragma once
 
-#include "../../common/array.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/gt_math.hpp"
-#include "../../storage/storage-facility.hpp"
-#include "../location_type.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/selector.hpp"
 
 namespace gridtools {
     namespace impl {
@@ -80,65 +77,6 @@ namespace gridtools {
         struct compute_uuid<LocationTypeIndex, selector<B...>> {
             static constexpr ushort_t value =
                 enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector<2>(0, B...);
-        };
-
-        /**
-         * helper that initializes arrays of dimensions given an array of space dimensions and the rest of
-         * extra dimensions of a storage
-         */
-        template <typename UInt, typename LocationType>
-        struct array_elem_initializer {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: expected a location type");
-
-            template <int Idx>
-            struct init_elem {
-                GT_FUNCTION
-                constexpr init_elem() {}
-
-                GT_FUNCTION constexpr static UInt apply(const array<uint_t, 3> space_dims) {
-                    GRIDTOOLS_STATIC_ASSERT((Idx < 4), GT_INTERNAL_ERROR);
-                    // cast to size_t to suppress a warning
-                    return ((Idx == 0) ? space_dims[0]
-                                       : ((Idx == 1) ? LocationType::n_colors::value : space_dims[(size_t)(Idx - 1)]));
-                }
-
-                template <typename... ExtraInts>
-                GT_FUNCTION constexpr static UInt apply(const array<uint_t, 3> space_dims, ExtraInts... extra_dims) {
-                    // cast to size_t to suppress a warning
-                    return ((Idx == 0) ? space_dims[0]
-                                       : ((Idx == 1) ? LocationType::n_colors::value
-                                                     : (Idx < 4 ? space_dims[(size_t)(Idx - 1)]
-                                                                : pack_get_elem<Idx - 4>::apply(extra_dims...))));
-                }
-            };
-        };
-
-        /**
-         * @brief constructs an array containing the sizes of each dimension for a generic storage with any
-         * number of dimensions.
-         * It is formed from a basic array (with only the 3 space dimension sizes) and the specification
-         * of the sizes of the extra dimensions passed as a variadic pack arguments. Example of use:
-         *    array< uint_t, 6 > metastorage_sizes =
-                impl::array_dim_initializers< uint_t, 6, cells >::apply(array<uint_t, 3>{1,3,5}, 7,9);
-              will construct the array {1,2,3,5,7,9}
-              (the size of the color dimension is added from the location type (cells) specified
-
-         */
-        template <typename Uint, size_t ArraySize, typename LocationType, typename Selector>
-        struct array_dim_initializers;
-
-        template <typename UInt, size_t ArraySize, typename LocationType, bool... B>
-        struct array_dim_initializers<UInt, ArraySize, LocationType, selector<B...>> {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: expected a location type");
-
-            template <typename... ExtraInts>
-            GT_FUNCTION static constexpr array<UInt, ArraySize> apply(
-                const array<uint_t, 3> space_dims, ExtraInts... extra_dims) {
-                using seq = apply_gt_integer_sequence<make_gt_integer_sequence<int, ArraySize>>;
-
-                return seq::template apply<array<UInt, ArraySize>,
-                    array_elem_initializer<UInt, LocationType>::template init_elem>(space_dims, extra_dims...);
-            }
         };
     } // namespace impl
 } // namespace gridtools

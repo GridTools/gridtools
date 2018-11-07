@@ -119,7 +119,7 @@ namespace gridtools {
         typedef plh type;
 
         template <typename Arg>
-        arg_storage_pair<plh, DataStoreType> operator=(Arg &&arg) {
+        arg_storage_pair<plh, DataStoreType> operator=(Arg &&arg) const {
             return {std::forward<Arg>(arg)};
         }
     };
