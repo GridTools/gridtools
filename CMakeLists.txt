@@ -8,8 +8,6 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Load some cmake modules.
 # 1) define what flags should be available,
 
-include (workarounds)
-
 enable_language (CXX Fortran C)
 if (NOT DEFINED GT_ENABLE_TARGET_CUDA)
     # detect CUDA support
@@ -35,6 +33,8 @@ endif ()
 
 if (NOT DEFINED GT_USE_MPI)
     find_package(MPI COMPONENTS CXX)
+    include(workaround_mpi)
+    _fix_mpi_flags()
     if (MPI_FOUND)
         message (STATUS "MPI enabled")
         set (MPI_AVAILABLE ON)
@@ -44,13 +44,14 @@ if (NOT DEFINED GT_USE_MPI)
     endif()
 elseif (GT_USE_MPI)
     find_package(MPI REQUIRED COMPONENTS CXX)
+    include(workaround_mpi)
+    _fix_mpi_flags()
     message (STATUS "MPI enabled")
     set (MPI_AVAILABLE ON)
 else ()
     message (STATUS "MPI disabled")
     set (MPI_AVAILABLE OFF)
 endif()
-_fix_mpi_flags()
 
 include (flags)
 
@@ -73,7 +74,10 @@ include (components)
 if( COMPONENT_COMMON )
     find_package( Boost 1.58 REQUIRED )
     find_package( OpenMP REQUIRED )
+    set(THREADS_PREFER_PTHREAD_FLAG ON) #this is required because CMake uses it
     find_package( Threads REQUIRED )
+    include(workaround_threads)
+    _fix_threads_flags()
 
     generate_target_for(NAME common)
     generate_install_targets_for(common common)
