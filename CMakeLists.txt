@@ -74,7 +74,7 @@ include (components)
 if( COMPONENT_COMMON )
     find_package( Boost 1.58 REQUIRED )
     find_package( OpenMP REQUIRED )
-    set(THREADS_PREFER_PTHREAD_FLAG ON) #this is required because CMake uses it
+    set(THREADS_PREFER_PTHREAD_FLAG ON) #this is required because gtest uses it
     find_package( Threads REQUIRED )
     include(workaround_threads)
     _fix_threads_flags()

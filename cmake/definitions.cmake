@@ -75,6 +75,7 @@ if( GT_ENABLE_TARGET_CUDA )
   string(REGEX REPLACE "([0-9]+)\\.([0-9]+).*" "\\2" CUDA_VERSION_MINOR "${CUDA_VERSION}")
 
   # this is only needed to get CUDA_CUDART_LIBRARY, please do not use other variables from here!
+  # Find a better solution for this (consider https://gitlab.kitware.com/cmake/cmake/issues/17816)
   find_package(CUDA REQUIRED)
 
   set(GT_CUDA_MANDATORY_FLAGS ${GT_CUDA_MANDATORY_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
