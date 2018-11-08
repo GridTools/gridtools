@@ -1,5 +1,3 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 # collect all tests in current folder
 fetch_x86_tests(.)
 fetch_mc_tests(.)

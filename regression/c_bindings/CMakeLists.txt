@@ -1,11 +1,11 @@
-if (ENABLE_X86)
+if (GT_ENABLE_TARGET_X86)
     add_bindings_library(implementation implementation.cpp)
     add_bindings_library(implementation_wrapper implementation-wrapper.cpp)
     target_compile_options(implementation PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
     target_compile_options(implementation_wrapper PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
 
     add_executable(driver driver.c)
-    target_link_libraries(driver implementation_c ${exe_LIBS})
+    target_link_libraries(driver implementation_c)
 
     target_compile_options(driver PRIVATE ${GT_C_BUILDING_FLAGS})
 
@@ -19,4 +19,4 @@ if (ENABLE_X86)
     target_link_libraries(fdriver_wrapper implementation_wrapper_fortran)
     set_target_properties(fdriver_wrapper PROPERTIES LINKER_LANGUAGE Fortran)
 
-endif(ENABLE_X86)
+endif(GT_ENABLE_TARGET_X86)

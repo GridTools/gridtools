@@ -1,5 +1,3 @@
-include_directories(${CMAKE_SOURCE_DIR}/include/)
-
 # The following macro is a trick to generate a file containing pre-processed compiler output (-E flag)
 macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     # check if ${cpp_file} is a file that exists (to protect that the user passes in multiple files or something else)
@@ -8,6 +6,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
         # ... but actually generate the preprocessed file
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
+        target_link_libraries( ${cpp_file}_OBJECTS common )
 
         # now use the preprocessed file to generate a library (which we will never use) ...
         add_library( dummy_${cpp_file} STATIC EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)
@@ -54,7 +53,7 @@ IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
 
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
     target_compile_options( custom_test_generated_repository PUBLIC ${GT_CXX_FLAGS} )
-    target_link_libraries(custom_test_generated_repository ${exe_LIBS} gtest_main)
+    target_link_libraries(custom_test_generated_repository gtest_main stencil-composition)
     gridtools_add_test(custom_test_generated_repository ${TEST_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository)
     add_dependencies( custom_test_generated_repository format_generated_repository )
 else()
@@ -74,9 +73,9 @@ target_compile_options(repository_fortran_lib PRIVATE -cpp)
 target_include_directories(repository_fortran_lib PRIVATE ${CMAKE_BINARY_DIR})
 target_link_libraries(repository_fortran_lib array_descriptor repository_fortran)
 
-if (ENABLE_X86)
+if (GT_ENABLE_TARGET_X86)
     target_link_libraries(test_repository_x86 repository_fortran_lib)
 endif()
-if (ENABLE_CUDA)
+if (GT_ENABLE_TARGET_CUDA)
     target_link_libraries(test_repository_cuda repository_fortran_lib)
 endif()
