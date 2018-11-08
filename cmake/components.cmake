@@ -1,3 +1,4 @@
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/gridtools)
 ### This file define the GridTools components and their dependencies
 
 ### The following function works like this:
@@ -10,7 +11,7 @@ function(generate_target_for)
     cmake_parse_arguments(TARGET "" "NAME" "SOURCES" ${ARGN})
     if ("${TARGET_SOURCES} " STREQUAL " ")
         add_library(${TARGET_NAME} INTERFACE)
-        target_include_directories(${TARGET_NAME} INTERFACE $<BUILD_INTERFACE:include/> $<INSTALL_INTERFACE:include/> )
+        target_include_directories(${TARGET_NAME} INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/> $<INSTALL_INTERFACE:include/> )
 
     else ()
         add_library(${TARGET_NAME} ${TARGET_SOURCES})
@@ -36,28 +37,28 @@ function(generate_install_targets_for name folder)
       ARCHIVE DESTINATION lib
       RUNTIME DESTINATION bin
       INCLUDES DESTINATION include
-      COMPONENT ${name}
     )
     install(EXPORT ${name}targets
       FILE ${name}Targets.cmake
       NAMESPACE gridtools::
-      DESTINATION lib/cmake/${name}
+      DESTINATION ${INSTALL_CONFIGDIR}
     )
 
     install(DIRECTORY "include/gridtools/${folder}" DESTINATION include/gridtools COMPONENT ${name} )
 endfunction(generate_install_targets_for)
 
 
-set(INSTALL_GCL OFF CACHE BOOL "GCL/communication component")
-set(INSTALL_BOUNDARY_CONDITIONS OFF CACHE BOOL "Boundary conditions component")
-set(INSTALL_DISTRIBUTED_BOUNDARIES OFF CACHE BOOL "Distributed boundaries component")
-set(INSTALL_COMMON OFF CACHE BOOL "Common component")
-set(INSTALL_STENCIL_COMPOSITION OFF CACHE BOOL "Stencil composition component")
-set(INSTALL_STORAGE OFF CACHE BOOL "Storage component")
-set(INSTALL_C_BINDINGS OFF CACHE BOOL "C/Fortran bindings component")
-set(INSTALL_INTERFACE OFF CACHE BOOL "Interface component")
-set(INSTALL_TOOLS OFF CACHE BOOL "Tools component")
+include (CMakeDependentOption)
 set(INSTALL_ALL ON CACHE BOOL "Install all")
+CMAKE_DEPENDENT_OPTION(INSTALL_GCL "GCL/communication component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_BOUNDARY_CONDITIONS "Boundary conditions component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_DISTRIBUTED_BOUNDARIES "Distributed boundaries component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_COMMON "Common component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_STENCIL_COMPOSITION "Stencil composition component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_STORAGE "Storage component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_C_BINDINGS "C/Fortran bindings component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_INTERFACE "Interface component" OFF "NOT INSTALL_ALL" ON)
+CMAKE_DEPENDENT_OPTION(INSTALL_TOOLS "Tools component" OFF "NOT INSTALL_ALL" ON)
 
 macro( turn_on comp )
        if ( ${comp} )

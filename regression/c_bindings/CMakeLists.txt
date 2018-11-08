@@ -1,6 +1,6 @@
 enable_language(C Fortran)
 
-if (ENABLE_X86)
+if (GT_ENABLE_TARGET_X86)
     if(SINGLE_PRECISION)
         set(prec float)
     else()
@@ -25,4 +25,4 @@ if (ENABLE_X86)
     add_executable(fdriver_wrapper fdriver-wrapper.f90)
     target_link_libraries(fdriver_wrapper implementation_wrapper_${prec}_fortran)
     set_target_properties(fdriver_wrapper PROPERTIES LINKER_LANGUAGE Fortran)
-endif(ENABLE_X86)
+endif(GT_ENABLE_TARGET_X86)

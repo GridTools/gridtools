@@ -10,7 +10,7 @@ function exit_if_error {
 
 module rm   PrgEnv-cray
 module rm CMake
-module load /users/jenkins/easybuild/tave/modules/all/CMake/3.12.0
+module load /users/mlukas/easybuild/tave/modules/all/CMake/3.12.4
 
 if [[ ${COMPILER} == "gcc" ]]; then
   module load PrgEnv-gnu
@@ -30,7 +30,8 @@ if [[ ${COMPILER} == "gcc" ]]; then
     *)
       module swap gcc/4.9.3
   esac
-  export HOST_COMPILER=`which CC`
+  export CXX=`which g++`
+  export CC=`which gcc`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
   case ${VERSION} in
@@ -43,7 +44,8 @@ elif [[ ${COMPILER} == "icc" ]]; then
     *)
       module swap intel/18.0.2.199
   esac
-  export HOST_COMPILER=`which icpc`
+  export CXX=`which icpc`
+  export CC=`which icc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444

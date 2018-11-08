@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "../../backend_select.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
 #include <gridtools/stencil-composition/block_size.hpp>
-#include <gridtools/stencil-composition/offset_computation.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -49,7 +49,7 @@ namespace test_multidimensional_caches {
 
         typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
         typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
-        typedef detail::cache_impl<IJ, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_> cache_t;
+        typedef detail::cache_impl<IJ, arg<0, storage_t>, cache_io_policy::local> cache_t;
 
         typedef cache_storage<cache_t,
             block_size<8, 3, 1, 1, 1>,
@@ -116,7 +116,7 @@ namespace test_multidimensional_caches {
     int test_kcache() {
         typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
         typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
-        typedef detail::cache_impl<K, arg<0, storage_t>, cache_io_policy::local, boost::mpl::void_> cache_t;
+        typedef detail::cache_impl<K, arg<0, storage_t>, cache_io_policy::local> cache_t;
 
         typedef cache_storage<cache_t,
             block_size<1, 1, 1, 1, 1>,

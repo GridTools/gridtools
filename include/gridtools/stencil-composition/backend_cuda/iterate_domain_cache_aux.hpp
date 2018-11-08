@@ -71,10 +71,10 @@ namespace gridtools {
 
             template <typename Offset>
             GT_FUNCTION void operator()(Offset) const {
-                constexpr int_t offset = BaseOffset + (int_t)Offset::value;
+                static constexpr int_t offset = BaseOffset + (int_t)Offset::value;
 
                 using acc_t = accessor<AccIndex::value, enumtype::inout, extent<0, 0, 0, 0, offset, offset>>;
-                constexpr acc_t acc(0, 0, offset);
+                static constexpr acc_t acc(0, 0, offset);
 
                 // perform an out-of-bounds check
                 if (auto mem_ptr = m_it_domain.get_gmem_ptr_in_bounds(acc)) {
@@ -141,7 +141,7 @@ namespace gridtools {
             GT_FUNCTION void sync() const {
                 GRIDTOOLS_STATIC_ASSERT(forward || backward, "k-caches only support forward and backward iteration");
                 GRIDTOOLS_STATIC_ASSERT(fill || flush, "io policy must be either fill or flush");
-                constexpr uint_t sync_size = (uint_t)(SyncEnd - SyncStart + 1);
+                static constexpr uint_t sync_size = (uint_t)(SyncEnd - SyncStart + 1);
                 using range = GT_META_CALL(meta::make_indices_c, sync_size);
                 auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
                 host_device::for_each<range>(make_io_operator<CacheIOPolicy, Idx, SyncStart>(m_it_domain, cache_st));
@@ -180,11 +180,11 @@ namespace gridtools {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
-                constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                constexpr int_t kplus = kcache_storage_t::kplus_t::value;
+                static constexpr int_t kminus = kcache_storage_t::kminus_t::value;
+                static constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
                 // cache index at which we need to sync (single element)
-                constexpr int_t sync_point = base::tail ? kminus : kplus;
+                static constexpr int_t sync_point = base::tail ? kminus : kplus;
 
                 base::template sync<Idx, sync_point>();
             }
@@ -210,8 +210,8 @@ namespace gridtools {
             using base::io_cache_functor_base;
 
             template <typename Idx, typename KCache = typename boost::mpl::at<KCachesMap, Idx>::type::cache_t>
-            struct endpoint_only_cache : static_int<KCache::ccacheIOPolicy == cache_io_policy::bpfill ||
-                                                    KCache::ccacheIOPolicy == cache_io_policy::epflush> {};
+            using endpoint_only_cache = bool_constant<KCache::ccacheIOPolicy == cache_io_policy::bpfill ||
+                                                      KCache::ccacheIOPolicy == cache_io_policy::epflush>;
 
             /**
              * @brief Sync implementation for endpoint-only caches (i.e. bpfill, epflush).
@@ -221,8 +221,8 @@ namespace gridtools {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
-                constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                constexpr int_t kplus = kcache_storage_t::kplus_t::value;
+                static constexpr int_t kminus = kcache_storage_t::kminus_t::value;
+                static constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
                 // sync full cache
                 base::template sync<Idx, kminus, kplus>();
@@ -236,17 +236,17 @@ namespace gridtools {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
-                constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                constexpr int_t kplus = kcache_storage_t::kplus_t::value;
+                static constexpr int_t kminus = kcache_storage_t::kminus_t::value;
+                static constexpr int_t kplus = kcache_storage_t::kplus_t::value;
 
                 // with fill or flush caches, we need to load/store one element less at the begin and endpoints as the
                 // non-endpoint fill or flush on the same k-level will handle this already
-                constexpr int_t kminus_offset = base::tail ? 1 : 0;
-                constexpr int_t kplus_offset = !base::tail ? -1 : 0;
+                static constexpr int_t kminus_offset = base::tail ? 1 : 0;
+                static constexpr int_t kplus_offset = !base::tail ? -1 : 0;
 
                 // choose lower and upper cache index for syncing
-                constexpr int_t sync_start = kminus + kminus_offset;
-                constexpr int_t sync_end = kplus + kplus_offset;
+                static constexpr int_t sync_start = kminus + kminus_offset;
+                static constexpr int_t sync_end = kplus + kplus_offset;
 
                 base::template sync<Idx, sync_start, sync_end>();
             }
