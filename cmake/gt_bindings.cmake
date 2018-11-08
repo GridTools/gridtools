@@ -37,10 +37,10 @@ else()
 endif()
 
 add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator_main.cpp)
-target_include_directories(c_bindings_generator PUBLIC ${local_GRIDTOOLS_ROOT}/include)
+target_include_directories(c_bindings_generator PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
 
 add_library(c_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.cpp)
-target_include_directories(c_bindings_handle PUBLIC ${local_GRIDTOOLS_ROOT}/include)
+target_include_directories(c_bindings_handle PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
 
 # enable_bindings_library_fortran()
 #
