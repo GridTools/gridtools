@@ -30,7 +30,7 @@ def build_and_test(args):
     cmake_args['STRUCTURED_GRIDS'] = args.grid == 'structured'
 
     # enable pyutils
-    cmake_args['ENABLE_PYUTILS'] = True
+    cmake_args['GT_ENABLE_PYUTILS'] = True
 
     # override cmake args
     for arg in args.cmake:
