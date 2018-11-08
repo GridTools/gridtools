@@ -186,6 +186,8 @@ else
     SRUN_BUILD_COMMAND=""
 fi
 
+# Be aware: CUDA_HOST_COMPILER is for find_package, CMAKE_CUDA_HOST_COMPILER is for enable_language. They
+# are both required, they do the same, but at different places
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
@@ -235,6 +237,9 @@ cmake \
 -DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
 ../
 "
+
+# TODO remove
+cat tests_manifest.txt
 
 if [ "x$GENERATE_ONLY" == "xON" ]; then
     exit 0
