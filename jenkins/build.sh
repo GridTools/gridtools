@@ -238,9 +238,6 @@ cmake \
 ../
 "
 
-# TODO remove
-cat tests_manifest.txt
-
 if [ "x$GENERATE_ONLY" == "xON" ]; then
     exit 0
 fi

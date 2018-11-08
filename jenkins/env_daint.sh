@@ -61,7 +61,7 @@ else
 fi
 
 export CPATH=$CPATH:$MPICH_DIR/include
-export BOOST_ROOT=/scratch/snx1600/jenkins/install/boost/boost_1_67_0
+export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
