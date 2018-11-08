@@ -147,6 +147,10 @@ endif()
 
 include (fix_test_case_name)
 if(NOT DISABLE_TESTING)
+  # enable C/Fortran here, as enabling locally might be undefined,
+  # see https://cmake.org/cmake/help/v3.12/command/enable_language.html
+  # "... it must be called in the highest directory common to all targets using the named language..."
+  enable_language(C Fortran)
   add_library(regression_fixture src/tools/regression_fixture.cpp)
   target_link_libraries(regression_fixture gtest common)
 
@@ -186,7 +190,8 @@ install(FILES "${PROJECT_BINARY_DIR}/GridToolsConfig.cmake"
   "${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
 
-# TODO for GC-546: move this to an appropriate location
+# TODO for a next CMake refactoring: move this to an appropriate location
+# Also consider using a separate directory for source files which are installed, e.g. src_public
 if(COMPONENT_C_BINDINGS)
     generate_target_for(NAME c_bindings)
     generate_install_targets_for(c_bindings c_bindings)

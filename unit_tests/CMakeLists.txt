@@ -1,5 +1,3 @@
-set(exe_LIBS ${exe_LIBS} c_bindings_generator)
-set(exe_LIBS ${exe_LIBS} c_bindings_handle)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # collect tests

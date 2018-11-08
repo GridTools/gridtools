@@ -1,5 +1,3 @@
-enable_language(C Fortran)
-
 # The following macro is a trick to generate a file containing pre-processed compiler output (-E flag)
 macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     # check if ${cpp_file} is a file that exists (to protect that the user passes in multiple files or something else)
@@ -74,8 +72,9 @@ else()
 endif()
 
 add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
-target_link_libraries(repository_${prec} gtest)
-target_link_libraries(repository_${prec} pthread)
+target_link_libraries(repository_${prec} PUBLIC gtest)
+target_link_libraries(repository_${prec} PUBLIC pthread)
+target_link_libraries(repository_${prec} PUBLIC common)
 target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS})
 if(SINGLE_PRECISION)
     target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=4)

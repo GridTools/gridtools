@@ -1,4 +1,4 @@
-
+! This file is generated!
 module repository
 implicit none
   interface
