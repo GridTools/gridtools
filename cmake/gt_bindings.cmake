@@ -42,10 +42,11 @@ endif()
 
 add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator_main.cpp)
 target_include_directories(c_bindings_generator PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
-target_link_libraries(c_bindings_generator Boost::boost)
+target_link_libraries(c_bindings_generator PRIVATE Boost::boost)
 
 add_library(c_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.cpp)
 target_include_directories(c_bindings_handle PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
+target_link_libraries(c_bindings_handle PRIVATE Boost::boost)
 
 # enable_bindings_library_fortran()
 #
