@@ -8,7 +8,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # Load some cmake modules.
 # 1) define what flags should be available,
 
-enable_language (CXX Fortran C)
+enable_language (CXX)
 if (NOT DEFINED GT_ENABLE_TARGET_CUDA)
     # detect CUDA support
     include(CheckLanguage)
@@ -68,7 +68,7 @@ endif()
 # ===============
 include (definitions)
 include (testing)
-include (bindings)
+include (gt_bindings)
 include (components)
 
 if( COMPONENT_COMMON )
@@ -124,45 +124,14 @@ if( COMPONENT_STORAGE )
     target_link_libraries( distributed-boundaries INTERFACE common )
 endif()
 
-# ===============
-# compile c_bindings_generator:
-# ===============
+if( COMPONENT_INTERFACE )
+    generate_target_for(NAME interface)
+    generate_install_targets_for(interface interface)
+endif()
 
-if( COMPONENT_C_BINDINGS )
-    generate_target_for(NAME c_bindings_handle SOURCES src/c_bindings/handle.cpp)
-    target_compile_options(c_bindings_handle PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
-    # set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-    generate_install_targets_for(c_bindings_handle c_bindings None)
-    target_link_libraries(c_bindings_handle common)
-
-    set(CMAKE_FORTRAN_MODOUT_FLAG ON)
-    set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
-
-    add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
-    target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
-    target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-
-    generate_target_for(NAME c_bindings_generator SOURCES src/c_bindings/generator.cpp)
-    target_compile_options(c_bindings_generator PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
-    #set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-    generate_install_targets_for(c_bindings_generator c_bindings None)
-    target_link_libraries(c_bindings_generator common)
-
-    add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
-    target_compile_options(c_bindings_generator_main PRIVATE ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS})
-    target_link_libraries(c_bindings_generator_main c_bindings_generator)
-    generate_install_targets_for(c_bindings_generator_main c_bindings c_bindings_generator)
-
-    add_library(array_descriptor src/c_bindings/array_descriptor.f90)
-    generate_install_targets_for(array_descriptor c_bindings None)
-
-    install(DIRECTORY
-        "${PROJECT_BINARY_DIR}/mod/"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
-    install(FILES
-        "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
-        DESTINATION "${CMAKE_INSTALL_PREFIX}")
-
+if( COMPONENT_TOOLS )
+    generate_target_for(NAME tools)
+    generate_install_targets_for(tools tools)
 endif()
 
 # ===============
@@ -178,6 +147,10 @@ endif()
 
 include (fix_test_case_name)
 if(NOT DISABLE_TESTING)
+  # enable C/Fortran here, as enabling locally might be undefined,
+  # see https://cmake.org/cmake/help/v3.12/command/enable_language.html
+  # "... it must be called in the highest directory common to all targets using the named language..."
+  enable_language(C Fortran)
   add_library(regression_fixture src/tools/regression_fixture.cpp)
   target_link_libraries(regression_fixture gtest common)
 
@@ -216,6 +189,24 @@ write_basic_package_version_file(
 install(FILES "${PROJECT_BINARY_DIR}/GridToolsConfig.cmake"
   "${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
+
+# TODO for a next CMake refactoring: move this to an appropriate location
+# Also consider using a separate directory for source files which are installed, e.g. src_public
+if(COMPONENT_C_BINDINGS)
+    generate_target_for(NAME c_bindings)
+    generate_install_targets_for(c_bindings c_bindings)
+    install(FILES
+        "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake"
+        "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
+        DESTINATION "cmake")
+    install(FILES
+        "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"
+        "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
+        "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
+        "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
+        "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp"
+        DESTINATION "src/c_bindings")
+endif()
 
 if ( INSTALL_GT_EXAMPLES )
     install(DIRECTORY
