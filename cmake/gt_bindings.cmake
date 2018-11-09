@@ -40,10 +40,12 @@ if(NOT TARGET Boost::boost)
 endif()
 
 add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp)
+# TODO in CMake cleanup: should link against GridTools::common or GridTools::gridtools
 target_include_directories(c_bindings_generator PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
 target_link_libraries(c_bindings_generator PRIVATE Boost::boost)
 
 add_library(c_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.cpp)
+# TODO in CMake cleanup: should link against GridTools::common or GridTools::gridtools
 target_include_directories(c_bindings_handle PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
 target_link_libraries(c_bindings_handle PRIVATE Boost::boost)
 
