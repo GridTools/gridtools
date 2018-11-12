@@ -53,18 +53,18 @@ TEST(meta_storage_cache, standard_layout) {
     constexpr meta_t meta;
 
     constexpr gridtools::uint_t expected_total_length = Dim0 * Dim1 * Dim2;
-    ASSERT_STATIC_EQ(expected_total_length, meta_t::padded_total_length());
+    ASSERT_STATIC_EQ(expected_total_length, meta_t::size);
 
-    ASSERT_STATIC_EQ(Dim2 * Dim1, meta_t::stride<0>());
-    ASSERT_STATIC_EQ(Dim2, meta_t::stride<1>());
-    ASSERT_STATIC_EQ(1, meta_t::stride<2>());
-    ASSERT_STATIC_EQ(1, meta_t::stride_t<2>::value);
+    ASSERT_STATIC_EQ(Dim2 * Dim1, meta_t::stride<0>::value);
+    ASSERT_STATIC_EQ(Dim2, meta_t::stride<1>::value);
+    ASSERT_STATIC_EQ(1, meta_t::stride<2>::value);
 
-    ASSERT_STATIC_EQ(1 * meta_t::stride<0>() + 2 * meta_t::stride<1>() + 3 * meta_t::stride<2>(), meta.index(1, 2, 3));
+    ASSERT_STATIC_EQ(1 * meta_t::stride<0>::value + 2 * meta_t::stride<1>::value + 3 * meta_t::stride<2>::value,
+        meta.index(1, 2, 3));
 
-    //    ASSERT_STATIC_EQ(Dim0, meta_t::dim<0>());
-    //    ASSERT_STATIC_EQ(Dim1, meta_t::dim<1>());
-    //    ASSERT_STATIC_EQ(Dim2, meta_t::dim<2>());
+    ASSERT_STATIC_EQ(Dim0, meta_t::dim<0>());
+    ASSERT_STATIC_EQ(Dim1, meta_t::dim<1>());
+    ASSERT_STATIC_EQ(Dim2, meta_t::dim<2>());
 }
 
 TEST(meta_storage_cache, inverted_layout) {
@@ -77,17 +77,18 @@ TEST(meta_storage_cache, inverted_layout) {
     constexpr meta_t meta;
 
     constexpr gridtools::uint_t expected_total_length = Dim0 * Dim1 * Dim2;
-    ASSERT_STATIC_EQ(expected_total_length, meta_t::padded_total_length());
+    ASSERT_STATIC_EQ(expected_total_length, meta_t::size);
 
-    ASSERT_STATIC_EQ(1, meta_t::stride<0>());
-    ASSERT_STATIC_EQ(Dim0, meta_t::stride<1>());
-    ASSERT_STATIC_EQ(Dim0 * Dim1, meta_t::stride<2>());
+    ASSERT_STATIC_EQ(1, meta_t::stride<0>::value);
+    ASSERT_STATIC_EQ(Dim0, meta_t::stride<1>::value);
+    ASSERT_STATIC_EQ(Dim0 * Dim1, meta_t::stride<2>::value);
 
-    ASSERT_STATIC_EQ(1 * meta_t::stride<0>() + 2 * meta_t::stride<1>() + 3 * meta_t::stride<2>(), meta.index(1, 2, 3));
+    ASSERT_STATIC_EQ(1 * meta_t::stride<0>::value + 2 * meta_t::stride<1>::value + 3 * meta_t::stride<2>::value,
+        meta.index(1, 2, 3));
 
-    //    ASSERT_STATIC_EQ(Dim0, meta_t::dim<0>());
-    //    ASSERT_STATIC_EQ(Dim1, meta_t::dim<1>());
-    //    ASSERT_STATIC_EQ(Dim2, meta_t::dim<2>());
+    ASSERT_STATIC_EQ(Dim0, meta_t::dim<0>());
+    ASSERT_STATIC_EQ(Dim1, meta_t::dim<1>());
+    ASSERT_STATIC_EQ(Dim2, meta_t::dim<2>());
 }
 
 TEST(meta_storage_cache, masked_layout) {
@@ -100,15 +101,16 @@ TEST(meta_storage_cache, masked_layout) {
     constexpr meta_t meta;
 
     constexpr gridtools::uint_t expected_total_length = Dim0 * Dim2;
-    ASSERT_STATIC_EQ(expected_total_length, meta_t::padded_total_length());
+    ASSERT_STATIC_EQ(expected_total_length, meta_t::size);
 
-    ASSERT_STATIC_EQ(Dim2, meta_t::stride<0>());
-    ASSERT_STATIC_EQ(0, meta_t::stride<1>());
-    ASSERT_STATIC_EQ(1, meta_t::stride<2>());
+    ASSERT_STATIC_EQ(Dim2, meta_t::stride<0>::value);
+    ASSERT_STATIC_EQ(0, meta_t::stride<1>::value);
+    ASSERT_STATIC_EQ(1, meta_t::stride<2>::value);
 
-    ASSERT_STATIC_EQ(1 * meta_t::stride<0>() + 2 * meta_t::stride<1>() + 3 * meta_t::stride<2>(), meta.index(1, 2, 3));
+    ASSERT_STATIC_EQ(1 * meta_t::stride<0>::value + 2 * meta_t::stride<1>::value + 3 * meta_t::stride<2>::value,
+        meta.index(1, 2, 3));
 
-    //    ASSERT_STATIC_EQ(Dim0, meta_t::dim<0>());
-    //    ASSERT_STATIC_EQ(Dim1, meta_t::dim<1>());
-    //    ASSERT_STATIC_EQ(Dim2, meta_t::dim<2>());
+    ASSERT_STATIC_EQ(Dim0, meta_t::dim<0>());
+    ASSERT_STATIC_EQ(Dim1, meta_t::dim<1>());
+    ASSERT_STATIC_EQ(Dim2, meta_t::dim<2>());
 }

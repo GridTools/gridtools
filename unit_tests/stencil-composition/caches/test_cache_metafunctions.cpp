@@ -43,6 +43,7 @@
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/block_size.hpp>
 #include <gridtools/stencil-composition/caches/cache_metafunctions.hpp>
+#include <gridtools/stencil-composition/caches/cache_storage.hpp>
 #include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>

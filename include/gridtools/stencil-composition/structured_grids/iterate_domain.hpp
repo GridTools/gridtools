@@ -43,8 +43,10 @@
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../offset_computation.hpp"
 #include "../pos3.hpp"
 #include "../reductions/iterate_domain_reduction.hpp"
+
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -91,6 +93,19 @@
 */
 
 namespace gridtools {
+
+    template <typename StorageInfo, typename StridesCached>
+    struct strides_wrapper {
+        StridesCached const &RESTRICT strides;
+    };
+
+    template <std::size_t Coord, typename StorageInfo, typename StridesCached>
+    GT_FUNCTION constexpr int_t get_stride(strides_wrapper<StorageInfo, StridesCached> const &RESTRICT strides_getter) {
+        return stride<StorageInfo, Coord>(strides_getter.strides);
+    }
+
+    template <typename StorageInfo, typename StridesCached>
+    GT_FUNCTION constexpr typename StorageInfo::layout_t get_layout_map(strides_wrapper<StorageInfo, StridesCached>);
 
     /**@brief class managing the memory accesses, indices increment
 
@@ -236,7 +251,10 @@ namespace gridtools {
                 storage_info_t const *>::type;
 
             return m_index[storage_info_index_t::value] +
-                   compute_offset<storage_info_t>(strides().template get<storage_info_index_t::value>(), accessor);
+                   compute_offset(
+                       strides_wrapper<storage_info_t, decltype(strides().template get<storage_info_index_t::value>())>{
+                           strides().template get<storage_info_index_t::value>()},
+                       accessor);
         }
 
       public:

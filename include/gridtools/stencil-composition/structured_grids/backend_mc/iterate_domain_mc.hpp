@@ -43,6 +43,7 @@
 #include <functional>
 
 #include <boost/fusion/functional/invocation/invoke.hpp>
+#include <boost/mpl/copy_if.hpp>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/generic_metafunctions/meta.hpp"
@@ -54,7 +55,6 @@
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
-#include "../../offset_computation.hpp"
 #include "../../reductions/iterate_domain_reduction.hpp"
 
 namespace gridtools {
@@ -357,7 +357,7 @@ namespace gridtools {
 
             // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_i_block_base;
-            return block_base + m_i_block_index + accessor_offset<Coordinate>(accessor);
+            return block_base + m_i_block_index + get<Coordinate>(accessor);
         }
 
         /**
@@ -382,7 +382,7 @@ namespace gridtools {
 
             // for temporaries the first element starts after the halo, for other storages we use the block base index
             const int_t block_base = is_tmp ? halo : m_j_block_base;
-            return block_base + m_j_block_index + accessor_offset<Coordinate>(accessor);
+            return block_base + m_j_block_index + get<Coordinate>(accessor);
         }
 
         /**
@@ -405,7 +405,7 @@ namespace gridtools {
             // for ij-caches we simply ignore the block index and always access storage at k = 0
             const int_t block_index =
                 (accessor_is_ij_cached<Accessor>::value && m_enable_ij_caches) ? 0 : m_k_block_index;
-            return block_index + accessor_offset<Coordinate>(accessor);
+            return block_index + get<Coordinate>(accessor);
         }
 
         /**
@@ -425,7 +425,7 @@ namespace gridtools {
         template <typename StorageInfo, int_t Coordinate, typename Accessor>
         GT_FUNCTION constexpr typename std::enable_if<(Coordinate > 2), int_t>::type coordinate_offset(
             Accessor const &accessor) const {
-            return accessor_offset<Coordinate>(accessor);
+            return get<Coordinate>(accessor);
         }
 
         template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>

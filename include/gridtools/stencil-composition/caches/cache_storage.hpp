@@ -42,6 +42,7 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../accessor.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../iteration_policy.hpp"
@@ -49,6 +50,8 @@
 #include "cache_storage_metafunctions.hpp"
 #include "cache_traits.hpp"
 #include "meta_storage_cache.hpp"
+
+#include "cache_storage_fwd.hpp"
 
 namespace gridtools {
 
@@ -75,9 +78,6 @@ namespace gridtools {
      * @tparam Extent extent at which the cache is used (used also to determine the size of storage)
      * @tparam Arg arg being cached
      */
-    template <typename Cache, typename BlockSize, typename Extent, typename Arg>
-    struct cache_storage;
-
     template <typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Arg>
     struct cache_storage<Cache, block_size<Tiles...>, extent<ExtentBounds...>, Arg> {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
@@ -128,7 +128,7 @@ namespace gridtools {
         typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, Arg>::type meta_t;
 
         GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return meta_t::padded_total_length(); }
+        static constexpr uint_t padded_total_length() { return meta_t::size; }
 
         template <uint_t Color, typename Accessor>
         GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
@@ -137,10 +137,9 @@ namespace gridtools {
                 (is_accessor<Accessor>::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
-                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
-                                  (extra_dims)*Color * meta_t::template stride<1>() +
-                                  compute_offset_cache<meta_t>(accessor_);
+            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * get_stride<0>(meta_t{}) +
+                                  (thread_pos[1] - jminus_t::value) * get_stride<1 + (extra_dims)>(meta_t{}) +
+                                  (extra_dims)*Color * get_stride<1>(meta_t{}) + compute_offset(meta_t{}, accessor_);
             assert(extra_ < padded_total_length());
             return m_values[extra_];
         }
@@ -153,7 +152,7 @@ namespace gridtools {
         GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
             check_kcache_access(accessor_);
 
-            const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
+            const int_t index_ = compute_offset(meta_t{}, accessor_) - kminus_t::value;
             assert(index_ >= 0);
             assert(index_ < padded_total_length());
 
@@ -168,7 +167,7 @@ namespace gridtools {
         GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
             check_kcache_access(accessor_);
 
-            const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
+            const int_t index_ = compute_offset(meta_t{}, accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
             assert(index_ < padded_total_length());
@@ -209,11 +208,7 @@ namespace gridtools {
 
         template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
         GT_FUNCTION static void check_kcache_access(Accessor const &accessor) {
-
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Error type is not accessor tuple");
-
-            typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
-            typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
 
             check_kcache_access_in_bounds(accessor, make_gt_index_sequence<meta_t::layout_t::masked_length>());
         }

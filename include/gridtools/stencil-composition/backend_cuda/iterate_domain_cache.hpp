@@ -59,6 +59,7 @@
 #include "../block.hpp"
 #include "../block_size.hpp"
 #include "../caches/cache_metafunctions.hpp"
+#include "../caches/cache_storage.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../iterate_domain_fwd.hpp"
 

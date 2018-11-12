@@ -36,34 +36,22 @@
 #pragma once
 
 #include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
-#include "../../storage/common/storage_info_interface.hpp" // TODO remove
+#include "../../storage/common/storage_info_metafunctions.hpp"
 
 namespace gridtools {
 
     template <typename Layout, uint_t... Dims>
     struct meta_storage_cache {
 
-        //        typedef storage_info_interface<0, Layout> meta_storage_t;
         typedef Layout layout_t;
         GRIDTOOLS_STATIC_ASSERT(layout_t::masked_length == sizeof...(Dims),
             GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
 
       private:
-        template <int LayoutArg>
-        struct handle_masked_dims_zero {
-            template <typename Dim>
-            GT_FUNCTION static constexpr uint_t extend(Dim d) {
-                GRIDTOOLS_STATIC_ASSERT(
-                    boost::is_integral<Dim>::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
-                return error_or_return((d > 0),
-                    ((LayoutArg == -1) ? 0 : d),
-                    "Tried to instantiate storage info with zero or negative dimensions");
-            }
-        };
-
         template <typename>
         struct offset_impl;
         template <int... Is>
@@ -75,9 +63,9 @@ namespace gridtools {
         };
 
         template <typename>
-        struct padded_total_length_impl;
+        struct size_impl;
         template <int... Is>
-        struct padded_total_length_impl<layout_map<Is...>> {
+        struct size_impl<layout_map<Is...>> {
             GT_FUNCTION constexpr uint_t operator()() const {
                 return accumulate(multiplies(), handle_masked_dims<Is>::extend(Dims)...);
             }
@@ -87,26 +75,30 @@ namespace gridtools {
         GT_FUNCTION
         constexpr meta_storage_cache() {}
 
-        constexpr static uint_t size = accumulate(multiplies(), Dims...); // TODO more
-
-        GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return padded_total_length_impl<layout_t>{}(); }
+        constexpr static uint_t size = size_impl<layout_t>{}();
 
         template <ushort_t Id>
-        struct stride_t : std::integral_constant<int_t,
-                              get_strides_aux<Layout>::template get_stride<Layout::template at<Id>()>(
-                                  handle_masked_dims<Layout::template at<Id>()>::template extend(Dims)...)> {};
-
-        template <ushort_t Id>
-        GT_FUNCTION static constexpr int_t stride() {
-            return stride_t<Id>::value;
-            //            return get_strides_aux<Layout>::template get_stride<Layout::template at<Id>()>(
-            //                handle_masked_dims<Layout::template at<Id>()>::extend(Dims)...);
-        }
+        struct stride : static_int<get_strides_aux<Layout>::template get_stride< //
+                            std::integral_constant<int,
+                                Layout::template at<Id>()>::value // wrapped in std::integral_constant to help the nvcc
+                            >(handle_masked_dims<Layout::template at<Id>()>::template extend(Dims)...)> {};
 
         template <typename... D, typename std::enable_if<is_all_integral<D...>::value, int>::type = 0>
         GT_FUNCTION constexpr int_t index(D... args) const {
             return offset_impl<layout_t>{}(make_gt_index_sequence<sizeof...(Dims)>{}, args...);
         }
+
+        template <ushort_t Id>
+        GT_FUNCTION static constexpr int_t dim() {
+            return get_value_from_pack(Id, Dims...);
+        }
     };
+
+    template <std::size_t Coord, typename Layout, uint_t... Dims>
+    GT_FUNCTION constexpr int_t get_stride(meta_storage_cache<Layout, Dims...> const &RESTRICT) {
+        return meta_storage_cache<Layout, Dims...>::template stride<Coord>::value;
+    }
+
+    template <typename Layout, uint_t... Dims>
+    GT_FUNCTION constexpr Layout get_layout_map(meta_storage_cache<Layout, Dims...>);
 } // namespace gridtools

@@ -62,7 +62,7 @@
 
 #include "../esf_metafunctions.hpp"
 #include "./cache.hpp"
-#include "./cache_storage.hpp"
+#include "./cache_storage_fwd.hpp"
 
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"

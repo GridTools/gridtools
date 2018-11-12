@@ -42,9 +42,9 @@
 #include "arg.hpp"
 #include "block.hpp"
 #include "expressions/expressions.hpp"
-#include "offset_computation.hpp"
 #include "pos3.hpp"
 #include "run_functor_arguments.hpp"
+#include "stride.hpp"
 #include "tmp_storage.hpp"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/pair.hpp>
