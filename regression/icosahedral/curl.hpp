@@ -35,7 +35,6 @@
 */
 #pragma once
 
-#include "../benchmarker.hpp"
 #include "curl_functors.hpp"
 #include "operator_defs.hpp"
 #include "operators_repository.hpp"
@@ -147,11 +146,6 @@ namespace ico_operators {
 #endif
             array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
-
-#ifdef BENCHMARK
-            std::cout << "curl weights  ";
-            benchmarker::run(stencil_, t_steps);
-#endif
         }
 
         {
@@ -187,11 +181,6 @@ namespace ico_operators {
 
             array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
-
-#ifdef BENCHMARK
-            std::cout << "curl flow convention  ";
-            benchmarker::run(stencil_, t_steps);
-#endif
         }
 
         return result;

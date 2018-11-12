@@ -35,10 +35,10 @@
 */
 #pragma once
 
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../../common/generic_metafunctions/is_all_integrals.hpp"
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../common/host_device.hpp"
 #include "../../storage/common/storage_info_interface.hpp" // TODO remove
 
 namespace gridtools {

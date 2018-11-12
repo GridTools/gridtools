@@ -33,12 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
 #include <gridtools/common/generic_metafunctions/gt_remove_qualifiers.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
-#include <test_helper.hpp>
+#include <gridtools/tools/backend_select.hpp>
+
+#include "../../test_helper.hpp"
 
 /**
  * Compile-time test to ensure that types are correct in all call stages
