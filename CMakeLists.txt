@@ -4,6 +4,8 @@ project(GridTools VERSION "0.1")
 cmake_minimum_required(VERSION 3.12.4)
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+include(CTest)
+
 # ===============
 # Load some cmake modules.
 # 1) define what flags should be available,
@@ -134,11 +136,12 @@ if( COMPILE_EXAMPLES )
 endif()
 
 include (fix_test_case_name)
-if(NOT DISABLE_TESTING)
+if(BUILD_TESTING)
   # enable C/Fortran here, as enabling locally might be undefined,
   # see https://cmake.org/cmake/help/v3.12/command/enable_language.html
   # "... it must be called in the highest directory common to all targets using the named language..."
   enable_language(C Fortran)
+  # TODO move to the right directory
   add_library(regression_fixture src/tools/regression_fixture.cpp)
   target_link_libraries(regression_fixture gtest common)
 

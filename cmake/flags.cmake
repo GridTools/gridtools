@@ -17,7 +17,6 @@ option( GT_TESTS_ENABLE_CACHING "Enable caching functionality" ON)
 option( GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors" OFF )
 set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
-option( DISABLE_TESTING "Disables all unit tests/examples" OFF ) # -> ENABLE_TESTING. With separate options for subcomponents.
 option( COMPILE_EXAMPLES "Compiles the codes in examples folder" ON ) # -> remove (GT_INSTALL_EXAMPLES)
 option( GT_DISABLE_MPI_TESTS_ON_TARGET "Disables all the cpu communication tests" OFF )
 set_property(CACHE GT_DISABLE_MPI_TESTS_ON_TARGET PROPERTY STRINGS OFF CPU GPU)
