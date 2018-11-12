@@ -18,20 +18,21 @@ else()
     set(PERFTEST_GRID "icosahedral")
 endif()
 
-if(GT_ENABLE_TARGET_X86 AND GT_ENABLE_TARGET_CUDA)
-    message(FATAL_ERROR "Performance tests can only be enabled for a single backend")
-endif()
-
+set (ENABLED_BACKENDS )
 if(GT_ENABLE_TARGET_X86)
-    set(PERFTEST_BACKEND "x86")
+    list(APPEND PERFTEST_BACKEND "x86")
 endif()
 
 if(GT_ENABLE_TARGET_CUDA)
-    set(PERFTEST_BACKEND "cuda")
+    list(APPEND PERFTEST_BACKEND "cuda")
 endif()
 
 if(GT_ENABLE_TARGET_MC)
-    set(PERFTEST_BACKEND "mc")
+    list(APPEND PERFTEST_BACKEND "mc")
+endif()
+list(LENGTH PERFTEST_BACKEND PERFTEST_BACKEND_COUNT)
+if(${PERFTEST_BACKEND_COUNT} GREATER 1)
+    message(FATAL_ERROR "Performance tests can only be enabled for a single backend")
 endif()
 
 file(COPY . DESTINATION . FILES_MATCHING PATTERN *.py)

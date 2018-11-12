@@ -72,23 +72,11 @@ include (gt_bindings)
 include (components)
 
 if( COMPONENT_COMMON )
-    find_package( Boost 1.58 REQUIRED )
-    find_package( OpenMP REQUIRED )
-    set(THREADS_PREFER_PTHREAD_FLAG ON) #this is required because gtest uses it
-    find_package( Threads REQUIRED )
-    include(workaround_threads)
-    _fix_threads_flags()
+    generate_install_targets_for(GridTools GridTools)
 
     generate_target_for(NAME common)
     generate_install_targets_for(common common)
-    target_link_libraries( common INTERFACE Boost::boost OpenMP::OpenMP_CXX Threads::Threads)
-    target_compile_options( common INTERFACE ${GT_CXX_MANDATORY_FLAGS} )
-    if (GT_ENABLE_TARGET_CUDA)
-        target_compile_options( common INTERFACE ${GPU_SPECIFIC_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
-        target_include_directories( common INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
-        target_link_libraries( common INTERFACE ${CUDA_CUDART_LIBRARY} )
-    endif()
-
+    target_link_libraries(common INTERFACE GridTools)
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
@@ -137,7 +125,7 @@ endif()
 # ===============
 # examples and tests
 # ===============
-if( INSTALL_GT_EXAMPLES )
+if( GT_INSTALL_EXAMPLES )
    SET(COMPILE_EXAMPLES ON)
 endif()
 
@@ -208,10 +196,10 @@ if(COMPONENT_C_BINDINGS)
         DESTINATION "src/c_bindings")
 endif()
 
-if ( INSTALL_GT_EXAMPLES )
+if ( GT_INSTALL_EXAMPLES )
     install(DIRECTORY
             gt_examples
-            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src"
+            DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/src"
             FILES_MATCHING REGEX ".*cpp|.*hpp")
 endif()
 

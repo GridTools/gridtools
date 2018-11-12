@@ -13,7 +13,7 @@ option( COMPILE_TO_PTX "Compile to intermediate representation" OFF ) # -> inter
 option( SINGLE_PRECISION "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" OFF ) # -> test, regression
 option( STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" ) # -> delete if not needed
-option( ENABLE_CACHING "Enable caching functionality" ON)
+option( GT_TESTS_ENABLE_CACHING "Enable caching functionality" ON)
 option( GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors" OFF )
 set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
@@ -22,8 +22,11 @@ option( COMPILE_EXAMPLES "Compiles the codes in examples folder" ON ) # -> remov
 option( GT_DISABLE_MPI_TESTS_ON_TARGET "Disables all the cpu communication tests" OFF )
 set_property(CACHE GT_DISABLE_MPI_TESTS_ON_TARGET PROPERTY STRINGS OFF CPU GPU)
 option( ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
-option( INSTALL_GT_EXAMPLES "Specify if source codes and binaries of examples should be installed somewhere" OFF ) # GT_INSTALL_EXAMPLES
-set( INSTALL_GT_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Specify where the source codes and binaries of examples should be installed" )
+option( GT_INSTALL_EXAMPLES "Specify if source codes and binaries of examples should be installed somewhere" OFF )
+set( GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Specify where the source codes and binaries of examples should be installed" )
+if (GT_ENABLE_TARGET_CUDA)
+  set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
+endif()
 
 set( GCL_MPI "${GT_USE_MPI}" )
 set( GCL_GPU "${GT_ENABLE_TARGET_CUDA}" )

@@ -36,7 +36,7 @@ else()
 endif()
 
 if(NOT TARGET Boost::boost)
-    find_package(Boost)
+    find_package(Boost REQUIRED)
 endif()
 
 add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp)
