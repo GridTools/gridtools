@@ -59,10 +59,11 @@ struct test_on_edges_functor {
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
-        eval(out{}) = eval(on_edges([](float_type in1, float_type in2, float_type res) { return in1 + in2 * .1 + res; },
-            float_type{},
-            in1{},
-            in2{}));
+        eval(out{}) = eval(
+            on_edges([](float_type in1, float_type in2, float_type res) { return in1 + in2 * float_type{.1} + res; },
+                float_type{},
+                in1{},
+                in2{}));
     }
 };
 
