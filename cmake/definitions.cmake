@@ -33,7 +33,6 @@ target_link_libraries( GridTools INTERFACE Threads::Threads)
 include(workaround_threads)
 _fix_threads_flags()
 
-target_compile_definitions(GridTools INTERFACE SUPPRESS_MESSAGES)
 target_compile_definitions(GridTools INTERFACE BOOST_PP_VARIADICS=1)
 if(STRUCTURED_GRIDS)
     target_compile_definitions(GridTools INTERFACE STRUCTURED_GRIDS)
@@ -44,12 +43,13 @@ if( GT_ENABLE_TARGET_CUDA )
   target_compile_definitions(GridTools INTERFACE GT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR})
   target_compile_definitions(GridTools INTERFACE GT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR})
   target_compile_definitions(GridTools INTERFACE _USE_GPU_)
-  if( "${CMAKE_CUDA_COMPILER_VERSION}" VERSION_LESS "8.0" )
+  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "8.0" )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()
   target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
   # workaround for boost::optional with CUDA9.2
+  # TODO Note, when you compile with CUDA9.2, you cannot use the exported target with CUDA > 9.2
   if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2")
       target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
       target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
@@ -70,21 +70,22 @@ if( GT_ENABLE_TARGET_CUDA )
   find_package(CUDA REQUIRED)
   target_link_libraries( GridTools INTERFACE ${CUDA_CUDART_LIBRARY} )
 endif()
-# TODO check with ICC 18
-if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-    # fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.65 and ICC 17)
-    # otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
-    target_compile_definitions(GridTools INTERFACE $<$<CXX_COMPILER_ID:Intel>:BOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED>)
-    target_compile_definitions(GridTools INTERFACE "$<$<CXX_COMPILER_ID:Intel>:BOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'>" )
 
-    # force boost to use decltype() for boost::result_of, required to compile without errors (ICC 17)
-    target_compile_definitions(GridTools INTERFACE $<$<CXX_COMPILER_ID:Intel>:BOOST_RESULT_OF_USE_DECLTYPE>)
-endif()
-#TODO decide where to put this
-if(CMAKE_Fortran_COMPILER_ID MATCHES "Cray")
-    # Controls preprocessor expansion of macros in Fortran source code.
-    target_compile_options(GridTools INTERFACE $<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILER_LANGUAGE:Fortran>>:-eF>)
-endif()
+# fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.67 and ICC 18)
+# otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
+target_compile_definitions(GridTools INTERFACE
+    $<$<AND:$<CXX_COMPILER_ID:Intel>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:BOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED>)
+target_compile_definitions(GridTools INTERFACE
+    "$<$<AND:$<CXX_COMPILER_ID:Intel>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:BOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'>" )
+
+# force boost to use decltype() for boost::result_of, required to compile without errors (ICC 17+18)
+target_compile_definitions(GridTools INTERFACE
+    $<$<AND:$<CXX_COMPILER_ID:Intel>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:BOOST_RESULT_OF_USE_DECLTYPE>)
+
+# Controls preprocessor expansion of macros in Fortran source code.
+# TODO decide where to put this. Probably this should go into fortran bindings
+target_compile_options(GridTools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
+
 if( GT_USE_MPI )
     target_compile_definitions(GridTools INTERFACE _GCL_MPI_)
     if( GT_ENABLE_TARGET_CUDA )
@@ -138,13 +139,6 @@ if( GT_ENABLE_TARGET_MC )
   target_link_libraries(GridToolsTestMC INTERFACE GridToolsTest)
 endif( GT_ENABLE_TARGET_MC )
 
-## clang ##
-if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
-    # set( GT_CXX_HOST_ONLY_FLAGS ${GT_CXX_HOST_ONLY_FLAGS}  -ftemplate-depth-1024 )
-    # disable failed vectorization warnings for OpenMP SIMD loops
-    # set( GT_CXX_HOST_ONLY_FLAGS ${GT_CXX_HOST_ONLY_FLAGS}  -Wno-pass-failed )
-endif()
-# TODO check with ICC 18
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # TODO add those flags to documentation (slightly improve performance)
     target_compile_options(GridToolsTest INTERFACE -qopt-subscript-in-range -qoverride-limits)
