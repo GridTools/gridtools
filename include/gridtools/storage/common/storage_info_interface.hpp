@@ -119,11 +119,6 @@ namespace gridtools {
         array<uint_t, ndims> m_padded_lengths;
         array<uint_t, ndims> m_strides;
 
-        /**
-         * @brief private storage info interface constructor
-         */
-        GT_FUNCTION constexpr storage_info_interface() {}
-
         /*
             When computing the size of a storage, either length,
             total_length, or padded_total_length, we need to multiply
@@ -160,7 +155,7 @@ namespace gridtools {
       public:
         constexpr static uint_t id = Id;
 
-        storage_info_interface() = delete;
+        constexpr storage_info_interface() = delete;
 
         /**
          * @brief storage info constructor. Additionally to initializing the members the halo
