@@ -46,12 +46,8 @@ using grid_type_t = gridtools::grid_type::icosahedral;
 
 #if FLOAT_PRECISION == 4
 using float_type = float;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_FLOAT_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_FLOAT_EQ(reference, actual)
 #elif FLOAT_PRECISION == 8
 using float_type = double;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_DOUBLE_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
 #else
 #error float precision not properly set (4 or 8 bytes supported)
 #endif
