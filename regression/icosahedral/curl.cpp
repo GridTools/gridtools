@@ -69,7 +69,7 @@ TEST_F(curl, weights) {
 
     make_computation(p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
         p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
-        p_curl_weights = make_storage_4d<vertices>(6, 0.),
+        p_curl_weights = make_storage_4d<vertices>(6),
         p_edge_orientation = make_storage_4d<vertices, edges_of_vertices_storage_type>(6, repo.edge_orientation),
         p_in_edges = make_storage<edges>(repo.u),
         p_out_vertices = out_vertices,

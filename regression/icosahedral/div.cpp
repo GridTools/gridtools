@@ -68,7 +68,7 @@ TEST_F(div, reduction_into_scalar) {
         p_edge_length = make_storage<edges, edge_2d_storage_type>(repo.edge_length),
         p_cell_area_reciprocal = make_storage<cells, cell_2d_storage_type>(repo.cell_area_reciprocal),
         p_orientation_of_normal = make_storage_4d<cells, edges_of_cells_storage_type>(3, repo.orientation_of_normal),
-        p_div_weights = make_storage_4d<cells>(3, 0.),
+        p_div_weights = make_storage_4d<cells>(3),
         p_out_cells = out_cells,
         make_multistage(enumtype::execute<enumtype::forward>(),
             make_stage<div_prep_functor, topology_t, cells>(

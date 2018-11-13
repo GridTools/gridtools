@@ -162,14 +162,19 @@ namespace gridtools {
             return {{m_d1, Location::n_colors::value, m_d2, m_d3}, std::forward<T>(obj)};
         }
 
-        template <class Location, class Storage = storage_type_4d<Location>, class Arg>
-        Storage make_storage_4d(uint_t dim, Arg &&arg) {
-            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<Arg>(arg)};
-        }
-
         template <class Location, class Storage = storage_type<Location>>
         Storage make_storage(double val) const {
             return {{m_d1, Location::n_colors::value, m_d2, m_d3}, (typename Storage::data_t)val};
+        }
+
+        template <class Location, class Storage = storage_type_4d<Location>, class T = typename Storage::data_t>
+        Storage make_storage_4d(uint_t dim, T &&val = {}) {
+            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<T>(val)};
+        }
+
+        template <class Location, class Storage = storage_type_4d<Location>>
+        Storage make_storage_4d(uint_t dim, double val) {
+            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, (typename Storage::data_t)val};
         }
 
         topology_t topology() const { return {m_d1, m_d2, m_d3}; }
