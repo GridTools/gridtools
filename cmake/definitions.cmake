@@ -156,7 +156,7 @@ endif()
 
 ## performance meters ##
 if(GT_ENABLE_PERFORMANCE_METERS)
-    target_compile_definitions(GridToolsTest ENABLE_METERS)
+    target_compile_definitions(GridToolsTest INTERFACE ENABLE_METERS)
 endif(GT_ENABLE_PERFORMANCE_METERS)
 
 ## precision ##
