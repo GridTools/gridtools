@@ -1,5 +1,3 @@
-option( GT_SUPPRESS_MESSAGES "suppress compilation messages" ON) # -> delete
-option( GT_VERBOSE "set verbosity for output" OFF) # -> delete
 set( GT_BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" ) # -> not CACHE (only test, regression)
 option( GT_ENABLE_PERFORMANCE_METERS "If on, meters will be reported for each stencil" OFF) # -> regression
 option( GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
@@ -12,7 +10,6 @@ option( GT_GCL_ONLY "If on only library is build but not the examples and tests"
 option( GT_CUDA_PTX_GENERATION "Compile to intermediate representation" OFF ) # -> only enabled if disabled_testing = OFF
 option( SINGLE_PRECISION "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" OFF ) # -> test, regression
 option( STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
-set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" ) # -> delete if not needed
 option( GT_TESTS_ENABLE_CACHING "Enable caching functionality" ON)
 option( GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors" OFF )
 set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )

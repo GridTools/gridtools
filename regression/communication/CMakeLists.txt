@@ -12,7 +12,6 @@ if(NOT GT_GCL_ONLY)
             test_halo_exchange_3D_generic_full
             )
       add_executable( ${srcfile} ${srcfile}.cpp)
-      target_compile_options(${srcfile} PUBLIC ${HOST_SPECIFIC_OPTIONS} -DSTANDALONE)
       target_link_libraries(${srcfile} gtest gcl mpi_gtest_main )
       target_compile_definitions(${srcfile} PRIVATE STANDALONE)
     endforeach(srcfile)

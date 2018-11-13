@@ -9,6 +9,7 @@ modules = default.modules | {'daint-gpu',
                              'cudatoolkit/9.1.85_3.18-6.0.7.0_5.1__g2eb7c52',
                              '/users/mlukas/easybuild/daint/haswell/modules/all/CMake/3.12.4'}
 
+#TODO... CUDA_ARCH should not be env?
 env = dict(default.env,
            CUDA_ARCH='sm_60',
            CUDA_AUTO_BOOST=0,

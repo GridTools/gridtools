@@ -20,7 +20,6 @@ function help {
    echo "-z      force build                              "
    echo "-i      build for icosahedral grids              "
    echo "-d      do not clean build                       "
-   echo "-v      compile in VERBOSE mode                  "
    echo "-q      queue for testing                        "
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
@@ -36,7 +35,6 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 ABSOLUTEPATH_SCRIPT=${INITPATH}/${BASEPATH_SCRIPT#$INITPATH}
 FORCE_BUILD=OFF
-VERBOSE_RUN="OFF"
 VERSION_="5.3"
 GENERATE_ONLY="OFF"
 PERFORMANCE_TESTING="OFF"
@@ -64,8 +62,6 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
     d) DONOTCLEAN="ON"
         ;;
     l) export COMPILER=$OPTARG
-        ;;
-    v) VERBOSE_RUN="ON"
         ;;
     q) QUEUE=$OPTARG
         ;;
@@ -194,7 +190,7 @@ fi
 # are both required, they do the same, but at different places
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_ARCH:STRING="$CUDA_ARCH" \
+-DGT_CUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DGT_ENABLE_TARGET_X86:BOOL=$ENABLE_X86 \
@@ -211,7 +207,6 @@ cmake \
 -DGT_ENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
--DGT_VERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DGT_ENABLE_BINDINGS_GENERATION=$GT_ENABLE_BINDINGS_GENERATION \
 -DGT_DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
@@ -221,7 +216,7 @@ cmake \
 echo "
 cmake \
 -DBoost_NO_BOOST_CMAKE=\"true\" \
--DCUDA_ARCH:STRING=\"$CUDA_ARCH\" \
+-DGT_CUDA_ARCH:STRING=\"$CUDA_ARCH\" \
 -DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DGT_ENABLE_TARGET_X86:BOOL=$ENABLE_X86 \
@@ -236,7 +231,6 @@ cmake \
 -DGT_ENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
--DGT_VERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DGT_DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
 -DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
