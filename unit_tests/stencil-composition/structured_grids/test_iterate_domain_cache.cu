@@ -106,11 +106,11 @@ typedef decltype(gridtools::make_stage<functor2>(p_in1(), p_in2(), p_in4(), p_ou
 typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
 
 TEST(iterate_domain_cache, flush) {
-    typedef detail::cache_impl<K, p_in1, cache_io_policy::flush, kminimum> cache1_t;
-    typedef detail::cache_impl<K, p_in2, cache_io_policy::flush, kmin_and_range1> cache2_t;
-    typedef detail::cache_impl<K, p_in3, cache_io_policy::flush, krange2_and_max> cache3_t;
-    typedef detail::cache_impl<K, p_in4, cache_io_policy::local, kmaximum> cache4_t;
-    typedef detail::cache_impl<K, p_out, cache_io_policy::flush, kall> cache5_t;
+    typedef detail::cache_impl<K, p_in1, cache_io_policy::flush> cache1_t;
+    typedef detail::cache_impl<K, p_in2, cache_io_policy::flush> cache2_t;
+    typedef detail::cache_impl<K, p_in3, cache_io_policy::flush> cache3_t;
+    typedef detail::cache_impl<K, p_in4, cache_io_policy::local> cache4_t;
+    typedef detail::cache_impl<K, p_out, cache_io_policy::flush> cache5_t;
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
@@ -142,11 +142,11 @@ TEST(iterate_domain_cache, flush) {
 }
 
 TEST(iterate_domain_cache, fill) {
-    typedef detail::cache_impl<K, p_in1, cache_io_policy::fill, kminimum> cache1_t;
-    typedef detail::cache_impl<K, p_in2, cache_io_policy::flush, kmin_and_range1> cache2_t;
-    typedef detail::cache_impl<K, p_in3, cache_io_policy::fill, krange2_and_max> cache3_t;
-    typedef detail::cache_impl<K, p_in4, cache_io_policy::local, kmaximum> cache4_t;
-    typedef detail::cache_impl<K, p_out, cache_io_policy::flush, kall> cache5_t;
+    typedef detail::cache_impl<K, p_in1, cache_io_policy::fill> cache1_t;
+    typedef detail::cache_impl<K, p_in2, cache_io_policy::flush> cache2_t;
+    typedef detail::cache_impl<K, p_in3, cache_io_policy::fill> cache3_t;
+    typedef detail::cache_impl<K, p_in4, cache_io_policy::local> cache4_t;
+    typedef detail::cache_impl<K, p_out, cache_io_policy::flush> cache5_t;
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
@@ -188,11 +188,11 @@ TEST(iterate_domain_cache, epflush) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef detail::cache_impl<K, p_in1, cache_io_policy::flush, kminimum> cachef1_t;
-    typedef detail::cache_impl<K, p_in2, cache_io_policy::epflush, kmin_and_range1> cachef2_t;
-    typedef detail::cache_impl<K, p_in3, cache_io_policy::epflush, krange2_and_max> cachef3_t;
-    typedef detail::cache_impl<K, p_in4, cache_io_policy::epflush, kmaximum> cachef4_t;
-    typedef detail::cache_impl<K, p_out, cache_io_policy::flush, kall> cachef5_t;
+    typedef detail::cache_impl<K, p_in1, cache_io_policy::flush> cachef1_t;
+    typedef detail::cache_impl<K, p_in2, cache_io_policy::epflush> cachef2_t;
+    typedef detail::cache_impl<K, p_in3, cache_io_policy::epflush> cachef3_t;
+    typedef detail::cache_impl<K, p_in4, cache_io_policy::epflush> cachef4_t;
+    typedef detail::cache_impl<K, p_out, cache_io_policy::flush> cachef5_t;
 
     typedef boost::mpl::vector5<cachef1_t, cachef2_t, cachef3_t, cachef4_t, cachef5_t> cachesf_t;
 
@@ -221,11 +221,11 @@ TEST(iterate_domain_cache, epflush) {
 }
 
 TEST(iterate_domain_cache, bpfill) {
-    typedef detail::cache_impl<K, p_in1, cache_io_policy::fill, kminimum> cache1_t;
-    typedef detail::cache_impl<K, p_in2, cache_io_policy::bpfill, kmin_and_range1> cache2_t;
-    typedef detail::cache_impl<K, p_in3, cache_io_policy::bpfill, krange2_and_max> cache3_t;
-    typedef detail::cache_impl<K, p_in4, cache_io_policy::local, kmaximum> cache4_t;
-    typedef detail::cache_impl<K, p_out, cache_io_policy::flush, kall> cache5_t;
+    typedef detail::cache_impl<K, p_in1, cache_io_policy::fill> cache1_t;
+    typedef detail::cache_impl<K, p_in2, cache_io_policy::bpfill> cache2_t;
+    typedef detail::cache_impl<K, p_in3, cache_io_policy::bpfill> cache3_t;
+    typedef detail::cache_impl<K, p_in4, cache_io_policy::local> cache4_t;
+    typedef detail::cache_impl<K, p_out, cache_io_policy::flush> cache5_t;
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 

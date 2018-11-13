@@ -53,7 +53,7 @@ namespace gridtools {
             GT_ADD_GENERIC_DECLARATION(foo, bar);
             GT_ADD_GENERIC_DECLARATION(foo, baz);
 
-            const char expected_c_interface[] = R"?(
+            const char expected_c_interface[] = R"?(// This file is generated!
 #pragma once
 
 #include <gridtools/c_bindings/array_descriptor.h>
@@ -79,7 +79,7 @@ void qux(int, gt_fortran_array_descriptor*);
                 EXPECT_EQ(strm.str(), expected_c_interface);
             }
 
-            const char expected_fortran_interface[] = R"?(
+            const char expected_fortran_interface[] = R"?(! This file is generated!
 module my_module
 implicit none
   interface

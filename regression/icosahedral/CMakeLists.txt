@@ -3,29 +3,23 @@ list(APPEND SRCFILES stencil_on_edges stencil_on_edges_of_cells stencil_fused  s
 list(APPEND SRCFILES stencil_on_vertices curl div lap)
 list(APPEND PERFTEST_SRCFILES stencil_on_edges_multiplefields stencil_on_cells stencil_on_neighcell_of_edges stencil_manual_fold)
 
-
-file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
-list ( APPEND INC_ALL ${INC_ALL_} )
-file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
-list ( APPEND INC_ALL ${INC_ALL_} )
-
 add_library(unstructured_grid Options.cpp unstructured_grid.cpp)
 target_compile_options(unstructured_grid PUBLIC ${GT_CXX_FLAGS})
+target_link_libraries(unstructured_grid stencil-composition)
 
 add_definitions("-DBENCHMARK")
-set(exe_LIBS gtest gtest_main "${exe_LIBS}" )
 
 # special target for executables which are used from performance benchmarks
 add_custom_target(perftests)
 
-if(ENABLE_X86)
+if(GT_ENABLE_TARGET_X86)
     foreach(srcfile IN LISTS SRCFILES PERFTEST_SRCFILES)
-        add_executable(${srcfile}_x86_naive   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
-        add_executable(${srcfile}_x86_block   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
+        add_executable(${srcfile}_x86_naive   ${srcfile}.cpp)
+        add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
         target_compile_options(${srcfile}_x86_naive PRIVATE ${GT_CXX_FLAGS}  -D${X86_BACKEND_DEFINE} -DBACKEND_STRATEGY_NAIVE)
         target_compile_options(${srcfile}_x86_block PRIVATE ${GT_CXX_FLAGS} -D${X86_BACKEND_DEFINE})
-        target_link_libraries(${srcfile}_x86_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
-        target_link_libraries(${srcfile}_x86_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
+        target_link_libraries(${srcfile}_x86_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
+        target_link_libraries(${srcfile}_x86_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
 
         gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_block" "12 33 61")
         gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_block" "23 11 43")
@@ -35,12 +29,12 @@ if(ENABLE_X86)
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_x86_block)
     endforeach()
-endif(ENABLE_X86)
+endif(GT_ENABLE_TARGET_X86)
 
-if(ENABLE_MC)
+if(GT_ENABLE_TARGET_MC)
     foreach(srcfile IN LISTS SRCFILES PERFTEST_SRCFILES)
-        add_executable(${srcfile}_mc   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
-        target_link_libraries(${srcfile}_mc ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
+        add_executable(${srcfile}_mc   ${srcfile}.cpp)
+        target_link_libraries(${srcfile}_mc ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
         target_compile_options(${srcfile}_mc PUBLIC ${GT_CXX_FLAGS} -D${MC_BACKEND_DEFINE})
 
 
@@ -50,14 +44,14 @@ if(ENABLE_MC)
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_mc)
     endforeach()
-endif(ENABLE_MC)
+endif(GT_ENABLE_TARGET_MC)
 
-if(ENABLE_CUDA)
+if(GT_ENABLE_TARGET_CUDA)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES PERFTEST_SRCFILES)
          set(CUDA_SEPARABLE_COMPILATION OFF)
          add_executable( ${srcfile}_cuda ${srcfile}.cu  )
          target_compile_options( ${srcfile}_cuda PRIVATE ${GT_CUDA_FLAGS} ${GT_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS} -D${CUDA_BACKEND_DEFINE})
-         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} unstructured_grid)
+         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest_main unstructured_grid)
 
          if( ${srcfile} STREQUAL "stencil_on_vertexes")
              # K lenght larger than 48 fails for stencil_on_vertexes_cuda... this need to be investigated
@@ -76,4 +70,4 @@ if(ENABLE_CUDA)
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_cuda)
     endforeach()
-endif(ENABLE_CUDA)
+endif(GT_ENABLE_TARGET_CUDA)
