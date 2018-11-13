@@ -33,36 +33,37 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "copy_stencil_icosahedral.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_icosahedral_<whatever> dimx dimy dimz\n where args are integer sizes of "
-               "the data fields\n");
-        return 1;
+using namespace gridtools;
+
+template <uint_t>
+struct functor_copy {
+    using out = inout_accessor<0, enumtype::cells>;
+    using in = in_accessor<1, enumtype::cells>;
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out{}) = eval(in{});
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using copy_stencil_icosahedral = regression_fixture<>;
 
-    return RUN_ALL_TESTS();
-}
-
-TEST(StencilOnCells, Test) {
-    gridtools::uint_t x = Options::getInstance().m_size[0];
-    gridtools::uint_t y = Options::getInstance().m_size[1];
-    gridtools::uint_t z = Options::getInstance().m_size[2];
-    gridtools::uint_t t = Options::getInstance().m_size[3];
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(test_copy_stencil_icosahedral::test(x, y, z, t));
+TEST_F(copy_stencil_icosahedral, test) {
+    arg<0, cells> p_out;
+    arg<1, cells> p_in;
+    auto in = make_storage<cells>([](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; });
+    auto out = make_storage<cells>();
+    make_computation(p_out = out,
+        p_in = in,
+        make_multistage(
+            enumtype::execute<enumtype::parallel>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
+        .run();
+    verify(in, out);
 }

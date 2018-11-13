@@ -60,6 +60,15 @@ namespace gridtools {
       public:
         static constexpr uint_t halo_size = HaloSize;
         using storage_tr = storage_traits<backend_t::backend_id_t>;
+
+        halo_descriptor i_halo_descriptor() const {
+            return {halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1};
+        }
+        halo_descriptor j_halo_descriptor() const {
+            return {halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2};
+        }
+
+#ifdef STRUCTURED_GRIDS
         using halo_t = halo<HaloSize, HaloSize, 0>;
         using storage_info_t = storage_tr::storage_info_t<0, 3, halo_t>;
         using j_storage_info_t = storage_tr::special_storage_info_t<1, selector<0, 1, 0>>;
@@ -97,24 +106,6 @@ namespace gridtools {
         static constexpr tmp_arg<8> p_tmp_8 = {};
         static constexpr tmp_arg<9> p_tmp_9 = {};
 
-        /// Fixture constructor takes the dimensions of the computation
-        computation_fixture(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
-
-        uint_t d1() const { return m_d1; }
-        uint_t d2() const { return m_d2; }
-        uint_t d3() const { return m_d3; }
-
-        uint_t &d1() { return m_d1; }
-        uint_t &d2() { return m_d2; }
-        uint_t &d3() { return m_d3; }
-
-        halo_descriptor i_halo_descriptor() const {
-            return {halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1};
-        }
-        halo_descriptor j_halo_descriptor() const {
-            return {halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2};
-        }
-
         auto make_grid() const
             GT_AUTO_RETURN(::gridtools::make_grid(i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}));
 
@@ -128,15 +119,85 @@ namespace gridtools {
             return {{m_d1, m_d2, m_d3}, (typename Storage::data_t)val};
         }
 
+        template <class Expected, class Actual>
+        void verify(Expected const &expected, Actual const &actual) const {
+            EXPECT_TRUE(verifier{}.verify(make_grid(),
+                expected,
+                actual,
+                {{ {halo_size, halo_size},
+                    {halo_size, halo_size},
+                    { 0,
+                        0 } }}));
+        }
+#else
+        using cells = enumtype::cells;
+        using edges = enumtype::edges;
+        using vertices = enumtype::vertices;
+
+        using topology_t = icosahedral_topology<backend_t>;
+
+        using halo_t = halo<HaloSize, 0, HaloSize, 0>;
+
+        template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
+        using storage_info_t = topology_t::template meta_storage_t<Location, Halo, Selector>;
+
+        template <class Location, class Selector = selector<1, 1, 1, 1>, class Halo = halo_t>
+        using storage_type = storage_tr::data_store_t<float_type, storage_info_t<Location, Selector, Halo>>;
+
+        using edge_2d_storage_type = storage_type<edges, selector<1, 1, 1, 0>>;
+        using cell_2d_storage_type = storage_type<cells, selector<1, 1, 1, 0>>;
+        using vertex_2d_storage_type = storage_type<vertices, selector<1, 1, 1, 0>>;
+
+        template <class Location, class Selector = selector<1, 1, 1, 1, 1>>
+        using storage_type_4d = storage_type<Location, Selector, halo<halo_size, 0, halo_size, 0, 0>>;
+
+        template <uint_t I, class Location, class Storage = storage_type<Location>>
+        using arg = gridtools::arg<I, Storage, Location>;
+
+        template <uint_t I, class Location, typename Storage = storage_type<Location>>
+        using tmp_arg = gridtools::tmp_arg<I, Storage, Location>;
+
+        template <class Location, class Storage = storage_type<Location>, class T = typename Storage::data_t>
+        Storage make_storage(T &&obj = {}) const {
+            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, std::forward<T>(obj)};
+        }
+
+        template <class Location, class Storage = storage_type_4d<Location>, class Arg>
+        Storage make_storage_4d(uint_t dim, Arg &&arg) {
+            return {{d1(), Location::n_colors::value, d2(), d3(), dim}, std::forward<Arg>(arg)};
+        }
+
+        template <class Location, class Storage = storage_type<Location>>
+        Storage make_storage(double val) const {
+            return {{m_d1, Location::n_colors::value, m_d2, m_d3}, (typename Storage::data_t)val};
+        }
+
+        topology_t topology() const { return {m_d1, m_d2, m_d3}; }
+
+        auto make_grid() const
+            GT_AUTO_RETURN(::gridtools::make_grid(topology(), i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}));
+
+        template <class Expected, class Actual, class... Args>
+        void verify(Expected const &expected, Actual const &actual, Args &&... args) const {
+            EXPECT_TRUE(verifier{std::forward<Args>(args)...}.verify(
+                make_grid(), expected, actual, {{{halo_size, halo_size}, {0, 0}, {halo_size, halo_size}, {0, 0}}}));
+        }
+
+#endif
+        /// Fixture constructor takes the dimensions of the computation
+        computation_fixture(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
+
+        uint_t d1() const { return m_d1; }
+        uint_t d2() const { return m_d2; }
+        uint_t d3() const { return m_d3; }
+
+        uint_t &d1() { return m_d1; }
+        uint_t &d2() { return m_d2; }
+        uint_t &d3() { return m_d3; }
+
         template <class... Args>
         auto make_computation(Args &&... args) const
             GT_AUTO_RETURN(::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...));
-
-        template <class Expected, class Actual>
-        void verify(Expected const &expected, Actual const &actual) const {
-            EXPECT_TRUE(verifier{}.verify(
-                make_grid(), expected, actual, {{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}}));
-        }
     };
 
 #define GT_DEFINE_COMPUTATION_FIXTURE_PLH(I)                                    \
@@ -147,6 +208,7 @@ namespace gridtools {
     constexpr typename computation_fixture<HaloSize, Axis>::template tmp_arg<I> \
         computation_fixture<HaloSize, Axis>::p_tmp_##I
 
+#ifdef STRUCTURED_GRIDS
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(0);
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(1);
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(2);
@@ -157,6 +219,7 @@ namespace gridtools {
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(7);
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(8);
     GT_DEFINE_COMPUTATION_FIXTURE_PLH(9);
+#endif
 
 #undef GT_DEFINE_COMPUTATION_FIXTURE_PLH
 

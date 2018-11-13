@@ -34,158 +34,52 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <gridtools/common/array.hpp>
-#include <gridtools/common/array_dot_product.hpp>
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <iostream>
-#include <list>
+
+#include <cassert>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
+#include <gridtools/common/array.hpp>
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+#include <gridtools/stencil-composition/location_type.hpp>
+
 namespace gridtools {
-    class neighbour_list {
-      public:
-        explicit neighbour_list(array<uint_t, 4> &dims) {
-            m_neigh_indexes.resize(dims[0] * dims[1] * dims[2] * dims[3]);
-            m_strides = {1, dims[0], dims[0] * dims[1], dims[0] * dims[1] * dims[2]};
-            m_size = m_strides[3] * dims[3];
+    namespace _impl {
+        struct neighbour {
+            int_t i, c, j, k;
+            template <class Fun>
+            auto call(Fun &&fun) const GT_AUTO_RETURN(std::forward<Fun>(fun)(i, c, j, k));
+        };
+
+        template <class FromLocation, class ToLocation>
+        std::vector<array<int_t, 4>> get_offsets(
+            uint_t, std::integral_constant<uint_t, FromLocation::n_colors::value>) {
+            assert(false);
+            return {};
         }
 
-        uint_t index(array<uint_t, 4> coord) { return array_dot_product(coord, m_strides); }
-
-        std::list<array<uint_t, 4>> &at(const uint_t i, const uint_t c, const uint_t j, const uint_t k) {
-            return at({i, c, j, k});
+        template <class FromLocation,
+            class ToLocation,
+            uint_t C = 0,
+            enable_if_t<(C < FromLocation::n_colors::value), int> = 0>
+        std::vector<array<int_t, 4>> get_offsets(uint_t c, std::integral_constant<uint_t, C> = {}) {
+            if (c > C) {
+                return get_offsets<FromLocation, ToLocation>(c, std::integral_constant<uint_t, C + 1>{});
+            }
+            auto offsets = connectivity<FromLocation, ToLocation, C>::offsets();
+            return std::vector<array<int_t, 4>>(offsets.begin(), offsets.end());
         }
-        std::list<array<uint_t, 4>> &at(array<uint_t, 4> const &coord) {
-            assert(index(coord) < m_size);
-            return m_neigh_indexes[index(coord)];
-        }
+    } // namespace _impl
 
-        void insert_neighbour(array<uint_t, 4> const &coord, array<uint_t, 4> neighbour) {
-            at(coord).push_back(std::move(neighbour));
-        }
-
-      private:
-        uint_t m_size;
-        std::vector<std::list<array<uint_t, 4>>> m_neigh_indexes;
-        array<uint_t, 4> m_strides;
+    template <class FromLocation, class ToLocation>
+    std::vector<_impl::neighbour> neighbours_of(int_t i, int_t c, int_t j, int_t k) {
+        assert(c >= 0);
+        assert(c < FromLocation::n_colors::value);
+        std::vector<_impl::neighbour> res;
+        for (auto &item : _impl::get_offsets<FromLocation, ToLocation>(c))
+            res.push_back({i + item[0], c + item[1], j + item[2], k + item[3]});
+        return res;
     };
-
-    class unstructured_grid {
-        using backend_t = backend<target::x86, grid_type::icosahedral, strategy::naive>;
-        using grid_topology_t = icosahedral_topology<backend_t>;
-
-        static const int ncolors = 2;
-
-      private:
-        array<uint_t, 4> m_celldims;
-        array<uint_t, 4> m_edgedims;
-        array<uint_t, 4> m_vertexdims;
-        neighbour_list m_cell_to_cells;
-        neighbour_list m_cell_to_edges;
-        neighbour_list m_cell_to_vertices;
-        neighbour_list m_edge_to_edges;
-        neighbour_list m_edge_to_cells;
-        neighbour_list m_edge_to_vertices;
-        neighbour_list m_vertex_to_vertices;
-        neighbour_list m_vertex_to_edges;
-
-      public:
-        explicit unstructured_grid(uint_t i, uint_t j, uint_t k)
-            : m_celldims{i, 2, j, k}, m_edgedims{i, 3, j, k}, m_vertexdims{i, 1, j + 1, k}, m_cell_to_cells(m_celldims),
-              m_cell_to_edges(m_celldims), m_cell_to_vertices(m_celldims), m_edge_to_edges(m_edgedims),
-              m_edge_to_cells(m_edgedims), m_edge_to_vertices(m_edgedims), m_vertex_to_vertices(m_vertexdims),
-              m_vertex_to_edges(m_vertexdims) {
-            construct_grid();
-        }
-
-        inline void construct_grid() {
-            for (uint_t k = 0; k < m_celldims[3]; ++k) {
-                for (uint_t i = 1; i < m_celldims[0] - 1; ++i) {
-                    for (uint_t j = 1; j < m_celldims[2] - 1; ++j) {
-                        m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i - 1, 1, j, k});
-                        m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
-                        m_cell_to_cells.insert_neighbour({i, 0, j, k}, {i, 1, j - 1, k});
-                        m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i + 1, 0, j, k});
-                        m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
-                        m_cell_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
-
-                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
-                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j, k});
-                        m_cell_to_edges.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
-                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i + 1, 1, j, k});
-                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 2, j, k});
-                        m_cell_to_edges.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
-                    }
-                }
-            }
-            for (uint_t k = 0; k < m_edgedims[3]; ++k) {
-                for (uint_t i = 1; i < m_edgedims[0] - 1; ++i) {
-                    for (uint_t j = 1; j < m_edgedims[2] - 1; ++j) {
-                        m_edge_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j - 1, k});
-                        m_edge_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
-                        m_edge_to_edges.insert_neighbour({i, 0, j, k}, {i + 1, 1, j - 1, k});
-                        m_edge_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j, k});
-
-                        m_edge_to_edges.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
-                        m_edge_to_edges.insert_neighbour({i, 1, j, k}, {i - 1, 2, j, k});
-                        m_edge_to_edges.insert_neighbour({i, 1, j, k}, {i - 1, 0, j + 1, k});
-                        m_edge_to_edges.insert_neighbour({i, 1, j, k}, {i, 2, j, k});
-
-                        m_edge_to_edges.insert_neighbour({i, 2, j, k}, {i, 0, j, k});
-                        m_edge_to_edges.insert_neighbour({i, 2, j, k}, {i, 1, j, k});
-                        m_edge_to_edges.insert_neighbour({i, 2, j, k}, {i + 1, 1, j, k});
-                        m_edge_to_edges.insert_neighbour({i, 2, j, k}, {i, 0, j + 1, k});
-
-                        m_edge_to_cells.insert_neighbour({i, 0, j, k}, {i, 1, j - 1, k});
-                        m_edge_to_cells.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
-
-                        m_edge_to_cells.insert_neighbour({i, 1, j, k}, {i - 1, 1, j, k});
-                        m_edge_to_cells.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
-
-                        m_edge_to_cells.insert_neighbour({i, 2, j, k}, {i, 1, j, k});
-                        m_edge_to_cells.insert_neighbour({i, 2, j, k}, {i, 0, j, k});
-
-                        m_edge_to_vertices.insert_neighbour({i, 0, j, k}, {i + 1, 0, j, k});
-                        m_edge_to_vertices.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
-
-                        m_edge_to_vertices.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
-                        m_edge_to_vertices.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
-
-                        m_edge_to_vertices.insert_neighbour({i, 2, j, k}, {i, 0, j + 1, k});
-                        m_edge_to_vertices.insert_neighbour({i, 2, j, k}, {i + 1, 0, j, k});
-                    }
-                }
-            }
-            for (uint_t k = 0; k < m_vertexdims[3]; ++k) {
-                for (uint_t i = 1; i < m_vertexdims[0] - 1; ++i) {
-                    for (uint_t j = 1; j < m_vertexdims[2] - 1; ++j) {
-                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i, 0, j - 1, k});
-                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i, 0, j + 1, k});
-                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i + 1, 0, j, k});
-                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i - 1, 0, j, k});
-                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i + 1, 0, j - 1, k});
-                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i - 1, 0, j + 1, k});
-                    }
-                }
-            }
-
-            for (uint_t k = 0; k < m_vertexdims[3]; ++k) {
-                for (uint_t i = 1; i < m_vertexdims[0] - 1; ++i) {
-                    for (uint_t j = 1; j < m_vertexdims[2] - 1; ++j) {
-                        m_vertex_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j - 1, k});
-                        m_vertex_to_edges.insert_neighbour({i, 0, j, k}, {i - 1, 0, j, k});
-                        m_vertex_to_edges.insert_neighbour({i, 0, j, k}, {i - 1, 2, j, k});
-                        m_vertex_to_edges.insert_neighbour({i, 0, j, k}, {i, 1, j, k});
-                        m_vertex_to_edges.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
-                        m_vertex_to_edges.insert_neighbour({i, 0, j, k}, {i, 2, j - 1, k});
-                    }
-                }
-            }
-        }
-
-        template <typename LocationTypeFrom, typename LocationTypeTo>
-        std::list<array<uint_t, 4>> const &neighbours_of(array<uint_t, 4> const &coords);
-    };
-
 } // namespace gridtools

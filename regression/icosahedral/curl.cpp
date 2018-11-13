@@ -33,45 +33,60 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "curl.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+#include "curl_functors.hpp"
+#include "operators_repository.hpp"
+
+using namespace gridtools;
+using namespace ico_operators;
+
+struct curl : regression_fixture<2> {
+    operators_repository repo = {d1(), d2()};
+
+    arg<0, edges> p_in_edges;
+    arg<1, vertices, vertex_2d_storage_type> p_dual_area_reciprocal;
+    arg<2, edges, edge_2d_storage_type> p_dual_edge_length;
+    arg<3, vertices> p_out_vertices;
+
+    storage_type<vertices> out_vertices = make_storage<vertices>();
+
+    ~curl() {
+        constexpr double precision = FLOAT_PRECISION == 4 ? 1e-4 : 1e-9;
+        verify(make_storage<vertices>(repo.curl_u), out_vertices, precision);
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+TEST_F(curl, weights) {
+    using edges_of_vertices_storage_type = storage_type_4d<vertices, selector<1, 1, 1, 0, 1>>;
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
+    arg<10, vertices, storage_type_4d<vertices>> p_curl_weights;
+    arg<11, vertices, edges_of_vertices_storage_type> p_edge_orientation;
 
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
-    return RUN_ALL_TESTS();
+    make_computation(p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
+        p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
+        p_curl_weights = make_storage_4d<vertices>(6, 0.),
+        p_edge_orientation = make_storage_4d<vertices, edges_of_vertices_storage_type>(6, repo.edge_orientation),
+        p_in_edges = make_storage<edges>(repo.u),
+        p_out_vertices = out_vertices,
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage<curl_prep_functor, topology_t, vertices>(
+                p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation),
+            make_stage<curl_functor_weights, topology_t, vertices>(p_in_edges, p_curl_weights, p_out_vertices)))
+        .run();
 }
 
-TEST(Curl, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(ico_operators::test_curl(x, y, z, t, verify));
+TEST_F(curl, flow_convention) {
+    make_computation(p_in_edges = make_storage<edges>(repo.u),
+        p_dual_area_reciprocal = make_storage<vertices, vertex_2d_storage_type>(repo.dual_area_reciprocal),
+        p_dual_edge_length = make_storage<edges, edge_2d_storage_type>(repo.dual_edge_length),
+        p_out_vertices = out_vertices,
+        make_multistage(enumtype::execute<enumtype::parallel>(),
+            make_stage<curl_functor_flow_convention, topology_t, vertices>(
+                p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices)))
+        .run();
 }

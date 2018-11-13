@@ -33,45 +33,72 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "stencil_fused.hpp"
-#include "Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/common/binops.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+#include "unstructured_grid.hpp"
+
+using namespace gridtools;
+
+template <uint_t>
+struct test_on_edges_functor {
+    using in = in_accessor<0, enumtype::edges, extent<0, 1, 0, 1>>;
+    using out = inout_accessor<1, enumtype::cells>;
+    using arg_list = boost::mpl::vector<in, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out{}) = eval(on_edges(binop::sum{}, float_type{}, in{}));
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+template <uint_t>
+struct test_on_cells_functor {
+    using in = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
+    using out = inout_accessor<1, enumtype::cells>;
+    using arg_list = boost::mpl::vector<in, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out{}) = eval(on_cells(binop::sum{}, float_type{}, in{}));
     }
+};
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
+using stensil_fused = regression_fixture<2>;
 
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
+TEST_F(stensil_fused, test) {
+    arg<0, edges> p_in;
+    arg<1, cells> p_out;
+    tmp_arg<0, cells> p_tmp;
 
-    return RUN_ALL_TESTS();
-}
+    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
 
-TEST(StencilFused, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
+    auto tmp = [&](int_t i, int_t c, int_t j, int_t k) {
+        float_type res{};
+        for (auto &&item : neighbours_of<cells, edges>(i, c, j, k))
+            res += item.call(in);
+        return res;
+    };
 
-    if (t == 0)
-        t = 1;
+    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
+        float_type res{};
+        for (auto &&item : neighbours_of<cells, cells>(i, c, j, k))
+            res += item.call(tmp);
+        return res;
+    };
 
-    ASSERT_TRUE(sf::test(x, y, z, t, verify));
+    auto out = make_storage<cells>();
+
+    make_computation(p_in = make_storage<edges>(in),
+        p_out = out,
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_tmp),
+            make_stage<test_on_cells_functor, topology_t, cells>(p_tmp, p_out)))
+        .run();
+
+    verify(make_storage<cells>(ref), out);
 }
