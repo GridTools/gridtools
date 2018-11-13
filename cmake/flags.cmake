@@ -21,7 +21,12 @@ option( ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experi
 option( GT_INSTALL_EXAMPLES "Specify if source codes and binaries of examples should be installed somewhere" OFF )
 set( GT_INSTALL_EXAMPLES_PATH "${CMAKE_INSTALL_PREFIX}" CACHE STRING "Specify where the source codes and binaries of examples should be installed" )
 if (GT_ENABLE_TARGET_CUDA)
-  set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
+    if (DEFINED ENV{CUDA_ARCH})
+        set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
+    else()
+        set(GT_CUDA_ARCH_INIT "sm_35")
+    endif()
+    set( GT_CUDA_ARCH ${GT_CUDA_ARCH_INIT} CACHE STRING "Compute capability for CUDA" )
 endif()
 
 set( GCL_MPI "${GT_USE_MPI}" )

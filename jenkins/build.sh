@@ -190,7 +190,6 @@ fi
 # are both required, they do the same, but at different places
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DGT_CUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DGT_ENABLE_TARGET_X86:BOOL=$ENABLE_X86 \
@@ -216,7 +215,6 @@ cmake \
 echo "
 cmake \
 -DBoost_NO_BOOST_CMAKE=\"true\" \
--DGT_CUDA_ARCH:STRING=\"$CUDA_ARCH\" \
 -DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DGT_ENABLE_TARGET_X86:BOOL=$ENABLE_X86 \

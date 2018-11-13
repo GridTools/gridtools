@@ -65,7 +65,7 @@ namespace gridtools {
 
         void regression_fixture_base::init(int argc, char **argv) {
             if (argc < 4) {
-                std::cerr << "Usage: " << argv[0]
+                std::cerr << "Usage: " << argv[0] << " "
                           << "dimx dimy dimz tsteps\n\twhere args are integer sizes of the data fields and tsteps "
                              "is the number of time steps to run in a benchmark run"
                           << std::endl;

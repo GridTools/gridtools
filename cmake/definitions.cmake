@@ -47,7 +47,7 @@ if( GT_ENABLE_TARGET_CUDA )
   if( "${CMAKE_CUDA_COMPILER_VERSION}" VERSION_LESS "8.0" )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()
-  target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${CUDA_ARCH}>)
+  target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
   # workaround for boost::optional with CUDA9.2
   if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2")
