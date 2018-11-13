@@ -35,14 +35,6 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
-#include <tuple>
-
-#include "gtest/gtest.h"
-#include <gridtools/common/defs.hpp>
-#include <gridtools/stencil-composition/backend.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-
 #ifdef BACKEND_X86
 #include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
 #endif
@@ -51,7 +43,15 @@
 #include <gridtools/stencil-composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
 #endif
 
-#include "backend_select.hpp"
+#include <tuple>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/backend.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 namespace gridtools {
     namespace {
@@ -103,14 +103,14 @@ namespace gridtools {
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
                 (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
-            auto computation_ = make_computation<gridtools::backend<target::x86, GRIDBACKEND, strategy::naive>>(
+            auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
                 grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
 
             using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
 
             using iterate_domain_arguments_t =
-                iterate_domain_arguments<backend_ids<target::x86, GRIDBACKEND, strategy::naive>,
+                iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
                     decltype(local_domain1),
                     boost::mpl::vector1<esf_t>,
                     boost::mpl::vector1<extent<>>,

@@ -60,7 +60,7 @@ class TuplePackChecker {
     constexpr TuplePackChecker() {}
     GT_FUNCTION
     static constexpr bool check(int i1, double i2, unsigned short i3) {
-        return ((i1 == -35) && gridtools::compare_below_threshold(i2, 23.3, 1e-6) && (i3 == 9));
+        return ((i1 == -35) && gridtools::expect_with_threshold(i2, 23.3, 1e-6) && (i3 == 9));
     }
 
     template <typename... UInt>

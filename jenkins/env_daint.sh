@@ -9,9 +9,11 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
+module load cudatoolkit
 module rm   PrgEnv-cray
-module load CMake
+module rm CMake
+module load /users/mlukas/easybuild/daint/haswell/modules/all/CMake/3.12.4
+
 
 if [[ ${COMPILER} == "gcc" ]]; then
   module load PrgEnv-gnu
@@ -58,6 +60,7 @@ else
   exit_if_error 444
 fi
 
+export CPATH=$CPATH:$MPICH_DIR/include
 export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD

@@ -36,12 +36,12 @@
 #include <boost/mpl/equal.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-#include "backend_select.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 constexpr int halo_size = 1;

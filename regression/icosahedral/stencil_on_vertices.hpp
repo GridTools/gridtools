@@ -33,12 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "benchmarker.hpp"
 #include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
@@ -153,9 +152,6 @@ namespace sov {
             array<array<uint_t, 2>, 4> halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {0, 0}}};
             result = ver.verify(grid_, ref_vertices, out_vertices, halos);
         }
-#ifdef BENCHMARK
-        benchmarker::run(stencil_, t_steps);
-#endif
         return result;
     }
 

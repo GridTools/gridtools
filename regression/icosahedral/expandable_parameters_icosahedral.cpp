@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "expandable_parameters_icosahedral.hpp"
-#include "../Options.hpp"
+#include "Options.hpp"
 #include "gtest/gtest.h"
 
 int main(int argc, char **argv) {

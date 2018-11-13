@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "stencil_on_cells.hpp"
-#include "../Options.hpp"
+#include "Options.hpp"
 #include "gtest/gtest.h"
 
 int main(int argc, char **argv) {

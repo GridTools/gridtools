@@ -36,7 +36,6 @@
 
 #pragma once
 
-#include "../benchmarker.hpp"
 #include "curl_functors.hpp"
 #include "div_functors.hpp"
 #include "grad_functors.hpp"
@@ -230,11 +229,6 @@ namespace ico_operators {
             out_edges.sync();
 
             result = ver.verify(grid_, ref_edges, out_edges, halos) && result;
-
-#ifdef BENCHMARK
-            std::cout << "lap weights: ";
-            benchmarker::run(stencil_, t_steps);
-#endif
         }
 
         /*
@@ -290,11 +284,6 @@ namespace ico_operators {
             out_edges.sync();
 
             result = ver.verify(grid_, ref_edges, out_edges, halos) && result;
-
-#ifdef BENCHMARK
-            std::cout << "lap flow convention: ";
-            benchmarker::run(stencil_, t_steps);
-#endif
         }
 
         return result;
