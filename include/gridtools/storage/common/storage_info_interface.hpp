@@ -182,13 +182,22 @@ namespace gridtools {
             // = dimension (e.g. in this example the i-padding is 5). For all others we can calculate the padding from
             // the strides (e.g. in this example, the j-padding is 256 / 16 = 16, and the k-padding is 16 / 1 = 1).
             auto sorted_strides = strides;
-            std::sort(sorted_strides.begin(), sorted_strides.end());
+            for (uint_t i = 0; i < ndims; ++i)
+                for (uint_t j = i + 1; j < ndims; ++j)
+                    if (sorted_strides[i] > sorted_strides[j])
+                        std::swap(sorted_strides[i], sorted_strides[j]);
+
             for (uint_t i = 0; i < ndims; ++i) {
                 if (strides[i] == sorted_strides[ndims - 1])
                     m_padded_lengths[i] = dims[i];
-                else
-                    m_padded_lengths[i] =
-                        *std::upper_bound(sorted_strides.begin(), sorted_strides.end(), m_strides[i]) / m_strides[i];
+                else {
+                    m_padded_lengths[i] = 0;
+                    for (int j = i; j < ndims; ++j)
+                        if (strides[i] != sorted_strides[j]) {
+                            m_padded_lengths[i] = sorted_strides[j] / strides[i];
+                            break;
+                        }
+                }
             }
         }
 
