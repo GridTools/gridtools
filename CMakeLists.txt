@@ -55,6 +55,11 @@ else ()
     set (MPI_AVAILABLE OFF)
 endif()
 
+if (TARGET MPI::MPI_CXX)
+    include(workaround_mpiexec)
+    _fix_mpi_exec()
+endif()
+
 include (flags)
 
 if(POLICY CMP0060)

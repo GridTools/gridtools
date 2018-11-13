@@ -96,9 +96,6 @@ add_library(GridToolsTest INTERFACE)
 target_link_libraries(GridToolsTest INTERFACE GridTools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
-if(NOT GT_ENABLE_TARGET_CUDA AND NOT GT_ENABLE_TARGET_MC)
-    target_compile_options(GridToolsTest -march=native)
-endif()
 
 if( GT_TREAT_WARNINGS_AS_ERROR )
     target_compile_options(GridToolsTest INTERFACE -Werror)
@@ -113,6 +110,7 @@ if(GT_ENABLE_TARGET_X86)
   add_library(GridToolsTestX86 INTERFACE)
   target_compile_definitions(GridToolsTestX86 INTERFACE BACKEND_X86)
   target_link_libraries(GridToolsTestX86 INTERFACE GridToolsTest)
+  target_compile_options(GridToolsTestX86 INTERFACE -march=native)
 endif(GT_ENABLE_TARGET_X86)
 
 ## cuda support ##
@@ -212,47 +210,36 @@ function(gridtools_add_test)
 endfunction(gridtools_add_test)
 
 ## test script generator for MPI tests ##
-file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
-file(GENERATE OUTPUT ${TEST_MPI_SCRIPT} INPUT ${TEST_MPI_SCRIPT})
-function(gridtools_add_mpi_test)
+function(gridtools_add_mpi_test_helper)
   set(options)
-  set(one_value_args NAME )
+  set(one_value_args NAME SCRIPT)
   set(multi_value_args COMMAND LABELS)
   cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
   string(REPLACE ";" " " command "${___COMMAND}" )
 
-  file(APPEND ${TEST_MPI_SCRIPT} "echo \$LAUNCH_MPI_TEST ${command}\n")
-  file(APPEND ${TEST_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${command}\n")
-  file(APPEND ${TEST_MPI_SCRIPT} "res=$((res || $? ))\n")
+  file(APPEND ${___SCRIPT} "echo \$LAUNCH_MPI_TEST ${command}\n")
+  file(APPEND ${___SCRIPT} "\$LAUNCH_MPI_TEST ${command}\n")
+  file(APPEND ${___SCRIPT} "res=$((res || $? ))\n")
   add_to_test_manifest("${___NAME} ${command}")
+  # Note: We use MPITEST_ instead of MPIEXEC_ because our own MPI_TEST_-variables are slurm-aware
   add_test(
       NAME ${___NAME}
-      COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} ${___COMMAND} ${MPIEXEC_POSTFLAGS}
+      COMMAND ${MPITEST_EXECUTABLE} ${MPITEST_NUMPROC_FLAG} ${MPITEST_MAX_NUMPROCS} ${MPITEST_PREFLAGS} ${___COMMAND} ${MPITEST_POSTFLAGS}
       )
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
-  if (MPIEXEC_MAX_NUMPROCS)
-      set_tests_properties(${___NAME} PROPERTIES PROCESSORS ${MPIEXEC_MAX_NUMPROCS})
+  if (MPITEST_MAX_NUMPROCS)
+      set_tests_properties(${___NAME} PROPERTIES PROCESSORS ${MPITEST_MAX_NUMPROCS})
   endif()
+endfunction()
+
+file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
+file(GENERATE OUTPUT ${TEST_MPI_SCRIPT} INPUT ${TEST_MPI_SCRIPT})
+function(gridtools_add_mpi_test)
+    gridtools_add_mpi_test_helper(${ARGN} SCRIPT ${TEST_MPI_SCRIPT})
 endfunction(gridtools_add_mpi_test)
 
 file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
 file(GENERATE OUTPUT ${TEST_CUDA_MPI_SCRIPT} INPUT ${TEST_CUDA_MPI_SCRIPT})
 function(gridtools_add_cuda_mpi_test )
-  set(options)
-  set(one_value_args NAME )
-  set(multi_value_args COMMAND LABELS)
-  cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
-  string(REPLACE ";" " " command "${___COMMAND}" )
-
-  file(APPEND ${TEST_CUDA_MPI_SCRIPT} "echo \$LAUNCH_MPI_TEST ${command}\n")
-  file(APPEND ${TEST_CUDA_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${command}\n")
-  file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
-  add_to_test_manifest(${___NAME} ${___COMMAND})
-  add_test(
-      NAME ${___NAME}
-      COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPIEXEC_MAX_NUMPROCS} ${MPIEXEC_PREFLAGS} ${___COMMAND} ${MPIEXEC_POSTFLAGS})
-  set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
-  if (MPIEXEC_MAX_NUMPROCS)
-      set_tests_properties(${___NAME} PROPERTIES PROCESSORS ${MPIEXEC_MAX_NUMPROCS})
-  endif()
+    gridtools_add_mpi_test_helper(${ARGN} SCRIPT ${TEST_CUDA_MPI_SCRIPT})
 endfunction(gridtools_add_cuda_mpi_test)
