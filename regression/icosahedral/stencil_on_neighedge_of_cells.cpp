@@ -68,11 +68,10 @@ TEST_F(stencil_on_neighedge_of_cells, Test) {
     arg<0, edges> p_in;
     arg<1, cells> p_out;
     auto out = make_storage<cells>();
-    auto comp = make_computation(p_in = make_storage<edges>(in),
+    make_computation(p_in = make_storage<edges>(in),
         p_out = out,
         make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)));
-    comp.run();
+            enumtype::execute<enumtype::forward>(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)))
+        .run();
     verify(make_storage<cells>(ref), out);
-    benchmark(comp);
 }

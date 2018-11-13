@@ -81,11 +81,10 @@ TEST_F(stencil_on_cells, with_color) {
     arg<0, cells> p_in;
     arg<1, cells> p_out;
     auto out = make_storage<cells>();
-    auto comp = make_computation(p_in = make_storage<cells>(in),
+    make_computation(p_in = make_storage<cells>(in),
         p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(),
-            make_stage<on_cells_color_functor, topology_t, cells>(p_in, p_out)));
-    comp.run();
+        make_multistage(
+            enumtype::execute<enumtype::forward>(), make_stage<on_cells_color_functor, topology_t, cells>(p_in, p_out)))
+        .run();
     verify(make_storage<cells>(ref), out);
-    benchmark(comp);
 }

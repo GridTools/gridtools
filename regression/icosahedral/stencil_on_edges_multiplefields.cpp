@@ -81,11 +81,12 @@ TEST_F(stencil_on_edges_multiplefields, test) {
     arg<1, edges> p_in2;
     arg<2, edges> p_out;
     auto out = make_storage<edges>();
-    make_computation(p_in1 = make_storage<edges>(in1),
+    auto comp = make_computation(p_in1 = make_storage<edges>(in1),
         p_in2 = make_storage<edges>(in2),
         p_out = out,
         make_multistage(enumtype::execute<enumtype::forward>(),
-            make_stage<test_on_edges_functor, topology_t, edges>(p_in1, p_in2, p_out)))
-        .run();
+            make_stage<test_on_edges_functor, topology_t, edges>(p_in1, p_in2, p_out)));
+    comp.run();
     verify(make_storage<edges>(ref), out);
+    benchmark(comp);
 }
