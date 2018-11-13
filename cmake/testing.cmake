@@ -26,15 +26,15 @@ function(add_fetched_tests_helper test_sources suffix gt_library labels)
         # create a nice name for the test case
         get_filename_component (unit_test ${test_source} NAME_WE )
         set(unit_test "${unit_test}_${suffix}")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
         add_executable (${unit_test} ${test_source} )
         target_link_libraries(${unit_test} ${gt_library} c_bindings_generator c_bindings_handle gtest gmock_main)
 
-        add_test (NAME ${unit_test} COMMAND ${exe} )
-        set_tests_properties(${unit_test} PROPERTIES LABELS "${labels}")
-        gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
+        gridtools_add_test(
+            NAME ${unit_test}
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels})
     endforeach()
 endfunction()
 
@@ -97,23 +97,28 @@ endfunction(fetch_gpu_tests)
 function(add_custom_x86_test)
     set(options )
     set(one_value_args TARGET)
-    set(multi_value_args SOURCES COMPILE_DEFINITIONS)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     if (___TARGET MATCHES "_x86$")
         message(WARNING "Test ${___TARGET} already has suffix _x86. Please remove suffix.")
     endif ()
 
+    set(labels ${___LABELS})
+    list(APPEND labels target_x86)
+
     if (GT_ENABLE_TARGET_X86)
-        set(name "${___TARGET}_x86")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+        set(unit_test "${___TARGET}_x86")
         # create the test
-        add_executable (${name} ${___SOURCES})
-        target_link_libraries(${name} gmock gtest_main GridToolsTestX86)
-        target_compile_definitions(${name} PRIVATE ${___COMPILE_DEFINITIONS})
-        add_test (NAME ${name} COMMAND ${exe} )
-        gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock gtest_main GridToolsTestX86)
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_test(
+            NAME ${unit_test}
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            )
     endif (GT_ENABLE_TARGET_X86)
 endfunction(add_custom_x86_test)
 
@@ -121,23 +126,27 @@ endfunction(add_custom_x86_test)
 function(add_custom_mc_test)
     set(options)
     set(one_value_args TARGET)
-    set(multi_value_args SOURCES COMPILE_DEFINITIONS)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     if (___TARGET MATCHES "_mc$")
         message(WARNING "Test ${___TARGET} already has suffix _mc. Please remove suffix.")
     endif ()
 
+    set(labels ${___LABELS})
+    list(APPEND labels target_mc)
+
     if (GT_ENABLE_TARGET_MC)
-        set(name "${___TARGET}_mc")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+        set(unit_test "${___TARGET}_mc")
         # create the test
-        add_executable (${name} ${___SOURCES})
-        target_link_libraries(${name} gmock gtest_main GridToolsTestMC)
-        target_compile_definitions(${name} PRIVATE ${___COMPILE_DEFINITIONS})
-        add_test (NAME ${name} COMMAND ${exe} )
-        gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock gtest_main GridToolsTestMC)
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_test(
+            NAME ${unit_test}
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels})
     endif (GT_ENABLE_TARGET_MC)
 endfunction(add_custom_mc_test)
 
@@ -145,23 +154,28 @@ endfunction(add_custom_mc_test)
 function(add_custom_gpu_test)
     set(options)
     set(one_value_args TARGET)
-    set(multi_value_args SOURCES COMPILE_DEFINITIONS)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     if (___TARGET MATCHES "_cuda$")
         message(WARNING "Test ${___TARGET} already has suffix _cuda. Please remove suffix.")
     endif ()
 
+    set(labels ${___LABELS})
+    list(APPEND labels target_cuda)
+
     if (GT_ENABLE_TARGET_CUDA)
-        set(name "${___TARGET}_cuda")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+        set(unit_test "${___TARGET}_cuda")
         # create the test
-        add_executable (${name} ${___SOURCES})
-        target_link_libraries(${name} gmock gtest_main GridToolsTestCUDA)
-        target_compile_definitions(${name} PRIVATE ${___COMPILE_DEFINITIONS})
-        gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-        add_test (NAME ${name} COMMAND ${exe} )
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock gtest_main GridToolsTestCUDA)
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_test(
+            NAME ${unit_test}
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            )
     endif (GT_ENABLE_TARGET_CUDA)
 endfunction(add_custom_gpu_test)
 
@@ -169,44 +183,54 @@ endfunction(add_custom_gpu_test)
 function(add_custom_mpi_x86_test)
     set(options)
     set(one_value_args TARGET)
-    set(multi_value_args SOURCES COMPILE_DEFINITIONS)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     if (___TARGET MATCHES "_x86$")
         message(WARNING "Test ${___TARGET} already has suffix _x86. Please remove suffix.")
     endif ()
 
+    set(labels ${___LABELS})
+    list(APPEND labels target_x86 )
+
     if (GT_ENABLE_TARGET_X86)
-        set(name "${___TARGET}_x86")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+        set(unit_test "${___TARGET}_x86")
         # create the test
-        add_executable (${name} ${___SOURCES})
-        target_link_libraries(${name} gmock mpi_gtest_main gcl GridToolsTestX86)
-        target_compile_definitions(${name} PRIVATE ${___COMPILE_DEFINITIONS})
-        gridtools_add_mpi_test(${name} ${exe})
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock mpi_gtest_main gcl GridToolsTestX86)
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_mpi_test(
+            NAME ${unit_test}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            )
     endif (GT_ENABLE_TARGET_X86)
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_mc_test)
     set(options)
     set(one_value_args TARGET)
-    set(multi_value_args SOURCES COMPILE_DEFINITIONS)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     if (___TARGET MATCHES "_mc$")
         message(WARNING "Test ${___TARGET} already has suffix _mc. Please remove suffix.")
     endif ()
 
+    set(labels ${___LABELS})
+    list(APPEND labels target_mc )
+
     if (GT_ENABLE_TARGET_MC)
-        set(name "${___TARGET}_mc")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+        set(unit_test "${___TARGET}_mc")
         # create the test
-        add_executable (${name} ${___SOURCES})
-        target_link_libraries(${name} gmock mpi_gtest_main gcl GridToolsTestMC)
-        target_compile_definitions(${name} PRIVATE ${___COMPILE_DEFINITIONS})
-        gridtools_add_mpi_test(${name} ${exe})
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock mpi_gtest_main gcl GridToolsTestMC)
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_mpi_test(
+            NAME ${unit_test}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            )
     endif (GT_ENABLE_TARGET_MC)
 endfunction(add_custom_mpi_mc_test)
 
@@ -214,22 +238,27 @@ endfunction(add_custom_mpi_mc_test)
 function(add_custom_mpi_gpu_test)
     set(options)
     set(one_value_args TARGET)
-    set(multi_value_args SOURCES COMPILE_DEFINITIONS)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
     if (___TARGET MATCHES "_cuda$")
         message(WARNING "Test ${___TARGET} already has suffix _cuda. Please remove suffix.")
     endif ()
 
+    set(labels ${___LABELS})
+    list(APPEND labels target_cuda )
+
     if (GT_ENABLE_TARGET_CUDA)
-        set(name "${___TARGET}_cuda")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+        set(unit_test "${___TARGET}_cuda")
         # create the test
         #set(CUDA_SEPARABLE_COMPILATION OFF) TODO check this (remove or enable)
-        add_executable (${name} ${___SOURCES} )
-        target_link_libraries(${name} gmock mpi_gtest_main gcl GridToolsTestCUDA)
-        target_compile_definitions(${name} PRIVATE ${___COMPILE_DEFINITIONS})
-        gridtools_add_cuda_mpi_test(${name} ${exe})
+        add_executable (${unit_test} ${___SOURCES} )
+        target_link_libraries(${unit_test} gmock mpi_gtest_main gcl GridToolsTestCUDA)
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_cuda_mpi_test(
+            NAME ${unit_test}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            )
     endif (GT_ENABLE_TARGET_CUDA)
 endfunction(add_custom_mpi_gpu_test)

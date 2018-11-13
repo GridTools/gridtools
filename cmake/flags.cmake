@@ -9,7 +9,7 @@ option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ON )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF ) # -> GCL component
 
-option( COMPILE_TO_PTX "Compile to intermediate representation" OFF ) # -> internal, only enabled if disabled_testing = OFF
+option( GT_CUDA_PTX_GENERATION "Compile to intermediate representation" OFF ) # -> only enabled if disabled_testing = OFF
 option( SINGLE_PRECISION "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" OFF ) # -> test, regression
 option( STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" ) # -> delete if not needed
@@ -37,4 +37,5 @@ set( TEST_CUDA_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_cuda_mpi_tests.sh )
 mark_as_advanced(
     GT_CXX_STANDARD
     GT_TREAT_WARNINGS_AS_ERROR
+    GT_CUDA_PTX_GENERATION
     )

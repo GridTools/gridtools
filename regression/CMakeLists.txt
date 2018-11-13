@@ -40,10 +40,30 @@ if( COMPONENT_STENCIL_COMPOSITION )
           add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_x86_block regression_fixture GridToolsTestX86)
 
-          gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_x86_block" "12 33 61")
-          gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_x86_block" "23 11 43")
-          gridtools_add_test( tests.${srcfile}_x86_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_x86_naive" "12 33 21")
-          gridtools_add_test( tests.${srcfile}_x86_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_x86_naive" "23 11 23")
+          gridtools_add_test(
+              NAME tests.${srcfile}_x86_block_12_33_61
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_x86_block> 12 33 61
+              LABELS regression_x86 target_x86
+              )
+          gridtools_add_test(
+              NAME tests.${srcfile}_x86_block_23_11_43
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_x86_block> 23 11 43
+              LABELS regression_x86 target_x86
+              )
+          gridtools_add_test(
+              NAME tests.${srcfile}_x86_naive_12_33_61
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 12 33 21
+              LABELS regression_x86 target_x86
+              )
+          gridtools_add_test(
+              NAME tests.${srcfile}_x86_naive_23_11_43
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 23 11 43
+              LABELS regression_x86 target_x86
+              )
 
           if (srcfile IN_LIST SOURCES_PERFTEST)
               add_dependencies(perftests ${srcfile}_x86_block)
@@ -54,7 +74,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         target_link_libraries(vanilla_laplacian_x86 GridToolsTestX86)
 
         if( GCL_MPI )
-            add_custom_mpi_x86_test(TARGET copy_stencil_parallel SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp)
+            add_custom_mpi_x86_test(TARGET copy_stencil_parallel SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -68,8 +88,18 @@ if( COMPONENT_STENCIL_COMPOSITION )
           add_executable(${srcfile}_mc   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_mc regression_fixture GridToolsTestMC)
 
-          gridtools_add_test( tests.${srcfile}_mc ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_mc" "12 33 61")
-          gridtools_add_test( tests.${srcfile}_mc ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_mc" "23 11 43")
+          gridtools_add_test(
+              NAME tests.${srcfile}_mc_12_33_61
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_mc> 12 33 61
+              LABELS regression_mc target_mc
+              )
+          gridtools_add_test(
+              NAME tests.${srcfile}_mc_23_11_43
+              SCRIPT ${TEST_SCRIPT}
+              COMMAND $<TARGET_FILE:${srcfile}_mc> 23 11 43
+              LABELS regression_mc target_mc
+              )
           if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_mc)
           endif()
@@ -80,7 +110,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         target_link_libraries(vanilla_laplacian_mc GridToolsTestMC)
 
         if( GCL_MPI )
-            add_custom_mpi_mc_test(TARGET copy_stencil_parallel SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp)
+            add_custom_mpi_mc_test(TARGET copy_stencil_parallel SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -91,20 +121,32 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
     if(GT_ENABLE_TARGET_CUDA)
 
-       if(COMPILE_TO_PTX)
-         CUDA_COMPILE_PTX(generated_files horizontal_diffusion.cu simple_hori_diff.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
-       else()
-         foreach(srcfile IN LISTS SOURCES_CUDA)
-             add_executable( ${srcfile}_cuda ${srcfile}.cu)
-             target_link_libraries(${srcfile}_cuda regression_fixture GridToolsTestCUDA)
+       foreach(srcfile IN LISTS SOURCES_CUDA)
+           add_executable( ${srcfile}_cuda ${srcfile}.cu)
+           target_link_libraries(${srcfile}_cuda regression_fixture GridToolsTestCUDA)
 
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_cuda" "47 38 61")
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/${srcfile}_cuda" "63 38 10")
-             if (srcfile IN_LIST SOURCES_PERFTEST)
-               add_dependencies(perftests ${srcfile}_cuda)
-             endif()
-         endforeach(srcfile)
-       endif()
+           gridtools_add_test(
+               NAME tests.${srcfile}_cuda_47_38_61
+               SCRIPT ${TEST_SCRIPT}
+               COMMAND $<TARGET_FILE:${srcfile}_cuda> 47 38 61
+               LABELS regression_cuda target_cuda
+               )
+           gridtools_add_test(
+               NAME tests.${srcfile}_cuda_63_38_10
+               SCRIPT ${TEST_SCRIPT}
+               COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 38 10
+               LABELS regression_cuda target_cuda
+               )
+           if (srcfile IN_LIST SOURCES_PERFTEST)
+             add_dependencies(perftests ${srcfile}_cuda)
+           endif()
+
+           if (GT_CUDA_PTX_GENERATION)
+               add_library( ${srcfile}_cuda_ptx OBJECT ${srcfile}.cu)
+               target_link_libraries(${srcfile}_cuda_ptx regression_fixture GridToolsTestCUDA)
+               set_target_properties(${srcfile}_cuda_ptx PROPERTIES CUDA_PTX_COMPILATION ON)
+           endif()
+       endforeach(srcfile)
 
        if( GCL_MPI )
            add_custom_mpi_gpu_test(TARGET copy_stencil_parallel SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )

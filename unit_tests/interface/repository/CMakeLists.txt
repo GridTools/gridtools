@@ -54,16 +54,21 @@ IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
     target_compile_options( custom_test_generated_repository PUBLIC ${GT_CXX_FLAGS} )
     target_link_libraries(custom_test_generated_repository gtest_main stencil-composition)
-    gridtools_add_test(custom_test_generated_repository ${TEST_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository)
+    gridtools_add_test(
+        NAME custom_test_generated_repository
+        SCRIPT ${TEST_SCRIPT}
+        COMMAND $<TARGET_FILE:custom_test_generated_repository>
+        LABELS unittest_x86 target_x86
+        )
     add_dependencies( custom_test_generated_repository format_generated_repository )
 else()
     message("Not building the test for the generated repository (CMAKE should be > 3.8)")
 endif()
 
 # collect test cases
-fetch_x86_tests(. LABELS unittest interface)
-fetch_gpu_tests(. LABELS unittest interface)
-fetch_mc_tests(. LABELS unittest interface)
+fetch_x86_tests(. LABELS unittest_x86 )
+fetch_gpu_tests(. LABELS unittest_cuda )
+fetch_mc_tests(. LABELS unittest_mc )
 
 if(SINGLE_PRECISION)
     set(prec float)

@@ -36,10 +36,30 @@ if(GT_ENABLE_TARGET_X86)
         add_executable(${srcfile}_x86_block ${srcfile}.cpp)
         target_link_libraries(${srcfile}_x86_block gcl gtest_main unstructured_grid GridToolsTestX86)
 
-        gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_block" "12 33 61")
-        gridtools_add_test( tests.${srcfile}_x86_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_block" "23 11 43")
-        gridtools_add_test( tests.${srcfile}_x86_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_naive" "12 33 21")
-        gridtools_add_test( tests.${srcfile}_x86_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_x86_naive" "23 11 23")
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_block_12_33_61
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_block> 12 33 61
+            LABELS regression_x86 target_x86
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_block_23_11_43
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_block> 23 11 43
+            LABELS regression_x86 target_x86
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_naive_12_33_21
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 12 33 21
+            LABELS regression_x86 target_x86
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_naive_23_11_23
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 23 11 23
+            LABELS regression_x86 target_x86
+            )
 
         if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_x86_block)
@@ -55,14 +75,44 @@ if(GT_ENABLE_TARGET_CUDA)
 
         if( ${srcfile} STREQUAL "stencil_on_vertexes")
             # K length larger than 48 fails for stencil_on_vertexes_cuda... this need to be investigated
-            gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "77 48 48")
-            gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "63 55 43")
+            gridtools_add_test(
+                NAME tests.${srcfile}_cuda_77_48_48
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 48
+                LABELS regression_cuda target_cuda
+                )
+            gridtools_add_test(
+                NAME tests.${srcfile}_cuda_63_55_43
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
+                LABELS regression_cuda target_cuda
+                )
         elseif(${srcfile} STREQUAL "expandable_parameters_icosahedral" OR ${srcfile} STREQUAL "copy_stencil_icosahedral")
-            gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "32 48 61")
-            gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "64 55 43")
+            gridtools_add_test(
+                NAME tests.${srcfile}_cuda_32_48_61
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${srcfile}_cuda> 32 48 61
+                LABELS regression_cuda target_cuda
+                )
+            gridtools_add_test(
+                NAME tests.${srcfile}_cuda_63_55_43
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${srcfile}_cuda> 64 55 43
+                LABELS regression_cuda target_cuda
+                )
         else()
-            gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "77 48 61")
-            gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "63 55 43")
+            gridtools_add_test(
+                NAME tests.${srcfile}_cuda_77_48_61
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 61
+                LABELS regression_cuda target_cuda
+                )
+            gridtools_add_test(
+                NAME tests.${srcfile}_cuda_63_55_43
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
+                LABELS regression_cuda target_cuda
+                )
         endif()
         if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_cuda)

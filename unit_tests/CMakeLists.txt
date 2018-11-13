@@ -1,7 +1,7 @@
 # collect tests
-fetch_x86_tests(. LABELS unittest)
-fetch_mc_tests(. LABELS unittest)
-fetch_gpu_tests(. LABELS unittest)
+fetch_x86_tests(. LABELS unittest_x86)
+fetch_mc_tests(. LABELS unittest_mc)
+fetch_gpu_tests(. LABELS unittest_cuda)
 
 # include all subdirs
 if ( COMPONENT_COMMON )
