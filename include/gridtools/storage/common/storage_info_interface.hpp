@@ -190,8 +190,9 @@ namespace gridtools {
             for (uint_t i = 0; i < ndims; ++i) {
                 if (strides[i] == sorted_strides[ndims - 1])
                     m_padded_lengths[i] = dims[i];
-                else {
+                else if (strides[i] == 0) {
                     m_padded_lengths[i] = 0;
+                } else {
                     for (int j = i; j < ndims; ++j)
                         if (strides[i] != sorted_strides[j]) {
                             m_padded_lengths[i] = sorted_strides[j] / strides[i];
