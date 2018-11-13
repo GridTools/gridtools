@@ -184,8 +184,11 @@ namespace gridtools {
             auto sorted_strides = strides;
             for (uint_t i = 0; i < ndims; ++i)
                 for (uint_t j = i + 1; j < ndims; ++j)
-                    if (sorted_strides[i] > sorted_strides[j])
-                        std::swap(sorted_strides[i], sorted_strides[j]);
+                    if (sorted_strides[i] > sorted_strides[j]) {
+                        auto tmp = sorted_strides[i];
+                        sorted_strides[i] = sorted_strides[j];
+                        sorted_strides[j] = tmp;
+                    }
 
             for (uint_t i = 0; i < ndims; ++i) {
                 if (strides[i] == sorted_strides[ndims - 1])
