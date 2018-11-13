@@ -64,7 +64,10 @@ namespace gridtools {
          * @brief Per-thread global value of omp_get_thread_num() / omp_get_max_threads().
          */
         inline float thread_factor() {
-            thread_local static const float value = (float)omp_get_thread_num() / omp_get_max_threads();
+#if !defined(__APPLE_CC__) || __APPLE_CC__ > 8000
+            thread_local static
+#endif
+                const float value = (float)omp_get_thread_num() / omp_get_max_threads();
             return value;
         }
 

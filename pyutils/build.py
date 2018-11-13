@@ -18,10 +18,10 @@ def build_and_test(args):
     cmake_args['CMAKE_BUILD_TYPE'] = args.build_type
 
     # backend selection
-    cmake_args['ENABLE_CUDA'] = False
-    cmake_args['ENABLE_HOST'] = False
-    cmake_args['ENABLE_MIC'] = False
-    cmake_args['ENABLE_' + args.backend.upper()] = True
+    cmake_args['GT_ENABLE_TARGET_CUDA'] = False
+    cmake_args['GT_ENABLE_TARGET_X86'] = False
+    cmake_args['GT_ENABLE_TARGET_MC'] = False
+    cmake_args['GT_ENABLE_TARGET_' + args.backend.upper()] = True
 
     # precision
     cmake_args['SINGLE_PRECISION'] = args.precision == 'float'
@@ -30,7 +30,7 @@ def build_and_test(args):
     cmake_args['STRUCTURED_GRIDS'] = args.grid == 'structured'
 
     # enable pyutils
-    cmake_args['ENABLE_PYUTILS'] = True
+    cmake_args['GT_ENABLE_PYUTILS'] = True
 
     # override cmake args
     for arg in args.cmake:
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     group = parser.add_argument_group('configuration')
     group.add_argument('--build-type', '-t', choices=['release', 'debug'],
                        required=True)
-    group.add_argument('--backend', '-b', choices=['cuda', 'host', 'mc'],
+    group.add_argument('--backend', '-b', choices=['cuda', 'x86', 'mc'],
                        required=True)
     group.add_argument('--precision', '-p', choices=['float', 'double'],
                        required=True)

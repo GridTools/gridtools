@@ -33,10 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
+
+#include <gtest/gtest.h>
+
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -75,8 +77,8 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
 
 #ifndef __DISABLE_CACHING__
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,
-                                boost::mpl::vector2<detail::cache_impl<IJ, p_buff, cache_io_policy::local, void>,
-                                    detail::cache_impl<IJ, p_out, cache_io_policy::local, void>>>::value),
+                                boost::mpl::vector2<detail::cache_impl<IJ, p_buff, cache_io_policy::local>,
+                                    detail::cache_impl<IJ, p_out, cache_io_policy::local>>>::value),
         "ERROR\nLists do not match");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty<mss_t::cache_sequence_t>::value), "ERROR\nList not empty");

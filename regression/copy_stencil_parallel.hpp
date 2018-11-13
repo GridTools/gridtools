@@ -35,23 +35,18 @@
 */
 #pragma once
 
-#include <gridtools/communication/low-level/proc_grids_3D.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-
-#include <gridtools/distributed-boundaries/grid_predicate.hpp>
-
-#include <gridtools/boundary-conditions/boundary.hpp>
-
-#include <gridtools/communication/halo_exchange.hpp>
-
 #include <fstream>
 #include <iostream>
 
+#include <gridtools/boundary-conditions/boundary.hpp>
+#include <gridtools/communication/halo_exchange.hpp>
+#include <gridtools/communication/low-level/proc_grids_3D.hpp>
+#include <gridtools/distributed-boundaries/grid_predicate.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/check_flags.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 #include <gridtools/tools/mpi_unit_test_driver/mpi_listener.hpp>
-
-#include "backend_select.hpp"
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/

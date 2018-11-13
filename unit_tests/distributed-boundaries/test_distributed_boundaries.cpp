@@ -34,20 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include <iomanip>
+
 #ifdef _GCL_MPI_
 #include <mpi.h>
 #endif
-#include "gtest/gtest.h"
-#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
-#include <iomanip>
 
-#include <gridtools/distributed-boundaries/comm_traits.hpp>
-#include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
+#include <gtest/gtest.h>
 
 #include <gridtools/boundary-conditions/copy.hpp>
 #include <gridtools/boundary-conditions/value.hpp>
-
-#include "backend_select.hpp"
+#include <gridtools/distributed-boundaries/comm_traits.hpp>
+#include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
+#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 #include "../tools/triplet.hpp"
 

@@ -144,7 +144,7 @@ TEST_F(kcachef, fill_forward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill, kfull>(p_in())),
+            define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -184,7 +184,7 @@ TEST_F(kcachef, fill_forward_shifted_bounds) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill, kfull::modify<-1, 0>>(p_in())),
+            define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill_shifted_bounds>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -224,7 +224,7 @@ TEST_F(kcachef, fill_backward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::fill, kfull>(p_in())),
+            define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -262,7 +262,7 @@ TEST_F(kcachef, fill_copy_forward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill, kfull>(p_in())),
+            define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<copy_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));

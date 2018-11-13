@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <boost/mpl/vector.hpp>
+
 #include <gtest/gtest.h>
 
-#include "backend_select.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/stencil-composition/accessor.hpp>
@@ -46,6 +46,7 @@
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 namespace gridtools {
