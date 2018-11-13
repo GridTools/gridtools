@@ -1,3 +1,4 @@
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 # collect tests
 fetch_x86_tests(.)

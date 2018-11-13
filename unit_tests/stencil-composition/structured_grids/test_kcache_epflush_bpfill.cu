@@ -63,9 +63,6 @@ struct backward_fill {
     typedef boost::mpl::vector<tmp, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, lasttwo) {}
-
-    template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, midbody_last) {
         eval(out()) = eval(tmp(0, 0, 1)) + eval(tmp(0, 0, 2));
     }
@@ -86,9 +83,6 @@ struct forward_fill {
     typedef accessor<1, inout, extent<0, 0, 0, 0, -2, 0>> out;
 
     typedef boost::mpl::vector<tmp, out> arg_list;
-
-    template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, firsttwo) {}
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, midbody_first) {
@@ -127,10 +121,10 @@ TEST_F(kcachef, epflush_and_bpfill_forward_backward) {
         p_out() = m_out,
         make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_tmp())),
+            define_caches(cache<K, cache_io_policy::epflush>(p_tmp())),
             make_stage<copy_flush>(p_in(), p_tmp())),
         make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, fullminustwolast>(p_tmp())),
+            define_caches(cache<K, cache_io_policy::bpfill>(p_tmp())),
             make_stage<backward_fill>(p_tmp(), p_out())));
 
     kcache_stencil.run();
@@ -170,10 +164,10 @@ TEST_F(kcachef, epflush_and_bpfill_backward_forward) {
         p_in() = m_in,
         p_out() = m_out,
         make_multistage(execute<backward>(),
-            define_caches(cache<K, cache_io_policy::epflush, kfull>(p_tmp())),
+            define_caches(cache<K, cache_io_policy::epflush>(p_tmp())),
             make_stage<copy_flush>(p_in(), p_tmp())),
         make_multistage(execute<forward>(),
-            define_caches(cache<K, cache_io_policy::bpfill, fullminustwofirst>(p_tmp())),
+            define_caches(cache<K, cache_io_policy::bpfill>(p_tmp())),
             make_stage<forward_fill>(p_tmp(), p_out())));
 
     kcache_stencil.run();

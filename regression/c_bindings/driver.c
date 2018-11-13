@@ -37,11 +37,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "implementation.h"
-
 #if FLOAT_PRECISION == 4
+#include "implementation_float.h"
 typedef float float_type;
 #elif FLOAT_PRECISION == 8
+#include "implementation_double.h"
 typedef double float_type;
 #else
 #error float precision not properly set (4 or 8 bytes supported)
