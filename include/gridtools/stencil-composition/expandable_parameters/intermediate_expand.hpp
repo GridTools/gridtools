@@ -92,10 +92,10 @@ namespace gridtools {
                 template <class I, class Cache>
                 struct convert_cache;
 
-                template <class I, cache_type CacheType, class Plh, cache_io_policy cacheIOPolicy, class Interval>
-                struct convert_cache<I, detail::cache_impl<CacheType, Plh, cacheIOPolicy, Interval>> {
-                    using type = detail::
-                        cache_impl<CacheType, typename convert_plh<I::value, Plh>::type, cacheIOPolicy, Interval>;
+                template <class I, cache_type CacheType, class Plh, cache_io_policy cacheIOPolicy>
+                struct convert_cache<I, detail::cache_impl<CacheType, Plh, cacheIOPolicy>> {
+                    using type =
+                        detail::cache_impl<CacheType, typename convert_plh<I::value, Plh>::type, cacheIOPolicy>;
                 };
 
                 template <class I, class ArgStoragePair>

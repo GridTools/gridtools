@@ -33,14 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "backend_select.hpp"
-#include "benchmarker.hpp"
 #include "div_functors.hpp"
 #include "operator_defs.hpp"
 #include "operators_repository.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
@@ -177,11 +176,6 @@ namespace ico_operators {
             out_cells.sync();
 
             result = result && ver.verify(grid_, ref_cells, out_cells, halos);
-
-#ifdef BENCHMARK
-            benchmarker::run(stencil_, t_steps);
-            std::cout << "div: " << stencil_.print_meter() << std::endl;
-#endif
         }
         /*
          * stencil of div reduction into scalar
@@ -207,11 +201,6 @@ namespace ico_operators {
             out_cells.sync();
 
             result = result && ver.verify(grid_, ref_cells, out_cells, halos);
-
-#ifdef BENCHMARK
-            benchmarker::run(stencil_reduction_into_scalar, t_steps);
-            std::cout << "reduction into scalar: " << stencil_reduction_into_scalar.print_meter() << std::endl;
-#endif
         }
 
         //        /*
@@ -285,11 +274,6 @@ namespace ico_operators {
             out_cells.sync();
 
             result = result && ver.verify(grid_, ref_cells, out_cells, halos);
-
-#ifdef BENCHMARK
-            benchmarker::run(stencil_flow_convention, t_steps);
-            std::cout << "flow convention connectivity: " << stencil_flow_convention.print_meter() << std::endl;
-#endif
         }
 
         //        {

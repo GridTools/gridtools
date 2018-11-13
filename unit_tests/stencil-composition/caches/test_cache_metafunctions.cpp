@@ -34,8 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
+
+#include <gtest/gtest.h>
+
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/generic_metafunctions/fusion_map_to_mpl_map.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
@@ -44,6 +46,7 @@
 #include <gridtools/stencil-composition/caches/extract_extent_caches.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -86,10 +89,10 @@ struct functor2 {
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef detail::cache_impl<IJ, p_in, cache_io_policy::fill, boost::mpl::void_> cache1_t;
-typedef detail::cache_impl<IJ, p_buff, cache_io_policy::fill, boost::mpl::void_> cache2_t;
-typedef detail::cache_impl<K, p_out, cache_io_policy::local, x_interval> cache3_t;
-typedef detail::cache_impl<K, p_notin, cache_io_policy::local, x_interval> cache4_t;
+typedef detail::cache_impl<IJ, p_in, cache_io_policy::fill> cache1_t;
+typedef detail::cache_impl<IJ, p_buff, cache_io_policy::fill> cache2_t;
+typedef detail::cache_impl<K, p_out, cache_io_policy::local> cache3_t;
+typedef detail::cache_impl<K, p_notin, cache_io_policy::local> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;
@@ -114,7 +117,7 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -142,7 +145,7 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,
@@ -171,7 +174,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
 
     typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esf_sequence_t,
         extents_t,
@@ -206,7 +209,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
 
-    typedef iterate_domain_arguments<backend_ids<target::cuda, GRIDBACKEND, strategy::block>,
+    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         local_domain_t,
         esfk_sequence_t,
         extents_t,

@@ -35,8 +35,11 @@
 */
 #pragma once
 
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../common/host_device.hpp"
+#include "../../storage/common/storage_info_interface.hpp"
 
 namespace gridtools {
 
