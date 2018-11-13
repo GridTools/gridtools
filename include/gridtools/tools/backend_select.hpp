@@ -44,6 +44,18 @@ using grid_type_t = gridtools::grid_type::structured;
 using grid_type_t = gridtools::grid_type::icosahedral;
 #endif
 
+#if FLOAT_PRECISION == 4
+using float_type = float;
+#define ASSERT_REAL_EQ(reference, actual) ASSERT_FLOAT_EQ(reference, actual)
+#define EXPECT_REAL_EQ(reference, actual) EXPECT_FLOAT_EQ(reference, actual)
+#elif FLOAT_PRECISION == 8
+using float_type = double;
+#define ASSERT_REAL_EQ(reference, actual) ASSERT_DOUBLE_EQ(reference, actual)
+#define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
+#else
+#error float precision not properly set (4 or 8 bytes supported)
+#endif
+
 #ifdef BACKEND_X86
 using target_t = gridtools::target::x86;
 #ifdef BACKEND_STRATEGY_NAIVE
@@ -58,7 +70,9 @@ using strategy_t = gridtools::strategy::block;
 using target_t = gridtools::target::cuda;
 using strategy_t = gridtools::strategy::block;
 #else
-#error "no backend selected"
+#define NO_BACKEND
 #endif
 
+#ifndef NO_BACKEND
 using backend_t = gridtools::backend<target_t, grid_type_t, strategy_t>;
+#endif

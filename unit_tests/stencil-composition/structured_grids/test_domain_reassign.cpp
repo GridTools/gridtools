@@ -63,7 +63,7 @@ namespace gridtools {
 
     class fixture : public ::testing::Test {
         using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3>;
-        using storage_t = backend_t::storage_traits_t::data_store_t<gridtools::float_type, storage_info_t>;
+        using storage_t = backend_t::storage_traits_t::data_store_t<float_type, storage_info_t>;
         using p_tmp = tmp_arg<2, storage_t>;
 
         const uint_t m_d1 = 6, m_d2 = 6, m_d3 = 10;
