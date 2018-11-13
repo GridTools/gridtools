@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
 
     using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
-    using storage_type = storage_tr::data_store_t<gt::float_type, storage_info_ijk_t>;
+    using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 
     // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     storage_info_ijk_t sinfo{d1, d2, d3};
