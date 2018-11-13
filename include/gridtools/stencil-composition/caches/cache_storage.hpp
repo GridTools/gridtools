@@ -58,7 +58,44 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
             static constexpr bool value = (accumulate(multiplies(), Tiles...) == 1);
         };
+
+        /**
+         * This function computes the total accessor-induces pointer offset for multiple axes for a cache storage.
+         *
+         * @tparam StorageInfo The storage info to be used.
+         * @tparam Accessor Type of the accessor.
+         * @tparam Coordinates The axes along which the offsets should be accumulated.
+         *
+         * @param accessor Accessor for which the offsets should be computed.
+         *
+         * @return The data offset computed for the given storage info and accessor for the given axes.
+         */
+        template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>
+        GT_FUNCTION constexpr int_t compute_offset_cache(
+            Accessor const &RESTRICT accessor, gt_index_sequence<Coordinates...>) {
+            return accumulate(plus_functor(),
+                (StorageInfo::template stride<Coordinates>() * accessor_offset<Coordinates>(accessor))...);
+        }
     } // namespace _impl
+
+    /**
+     * This function computes the total accessor-induces pointer offset (sum) for all axes in the given cache storage
+     * info.
+     *
+     * @tparam StorageInfo The storage info to be used.
+     * @tparam Accessor Type of the accessor.
+     *
+     * @param accessor Accessor for which the offsets should be computed.
+     *
+     * @return The total data offset computed for the given storage info and accessor.
+     *
+     * TODO(havogt): remove code duplication with compute_offset in offset_computation.hpp
+     */
+    template <typename StorageInfo, typename Accessor>
+    GT_FUNCTION constexpr int_t compute_offset_cache(Accessor const &accessor) {
+        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+        return _impl::compute_offset_cache<StorageInfo>(accessor, sequence_t());
+    }
 
     /**
      * @struct cache_storage
@@ -128,7 +165,7 @@ namespace gridtools {
         typedef typename _impl::compute_meta_storage<layout_t, plus_t, minus_t, tiles_t, Arg>::type meta_t;
 
         GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return meta_t::padded_total_length(); }
+        static constexpr uint_t size() { return meta_t::size(); }
 
         template <uint_t Color, typename Accessor>
         GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
@@ -141,7 +178,7 @@ namespace gridtools {
                                   (thread_pos[1] - jminus_t::value) * meta_t::template stride<1 + (extra_dims)>() +
                                   (extra_dims)*Color * meta_t::template stride<1>() +
                                   compute_offset_cache<meta_t>(accessor_);
-            assert(extra_ < padded_total_length());
+            assert(extra_ < size());
             return m_values[extra_];
         }
 
@@ -155,7 +192,7 @@ namespace gridtools {
 
             const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
             assert(index_ >= 0);
-            assert(index_ < padded_total_length());
+            assert(index_ < size());
 
             return m_values[index_];
         }
@@ -171,7 +208,7 @@ namespace gridtools {
             const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
-            assert(index_ < padded_total_length());
+            assert(index_ < size());
 
             return m_values[index_];
         }
@@ -197,7 +234,7 @@ namespace gridtools {
         }
 
       private:
-        value_type m_values[padded_total_length()];
+        value_type m_values[size()];
 
         template <typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION static void check_kcache_access_in_bounds(
@@ -211,9 +248,6 @@ namespace gridtools {
         GT_FUNCTION static void check_kcache_access(Accessor const &accessor) {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Error type is not accessor tuple");
-
-            typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
-            typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
 
             check_kcache_access_in_bounds(accessor, make_gt_index_sequence<meta_t::layout_t::masked_length>());
         }

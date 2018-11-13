@@ -45,13 +45,25 @@ namespace gridtools {
 
     template <typename Layout, uint_t... Dims>
     struct meta_storage_cache {
-        typedef storage_info_interface<0, Layout> meta_storage_t;
+      private:
+        using meta_storage_t = storage_info_interface<0, Layout>;
 
         GRIDTOOLS_STATIC_ASSERT(Layout::masked_length == sizeof...(Dims),
             GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
 
+      public:
+        using layout_t = Layout;
+
+        /**
+         * @brief compile-time computed size (needed for allocation of the cache).
+         */
         GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return accumulate(multiplies(), Dims...); }
+        static constexpr uint_t size() {
+            GRIDTOOLS_STATIC_ASSERT(Layout::masked_length == Layout::unmasked_length,
+                GT_INTERNAL_ERROR_MSG(
+                    "With this implementation of size() it is expected that no dimensions are masked."));
+            return accumulate(multiplies(), Dims...);
+        }
 
         template <ushort_t Id>
         GT_FUNCTION static int_t stride() {

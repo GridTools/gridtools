@@ -1,4 +1,4 @@
-
+// This file is generated!
 #pragma once
 
 #include <gridtools/c_bindings/array_descriptor.h>
