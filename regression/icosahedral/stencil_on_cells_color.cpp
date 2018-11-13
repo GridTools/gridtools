@@ -61,7 +61,7 @@ struct on_cells_color_functor {
         if (Color == downward_triangle)
             eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return rhs - lhs; }, float_type{}, in()));
         else
-            eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + lhs; }, float_type{}, in()));
+            eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, float_type{}, in()));
     }
 };
 
@@ -81,7 +81,7 @@ TEST_F(stencil_on_cells, with_color) {
     arg<0, cells> p_in;
     arg<1, cells> p_out;
     auto out = make_storage<cells>();
-    auto comp = make_computation(p_in = make_storage<cells>(),
+    auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = out,
         make_multistage(enumtype::execute<enumtype::forward>(),
             make_stage<on_cells_color_functor, topology_t, cells>(p_in, p_out)));
