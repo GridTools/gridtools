@@ -5,7 +5,7 @@ enable_testing()
 ####################################################################################
 
 # ===============
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest")
+add_subdirectory("./tools/googletest")
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
@@ -35,7 +35,7 @@ function (fetch_tests_helper target_arch filetype subfolder)
 
     if (GT_ENABLE_TARGET_${target_arch_u})
         # get all source files in the current directory
-        file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.${filetype}" )
+        file(GLOB test_sources "./${subfolder}/test_*.${filetype}" )
         foreach(test_source IN LISTS test_sources )
             # create a nice name for the test case
             get_filename_component (unit_test ${test_source} NAME_WE )
