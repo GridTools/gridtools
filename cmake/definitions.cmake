@@ -20,6 +20,8 @@ target_include_directories(GridTools
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
 )
+include(workaround_icc)
+_workaround_icc()
 
 find_package( Boost 1.58 REQUIRED )
 target_link_libraries( GridTools INTERFACE Boost::boost)
@@ -48,14 +50,6 @@ if( GT_ENABLE_TARGET_CUDA )
   endif()
   target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
-  # workaround for boost::optional with CUDA9.2
-  # TODO Note that if you need to compile with CUDA 9.2, you cannot build the library with CUDA 9.0!
-  # We should fix that by putting this logic into a header.
-  if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2" AND ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL "10.0")
-      target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
-      target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
-  endif()
-
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
   target_compile_options(GridTools INTERFACE
       $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<EQUAL:$<TARGET_PROPERTY:CUDA_STANDARD>,14>>:--expt-relaxed-constexpr>)
@@ -71,17 +65,6 @@ if( GT_ENABLE_TARGET_CUDA )
   find_package(CUDA REQUIRED)
   target_link_libraries( GridTools INTERFACE ${CUDA_CUDART_LIBRARY} )
 endif()
-
-# fix buggy Boost MPL config for Intel compiler (last confirmed with Boost 1.67 and ICC 18)
-# otherwise we run into this issue: https://software.intel.com/en-us/forums/intel-c-compiler/topic/516083
-target_compile_definitions(GridTools INTERFACE
-    $<$<AND:$<CXX_COMPILER_ID:Intel>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:BOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED>)
-target_compile_definitions(GridTools INTERFACE
-    "$<$<AND:$<CXX_COMPILER_ID:Intel>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:BOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'>" )
-
-# force boost to use decltype() for boost::result_of, required to compile without errors (ICC 17+18)
-target_compile_definitions(GridTools INTERFACE
-    $<$<AND:$<CXX_COMPILER_ID:Intel>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:BOOST_RESULT_OF_USE_DECLTYPE>)
 
 # Controls preprocessor expansion of macros in Fortran source code.
 # TODO decide where to put this. Probably this should go into fortran bindings
@@ -100,7 +83,7 @@ target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 
 if( GT_TREAT_WARNINGS_AS_ERROR )
-    target_compile_options(GridToolsTest INTERFACE -Werror)
+    target_compile_options(GridToolsTest INTERFACE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-Werror>)
 endif()
 
 
@@ -119,11 +102,13 @@ endif(GT_ENABLE_TARGET_X86)
 if( GT_ENABLE_TARGET_CUDA )
   if( GT_TREAT_WARNINGS_AS_ERROR )
      #unfortunately we cannot treat all as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
-     target_compile_options(GridToolsTest INTERFACE -Werror cross-execution-space-call -Xptxas --warning-as-error -nvlink-options --warning-as-error)
+     # TODO check: there are new options today
+     target_compile_options(GridToolsTest INTERFACE
+         $<$<COMPILE_LANGUAGE:CUDA>:-Werror=cross-execution-space-call>
+         $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas=--warning-as-error>
+         $<$<COMPILE_LANGUAGE:CUDA>:--nvlink-options=--warning-as-error>)
   endif()
 
-  # suppress because of a warning coming from gtest.h
-  target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=code_is_unreachable>)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL 9.0 )
     # suppress because of boost::fusion::vector ctor
     target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe=--diag_suppress=esa_on_defaulted_function_ignored>)
