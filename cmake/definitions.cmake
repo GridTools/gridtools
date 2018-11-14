@@ -162,8 +162,7 @@ endif()
 
 ## caching ##
 if( NOT GT_TESTS_ENABLE_CACHING )
-    # TODO this should not be a cached option (it might be an option for tests + an option that is set before
-    # find_package). Note that we only attach it to tests
+    # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
     target_compile_definitions(GridToolsTest __DISABLE_CACHING__)
 endif()
 

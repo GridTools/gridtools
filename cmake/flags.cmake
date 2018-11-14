@@ -10,7 +10,7 @@ option( GT_GCL_ONLY "If on only library is build but not the examples and tests"
 option( GT_CUDA_PTX_GENERATION "Compile to intermediate representation" OFF ) # -> only enabled if disabled_testing = OFF
 option( SINGLE_PRECISION "Option determining number of bytes used to represent the floating poit types (see defs.hpp for configuration)" OFF ) # -> test, regression
 option( STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
-option( GT_TESTS_ENABLE_CACHING "Enable caching functionality" ON)
+option( GT_TESTS_ENABLE_CACHING "Enable caches in stencil composition for tests." ON)
 option( GT_TREAT_WARNINGS_AS_ERROR "Treat warnings as errors" OFF )
 set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
