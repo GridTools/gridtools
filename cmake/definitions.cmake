@@ -49,8 +49,9 @@ if( GT_ENABLE_TARGET_CUDA )
   target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
   # workaround for boost::optional with CUDA9.2
-  # TODO Note, when you compile with CUDA9.2, you cannot use the exported target with CUDA > 9.2
-  if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2")
+  # TODO Note that if you need to compile with CUDA 9.2, you cannot build the library with CUDA 9.0!
+  # We should fix that by putting this logic into a header.
+  if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2" AND ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS_EQUAL "10.0")
       target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
       target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
   endif()
