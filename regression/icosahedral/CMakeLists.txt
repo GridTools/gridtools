@@ -34,7 +34,6 @@ if(GT_ENABLE_TARGET_CUDA)
 
          gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "77 48 61")
          gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "63 55 43")
-         endif()
     endforeach(srcfile)
     foreach(perftest IN LISTS PERFTEST_SRCFILES)
       add_dependencies(perftests ${perftest}_cuda)
