@@ -55,6 +55,7 @@ namespace gridtools {
         const function_type m_function;
         argument_types m_arguments;
 
+        // TODO this one might be a problem
         GT_FUNCTION
         constexpr map_function(function_type f, Arguments... args) : m_function(f), m_arguments(args...) {}
 

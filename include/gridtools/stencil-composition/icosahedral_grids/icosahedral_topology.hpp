@@ -78,22 +78,22 @@ namespace gridtools {
         using vertices = location_type<2, 1>;
     } // namespace
 
-    namespace impl {
-        template <typename StorageInfo, typename Array, unsigned N = tuple_size<Array>::value, typename... Rest>
-        constexpr typename boost::enable_if_c<(N == 0), StorageInfo>::type get_storage_info_from_array(
-            Array arr, Rest... r) {
-            GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
-            return StorageInfo(r...);
-        }
-
-        template <typename StorageInfo, typename Array, unsigned N = tuple_size<Array>::value, typename... Rest>
-        constexpr typename boost::enable_if_c<(N > 0), StorageInfo>::type get_storage_info_from_array(
-            Array arr, Rest... r) {
-            GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
-            typedef typename StorageInfo::halo_t halo_t;
-            return get_storage_info_from_array<StorageInfo, Array, N - 1>(arr, arr[N - 1], r...);
-        }
-    } // namespace impl
+    //    namespace impl {
+    //        template <typename StorageInfo, typename Array, unsigned N = tuple_size<Array>::value, typename... Rest>
+    //        constexpr typename boost::enable_if_c<(N == 0), StorageInfo>::type get_storage_info_from_array(
+    //            Array arr, Rest... r) {
+    //            GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array
+    //            type.")); return StorageInfo(r...);
+    //        }
+    //
+    //        template <typename StorageInfo, typename Array, unsigned N = tuple_size<Array>::value, typename... Rest>
+    //        constexpr typename boost::enable_if_c<(N > 0), StorageInfo>::type get_storage_info_from_array(
+    //            Array arr, Rest... r) {
+    //            GRIDTOOLS_STATIC_ASSERT(is_array<Array>::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array
+    //            type.")); typedef typename StorageInfo::halo_t halo_t; return get_storage_info_from_array<StorageInfo,
+    //            Array, N - 1>(arr, arr[N - 1], r...);
+    //        }
+    //    } // namespace impl
 
     template <typename T, typename ValueType>
     struct return_type {

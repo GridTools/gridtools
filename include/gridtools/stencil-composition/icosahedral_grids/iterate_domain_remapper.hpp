@@ -180,8 +180,8 @@ namespace gridtools {
                 template <int Idx>
                 struct apply_t {
 
-                    GT_FUNCTION
-                    constexpr apply_t() {}
+                    //                    GT_FUNCTION
+                    //                    constexpr apply_t() {}
 
                     /**
                      * @tparam Neighbors type locates the position of a neighbor element in the grid. If can be:
