@@ -12,7 +12,7 @@ module load daint-gpu
 module load cudatoolkit
 module rm   PrgEnv-cray
 module rm CMake
-module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.0
+module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.4
 
 
 if [[ ${COMPILER} == "gcc" ]]; then
@@ -61,7 +61,7 @@ else
 fi
 
 export CPATH=$CPATH:$MPICH_DIR/include
-export BOOST_ROOT=/scratch/snx1600/mbianco/../jenkins/install/boost/boost_1_67_0
+export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
