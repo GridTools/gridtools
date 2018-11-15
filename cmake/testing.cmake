@@ -17,6 +17,7 @@ target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
 include(workaround_threads)
 _fix_threads_flags()
 
+option(INSTALL_GTEST OFF)
 add_subdirectory(./tools/googletest)
 
 if( NOT GT_GCL_ONLY )

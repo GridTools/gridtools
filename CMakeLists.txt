@@ -36,8 +36,19 @@ endif()
 include (gt_bindings)
 include (components)
 
+# TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
-    generate_install_targets_for(GridTools GridTools)
+    install(TARGETS GridTools EXPORT GridToolstargets
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+      INCLUDES DESTINATION include
+    )
+    install(EXPORT GridToolstargets
+      FILE GridToolsTargets.cmake
+      NAMESPACE gridtools::
+      DESTINATION ${INSTALL_CONFIGDIR}
+    )
 
     generate_target_for(NAME common)
     generate_install_targets_for(common common)
