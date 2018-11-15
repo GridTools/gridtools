@@ -155,11 +155,12 @@ namespace gridtools {
         if (DecayedDV::mode == access_mode::ReadOnly)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
                                : !d.get_storage_ptr()->get_state_machine_ptr()->m_hnu;
-        // get storage state
-        return device_view ? ((d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
-                                 !(d.get_storage_ptr()->get_state_machine_ptr()->m_dnu))
-                           : (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
-                                 (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu));
+        else
+            // get storage state
+            return device_view ? ((d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
+                                     !(d.get_storage_ptr()->get_state_machine_ptr()->m_dnu))
+                               : (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
+                                     (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu));
     }
 
     /**
