@@ -55,7 +55,7 @@ if( GT_ENABLE_TARGET_CUDA )
   target_include_directories( GridTools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
 
   # TODO Find a better solution for this (consider https://gitlab.kitware.com/cmake/cmake/issues/17816)
-  find_library(CUDA_CUDART_LIB cudart
+  find_library(CUDA_CUDART_LIBRARY cudart
                HINTS
                "${CUDA_TOOLKIT_ROOT_DIR}/lib64"
                "${CUDA_TOOLKIT_ROOT_DIR}/lib"
