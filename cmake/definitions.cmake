@@ -15,6 +15,7 @@ set(CMAKE_CUDA_STANDARD ${GT_CXX_STANDARD_VALUE})
 set(CMAKE_CUDA_EXTENSIONS OFF)
 
 add_library(GridTools INTERFACE)
+target_compile_features(GridTools INTERFACE cxx_std_11)
 target_include_directories(GridTools
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
