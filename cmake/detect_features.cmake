@@ -20,6 +20,11 @@ macro(detect_cuda)
         message (STATUS "CUDA NOT found")
         set (CUDA_AVAILABLE OFF)
     endif ()
+
+    if (CUDA_AVAILABLE)
+        include(workaround_cudart)
+        _fix_cudart_library()
+    endif()
 endmacro(detect_cuda)
 
 macro(detect_openmp)
