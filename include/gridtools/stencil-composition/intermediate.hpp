@@ -108,64 +108,6 @@ namespace gridtools {
     };
 
     namespace _impl {
-
-        template <int I, class Layout>
-        using exists_in_layout = bool_constant < I<Layout::masked_length>;
-
-        template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
-            return val + 1 <= storage_info.template total_length<I>();
-        }
-        template <int I, uint_t Id, class Layout, class Halo, class Alignment>
-        enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
-            storage_info_interface<Id, Layout, Halo, Alignment> const &, int) {
-            return true;
-        }
-
-        template <class Backend, class Grid>
-        struct storage_info_fits_grid_f {
-            Grid const &grid;
-
-            template <uint_t Id, class Layout, class Halo, class Alignment>
-            bool operator()(storage_info_interface<Id, Layout, Halo, Alignment> const &src) const {
-
-                // TODO: This check may be not accurate since there is
-                // an ongoing change in the convention for storage and
-                // grid. Before the storage had the conventions that
-                // there was not distinction between halo and core
-                // region in the storage. The distinction was made
-                // solely in the grid. Now the storage makes that
-                // distinction, ad when allocating the data the halo
-                // is also allocated. So for instance a storage of
-                // 3x3x3 with halo of <1,1,1> will allocate a 5x5x5
-                // storage. The grid is the same as before. The first
-                // step will be to update the storage to point as
-                // first element the (1,1,1) element and then to get
-                // the grid to not specifying halos (at least in the
-                // simple cases). This is why the check is left as
-                // before here, but may be updated with more accurate
-                // ones when the convention is updated
-                return storage_info_dim_fits<coord_k<Backend>::value>(src, grid.k_max()) &&
-                       storage_info_dim_fits<coord_j<Backend>::value>(src, grid.j_high_bound()) &&
-                       storage_info_dim_fits<coord_i<Backend>::value>(src, grid.i_high_bound());
-            }
-        };
-
-    } // namespace _impl
-
-    /**
-     *   This functor checks that grid size is small enough to not make the stencil go out of bound on data fields.
-     *
-     *   \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
-     *   \tparam Grid The Grid
-     */
-    template <class BackendIds, class Grid>
-    _impl::storage_info_fits_grid_f<BackendIds, Grid> storage_info_fits_grid(Grid const &grid) {
-        return {grid};
-    }
-
-    namespace _impl {
         struct dummy_run_f {
             template <typename T>
             reduction_type<T> operator()(T const &) const;
