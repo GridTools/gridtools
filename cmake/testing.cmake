@@ -1,11 +1,19 @@
+# This file will only be included when BUILD_TESTING = ON
+# TODO move GridToolsTest target to this file
 enable_testing()
 
 ####################################################################################
 ########################### GET GTEST LIBRARY ############################
 ####################################################################################
 
-# ===============
-add_subdirectory("./tools/googletest")
+# include Threads manually before googletest such that we can properly apply the workaround
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package( Threads REQUIRED )
+target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
+include(workaround_threads)
+_fix_threads_flags()
+
+add_subdirectory(./tools/googletest)
 
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
