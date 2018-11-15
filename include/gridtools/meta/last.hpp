@@ -43,7 +43,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class List>
             GT_META_DEFINE_ALIAS(last, at_c, (List, length<List>::value - 1));
         }

@@ -52,7 +52,7 @@ namespace gridtools {
         /**
          *   Take Nth element of the List
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class List, std::size_t N>
             struct at_c;
 

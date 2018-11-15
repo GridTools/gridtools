@@ -50,7 +50,7 @@ namespace gridtools {
          *   At a moment M = 4 (in boost::mp11 implementation it is 10).
          *   For the optimizers: fill free to add more specializations if needed.
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class>
             struct reverse;
 

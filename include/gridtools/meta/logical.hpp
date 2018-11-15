@@ -48,19 +48,6 @@
 
 namespace gridtools {
     namespace meta {
-
-        /**
-         *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
-         */
-#ifdef __NVCC__
-        template <class... Ts>
-        struct sizeof_3_dots : std::integral_constant<std::size_t, sizeof...(Ts)> {};
-
-#define GT_SIZEOF_3_DOTS(Ts) ::gridtools::meta::sizeof_3_dots<Ts...>::value
-#else
-#define GT_SIZEOF_3_DOTS(Ts) sizeof...(Ts)
-#endif
-
         /**
          *  C++17 drop-offs
          *

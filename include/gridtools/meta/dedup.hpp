@@ -54,7 +54,7 @@ namespace gridtools {
         /**
          *  Removes duplicates from the List.
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class List>
             GT_META_DEFINE_ALIAS(dedup, lfold, (dedup_step_impl, typename clear<List>::type, List));
         }

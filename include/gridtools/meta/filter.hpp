@@ -45,13 +45,13 @@ namespace gridtools {
      *  Filter the list based of predicate
      */
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <template <class...> class, class...>
             struct filter;
         }
         GT_META_DELEGATE_TO_LAZY(filter, (template <class...> class F, class... Args), (F, Args...));
 
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <bool, template <class...> class L, class T>
             struct wrap_if_impl {
                 using type = L<T>;

@@ -42,7 +42,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             /**
              *  Normalized std::conditional version, which is proper function in the terms of meta library.
              *

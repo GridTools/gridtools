@@ -45,12 +45,12 @@ namespace gridtools {
         /**
          *  Concatenate lists
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class...>
             struct concat;
         }
         GT_META_DELEGATE_TO_LAZY(concat, class... Lists, Lists...);
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <>
             struct concat<> : list<> {};
             template <template <class...> class L, class... Ts>

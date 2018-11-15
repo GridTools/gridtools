@@ -46,12 +46,12 @@ namespace gridtools {
          *
          *   Alternative interpretation: apply function F to the arguments taken form List.
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <template <class...> class, class...>
             struct rename;
         }
         GT_META_DELEGATE_TO_LAZY(rename, (template <class...> class F, class... Args), (F, Args...));
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <template <class...> class To, template <class...> class From, class... Ts>
             struct rename<To, From<Ts...>> {
                 using type = GT_META_CALL(To, Ts...);

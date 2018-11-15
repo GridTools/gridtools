@@ -78,12 +78,12 @@ namespace gridtools {
     /**
      * Metafunction taking extents and yielding an extent containing them
      */
-    GT_META_LAZY_NAMESPASE {
+    GT_META_LAZY_NAMESPACE {
         template <class...>
         struct enclosing_extent;
     }
     GT_META_DELEGATE_TO_LAZY(enclosing_extent, class... Extents, Extents...);
-    GT_META_LAZY_NAMESPASE {
+    GT_META_LAZY_NAMESPACE {
         template <>
         struct enclosing_extent<> {
             using type = extent<>;

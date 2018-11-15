@@ -49,7 +49,7 @@ namespace gridtools {
          *   WARNING: Please use as a last resort. Consider `transform` ( which complexity is O(1) ) or `combine`
          *   (which has the same complexity but O(log(N)) template depth).
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <template <class...> class, class...>
             struct lfold;
             template <template <class...> class, class...>
@@ -58,7 +58,7 @@ namespace gridtools {
         GT_META_DELEGATE_TO_LAZY(lfold, (template <class...> class F, class... Args), (F, Args...));
         GT_META_DELEGATE_TO_LAZY(rfold, (template <class...> class F, class... Args), (F, Args...));
 
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <template <class...> class F>
             struct lfold<F> {
                 using type = curry_fun<meta::lfold, F>;

@@ -283,7 +283,7 @@ namespace gridtools {
             template <class T>
             struct get_ref_kind<T const &> : std::integral_constant<ref_kind, ref_kind::const_lvalue> {};
 
-            GT_META_LAZY_NAMESPASE {
+            GT_META_LAZY_NAMESPACE {
                 template <ref_kind Kind, class Dst>
                 struct add_ref;
 

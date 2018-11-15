@@ -49,6 +49,6 @@
 #elif defined(__GNUC__) && defined(__GNUC_MINOR__)
 #define GT_BROKEN_TEMPLATE_ALIASES (__GNUC__ * 10 + __GNUC_MINOR__ < 47)
 #else
-#define GT_BROKEN_TEMPLATE_ALIASES 1
+#define GT_BROKEN_TEMPLATE_ALIASES 0
 #endif
 #endif

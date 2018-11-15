@@ -39,16 +39,6 @@
 #include <type_traits>
 
 namespace gridtools {
-    /** \ingroup common
-        @{
-    */
-    /** \ingroup allmeta
-        @{
-    */
-    /** \defgroup typetraits C++14/17 type-traits
-        @{
-    */
-
     /**
      * @file
      * Some c++14/c++17 type_traits drop offs. Please refer to C++14/17 specifications
@@ -124,8 +114,4 @@ namespace gridtools {
     using underlying_type_t = typename std::underlying_type<T>::type;
     template <class T>
     using result_of_t = typename std::result_of<T>::type;
-
-    /** @} */
-    /** @} */
-    /** @} */
 } // namespace gridtools

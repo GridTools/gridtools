@@ -50,7 +50,7 @@ namespace gridtools {
          *
          *  Complexity is amortized O(1).
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class SomeList, class List>
             class drop_front_impl;
             template <class... Us, template <class...> class L, class... Ts>

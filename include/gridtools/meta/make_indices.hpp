@@ -46,7 +46,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             /**
              *  Make a list of integral constants of indices from 0 to N
              */

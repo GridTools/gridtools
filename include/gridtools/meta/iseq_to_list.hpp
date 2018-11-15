@@ -46,7 +46,7 @@ namespace gridtools {
         /**
          *  Convert an integer sequence to a list of corresponding integral constants.
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class>
             struct iseq_to_list;
             template <template <class T, T...> class ISec, class Int, Int... Is>

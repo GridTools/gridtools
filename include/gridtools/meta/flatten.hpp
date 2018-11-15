@@ -48,7 +48,7 @@ namespace gridtools {
      *  Note: this function doesn't go recursive. It just concatenates the inner lists.
      */
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class Lists>
             GT_META_DEFINE_ALIAS(flatten, combine, (meta::concat, Lists));
         }

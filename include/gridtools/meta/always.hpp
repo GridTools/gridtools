@@ -42,7 +42,7 @@
 
 namespace gridtools {
     namespace meta {
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class T>
             struct always {
                 template <class...>

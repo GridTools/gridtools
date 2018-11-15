@@ -46,7 +46,7 @@ namespace gridtools {
         /**
          *  Produce a list of N identical elements
          */
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <class List, bool Rem>
             struct repeat_impl_expand;
 

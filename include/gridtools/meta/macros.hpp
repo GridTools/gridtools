@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <boost/preprocessor.hpp>
 
 #include "defs.hpp"
@@ -56,7 +58,7 @@
 #define GT_META_DEFINE_ALIAS(name, fun, args) \
     struct name : GT_META_INTERNAL_APPLY(fun, args) {}
 
-#define GT_META_LAZY_NAMESPASE inline namespace lazy
+#define GT_META_LAZY_NAMESPACE inline namespace lazy
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) static_assert(1, "")
 
@@ -71,10 +73,27 @@
  */
 #define GT_META_DEFINE_ALIAS(name, fun, args) using name = GT_META_INTERNAL_APPLY(fun, args)
 
-#define GT_META_LAZY_NAMESPASE namespace lazy
+#define GT_META_LAZY_NAMESPACE namespace lazy
 
 #define GT_META_DELEGATE_TO_LAZY(fun, signature, args) \
     template <BOOST_PP_REMOVE_PARENS(signature)>       \
     using fun = typename lazy::fun<BOOST_PP_REMOVE_PARENS(args)>::type
 
+#endif
+
+/**
+ *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
+ */
+#ifdef __NVCC__
+
+namespace gridtools {
+    namespace meta {
+        template <class... Ts>
+        struct sizeof_3_dots : std::integral_constant<std::size_t, sizeof...(Ts)> {};
+    } // namespace meta
+} // namespace gridtools
+
+#define GT_SIZEOF_3_DOTS(Ts) ::gridtools::meta::sizeof_3_dots<Ts...>::value
+#else
+#define GT_SIZEOF_3_DOTS(Ts) sizeof...(Ts)
 #endif
