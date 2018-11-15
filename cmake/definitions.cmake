@@ -45,7 +45,7 @@ if( GT_ENABLE_TARGET_CUDA )
   target_compile_definitions(GridTools INTERFACE GT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR})
   target_compile_definitions(GridTools INTERFACE GT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR})
   target_compile_definitions(GridTools INTERFACE _USE_GPU_)
-  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "8.0" )
+  if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()
   target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
@@ -101,12 +101,16 @@ endif(GT_ENABLE_TARGET_X86)
 ## cuda support ##
 if( GT_ENABLE_TARGET_CUDA )
   if( GT_TREAT_WARNINGS_AS_ERROR )
-     #unfortunately we cannot treat all as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
-     # TODO check: there are new options today
+     # unfortunately we cannot treat all as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
+     # CUDA 9 adds deprecated-declarations (activated) and reorder (not activated)
      target_compile_options(GridToolsTest INTERFACE
          $<$<COMPILE_LANGUAGE:CUDA>:-Werror=cross-execution-space-call>
          $<$<COMPILE_LANGUAGE:CUDA>:-Xptxas=--warning-as-error>
-         $<$<COMPILE_LANGUAGE:CUDA>:--nvlink-options=--warning-as-error>)
+         $<$<COMPILE_LANGUAGE:CUDA>:-Xnvlink=--warning-as-error>)
+     if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL 9.0 )
+         target_compile_options(GridToolsTest INTERFACE
+             $<$<COMPILE_LANGUAGE:CUDA>:-Werror=deprecated-declarations>)
+     endif()
   endif()
 
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL 9.0 )
