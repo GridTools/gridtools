@@ -55,13 +55,13 @@ TEST(meta_storage_cache, standard_layout) {
     constexpr gridtools::uint_t expected_total_length = Dim0 * Dim1 * Dim2;
     ASSERT_STATIC_EQ(expected_total_length, meta_t::size());
 
-    ASSERT_EQ(Dim2 * Dim1, meta_t::stride<0>());
-    ASSERT_EQ(Dim2, meta_t::stride<1>());
-    ASSERT_EQ(1, meta_t::stride<2>());
+    EXPECT_EQ(Dim2 * Dim1, meta_t::stride<0>());
+    EXPECT_EQ(Dim2, meta_t::stride<1>());
+    EXPECT_EQ(1, meta_t::stride<2>());
 
-    ASSERT_EQ(Dim0, meta_t::dim<0>());
-    ASSERT_EQ(Dim1, meta_t::dim<1>());
-    ASSERT_EQ(Dim2, meta_t::dim<2>());
+    EXPECT_EQ(Dim0, meta_t::dim<0>());
+    EXPECT_EQ(Dim1, meta_t::dim<1>());
+    EXPECT_EQ(Dim2, meta_t::dim<2>());
 }
 
 TEST(meta_storage_cache, inverted_layout) {
