@@ -24,8 +24,7 @@ endmacro(detect_cuda)
 
 macro(detect_openmp)
     if (NOT DEFINED GT_ENABLE_TARGET_X86 AND NOT DEFINED GT_ENABLE_TARGET_MC)
-        # find_package( OpenMP COMPONENTS CXX)
-
+        find_package( OpenMP COMPONENTS CXX)
         if (TARGET OpenMP::OpenMP_CXX)
             set (OPENMP_AVAILABLE ON)
             message (STATUS "OpenMP found")
@@ -33,10 +32,12 @@ macro(detect_openmp)
             set (OPENMP_AVAILABLE OFF)
             message (STATUS "OpenMP NOT found")
         endif ()
+
     elseif (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC)
-        # find_package( OpenMP REQUIRED COMPONENTS CXX)
+        find_package( OpenMP REQUIRED COMPONENTS CXX)
         set (OPENMP_AVAILABLE ON)
         message (STATUS "OpenMP found")
+
     else ()
         set (OPENMP_AVAILABLE OFF)
         message (STATUS "OpenMP NOT found")
