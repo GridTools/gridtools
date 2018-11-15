@@ -77,27 +77,47 @@ else()
 endif()
 
 add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
-target_link_libraries(repository_${prec} PUBLIC gtest)
-target_link_libraries(repository_${prec} PUBLIC pthread)
-target_link_libraries(repository_${prec} PUBLIC common)
-target_compile_options(repository_${prec} PRIVATE ${GT_CXX_OPTIMIZATION_FLAGS} ${GT_CXX_MANDATORY_FLAGS})
+target_link_libraries(repository_${prec} PUBLIC GridTools gtest)
 if(SINGLE_PRECISION)
     target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=4)
 else()
     target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=8)
 endif()
 
-add_library(repository_fortran_lib test_repository.f90)
-target_compile_options(repository_fortran_lib PRIVATE "-cpp")
+if (CMAKE_Fortran_COMPILER_LOADED)
+    include(fortran_helpers)
 
-target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
+    add_library(repository_fortran_lib test_repository.f90)
+    target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
+    enable_fortran_preprocessing_on_target(repository_fortran_lib)
 
-if (GT_ENABLE_TARGET_X86)
-    target_link_libraries(test_repository_x86 repository_fortran_lib)
-endif()
-if (GT_ENABLE_TARGET_CUDA)
-    target_link_libraries(test_repository_cuda repository_fortran_lib)
-endif()
-if (GT_ENABLE_TARGET_MC)
-    target_link_libraries(test_repository_mc repository_fortran_lib)
+    if (GT_ENABLE_TARGET_X86)
+        add_custom_x86_test(
+            TARGET custom_test_exported_repository
+            SOURCES custom_test_exported_repository.cpp
+            )
+        target_link_libraries(custom_test_exported_repository_x86
+            repository_fortran_lib
+            )
+    endif()
+    if (GT_ENABLE_TARGET_CUDA)
+        add_custom_gpu_test(
+            TARGET custom_test_exported_repository
+            SOURCES custom_test_exported_repository.cpp
+            )
+        target_link_libraries(custom_test_exported_repository_cuda
+            repository_fortran_lib
+            )
+    endif()
+    if (GT_ENABLE_TARGET_MC)
+        add_custom_mc_test(
+            TARGET custom_test_exported_repository
+            SOURCES custom_test_exported_repository.cpp
+            )
+        target_link_libraries(custom_test_exported_repository_mc
+            repository_fortran_lib
+            )
+    endif()
+
+
 endif()

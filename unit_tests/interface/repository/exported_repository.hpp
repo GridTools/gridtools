@@ -48,9 +48,3 @@ using JKStorageInfo =
     typename gridtools::storage_traits<gridtools::target::x86>::special_storage_info_t<2, gridtools::selector<0, 1, 1>>;
 using JKDataStore =
     typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<gridtools::float_type, JKStorageInfo>;
-
-#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(JKDataStore, (0, 1, 2))
-#define MY_FIELDS (IJKDataStore, ijkfield)(IJDataStore, ijfield)(JKDataStore, jkfield)
-GRIDTOOLS_MAKE_REPOSITORY(exported_repository, MY_FIELDTYPES, MY_FIELDS)
-#undef MY_FIELDTYPES
-#undef MY_FIELDS

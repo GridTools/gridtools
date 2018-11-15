@@ -70,6 +70,8 @@ macro(enable_bindings_library_fortran target_name)
             target_link_libraries(${target_name}_fortran PUBLIC fortran_bindings_handle)
             target_include_directories(${target_name}_fortran PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
             add_dependencies(${target_name}_fortran ${target_name}_declarations)
+            include (fortran_helpers)
+            enable_fortran_openacc_on_target(${target_name}_fortran)
         endif()
     elseif(NOT ${ARGN}) # internal: the second (optional) parameter can be used to surpress this fatal error
         message(FATAL_ERROR "Please enable_language(Fortran) to compile the Fortran bindings.")
