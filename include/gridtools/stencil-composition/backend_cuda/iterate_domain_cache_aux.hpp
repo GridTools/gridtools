@@ -192,7 +192,7 @@ namespace gridtools {
 
         /**
          * @brief Functor that syncs k-caches with main memory, this is the implementation for fill and flush caches
-         * used on the beginning and end levels of the iteration and for bpfill and epflush caches.
+         * used on the beginning and end levels of the iteration.
          * @tparam KCachesTuple fusion tuple as map of pairs of <index,cache_storage>
          * @tparam KCachesMap mpl map of <index, cache_storage>
          * @tparam IterateDomain is the iterate domain
@@ -209,30 +209,11 @@ namespace gridtools {
             using base = io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy>;
             using base::io_cache_functor_base;
 
-            template <typename Idx, typename KCache = typename boost::mpl::at<KCachesMap, Idx>::type::cache_t>
-            using endpoint_only_cache = bool_constant<KCache::ccacheIOPolicy == cache_io_policy::bpfill ||
-                                                      KCache::ccacheIOPolicy == cache_io_policy::epflush>;
-
-            /**
-             * @brief Sync implementation for endpoint-only caches (i.e. bpfill, epflush).
-             */
-            template <typename Idx>
-            GT_FUNCTION enable_if_t<endpoint_only_cache<Idx>::value> operator()(Idx) const {
-                using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
-
-                // lowest and highest index in cache storage
-                static constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                static constexpr int_t kplus = kcache_storage_t::kplus_t::value;
-
-                // sync full cache
-                base::template sync<Idx, kminus, kplus>();
-            }
-
             /**
              * @brief Sync implementation for non-endpoint-only caches (i.e. fill, flush).
              */
             template <typename Idx>
-            GT_FUNCTION enable_if_t<!endpoint_only_cache<Idx>::value> operator()(Idx) const {
+            GT_FUNCTION void operator()(Idx) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
