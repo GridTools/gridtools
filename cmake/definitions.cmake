@@ -26,14 +26,9 @@ _workaround_icc()
 find_package( Boost 1.58 REQUIRED )
 target_link_libraries( GridTools INTERFACE Boost::boost)
 
-find_package( OpenMP REQUIRED )
-target_link_libraries( GridTools INTERFACE OpenMP::OpenMP_CXX)
-
-set(THREADS_PREFER_PTHREAD_FLAG ON) #this is required because gtest uses it
-find_package( Threads REQUIRED )
-target_link_libraries( GridTools INTERFACE Threads::Threads)
-include(workaround_threads)
-_fix_threads_flags()
+if (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC)
+    target_link_libraries( GridTools INTERFACE OpenMP::OpenMP_CXX)
+endif()
 
 target_compile_definitions(GridTools INTERFACE BOOST_PP_VARIADICS=1)
 if(STRUCTURED_GRIDS)
@@ -48,7 +43,6 @@ if( GT_ENABLE_TARGET_CUDA )
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()
-  target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
   target_compile_options(GridTools INTERFACE
@@ -60,9 +54,13 @@ if( GT_ENABLE_TARGET_CUDA )
 
   target_include_directories( GridTools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
 
-  # this is only needed to get CUDA_CUDART_LIBRARY, please do not use other variables from here!
-  # Find a better solution for this (consider https://gitlab.kitware.com/cmake/cmake/issues/17816)
-  find_package(CUDA REQUIRED)
+  # TODO Find a better solution for this (consider https://gitlab.kitware.com/cmake/cmake/issues/17816)
+  find_library(CUDA_CUDART_LIB cudart
+               HINTS
+               "${CUDA_TOOLKIT_ROOT_DIR}/lib64"
+               "${CUDA_TOOLKIT_ROOT_DIR}/lib"
+               "${CUDA_TOOLKIT_ROOT_DIR}"
+               )
   target_link_libraries( GridTools INTERFACE ${CUDA_CUDART_LIBRARY} )
 endif()
 
@@ -81,6 +79,7 @@ add_library(GridToolsTest INTERFACE)
 target_link_libraries(GridToolsTest INTERFACE GridTools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
+target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
 if( GT_TREAT_WARNINGS_AS_ERROR )
     target_compile_options(GridToolsTest INTERFACE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:-Werror>)

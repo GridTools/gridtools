@@ -2,8 +2,8 @@ set( GT_BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion contain
 option( GT_ENABLE_PERFORMANCE_METERS "If on, meters will be reported for each stencil" OFF) # -> regression
 option( GT_ENABLE_PYUTILS "If on, Python utility scripts will be configured" OFF)
 option( GT_ENABLE_TARGET_CUDA "Compile CUDA GPU backend examples and unit tests" ${CUDA_AVAILABLE})
-option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ON )
-option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ON )
+option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ${OPENMP_AVAILABLE} )
+option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF ) # -> GCL component
 
