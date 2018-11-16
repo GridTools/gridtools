@@ -38,27 +38,7 @@
 #include <cstdlib>
 #include <gridtools/common/atomic_functions.hpp>
 #include <gridtools/common/defs.hpp>
-
-template <typename T>
-struct Verifier {
-    static void TestEQ(T val, T exp) {
-        T err = std::fabs(val - exp) / std::fabs(val);
-        ASSERT_TRUE(err < 1e-12);
-    }
-};
-
-template <>
-struct Verifier<float> {
-    static void TestEQ(float val, float exp) {
-        double err = std::fabs(val - exp) / std::fabs(val);
-        ASSERT_TRUE(err < 1e-6);
-    }
-};
-
-template <>
-struct Verifier<int> {
-    static void TestEQ(int val, int exp) { ASSERT_EQ(val, exp); }
-};
+#include <gridtools/tools/verifier.hpp>
 
 template <typename T>
 void TestAtomicAdd() {
@@ -75,7 +55,7 @@ void TestAtomicAdd() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_add(sum, field[cnt]);
     }
-    ASSERT_REAL_EQ(sumRef, sum);
+    ASSERT_TRUE(gridtools::expect_with_threshold(sumRef, sum));
 }
 
 template <typename T>
@@ -93,7 +73,7 @@ void TestAtomicSub() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_sub(sum, field[cnt]);
     }
-    ASSERT_REAL_EQ(sumRef, sum);
+    ASSERT_TRUE(gridtools::expect_with_threshold(sumRef, sum));
 }
 
 template <typename T>
@@ -111,7 +91,7 @@ void TestAtomicMin() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_min(min, field[cnt]);
     }
-    Verifier<T>::TestEQ(minRef, min);
+    ASSERT_EQ(minRef, min);
 }
 
 template <typename T>
@@ -129,7 +109,7 @@ void TestAtomicMax() {
     for (int cnt = 0; cnt < size; ++cnt) {
         gridtools::atomic_max(max, field[cnt]);
     }
-    ASSERT_REAL_EQ(maxRef, max);
+    ASSERT_EQ(maxRef, max);
 }
 
 TEST(AtomicFunctionsUnittest, add) {
