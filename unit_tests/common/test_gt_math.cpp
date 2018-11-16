@@ -114,7 +114,7 @@ TEST(math, test_min) {
     EXPECT_TRUE(math::min(5, 2, 7) == 2);
     EXPECT_TRUE(math::min(5, -1) == -1);
 
-    ASSERT_REAL_EQ(math::min(5.3, 22.0, 7.7), 5.3);
+    ASSERT_EQ(math::min(5.3, 22.0, 7.7), 5.3);
 }
 
 #ifdef __INTEL_COMPILER
@@ -127,16 +127,16 @@ TEST(math, test_min_ref) {
     double a = 3.5;
     double b = 2.3;
     double const &min = math::min(a, b);
-    ASSERT_REAL_EQ(min, 2.3);
+    ASSERT_EQ(min, 2.3);
     b = 8;
-    ASSERT_REAL_EQ(min, 8);
+    ASSERT_EQ(min, 8);
 }
 
 TEST(math, test_max) {
     EXPECT_TRUE(math::max(5, 2, 7) == 7);
     EXPECT_TRUE(math::max(5, -1) == 5);
 
-    ASSERT_REAL_EQ(math::max(5.3, 22.0, 7.7), 22.0);
+    ASSERT_EQ(math::max(5.3, 22.0, 7.7), 22.0);
 }
 
 #ifdef __INTEL_COMPILER
@@ -150,9 +150,9 @@ TEST(math, test_max_ref) {
     double b = 2.3;
     double const &max = math::max(a, b);
 
-    ASSERT_REAL_EQ(max, 3.5);
+    ASSERT_EQ(max, 3.5);
     a = 8;
-    ASSERT_REAL_EQ(max, 8);
+    ASSERT_EQ(max, 8);
 }
 
 TEST(math, test_fabs) { EXPECT_TRUE(test_fabs::Do()); }
