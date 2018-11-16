@@ -148,7 +148,7 @@ function(add_custom_test_helper target_arch)
         set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
         add_executable (${unit_test} ${___SOURCES})
-        target_link_libraries(${unit_test} gmock mpi_gtest_main gcl GridToolsTest${target_arch_u})
+        target_link_libraries(${unit_test} gmock gtest_main gcl GridToolsTest${target_arch_u})
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         gridtools_add_mpi_test(
             NAME ${unit_test}
