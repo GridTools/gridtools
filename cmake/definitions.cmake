@@ -186,8 +186,14 @@ function(gridtools_add_test)
   set_tests_properties(${___NAME} PROPERTIES LABELS "${___LABELS}")
 endfunction(gridtools_add_test)
 
+file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
+file(GENERATE OUTPUT ${TEST_MPI_SCRIPT} INPUT ${TEST_MPI_SCRIPT})
+
+file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
+file(GENERATE OUTPUT ${TEST_CUDA_MPI_SCRIPT} INPUT ${TEST_CUDA_MPI_SCRIPT})
+
 ## test script generator for MPI tests ##
-function(gridtools_add_mpi_test_helper)
+function(gridtools_add_mpi_test)
   set(options)
   set(one_value_args NAME SCRIPT)
   set(multi_value_args COMMAND LABELS)
@@ -209,14 +215,3 @@ function(gridtools_add_mpi_test_helper)
   endif()
 endfunction()
 
-file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
-file(GENERATE OUTPUT ${TEST_MPI_SCRIPT} INPUT ${TEST_MPI_SCRIPT})
-function(gridtools_add_mpi_test)
-    gridtools_add_mpi_test_helper(${ARGN} SCRIPT ${TEST_MPI_SCRIPT})
-endfunction(gridtools_add_mpi_test)
-
-file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
-file(GENERATE OUTPUT ${TEST_CUDA_MPI_SCRIPT} INPUT ${TEST_CUDA_MPI_SCRIPT})
-function(gridtools_add_cuda_mpi_test )
-    gridtools_add_mpi_test_helper(${ARGN} SCRIPT ${TEST_CUDA_MPI_SCRIPT})
-endfunction(gridtools_add_cuda_mpi_test)
