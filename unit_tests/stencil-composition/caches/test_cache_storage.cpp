@@ -57,32 +57,32 @@ TEST(cache_storage, test_ij_multidim) {
 
     typedef typename cache_storage_t::meta_t m_t;
 
-    ASSERT_EQ(10, m_t::template dim<0>());
-    ASSERT_EQ(7, m_t::template dim<1>());
-    ASSERT_EQ(1, m_t::template dim<2>());
-    ASSERT_EQ(3, m_t::template dim<3>());
-    ASSERT_EQ(2, m_t::template dim<4>());
+    EXPECT_EQ(10, m_t::template dim<0>());
+    EXPECT_EQ(7, m_t::template dim<1>());
+    EXPECT_EQ(1, m_t::template dim<2>());
+    EXPECT_EQ(3, m_t::template dim<3>());
+    EXPECT_EQ(2, m_t::template dim<4>());
 
-    ASSERT_EQ(1, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(1, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(2, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(2, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(3, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(3, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(4, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(4, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(5, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(5, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(6, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(6, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(7, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(7, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(8, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(8, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(9, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(9, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(0, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 0, 0)));
-    ASSERT_EQ(10, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 1, 0, 0, 0, 0)));
-    ASSERT_EQ(20, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 2, 0, 0, 0, 0)));
-    ASSERT_EQ(30, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 3, 0, 0, 0, 0)));
-    ASSERT_EQ(40, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 4, 0, 0, 0, 0)));
-    ASSERT_EQ(50, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 5, 0, 0, 0, 0)));
-    ASSERT_EQ(60, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 6, 0, 0, 0, 0)));
-    ASSERT_EQ(70, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 1, 0, 0, 0)));
-    ASSERT_EQ(140, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0)));
-    ASSERT_EQ(70, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0)));
-    ASSERT_EQ(210, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 1, 0)));
+    EXPECT_EQ(1, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(1, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(2, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(2, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(3, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(3, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(4, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(4, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(5, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(5, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(6, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(6, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(7, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(7, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(8, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(8, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(9, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(9, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(0, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 0, 0)));
+    EXPECT_EQ(10, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 1, 0, 0, 0, 0)));
+    EXPECT_EQ(20, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 2, 0, 0, 0, 0)));
+    EXPECT_EQ(30, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 3, 0, 0, 0, 0)));
+    EXPECT_EQ(40, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 4, 0, 0, 0, 0)));
+    EXPECT_EQ(50, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 5, 0, 0, 0, 0)));
+    EXPECT_EQ(60, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 6, 0, 0, 0, 0)));
+    EXPECT_EQ(70, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 1, 0, 0, 0)));
+    EXPECT_EQ(140, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0)));
+    EXPECT_EQ(70, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0)));
+    EXPECT_EQ(210, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 1, 0)));
 }
 
 TEST(cache_storage, test_k_multidim) {
@@ -96,15 +96,15 @@ TEST(cache_storage, test_k_multidim) {
 
     typedef typename cache_storage_t::meta_t m_t;
 
-    ASSERT_EQ(1, m_t::template dim<0>());
-    ASSERT_EQ(1, m_t::template dim<1>());
-    ASSERT_EQ(6, m_t::template dim<2>());
-    ASSERT_EQ(2, m_t::template dim<3>());
-    ASSERT_EQ(4, m_t::template dim<4>());
+    EXPECT_EQ(1, m_t::template dim<0>());
+    EXPECT_EQ(1, m_t::template dim<1>());
+    EXPECT_EQ(6, m_t::template dim<2>());
+    EXPECT_EQ(2, m_t::template dim<3>());
+    EXPECT_EQ(4, m_t::template dim<4>());
 
-    ASSERT_EQ(-3, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, -3, 0, 0, 0)));
-    ASSERT_EQ(-1, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, -1, 0, 0, 0)));
-    ASSERT_EQ(2, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0)));
-    ASSERT_EQ(6, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0)));
-    ASSERT_EQ(24, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 2, 0)));
+    EXPECT_EQ(-3, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, -3, 0, 0, 0)));
+    EXPECT_EQ(-1, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, -1, 0, 0, 0)));
+    EXPECT_EQ(2, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0)));
+    EXPECT_EQ(6, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0)));
+    EXPECT_EQ(24, compute_offset_cache<typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 2, 0)));
 }

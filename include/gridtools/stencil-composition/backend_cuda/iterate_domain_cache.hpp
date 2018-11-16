@@ -245,16 +245,8 @@ namespace gridtools {
         typedef
             typename impl_::get_indexes_by_cache<k_caches_map_t, is_flushing_cache>::type k_flushing_caches_indexes_t;
 
-        // list of indexes of kcaches that require end-point flushing operations
-        typedef typename impl_::get_indexes_by_cache<k_caches_map_t, is_epflushing_cache>::type
-            k_epflushing_caches_indexes_t;
-
         // list of indexes of kcaches that require filling operations
         typedef typename impl_::get_indexes_by_cache<k_caches_map_t, is_filling_cache>::type k_filling_caches_indexes_t;
-
-        // list of indexes of kcaches that require begin-point filling operations
-        typedef
-            typename impl_::get_indexes_by_cache<k_caches_map_t, is_bpfilling_cache>::type k_bpfilling_caches_indexes_t;
 
         // set of "bypass" caches
         typedef typename get_cache_set_for_type<bypass, caches_t, typename IterateDomainArguments::local_domain_t>::type
@@ -289,10 +281,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
 
             if (first_level) {
-                using begin_indexes_t =
-                    typename boost::mpl::joint_view<k_filling_caches_indexes_t, k_bpfilling_caches_indexes_t>::type;
-
-                boost::mpl::for_each<begin_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
+                boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                     k_caches_map_t,
                     IterateDomain,
                     IterationPolicy,
@@ -323,10 +312,7 @@ namespace gridtools {
                 cache_io_policy::flush>(it_domain, m_k_caches_tuple));
 
             if (last_level) {
-                using end_indexes_t =
-                    typename boost::mpl::joint_view<k_flushing_caches_indexes_t, k_epflushing_caches_indexes_t>::type;
-
-                boost::mpl::for_each<end_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
+                boost::mpl::for_each<k_flushing_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                     k_caches_map_t,
                     IterateDomain,
                     IterationPolicy,

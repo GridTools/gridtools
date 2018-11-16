@@ -89,16 +89,6 @@ namespace gridtools {
     };
 
     /**
-     * @struct is_epflushing_cache
-     * metafunction determining if a type is an end-point flushing cache
-     */
-    template <typename T>
-    struct is_epflushing_cache : boost::mpl::false_ {};
-
-    template <cache_type cacheType, typename Arg>
-    struct is_epflushing_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::epflush>> : boost::mpl::true_ {};
-
-    /**
      * @struct is_filling_cache
      * metafunction determining if a type is a filling cache
      */
@@ -110,16 +100,6 @@ namespace gridtools {
 
     template <cache_type cacheType, typename Arg>
     struct is_filling_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::fill_and_flush>> : boost::mpl::true_ {};
-
-    /**
-     * @struct is_bpfilling_cache
-     * metafunction determining if a type is a begin-point cache
-     */
-    template <typename T>
-    struct is_bpfilling_cache : boost::mpl::false_ {};
-
-    template <cache_type cacheType, typename Arg>
-    struct is_bpfilling_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::bpfill>> : boost::mpl::true_ {};
 
     /**
      * @struct cache_parameter
