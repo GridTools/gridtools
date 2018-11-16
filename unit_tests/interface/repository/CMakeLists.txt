@@ -53,7 +53,7 @@ IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
 
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
     target_compile_options( custom_test_generated_repository PUBLIC ${GT_CXX_FLAGS} )
-    target_link_libraries(custom_test_generated_repository gtest_main stencil-composition)
+    target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
     gridtools_add_test(
         NAME custom_test_generated_repository
         SCRIPT ${TEST_SCRIPT}
