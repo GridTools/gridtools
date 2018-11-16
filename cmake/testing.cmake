@@ -128,7 +128,7 @@ function(add_custom_gpu_test)
     add_custom_test_helper(cuda ${ARGN})
 endfunction(add_custom_gpu_test)
 
-function(add_custom_mpi_test_helper target_arch)
+function(add_custom_mpi_test_helper target_arch test_script)
     set(options)
     set(one_value_args TARGET)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -152,6 +152,7 @@ function(add_custom_mpi_test_helper target_arch)
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         gridtools_add_mpi_test(
             NAME ${unit_test}
+            SCRIPT ${test_script}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
             )
@@ -160,14 +161,14 @@ function(add_custom_mpi_test_helper target_arch)
 endfunction()
 
 function(add_custom_mpi_x86_test)
-    add_custom_mpi_test_helper(x86 ${ARGN})
+    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_mc_test)
-    add_custom_mpi_test_helper(mc ${ARGN})
+    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test)
-    add_custom_mpi_test_helper(cuda ${ARGN})
+    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} ${ARGN})
 endfunction(add_custom_mpi_gpu_test)
