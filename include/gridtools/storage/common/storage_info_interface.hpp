@@ -171,9 +171,36 @@ namespace gridtools {
                   handle_masked_dims<LayoutArgs>::extend(dims_))...)) {}
 
         GT_FUNCTION
-        GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND storage_info_interface(
-            array<uint_t, ndims> const &dims, array<uint_t, ndims> const &strides)
-            : m_total_lengths(dims), m_strides(strides) {}
+        storage_info_interface(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
+            : m_total_lengths{dims}, m_strides(strides) {
+
+            // We guess the padded lengths from the dimensions and the strides. Assume, that the strides are sorted,
+            // e.g., [256, 16, 1], and the dimensions are [5, 9, 9]. For the largest stride, we assume that padding
+            // = dimension (e.g. in this example the i-padding is 5). For all others we can calculate the padding from
+            // the strides (e.g. in this example, the j-padding is 256 / 16 = 16, and the k-padding is 16 / 1 = 1).
+            auto sorted_strides = strides;
+            for (uint_t i = 0; i < ndims; ++i)
+                for (uint_t j = i + 1; j < ndims; ++j)
+                    if (sorted_strides[i] > sorted_strides[j]) {
+                        auto tmp = sorted_strides[i];
+                        sorted_strides[i] = sorted_strides[j];
+                        sorted_strides[j] = tmp;
+                    }
+
+            for (uint_t i = 0; i < ndims; ++i) {
+                if (strides[i] == sorted_strides[ndims - 1])
+                    m_padded_lengths[i] = dims[i];
+                else if (strides[i] == 0) {
+                    m_padded_lengths[i] = 0;
+                } else {
+                    for (int j = i; j < ndims; ++j)
+                        if (strides[i] != sorted_strides[j]) {
+                            m_padded_lengths[i] = sorted_strides[j] / strides[i];
+                            break;
+                        }
+                }
+            }
+        }
 
         /**
          * @brief storage info copy constructor.
