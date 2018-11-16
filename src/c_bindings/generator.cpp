@@ -127,7 +127,7 @@ namespace gridtools {
                 case gt_fk_SignedChar:
                     return fortran_type_name<signed char>();
                 default:
-                    ASSERT_OR_THROW(false, "Invalid element kind");
+                    assert(false && "Invalid element kind");
                 }
             }
         } // namespace _impl

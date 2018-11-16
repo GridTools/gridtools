@@ -36,6 +36,7 @@ else()
 endif()
 
 if(NOT TARGET Boost::boost)
+    # TODO(havogt): remove once the targets below link to GridTools::GridTools
     find_package(Boost REQUIRED)
 endif()
 

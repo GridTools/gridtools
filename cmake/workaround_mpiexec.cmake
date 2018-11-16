@@ -1,4 +1,4 @@
-# This is a workaround to proberly detect SLURM on our machines, respectively,
+# This is a workaround to properly detect SLURM on our machines, respectively,
 # we want to give srun priority over mpirun / mpiexec. If we use slurm, we
 # assume that at runtime, we execute in an allocated environment
 function (set_duplicated_var new old value)

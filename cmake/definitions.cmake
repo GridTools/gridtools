@@ -21,6 +21,8 @@ target_include_directories(GridTools
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
 )
+include(workaround_cuda)
+_workaround_cuda()
 include(workaround_icc)
 _workaround_icc()
 
@@ -117,6 +119,7 @@ if( GT_ENABLE_TARGET_MC )
   target_link_libraries(GridToolsTestMC INTERFACE GridToolsTest)
 endif( GT_ENABLE_TARGET_MC )
 
+# TODO: Move to separate file?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # TODO add those flags to documentation (slightly improve performance)
     target_compile_options(GridToolsTest INTERFACE -qopt-subscript-in-range -qoverride-limits)
