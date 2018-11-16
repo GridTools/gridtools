@@ -81,7 +81,7 @@ function(fetch_gpu_tests)
     fetch_tests_helper(cuda cu ${ARGN})
 endfunction(fetch_gpu_tests)
 
-function(add_custom_test_helper target_arch test_main)
+function(add_custom_test_helper target_arch)
     set(options )
     set(one_value_args TARGET)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -101,7 +101,7 @@ function(add_custom_test_helper target_arch test_main)
         set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
         add_executable (${unit_test} ${___SOURCES})
-        target_link_libraries(${unit_test} gmock ${test_main} GridToolsTest${target_arch_u})
+        target_link_libraries(${unit_test} gmock gtest_main GridToolsTest${target_arch_u})
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         gridtools_add_test(
             NAME ${unit_test}
@@ -115,28 +115,59 @@ endfunction()
 
 # This function can be used to add a custom x86 test
 function(add_custom_x86_test)
-    add_custom_test_helper(x86 gtest_main ${ARGN})
+    add_custom_test_helper(x86 ${ARGN})
 endfunction(add_custom_x86_test)
 
 # This function can be used to add a custom mc test
 function(add_custom_mc_test)
-    add_custom_test_helper(mc gtest_main ${ARGN})
+    add_custom_test_helper(mc ${ARGN})
 endfunction(add_custom_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test)
-    add_custom_test_helper(cuda gtest_main ${ARGN})
+    add_custom_test_helper(cuda ${ARGN})
 endfunction(add_custom_gpu_test)
 
+function(add_custom_mpi_test_helper target_arch)
+    set(options)
+    set(one_value_args TARGET)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+
+    string(TOLOWER ${target_arch} target_arch_l)
+    string(TOUPPER ${target_arch} target_arch_u)
+
+    if (___TARGET MATCHES "_${target_arch_l}$")
+        message(WARNING "Test ${___TARGET} already has suffix _${target_arch_l}. Please remove suffix.")
+    endif ()
+
+    set(labels ${___LABELS})
+    list(APPEND labels target_${target_arch_l} )
+
+    if (GT_ENABLE_TARGET_${target_arch_u})
+        set(unit_test "${___TARGET}_${target_arch_l}")
+        # create the test
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock mpi_gtest_main GridToolsTest${target_arch_u})
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_mpi_test(
+            NAME ${unit_test}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            )
+    endif ()
+
+endfunction()
+
 function(add_custom_mpi_x86_test)
-    add_custom_test_helper(x86 mpi_gtest_main ${ARGN})
+    add_custom_mpi_test_helper(x86 ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_mc_test)
-    add_custom_test_helper(mc mpi_gtest_main ${ARGN})
+    add_custom_mpi_test_helper(mc ${ARGN})
 endfunction(add_custom_mpi_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test)
-    add_custom_test_helper(cuda mpi_gtest_main ${ARGN})
+    add_custom_mpi_test_helper(cuda ${ARGN})
 endfunction(add_custom_mpi_gpu_test)
