@@ -23,7 +23,7 @@ add_subdirectory(./tools/googletest)
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
         add_library( mpi_gtest_main include/gridtools/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
-        target_link_libraries(mpi_gtest_main gtest MPI::MPI_CXX GridToolsTest)
+        target_link_libraries(mpi_gtest_main gtest MPI::MPI_CXX GridToolsTest gcl)
         if (GT_ENABLE_TARGET_CUDA)
             target_include_directories( mpi_gtest_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
         endif()
@@ -132,7 +132,7 @@ function(add_custom_gpu_test)
     add_custom_test_helper(cuda ${ARGN})
 endfunction(add_custom_gpu_test)
 
-function(add_custom_test_helper target_arch)
+function(add_custom_mpi_test_helper target_arch)
     set(options)
     set(one_value_args TARGET)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
@@ -152,7 +152,7 @@ function(add_custom_test_helper target_arch)
         set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
         add_executable (${unit_test} ${___SOURCES})
-        target_link_libraries(${unit_test} gmock mpi_gtest_main gcl GridToolsTest${target_arch_u})
+        target_link_libraries(${unit_test} gmock mpi_gtest_main GridToolsTest${target_arch_u})
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         gridtools_add_mpi_test(
             NAME ${unit_test}
@@ -160,17 +160,18 @@ function(add_custom_test_helper target_arch)
             LABELS ${labels}
             )
     endif ()
+
 endfunction()
 
 function(add_custom_mpi_x86_test)
-    add_custom_test_helper(x86 ${ARGN})
+    add_custom_mpi_test_helper(x86 ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_mc_test)
-    add_custom_test_helper(mc ${ARGN})
+    add_custom_mpi_test_helper(mc ${ARGN})
 endfunction(add_custom_mpi_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test)
-    add_custom_test_helper(cuda ${ARGN})
+    add_custom_mpi_test_helper(cuda ${ARGN})
 endfunction(add_custom_mpi_gpu_test)

@@ -15,12 +15,19 @@ set(CMAKE_CUDA_STANDARD ${GT_CXX_STANDARD_VALUE})
 set(CMAKE_CUDA_EXTENSIONS OFF)
 
 add_library(GridTools INTERFACE)
-target_compile_features(GridTools INTERFACE cxx_std_11)
+# TODO This is a workaround because cmake thinks that clang supports features,
+# but it does it wrong because our clang 5.0 RC2 does not match cmakes 5.0
+# specification (but 5.0 does)
+if (CMAKE_CXX_KNOWN_FEATURES)
+    target_compile_features(GridTools INTERFACE cxx_std_11)
+endif()
 target_include_directories(GridTools
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
 )
+include(workaround_cuda)
+_workaround_cuda()
 include(workaround_icc)
 _workaround_icc()
 
@@ -117,6 +124,7 @@ if( GT_ENABLE_TARGET_MC )
   target_link_libraries(GridToolsTestMC INTERFACE GridToolsTest)
 endif( GT_ENABLE_TARGET_MC )
 
+# TODO: Move to separate file?
 if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
     # TODO add those flags to documentation (slightly improve performance)
     target_compile_options(GridToolsTest INTERFACE -qopt-subscript-in-range -qoverride-limits)

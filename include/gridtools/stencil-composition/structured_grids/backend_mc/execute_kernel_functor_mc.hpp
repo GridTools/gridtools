@@ -76,7 +76,7 @@ namespace gridtools {
                    missing vector-sized k-caches and possibly alignment issues. */
                 false>;
 
-        constexpr int_t veclength_mc = 64 / sizeof(float_type);
+        constexpr int_t veclength_mc = 16;
 
         /**
          * @brief Class for inner (block-level) looping.
