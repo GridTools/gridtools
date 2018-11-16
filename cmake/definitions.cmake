@@ -15,7 +15,12 @@ set(CMAKE_CUDA_STANDARD ${GT_CXX_STANDARD_VALUE})
 set(CMAKE_CUDA_EXTENSIONS OFF)
 
 add_library(GridTools INTERFACE)
-target_compile_features(GridTools INTERFACE cxx_std_11)
+# TODO This is a workaround because cmake thinks that clang supports features,
+# but it does it wrong because our clang 5.0 RC2 does not match cmakes 5.0
+# specification (but 5.0 does)
+if (CMAKE_CXX_KNOWN_FEATURES)
+    target_compile_features(GridTools INTERFACE cxx_std_11)
+endif()
 target_include_directories(GridTools
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
