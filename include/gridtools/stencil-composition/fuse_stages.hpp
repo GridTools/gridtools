@@ -62,7 +62,7 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(apply, meta::filter, (has_same_extent<Extent>::template apply, AllStages));
         };
 
-        GT_META_LAZY_NAMESPASE {
+        GT_META_LAZY_NAMESPACE {
             template <template <class...> class CompoundStage, class Stages>
             struct fuse_stages_with_the_same_extent;
             template <template <class...> class CompoundStage, template <class...> class L, class... Stages>
@@ -86,7 +86,7 @@ namespace gridtools {
 
     } // namespace _impl
 
-    GT_META_LAZY_NAMESPASE {
+    GT_META_LAZY_NAMESPACE {
         template <template <class...> class CompoundStage, class Stages>
         struct fuse_stages {
             GRIDTOOLS_STATIC_ASSERT(meta::length<Stages>::value > 1, GT_INTERNAL_ERROR);
