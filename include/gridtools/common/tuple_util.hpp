@@ -135,6 +135,7 @@
 #include "array.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
+#include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "generic_metafunctions/implicit_cast.hpp"
 #include "generic_metafunctions/meta.hpp"
 #include "generic_metafunctions/type_traits.hpp"
@@ -282,7 +283,7 @@ namespace gridtools {
             template <class T>
             struct get_ref_kind<T const &> : std::integral_constant<ref_kind, ref_kind::const_lvalue> {};
 
-            GT_META_LAZY_NAMESPASE {
+            GT_META_LAZY_NAMESPACE {
                 template <ref_kind Kind, class Dst>
                 struct add_ref;
 

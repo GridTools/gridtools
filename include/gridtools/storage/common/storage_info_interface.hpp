@@ -362,10 +362,10 @@ namespace gridtools {
             enable_if_t<sizeof...(Ints) == ndims && is_all_integral_or_enum<Ints...>::value, int> = 0>
         GT_FUNCTION constexpr int index(Ints... idx) const {
 #ifdef NDEBUG
-            return offset(typename make_gt_integer_sequence<uint_t, ndims>::type{}, idx...);
+            return offset(make_gt_integer_sequence<uint_t, ndims>{}, idx...);
 #else
-            return error_or_return(check_bounds(typename make_gt_integer_sequence<uint_t, ndims>::type{}, idx...),
-                offset(typename make_gt_integer_sequence<uint_t, ndims>::type{}, idx...),
+            return error_or_return(check_bounds(make_gt_integer_sequence<uint_t, ndims>{}, idx...),
+                offset(make_gt_integer_sequence<uint_t, ndims>{}, idx...),
                 "Storage out of bounds access");
 #endif
         }
@@ -381,7 +381,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION constexpr int first_index_of_inner_region() const {
-            return first_index_impl(typename make_gt_integer_sequence<int, ndims>::type{});
+            return first_index_impl(make_gt_integer_sequence<int, ndims>{});
         }
 
         /**

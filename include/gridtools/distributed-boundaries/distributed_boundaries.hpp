@@ -217,12 +217,10 @@ namespace gridtools {
             }
 
             call_pack(all_stores_for_exc,
-                typename make_gt_integer_sequence<uint_t,
-                    std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
+                make_gt_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
             m_he.exchange();
             call_unpack(all_stores_for_exc,
-                typename make_gt_integer_sequence<uint_t,
-                    std::tuple_size<decltype(all_stores_for_exc)>::value>::type{});
+                make_gt_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
 
             boundary_only(jobs...);
         }
@@ -245,8 +243,7 @@ namespace gridtools {
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename CTraits::proc_grid_type>(m_he.comm())),
                 bcapply.stores(),
-                typename make_gt_integer_sequence<uint_t,
-                    std::tuple_size<typename BCApply::stores_type>::value>::type{});
+                make_gt_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
         }
 
         template <typename BCApply>

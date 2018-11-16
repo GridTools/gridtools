@@ -198,7 +198,7 @@ namespace gridtools {
             typedef layout_map<Indices..., InitialIndices...> type;
         };
 
-        using seq = typename make_gt_integer_sequence<int_t, NExtraDim>::type;
+        using seq = make_gt_integer_sequence<int_t, NExtraDim>;
 
         typedef typename build_ext_layout<Location, seq, impl::inc_<Args, NExtraDim>::value...>::type type;
     };
