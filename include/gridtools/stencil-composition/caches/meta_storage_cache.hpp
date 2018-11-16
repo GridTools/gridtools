@@ -45,31 +45,33 @@ namespace gridtools {
 
     template <typename Layout, uint_t... Dims>
     struct meta_storage_cache {
+      private:
+        using meta_storage_t = storage_info_interface<0, Layout>;
 
-        typedef storage_info_interface<0, Layout> meta_storage_t;
-        typedef Layout layout_t;
-        GRIDTOOLS_STATIC_ASSERT(layout_t::masked_length == sizeof...(Dims),
+        GRIDTOOLS_STATIC_ASSERT(Layout::masked_length == sizeof...(Dims),
             GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
 
       public:
-        GT_FUNCTION
-        constexpr meta_storage_cache() {}
+        using layout_t = Layout;
 
+        /**
+         * @brief compile-time computed size (needed for allocation of the cache).
+         */
         GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return meta_storage_t(Dims...).padded_total_length(); }
+        static constexpr uint_t size() {
+            GRIDTOOLS_STATIC_ASSERT(Layout::masked_length == Layout::unmasked_length,
+                GT_INTERNAL_ERROR_MSG(
+                    "With this implementation of size() it is expected that no dimensions are masked."));
+            return accumulate(multiplies(), Dims...);
+        }
 
         template <ushort_t Id>
-        GT_FUNCTION static constexpr int_t stride() {
+        GT_FUNCTION static int_t stride() {
             return meta_storage_t(Dims...).template stride<Id>();
         }
 
-        template <typename... D, typename std::enable_if<is_all_integral<D...>::value, int>::type = 0>
-        GT_FUNCTION constexpr int_t index(D... args_) const {
-            return meta_storage_t(Dims...).index(args_...);
-        }
-
         template <ushort_t Id>
-        GT_FUNCTION static constexpr int_t dim() {
+        GT_FUNCTION static int_t dim() {
             return meta_storage_t(Dims...).template total_length<Id>();
         }
     };

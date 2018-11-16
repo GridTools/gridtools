@@ -135,6 +135,15 @@ namespace gridtools {
 #endif
 #endif
 
+// workaround for https://github.com/eth-cscs/gridtools/issues/1040: no constexpr ctor for CUDA 9.2 and CUDA 10
+#if defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2))
+#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR
+#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND
+#else
+#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND constexpr
+#endif
+
 /**
  * @brief Main namespace containing all the provided libraries and
  * functionalities
@@ -215,22 +224,6 @@ namespace gridtools {
        with an unsigned iteration index.
        https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
     */
-
-#ifndef FLOAT_PRECISION
-#define FLOAT_PRECISION 8
-#endif
-
-#if FLOAT_PRECISION == 4
-    typedef float float_type;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_FLOAT_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_FLOAT_EQ(reference, actual)
-#elif FLOAT_PRECISION == 8
-    typedef double float_type;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_DOUBLE_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
-#else
-#error float precision not properly set (4 or 8 bytes supported)
-#endif
 
     // define a gridtools notype for metafunctions that would return something like void
     // but still to point to a real integral type so that it can be passed as argument to functions

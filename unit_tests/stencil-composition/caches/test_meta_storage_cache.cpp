@@ -34,15 +34,53 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
+#include <gridtools/common/layout_map.hpp>
+#include <gridtools/stencil-composition/caches/meta_storage_cache.hpp>
 
-#include <gridtools/stencil-composition/axis.hpp>
-#include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
-#include <gridtools/tools/backend_select.hpp>
+#include "../../test_helper.hpp"
+#include "gtest/gtest.h"
 
-using namespace gridtools;
+using gridtools::layout_map;
+using gridtools::meta_storage_cache;
 
-namespace ico_operators {
-    using x_interval = axis<1>::full_interval;
-    using icosahedral_topology_t = icosahedral_topology<backend_t>;
-} // namespace ico_operators
+TEST(meta_storage_cache, standard_layout) {
+    constexpr int Dim0 = 2;
+    constexpr int Dim1 = 3;
+    constexpr int Dim2 = 4;
+
+    using layout_t = layout_map<0, 1, 2>;
+    using meta_t = meta_storage_cache<layout_t, 2, 3, 4>;
+    constexpr meta_t meta;
+
+    constexpr gridtools::uint_t expected_total_length = Dim0 * Dim1 * Dim2;
+    ASSERT_STATIC_EQ(expected_total_length, meta_t::size());
+
+    EXPECT_EQ(Dim2 * Dim1, meta_t::stride<0>());
+    EXPECT_EQ(Dim2, meta_t::stride<1>());
+    EXPECT_EQ(1, meta_t::stride<2>());
+
+    EXPECT_EQ(Dim0, meta_t::dim<0>());
+    EXPECT_EQ(Dim1, meta_t::dim<1>());
+    EXPECT_EQ(Dim2, meta_t::dim<2>());
+}
+
+TEST(meta_storage_cache, inverted_layout) {
+    constexpr int Dim0 = 2;
+    constexpr int Dim1 = 3;
+    constexpr int Dim2 = 4;
+
+    using layout_t = layout_map<2, 1, 0>;
+    using meta_t = meta_storage_cache<layout_t, 2, 3, 4>;
+    constexpr meta_t meta;
+
+    constexpr gridtools::uint_t expected_total_length = Dim0 * Dim1 * Dim2;
+    ASSERT_STATIC_EQ(expected_total_length, meta_t::size());
+
+    ASSERT_EQ(1, meta_t::stride<0>());
+    ASSERT_EQ(Dim0, meta_t::stride<1>());
+    ASSERT_EQ(Dim0 * Dim1, meta_t::stride<2>());
+
+    ASSERT_EQ(Dim0, meta_t::dim<0>());
+    ASSERT_EQ(Dim1, meta_t::dim<1>());
+    ASSERT_EQ(Dim2, meta_t::dim<2>());
+}

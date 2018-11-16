@@ -50,31 +50,35 @@
 
 namespace gridtools {
 
-    namespace _impl {
+    namespace impl_ {
         template <class T>
-        class default_precision {
-            static const double value;
+        class default_precision_impl;
 
-          public:
-            GT_FUNCTION operator double() const { return value; }
+        template <>
+        struct default_precision_impl<float> {
+            static constexpr double value = 1e-6;
         };
 
         template <>
-        const double default_precision<float>::value = 1e-6;
+        struct default_precision_impl<double> {
+            static constexpr double value = 1e-14;
+        };
+    } // namespace impl_
 
-        template <>
-        const double default_precision<double>::value = 1e-14;
-    } // namespace _impl
+    template <class T>
+    GT_FUNCTION double default_precision() {
+        return impl_::default_precision_impl<T>::value;
+    }
 
     template <typename T, enable_if_t<std::is_floating_point<T>::value, int> = 0>
-    GT_FUNCTION bool expect_with_threshold(T expected, T actual, double precision = _impl::default_precision<T>()) {
+    GT_FUNCTION bool expect_with_threshold(T expected, T actual, double precision = default_precision<T>()) {
         auto abs_error = math::fabs(expected - actual);
         auto abs_max = math::max(math::fabs(expected), math::fabs(actual));
         return abs_error < precision || abs_error < abs_max * precision;
     }
 
-    template <typename T, typename Dummy, enable_if_t<!std::is_floating_point<T>::value, int> = 0>
-    GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, Dummy &&) {
+    template <typename T, typename Dummy = int, enable_if_t<!std::is_floating_point<T>::value, int> = 0>
+    GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, Dummy = 0) {
         return actual == expected;
     }
 
@@ -83,8 +87,7 @@ namespace gridtools {
         size_t m_max_error;
 
       public:
-        verifier(double precision = _impl::default_precision<float_type>(), size_t max_error = 20)
-            : m_precision(precision), m_max_error(max_error) {}
+        verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
 
         template <typename Grid, typename StorageType>
         bool verify(Grid const &grid_ /*TODO: unused*/,

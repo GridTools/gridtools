@@ -57,14 +57,13 @@ struct copy_functor {
 using expandable_parameters = regression_fixture<>;
 
 TEST_F(expandable_parameters, test) {
-    std::vector<storage_type> out = {
-        make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
-    std::vector<storage_type> in = {
-        make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
+    using storages_t = std::vector<storage_type>;
+    storages_t out = {make_storage(1.), make_storage(2.), make_storage(3.), make_storage(4.), make_storage(5.)};
+    storages_t in = {make_storage(-1.), make_storage(-2.), make_storage(-3.), make_storage(-4.), make_storage(-5.)};
 
-    arg<0, std::vector<storage_type>> p_out;
-    arg<1, std::vector<storage_type>> p_in;
-    tmp_arg<2, std::vector<storage_type>> p_tmp;
+    arg<0, storages_t> p_out;
+    arg<1, storages_t> p_in;
+    tmp_arg<2, storages_t> p_tmp;
 
     gridtools::make_computation<backend_t>(expand_factor<2>(),
         make_grid(),
