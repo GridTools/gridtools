@@ -10,7 +10,6 @@ set(SOURCES
     expandable_parameters_icosahedral
     stencil_on_cells_color
     stencil_on_edges
-    stencil_on_edges_of_cells
     stencil_fused
     stencil_on_neighedge_of_cells
     stencil_on_vertices
@@ -19,22 +18,17 @@ set(SOURCES
     lap
     )
 
-add_library(unstructured_grid Options.cpp unstructured_grid.cpp)
-target_link_libraries(unstructured_grid GridTools)
-
-add_definitions("-DBENCHMARK") # TODO remove after regression refactoring
-
 # special target for executables which are used from performance benchmarks
 add_custom_target(perftests)
 
 if(GT_ENABLE_TARGET_X86)
     foreach(srcfile IN LISTS SOURCES)
         add_executable(${srcfile}_x86_naive ${srcfile}.cpp)
-        target_link_libraries(${srcfile}_x86_naive gcl gtest_main unstructured_grid GridToolsTestX86)
+        target_link_libraries(${srcfile}_x86_naive gcl regression_fixture GridToolsTestX86)
         target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
 
         add_executable(${srcfile}_x86_block ${srcfile}.cpp)
-        target_link_libraries(${srcfile}_x86_block gcl gtest_main unstructured_grid GridToolsTestX86)
+        target_link_libraries(${srcfile}_x86_block gcl regression_fixture gtest_main GridToolsTestX86)
 
         gridtools_add_test(
             NAME tests.${srcfile}_x86_block_12_33_61
@@ -71,49 +65,21 @@ if(GT_ENABLE_TARGET_CUDA)
     set(CUDA_SEPARABLE_COMPILATION OFF)
     foreach(srcfile IN LISTS SOURCES)
         add_executable( ${srcfile}_cuda ${srcfile}.cu  )
-        target_link_libraries(${srcfile}_cuda gcl gtest_main unstructured_grid GridToolsTestCUDA)
+        target_link_libraries(${srcfile}_cuda gcl gtest_main regression_fixture GridToolsTestCUDA)
 
-        if( ${srcfile} STREQUAL "stencil_on_vertexes")
-            # K length larger than 48 fails for stencil_on_vertexes_cuda... this need to be investigated
-            gridtools_add_test(
-                NAME tests.${srcfile}_cuda_77_48_48
-                SCRIPT ${TEST_SCRIPT}
-                COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 48
-                LABELS regression_cuda target_cuda
-                )
-            gridtools_add_test(
-                NAME tests.${srcfile}_cuda_63_55_43
-                SCRIPT ${TEST_SCRIPT}
-                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
-                LABELS regression_cuda target_cuda
-                )
-        elseif(${srcfile} STREQUAL "expandable_parameters_icosahedral" OR ${srcfile} STREQUAL "copy_stencil_icosahedral")
-            gridtools_add_test(
-                NAME tests.${srcfile}_cuda_32_48_61
-                SCRIPT ${TEST_SCRIPT}
-                COMMAND $<TARGET_FILE:${srcfile}_cuda> 32 48 61
-                LABELS regression_cuda target_cuda
-                )
-            gridtools_add_test(
-                NAME tests.${srcfile}_cuda_63_55_43
-                SCRIPT ${TEST_SCRIPT}
-                COMMAND $<TARGET_FILE:${srcfile}_cuda> 64 55 43
-                LABELS regression_cuda target_cuda
-                )
-        else()
-            gridtools_add_test(
-                NAME tests.${srcfile}_cuda_77_48_61
-                SCRIPT ${TEST_SCRIPT}
-                COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 61
-                LABELS regression_cuda target_cuda
-                )
-            gridtools_add_test(
-                NAME tests.${srcfile}_cuda_63_55_43
-                SCRIPT ${TEST_SCRIPT}
-                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
-                LABELS regression_cuda target_cuda
-                )
-        endif()
+        gridtools_add_test(
+            NAME tests.${srcfile}_cuda_77_48_61
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 61
+            LABELS regression_cuda target_cuda
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_cuda_63_55_43
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
+            LABELS regression_cuda target_cuda
+            )
+
         if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_cuda)
         endif()
