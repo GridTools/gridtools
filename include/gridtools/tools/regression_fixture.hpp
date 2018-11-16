@@ -49,11 +49,10 @@ namespace gridtools {
       public:
         regression_fixture() : computation_fixture<HaloSize, Axis>(s_d1, s_d2, s_d3) {}
 
-        template <class Expected, class Actual>
-        void verify(Expected &&expected, Actual &&actual) const {
+        template <class... Args>
+        void verify(Args &&... args) const {
             if (s_needs_verification)
-                computation_fixture<HaloSize, Axis>::verify(
-                    std::forward<Expected>(expected), std::forward<Actual>(actual));
+                computation_fixture<HaloSize, Axis>::verify(std::forward<Args>(args)...);
         }
 
         template <class Comp>
