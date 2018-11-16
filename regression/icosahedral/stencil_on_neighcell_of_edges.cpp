@@ -40,7 +40,7 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
-#include "unstructured_grid.hpp"
+#include "neighbours_of.hpp"
 
 using namespace gridtools;
 
@@ -56,9 +56,9 @@ struct test_on_cells_functor {
     }
 };
 
-using stenicl_on_neigcell_of_edges = regression_fixture<1>;
+using stencil_on_neighcell_of_edges = regression_fixture<1>;
 
-TEST_F(stenicl_on_neigcell_of_edges, test) {
+TEST_F(stencil_on_neighcell_of_edges, test) {
     auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
     auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
         float_type res = {};

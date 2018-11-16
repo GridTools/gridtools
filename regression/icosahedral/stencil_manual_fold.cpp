@@ -53,7 +53,7 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
-#include "unstructured_grid.hpp"
+#include "neighbours_of.hpp"
 
 using namespace gridtools;
 using namespace expressions;
@@ -86,22 +86,18 @@ TEST_F(stencil_manual_fold, test) {
     auto ref = [&](int_t i, int_t c, int_t j, int_t k, int_t e) {
         return neighbours_of<cells, cells>(i, c, j, k)[e].call(in) / in(i, c, j, k);
     };
-    auto cell_area = make_storage<cells>(in);
-    auto weight_edges_meta = storage_info_extender()(cell_area.get_storage_info_ptr(), 3);
-    using edges_of_cells_storage_type = storage_tr::data_store_t<float_type, decltype(weight_edges_meta)>;
-
-    edges_of_cells_storage_type weight_edges = {weight_edges_meta, 0.};
+    auto weight_edges = make_storage_4d<cells>(3);
 
     arg<0, cells> p_in;
-    arg<1, cells, edges_of_cells_storage_type> p_out;
+    arg<1, cells, storage_type_4d<cells>> p_out;
 
-    auto comp = make_computation(p_in = cell_area,
+    auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = weight_edges,
         make_multistage(
             enumtype::execute<enumtype::forward>(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)));
 
     comp.run();
-    verify(edges_of_cells_storage_type{weight_edges_meta, ref}, weight_edges);
+    verify(make_storage_4d<cells>(3, ref), weight_edges);
 
     benchmark(comp);
 }

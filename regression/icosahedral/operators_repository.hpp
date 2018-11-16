@@ -43,7 +43,7 @@
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/location_type.hpp>
 
-#include "unstructured_grid.hpp"
+#include "neighbours_of.hpp"
 
 class operators_repository {
     using cells = gridtools::enumtype::cells;

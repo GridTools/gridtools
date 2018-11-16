@@ -46,7 +46,7 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 
-#include "unstructured_grid.hpp"
+#include "neighbours_of.hpp"
 
 using namespace gridtools;
 
