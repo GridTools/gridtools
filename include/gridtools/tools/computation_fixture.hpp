@@ -39,6 +39,7 @@
 
 #include <gtest/gtest.h>
 
+#include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../common/selector.hpp"
@@ -56,6 +57,9 @@ namespace gridtools {
         uint_t m_d1;
         uint_t m_d2;
         uint_t m_d3;
+
+        template <class StorageType>
+        using halos_t = array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length>;
 
       public:
         static constexpr uint_t halo_size = HaloSize;
@@ -119,16 +123,13 @@ namespace gridtools {
             return {{m_d1, m_d2, m_d3}, (typename Storage::data_t)val};
         }
 
-        template <class Expected, class Actual>
-        void verify(Expected const &expected, Actual const &actual) const {
-            EXPECT_TRUE(verifier{}.verify(make_grid(),
-                expected,
-                actual,
-                {{ {halo_size, halo_size},
-                    {halo_size, halo_size},
-                    { 0,
-                        0 } }}));
+      private:
+        template <class Storage>
+        static halos_t<Storage> halos() {
+            return {{ {halo_size, halo_size}, { halo_size, halo_size } }};
         }
+
+      public:
 #else
         using cells = enumtype::cells;
         using edges = enumtype::edges;
@@ -182,12 +183,13 @@ namespace gridtools {
         auto make_grid() const
             GT_AUTO_RETURN(::gridtools::make_grid(topology(), i_halo_descriptor(), j_halo_descriptor(), Axis{m_d3}));
 
-        template <class Expected, class Actual, class... Args>
-        void verify(Expected const &expected, Actual const &actual, Args &&... args) const {
-            EXPECT_TRUE(verifier{std::forward<Args>(args)...}.verify(
-                make_grid(), expected, actual, {{{halo_size, halo_size}, {0, 0}, {halo_size, halo_size}, {0, 0}}}));
+      private:
+        template <class Storage>
+        static halos_t<Storage> halos() {
+            return {{{halo_size, halo_size}, {}, {halo_size, halo_size}}};
         }
 
+      public:
 #endif
         /// Fixture constructor takes the dimensions of the computation
         computation_fixture(uint_t d1, uint_t d2, uint_t d3) : m_d1(d1), m_d2(d2), m_d3(d3) {}
@@ -203,6 +205,12 @@ namespace gridtools {
         template <class... Args>
         auto make_computation(Args &&... args) const
             GT_AUTO_RETURN(::gridtools::make_computation<backend_t>(make_grid(), std::forward<Args>(args)...));
+
+        template <class Expected, class Actual>
+        void verify(
+            Expected const &expected, Actual const &actual, double precision = default_precision<float_type>()) const {
+            EXPECT_TRUE(verifier{precision}.verify(make_grid(), expected, actual, halos<Expected>()));
+        }
     };
 
 #define GT_DEFINE_COMPUTATION_FIXTURE_PLH(I)                                    \
