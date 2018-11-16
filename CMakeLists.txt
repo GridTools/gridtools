@@ -119,7 +119,7 @@ if(BUILD_TESTING)
   enable_language(C Fortran)
   # TODO move to the right directory
   add_library(regression_fixture src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_fixture gtest common)
+  target_link_libraries(regression_fixture gtest GridTools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
