@@ -37,6 +37,7 @@
 
 #include <type_traits>
 
+#include "../meta/defs.hpp"
 #include "./generic_metafunctions/mpl_tags.hpp"
 
 /** \ingroup common
@@ -125,23 +126,6 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
-// some compilers have the problem that template alias instantiations have exponential complexity
-#if !defined(GT_BROKEN_TEMPLATE_ALIASES)
-#if defined(__CUDACC_VER_MAJOR__)
-// CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
-// instantiation) see https://github.com/eth-cscs/gridtools/issues/976
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
-#elif defined(__INTEL_COMPILER)
-#define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
-#elif defined(__clang__)
-#define GT_BROKEN_TEMPLATE_ALIASES 0
-#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
-#define GT_BROKEN_TEMPLATE_ALIASES (__GNUC__ * 10 + __GNUC_MINOR__ < 47)
-#else
-#define GT_BROKEN_TEMPLATE_ALIASES 1
-#endif
-#endif
-
 // check boost::optional workaround for CUDA9.2
 #if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)
 #if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
@@ -149,6 +133,15 @@ namespace gridtools {
 #error \
     "CUDA 9.2 has a problem with boost::optional, please define BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL and BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE prior to any include of boost/optional.hpp"
 #endif
+#endif
+
+// workaround for https://github.com/eth-cscs/gridtools/issues/1040: no constexpr ctor for CUDA 9.2 and CUDA 10
+#if defined(__CUDACC_VER_MAJOR__) && \
+    (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2))
+#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR
+#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND
+#else
+#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND constexpr
 #endif
 
 /**
@@ -231,22 +224,6 @@ namespace gridtools {
        with an unsigned iteration index.
        https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
     */
-
-#ifndef FLOAT_PRECISION
-#define FLOAT_PRECISION 8
-#endif
-
-#if FLOAT_PRECISION == 4
-    typedef float float_type;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_FLOAT_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_FLOAT_EQ(reference, actual)
-#elif FLOAT_PRECISION == 8
-    typedef double float_type;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_DOUBLE_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
-#else
-#error float precision not properly set (4 or 8 bytes supported)
-#endif
 
     // define a gridtools notype for metafunctions that would return something like void
     // but still to point to a real integral type so that it can be passed as argument to functions

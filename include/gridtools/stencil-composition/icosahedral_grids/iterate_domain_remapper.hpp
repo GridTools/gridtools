@@ -48,8 +48,9 @@
 #include "../arg.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
+#include "./icosahedral_topology.hpp"
 #include "./on_neighbors.hpp"
-#include "position_offset_type.hpp"
+#include "./position_offset_type.hpp"
 
 namespace gridtools {
 
@@ -201,18 +202,6 @@ namespace gridtools {
             };
 
             /**
-             * returns true if variadic pack is a pack of accessors and the location type of the neighbors is the same
-             * as
-             * the location type of the ESF.
-             */
-            template <typename NeighborsLocationType, typename EsfLocationType, typename... Accessors>
-            struct accessors_on_same_color_neighbors {
-                typedef typename boost::mpl::and_<
-                    typename is_sequence_of<typename variadic_to_vector<Accessors...>::type, is_accessor>::type,
-                    typename boost::is_same<NeighborsLocationType, EsfLocationType>::type>::type type;
-            };
-
-            /**
              * data structure that holds data needed by the reduce_tuple functor
              * @tparam ValueType value type of the computation
              * @tparam NeighborsArray type locates the position of a neighbor element in the grid. If can be:
@@ -254,12 +243,8 @@ namespace gridtools {
             template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain>
             struct reduce_tuple {
 
-                GRIDTOOLS_STATIC_ASSERT(
-                    (boost::is_same<
-                         typename boost::remove_const<typename boost::remove_reference<NeighborsArray>::type>::type,
-                         unsigned int>::value ||
-                        is_position_offset_type<typename boost::remove_const<
-                            typename boost::remove_reference<NeighborsArray>::type>::type>::value),
+                GRIDTOOLS_STATIC_ASSERT((std::is_same<decay_t<NeighborsArray>, unsigned int>::value ||
+                                            is_position_offset_type<decay_t<NeighborsArray>>::value),
                     GT_INTERNAL_ERROR);
 
                 GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
@@ -271,15 +256,11 @@ namespace gridtools {
                 GT_FUNCTION static void apply(reduce_tuple_holder_t &RESTRICT reducer, Accessors &RESTRICT... args) {
                     // we need to call the user functor (Reduction(arg1, arg2, ..., result) )
                     // However we can make here a direct call, since we first need to dereference the address of each
-                    // Accessor
-                    // given the array with position of the neighbor being accessed (reducer.m_neighbors)
+                    // Accessor given the array with position of the neighbor being accessed (reducer.m_neighbors)
                     // We make use of the apply_gt_integer_sequence in order to operate on each element of the variadic
-                    // pack,
-                    // dereference its address (it_domain_evaluator) and gather back all the arguments while calling the
-                    // user lambda
-                    // (Reduction)
-                    using seq =
-                        apply_gt_integer_sequence<typename make_gt_integer_sequence<int, sizeof...(Accessors)>::type>;
+                    // pack, dereference its address (it_domain_evaluator) and gather back all the arguments while
+                    // calling the user lambda (Reduction)
+                    using seq = apply_gt_integer_sequence<make_gt_integer_sequence<int, sizeof...(Accessors)>>;
 
                     reducer.m_result = seq::template apply_lambda<ValueType,
                         Reduction,
@@ -296,17 +277,16 @@ namespace gridtools {
                 typename LocationTypeT,
                 typename Reduction,
                 typename EsfLocationType,
-                typename... Accessors>
-            GT_FUNCTION typename boost::enable_if<
-                typename accessors_on_same_color_neighbors<LocationTypeT, EsfLocationType, Accessors...>::type,
-                ValueType>::type
-            evaluate(EsfLocationType,
+                typename... Accessors,
+                enable_if_t<std::is_same<LocationTypeT, EsfLocationType>::value &&
+                                conjunction<is_accessor<Accessors>...>::value,
+                    int> = 0>
+            GT_FUNCTION ValueType evaluate(EsfLocationType,
                 on_neighbors_impl<ValueType, SrcColor, LocationTypeT, Reduction, Accessors...> onneighbors) const {
 
                 // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array<
                 // array<uint_t, 4>, NumNeighbors>
-                constexpr auto neighbors = from<EsfLocationType>::template to<LocationTypeT>::template with_color<
-                    static_uint<SrcColor::value>>::offsets();
+                constexpr auto neighbors = connectivity<EsfLocationType, LocationTypeT, SrcColor::value>::offsets();
 
                 // TODO reuse the next code
                 ValueType &result = onneighbors.value();

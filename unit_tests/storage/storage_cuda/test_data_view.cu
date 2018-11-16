@@ -59,7 +59,7 @@ TEST(DataViewTest, Simple) {
     typedef cuda_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
     typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
-    constexpr storage_info_t si(c_x, c_y, c_z);
+    GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND storage_info_t si(c_x, c_y, c_z);
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view<data_store_t> dv = make_host_view(ds);

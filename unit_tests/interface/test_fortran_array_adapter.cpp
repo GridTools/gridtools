@@ -39,23 +39,24 @@
 #include <gridtools/c_bindings/fortran_array_view.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using IJKStorageInfo = typename gridtools::storage_traits<gridtools::target::x86>::storage_info_t<0, 3>;
 using IJKDataStore =
-    typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<gridtools::float_type, IJKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<float_type, IJKStorageInfo>;
 
 TEST(FortranArrayAdapter, TransformAdapterIntoDataStore) {
     constexpr size_t x_size = 6;
     constexpr size_t y_size = 5;
     constexpr size_t z_size = 4;
-    gridtools::float_type fortran_array[z_size][y_size][x_size];
+    float_type fortran_array[z_size][y_size][x_size];
 
     gt_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
     descriptor.dims[0] = x_size;
     descriptor.dims[1] = y_size;
     descriptor.dims[2] = z_size;
-    descriptor.type = std::is_same<gridtools::float_type, float>::value ? gt_fk_Float : gt_fk_Double;
+    descriptor.type = std::is_same<float_type, float>::value ? gt_fk_Float : gt_fk_Double;
     descriptor.data = fortran_array;
     descriptor.is_acc_present = false;
 
@@ -83,14 +84,14 @@ TEST(FortranArrayAdapter, TransformDataStoreIntoAdapter) {
     constexpr size_t x_size = 6;
     constexpr size_t y_size = 5;
     constexpr size_t z_size = 4;
-    gridtools::float_type fortran_array[z_size][y_size][x_size];
+    float_type fortran_array[z_size][y_size][x_size];
 
     gt_fortran_array_descriptor descriptor;
     descriptor.rank = 3;
     descriptor.dims[0] = x_size;
     descriptor.dims[1] = y_size;
     descriptor.dims[2] = z_size;
-    descriptor.type = std::is_same<gridtools::float_type, float>::value ? gt_fk_Float : gt_fk_Double;
+    descriptor.type = std::is_same<float_type, float>::value ? gt_fk_Float : gt_fk_Double;
     descriptor.data = fortran_array;
     descriptor.is_acc_present = false;
 

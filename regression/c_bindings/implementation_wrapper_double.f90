@@ -1,4 +1,4 @@
-
+! This file is generated!
 module implementation_wrapper
 implicit none
   interface

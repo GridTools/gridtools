@@ -68,7 +68,7 @@ namespace gridtools {
         using type = Extent;
     };
 
-    GT_META_LAZY_NAMESPASE {
+    GT_META_LAZY_NAMESPACE {
         template <class Esf, class Args>
         struct esf_replace_args;
         template <class F, class OldArgs, class NewArgs>

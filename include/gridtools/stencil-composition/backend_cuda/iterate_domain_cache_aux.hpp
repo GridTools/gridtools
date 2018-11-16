@@ -74,7 +74,7 @@ namespace gridtools {
                 static constexpr int_t offset = BaseOffset + (int_t)Offset::value;
 
                 using acc_t = accessor<AccIndex::value, enumtype::inout, extent<0, 0, 0, 0, offset, offset>>;
-                static constexpr acc_t acc(0, 0, offset);
+                acc_t acc(0, 0, offset);
 
                 // perform an out-of-bounds check
                 if (auto mem_ptr = m_it_domain.get_gmem_ptr_in_bounds(acc)) {

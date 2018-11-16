@@ -72,7 +72,7 @@ namespace gridtools {
         struct has_stages : negation<meta::is_empty<GT_META_CALL(meta::at_c, (T, 2))>> {};
     } // namespace _impl
 
-    GT_META_LAZY_NAMESPASE {
+    GT_META_LAZY_NAMESPACE {
         template <template <class...> class StagesMaker, class Interval>
         struct make_loop_intervals {
             GRIDTOOLS_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);
