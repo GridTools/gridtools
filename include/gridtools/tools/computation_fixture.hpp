@@ -134,7 +134,7 @@ namespace gridtools {
 
         template <class Expected, class Actual>
         void verify(Expected const &expected, Actual const &actual) const {
-            EXPECT_TRUE(verifier{}.verify(
+            EXPECT_TRUE(verifier{default_precision<float_type>()}.verify(
                 make_grid(), expected, actual, {{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}}));
         }
     };
