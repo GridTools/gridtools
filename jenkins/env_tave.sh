@@ -55,15 +55,15 @@ export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0 #since it is hea
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export LAUNCH_MPI_TEST="srun"
-export JOB_ENV=(
+
+JOB_ENV=(
     LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
     )
-export MPI_HOST_JOB_ENV=(
-    LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
-    )
-export MPI_CUDA_JOB_ENV=(
-    LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
-    )
+export HOST_JOB_ENV="${JOB_ENV[*]}"
+export CUDA_JOB_ENV="${JOB_ENV[*]}"
+export MPI_HOST_JOB_ENV="${JOB_ENV[*]}"
+export MPI_CUDA_JOB_ENV="${JOB_ENV[*]}"
+
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
