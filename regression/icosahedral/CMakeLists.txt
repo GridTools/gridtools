@@ -35,24 +35,28 @@ if(GT_ENABLE_TARGET_X86)
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_x86_block> 12 33 61
             LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_x86_block_23_11_43
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_x86_block> 23 11 43
             LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_x86_naive_12_33_21
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 12 33 21
             LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_x86_naive_23_11_23
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 23 11 23
             LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
             )
 
         if (srcfile IN_LIST SOURCES_PERFTEST)
@@ -72,12 +76,14 @@ if(GT_ENABLE_TARGET_CUDA)
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 61
             LABELS regression_cuda target_cuda
+            ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
             )
         gridtools_add_test(
             NAME tests.${srcfile}_cuda_63_55_43
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
             LABELS regression_cuda target_cuda
+            ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
             )
 
         if (srcfile IN_LIST SOURCES_PERFTEST)

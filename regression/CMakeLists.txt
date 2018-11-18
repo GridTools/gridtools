@@ -45,24 +45,28 @@ if( COMPONENT_STENCIL_COMPOSITION )
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86_block> 12 33 61
               LABELS regression_x86 target_x86
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_x86_block_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86_block> 23 11 43
               LABELS regression_x86 target_x86
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_x86_naive_12_33_61
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 12 33 21
               LABELS regression_x86 target_x86
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_x86_naive_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 23 11 43
               LABELS regression_x86 target_x86
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
 
           if (srcfile IN_LIST SOURCES_PERFTEST)
@@ -74,7 +78,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         target_link_libraries(vanilla_laplacian_x86 GridToolsTestX86)
 
         if( GCL_MPI )
-            add_custom_mpi_x86_test(TARGET copy_stencil_parallel SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_x86_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -93,12 +97,14 @@ if( COMPONENT_STENCIL_COMPOSITION )
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 12 33 61
               LABELS regression_mc target_mc
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           gridtools_add_test(
               NAME tests.${srcfile}_mc_23_11_43
               SCRIPT ${TEST_SCRIPT}
               COMMAND $<TARGET_FILE:${srcfile}_mc> 23 11 43
               LABELS regression_mc target_mc
+              ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
               )
           if (srcfile IN_LIST SOURCES_PERFTEST)
             add_dependencies(perftests ${srcfile}_mc)
@@ -110,7 +116,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         target_link_libraries(vanilla_laplacian_mc GridToolsTestMC)
 
         if( GCL_MPI )
-            add_custom_mpi_mc_test(TARGET copy_stencil_parallel SOURCES copy_stencil_parallel.cpp)
+            add_custom_mpi_mc_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
             ## The numerics need to be fixed (this is a task to be undertaken in the future)
@@ -130,12 +136,14 @@ if( COMPONENT_STENCIL_COMPOSITION )
                SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 47 38 61
                LABELS regression_cuda target_cuda
+               ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_63_38_10
                SCRIPT ${TEST_SCRIPT}
                COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 38 10
                LABELS regression_cuda target_cuda
+               ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
                )
            if (srcfile IN_LIST SOURCES_PERFTEST)
              add_dependencies(perftests ${srcfile}_cuda)
@@ -149,7 +157,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
        endforeach(srcfile)
 
        if( GCL_MPI )
-           add_custom_mpi_gpu_test(TARGET copy_stencil_parallel SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
+           add_custom_mpi_gpu_test(TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
 
            ## The next executable is not made into a test since it does not validate.
            ## The numerics need to be fixed (this is a task to be undertaken in the future)
