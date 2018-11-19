@@ -74,7 +74,7 @@ namespace gridtools {
         size_t D,
         typename std::enable_if<std::is_arithmetic<T>::value and std::is_arithmetic<U>::value, T>::type = 0>
     GT_FUNCTION constexpr T array_dot_product(array<T, D> const &a, array<U, D> const &b) {
-        return _impl::dot_impl(a, b, typename make_gt_integer_sequence<size_t, D>::type{});
+        return _impl::dot_impl(a, b, make_gt_integer_sequence<size_t, D>{});
     }
 
     /** @} */
