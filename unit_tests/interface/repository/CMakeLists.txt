@@ -97,16 +97,19 @@ if (CMAKE_Fortran_COMPILER_LOADED)
             repository_fortran_lib
             )
     endif()
-    if (GT_ENABLE_TARGET_CUDA)
-        add_custom_gpu_test(
-            TARGET custom_test_exported_repository
-            SOURCES custom_test_exported_repository.cpp
-            LABELS unittest_cuda
-            )
-        target_link_libraries(custom_test_exported_repository_cuda
-            repository_fortran_lib
-            )
-    endif()
+    # TODO Fix this test. This test does not work right now because repository_${proc}_fortran
+    # is not compiled with ACC. ACC cannot be activated for CUDA 8.X because it requires
+    # gfortran <= 5.X
+    # if (GT_ENABLE_TARGET_CUDA)
+        # add_custom_gpu_test(
+            # TARGET custom_test_exported_repository
+            # SOURCES custom_test_exported_repository.cpp
+            # LABELS unittest_cuda
+            # )
+        # target_link_libraries(custom_test_exported_repository_cuda
+            # repository_fortran_lib
+            # )
+    # endif()
     if (GT_ENABLE_TARGET_MC AND NOT GT_ENABLE_TARGET_X86)
         add_custom_mc_test(
             TARGET custom_test_exported_repository
