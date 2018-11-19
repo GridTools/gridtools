@@ -135,15 +135,6 @@ namespace gridtools {
 #endif
 #endif
 
-// workaround for https://github.com/eth-cscs/gridtools/issues/1040: no constexpr ctor for CUDA 9.2 and CUDA 10
-#if defined(__CUDACC_VER_MAJOR__) && \
-    (__CUDACC_VER_MAJOR__ == 10 || (__CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2))
-#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR
-#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND
-#else
-#define GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND constexpr
-#endif
-
 /**
  * @brief Main namespace containing all the provided libraries and
  * functionalities
