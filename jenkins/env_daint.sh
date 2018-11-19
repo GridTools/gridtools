@@ -9,7 +9,7 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit
+module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
 module rm   PrgEnv-cray
 module rm CMake
 module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.4
@@ -34,7 +34,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
       module swap gcc/7.3.0
       ;;
     *)
-      module swap gcc/4.9.3
+      module swap gcc/7.3.0
   esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
