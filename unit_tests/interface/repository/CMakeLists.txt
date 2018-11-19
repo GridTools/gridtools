@@ -91,6 +91,7 @@ if (CMAKE_Fortran_COMPILER_LOADED)
         add_custom_x86_test(
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp
+            LABELS unittest_x86
             )
         target_link_libraries(custom_test_exported_repository_x86
             repository_fortran_lib
@@ -100,15 +101,17 @@ if (CMAKE_Fortran_COMPILER_LOADED)
         add_custom_gpu_test(
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp
+            LABELS unittest_cuda
             )
         target_link_libraries(custom_test_exported_repository_cuda
             repository_fortran_lib
             )
     endif()
-    if (GT_ENABLE_TARGET_MC)
+    if (GT_ENABLE_TARGET_MC AND NOT GT_ENABLE_TARGET_X86)
         add_custom_mc_test(
             TARGET custom_test_exported_repository
             SOURCES custom_test_exported_repository.cpp
+            LABELS unittest_mc
             )
         target_link_libraries(custom_test_exported_repository_mc
             repository_fortran_lib
