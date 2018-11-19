@@ -286,13 +286,13 @@ namespace gridtools {
         auto associate(ReadOnly &&... ro_stores) const -> bound_bc<BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
-                typename make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>::type{})),
+                make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>{})),
             typename _impl::comm_indices<stores_type>::type> {
             auto ro_store_tuple = std::forward_as_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(ro_store_tuple,
                 m_stores,
-                typename make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>::type{});
+                make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>{});
 
             return bound_bc<BCApply, decltype(full_list), typename _impl::comm_indices<stores_type>::type>{
                 m_bcapply, std::move(full_list)};
@@ -317,7 +317,7 @@ namespace gridtools {
     template <typename BCApply, typename... DataStores>
     bound_bc<BCApply,
         std::tuple<typename std::decay<DataStores>::type...>,
-        typename make_gt_integer_sequence<std::size_t, sizeof...(DataStores)>::type>
+        make_gt_integer_sequence<std::size_t, sizeof...(DataStores)>>
     bind_bc(BCApply bc_apply, DataStores &&... stores) {
 
         // Concept checking on BCApply is not ready yet.

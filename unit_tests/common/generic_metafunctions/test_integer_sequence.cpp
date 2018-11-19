@@ -73,7 +73,7 @@ GRIDTOOLS_STATIC_ASSERT((std::is_same<make_gt_integer_sequence<bool, 1>, gt_inte
 
 TEST(integer_sequence, fill_array) {
 
-    using seq = gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, 4>::type>;
+    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>>;
 
     // calling the array constexpr copy constructor
     constexpr gridtools::array<int, 4> out(seq::template apply<gridtools::array<int, 4>, get_component>(0, 1, 2, 3));
@@ -87,7 +87,7 @@ struct extent_test {};
 
 TEST(integer_sequence, fill_templated_container) {
 
-    using seq = gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, 4>::type>;
+    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>>;
 
     // calling the array constexpr copy constructor
     using extent_t = seq::
@@ -130,7 +130,7 @@ struct lambda {
 
 TEST(integer_sequence, apply_lambda) {
 
-    using seq = gridtools::apply_gt_integer_sequence<typename gridtools::make_gt_integer_sequence<int, 4>::type>;
+    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>>;
 
     constexpr auto gather = lambda();
 
