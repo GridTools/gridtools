@@ -206,9 +206,10 @@ namespace gridtools {
             // read only -> simple check
             if (AccessMode == access_mode::ReadOnly)
                 return m_device_view ? !m_state_machine_ptr->m_dnu : !m_state_machine_ptr->m_hnu;
-            // check state machine ptrs
-            return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu))
-                                 : (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu));
+            else
+                // check state machine ptrs
+                return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu))
+                                     : (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu));
         }
 
         /*

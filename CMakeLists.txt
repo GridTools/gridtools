@@ -5,54 +5,18 @@ project(GridTools VERSION "0.1")
 
 set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+include(CTest)
+
 # ===============
 # Load some cmake modules.
 # 1) define what flags should be available,
 
 enable_language (CXX)
-if (NOT DEFINED GT_ENABLE_TARGET_CUDA)
-    # detect CUDA support
-    include(CheckLanguage)
-    check_language (CUDA)
 
-    if (CMAKE_CUDA_COMPILER)
-        enable_language (CUDA)
-        message (STATUS "CUDA enabled")
-        set (CUDA_AVAILABLE ON)
-    else ()
-        message (STATUS "CUDA disabled")
-        set (CUDA_AVAILABLE OFF)
-    endif ()
-elseif (GT_ENABLE_TARGET_CUDA)
-    enable_language (CUDA)
-    message (STATUS "CUDA enabled")
-    set (CUDA_AVAILABLE ON)
-else ()
-    message (STATUS "CUDA disabled")
-    set (CUDA_AVAILABLE OFF)
-endif ()
-
-if (NOT DEFINED GT_USE_MPI)
-    find_package(MPI COMPONENTS CXX)
-    include(workaround_mpi)
-    _fix_mpi_flags()
-    if (MPI_FOUND)
-        message (STATUS "MPI enabled")
-        set (MPI_AVAILABLE ON)
-    else ()
-        message (STATUS "MPI disabled")
-        set (MPI_AVAILABLE OFF)
-    endif()
-elseif (GT_USE_MPI)
-    find_package(MPI REQUIRED COMPONENTS CXX)
-    include(workaround_mpi)
-    _fix_mpi_flags()
-    message (STATUS "MPI enabled")
-    set (MPI_AVAILABLE ON)
-else ()
-    message (STATUS "MPI disabled")
-    set (MPI_AVAILABLE OFF)
-endif()
+include(detect_features)
+detect_cuda()
+detect_openmp()
+detect_mpi()
 
 include (flags)
 
@@ -68,28 +32,29 @@ endif()
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
 include (definitions)
-include (testing)
+if (BUILD_TESTING)
+    include (testing)
+endif()
 include (gt_bindings)
 include (components)
 
+# TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
-    find_package( Boost 1.58 REQUIRED )
-    find_package( OpenMP REQUIRED )
-    set(THREADS_PREFER_PTHREAD_FLAG ON) #this is required because gtest uses it
-    find_package( Threads REQUIRED )
-    include(workaround_threads)
-    _fix_threads_flags()
+    install(TARGETS GridTools EXPORT GridToolstargets
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+      INCLUDES DESTINATION include
+    )
+    install(EXPORT GridToolstargets
+      FILE GridToolsTargets.cmake
+      NAMESPACE gridtools::
+      DESTINATION ${INSTALL_CONFIGDIR}
+    )
 
     generate_target_for(NAME common)
     generate_install_targets_for(common common)
-    target_link_libraries( common INTERFACE Boost::boost OpenMP::OpenMP_CXX Threads::Threads)
-    target_compile_options( common INTERFACE ${GT_CXX_MANDATORY_FLAGS} )
-    if (GT_ENABLE_TARGET_CUDA)
-        target_compile_options( common INTERFACE ${GPU_SPECIFIC_FLAGS} ${GT_CUDA_MANDATORY_FLAGS} )
-        target_include_directories( common INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
-        target_link_libraries( common INTERFACE ${CUDA_CUDART_LIBRARY} )
-    endif()
-
+    target_link_libraries(common INTERFACE GridTools)
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
@@ -138,7 +103,7 @@ endif()
 # ===============
 # examples and tests
 # ===============
-if( INSTALL_GT_EXAMPLES )
+if( GT_INSTALL_EXAMPLES )
    SET(COMPILE_EXAMPLES ON)
 endif()
 
@@ -147,13 +112,14 @@ if( COMPILE_EXAMPLES )
 endif()
 
 include (fix_test_case_name)
-if(NOT DISABLE_TESTING)
+if(BUILD_TESTING)
   # enable C/Fortran here, as enabling locally might be undefined,
   # see https://cmake.org/cmake/help/v3.12/command/enable_language.html
   # "... it must be called in the highest directory common to all targets using the named language..."
   enable_language(C Fortran)
+  # TODO move to the right directory
   add_library(regression_fixture src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_fixture gtest common)
+  target_link_libraries(regression_fixture gtest GridTools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
@@ -209,10 +175,10 @@ if(COMPONENT_C_BINDINGS)
         DESTINATION "src/c_bindings")
 endif()
 
-if ( INSTALL_GT_EXAMPLES )
+if ( GT_INSTALL_EXAMPLES )
     install(DIRECTORY
             gt_examples
-            DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/src"
+            DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/src"
             FILES_MATCHING REGEX ".*cpp|.*hpp")
 endif()
 
