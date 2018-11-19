@@ -28,8 +28,6 @@ CMAKE_DEPENDENT_OPTION(
     OFF "BUILD_TESTING" OFF)
 set( GT_CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
-option( GT_DISABLE_MPI_TESTS_ON_TARGET "Disables all the cpu communication tests" OFF )
-set_property(CACHE GT_DISABLE_MPI_TESTS_ON_TARGET PROPERTY STRINGS OFF CPU GPU)
 
 option( GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 

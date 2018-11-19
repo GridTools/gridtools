@@ -107,7 +107,6 @@ if( GT_INSTALL_EXAMPLES )
   add_subdirectory(gt_examples)
 endif()
 
-include (fix_test_case_name)
 if(BUILD_TESTING)
   # enable C/Fortran here, as enabling locally might be undefined,
   # see https://cmake.org/cmake/help/v3.12/command/enable_language.html

@@ -23,7 +23,6 @@ function help {
    echo "-q      queue for testing                        "
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
-   echo "-c      disable CPU communication tests          "
    echo "-k      build only the given Makefile targets    "
    echo "-o      compile only (not tests are run)         "
    echo "-p      enable performance testing               "
@@ -68,8 +67,6 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
     x) VERSION_=$OPTARG
         ;;
     n) BUILD_ON_CN="ON"
-        ;;
-    c) DISABLE_CPU_MPI_TESTS="ON"
         ;;
     k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
         ;;
@@ -147,13 +144,6 @@ else
 fi
 echo "MPI = $USE_MPI"
 
-if [[ "${DISABLE_CPU_MPI_TESTS}" == "ON" ]]; then
-  DISABLE_MPI_TESTS_ON_TARGET="CPU"
-else
-  DISABLE_MPI_TESTS_ON_TARGET="OFF"
-fi
-echo "DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET=}"
-
 RUN_MPI_TESTS=$USE_MPI ##$SINGLE_PRECISION
 
 pwd
@@ -205,7 +195,6 @@ cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DBOOST_ROOT=$BOOST_ROOT \
 -DGT_ENABLE_BINDINGS_GENERATION=$GT_ENABLE_BINDINGS_GENERATION \
--DGT_DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
 -DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
 ../
 
@@ -227,7 +216,6 @@ cmake \
 -DGT_TESTS_STRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DBOOST_ROOT=$BOOST_ROOT \
--DGT_DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
 -DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
 ../
 "
