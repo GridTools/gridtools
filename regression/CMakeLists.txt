@@ -34,11 +34,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
       if(GT_ENABLE_TARGET_X86)
         foreach(srcfile IN LISTS SOURCES_X86)
           add_executable(${srcfile}_x86_naive   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_x86_naive regression_fixture GridToolsTestX86)
+          target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
           target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
 
           add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_x86_block regression_fixture GridToolsTestX86)
+          target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)
 
           gridtools_add_test(
               NAME tests.${srcfile}_x86_block_12_33_61
@@ -86,7 +86,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
       if(GT_ENABLE_TARGET_MC)
         foreach(srcfile IN LISTS SOURCES_X86)
           add_executable(${srcfile}_mc   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_mc regression_fixture GridToolsTestMC)
+          target_link_libraries(${srcfile}_mc regression_main GridToolsTestMC)
 
           gridtools_add_test(
               NAME tests.${srcfile}_mc_12_33_61
@@ -123,7 +123,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
        foreach(srcfile IN LISTS SOURCES_CUDA)
            add_executable( ${srcfile}_cuda ${srcfile}.cu)
-           target_link_libraries(${srcfile}_cuda regression_fixture GridToolsTestCUDA)
+           target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
 
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_47_38_61
@@ -143,7 +143,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
            if (GT_CUDA_PTX_GENERATION)
                add_library( ${srcfile}_cuda_ptx OBJECT ${srcfile}.cu)
-               target_link_libraries(${srcfile}_cuda_ptx regression_fixture GridToolsTestCUDA)
+               target_link_libraries(${srcfile}_cuda_ptx regression_main GridToolsTestCUDA)
                set_target_properties(${srcfile}_cuda_ptx PROPERTIES CUDA_PTX_COMPILATION ON)
            endif()
        endforeach(srcfile)

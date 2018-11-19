@@ -114,8 +114,8 @@ if(BUILD_TESTING)
   # "... it must be called in the highest directory common to all targets using the named language..."
   enable_language(C Fortran)
   # TODO move to the right directory
-  add_library(regression_fixture src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_fixture gtest GridTools)
+  add_library(regression_main src/tools/regression_fixture.cpp)
+  target_link_libraries(regression_main gtest GridTools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)

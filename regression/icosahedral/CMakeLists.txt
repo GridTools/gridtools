@@ -24,11 +24,11 @@ add_custom_target(perftests)
 if(GT_ENABLE_TARGET_X86)
     foreach(srcfile IN LISTS SOURCES)
         add_executable(${srcfile}_x86_naive ${srcfile}.cpp)
-        target_link_libraries(${srcfile}_x86_naive regression_fixture GridToolsTestX86)
+        target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
         target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
 
         add_executable(${srcfile}_x86_block ${srcfile}.cpp)
-        target_link_libraries(${srcfile}_x86_block regression_fixture GridToolsTestX86)
+        target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)
 
         gridtools_add_test(
             NAME tests.${srcfile}_x86_block_12_33_61
@@ -65,7 +65,7 @@ if(GT_ENABLE_TARGET_CUDA)
     set(CUDA_SEPARABLE_COMPILATION OFF)
     foreach(srcfile IN LISTS SOURCES)
         add_executable( ${srcfile}_cuda ${srcfile}.cu  )
-        target_link_libraries(${srcfile}_cuda regression_fixture GridToolsTestCUDA)
+        target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
 
         gridtools_add_test(
             NAME tests.${srcfile}_cuda_77_48_61
