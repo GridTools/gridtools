@@ -38,6 +38,7 @@
 #include "../common/generic_metafunctions/for_each.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
 #include "../common/generic_metafunctions/type_traits.hpp"
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>

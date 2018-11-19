@@ -515,7 +515,7 @@ namespace gridtools {
         template <typename... Pointers>
         void pack(const Pointers *... fields) {
             typedef translate_t<3, default_layout_map<3>::type> translate;
-            auto ints = typename make_gt_integer_sequence<unsigned int, sizeof...(Pointers)>::type{};
+            auto ints = make_gt_integer_sequence<unsigned int, sizeof...(Pointers)>{};
             if (send_size[translate()(0, 0, -1)]) {
                 m_packZL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
             }
@@ -554,7 +554,7 @@ namespace gridtools {
 
         template <typename... Pointers>
         void unpack(Pointers *... fields) {
-            auto ints = typename make_gt_integer_sequence<unsigned int, sizeof...(Pointers)>::type{};
+            auto ints = make_gt_integer_sequence<unsigned int, sizeof...(Pointers)>{};
             typedef translate_t<3, default_layout_map<3>::type> translate;
             if (recv_size[translate()(0, 0, -1)]) {
                 m_unpackZL_variadic(
