@@ -8,7 +8,7 @@ from perftest import runtime, time
 from perftest.config import default
 
 
-modules = default.modules | {'/users/mlukas/easybuild/kesch/modules/all/cmake/3.12.4'}
+modules = default.modules | {'/users/jenkins/easybuild/kesch/modules/all/cmake/3.12.4'}
 
 env = dict(default.env,
            CUDA_ARCH='sm_37',
