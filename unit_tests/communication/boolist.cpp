@@ -33,13 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef __host__
-#define __host__
-#endif
-
-#ifndef __device__
-#define __device__
-#endif
 
 #include "gtest/gtest.h"
 #include <gridtools/common/boollist.hpp>

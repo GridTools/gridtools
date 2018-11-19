@@ -1,9 +1,7 @@
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 # collect tests
-fetch_x86_tests(.)
-fetch_mc_tests(.)
-fetch_gpu_tests(.)
+fetch_x86_tests(. LABELS unittest_x86)
+fetch_mc_tests(. LABELS unittest_mc)
+fetch_gpu_tests(. LABELS unittest_cuda)
 
 # include all subdirs
 if ( COMPONENT_COMMON )

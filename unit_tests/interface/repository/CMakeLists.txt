@@ -23,8 +23,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     endif()
 endmacro(generate_preprocessed_file)
 
-# only CMake > 3.8 because of $<TARGET_OBJECTS:${cpp_file}_OBJECTS> not supported
-IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
+if (GT_ENABLE_TARGET_X86)
     # generate a file where we can inspect the generated repository
     set( GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp )
     generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
@@ -52,18 +51,20 @@ IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
     configure_file( custom_test_generated_repository.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
 
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
-    target_compile_options( custom_test_generated_repository PUBLIC ${GT_CXX_FLAGS} )
-    target_link_libraries(custom_test_generated_repository gtest_main stencil-composition)
-    gridtools_add_test(custom_test_generated_repository ${TEST_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository)
+    target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
+    gridtools_add_test(
+        NAME custom_test_generated_repository
+        SCRIPT ${TEST_SCRIPT}
+        COMMAND $<TARGET_FILE:custom_test_generated_repository>
+        LABELS unittest_x86 target_x86
+        )
     add_dependencies( custom_test_generated_repository format_generated_repository )
-else()
-    message("Not building the test for the generated repository (CMAKE should be > 3.8)")
 endif()
 
 # collect test cases
-fetch_x86_tests(.)
-fetch_gpu_tests(.)
-fetch_mc_tests(.)
+fetch_x86_tests(. LABELS unittest_x86 )
+fetch_gpu_tests(. LABELS unittest_cuda )
+fetch_mc_tests(. LABELS unittest_mc )
 
 if(SINGLE_PRECISION)
     set(prec float)
