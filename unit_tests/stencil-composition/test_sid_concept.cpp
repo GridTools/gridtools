@@ -40,14 +40,22 @@
 
 namespace gridtools {
     namespace {
+        static_assert(!is_sid<void, 3>{}, "");
 
-        int *i_ptr;
-        int const *ci_ptr;
+        struct a_ref {};
+        struct a_ptr {};
+        struct strides {};
+        a_ref sid_deref(a_ptr, strides, ...);
+        void sid_shift(a_ptr &, strides, ...);
+        struct a_sid {
+            friend strides sid_get_strides(a_sid);
+            friend a_ptr sid_get_origin(a_sid);
+        };
 
-        static_assert(std::is_same<decltype(sid::deref(i_ptr, 0)), int &>(), "");
-        static_assert(std::is_same<decltype(sid::deref(ci_ptr, 0)), int const &>(), "");
-        static_assert(std::is_same<decltype(sid::deref(ci_ptr, 0)), int const &>(), "");
-        static_assert(std::is_same<decltype(sid::const_deref(ci_ptr, 0)), int const &>(), "");
+        static_assert(is_sid<a_sid, 3, 4>{}, "");
+        static_assert(std::is_same<sid::ptr_type<a_sid>, a_ptr>{}, "");
+        static_assert(std::is_same<sid::strides_type<a_sid>, strides>{}, "");
+        static_assert(std::is_same<sid::reference_type<a_sid, 3>, a_ref>{}, "");
 
         TEST(dummy, dummy) {}
     } // namespace
