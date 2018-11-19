@@ -71,7 +71,7 @@ namespace gridtools {
       public:
         // we make the members public to make this class an aggregate
         T m_array[D ? D : 1]; // Note: don't use a type-trait for the zero-size case, as there is a bug with defining an
-                              // alias for c-arrays in CUDA 9.2 and 10.0
+                              // alias for c-arrays in CUDA 9.2 and 10.0 (see #1040)
 
         using value_type = T;
         using size_type = size_t;
