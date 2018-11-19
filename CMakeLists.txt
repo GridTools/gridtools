@@ -113,7 +113,7 @@ include (fix_test_case_name)
 if(BUILD_TESTING)
   # TODO move to the right directory
   add_library(regression_fixture src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_fixture gtest common)
+  target_link_libraries(regression_fixture gtest GridTools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
