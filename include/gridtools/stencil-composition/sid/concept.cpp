@@ -43,8 +43,43 @@
 #include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 
+#include "offset.hpp"
+
 namespace gridtools {
     namespace sid {
+
+        /**
+         *
+         *  PtrOffset is a function of Strides
+         *
+         *  PtrOffset/PtrOffset arithmetic
+         *  Ptr/PtrOffset arithmetic
+         *
+         *  PtrOffset sid_sum(PtrOffset... offset)
+         *
+         *  void sid_shift(Ptr& ptr, Strides strides) {
+         *  }
+         *
+         *  auto sid_deref(Ptr ptr, Strides strides) {
+         *    return *ptr;
+         *  }
+         *
+         *  void sid_shift(Ptr& ptr, Strides strides, Offsets... offsets) {
+         *    ptr += sid_sum((sid_to_ptr_offset<Offsets::index>(strides, offsets)...);
+         *  }
+         *
+         *  auto sid_get_shifted(Ptr ptr, Strides strides, Offsets... offsets) {
+         *    return ptr + sid_sum((sid_to_ptr_offset<Offsets::index>(strides, offsets)...);
+         *  }
+         *
+         *  auto sid_deref(Ptr ptr, Strides strides, Offsets... offsets) {
+         *    return *(ptr + sid_sum((sid_to_ptr_offset<Offsets::index>(strides, offsets)...));
+         *  }
+         *
+         *
+         *   PtrOffset
+         *
+         */
 
         struct unused_strides {};
 
@@ -69,8 +104,23 @@ namespace gridtools {
                 return {src};
             }
 
+            template <class PtrDiff>
+            constexpr GT_FUNCTION PtrDiff sid_sum() {
+                return {};
+            }
+
+            template <class PtrDiff>
+            constexpr GT_FUNCTION PtrDiff sid_sum(PtrDiff arg) {
+                return arg;
+            }
+
+            template <class PtrDiff, class>
+            constexpr GT_FUNCTION PtrDiff sid_sum(PtrDiff arg) {
+                return arg;
+            }
+
             template <class Sid>
-            constexpr GT_FORCE_INLINE no_bounds_validator sid_get_bounds_validator(Sid const &) {
+            constexpr GT_FUNCTION no_bounds_validator sid_get_bounds_validator(Sid const &) {
                 return {};
             }
 

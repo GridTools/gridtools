@@ -33,36 +33,55 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include <gridtools/stencil-composition/sid/concept.cpp>
+#include <type_traits>
 
-#include <gtest/gtest.h>
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 
 namespace gridtools {
-    namespace {
-        static_assert(!is_sid<void, 3>{}, "");
+    namespace sid {
 
-        struct a_ref {};
-        struct a_ptr {};
-        struct strides {};
-        a_ref sid_deref(a_ptr, strides, ...);
-        void sid_shift(a_ptr &, strides, ...);
-        struct a_sid {
-            friend strides sid_get_strides(a_sid);
-            friend a_ptr sid_get_origin(a_sid);
+        struct rt_offset_base {
+            int_t m_val;
+            constexpr GT_FUNCTION operator int_t() const { return m_val; }
         };
 
-        static_assert(is_sid<a_sid, 3, 4>{}, "");
-        static_assert(std::is_same<sid::ptr_type<a_sid>, a_ptr>{}, "");
-        static_assert(std::is_same<sid::strides_type<a_sid>, strides>{}, "");
-        static_assert(std::is_same<sid::reference_type<a_sid, 3>, a_ref>{}, "");
+        template <int_t Val>
+        struct ct_offset_base {
+            constexpr GT_FUNCTION operator int_t() const { return Val; }
+        };
 
-        TEST(dummy, dummy) {
-            std::integral_constant<int_t, 1> a;
-            std::integral_constant<int_t, 2> b;
-            auto c = a + b;
-            static_assert(std::is_same<decltype(c), int_t>{}, "");
-            EXPECT_EQ(3, c);
+        template <size_t I>
+        struct indexed {
+            static constexpr size_t index = I;
+        };
+
+        template <size_t I>
+        struct rt_offset : indexed<I>, rt_offset_base {};
+
+        template <size_t I, int_t Val>
+        struct ct_offset : indexed<I>, ct_offset_base<Val> {};
+
+        template <size_t I>
+        constexpr GT_FUNCTION rt_offset<I> make_offset(int_t val) {
+            return {val};
         }
-    } // namespace
+
+        template <size_t I, int_t Val>
+        constexpr GT_FUNCTION ct_offset<I, Val> make_offset() {
+            return {};
+        }
+
+        template <class>
+        struct is_offset : std::false_type {};
+
+        template <size_t I>
+        struct is_offset<rt_offset<I>> : std::true_type {};
+
+        template <size_t I, int_t Val>
+        struct is_offset<ct_offset<I, Val>> : std::true_type {};
+
+    } // namespace sid
 } // namespace gridtools
