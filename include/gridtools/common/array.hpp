@@ -107,7 +107,7 @@ namespace gridtools {
 
         GT_FUNCTION
         T &operator[](size_t i) {
-            assert(D ? i < D : false);
+            assert(i < D);
             return m_array[i];
         }
 
