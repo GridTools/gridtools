@@ -104,10 +104,6 @@ endif()
 # examples and tests
 # ===============
 if( GT_INSTALL_EXAMPLES )
-   SET(COMPILE_EXAMPLES ON)
-endif()
-
-if( COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
 endif()
 

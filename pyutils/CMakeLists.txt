@@ -6,7 +6,7 @@ else()
     set(PERFTEST_COMPILER "${CMAKE_CXX_COMPILER}")
 endif()
 
-if(SINGLE_PRECISION)
+if(GT_SINGLE_PRECISION)
     set(PERFTEST_PRECISION "float")
 else()
     set(PERFTEST_PRECISION "double")
