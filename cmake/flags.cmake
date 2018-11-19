@@ -6,9 +6,10 @@ option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ${OPE
 option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
 
-option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF ) # -> GCL component
+# TODO remove when implementing smaller-grained test enablers
+option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF )
 
-option( GT_TESTS_STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
+option( GT_TESTS_STRUCTURED_GRIDS "compile for rectangular grids" ON )
 
 CMAKE_DEPENDENT_OPTION(
     GT_CUDA_PTX_GENERATION "Compile regression tests to intermediate representation"
