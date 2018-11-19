@@ -5,9 +5,10 @@ option( GT_ENABLE_TARGET_CUDA "Compile CUDA GPU backend examples and unit tests"
 option( GT_ENABLE_TARGET_X86 "Compile x86 backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_ENABLE_TARGET_MC "Compile MC backend examples and unit tests" ${OPENMP_AVAILABLE} )
 option( GT_USE_MPI "Compile with MPI support" ${MPI_AVAILABLE} )
+
 option( GT_GCL_ONLY "If on only library is build but not the examples and tests" OFF ) # -> GCL component
 
-option( STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
+option( GT_TESTS_STRUCTURED_GRIDS "compile for rectangular grids" ON ) # -> property
 
 CMAKE_DEPENDENT_OPTION(
     GT_CUDA_PTX_GENERATION "Compile regression tests to intermediate representation"
@@ -29,7 +30,7 @@ set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
 option( GT_DISABLE_MPI_TESTS_ON_TARGET "Disables all the cpu communication tests" OFF )
 set_property(CACHE GT_DISABLE_MPI_TESTS_ON_TARGET PROPERTY STRINGS OFF CPU GPU)
 
-option( ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
+option( GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 
 option( GT_INSTALL_EXAMPLES "Specify if source codes and binaries of examples should be installed somewhere" OFF )
 set(GT_INSTALL_EXAMPLES_PATH STRING "Specifies where the source codes and binary of examples should be installed"
@@ -42,8 +43,6 @@ else()
 endif()
 set(GT_CUDA_ARCH STRING "Compute capability for CUDA used for tests" "GT_ENABLE_TARGET_CUDA" "${GT_CUDA_ARCH_INIT}")
 
-set( GCL_MPI "${GT_USE_MPI}" )
-set( GCL_GPU "${GT_ENABLE_TARGET_CUDA}" )
 set( TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh )
 set( TEST_MANIFEST ${CMAKE_BINARY_DIR}/tests_manifest.txt )
 set( TEST_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_mpi_tests.sh )

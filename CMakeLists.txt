@@ -124,7 +124,7 @@ endif()
 # ===============
 # Downloads the gridtools_experimental repository
 # ===============
-if(ENABLE_EXPERIMENTAL_REPOSITORY)
+if(GT_ENABLE_EXPERIMENTAL_REPOSITORY)
   include(gridtools_experimental/download_gridtools_experimental)
 endif()
 

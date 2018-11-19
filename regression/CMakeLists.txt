@@ -1,6 +1,6 @@
 if( COMPONENT_STENCIL_COMPOSITION )
 
-    if(NOT STRUCTURED_GRIDS)
+    if(NOT GT_TESTS_STRUCTURED_GRIDS)
         add_subdirectory(icosahedral)
     else()
 
@@ -73,7 +73,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_executable(vanilla_laplacian_x86  vanilla_laplacian.cpp)
         target_link_libraries(vanilla_laplacian_x86 GridToolsTestX86)
 
-        if( GCL_MPI )
+        if(GT_USE_MPI)
             add_custom_mpi_x86_test(TARGET copy_stencil_parallel SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
@@ -109,7 +109,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_executable(vanilla_laplacian_mc  vanilla_laplacian.cpp)
         target_link_libraries(vanilla_laplacian_mc GridToolsTestMC)
 
-        if( GCL_MPI )
+        if(GT_USE_MPI)
             add_custom_mpi_mc_test(TARGET copy_stencil_parallel SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
@@ -148,7 +148,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
            endif()
        endforeach(srcfile)
 
-       if( GCL_MPI )
+       if(GT_USE_MPI)
            add_custom_mpi_gpu_test(TARGET copy_stencil_parallel SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
 
            ## The next executable is not made into a test since it does not validate.
@@ -166,5 +166,5 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_subdirectory( communication )
     endif()
 
-  endif(NOT STRUCTURED_GRIDS)
+  endif(NOT GT_TESTS_STRUCTURED_GRIDS)
 endif( COMPONENT_STENCIL_COMPOSITION )

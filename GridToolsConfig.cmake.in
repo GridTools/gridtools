@@ -25,6 +25,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/gridtools/gclTargets.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/gridtools/stencil-compositionTargets.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/gridtools/storageTargets.cmake")
 
+target_compile_definitions(gridtools::GridTools INTERFACE STRUCTURED_GRIDS)
+
 @PACKAGE_INIT@
 
 check_required_components(gridtools)
