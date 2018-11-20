@@ -54,24 +54,16 @@ namespace gridtools {
       public:
         using layout_t = Layout;
 
-        /**
-         * @brief compile-time computed size (needed for allocation of the cache).
-         */
         GT_FUNCTION
-        static constexpr uint_t size() {
-            GRIDTOOLS_STATIC_ASSERT(Layout::masked_length == Layout::unmasked_length,
-                GT_INTERNAL_ERROR_MSG(
-                    "With this implementation of size() it is expected that no dimensions are masked."));
-            return accumulate(multiplies(), Dims...);
-        }
+        static constexpr uint_t padded_total_length() { return meta_storage_t(Dims...).padded_total_length(); }
 
         template <ushort_t Id>
-        GT_FUNCTION static int_t stride() {
+        GT_FUNCTION static constexpr int_t stride() {
             return meta_storage_t(Dims...).template stride<Id>();
         }
 
         template <ushort_t Id>
-        GT_FUNCTION static int_t dim() {
+        GT_FUNCTION static constexpr int_t dim() {
             return meta_storage_t(Dims...).template total_length<Id>();
         }
     };
