@@ -40,7 +40,7 @@ if (DEFINED ENV{CUDA_ARCH})
 else()
     set(GT_CUDA_ARCH_INIT "sm_35")
 endif()
-set(GT_CUDA_ARCH STRING "Compute capability for CUDA used for tests" "GT_ENABLE_TARGET_CUDA" "${GT_CUDA_ARCH_INIT}")
+set(GT_CUDA_ARCH "${GT_CUDA_ARCH_INIT}" CACHE STRING "Compute capability for CUDA used for tests")
 
 set( TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh )
 set( TEST_MANIFEST ${CMAKE_BINARY_DIR}/tests_manifest.txt )
