@@ -183,7 +183,7 @@ namespace gridtools {
         template <class... Ints,
             typename std::enable_if<sizeof...(Ints) <= Dim && conjunction<std::is_convertible<Ints, int_t>...>::value,
                 int>::type = 0>
-        GT_FUNCTION GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND explicit accessor_base(Ints... offsets) : m_offsets {
+        GT_FUNCTION constexpr explicit accessor_base(Ints... offsets) : m_offsets {
             offsets...
         }
 #ifdef __INTEL_COMPILER
@@ -192,7 +192,7 @@ namespace gridtools {
         {
         }
 
-        GT_FUNCTION GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND explicit accessor_base(offsets_t const &src)
+        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src)
             : m_offsets(src)
 #ifdef __INTEL_COMPILER
               ,
@@ -202,8 +202,7 @@ namespace gridtools {
         }
 
         template <ushort_t I, ushort_t... Is>
-        GT_FUNCTION GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND explicit accessor_base(
-            dimension<I> d, dimension<Is>... ds)
+        GT_FUNCTION constexpr explicit accessor_base(dimension<I> d, dimension<Is>... ds)
             : m_offsets(_impl::make_offsets<Dim>(d, ds...))
 #ifdef __INTEL_COMPILER
               ,

@@ -56,20 +56,6 @@ namespace gridtools {
         @{
     */
 
-    namespace impl_ {
-        template <typename T, std::size_t N>
-        struct array_traits {
-            using type = T[N];
-            static constexpr GT_FUNCTION bool assert_range(size_t i) { return i < N; }
-        };
-
-        template <typename T>
-        struct array_traits<T, 0> {
-            using type = T[1]; // maybe use implementation from std::array instead?
-            static constexpr GT_FUNCTION bool assert_range(size_t) { return false; }
-        };
-    } // namespace impl_
-
     template <typename T>
     struct is_array;
 
@@ -84,7 +70,8 @@ namespace gridtools {
 
       public:
         // we make the members public to make this class an aggregate
-        typename impl_::array_traits<T, D>::type m_array;
+        T m_array[D ? D : 1]; // Note: don't use a type-trait for the zero-size case, as there is a bug with defining an
+                              // alias for c-arrays in CUDA 9.2 and 10.0 (see #1040)
 
         using value_type = T;
         using size_type = size_t;
@@ -120,7 +107,7 @@ namespace gridtools {
 
         GT_FUNCTION
         T &operator[](size_t i) {
-            assert((impl_::array_traits<T, D>::assert_range(i)));
+            assert(i < D);
             return m_array[i];
         }
 

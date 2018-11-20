@@ -63,7 +63,11 @@ echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<MPI_PPN>|'"1"'|g' ${slurm_script}
 /bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
 /bin/sed -i 's|<OUTPUTFILE>|'"$testfile"'|g' ${slurm_script}
-/bin/sed -i 's|<JOB_ENV>|'"$JOB_ENV"'|g' ${slurm_script}
+if [ "${JOB_ENV[*]}" == "" ]; then
+    /bin/sed -i "s|<JOB_ENV>||g" ${slurm_script}
+else
+    /bin/sed -i "s|<JOB_ENV>|export ${JOB_ENV[*]}|g" ${slurm_script}
+fi
 
 bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
@@ -110,7 +114,11 @@ if [[ "$DO_MPI" == "ON" ]]; then
     /bin/sed -i 's|<MPI_PPN>|'"$PPN"'|g' ${slurm_script}
     /bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
     /bin/sed -i 's|<OUTPUTFILE>|'"$testfile"'|g' ${slurm_script}
-    /bin/sed -i 's|<JOB_ENV>|'"$MPI_HOST_JOB_ENV"'|g' ${slurm_script}
+    if [ "${MPI_HOST_JOB_ENV[*]}" == "" ]; then
+        /bin/sed -i "s|<JOB_ENV>||g" ${slurm_script}
+    else
+        /bin/sed -i "s|<JOB_ENV>|export ${MPI_HOST_JOB_ENV[*]}|g" ${slurm_script}
+    fi
 
     bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
@@ -158,7 +166,11 @@ if [[ $DO_MPI == "ON" && $DO_GPU == "ON" ]]; then
     /bin/sed -i 's|<MPI_PPN>|'"$PPN"'|g' ${slurm_script}
     /bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
     /bin/sed -i 's|<OUTPUTFILE>|'"$testfile"'|g' ${slurm_script}
-    /bin/sed -i 's|<JOB_ENV>|'"$MPI_CUDA_JOB_ENV"'|g' ${slurm_script}
+    if [ "${MPI_CUDA_JOB_ENV[*]}" == "" ]; then
+        /bin/sed -i "s|<JOB_ENV>||g" ${slurm_script}
+    else
+        /bin/sed -i "s|<JOB_ENV>|export ${MPI_CUDA_JOB_ENV[*]}|g" ${slurm_script}
+    fi
 
     bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
