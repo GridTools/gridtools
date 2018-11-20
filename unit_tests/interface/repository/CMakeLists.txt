@@ -57,6 +57,7 @@ if (GT_ENABLE_TARGET_X86)
         SCRIPT ${TEST_SCRIPT}
         COMMAND $<TARGET_FILE:custom_test_generated_repository>
         LABELS unittest_x86 target_x86
+        ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
         )
     add_dependencies( custom_test_generated_repository format_generated_repository )
 endif()
