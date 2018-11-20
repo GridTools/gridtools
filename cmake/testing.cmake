@@ -2,6 +2,10 @@
 # TODO move GridToolsTest target to this file
 enable_testing()
 
+include(detect_test_features)
+detect_c_compiler()
+detect_fortran_compiler()
+
 ####################################################################################
 ########################### GET GTEST LIBRARY ############################
 ####################################################################################
