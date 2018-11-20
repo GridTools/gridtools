@@ -83,13 +83,10 @@ TEST(DataStoreTest, Simple) {
     using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
     storage_info_t si(3, 3, 3);
 
-    GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND storage_info_interface<0, layout_map<2, 1, 0>> csi(3, 3, 3);
-    GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND storage_info_interface<1, layout_map<2, 1, 0>, halo<2, 1, 0>> csih(
-        7, 5, 3);
-    GT_BROKEN_CONSTEXPR_CONSTRUCTOR_WORKAROUND
-    storage_info_interface<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
+    constexpr storage_info_interface<0, layout_map<2, 1, 0>> csi(3, 3, 3);
+    constexpr storage_info_interface<1, layout_map<2, 1, 0>, halo<2, 1, 0>> csih(7, 5, 3);
+    constexpr storage_info_interface<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
 
-#if not defined(GT_BROKEN_CONSTEXPR_CONSTRUCTOR)
     // check sizes, strides, and alignment
     GRIDTOOLS_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
@@ -106,7 +103,6 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
-#endif
 
     EXPECT_EQ(csiha.total_length<0>(), 7);
     EXPECT_EQ(csiha.total_length<1>(), 5);
