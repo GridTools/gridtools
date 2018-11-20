@@ -32,6 +32,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
   esac
   export CXX=`which g++`
   export CC=`which gcc`
+  export FC=`which gfortran`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
   case ${VERSION} in
@@ -46,6 +47,7 @@ elif [[ ${COMPILER} == "icc" ]]; then
   esac
   export CXX=`which icpc`
   export CC=`which icc`
+  export FC=`which ifort`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
