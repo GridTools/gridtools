@@ -189,7 +189,7 @@ function(gridtools_add_test)
   file(APPEND ${___SCRIPT} "res=$((res || $? ))\n")
   add_to_test_manifest("${___NAME} ${command}")
 
-  if (NOT ${TEST_USE_MPI_WRAPPERS_FOR_ALL_TESTS})
+  if (NOT ${TEST_USE_WRAPPERS_FOR_ALL_TESTS})
     add_test(NAME ${___NAME} COMMAND ${___COMMAND})
   else()
     add_test(
