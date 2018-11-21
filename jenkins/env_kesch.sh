@@ -21,10 +21,31 @@ export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
 
-export JOB_ENV_COMMON="export CUDA_AUTO_BOOST=0;export GCLOCK=875; export LD_PRELOAD=/opt/mvapich2/gdr/no-mcast/2.2/cuda8.0/mpirun/gnu4.8.5/lib64/libmpi.so;export OMP_NUM_THREADS=1;export MALLOC_MMAP_MAX_=0;export MALLOC_TRIM_THRESHOLD_=536870912"
-export JOB_ENV="${JOB_ENV_COMMON}; export G2G=1"
-export MPI_HOST_JOB_ENV=""
-export MPI_CUDA_JOB_ENV="${JOB_ENV_COMMON}; export G2G=2; export MV2_USE_GPUDIRECT=0; export MV2_USE_RDMA_FAST_PATH=0"
+JOB_ENV_COMMON_ARR=(
+    CUDA_AUTO_BOOST=0
+    GCLOCK=875
+    LD_PRELOAD=/opt/mvapich2/gdr/no-mcast/2.2/cuda8.0/mpirun/gnu4.8.5/lib64/libmpi.so
+    OMP_NUM_THREADS=1
+    MALLOC_MMAP_MAX_=0
+    MALLOC_TRIM_THRESHOLD_=536870912
+    )
+JOB_ENV_ARR=(
+    "${JOB_ENV_COMMON_ARR[@]}"
+    G2G=1
+    )
+MPI_HOST_JOB_ENV_ARR=(
+    )
+MPI_CUDA_JOB_ENV_ARR=(
+    "${JOB_ENV_COMMON_ARR[@]}"
+    G2G=2
+    MV2_USE_GPUDIRECT=0
+    MV2_USE_RDMA_FAST_PATH=0
+    )
+
+export HOST_JOB_ENV="${JOB_ENV_ARR[*]}"
+export CUDA_JOB_ENV="${JOB_ENV_ARR[*]}"
+export MPI_HOST_JOB_ENV="${MPI_HOST_JOB_ENV_ARR[*]}"
+export MPI_CUDA_JOB_ENV="${MPI_CUDA_JOB_ENV_ARR[*]}"
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`

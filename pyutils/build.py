@@ -24,10 +24,10 @@ def build_and_test(args):
     cmake_args['GT_ENABLE_TARGET_' + args.backend.upper()] = True
 
     # precision
-    cmake_args['SINGLE_PRECISION'] = args.precision == 'float'
+    cmake_args['GT_SINGLE_PRECISION'] = args.precision == 'float'
 
     # grid type
-    cmake_args['STRUCTURED_GRIDS'] = args.grid == 'structured'
+    cmake_args['GT_TESTS_STRUCTURED_GRID'] = args.grid == 'structured'
 
     # enable pyutils
     cmake_args['GT_ENABLE_PYUTILS'] = True

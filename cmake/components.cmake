@@ -44,7 +44,7 @@ function(generate_install_targets_for name folder)
       DESTINATION ${INSTALL_CONFIGDIR}
     )
 
-    install(DIRECTORY "include/gridtools/${folder}" DESTINATION include/gridtools COMPONENT ${name} )
+    install(DIRECTORY "include/gridtools/" DESTINATION include/gridtools COMPONENT ${name} )
 endfunction(generate_install_targets_for)
 
 

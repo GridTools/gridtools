@@ -24,210 +24,71 @@ add_custom_mc_test(
     LABELS unittest_mc
     )
 
+set(testdir ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication)
+
+set(SOURCES
+    ${testdir}/test_halo_exchange_3D_all.cpp
+    ${testdir}/test_halo_exchange_3D_all_2.cpp
+    ${testdir}/test_halo_exchange_3D_all_3.cpp
+    ${testdir}/test_halo_exchange_3D_generic.cpp
+    ${testdir}/test_halo_exchange_3D_generic_full.cpp
+    )
+set(ADDITIONAL_SOURCES
+    halo_exchange_3D.cpp
+    ${testdir}/test_all_to_all_halo_3D.cpp
+    )
+
 # custom test cases
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
-        set(testdir ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication)
-
-        if( NOT "${GT_DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "CPU")
+        foreach (source IN LISTS ${SOURCES} ${ADDITIONAL_SOURCES})
+            get_filename_component(target ${source})
             add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D
-                SOURCES halo_exchange_3D.cpp
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
                 LABELS mpitest_x86
                 )
-
-            add_custom_mpi_x86_test(
-                TARGET all_to_all_halo_3D
-                SOURCES ${testdir}/test_all_to_all_halo_3D.cpp
-                LABELS mpitest_x86
-                )
-
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_all
-                SOURCES ${testdir}/test_halo_exchange_3D_all.cpp
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_all_2
-                SOURCES ${testdir}/test_halo_exchange_3D_all_2.cpp
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_all_3
-                SOURCES ${testdir}/test_halo_exchange_3D_all_3.cpp
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_generic
-                SOURCES ${testdir}/test_halo_exchange_3D_generic.cpp
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_generic_full
-                SOURCES ${testdir}/test_halo_exchange_3D_generic_full.cpp
-                LABELS mpitest_x86
-                )
-
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_all_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFAC
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_all_2_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all_2.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFAC
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_all_3_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all_3.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFAC
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_generic_v
-                SOURCES ${testdir}/test_halo_exchange_3D_generic.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFAC
-                LABELS mpitest_x86
-                )
-            add_custom_mpi_x86_test(
-                TARGET halo_exchange_3D_generic_full_v
-                SOURCES ${testdir}/test_halo_exchange_3D_generic_full.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFAC
-                LABELS mpitest_x86
-                )
-
             add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D
-                SOURCES halo_exchange_3D.cpp
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
                 LABELS mpitest_mc
                 )
-
-            add_custom_mpi_mc_test(
-                TARGET all_to_all_halo_3D
-                SOURCES ${testdir}/test_all_to_all_halo_3D.cpp
-                LABELS mpitest_mc
-                )
-
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_all
-                SOURCES ${testdir}/test_halo_exchange_3D_all.cpp
-                LABELS mpitest_mc
+        endforeach()
+        foreach (source IN LISTS ${SOURCES})
+            get_filename_component(target ${source})
+            add_custom_mpi_x86_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_x86
                 )
             add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_all_2
-                SOURCES ${testdir}/test_halo_exchange_3D_all_2.cpp
-                LABELS mpitest_mc
-                )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_all_3
-                SOURCES ${testdir}/test_halo_exchange_3D_all_3.cpp
-                LABELS mpitest_mc
-                )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_generic
-                SOURCES ${testdir}/test_halo_exchange_3D_generic.cpp
-                LABELS mpitest_mc
-                )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_generic_full
-                SOURCES ${testdir}/test_halo_exchange_3D_generic_full.cpp
-                LABELS mpitest_mc
-                )
-
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_all_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all.cpp
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
                 COMPILE_DEFINITIONS VECTOR_INTERFACE
                 LABELS mpitest_mc
                 )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_all_2_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all_2.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_mc
-                )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_all_3_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all_3.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_mc
-                )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_generic_v
-                SOURCES ${testdir}/test_halo_exchange_3D_generic.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_mc
-                )
-            add_custom_mpi_mc_test(
-                TARGET halo_exchange_3D_generic_full_v
-                SOURCES ${testdir}/test_halo_exchange_3D_generic_full.cpp
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_mc
-                )
-        endif()
+        endforeach()
 
-        if ( NOT "${GT_DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "GPU")
-
+        foreach (source IN LISTS ${SOURCES})
+            get_filename_component(target ${source})
             add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_all
-                SOURCES ${testdir}/test_halo_exchange_3D_all.cu
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
                 LABELS mpitest_cuda
                 )
             add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_all_2
-                SOURCES ${testdir}/test_halo_exchange_3D_all_2.cu
-                LABELS mpitest_cuda
-                )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_all_3
-                SOURCES ${testdir}/test_halo_exchange_3D_all_3.cu
-                LABELS mpitest_cuda
-                )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_generic
-                SOURCES ${testdir}/test_halo_exchange_3D_generic.cu
-                LABELS mpitest_cuda
-                )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_generic_full
-                SOURCES ${testdir}/test_halo_exchange_3D_generic_full.cu
-                LABELS mpitest_cuda
-                )
-
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_all_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all.cu
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
                 COMPILE_DEFINITIONS VECTOR_INTERFACE
                 LABELS mpitest_cuda
                 )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_all_2_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all_2.cu
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_cuda
-                )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_all_3_v
-                SOURCES ${testdir}/test_halo_exchange_3D_all_3.cu
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_cuda
-                )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_generic_v
-                SOURCES ${testdir}/test_halo_exchange_3D_generic.cu
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_cuda
-                )
-            add_custom_mpi_gpu_test(
-                TARGET halo_exchange_3D_generic_full_v
-                SOURCES ${testdir}/test_halo_exchange_3D_generic_full.cu
-                COMPILE_DEFINITIONS VECTOR_INTERFACE
-                LABELS mpitest_cuda
-                )
-        endif()
-
+        endforeach()
     endif()
 endif()

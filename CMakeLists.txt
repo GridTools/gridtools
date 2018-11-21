@@ -1,17 +1,15 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-project(GridTools VERSION "0.1")
+project(GridTools VERSION "0.1" LANGUAGES CXX)
 
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(CTest)
 
 # ===============
 # Load some cmake modules.
 # 1) define what flags should be available,
-
-enable_language (CXX)
 
 include(detect_features)
 detect_cuda()
@@ -104,22 +102,13 @@ endif()
 # examples and tests
 # ===============
 if( GT_INSTALL_EXAMPLES )
-   SET(COMPILE_EXAMPLES ON)
-endif()
-
-if( COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
 endif()
 
-include (fix_test_case_name)
 if(BUILD_TESTING)
-  # enable C/Fortran here, as enabling locally might be undefined,
-  # see https://cmake.org/cmake/help/v3.12/command/enable_language.html
-  # "... it must be called in the highest directory common to all targets using the named language..."
-  enable_language(C Fortran)
   # TODO move to the right directory
-  add_library(regression_fixture src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_fixture gtest GridTools)
+  add_library(regression_main src/tools/regression_fixture.cpp)
+  target_link_libraries(regression_main gtest GridTools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
@@ -128,7 +117,7 @@ endif()
 # ===============
 # Downloads the gridtools_experimental repository
 # ===============
-if(ENABLE_EXPERIMENTAL_REPOSITORY)
+if(GT_ENABLE_EXPERIMENTAL_REPOSITORY)
   include(gridtools_experimental/download_gridtools_experimental)
 endif()
 
@@ -165,6 +154,7 @@ if(COMPONENT_C_BINDINGS)
     install(FILES
         "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake"
         "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
+        "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
         DESTINATION "cmake")
     install(FILES
         "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"

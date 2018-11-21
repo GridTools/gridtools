@@ -2,6 +2,10 @@
 # TODO move GridToolsTest target to this file
 enable_testing()
 
+include(detect_test_features)
+detect_c_compiler()
+detect_fortran_compiler()
+
 ####################################################################################
 ########################### GET GTEST LIBRARY ############################
 ####################################################################################
@@ -30,7 +34,7 @@ endif()
 ######################### ADDITIONAL TEST MODULE FUNCTIONS #########################
 ####################################################################################
 
-function (fetch_tests_helper target_arch filetype subfolder)
+function (fetch_tests_helper target_arch filetype test_environment subfolder )
     set(options)
     set(one_value_args)
     set(multi_value_args LABELS)
@@ -57,7 +61,9 @@ function (fetch_tests_helper target_arch filetype subfolder)
                 NAME ${unit_test}
                 SCRIPT ${TEST_SCRIPT}
                 COMMAND $<TARGET_FILE:${unit_test}>
-                LABELS ${labels})
+                LABELS ${labels}
+                ENVIRONMENT ${test_environment}
+                )
         endforeach()
     endif()
 endfunction()
@@ -65,27 +71,33 @@ endfunction()
 # This function will fetch all x86 test cases in the given directory.
 # Only used for gcc or clang compilations
 function(fetch_x86_tests)
-    fetch_tests_helper(x86 cpp ${ARGN})
+    fetch_tests_helper(x86 cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_x86_tests)
 
 # This function will fetch all mc test cases in the given directory.
 # Only used for gcc or clang compilations
 function(fetch_mc_tests)
-    fetch_tests_helper(mc cpp ${ARGN})
+    fetch_tests_helper(mc cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_mc_tests)
 
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
 function(fetch_gpu_tests)
     set(CUDA_SEPARABLE_COMPILATION OFF) # TODO required?
-    fetch_tests_helper(cuda cu ${ARGN})
+    fetch_tests_helper(cuda cu "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_gpu_tests)
 
-function(add_custom_test_helper target_arch)
+function(add_custom_test_helper target_arch test_environment)
     set(options )
     set(one_value_args TARGET)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+    if (NOT ___TARGET)
+        message(FATAL_ERROR "add_custom_${target_arch}_test was called without TARGET")
+    endif()
+    if (NOT ___SOURCES)
+        message(FATAL_ERROR "add_custom_${target_arch}_test was called without SOURCES")
+    endif()
 
     string(TOLOWER ${target_arch} target_arch_l)
     string(TOUPPER ${target_arch} target_arch_u)
@@ -108,6 +120,7 @@ function(add_custom_test_helper target_arch)
             SCRIPT ${TEST_SCRIPT}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
+            ENVIRONMENT ${test_environment}
             )
     endif ()
 
@@ -115,24 +128,33 @@ endfunction()
 
 # This function can be used to add a custom x86 test
 function(add_custom_x86_test)
-    add_custom_test_helper(x86 ${ARGN})
+    add_custom_test_helper(x86 "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_x86_test)
 
 # This function can be used to add a custom mc test
 function(add_custom_mc_test)
-    add_custom_test_helper(mc ${ARGN})
+    add_custom_test_helper(mc "${TEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mc_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test)
-    add_custom_test_helper(cuda ${ARGN})
+    add_custom_test_helper(cuda "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_gpu_test)
 
-function(add_custom_mpi_test_helper target_arch test_script)
+function(add_custom_mpi_test_helper target_arch test_script test_environment)
     set(options)
-    set(one_value_args TARGET)
+    set(one_value_args TARGET NPROC)
     set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
     cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+    if (NOT ___NPROC)
+        message(FATAL_ERROR "add_custom_mpi_${target_arch}_test was called without NPROC")
+    endif()
+    if (NOT ___TARGET)
+        message(FATAL_ERROR "add_custom_mpi_${target_arch}_test was called without TARGET")
+    endif()
+    if (NOT ___SOURCES)
+        message(FATAL_ERROR "add_custom_mpi_${target_arch}_test was called without SOURCES")
+    endif()
 
     string(TOLOWER ${target_arch} target_arch_l)
     string(TOUPPER ${target_arch} target_arch_u)
@@ -152,23 +174,24 @@ function(add_custom_mpi_test_helper target_arch test_script)
         target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
         gridtools_add_mpi_test(
             NAME ${unit_test}
+            NPROC ${___NPROC}
             SCRIPT ${test_script}
             COMMAND $<TARGET_FILE:${unit_test}>
             LABELS ${labels}
+            ENVIRONMENT ${test_environment}
             )
     endif ()
 
 endfunction()
 
 function(add_custom_mpi_x86_test)
-    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mpi_x86_test)
 
 function(add_custom_mpi_mc_test)
-    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mpi_mc_test)
 
-# This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test)
-    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} ${ARGN})
+    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} "${MPITEST_CUDA_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mpi_gpu_test)
