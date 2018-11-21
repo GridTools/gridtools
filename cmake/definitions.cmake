@@ -73,7 +73,7 @@ target_link_libraries(GridToolsTest INTERFACE GridTools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
-if(GT_TESTS_STRUCTURED_GRIDS)
+if(GT_TESTS_STRUCTURED_GRID)
     target_compile_definitions(GridToolsTest INTERFACE STRUCTURED_GRIDS)
 endif()
 

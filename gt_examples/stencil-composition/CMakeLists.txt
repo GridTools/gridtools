@@ -5,7 +5,7 @@ macro(install_example name)
     endif()
 endmacro()
 
-if( GT_TESTS_STRUCTURED_GRIDS )
+if( GT_TESTS_STRUCTURED_GRID )
     set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited)
 
     if(GT_ENABLE_TARGET_X86)
