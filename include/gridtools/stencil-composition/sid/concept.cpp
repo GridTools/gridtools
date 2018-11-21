@@ -35,271 +35,456 @@
 */
 #pragma once
 
+#include <tuple>
 #include <type_traits>
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/generic_metafunctions/type_traits.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/tuple_util.hpp"
 
-#include "offset.hpp"
+/**
+ *   Basic API for Stencil Iterable Data (aka SID) concept.
+ */
 
 namespace gridtools {
     namespace sid {
-
-        /**
-         *
-         *  PtrOffset is a function of Strides
-         *
-         *  PtrOffset/PtrOffset arithmetic
-         *  Ptr/PtrOffset arithmetic
-         *
-         *  PtrOffset sid_sum(PtrOffset... offset)
-         *
-         *  void sid_shift(Ptr& ptr, Strides strides) {
-         *  }
-         *
-         *  auto sid_deref(Ptr ptr, Strides strides) {
-         *    return *ptr;
-         *  }
-         *
-         *  void sid_shift(Ptr& ptr, Strides strides, Offsets... offsets) {
-         *    ptr += sid_sum((sid_to_ptr_offset<Offsets::index>(strides, offsets)...);
-         *  }
-         *
-         *  auto sid_get_shifted(Ptr ptr, Strides strides, Offsets... offsets) {
-         *    return ptr + sid_sum((sid_to_ptr_offset<Offsets::index>(strides, offsets)...);
-         *  }
-         *
-         *  auto sid_deref(Ptr ptr, Strides strides, Offsets... offsets) {
-         *    return *(ptr + sid_sum((sid_to_ptr_offset<Offsets::index>(strides, offsets)...));
-         *  }
-         *
-         *
-         *   PtrOffset
-         *
-         */
-
-        struct unused_strides {};
-
         namespace impl_ {
 
-            struct no_bounds_validator {};
-
+            /**
+             *  generic trait for integral constant
+             *
+             *  TODO(anstaf) : consider moving it to `meta` or to `common`
+             */
+            template <class T, class = void>
+            struct is_integral_constant : std::false_type {};
             template <class T>
-            struct fake_valid_ptr {
-                T m_obj;
-                explicit constexpr GT_FUNCTION operator bool() const { return true; }
-                constexpr GT_FUNCTION T operator*() const { return m_obj; }
+            struct is_integral_constant<T,
+                enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value>> : std::true_type {
             };
 
-            template <class T, enable_if_t<std::is_lvalue_reference<T>::value, int> = 0>
-            constexpr GT_FUNCTION remove_reference_t<T> *make_valid_ptr(T &&src) {
-                return &src;
-            }
+            /**
+             *  generic trait for integral constant of Val
+             *
+             *  TODO(anstaf) : consider moving it to `meta` or to `common`
+             */
+            template <int Val, class T, class = void>
+            struct is_integral_constant_of : std::false_type {};
 
-            template <class T, enable_if_t<!std::is_lvalue_reference<T>::value, int> = 0>
-            constexpr GT_FUNCTION fake_valid_ptr<T> make_valid_ptr(T &&src) {
-                return {src};
-            }
+            template <int Val, class T>
+            struct is_integral_constant_of<Val, T, enable_if_t<std::is_empty<T>::value &&int(T::value) == Val>>
+                : std::true_type {};
 
-            template <class PtrDiff>
-            constexpr GT_FUNCTION PtrDiff sid_sum() {
-                return {};
-            }
+            // BEGIN `get_origin` PART
 
-            template <class PtrDiff>
-            constexpr GT_FUNCTION PtrDiff sid_sum(PtrDiff arg) {
-                return arg;
-            }
+            // `sid_get_origin` doesn't have fallback
 
-            template <class PtrDiff, class>
-            constexpr GT_FUNCTION PtrDiff sid_sum(PtrDiff arg) {
-                return arg;
-            }
-
-            template <class Sid>
-            constexpr GT_FUNCTION no_bounds_validator sid_get_bounds_validator(Sid const &) {
-                return {};
-            }
-
-            template <class Ptr, class Strides, class... Offsets>
-            GT_FUNCTION Ptr sid_get_shifted(Ptr ptr, Strides const &strides, Offsets... offsets) {
-                sid_shift(ptr, strides, offsets...);
-                return ptr;
-            }
-
-            template <class Ptr,
-                class Strides,
-                class... Offsets,
-                enable_if_t<std::is_move_assignable<Ptr>::value, int> = 0>
-            GT_FUNCTION void sid_shift(Ptr &ptr, Strides const &strides, Offsets... offsets) {
-                ptr = sid_get_shifted(ptr, strides, offsets...);
-            }
-
-            // Ptr is a plain pointer => apply shift and do a plain deref
-            template <class T, class Strides, class... Offsets>
-            constexpr GT_FUNCTION T &sid_deref(T *ptr, Strides const &strides, Offsets... offsets) {
-                return *sid_get_shifted(ptr, strides, offsets...);
-            }
-            template <class T, class Strides, class... Offsets>
-            constexpr GT_FUNCTION T *sid_safe_deref(
-                T *ptr, Strides const &strides, no_bounds_validator, Offsets... offsets) {
-                return sid_get_shifted(ptr, strides, offsets...);
-            }
-
-            // if bounds_validator is dummy
-            template <class Ptr, class Strides, class... Offsets>
-            constexpr GT_FUNCTION auto sid_safe_deref(
-                Ptr const &ptr, Strides const &strides, no_bounds_validator, Offsets... offsets)
-                GT_AUTO_RETURN(make_valid_ptr(sid_deref(ptr, strides, offsets...)));
-
+            /**
+             *  `Ptr` type is deduced from `sid_get_origin`
+             */
             template <class Sid>
             GT_META_DEFINE_ALIAS(ptr_type, meta::id, decltype(sid_get_origin(std::declval<Sid const &>())));
 
+            /**
+             *  `Reference` type is deduced from `Ptr` type
+             */
+            template <class Sid, class Ptr = GT_META_CALL(ptr_type, Sid)>
+            GT_META_DEFINE_ALIAS(reference_type, meta::id, decltype(*std::declval<Ptr const &>()));
+
+            /**
+             *  `PtrDiff` type is deduced from `Ptr` type
+             */
+            template <class Sid, class Ptr = GT_META_CALL(ptr_type, Sid)>
+            GT_META_DEFINE_ALIAS(
+                ptr_diff_type, meta::id, decltype(std::declval<Ptr const &>() - std::declval<Ptr const &>()));
+
+            /**
+             *  `get_origin` delegates to `sid_get_origin`
+             */
+            template <class Sid>
+            constexpr GT_FUNCTION GT_META_CALL(ptr_type, Sid) get_origin(Sid const &obj) {
+                return sid_get_origin(obj);
+            }
+
+            // END `get_origin` PART
+
+            // BEGIN `get_strides` PART
+
+            /**
+             *  `sid_get_strides` fallback
+             *
+             *  By default Sid doesn't provides its own strides.
+             */
+            template <class Sid>
+            constexpr GT_FUNCTION std::tuple<> sid_get_strides(Sid const &) {
+                return {};
+            }
+
+            /**
+             *  `Strides` type is deduced from `sid_get_strides`
+             */
             template <class Sid>
             GT_META_DEFINE_ALIAS(strides_type, meta::id, decltype(sid_get_strides(std::declval<Sid const &>())));
 
+            /**
+             *  `get_strides` delegates to `sid_get_strides`
+             */
+            template <class Sid>
+            constexpr GT_FUNCTION GT_META_CALL(strides_type, Sid) get_strides(Sid const &obj) {
+                return sid_get_strides(obj);
+            }
+
+            // END `get_strides` PART
+
+            // BEGIN `strides_kind` PART
+
+            /**
+             *  `sid_get_strides_kind` fallback
+             *
+             *  It is enabled only if `Strides` type has no members.
+             */
+            template <class Sid, class Strides = GT_META_CALL(strides_type, Sid)>
+            enable_if_t<std::is_empty<Strides>::value, Strides> sid_get_strides_kind(Sid const &);
+
+            /**
+             *  `strides_kind` is deduced from `sid_get_strides_kind`
+             */
+            template <class Sid>
+            GT_META_DEFINE_ALIAS(strides_kind, meta::id, decltype(sid_get_strides_kind(std::declval<Sid const &>())));
+
+            // END `strides_kind` PART
+
+            // BEGIN `bounds_validator` PART
+
+            /**
+             *  optimistic validator
+             */
+            struct always_happy {
+                constexpr GT_FUNCTION bool operator()(...) const { return true; }
+            };
+
+            /**
+             *  `sid_get_bounds_validator` fallback
+             *
+             *  By default don't validate.
+             */
+            template <class Sid>
+            constexpr GT_FUNCTION always_happy sid_get_bounds_validator(Sid const &) {
+                return {};
+            }
+
+            /**
+             *  `BoundsValidator` types is deduced from `sid_get_bounds_validator`
+             */
             template <class Sid>
             GT_META_DEFINE_ALIAS(
                 bounds_validator_type, meta::id, decltype(sid_get_bounds_validator(std::declval<Sid const &>())));
 
-            template <class... Args>
-            GT_META_DEFINE_ALIAS(shift_type, meta::id, decltype(sid_shift(std::declval<Args>()...)));
+            /**
+             *  `get_bounds_validator` delegates to `sid_get_bounds_validator`
+             */
+            template <class Sid>
+            constexpr GT_FUNCTION GT_META_CALL(bounds_validator_type, Sid) get_bounds_validator(Sid const &obj) {
+                return sid_get_bounds_validator(obj);
+            }
 
-            template <class... Args>
-            GT_META_DEFINE_ALIAS(shifted_type, meta::id, decltype(sid_get_shifted(std::declval<Args>()...)));
+            // END `bounds_validator` PART
 
-            template <class... Args>
-            GT_META_DEFINE_ALIAS(deref_type, meta::id, decltype(sid_deref(std::declval<Args>()...)));
+            // BEGIN `bounds_validator_kind` PART
 
-            template <class... Args>
-            GT_META_DEFINE_ALIAS(safe_deref_type, meta::id, decltype(sid_safe_deref(std::declval<Args>()...)));
-
-            struct offset_model {
-                operator int_t() const;
-            };
-            GRIDTOOLS_STATIC_ASSERT((std::is_convertible<offset_model, int_t>{}), GT_INTERNAL_ERROR);
-
-            template <template <class...> class F, size_t Rank, class... Args>
-            GT_META_DEFINE_ALIAS(call_with_rank,
-                meta::rename,
-                (F, GT_META_CALL(meta::push_front, (GT_META_CALL(meta::repeat_c, (Rank, offset_model)), Args...))));
-
-            template <class Sid,
-                size_t DerefRank,
-                class PtrType = GT_META_CALL(ptr_type, Sid),
-                class StridesType = GT_META_CALL(strides_type, Sid)>
-            GT_META_DEFINE_ALIAS(
-                reference_type, call_with_rank, (deref_type, DerefRank, PtrType const &, StridesType const &));
-
-            template <class Sid,
-                size_t IterRank,
-                size_t DerefRank,
-                class Ptr = GT_META_CALL(ptr_type, Sid),
-                class StridesType = GT_META_CALL(strides_type, Sid),
-                class BoundsValidatorType = GT_META_CALL(bounds_validator_type, Sid),
-                class ShiftType = GT_META_CALL(call_with_rank, (shift_type, IterRank, Ptr &, StridesType const &)),
-                class ShiftedType = GT_META_CALL(
-                    call_with_rank, (shifted_type, IterRank, Ptr const &, StridesType const &)),
-                class DerefType = GT_META_CALL(reference_type, (Sid, DerefRank)),
-                class SafeDerefType = GT_META_CALL(call_with_rank,
-                    (safe_deref_type, DerefRank, Ptr const &, StridesType const &, BoundsValidatorType const &))>
-            GT_META_DEFINE_ALIAS(is_sid,
-                conjunction,
-                (std::is_trivially_copyable<Ptr>,
-                    std::is_trivially_copyable<StridesType>,
-                    std::is_trivially_copyable<BoundsValidatorType>,
-                    std::is_void<ShiftType>,
-                    std::is_same<ShiftedType, Ptr>,
-                    std::is_constructible<bool, SafeDerefType>,
-                    std::is_same<decltype(*std::declval<SafeDerefType>()), DerefType>));
-
-            template <class Sid, class Strides = GT_META_CALL(strides_type, Sid)>
-            conditional_t<std::is_empty<Strides>::value, Strides, Sid> sid_get_strides_kind(Sid const &);
-
-            template <class Sid, class BoundValidator = GT_META_CALL(bounds_validator_type, Sid)>
-            conditional_t<std::is_empty<BoundValidator>::value, BoundValidator, Sid> sid_get_bounds_validator_kind(
+            /**
+             *  `sid_get_bounds_validator_kind` fallback
+             *
+             *  It is enabled only if `BoundsValidator` type has no members.
+             */
+            template <class Sid, class BoundsValidator = GT_META_CALL(bounds_validator_type, Sid)>
+            enable_if_t<std::is_empty<BoundsValidator>::value, BoundsValidator> sid_get_bounds_validator_kind(
                 Sid const &);
 
-            template <class Sid>
-            GT_META_DEFINE_ALIAS(strides_kind, meta::id, decltype(sid_get_strides_kind(std::declval<Sid const &>())));
-
+            /**
+             *  `bounds_validator_kind` is deduced from `sid_get_bounds_validator_kind`
+             */
             template <class Sid>
             GT_META_DEFINE_ALIAS(
                 bounds_validator_kind, meta::id, decltype(sid_get_bounds_validator_kind(std::declval<Sid const &>())));
 
-            template <class Sid>
-            constexpr GT_FORCE_INLINE auto get_strides(Sid const &obj) GT_AUTO_RETURN(sid_get_strides(obj));
+            // END `bounds_validator_kind` PART
 
+            // BEGIN `shift` PART
+
+            // no fallback for `sid_shift`
+
+            /**
+             *  Predicate that determines if `shift` needs to be apply
+             *
+             *  If stride of offset are zero or the target has no state, we don't need to shift
+             */
+            template <class T, class Stride, class Offset>
+            GT_META_DEFINE_ALIAS(need_shift,
+                bool_constant,
+                (!(std::is_empty<T>::value || is_integral_constant_of<0, Stride>::value ||
+                    is_integral_constant_of<0, Offset>::value)));
+
+            /**
+             *  true if we can do implement shift as `obj += stride * offset`
+             */
+            template <class T, class Strides, class = void>
+            struct is_default_shiftable : std::false_type {};
+            template <class T, class Stride>
+            struct is_default_shiftable<T,
+                Stride,
+                enable_if_t<std::is_void<decltype(
+                    void(std::declval<T &>() += std::declval<Stride const &>() * std::declval<int_t>()))>::value>>
+                : std::true_type {};
+
+            /**
+             *  True if T has operator++
+             */
+            template <class T, class = void>
+            struct has_inc : std::false_type {};
             template <class T>
-            constexpr GT_FORCE_INLINE auto get_bounds_validator(T const &obj)
-                GT_AUTO_RETURN(sid_get_bounds_validator(obj));
+            struct has_inc<T, enable_if_t<std::is_void<decltype(void(++std::declval<T &>()))>::value>>
+                : std::true_type {};
 
-            template <class Sid>
-            constexpr GT_FORCE_INLINE auto get_origin(Sid const &obj) GT_AUTO_RETURN(sid_get_origin(obj));
+            /**
+             *  True if T has operator--
+             */
+            template <class T, class = void>
+            struct has_dec : std::false_type {};
+            template <class T>
+            struct has_dec<T, enable_if_t<std::is_void<decltype(void(--std::declval<T &>()))>::value>>
+                : std::true_type {};
 
-            template <class Ptr, class Strides, class... Offsets>
-            GT_FUNCTION void shift(Ptr &ptr, Strides const &strides, Offsets... offsets) {
-                sid_shift(ptr, strides, offsets...);
+            /**
+             *  True if T has operator-=
+             */
+            template <class T, class Arg, class = void>
+            struct has_dec_assignment : std::false_type {};
+            template <class T, class Arg>
+            struct has_dec_assignment<T,
+                Arg,
+                enable_if_t<std::is_void<decltype(void(std::declval<T &>() -= std::declval<Arg const &>()))>::value>>
+                : std::true_type {};
+
+            /**
+             *  noop `shift` overload
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION enable_if_t<!need_shift<T, Stride, Offset>::value> shift(T &, Stride const &stride, Offset) {}
+
+            /**
+             * `shift` overload that delegates to `sid_shift`
+             *
+             *  Enabled only if shift can not be implemented as `obj += stride * offset`
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value>
+            shift(T &obj, Stride const &stride, Offset offset) {
+                sid_shift(obj, stride, offset);
             }
 
-            template <class Ptr, class Strides, class... Offsets>
-            constexpr GT_FUNCTION Ptr get_shifted(Ptr const &ptr, Strides const &strides, Offsets... offsets) {
-                return sid_get_shifted(ptr, strides, offsets...);
+            /**
+             *  `shift` overload where both `stride` and `offset` are known in compile time
+             */
+            template <class T, class Stride, class Offset, int_t PtrOffset = Stride::value *Offset::value>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
+            shift(T &obj, Stride const &, Offset) {
+                obj += std::integral_constant<int_t, PtrOffset>{};
             }
 
-            template <class Ptr, class Strides, class... Offsets>
-            constexpr GT_FUNCTION auto deref(Ptr const &ptr, Strides const &strides, Offsets... offsets)
-                GT_AUTO_RETURN(sid_deref(ptr, strides, offsets...));
-
-            template <class Ptr, class Strides, class BoundsChecker, class... Offsets>
-            constexpr GT_FUNCTION auto safe_deref(
-                Ptr const &ptr, Strides const &strides, BoundsChecker const &bounds_checker, Offsets... offsets)
-                GT_AUTO_RETURN(sid_safe_deref(ptr, strides, bounds_checker, offsets...));
-
-            template <class Ref>
-            using add_const_to_ref = conditional_t<std::is_reference<Ref>::value,
-                add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
-                add_const_t<Ref>>;
-
-            template <class Ptr, class Strides, class... Offsets>
-            constexpr GT_FUNCTION auto const_deref(Ptr const &ptr, Strides const &strides, Offsets... offsets)
-                -> add_const_to_ref<decltype(sid_deref(ptr, strides, offsets...))> {
-                return sid_deref(ptr, strides, offsets...);
+            /**
+             *  `shift` overload where the stride and offset are both 1 (or both -1)
+             */
+            template <class T, class Stride, class Offset, int_t PtrOffset = Stride::value *Offset::value>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    has_inc<T>::value && PtrOffset == 1>
+            shift(T &obj, Stride const &, Offset) {
+                ++obj;
             }
+
+            /**
+             *  `shift` overload where the stride are offset are both 1, -1 (or -1, 1)
+             */
+            template <class T, class Stride, class Offset, int_t PtrOffset = Stride::value *Offset::value>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    has_dec<T>::value && PtrOffset == -1>
+            shift(T &obj, Stride const &, Offset) {
+                --obj;
+            }
+
+            /**
+             *  `shift` overload where the offset is 1
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    !is_integral_constant<Stride>::value && is_integral_constant_of<1, Offset>::value>
+            shift(T &obj, Stride const &stride, Offset) {
+                obj += stride;
+            }
+
+            /**
+             *  `shift` overload where the offset is -1
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    !is_integral_constant<Stride>::value &&
+                                    is_integral_constant_of<-1, Offset>::value && has_dec_assignment<T, Stride>::value>
+            shift(T &obj, Stride const &stride, Offset) {
+                obj -= stride;
+            }
+
+            /**
+             *  `shift` overload where the stride is 1
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    is_integral_constant_of<1, Stride>::value && !is_integral_constant<Offset>::value>
+            shift(T &obj, Stride const &, Offset offset) {
+                obj += offset;
+            }
+
+            /**
+             *  `shift` overload where the stride is -1
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                                    is_integral_constant_of<-1, Stride>::value &&
+                                    !is_integral_constant<Offset>::value && has_dec_assignment<T, Stride>::value>
+            shift(T &obj, Stride const &, Offset offset) {
+                obj -= offset;
+            }
+
+            /**
+             *  `shift` overload, default version
+             */
+            template <class T, class Stride, class Offset>
+            GT_FUNCTION
+                enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
+                            !(is_integral_constant<Stride>::value && is_integral_constant<Offset>::value) &&
+                            !(is_integral_constant_of<1, Stride>::value || is_integral_constant_of<1, Offset>::value) &&
+                            !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<-1, Stride>::value ||
+                                                                          is_integral_constant_of<-1, Offset>::value))>
+                shift(T &obj, Stride const &stride, Offset offset) {
+                obj += stride * offset;
+            }
+
+            // END `shift` PART
+
+            /**
+             *  Meta predicate that validates a single stride type against `shift` function
+             */
+            template <class T>
+            struct is_valid_stride {
+                template <class Stride>
+                GT_META_DEFINE_ALIAS(
+                    apply, std::is_void, decltype(void(shift(std::declval<T &>(), std::declval<Stride &>(), int_t{}))));
+            };
+
+            /**
+             *  Meta predicate that validates a list of stride type against `shift` function
+             */
+            template <class StrideTypes, class T>
+            GT_META_DEFINE_ALIAS(are_valid_strides, meta::all_of, (is_valid_stride<T>::template apply, StrideTypes));
+
+            /**
+             *  Sfinae unsafe version of `is_sid` predicate
+             */
+            template <class Sid,
+                // Extracting all the derived types from Sid
+                class Ptr = GT_META_CALL(ptr_type, Sid),
+                class ReferenceType = GT_META_CALL(reference_type, Sid),
+                class PtrDiff = GT_META_CALL(ptr_diff_type, Sid),
+                class StridesType = GT_META_CALL(strides_type, Sid),
+                class BoundsValidatorType = GT_META_CALL(bounds_validator_type, Sid),
+                class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, StridesType)>
+            GT_META_DEFINE_ALIAS(is_sid,
+                conjunction,
+                (
+                    // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
+                    std::is_trivially_copyable<Ptr>,
+                    std::is_trivially_copyable<StridesType>,
+                    std::is_trivially_copyable<BoundsValidatorType>,
+
+                    // verify that `PtrDiff` is sane
+                    std::is_default_constructible<PtrDiff>,
+                    std::is_same<decltype(std::declval<Ptr>() + PtrDiff{}), Ptr>,
+
+                    // verify that `Reference` is sane
+                    negation<std::is_void<ReferenceType>>,
+
+                    // all strides must be applied via `shift` with both `Ptr` and `PtrDiff`
+                    are_valid_strides<StrideTypeList, Ptr>,
+                    are_valid_strides<StrideTypeList, PtrDiff>,
+
+                    // `BoundsValidators` apllied to `Ptr` should return `bool`
+                    std::is_constructible<bool,
+                        decltype(std::declval<BoundsValidatorType const &>()(std::declval<Ptr const &>))>));
+
         } // namespace impl_
 
+        // Meta functions
         using impl_::bounds_validator_kind;
+        using impl_::bounds_validator_type;
+        using impl_::ptr_diff_type;
+        using impl_::ptr_type;
+        using impl_::reference_type;
         using impl_::strides_kind;
+        using impl_::strides_type;
 
+        // Runtime functions
         using impl_::get_bounds_validator;
         using impl_::get_origin;
         using impl_::get_strides;
-
-        using impl_::get_shifted;
         using impl_::shift;
 
-        using impl_::const_deref;
-        using impl_::deref;
-        using impl_::safe_deref;
-
-        template <class T, size_t IterRank, size_t DerefRank = IterRank, class = void>
+        /**
+         *  Does the type models the SID concept
+         */
+        template <class T, class = void>
         struct is_sid : std::false_type {};
+        template <class T>
+        struct is_sid<T, enable_if_t<impl_::is_sid<T>::value>> : std::true_type {};
 
-        template <class T, size_t IterRank, size_t DerefRank>
-        struct is_sid<T, IterRank, DerefRank, enable_if_t<impl_::is_sid<T, IterRank, DerefRank>::value>>
-            : std::true_type {};
+        // Auxiliary API
 
-        using impl_::bounds_validator_type;
-        using impl_::ptr_type;
-        using impl_::reference_type;
-        using impl_::strides_type;
-
-        template <class Sid, size_t DerefRank, class Ref = reference_type<Sid, DerefRank>>
+        /**
+         *  The type of the element of the SID
+         */
+        template <class Sid, class Ref = GT_META_CALL(reference_type, Sid)>
         GT_META_DEFINE_ALIAS(element_type, meta::id, decay_t<Ref>);
+
+        /**
+         *  The const variation of the reference type
+         */
+        template <class Sid, class Ref = GT_META_CALL(reference_type, Sid)>
+        GT_META_DEFINE_ALIAS(const_reference_type,
+            meta::id,
+            (conditional_t<std::is_reference<Ref>::value,
+                add_lvalue_reference_t<add_const_t<remove_reference_t<Ref>>>,
+                add_const_t<Ref>>));
+
+        /**
+         *  A Getter from Strides to the given stride.
+         *
+         *  If `I` exceeds the actual number of strides, std::integral_constant<int_t, 0> is returned.
+         *  Which allows to silently ignore the offsets in non existing dimensions.
+         */
+        template <size_t I, class Strides, enable_if_t<(I < tuple_util::size<decay_t<Strides>>::value), int> = 0>
+        constexpr GT_FUNCTION auto get_stride(Strides &&strides)
+            GT_AUTO_RETURN(tuple_util::host_device::get<I>(strides));
+        template <size_t I, class Strides, enable_if_t<(I >= tuple_util::size<decay_t<Strides>>::value), int> = 0>
+        constexpr GT_FUNCTION std::integral_constant<int_t, 0> get_stride(Strides &&) {
+            return {};
+        }
+
     } // namespace sid
 
+    /*
+     *  Promote is_sid one level up.
+     *
+     *  Just because `sid::is_sid` looks a bit redundant
+     */
     using sid::is_sid;
 } // namespace gridtools
