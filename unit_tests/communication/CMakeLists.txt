@@ -41,58 +41,54 @@ set(ADDITIONAL_SOURCES
 # custom test cases
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
-        if( NOT "${GT_DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "CPU")
-            foreach (source IN LISTS ${SOURCES} ${ADDITIONAL_SOURCES})
-                get_filename_component(target ${source})
-                add_custom_mpi_x86_test(
-                    TARGET ${target}
-                    NPROC 4
-                    SOURCES ${source}
-                    LABELS mpitest_x86
-                    )
-                add_custom_mpi_mc_test(
-                    TARGET ${target}
-                    NPROC 4
-                    SOURCES ${source}
-                    LABELS mpitest_mc
-                    )
-            endforeach()
-            foreach (source IN LISTS ${SOURCES})
-                get_filename_component(target ${source})
-                add_custom_mpi_x86_test(
-                    TARGET ${target}
-                    NPROC 4
-                    SOURCES ${source}
-                    COMPILE_DEFINITIONS VECTOR_INTERFACE
-                    LABELS mpitest_x86
-                    )
-                add_custom_mpi_mc_test(
-                    TARGET ${target}
-                    NPROC 4
-                    SOURCES ${source}
-                    COMPILE_DEFINITIONS VECTOR_INTERFACE
-                    LABELS mpitest_mc
-                    )
-            endforeach()
-        endif()
+        foreach (source IN LISTS ${SOURCES} ${ADDITIONAL_SOURCES})
+            get_filename_component(target ${source})
+            add_custom_mpi_x86_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                LABELS mpitest_x86
+                )
+            add_custom_mpi_mc_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                LABELS mpitest_mc
+                )
+        endforeach()
+        foreach (source IN LISTS ${SOURCES})
+            get_filename_component(target ${source})
+            add_custom_mpi_x86_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_x86
+                )
+            add_custom_mpi_mc_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_mc
+                )
+        endforeach()
 
-        if ( NOT "${GT_DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "GPU")
-            foreach (source IN LISTS ${SOURCES})
-                get_filename_component(target ${source})
-                add_custom_mpi_gpu_test(
-                    TARGET ${target}
-                    NPROC 4
-                    SOURCES ${source}
-                    LABELS mpitest_cuda
-                    )
-                add_custom_mpi_gpu_test(
-                    TARGET ${target}
-                    NPROC 4
-                    SOURCES ${source}
-                    COMPILE_DEFINITIONS VECTOR_INTERFACE
-                    LABELS mpitest_cuda
-                    )
-            endforeach()
-        endif()
+        foreach (source IN LISTS ${SOURCES})
+            get_filename_component(target ${source})
+            add_custom_mpi_gpu_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                LABELS mpitest_cuda
+                )
+            add_custom_mpi_gpu_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_cuda
+                )
+        endforeach()
     endif()
 endif()

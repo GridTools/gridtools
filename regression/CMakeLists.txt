@@ -1,6 +1,6 @@
 if( COMPONENT_STENCIL_COMPOSITION )
 
-    if(NOT STRUCTURED_GRIDS)
+    if(NOT GT_TESTS_STRUCTURED_GRID)
         add_subdirectory(icosahedral)
     else()
 
@@ -34,11 +34,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
       if(GT_ENABLE_TARGET_X86)
         foreach(srcfile IN LISTS SOURCES_X86)
           add_executable(${srcfile}_x86_naive   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_x86_naive regression_fixture GridToolsTestX86)
+          target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
           target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
 
           add_executable(${srcfile}_x86_block   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_x86_block regression_fixture GridToolsTestX86)
+          target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)
 
           gridtools_add_test(
               NAME tests.${srcfile}_x86_block_12_33_61
@@ -77,7 +77,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_executable(vanilla_laplacian_x86  vanilla_laplacian.cpp)
         target_link_libraries(vanilla_laplacian_x86 GridToolsTestX86)
 
-        if( GCL_MPI )
+        if( GT_USE_MPI )
             add_custom_mpi_x86_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
@@ -90,7 +90,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
       if(GT_ENABLE_TARGET_MC)
         foreach(srcfile IN LISTS SOURCES_X86)
           add_executable(${srcfile}_mc   ${srcfile}.cpp)
-          target_link_libraries(${srcfile}_mc regression_fixture GridToolsTestMC)
+          target_link_libraries(${srcfile}_mc regression_main GridToolsTestMC)
 
           gridtools_add_test(
               NAME tests.${srcfile}_mc_12_33_61
@@ -115,7 +115,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_executable(vanilla_laplacian_mc  vanilla_laplacian.cpp)
         target_link_libraries(vanilla_laplacian_mc GridToolsTestMC)
 
-        if( GCL_MPI )
+        if( GT_USE_MPI )
             add_custom_mpi_mc_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
             ## The next executable is not made into a test since it does not validate.
@@ -129,7 +129,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
        foreach(srcfile IN LISTS SOURCES_CUDA)
            add_executable( ${srcfile}_cuda ${srcfile}.cu)
-           target_link_libraries(${srcfile}_cuda regression_fixture GridToolsTestCUDA)
+           target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
 
            gridtools_add_test(
                NAME tests.${srcfile}_cuda_47_38_61
@@ -151,12 +151,12 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
            if (GT_CUDA_PTX_GENERATION)
                add_library( ${srcfile}_cuda_ptx OBJECT ${srcfile}.cu)
-               target_link_libraries(${srcfile}_cuda_ptx regression_fixture GridToolsTestCUDA)
+               target_link_libraries(${srcfile}_cuda_ptx regression_main GridToolsTestCUDA)
                set_target_properties(${srcfile}_cuda_ptx PROPERTIES CUDA_PTX_COMPILATION ON)
            endif()
        endforeach(srcfile)
 
-       if( GCL_MPI )
+       if( GT_USE_MPI )
            add_custom_mpi_gpu_test(TARGET copy_stencil_parallel NPROC 4 SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/copy_stencil_parallel.cu )
 
            ## The next executable is not made into a test since it does not validate.
@@ -174,5 +174,5 @@ if( COMPONENT_STENCIL_COMPOSITION )
         add_subdirectory( communication )
     endif()
 
-  endif(NOT STRUCTURED_GRIDS)
+  endif(NOT GT_TESTS_STRUCTURED_GRID)
 endif( COMPONENT_STENCIL_COMPOSITION )

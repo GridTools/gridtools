@@ -102,18 +102,13 @@ endif()
 # examples and tests
 # ===============
 if( GT_INSTALL_EXAMPLES )
-   SET(COMPILE_EXAMPLES ON)
-endif()
-
-if( COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
 endif()
 
-include (fix_test_case_name)
 if(BUILD_TESTING)
   # TODO move to the right directory
-  add_library(regression_fixture src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_fixture gtest GridTools)
+  add_library(regression_main src/tools/regression_fixture.cpp)
+  target_link_libraries(regression_main gtest GridTools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)
@@ -122,7 +117,7 @@ endif()
 # ===============
 # Downloads the gridtools_experimental repository
 # ===============
-if(ENABLE_EXPERIMENTAL_REPOSITORY)
+if(GT_ENABLE_EXPERIMENTAL_REPOSITORY)
   include(gridtools_experimental/download_gridtools_experimental)
 endif()
 

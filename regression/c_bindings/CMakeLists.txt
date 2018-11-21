@@ -1,5 +1,5 @@
 if (GT_ENABLE_TARGET_X86)
-    if(SINGLE_PRECISION)
+    if(GT_SINGLE_PRECISION)
         set(prec float)
     else()
         set(prec double)
