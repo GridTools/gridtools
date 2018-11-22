@@ -34,10 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/common/array.hpp>
-#include <gridtools/stencil-composition/sid/concept.cpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
+
+#include <type_traits>
 
 #include <gtest/gtest.h>
+
+#include <gridtools/common/array.hpp>
 
 namespace gridtools {
     namespace {
@@ -50,17 +53,21 @@ namespace gridtools {
         // test metafunctions on fully custom defined sid
         namespace custom {
             struct element {};
-            struct ptr_diff {};
+            struct ptr_diff {
+                int val;
+            };
             struct ptr {
+                int val;
                 element &operator*() const;
-                friend ptr_diff operator-(ptr, ptr);
                 friend ptr operator+(ptr, ptr_diff);
             };
             struct stride {
-                friend void sid_shift(ptr &, stride const &, int);
+                friend std::true_type sid_shift(ptr &, stride const &, int);
+                friend std::false_type sid_shift(ptr_diff &, stride const &, int);
             };
+            using strides = array<stride, 2>;
             struct bounds_validator {
-                bool operator()(...) const;
+                std::false_type operator()(...) const;
             };
 
             struct strides_kind;
@@ -68,7 +75,8 @@ namespace gridtools {
 
             struct testee {
                 friend ptr sid_get_origin(testee);
-                friend array<stride, 2> sid_get_strides(testee);
+                friend ptr_diff sid_get_ptr_diff(testee);
+                friend strides sid_get_strides(testee);
                 friend bounds_validator sid_get_bounds_validator(testee);
                 friend strides_kind sid_get_strides_kind(testee);
                 friend bounds_validator_kind sid_get_bounds_validator_kind(testee);
@@ -84,12 +92,23 @@ namespace gridtools {
             static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>{}, "");
             static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator_kind>{}, "");
 
+            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee const &>())), ptr>{}, "");
+            static_assert(std::is_same<decltype(sid::get_strides(std::declval<testee const &>())), strides>{}, "");
             static_assert(
-                std::is_same<decay_t<decltype(sid::get_stride<0>(sid::get_strides(testee{})))>, stride>{}, "");
+                std::is_same<decltype(sid::get_bounds_validator(std::declval<testee const &>())), bounds_validator>{},
+                "");
+            static_assert(std::is_same<decltype(sid::get_strides(std::declval<testee const &>())), strides>{}, "");
+
+            static_assert(std::is_same<decay_t<decltype(sid::get_stride<0>(strides{}))>, stride>{}, "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_stride<1>(strides{}))>, stride>{}, "");
+            static_assert(!std::is_same<decay_t<decltype(sid::get_stride<2>(strides{}))>, stride>{}, "");
+
+            static_assert(sid::impl_::is_valid_stride<ptr>::apply<stride>::value, "");
+
+            static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>{}, "");
             static_assert(
-                std::is_same<decay_t<decltype(sid::get_stride<1>(sid::get_strides(testee{})))>, stride>{}, "");
-            static_assert(
-                !std::is_same<decay_t<decltype(sid::get_stride<2>(sid::get_strides(testee{})))>, stride>{}, "");
+                std::is_same<decltype(sid::shift(std::declval<ptr_diff &>(), stride{}, 0)), std::false_type>{}, "");
+
         } // namespace custom
     }     // namespace
 } // namespace gridtools
