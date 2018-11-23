@@ -36,11 +36,13 @@
 
 #include <gridtools/stencil-composition/sid/concept.hpp>
 
+#include <tuple>
 #include <type_traits>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
+#include <gridtools/common/tuple_util.hpp>
 
 namespace gridtools {
     namespace {
@@ -50,7 +52,7 @@ namespace gridtools {
         struct garbage {};
         static_assert(!is_sid<garbage>{}, "");
 
-        // test metafunctions on fully custom defined sid
+        // fully custom defined sid
         namespace custom {
             struct element {};
             struct ptr_diff {
@@ -58,26 +60,27 @@ namespace gridtools {
             };
             struct ptr {
                 int val;
-                element &operator*() const;
-                friend ptr operator+(ptr, ptr_diff);
+                GT_FUNCTION element &operator*() const;
+                friend GT_FUNCTION ptr operator+(ptr, ptr_diff);
             };
             struct stride {
-                friend std::true_type sid_shift(ptr &, stride const &, int);
-                friend std::false_type sid_shift(ptr_diff &, stride const &, int);
+                friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int);
+                friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int);
             };
             using strides = array<stride, 2>;
             struct bounds_validator {
-                std::false_type operator()(...) const;
+                GT_FUNCTION std::false_type operator()(...) const;
             };
 
             struct strides_kind;
             struct bounds_validator_kind;
 
             struct testee {
-                friend ptr sid_get_origin(testee);
+                friend GT_FUNCTION ptr sid_get_origin(testee);
+                friend GT_FUNCTION strides sid_get_strides(testee);
+                friend GT_FUNCTION bounds_validator sid_get_bounds_validator(testee);
+
                 friend ptr_diff sid_get_ptr_diff(testee);
-                friend strides sid_get_strides(testee);
-                friend bounds_validator sid_get_bounds_validator(testee);
                 friend strides_kind sid_get_strides_kind(testee);
                 friend bounds_validator_kind sid_get_bounds_validator_kind(testee);
             };
@@ -97,18 +100,78 @@ namespace gridtools {
             static_assert(
                 std::is_same<decltype(sid::get_bounds_validator(std::declval<testee const &>())), bounds_validator>{},
                 "");
-            static_assert(std::is_same<decltype(sid::get_strides(std::declval<testee const &>())), strides>{}, "");
 
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<0>(strides{}))>, stride>{}, "");
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<1>(strides{}))>, stride>{}, "");
-            static_assert(!std::is_same<decay_t<decltype(sid::get_stride<2>(strides{}))>, stride>{}, "");
-
-            static_assert(sid::impl_::is_valid_stride<ptr>::apply<stride>::value, "");
+            static_assert(sid::get_stride<2>(strides{}) == 0, "");
+            static_assert(sid::get_stride<42>(strides{}) == 0, "");
 
             static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>{}, "");
             static_assert(
                 std::is_same<decltype(sid::shift(std::declval<ptr_diff &>(), stride{}, 0)), std::false_type>{}, "");
-
         } // namespace custom
-    }     // namespace
+
+        namespace fallbacks {
+
+            struct testee {
+                friend GT_FUNCTION testee *sid_get_origin(testee);
+            };
+
+            static_assert(is_sid<testee>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee), testee *>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptrdiff_t>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), testee &>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), testee>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), testee const &>{}, "");
+
+            using strides = GT_META_CALL(sid::strides_type, testee);
+            static_assert(tuple_util::size<strides>{} == 0, "");
+
+            using bounds_validator = GT_META_CALL(sid::bounds_validator_type, testee);
+            static_assert(bounds_validator{}(testee{}), "");
+
+            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator>{}, "");
+
+            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee const &>())), testee *>{}, "");
+            static_assert(std::is_same<decltype(sid::get_strides(std::declval<testee const &>())), strides>{}, "");
+            static_assert(
+                std::is_same<decltype(sid::get_bounds_validator(std::declval<testee const &>())), bounds_validator>{},
+                "");
+
+            constexpr auto stride = sid::get_stride<0>(strides{});
+            static_assert(stride == 0, "");
+            static_assert(sid::get_stride<42>(strides{}) == 0, "");
+
+            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>{}, "");
+            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>{}, "");
+        } // namespace fallbacks
+
+        template <class T, class Stride, class Offset>
+        void do_verify_shift(T obj, Stride stride, Offset offset) {
+            auto expected = obj + stride * offset;
+            sid::shift(obj, stride, offset);
+            EXPECT_EQ(expected, obj);
+        }
+
+        struct verify_shift_f {
+            template <class Stride, class Offset>
+            void operator()(Stride stride, Offset offset) const {
+                int const data[100] = {};
+                do_verify_shift(data + 50, stride, offset);
+                do_verify_shift(42, stride, offset);
+            }
+        };
+
+        TEST(shift, default_overloads) {
+            auto samples = std::make_tuple(2,
+                3,
+                std::integral_constant<int_t, -2>{},
+                std::integral_constant<int_t, -1>{},
+                std::integral_constant<int_t, 0>{},
+                std::integral_constant<int_t, 1>{},
+                std::integral_constant<int_t, 2>{});
+            tuple_util::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
+        }
+    } // namespace
 } // namespace gridtools
