@@ -140,9 +140,9 @@
  *  - BoundsValidator sid::get_bounds_validator(Sid const&);
  *  - void sid::shift(T&, Stride, Offset);
  *
- *  Auxiliry functions:
+ *  Auxiliary functions:
  *
- *  - Stride sid::get_stride<I>(Strides&&)
+ *  - Stride sid::get_stride<I>(Strides)
  *
  */
 
