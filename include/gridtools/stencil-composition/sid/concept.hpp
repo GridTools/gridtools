@@ -62,7 +62,7 @@ namespace gridtools {
             template <class T>
             struct is_integral_constant<T,
                 enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value &&
-                            std::is_convertible<T, decltype(T::value)>::value>> : std::true_type {};
+                            std::is_convertible<T, decltype(T::value)>::value && T() == T::value>> : std::true_type {};
 
             /**
              *  generic trait for integral constant of Val
@@ -73,7 +73,7 @@ namespace gridtools {
             struct is_integral_constant_of : std::false_type {};
 
             template <int Val, class T>
-            struct is_integral_constant_of<Val, T, enable_if_t<is_integral_constant<T>::value &&int(T::value) == Val>>
+            struct is_integral_constant_of<Val, T, enable_if_t<is_integral_constant<T>::value && T() == Val>>
                 : std::true_type {};
 
             // BEGIN `get_origin` PART

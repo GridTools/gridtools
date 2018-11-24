@@ -47,10 +47,10 @@
 namespace gridtools {
     namespace {
         // several primitive not sids
-        static_assert(!is_sid<void>{}, "");
-        static_assert(!is_sid<int>{}, "");
+        static_assert(!is_sid<void>(), "");
+        static_assert(!is_sid<int>(), "");
         struct garbage {};
-        static_assert(!is_sid<garbage>{}, "");
+        static_assert(!is_sid<garbage>(), "");
 
         // fully custom defined sid
         namespace custom {
@@ -59,92 +59,87 @@ namespace gridtools {
                 int val;
             };
             struct ptr {
-                int val;
-                GT_FUNCTION element &operator*() const;
-                friend GT_FUNCTION ptr operator+(ptr, ptr_diff);
+                element *val;
+                GT_FUNCTION element &operator*() const { return *val; }
+                friend GT_FUNCTION ptr operator+(ptr, ptr_diff) { return {}; }
             };
             struct stride {
-                friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int);
-                friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int);
+                friend GT_FUNCTION std::true_type sid_shift(ptr &, stride const &, int) { return {}; }
+                friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
             };
             using strides = array<stride, 2>;
             struct bounds_validator {
-                GT_FUNCTION std::false_type operator()(...) const;
+                GT_FUNCTION std::false_type operator()(...) const { return {}; }
             };
 
             struct strides_kind;
             struct bounds_validator_kind;
 
             struct testee {
-                friend GT_FUNCTION ptr sid_get_origin(testee);
-                friend GT_FUNCTION strides sid_get_strides(testee);
-                friend GT_FUNCTION bounds_validator sid_get_bounds_validator(testee);
+                friend GT_FUNCTION ptr sid_get_origin(testee) { return {}; }
+                friend GT_FUNCTION strides sid_get_strides(testee) { return {}; }
+                friend GT_FUNCTION bounds_validator sid_get_bounds_validator(testee) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
                 friend strides_kind sid_get_strides_kind(testee);
                 friend bounds_validator_kind sid_get_bounds_validator_kind(testee);
             };
 
-            static_assert(is_sid<testee>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee), ptr>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_type, testee), bounds_validator>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), element &>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), element>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), element const &>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator_kind>{}, "");
+            static_assert(is_sid<testee>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_type, testee), bounds_validator>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), element &>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), element>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), element const &>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator_kind>(), "");
 
-            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee const &>())), ptr>{}, "");
-            static_assert(std::is_same<decltype(sid::get_strides(std::declval<testee const &>())), strides>{}, "");
-            static_assert(
-                std::is_same<decltype(sid::get_bounds_validator(std::declval<testee const &>())), bounds_validator>{},
-                "");
+            static_assert(std::is_same<decltype(sid::get_origin(testee{})), ptr>::value, "");
+            static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
+            static_assert(std::is_same<decltype(sid::get_bounds_validator(testee{})), bounds_validator>(), "");
 
-            static_assert(std::is_same<decay_t<decltype(sid::get_stride<0>(strides{}))>, stride>{}, "");
-            static_assert(std::is_same<decay_t<decltype(sid::get_stride<1>(strides{}))>, stride>{}, "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_stride<0>(strides{}))>, stride>(), "");
+            static_assert(std::is_same<decay_t<decltype(sid::get_stride<1>(strides{}))>, stride>(), "");
             static_assert(sid::get_stride<2>(strides{}) == 0, "");
             static_assert(sid::get_stride<42>(strides{}) == 0, "");
 
-            static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>{}, "");
+            static_assert(std::is_same<decltype(sid::shift(std::declval<ptr &>(), stride{}, 0)), std::true_type>(), "");
             static_assert(
-                std::is_same<decltype(sid::shift(std::declval<ptr_diff &>(), stride{}, 0)), std::false_type>{}, "");
+                std::is_same<decltype(sid::shift(std::declval<ptr_diff &>(), stride{}, 0)), std::false_type>(), "");
         } // namespace custom
 
         namespace fallbacks {
 
             struct testee {
-                friend GT_FUNCTION testee *sid_get_origin(testee);
+                friend GT_FUNCTION testee *sid_get_origin(testee) { return {}; }
             };
 
-            static_assert(is_sid<testee>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee), testee *>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptrdiff_t>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), testee &>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), testee>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), testee const &>{}, "");
+            static_assert(is_sid<testee>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee), testee *>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptrdiff_t>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), testee &>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), testee>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), testee const &>(), "");
 
             using strides = GT_META_CALL(sid::strides_type, testee);
-            static_assert(tuple_util::size<strides>{} == 0, "");
+            static_assert(tuple_util::size<strides>() == 0, "");
 
             using bounds_validator = GT_META_CALL(sid::bounds_validator_type, testee);
             static_assert(bounds_validator{}(testee{}), "");
 
-            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides>{}, "");
-            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator>{}, "");
+            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator>(), "");
 
-            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee const &>())), testee *>{}, "");
-            static_assert(std::is_same<decltype(sid::get_strides(std::declval<testee const &>())), strides>{}, "");
-            static_assert(
-                std::is_same<decltype(sid::get_bounds_validator(std::declval<testee const &>())), bounds_validator>{},
-                "");
+            static_assert(std::is_same<decltype(sid::get_origin(testee{})), testee *>(), "");
+            static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
+            static_assert(std::is_same<decltype(sid::get_bounds_validator(testee{})), bounds_validator>(), "");
 
             constexpr auto stride = sid::get_stride<0>(strides{});
             static_assert(stride == 0, "");
             static_assert(sid::get_stride<42>(strides{}) == 0, "");
 
-            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>{}, "");
-            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>{}, "");
+            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<testee *&>(), stride, 42))>>(), "");
+            static_assert(std::is_void<void_t<decltype(sid::shift(std::declval<ptrdiff_t *&>(), stride, 42))>>(), "");
         } // namespace fallbacks
 
         template <class T, class Stride, class Offset>
@@ -164,13 +159,8 @@ namespace gridtools {
         };
 
         TEST(shift, default_overloads) {
-            auto samples = std::make_tuple(2,
-                3,
-                std::integral_constant<int_t, -2>{},
-                std::integral_constant<int_t, -1>{},
-                std::integral_constant<int_t, 0>{},
-                std::integral_constant<int_t, 1>{},
-                std::integral_constant<int_t, 2>{});
+            auto samples = std::make_tuple(
+                2, 3, static_int<-2>{}, static_int<-1>{}, static_int<0>{}, static_int<1>{}, static_int<2>{});
             tuple_util::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
     } // namespace
