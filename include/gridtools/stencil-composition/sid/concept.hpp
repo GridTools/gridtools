@@ -46,6 +46,104 @@
 
 /**
  *   Basic API for Stencil Iterable Data (aka SID) concept.
+ *
+ *   The Concept
+ *   ===========
+ *
+ *   Syntactic part of the concept
+ *   -----------------------------
+ *
+ *   A type `T` models SID concept if it has the following functions defined and available via ADL:
+ *     `GT_FUNCTION Ptr sid_get_origin(T const&);`
+ *     `GT_FUNCTION Strides sid_get_strides(T const&);`
+ *     `GT_FUNCTION BoundsValidator sid_get_bounds_validator(T const&);`
+ *
+ *   The following functions should be declared (definition is not needed) and avaliable via ADL:
+ *     `PtrDiff sid_get_ptr_diff(T const&)`
+ *     `StridesKind sid_get_strides_kind(T const&);`
+ *     `BoundsValidatorKind sid_get_bounds_validator_kind(T const&);`
+ *
+ *   The deducible from `T` types `Ptr`, `PtrDiff` ,`Strides`, `BoundsValidator` in their turn should satisfy
+ *   the constraints:
+ *     - `Ptr`, `Strides` and `BoundsValidator` are trivialy copiable
+ *     - `PtrDiff` is default constructible
+ *     - `Ptr` has `Ptr::operator*() const` which returns non void
+ *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
+ *     - `Strides` is tuple-like in the terms of `tuple_util` library
+ *     - `BoundsValidator` is callable and `BoundsValidator(Ptr)` is at least explicitly convertible to bool.
+ *
+ *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:
+ *     - be an integral
+ *     or
+ *     - be an integral constant (be an instantiation of the `std::integral_constant` or provide the same functionality)
+ *     or
+ *     - expressions `ptr += stride * offset` and `ptr_diff += stride * offset` are valid where `ptr`, `ptr_diff` and
+ *       `stride` are instances of `Ptr`, `PtrDiff` and `Stride` and `offset` type is integral or instantiation of
+ *       std::integral_constant
+ *     or
+ *     - the functions `sid_shift(Ptr&, Stride, Offset)` and `sid_shift(PtrDiff&, Stride, Offset)` are defined and
+ *       avaliable by ADL;
+ *
+ *   No constraints on `StridesKind` and `BoundsValidatorKind`. They not even have to be complete. (Can be declared but
+ *   not defined or can be `void`)
+ *
+ *   Semantic part of the concept
+ *   ----------------------------
+ *   Trivia: pure functional behaviour is expected from provided functions. For example this would be wrong:
+ *   ```
+ *     int sid_get_stride(my_sid) {
+ *       static int count = 0;
+ *       return count++;
+ *     }
+ *   ```
+ *
+ *   Any SIDs that have the same `StridesKind` would return the equivalent instances from their `sid_get_strides`.
+ *   You can think that `sid_get_strides` returns a singleton instance of Strides.
+ *
+ *   The same is applied to `BoundsValidatorKind` and `sid_get_bounds_validator`
+ *
+ *   `ptr == ptr + PtrDiff{}`,    for any ptr that is an instance of `Ptr`
+ *   `ptr + a + b == ptr + b + a` for any ptr that is an instance of `Ptr` and any a, b of type `PtrDiff`
+ *
+ *    TODO(anstaf): formal semantic definition is not complete.
+ *
+ *    Fallbacks
+ *    ---------
+ *
+ *    `sid_get_strides(Sid)` returns an empty tuple.
+ *    `sid_get_bounds_validator(Sid)` returns a validator that never returns false
+ *    `sid_get_ptr_diff(Sid)` returns the same type as `decltype(Ptr{} - Ptr{})`
+ *    `sid_get_strides_kind(Sid)` is enabled if `Strides` is empty and returns `Strides`
+ *    `sid_get_bounds_validator_kind` fallback is like sid_get_strides_kind one.
+ *
+ *   Compile time API
+ *   =================
+ *
+ *   - is_sid<T> predicate that checks if T models SID syntactically
+ *   - sid::ptr_type,
+ *     sid::ptr_diff_type,
+ *     sid::strides_type,
+ *     sid::strides_kind,
+ *     sid::bounds_validator_type,
+ *     sid::bounds_validator_kind,
+ *     sid::reference_type,
+ *     sid::const_reference_type,
+ *     sid::element_type - functions in terms of `meta` library. They return various types deducible from the Sid
+ *
+ *  Run time API
+ *  ===========
+ *
+ *  Wrappers for concept functions:
+ *
+ *  - Ptr sid::get_origin(Sid const&);
+ *  - Strides sid::get_strides(Sid const&);
+ *  - BoundsValidator sid::get_bounds_validator(Sid const&);
+ *  - void sid::shift(T&, Stride, Offset);
+ *
+ *  Auxiliry functions:
+ *
+ *  - Stride sid::get_stride<I>(Strides&&)
+ *
  */
 
 namespace gridtools {
