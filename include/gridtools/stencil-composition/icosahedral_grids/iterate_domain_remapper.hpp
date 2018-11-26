@@ -53,110 +53,44 @@
 #include "./position_offset_type.hpp"
 
 namespace gridtools {
-
     namespace icgrid {
-
-        namespace _aux {
-            template <typename T>
-            struct iterate_domain_remapper_base_iterate_domain;
-
-            template <typename IterateDomain,
-                typename EsfArgsMap,
-                typename EsfLocationType,
-                uint_t Color,
-                template <typename, typename, typename, uint_t> class Impl>
-            struct iterate_domain_remapper_base_iterate_domain<
-                Impl<IterateDomain, EsfArgsMap, EsfLocationType, Color>> {
-                typedef IterateDomain type;
-            };
-
-            template <typename T>
-            struct iterate_domain_remapper_base_color;
-
-            template <typename IterateDomain,
-                typename EsfArgsMap,
-                typename EsfLocationType,
-                uint_t Color,
-                template <typename, typename, typename, uint_t> class Impl>
-            struct iterate_domain_remapper_base_color<Impl<IterateDomain, EsfArgsMap, EsfLocationType, Color>> {
-                typedef static_uint<Color> type;
-            };
-
-            template <typename T>
-            struct iterate_domain_remapper_base_esf_location_type;
-
-            template <typename IterateDomain,
-                typename EsfArgsMap,
-                typename EsfLocationType,
-                uint_t Color,
-                template <typename, typename, typename, uint_t> class Impl>
-            struct iterate_domain_remapper_base_esf_location_type<
-                Impl<IterateDomain, EsfArgsMap, EsfLocationType, Color>> {
-                typedef EsfLocationType type;
-            };
-
-            template <typename T>
-            struct iterate_domain_remapper_base_esf_args_map;
-
-            template <typename IterateDomain,
-                typename EsfArgs,
-                typename EsfLocationType,
-                uint_t Color,
-                template <typename, typename, typename, uint_t> class Impl>
-            struct iterate_domain_remapper_base_esf_args_map<Impl<IterateDomain, EsfArgs, EsfLocationType, Color>> {
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
-                using domain_args_t = typename IterateDomain::esf_args_t;
-                GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, domain_args_t>::value), GT_INTERNAL_ERROR);
-
-                template <class Arg>
-                GT_META_DEFINE_ALIAS(get_domain_index, meta::st_position, (domain_args_t, Arg));
-
-                using type = GT_META_CALL(meta::transform, (get_domain_index, EsfArgs));
-            };
-        } // namespace _aux
-
         /**
-         * @class iterate_domain_remapper_base
-         * base class of an iterate_domain_remapper that intercepts the calls to evaluate the value of an arguments
-         * from the iterate domain, and redirect the arg specified by user to the actual position of the arg in the
-         * iterate domain
-         * @param IterateDomainEvaluatorImpl implementer class of the CRTP
+         * @class iterate_domain_remapper
+         * @param IterateDomain iterate domain
+         * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
          */
-        template <typename IterateDomainEvaluatorImpl>
-        class iterate_domain_remapper_base {
-            DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper_base);
+        template <typename IterateDomain, typename EsfArgs, typename EsfLocationType, uint_t Color>
+        class iterate_domain_remapper {
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
+
+            using domain_args_t = typename IterateDomain::esf_args_t;
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(get_domain_index, meta::st_position, (domain_args_t, Arg));
+
+            DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
 
           public:
-            typedef typename _aux::iterate_domain_remapper_base_iterate_domain<IterateDomainEvaluatorImpl>::type
-                iterate_domain_t;
-            typedef typename _aux::iterate_domain_remapper_base_color<IterateDomainEvaluatorImpl>::type color_t;
+            typedef static_uint<Color> color_t;
 
-            typedef typename _aux::iterate_domain_remapper_base_esf_location_type<IterateDomainEvaluatorImpl>::type
-                esf_location_type_t;
-
-          protected:
-            const iterate_domain_t &m_iterate_domain;
+          private:
+            const IterateDomain &m_iterate_domain;
 
           public:
-            typedef typename _aux::iterate_domain_remapper_base_esf_args_map<IterateDomainEvaluatorImpl>::type
-                esf_args_map_t;
-
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<iterate_domain_t>::value), GT_INTERNAL_ERROR);
-            typedef typename iterate_domain_t::esf_args_t esf_args_t;
+            typedef GT_META_CALL(meta::transform, (get_domain_index, EsfArgs)) esf_args_map_t;
 
             template <typename Accessor>
-            using accessor_return_type = typename iterate_domain_t::template accessor_return_type<
+            using accessor_return_type = typename IterateDomain::template accessor_return_type<
                 typename remap_accessor_type<Accessor, esf_args_map_t>::type>;
 
             GT_FUNCTION
             position_offset_type const &position() const { return m_iterate_domain.position(); }
 
             GT_FUNCTION
-            explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
-                : m_iterate_domain(iterate_domain) {}
+            explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : m_iterate_domain(iterate_domain) {}
 
             GT_FUNCTION
-            iterate_domain_t const &get() const { return m_iterate_domain; }
+            IterateDomain const &get() const { return m_iterate_domain; }
 
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template <typename Accessor>
@@ -188,9 +122,9 @@ namespace gridtools {
                      * @tparam Accessors variadic pack of accessors being processed by the apply_gt_integer_sequence
                      *     and to be evaluated by the iterate domain
                      */
-                    template <typename Neighbors, typename IterateDomain, typename... Accessors>
+                    template <typename Neighbors, typename IterateDomainT, typename... Accessors>
                     GT_FUNCTION static ValueType apply(Neighbors const &RESTRICT neighbors,
-                        IterateDomain const &iterate_domain,
+                        IterateDomainT const &iterate_domain,
                         Accessors &RESTRICT... args_) {
                         return iterate_domain._evaluate(get_from_variadic_pack<Idx>::apply(args_...), neighbors);
                     }
@@ -206,11 +140,11 @@ namespace gridtools {
              * @tparam Reduction this is the user lambda specified to expand the on_XXX keyword
              * @tparam IterateDomain is an iterate domain
              */
-            template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain>
+            template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomainT>
             struct reduce_tuple_data_holder {
                 Reduction const &m_reduction;
                 NeighborsArray const m_neighbors;
-                IterateDomain const &m_iterate_domain;
+                IterateDomainT const &m_iterate_domain;
                 ValueType &m_result;
 
               public:
@@ -236,7 +170,7 @@ namespace gridtools {
              * @tparam Reduction this is the user lambda specified to expand the on_XXX keyword
              * @tparam IterateDomain is an iterate domain
              */
-            template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomain>
+            template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomainT>
             struct reduce_tuple {
 
                 GRIDTOOLS_STATIC_ASSERT((std::is_same<decay_t<NeighborsArray>, unsigned int>::value ||
@@ -245,7 +179,7 @@ namespace gridtools {
 
                 GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
 
-                typedef reduce_tuple_data_holder<ValueType, NeighborsArray, Reduction, IterateDomain>
+                typedef reduce_tuple_data_holder<ValueType, NeighborsArray, Reduction, IterateDomainT>
                     reduce_tuple_holder_t;
 
                 template <typename... Accessors>
@@ -272,12 +206,11 @@ namespace gridtools {
                 typename SrcColor,
                 typename LocationTypeT,
                 typename Reduction,
-                typename EsfLocationType,
                 typename... Accessors,
                 enable_if_t<std::is_same<LocationTypeT, EsfLocationType>::value &&
                                 conjunction<is_accessor<Accessors>...>::value,
                     int> = 0>
-            GT_FUNCTION ValueType evaluate(EsfLocationType,
+            GT_FUNCTION ValueType evaluate(
                 on_neighbors_impl<ValueType, SrcColor, LocationTypeT, Reduction, Accessors...> onneighbors) const {
 
                 // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array<
@@ -290,13 +223,13 @@ namespace gridtools {
                 for (int_t i = 0; i < neighbors.size(); ++i) {
 
                     typedef decltype(neighbors[i]) neighbors_array_t;
-                    reduce_tuple_data_holder<ValueType, neighbors_array_t, Reduction, iterate_domain_t> red(
+                    reduce_tuple_data_holder<ValueType, neighbors_array_t, Reduction, IterateDomain> red(
                         onneighbors.reduction(), neighbors[i], result, m_iterate_domain);
                     // since the on_neighbors store a tuple of accessors (in maps() ), we should explode the
                     // tuple,
                     // so that each element of the tuple is passed as an argument of the user lambda
                     // (which happens in the reduce_tuple).
-                    explode<void, reduce_tuple<ValueType, neighbors_array_t, Reduction, iterate_domain_t>>(
+                    explode<void, reduce_tuple<ValueType, neighbors_array_t, Reduction, IterateDomain>>(
                         onneighbors.maps(), red);
                 }
 
@@ -308,12 +241,11 @@ namespace gridtools {
                 typename SrcColor,
                 typename LocationTypeT,
                 typename Reduction,
-                typename EsfLocationType,
                 typename... Accessors,
                 enable_if_t<!std::is_same<LocationTypeT, EsfLocationType>::value &&
                                 conjunction<is_accessor<Accessors>...>::value,
                     int> = 0>
-            GT_FUNCTION ValueType evaluate(EsfLocationType,
+            GT_FUNCTION ValueType evaluate(
                 on_neighbors_impl<ValueType, SrcColor, LocationTypeT, Reduction, Accessors...> onneighbors) const {
 
                 // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
@@ -326,12 +258,12 @@ namespace gridtools {
                 for (int_t i = 0; i < neighbors.size(); ++i) {
 
                     typedef decltype(neighbors[i]) neighbors_array_t;
-                    reduce_tuple_data_holder<ValueType, neighbors_array_t, Reduction, iterate_domain_t> red(
+                    reduce_tuple_data_holder<ValueType, neighbors_array_t, Reduction, IterateDomain> red(
                         onneighbors.reduction(), neighbors[i], result, m_iterate_domain);
                     // since the on_neighbors store a tuple of accessors (in maps() ), we should explode the tuple,
                     // so that each element of the tuple is passed as an argument of the user lambda
                     // (which happens in the reduce_tuple).
-                    explode<void, reduce_tuple<ValueType, neighbors_array_t, Reduction, iterate_domain_t>>(
+                    explode<void, reduce_tuple<ValueType, neighbors_array_t, Reduction, IterateDomain>>(
                         onneighbors.maps(), red);
                 }
 
@@ -348,38 +280,15 @@ namespace gridtools {
                     Reduction,
                     typename remap_accessor_type<Accessors, esf_args_map_t>::type...>
                     remap_accessor_t;
-                return evaluate(esf_location_type_t(), remap_accessor_t(onneighbors));
+                return evaluate(remap_accessor_t(onneighbors));
             }
-        };
-
-        /**
-         * @class iterate_domain_remapper
-         * default iterate domain remapper when positional information is not required
-         * @param IterateDomain iterate domain
-         * @param EsfArgsMap map from ESF arguments to iterate domain position of args.
-         */
-        template <typename IterateDomain, typename EsfArgs, typename EsfLocationType, uint_t Color>
-        class iterate_domain_remapper
-            : public iterate_domain_remapper_base<
-                  iterate_domain_remapper<IterateDomain, EsfArgs, EsfLocationType, Color>> // CRTP
-        {
-            DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
-
-          public:
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
-            typedef iterate_domain_remapper_base<
-                iterate_domain_remapper<IterateDomain, EsfArgs, EsfLocationType, Color>>
-                super;
-
-            GT_FUNCTION
-            explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
         };
     } // namespace icgrid
 
     /** Metafunction to query a type is an iterate domain.
      */
     template <typename T, typename U, typename L, uint_t C>
-    struct is_iterate_domain<icgrid::iterate_domain_remapper<T, U, L, C>> : boost::true_type {};
+    struct is_iterate_domain<icgrid::iterate_domain_remapper<T, U, L, C>> : std::true_type {};
 
     /**
      * @struct get_iterate_domain_remapper
