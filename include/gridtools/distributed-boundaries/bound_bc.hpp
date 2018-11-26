@@ -143,13 +143,13 @@ namespace gridtools {
                 using type = ISeq;
             };
 
-            template <std::size_t I, typename ISeq, typename First, typename... Elems>
+            template <std::size_t I, size_t... Is, typename First, typename... Elems>
             struct collect_indices<I,
-                ISeq,
+                gt_integer_sequence<size_t, Is...>,
                 std::tuple<First, Elems...>,
                 typename std::enable_if<(std::is_placeholder<First>::value == 0), void>::type> {
                 using type = typename collect_indices<I + 1,
-                    typename append<ISeq, gt_integer_sequence<std::size_t, I>>::type,
+                    gt_integer_sequence<std::size_t, Is..., I>,
                     std::tuple<Elems...>>::type;
             };
 

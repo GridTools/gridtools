@@ -50,7 +50,6 @@
 #include "../iterate_domain_metafunctions.hpp"
 #include "./icosahedral_topology.hpp"
 #include "./on_neighbors.hpp"
-#include "./position_offset_type.hpp"
 
 namespace gridtools {
     namespace icgrid {
@@ -70,10 +69,6 @@ namespace gridtools {
 
             DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
 
-          public:
-            typedef static_uint<Color> color_t;
-
-          private:
             const IterateDomain &m_iterate_domain;
 
           public:
@@ -89,198 +84,21 @@ namespace gridtools {
             GT_FUNCTION
             explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : m_iterate_domain(iterate_domain) {}
 
-            GT_FUNCTION
-            IterateDomain const &get() const { return m_iterate_domain; }
-
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template <typename Accessor>
-            GT_FUNCTION auto operator()(Accessor const &arg) const -> decltype(
-                m_iterate_domain(color_t(), typename remap_accessor_type<Accessor, esf_args_map_t>::type(arg))) {
-                typedef typename remap_accessor_type<Accessor, esf_args_map_t>::type remap_accessor_t;
-                return m_iterate_domain(color_t(), remap_accessor_t(arg));
-            }
-
-            /**
-             * helper to dereference the value (using an iterate domain) of an accessor
-             * (specified with an Index from within a variadic pack of Accessors). It is meant to be used as
-             * a functor of a apply_gt_integer_sequence, where the Index is provided from the integer sequence
-             * @tparam ValueType value type of the computation
-             */
-            template <typename ValueType>
-            struct it_domain_evaluator {
-
-                /**
-                 * @tparam Idx index being processed from within an apply_gt_integer_sequence
-                 */
-                template <int Idx>
-                struct apply_t {
-                    /**
-                     * @tparam Neighbors type locates the position of a neighbor element in the grid. If can be:
-                     *     * a quad of values indicating the {i,c,j,k} positions or
-                     *     * an integer indicating the absolute index in the storage
-                     * @tparam IterateDomain is an iterate domain
-                     * @tparam Accessors variadic pack of accessors being processed by the apply_gt_integer_sequence
-                     *     and to be evaluated by the iterate domain
-                     */
-                    template <typename Neighbors, typename IterateDomainT, typename... Accessors>
-                    GT_FUNCTION static ValueType apply(Neighbors const &RESTRICT neighbors,
-                        IterateDomainT const &iterate_domain,
-                        Accessors &RESTRICT... args_) {
-                        return iterate_domain._evaluate(get_from_variadic_pack<Idx>::apply(args_...), neighbors);
-                    }
-                };
-            };
-
-            /**
-             * data structure that holds data needed by the reduce_tuple functor
-             * @tparam ValueType value type of the computation
-             * @tparam NeighborsArray type locates the position of a neighbor element in the grid. If can be:
-             *     * a quad of values indicating the {i,c,j,k} positions or
-             *     * an integer indicating the absolute index in the storage
-             * @tparam Reduction this is the user lambda specified to expand the on_XXX keyword
-             * @tparam IterateDomain is an iterate domain
-             */
-            template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomainT>
-            struct reduce_tuple_data_holder {
-                Reduction const &m_reduction;
-                NeighborsArray const m_neighbors;
-                IterateDomainT const &m_iterate_domain;
-                ValueType &m_result;
-
-              public:
-                GT_FUNCTION
-                reduce_tuple_data_holder(Reduction const &reduction,
-                    NeighborsArray const neighbors,
-                    ValueType &result,
-                    IterateDomain const &iterate_domain)
-                    : m_reduction(reduction), m_neighbors(neighbors), m_result(result),
-                      m_iterate_domain(iterate_domain) {}
-            };
-
-            /**
-             * functor used to expand all the accessors arguments stored in a tuple of a on_neighbors structured.
-             * The functor will process all the accessors (i.e. dereference their values of the storages given an
-             * neighbors
-             * offset)
-             * and call the user lambda
-             * @tparam ValueType value type of the computation
-             * @tparam NeighborsArray type locates the position of a neighbor element in the grid. If can be:
-             *     * a quad of values indicating the {i,c,j,k} positions or
-             *     * an integer indicating the absolute index in the storage
-             * @tparam Reduction this is the user lambda specified to expand the on_XXX keyword
-             * @tparam IterateDomain is an iterate domain
-             */
-            template <typename ValueType, typename NeighborsArray, typename Reduction, typename IterateDomainT>
-            struct reduce_tuple {
-
-                GRIDTOOLS_STATIC_ASSERT((std::is_same<decay_t<NeighborsArray>, unsigned int>::value ||
-                                            is_position_offset_type<decay_t<NeighborsArray>>::value),
-                    GT_INTERNAL_ERROR);
-
-                GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
-
-                typedef reduce_tuple_data_holder<ValueType, NeighborsArray, Reduction, IterateDomainT>
-                    reduce_tuple_holder_t;
-
-                template <typename... Accessors>
-                GT_FUNCTION static void apply(reduce_tuple_holder_t &RESTRICT reducer, Accessors &RESTRICT... args) {
-                    // we need to call the user functor (Reduction(arg1, arg2, ..., result) )
-                    // However we can make here a direct call, since we first need to dereference the address of each
-                    // Accessor given the array with position of the neighbor being accessed (reducer.m_neighbors)
-                    // We make use of the apply_gt_integer_sequence in order to operate on each element of the variadic
-                    // pack, dereference its address (it_domain_evaluator) and gather back all the arguments while
-                    // calling the user lambda (Reduction)
-                    using seq = apply_gt_integer_sequence<make_gt_integer_sequence<int, sizeof...(Accessors)>>;
-
-                    reducer.m_result = seq::template apply_lambda<ValueType,
-                        Reduction,
-                        it_domain_evaluator<ValueType>::template apply_t>(
-                        reducer.m_reduction, reducer.m_result, reducer.m_neighbors, reducer.m_iterate_domain, args...);
-                }
-            };
-
-            // specialization of the () operator for on_neighbors operating on accessors
-            // when the location type of the neighbors is the same as the location type of the ESF (iteration space)
-            // In this case, dereference of accessors is done using relative offsets instead of absolute indexes
-            template <typename ValueType,
-                typename SrcColor,
-                typename LocationTypeT,
-                typename Reduction,
-                typename... Accessors,
-                enable_if_t<std::is_same<LocationTypeT, EsfLocationType>::value &&
-                                conjunction<is_accessor<Accessors>...>::value,
-                    int> = 0>
-            GT_FUNCTION ValueType evaluate(
-                on_neighbors_impl<ValueType, SrcColor, LocationTypeT, Reduction, Accessors...> onneighbors) const {
-
-                // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array<
-                // array<uint_t, 4>, NumNeighbors>
-                constexpr auto neighbors = connectivity<EsfLocationType, LocationTypeT, SrcColor::value>::offsets();
-
-                // TODO reuse the next code
-                ValueType &result = onneighbors.value();
-
-                for (int_t i = 0; i < neighbors.size(); ++i) {
-
-                    typedef decltype(neighbors[i]) neighbors_array_t;
-                    reduce_tuple_data_holder<ValueType, neighbors_array_t, Reduction, IterateDomain> red(
-                        onneighbors.reduction(), neighbors[i], result, m_iterate_domain);
-                    // since the on_neighbors store a tuple of accessors (in maps() ), we should explode the
-                    // tuple,
-                    // so that each element of the tuple is passed as an argument of the user lambda
-                    // (which happens in the reduce_tuple).
-                    explode<void, reduce_tuple<ValueType, neighbors_array_t, Reduction, IterateDomain>>(
-                        onneighbors.maps(), red);
-                }
-
-                return result;
-            }
-
-            // specialization of the () operator for on_neighbors operating on accessors
-            template <typename ValueType,
-                typename SrcColor,
-                typename LocationTypeT,
-                typename Reduction,
-                typename... Accessors,
-                enable_if_t<!std::is_same<LocationTypeT, EsfLocationType>::value &&
-                                conjunction<is_accessor<Accessors>...>::value,
-                    int> = 0>
-            GT_FUNCTION ValueType evaluate(
-                on_neighbors_impl<ValueType, SrcColor, LocationTypeT, Reduction, Accessors...> onneighbors) const {
-
-                // the neighbors are described as an array of absolute indices in the storage, i.e. an array<uint?t,
-                // NumNeighbors>
-                constexpr auto neighbors =
-                    connectivity<EsfLocationType, decltype(onneighbors.location()), SrcColor::value>::offsets();
-
-                ValueType &result = onneighbors.value();
-
-                for (int_t i = 0; i < neighbors.size(); ++i) {
-
-                    typedef decltype(neighbors[i]) neighbors_array_t;
-                    reduce_tuple_data_holder<ValueType, neighbors_array_t, Reduction, IterateDomain> red(
-                        onneighbors.reduction(), neighbors[i], result, m_iterate_domain);
-                    // since the on_neighbors store a tuple of accessors (in maps() ), we should explode the tuple,
-                    // so that each element of the tuple is passed as an argument of the user lambda
-                    // (which happens in the reduce_tuple).
-                    explode<void, reduce_tuple<ValueType, neighbors_array_t, Reduction, IterateDomain>>(
-                        onneighbors.maps(), red);
-                }
-
-                return result;
-            }
+            GT_FUNCTION auto operator()(Accessor const &arg) const GT_AUTO_RETURN((m_iterate_domain(
+                static_uint<Color>{}, typename remap_accessor_type<Accessor, esf_args_map_t>::type(arg))));
 
             template <typename ValueType, typename LocationTypeT, typename Reduction, typename... Accessors>
             GT_FUNCTION ValueType operator()(
                 on_neighbors<ValueType, LocationTypeT, Reduction, Accessors...> onneighbors) const {
-
-                typedef on_neighbors_impl<ValueType,
-                    color_t,
-                    LocationTypeT,
-                    Reduction,
-                    typename remap_accessor_type<Accessors, esf_args_map_t>::type...>
-                    remap_accessor_t;
-                return evaluate(remap_accessor_t(onneighbors));
+                constexpr auto offsets = connectivity<EsfLocationType, LocationTypeT, Color>::offsets();
+                for (auto &&offset : offsets)
+                    onneighbors.m_value = onneighbors.m_function(
+                        m_iterate_domain._evaluate(
+                            typename remap_accessor_type<Accessors, esf_args_map_t>::type{}, offset)...,
+                        onneighbors.m_value);
+                return onneighbors.m_value;
             }
         };
     } // namespace icgrid

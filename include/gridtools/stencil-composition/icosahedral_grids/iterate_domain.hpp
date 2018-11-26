@@ -38,7 +38,6 @@
 #include <type_traits>
 
 #include "../../common/array.hpp"
-#include "../../common/explode_array.hpp"
 #include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
@@ -94,18 +93,7 @@ namespace gridtools {
          * metafunction that computes the return type of all operator() of an accessor
          */
         template <typename Accessor>
-        struct accessor_return_type {
-            typedef typename accessor_return_type_impl<Accessor, iterate_domain_arguments_t>::type type;
-        };
-
-        template <typename T>
-        struct map_return_type;
-
-        template <typename MapF, typename LT, typename Arg0, typename... Args>
-        struct map_return_type<map_function<MapF, LT, Arg0, Args...>> {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Arg0>::value), GT_INTERNAL_ERROR);
-            typedef typename remove_restrict_reference<typename accessor_return_type<Arg0>::type>::type type;
-        };
+        struct accessor_return_type : accessor_return_type_impl<Accessor, iterate_domain_arguments_t> {};
 
         typedef
             typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
@@ -318,8 +306,6 @@ namespace gridtools {
         _evaluate(accessor<ID, Intent, LocationType, Extent, FieldDimensions>,
             position_offset_type const &RESTRICT position_offset) const {
             using accessor_t = accessor<ID, Intent, LocationType, Extent, FieldDimensions>;
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor<accessor_t>::value), "Using EVAL is only allowed for an accessor type");
 
             // getting information about the storage
             typedef typename accessor_t::index_t index_t;
@@ -339,7 +325,7 @@ namespace gridtools {
                 compute_offset<storage_info_t>(strides().template get<storage_info_index>(), position_offset);
 
             return get_raw_value(
-                accessor_t(), boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second, pointer_offset);
+                accessor_t{}, boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second, pointer_offset);
         }
     };
 
