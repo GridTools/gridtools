@@ -516,7 +516,7 @@ namespace gridtools {
                 class PtrDiff = ptr_diff_type<Sid>,
                 class StridesType = strides_type<Sid>,
                 class BoundsValidatorType = bounds_validator_type<Sid>,
-                class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, StridesType)>
+                class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, decay_t<StridesType>)>
             GT_META_DEFINE_ALIAS(is_sid,
                 conjunction,
                 (
