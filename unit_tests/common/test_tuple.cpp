@@ -123,7 +123,7 @@ namespace gridtools {
         TEST(tuple, element_wise_ctor) {
             int const v1 = 3;
             double const v2 = 2.5;
-            an_empty<59> const v3;
+            an_empty<59> const v3 = {};
             tuple<int, double, an_empty<59>> testee{v1, v2, v3};
             EXPECT_EQ(3, get<0>(testee));
             EXPECT_EQ(2.5, get<1>(testee));

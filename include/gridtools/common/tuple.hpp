@@ -124,35 +124,19 @@ namespace gridtools {
             impl &operator=(impl const &) = default;
             impl &operator=(impl &&) = default;
 
-            constexpr GT_FUNCTION impl(Ts const &... args) noexcept : leaf<Is, Ts>(args)... {}
-            constexpr GT_FUNCTION impl(Ts &&... args) noexcept : leaf<Is, Ts>(const_expr::move(args))... {}
-
-            template <class... Args,
-                enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                conjunction<std::is_constructible<Ts, Args &&>...>::value,
-                    int> = 0>
+          protected:
+            template <class... Args>
             constexpr GT_FUNCTION impl(Args &&... args) noexcept : leaf<Is, Ts>(const_expr::forward<Args>(args))... {}
 
-            template <class... Args,
-                enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                conjunction<std::is_constructible<Ts, Args const &>...>::value,
-                    int> = 0>
-            constexpr GT_FUNCTION impl(impl<meta::index_sequence<Is...>, Args...> const &src) noexcept
-                : leaf<Is, Ts>(getter::get<Is>(src))... {}
-
-            template <class... Args,
-                enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                                conjunction<std::is_constructible<Ts, Args &&>...>::value,
-                    int> = 0>
-            constexpr GT_FUNCTION impl(impl<meta::index_sequence<Is...>, Args...> &&src) noexcept
-                : leaf<Is, Ts>(getter::get<Is>(const_expr::move(src)))... {}
+            template <class Src>
+            constexpr GT_FUNCTION impl(Src &&src) noexcept
+                : leaf<Is, Ts>(getter::get<Is>(const_expr::forward<Src>(src)))... {}
 
             GT_FORCE_INLINE void swap(impl &other) noexcept {
                 using std::swap;
                 void((int[]){(swap(getter::get<Is>(*this), getter::get<Is>(other)), 0)...});
             }
 
-          protected:
             template <class... Args,
                 enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                                 conjunction<std::is_assignable<Ts &, Args const &>...>::value,
@@ -196,24 +180,24 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10 || defined(__INTEL_COMPILER) && __INTEL_COMPILER <= 1800
-        template <class... Args,
-            enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
-                            conjunction<std::is_constructible<Ts, Args const &>...>::value,
-                int> = 0>
-        constexpr GT_FUNCTION tuple(tuple_detail::impl<meta::index_sequence_for<Ts...>, Args...> const &src) noexcept
-            : tuple::impl(src) {}
+        constexpr GT_FUNCTION tuple(Ts const &... args) noexcept : tuple::impl(args...) {}
 
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
                 int> = 0>
-        constexpr GT_FUNCTION tuple(tuple_detail::impl<meta::index_sequence_for<Ts...>, Args...> &&src) noexcept
-            : tuple::impl(const_expr::move(src)) {}
+        constexpr GT_FUNCTION tuple(Args &&... args) noexcept : tuple::impl(const_expr::forward<Args>(args)...) {}
 
-        using tuple_detail::impl<meta::index_sequence_for<Ts...>, Ts...>::impl;
-#else
-        using tuple::impl::impl;
-#endif
+        template <class... Args,
+            enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
+                            conjunction<std::is_constructible<Ts, Args const &>...>::value,
+                int> = 0>
+        constexpr GT_FUNCTION tuple(tuple<Args...> const &src) noexcept : tuple::impl(src) {}
+
+        template <class... Args,
+            enable_if_t<sizeof...(Ts) == sizeof...(Args) && conjunction<std::is_constructible<Ts, Args &&>...>::value,
+                int> = 0>
+        constexpr GT_FUNCTION tuple(tuple<Args...> &&src) noexcept : tuple::impl(const_expr::move(src)) {}
+
         using tuple::impl::swap;
 
         template <class Other>
