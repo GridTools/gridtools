@@ -196,7 +196,7 @@ namespace gridtools {
         tuple &operator=(tuple const &) = default;
         tuple &operator=(tuple &&) = default;
 
-#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10 || defined(__INTEL_COMPILER) && __INTEL_COMPILER <= 1800
         template <class... Args,
             enable_if_t<sizeof...(Ts) == sizeof...(Args) &&
                             conjunction<std::is_constructible<Ts, Args const &>...>::value,
