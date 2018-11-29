@@ -35,35 +35,11 @@
 */
 #include <gridtools/common/generic_metafunctions/gt_integer_sequence.hpp>
 
-#include "gtest/gtest.h"
-#include <boost/type_traits/is_same.hpp>
-#include <gridtools/common/array.hpp>
-#include <gridtools/common/generic_metafunctions/variadic_typedef.hpp>
 #include <type_traits>
 
-template <int Idx>
-struct get_component {
-
-    GT_FUNCTION constexpr static int apply() { return 0; }
-
-    template <typename... Ints>
-    GT_FUNCTION constexpr static int apply(int first, Ints... rest) {
-        return Idx ? get_component<Idx - 1>::apply(rest...) : first;
-    }
-};
-
-template <int Idx, typename Elem>
-struct get_component_meta {
-    static constexpr int value = Elem::value;
-};
+#include <gtest/gtest.h>
 
 using namespace gridtools;
-
-template <int Idx, typename Elem>
-struct get_component_type {
-
-    static constexpr int value = Elem::value;
-};
 
 GRIDTOOLS_STATIC_ASSERT((std::is_same<gt_integer_sequence<int>::value_type, int>::value), "");
 GRIDTOOLS_STATIC_ASSERT((gt_integer_sequence<int, 1, 2, 3>::size() == 3), "");
@@ -71,72 +47,4 @@ GRIDTOOLS_STATIC_ASSERT((gt_integer_sequence<int, 1, 2, 3>::size() == 3), "");
 GRIDTOOLS_STATIC_ASSERT((std::is_same<make_gt_integer_sequence<int, 3>, gt_integer_sequence<int, 0, 1, 2>>::value), "");
 GRIDTOOLS_STATIC_ASSERT((std::is_same<make_gt_integer_sequence<bool, 1>, gt_integer_sequence<bool, false>>::value), "");
 
-TEST(integer_sequence, fill_array) {
-
-    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>>;
-
-    // calling the array constexpr copy constructor
-    constexpr gridtools::array<int, 4> out(seq::template apply<gridtools::array<int, 4>, get_component>(0, 1, 2, 3));
-
-    // verifying that the information is actually compile-time known and that it's correct
-    GRIDTOOLS_STATIC_ASSERT(out[0] == 0 && out[1] == 1 && out[2] == 2 && out[3] == 3, "Error in test_integer_sequence");
-}
-
-template <int... v>
-struct extent_test {};
-
-TEST(integer_sequence, fill_templated_container) {
-
-    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>>;
-
-    // calling the array constexpr copy constructor
-    using extent_t = seq::
-        template apply_t<extent_test, get_component_meta, static_int<0>, static_int<1>, static_int<-2>, static_int<3>>::
-            type;
-    // verifying that the information is actually compile-time known and that it's correct
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same<extent_test<0, 1, -2, 3>, extent_t>::value), "Error in test_integer_sequence");
-}
-
-TEST(integer_sequence, Append) {
-    using s1 = gt_integer_sequence<std::size_t, 2, 1, 3>;
-    using s2 = gt_integer_sequence<std::size_t, 5, 6>;
-    using s3 = gt_integer_sequence<std::size_t>;
-
-    EXPECT_TRUE((std::is_same<append<s1, s2>::type, gt_integer_sequence<std::size_t, 2, 1, 3, 5, 6>>::value));
-
-    EXPECT_TRUE((std::is_same<append<s1, s3>::type, gt_integer_sequence<std::size_t, 2, 1, 3>>::value));
-
-    EXPECT_TRUE((std::is_same<append<s3, s1>::type, gt_integer_sequence<std::size_t, 2, 1, 3>>::value));
-}
-
-template <int Idx>
-struct transform {
-
-    GT_FUNCTION
-    constexpr transform() {}
-
-    template <typename... Args>
-    GT_FUNCTION constexpr static int apply(Args... args) {
-        return get_from_variadic_pack<Idx>::apply(args...) - Idx;
-    }
-};
-
-struct lambda {
-    GT_FUNCTION constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
-        return add * (i + j + k + l);
-    }
-};
-
-TEST(integer_sequence, apply_lambda) {
-
-    using seq = gridtools::apply_gt_integer_sequence<gridtools::make_gt_integer_sequence<int, 4>>;
-
-    constexpr auto gather = lambda();
-
-    constexpr int result = seq::template apply_lambda<int, decltype(gather), transform>(gather, 17, 4, 6, 34, 5);
-
-    GRIDTOOLS_STATIC_ASSERT((static_int<result>::value == 731), "ERROR");
-
-    ASSERT_TRUE(true);
-}
+TEST(dummy, dummy) {}
