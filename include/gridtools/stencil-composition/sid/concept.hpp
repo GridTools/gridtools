@@ -58,7 +58,7 @@
  *     `GT_FUNCTION Strides sid_get_strides(T const&);`
  *     `GT_FUNCTION BoundsValidator sid_get_bounds_validator(T const&);`
  *
- *   The following functions should be declared (definition is not needed) and avaliable via ADL:
+ *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
  *     `StridesKind sid_get_strides_kind(T const&);`
  *     `BoundsValidatorKind sid_get_bounds_validator_kind(T const&);`
