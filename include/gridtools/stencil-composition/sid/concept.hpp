@@ -82,7 +82,7 @@
  *       std::integral_constant
  *     or
  *     - the functions `sid_shift(Ptr&, Stride, Offset)` and `sid_shift(PtrDiff&, Stride, Offset)` are defined and
- *       avaliable by ADL;
+ *       available by ADL;
  *
  *   No constraints on `StridesKind` and `BoundsValidatorKind`. They not even have to be complete. (Can be declared but
  *   not defined or can be `void`)
