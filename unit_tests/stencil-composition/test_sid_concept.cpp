@@ -160,10 +160,13 @@ namespace gridtools {
             }
         };
 
+        template <int I>
+        using int_constant = integral_constant<int, I>;
+
         TEST(shift, default_overloads) {
             namespace tu = tuple_util;
             auto samples = tu::host_device::make<tuple>(
-                2, 3, static_int<-2>{}, static_int<-1>{}, static_int<0>{}, static_int<1>{}, static_int<2>{});
+                2, 3, int_constant<-2>{}, int_constant<-1>{}, int_constant<0>{}, int_constant<1>{}, int_constant<2>{});
             tu::host::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
     } // namespace
