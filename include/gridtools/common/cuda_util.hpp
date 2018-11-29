@@ -82,6 +82,15 @@ namespace gridtools {
             GT_CUDA_CHECK(cudaMemcpy(ptr, &src, sizeof(T), cudaMemcpyHostToDevice));
             return res;
         }
+
+        template <class T>
+        T from_clone(std::unique_ptr<T, _impl::deleter_f> const &clone) {
+            GRIDTOOLS_STATIC_ASSERT(is_cloneable<T>::value, GT_INTERNAL_ERROR);
+            T res;
+            GT_CUDA_CHECK(cudaMemcpy(&res, clone.get(), sizeof(T), cudaMemcpyDeviceToHost));
+            return res;
+        }
+
     } // namespace cuda_util
 } // namespace gridtools
 
