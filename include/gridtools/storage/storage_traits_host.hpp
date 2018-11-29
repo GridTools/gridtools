@@ -40,8 +40,6 @@
 #include "../common/selector.hpp"
 #include "./common/definitions.hpp"
 #include "./common/storage_traits_metafunctions.hpp"
-#include "./storage_host/data_field_view_helpers.hpp"
-#include "./storage_host/data_view_helpers.hpp"
 #include "./storage_host/host_storage.hpp"
 #include "./storage_host/host_storage_info.hpp"
 
@@ -55,7 +53,7 @@ namespace gridtools {
 
     /** @brief storage traits for the Host backend*/
     template <>
-    struct storage_traits_from_id<platform::x86> {
+    struct storage_traits_from_id<target::x86> {
 
         template <typename ValueType>
         struct select_storage {

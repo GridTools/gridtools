@@ -35,29 +35,27 @@
 */
 #pragma once
 
-#include <boost/mpl/filter_view.hpp>
-#include <boost/mpl/reverse.hpp>
-#include <boost/mpl/transform.hpp>
+#include <cassert>
+#include <type_traits>
 
-#include "../gridtools.hpp"
-#include "./backend_traits_fwd.hpp"
-#include "./run_functor_arguments.hpp"
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../common/selector.hpp"
+#include "../storage/storage-facility.hpp"
+#include "./backend_ids.hpp"
+#include "./grid.hpp"
+#include "./local_domain.hpp"
+#include "./mss_components.hpp"
 
 #ifdef __CUDACC__
-#include "./backend_cuda/backend_cuda.hpp"
+#include "./backend_cuda/backend_traits_cuda.hpp"
 #endif
-#include "./backend_host/backend_host.hpp"
-#include "./backend_mic/backend_mic.hpp"
-
-#include "../storage/storage-facility.hpp"
-#include "./accessor.hpp"
-#include "./intermediate_impl.hpp"
-#include "./mss.hpp"
-#include "./mss_metafunctions.hpp"
+#include "./backend_mc/backend_traits_mc.hpp"
+#include "./backend_x86/backend_traits_x86.hpp"
 
 /**
    @file
-   @brief base class for all the backends. Current supported backend are \ref gridtools::enumtype::Host and \ref
+   @brief base class for all the backends. Current supported backend are \ref gridtools::target:x86 and \ref
    gridtools::enumtype::Cuda
    It is templated on the derived type (CRTP pattern) in order to use static polymorphism.
 */
@@ -71,7 +69,7 @@ namespace gridtools {
         backend<type, strategy>
         there are traits: one for type and one for strategy.
         - type refers to the architecture specific, like the
-          differences between cuda and the host.
+          differences between cuda and x86.
 
         The backend has a member function "run" that is called by the
         "intermediate".
@@ -92,7 +90,7 @@ namespace gridtools {
         The execute_traits::backend_t (bad name) is responsible for
         the "inner loop nests". The
         loop<execute_traits::backend_t>::run_loop will use that to do
-        whatever he has to do, for instance, the host_backend will
+        whatever he has to do, for instance, the x86_backend will
         iterate over the functors of the MSS using the for_each
         available there.
 
@@ -102,7 +100,7 @@ namespace gridtools {
         - This contains:
         - - (INTERFACE) pointer<>::type that returns the first argument to instantiate the storage class
         - - (INTERFACE) storage_traits::storage_t to get the storage type to be used with the backend
-        - - (INTERFACE) execute_traits ?????? this was needed when backend_traits was forcely shared between host and
+        - - (INTERFACE) execute_traits ?????? this was needed when backend_traits was forcely shared between x86 and
        cuda backends. Now they are separated and this may be simplified.
         - - (INTERNAL) for_each that is used to invoke the different things for different stencils in the MSS
         - - (INTERNAL) once_per_block
@@ -111,7 +109,7 @@ namespace gridtools {
     struct backend_base {
 
 #ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, platform::cuda>::value),
+        GRIDTOOLS_STATIC_ASSERT((std::is_same<BackendId, target::cuda>::value),
             "Beware: you are compiling with nvcc, and most probably "
             "want to use the cuda backend, but the backend you are "
             "instantiating is another one!!");

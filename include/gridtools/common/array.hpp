@@ -38,11 +38,13 @@
 @file
 @brief Implementation of an array class
 */
+#include <algorithm>
+#include <iterator>
+#include <type_traits>
+
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include <algorithm>
-#include <type_traits>
 
 namespace gridtools {
 
@@ -54,20 +56,6 @@ namespace gridtools {
         @{
     */
 
-    namespace impl_ {
-        template <typename T, std::size_t N>
-        struct array_traits {
-            using type = T[N];
-            static constexpr GT_FUNCTION bool assert_range(size_t i) { return i < N; }
-        };
-
-        template <typename T>
-        struct array_traits<T, 0> {
-            using type = T[1]; // maybe use implementation from std::array instead?
-            static constexpr GT_FUNCTION bool assert_range(size_t) { return false; }
-        };
-    } // namespace impl_
-
     template <typename T>
     struct is_array;
 
@@ -78,13 +66,24 @@ namespace gridtools {
      */
     template <typename T, size_t D>
     class array {
-        typedef array<T, D> type;
+        using type = array;
 
       public:
         // we make the members public to make this class an aggregate
-        typename impl_::array_traits<T, D>::type m_array;
+        T m_array[D ? D : 1]; // Note: don't use a type-trait for the zero-size case, as there is a bug with defining an
+                              // alias for c-arrays in CUDA 9.2 and 10.0 (see #1040)
 
-        typedef T value_type;
+        using value_type = T;
+        using size_type = size_t;
+        using difference_type = std::ptrdiff_t;
+        using reference = value_type &;
+        using const_reference = value_type const &;
+        using pointer = value_type *;
+        using const_pointer = value_type const *;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         GT_FUNCTION
         T const *begin() const { return &m_array[0]; }
@@ -106,15 +105,9 @@ namespace gridtools {
         GT_FUNCTION
         constexpr T const &operator[](size_t i) const { return m_array[i]; }
 
-        template <size_t I>
-        GT_FUNCTION constexpr T get() const {
-            GRIDTOOLS_STATIC_ASSERT((I < D), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
-            return m_array[I];
-        }
-
         GT_FUNCTION
         T &operator[](size_t i) {
-            assert((impl_::array_traits<T, D>::assert_range(i)));
+            assert(i < D);
             return m_array[i];
         }
 
@@ -145,16 +138,16 @@ namespace gridtools {
     }
 
     template <typename T>
-    struct is_array : boost::mpl::false_ {};
+    struct is_array : std::false_type {};
 
     template <typename T, size_t D>
-    struct is_array<array<T, D>> : boost::mpl::true_ {};
+    struct is_array<array<T, D>> : std::true_type {};
 
     template <typename Array, typename Value>
-    struct is_array_of : boost::mpl::false_ {};
+    struct is_array_of : std::false_type {};
 
     template <size_t D, typename Value>
-    struct is_array_of<array<Value, D>, Value> : boost::mpl::true_ {};
+    struct is_array_of<array<Value, D>, Value> : std::true_type {};
 
     template <typename T>
     struct tuple_size;

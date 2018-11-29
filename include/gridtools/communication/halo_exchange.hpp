@@ -73,7 +73,7 @@ namespace gridtools {
             MPI_Dims_create(nprocs, dims.size(), &dims[0]);
             int period[3] = {1, 1, 1};
             MPI_Comm CartComm;
-            MPI_Cart_create(MPI_COMM_WORLD, 3, &dims[0], period, false, &CartComm);
+            MPI_Cart_create(comm, 3, &dims[0], period, false, &CartComm);
             return CartComm;
         }
 
@@ -277,7 +277,7 @@ namespace gridtools {
             MPI_Dims_create(nprocs, dims.size(), &dims[0]);
             int period[3] = {1, 1, 1};
             MPI_Comm CartComm;
-            MPI_Cart_create(MPI_COMM_WORLD, 3, &dims[0], period, false, &CartComm);
+            MPI_Cart_create(comm, 3, &dims[0], period, false, &CartComm);
             return CartComm;
         }
 
@@ -361,6 +361,9 @@ namespace gridtools {
            The behavior is like MPI_Dims_create.
         */
         template <typename ValueType, size_t Size>
+        GT_DEPRECATED(
+            "halo_exchange_dynamic_ut(period, MPI_Comm, dims) is deprecated, since it creates an additional "
+            "communicator that is not freed. Use the constructor without dims and pass to it a Cartesian communicator")
         explicit halo_exchange_dynamic_ut(
             typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &&dims)
             : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}
@@ -377,6 +380,9 @@ namespace gridtools {
            The behavior is like MPI_Dims_create.
          */
         template <typename ValueType, size_t Size>
+        GT_DEPRECATED("halo_exchange_dynamic_ut(period, MPI_Comm, dims) is deprecated, since it creates an "
+                      "additional communicator that is not freed. Use the constructor without dims and pass to it "
+                      "a Cartesian communicator")
         explicit halo_exchange_dynamic_ut(
             typename grid_type::period_type const &c, MPI_Comm const &comm, array<ValueType, Size> &dims)
             : hd(c.template permute<layout2proc_map_abs>(), _impl::_make_comm(comm, dims)) {}

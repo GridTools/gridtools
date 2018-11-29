@@ -37,6 +37,7 @@
 #pragma once
 
 #include <assert.h>
+#include <type_traits>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
@@ -72,7 +73,7 @@ namespace gridtools {
          */
         template <typename... Dims,
             typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
-        explicit constexpr cuda_storage_info(Dims... dims_)
+        constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface<Id, Layout, Halo, Alignment>(dims_...), m_gpu_ptr(nullptr) {}
 
         /*
@@ -108,10 +109,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_cuda_storage_info : boost::mpl::false_ {};
+    struct is_cuda_storage_info : std::false_type {};
 
     template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    struct is_cuda_storage_info<cuda_storage_info<Id, Layout, Halo, Alignment>> : boost::mpl::true_ {};
+    struct is_cuda_storage_info<cuda_storage_info<Id, Layout, Halo, Alignment>> : std::true_type {};
 
     /**
      * @}

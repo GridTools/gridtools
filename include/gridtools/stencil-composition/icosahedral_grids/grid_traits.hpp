@@ -36,5 +36,4 @@
 #pragma once
 
 #include "./backend_cuda/grid_traits_cuda.hpp"
-#include "./backend_host/grid_traits_host.hpp"
-#include "./backend_mic/grid_traits_mic.hpp"
+#include "./backend_x86/grid_traits_x86.hpp"

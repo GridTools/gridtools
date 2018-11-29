@@ -268,6 +268,12 @@ namespace gridtools {
             for (auto &e : m_field)
                 e.reactivate_host_write_views();
         }
+
+        /**
+         * @brief retrieve the underlying storage_info instance
+         * @return storage_info instance
+         */
+        storage_info_t const &info() const { return m_field.front().info(); }
     };
 
     // simple metafunction to check if a type is a data_store_field
@@ -346,24 +352,6 @@ namespace gridtools {
         template <int M, typename T, uint_t... N>
         static void by(data_store_field<T, N...> &data_field) {
             by_impl<(sizeof...(N) - 1), M>(data_field);
-        }
-    };
-
-    // TODO this should disappear with data_store_field (dependency from storage -> stencil_composition)
-    template <typename T>
-    struct get_datafield_offset {
-        template <typename Acc>
-        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-            return 0;
-        }
-    };
-
-    template <typename T, unsigned... N>
-    struct get_datafield_offset<data_store_field<T, N...>> {
-        template <typename Acc>
-        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-            return get_accumulated_data_field_index(gridtools::get<Acc::n_dimensions - 2>(a), N...) +
-                   gridtools::get<Acc::n_dimensions - 1>(a);
         }
     };
 

@@ -568,6 +568,8 @@ namespace gridtools {
         explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
             : base_type(c, comm), halo() {}
 
+        hndlr_dynamic_ut(hndlr_dynamic_ut &&) {}
+
         ~hndlr_dynamic_ut() {
 #ifdef _GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;

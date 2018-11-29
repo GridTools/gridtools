@@ -40,6 +40,7 @@
 #include "../../common/hypercube_iterator.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/make_array.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../../storage/storage-facility.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
@@ -80,7 +81,8 @@ namespace gridtools {
             // for (auto &&outer : make_hypercube_view(outer_dims)) {
             auto &&hyper = make_hypercube_view(outer_dims);
             for (auto &&outer = hyper.begin(); outer != hyper.end(); ++outer) {
-                auto index = join_array(make_array(i, j, k), convert_to_array<int>(*outer));
+                auto index =
+                    tuple_util::device::push_front(tuple_util::device::convert_to<array, int>(*outer), i, j, k);
                 dst[si_dst.index(index)] = src[si_src.index(index)];
             }
         }

@@ -85,7 +85,7 @@ namespace gridtools {
      */
     template <class ReturnType, class... Args>
     class computation {
-        GRIDTOOLS_STATIC_ASSERT(conjunction<is_arg<Args>...>::value, "template parameters should be args");
+        GRIDTOOLS_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
 
         using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 

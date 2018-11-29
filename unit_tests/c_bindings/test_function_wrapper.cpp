@@ -160,6 +160,7 @@ namespace gridtools {
                 descriptor.rank = 2;
                 descriptor.dims[0] = 3;
                 descriptor.dims[1] = 2;
+                descriptor.is_acc_present = false;
 
                 auto get = wrap<int(int(&)[2][3], size_t, size_t)>(
                     [](int(&array)[2][3], size_t i, size_t j) { return array[i][j]; });

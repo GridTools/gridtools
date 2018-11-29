@@ -62,14 +62,11 @@
 #include "conditionals/condition_tree.hpp"
 #include "coordinate.hpp"
 #include "esf.hpp"
-#include "functor_do_method_lookup_maps.hpp"
-#include "functor_do_methods.hpp"
 #include "grid.hpp"
 #include "grid_traits.hpp"
 #include "intermediate_impl.hpp"
 #include "level.hpp"
 #include "local_domain.hpp"
-#include "loopintervals.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "reductions/reduction_data.hpp"
 
@@ -118,7 +115,7 @@ namespace gridtools {
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
             storage_info_interface<Id, Layout, Halo, Alignment> const &storage_info, int val) {
-            return val + 1 <= storage_info.template dim<I>();
+            return val + 1 <= storage_info.template total_length<I>();
         }
         template <int I, uint_t Id, class Layout, class Halo, class Alignment>
         enable_if_t<!exists_in_layout<I, Layout>::value, bool> storage_info_dim_fits(
@@ -178,23 +175,16 @@ namespace gridtools {
     /**
      *  @brief structure collecting helper metafunctions
      */
-    template <uint_t RepeatFunctor,
-        bool IsStateful,
-        class Backend,
-        class Grid,
-        class BoundArgStoragePairs,
-        class MssDescriptors>
+    template <bool IsStateful, class Backend, class Grid, class BoundArgStoragePairs, class MssDescriptors>
     class intermediate;
 
-    template <uint_t RepeatFunctor,
-        bool IsStateful,
+    template <bool IsStateful,
         class Backend,
         class Grid,
         class... BoundPlaceholders,
         class... BoundDataStores,
         class... MssDescriptors>
-    class intermediate<RepeatFunctor,
-        IsStateful,
+    class intermediate<IsStateful,
         Backend,
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
@@ -260,7 +250,6 @@ namespace gridtools {
             copy_into_variadic<typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
                                    MssDescs,
                                    extent_map_t,
-                                   static_int<RepeatFunctor>,
                                    typename Grid::axis_type>::type,
                 std::tuple<>>;
 

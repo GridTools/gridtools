@@ -36,7 +36,6 @@
 #pragma once
 
 #include "../accessor_metafunctions.hpp"
-#include "../expandable_parameters/expandable_fwd.hpp"
 #include "accessor.hpp"
 
 namespace gridtools {

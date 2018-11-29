@@ -43,9 +43,9 @@ namespace gridtools {
         using base_type = grid_base<Axis>;
         using grid_type = grid_type::structured;
 
-        DEPRECATED_REASON(
-            GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
-            "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
+        GT_DEPRECATED("This constructor does not initialize the vertical axis, use the constructor with 3 "
+                      "arguments. (deprecated after 1.05.02)")
+        GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : base_type(direction_i, direction_j) {}
 
         GT_FUNCTION
@@ -54,8 +54,8 @@ namespace gridtools {
             const decltype(base_type::value_list) &value_list)
             : base_type(direction_i, direction_j, value_list) {}
 
-        DEPRECATED_REASON(GT_FUNCTION explicit grid(uint_t *i, uint_t *j), "Use constructor with halo_descriptors")
-            : base_type(i, j) {}
+        GT_DEPRECATED("Use constructor with halo_descriptors (deprecated after 1.05.02)")
+        GT_FUNCTION explicit grid(uint_t *i, uint_t *j) : base_type(i, j) {}
     };
 
     template <typename Grid>
