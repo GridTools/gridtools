@@ -39,6 +39,21 @@
 #include <type_traits>
 
 namespace gridtools {
+
+#if defined(__CUDACC_VER_MAJOR__) && !defined(__CUDACC_RELAXED_CONSTEXPR__)
+    template <class T, T V>
+    struct integral_constant : std::integral_constant<T, V> {
+        constexpr __forceinline__ __host__ __device__ operator T() const { return V; }
+    };
+
+    using true_type = integral_constant<bool, true>;
+    using false_type = integral_constant<bool, false>;
+#else
+    using std::false_type;
+    using std::integral_constant;
+    using std::true_type;
+#endif
+
     /**
      * @file
      * Some c++14/c++17 type_traits drop offs. Please refer to C++14/17 specifications
@@ -46,7 +61,7 @@ namespace gridtools {
      */
 
     template <bool V>
-    using bool_constant = std::integral_constant<bool, V>;
+    using bool_constant = integral_constant<bool, V>;
 
     template <class T>
     struct negation : bool_constant<!bool(T::value)> {};
@@ -114,4 +129,5 @@ namespace gridtools {
     using underlying_type_t = typename std::underlying_type<T>::type;
     template <class T>
     using result_of_t = typename std::result_of<T>::type;
+
 } // namespace gridtools

@@ -35,14 +35,16 @@
 */
 #pragma once
 
-#include <tuple>
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/tuple_util.hpp"
+#include "../../meta/defs.hpp"
+#include "../../meta/id.hpp"
+#include "../../meta/logical.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
 
 /**
  *   Basic API for Stencil Iterable Data (aka SID) concept.
@@ -54,7 +56,7 @@
  *   -----------------------------
  *
  *   A type `T` models SID concept if it has the following functions defined and available via ADL:
- *     `GT_FUNCTION Ptr sid_get_origin(T const&);`
+ *     `GT_FUNCTION Ptr sid_get_origin(T&);`
  *     `GT_FUNCTION Strides sid_get_strides(T const&);`
  *     `GT_FUNCTION BoundsValidator sid_get_bounds_validator(T const&);`
  *
@@ -69,17 +71,17 @@
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
- *     - `Strides` is tuple-like in the terms of `tuple_util` library
+ *     - decayed `Strides` is a tuple-like in the terms of `tuple_util` library
  *     - `BoundsValidator` is callable and `BoundsValidator(Ptr)` is at least explicitly convertible to bool.
  *
  *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:
  *     - be an integral
  *     or
- *     - be an integral constant (be an instantiation of the `std::integral_constant` or provide the same functionality)
+ *     - be an integral constant (be an instantiation of the `integral_constant` or provide the same functionality)
  *     or
  *     - expressions `ptr += stride * offset` and `ptr_diff += stride * offset` are valid where `ptr`, `ptr_diff` and
  *       `stride` are instances of `Ptr`, `PtrDiff` and `Stride` and `offset` type is integral or instantiation of
- *       std::integral_constant
+ *       integral_constant
  *     or
  *     - the functions `sid_shift(Ptr&, Stride, Offset)` and `sid_shift(PtrDiff&, Stride, Offset)` are defined and
  *       available by ADL;
@@ -104,6 +106,11 @@
  *
  *   `ptr == ptr + PtrDiff{}`,    for any ptr that is an instance of `Ptr`
  *   `ptr + a + b == ptr + b + a` for any ptr that is an instance of `Ptr` and any a, b of type `PtrDiff`
+ *
+ *    For concept users: the life time of `Ptr`, `PtrDiff`, `Reference`, `Strides` and `BoundsValidator` objects must
+ *    not exceed the life time of the originated `SID`.
+ *    For concept implementors it means that the inferred from the `SID` types can delegate the ownership handling
+ *    to `SID`. It is leagal for example the `Strides` can be implemented as a reference (or a tuple of references)
  *
  *    TODO(anstaf): formal semantic definition is not complete.
  *
@@ -135,7 +142,7 @@
  *
  *  Wrappers for concept functions:
  *
- *  - Ptr sid::get_origin(Sid const&);
+ *  - Ptr sid::get_origin(Sid&);
  *  - Strides sid::get_strides(Sid const&);
  *  - BoundsValidator sid::get_bounds_validator(Sid const&);
  *  - void sid::shift(T&, Stride, Offset);
@@ -167,11 +174,11 @@ namespace gridtools {
              *
              *  TODO(anstaf) : consider moving it to `meta` or to `common`
              */
-            template <int Val, class T, class = void>
+            template <class T, int Val, class = void>
             struct is_integral_constant_of : std::false_type {};
 
-            template <int Val, class T>
-            struct is_integral_constant_of<Val, T, enable_if_t<is_integral_constant<T>::value && T() == Val>>
+            template <class T, int Val>
+            struct is_integral_constant_of<T, Val, enable_if_t<is_integral_constant<T>::value && T() == Val>>
                 : std::true_type {};
 
             // BEGIN `get_origin` PART
@@ -182,13 +189,13 @@ namespace gridtools {
              *  `get_origin` delegates to `sid_get_origin`
              */
             template <class Sid>
-            constexpr GT_FUNCTION auto get_origin(Sid const &obj) GT_AUTO_RETURN(sid_get_origin(obj));
+            constexpr GT_FUNCTION auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
 
             /**
              *  `Ptr` type is deduced from `get_origin`
              */
             template <class Sid>
-            using ptr_type = decltype(::gridtools::sid::impl_::get_origin(std::declval<Sid const &>()));
+            using ptr_type = decltype(::gridtools::sid::impl_::get_origin(std::declval<Sid &>()));
 
             /**
              *  `Reference` type is deduced from `Ptr` type
@@ -203,8 +210,8 @@ namespace gridtools {
             /**
              *  `sid_get_ptr_diff` fallback
              */
-            template <class Sid>
-            auto sid_get_ptr_diff(Sid const &sid) -> decltype(sid_get_origin(sid) - sid_get_origin(sid));
+            template <class Sid, class Ptr = ptr_type<Sid>>
+            auto sid_get_ptr_diff(Sid const &sid) -> decltype(std::declval<Ptr>() - std::declval<Ptr>());
 
             /**
              *  a proxy for sid_get_ptr_diff ADL resolution
@@ -222,13 +229,19 @@ namespace gridtools {
 
             // BEGIN `get_strides` PART
 
+            template <class...>
+            struct empty_strides;
+
+            template <>
+            struct empty_strides<> {};
+
             /**
              *  `sid_get_strides` fallback
              *
              *  By default Sid provides no strides.
              */
             template <class Sid>
-            constexpr GT_FUNCTION std::tuple<> sid_get_strides(Sid const &) {
+            constexpr GT_FUNCTION empty_strides<> sid_get_strides(Sid const &) {
                 return {};
             }
 
@@ -337,8 +350,8 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_META_DEFINE_ALIAS(need_shift,
                 bool_constant,
-                (!(std::is_empty<T>::value || is_integral_constant_of<0, Stride>::value ||
-                    is_integral_constant_of<0, Offset>::value)));
+                (!(std::is_empty<T>::value || is_integral_constant_of<Stride, 0>::value ||
+                    is_integral_constant_of<Offset, 0>::value)));
 
             /**
              *  true if we can do implement shift as `obj += stride * offset`
@@ -348,8 +361,7 @@ namespace gridtools {
             template <class T, class Stride>
             struct is_default_shiftable<T,
                 Stride,
-                enable_if_t<std::is_void<decltype(
-                    void(std::declval<T &>() += std::declval<Stride const &>() * std::declval<int_t>()))>::value>>
+                void_t<decltype(std::declval<T &>() += std::declval<Stride const &>() * std::declval<int_t>())>>
                 : std::true_type {};
 
             /**
@@ -358,8 +370,7 @@ namespace gridtools {
             template <class T, class = void>
             struct has_inc : std::false_type {};
             template <class T>
-            struct has_inc<T, enable_if_t<std::is_void<decltype(void(++std::declval<T &>()))>::value>>
-                : std::true_type {};
+            struct has_inc<T, void_t<decltype(++std::declval<T &>())>> : std::true_type {};
 
             /**
              *  True if T has operator--
@@ -367,8 +378,7 @@ namespace gridtools {
             template <class T, class = void>
             struct has_dec : std::false_type {};
             template <class T>
-            struct has_dec<T, enable_if_t<std::is_void<decltype(void(--std::declval<T &>()))>::value>>
-                : std::true_type {};
+            struct has_dec<T, void_t<decltype(--std::declval<T &>())>> : std::true_type {};
 
             /**
              *  True if T has operator-=
@@ -376,9 +386,7 @@ namespace gridtools {
             template <class T, class Arg, class = void>
             struct has_dec_assignment : std::false_type {};
             template <class T, class Arg>
-            struct has_dec_assignment<T,
-                Arg,
-                enable_if_t<std::is_void<decltype(void(std::declval<T &>() -= std::declval<Arg const &>()))>::value>>
+            struct has_dec_assignment<T, Arg, void_t<decltype(std::declval<T &>() -= std::declval<Arg const &>())>>
                 : std::true_type {};
 
             /**
@@ -406,7 +414,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
             shift(T &obj, Stride const &, Offset) {
-                obj += std::integral_constant<int_t, PtrOffset>{};
+                obj += integral_constant<int_t, PtrOffset>{};
             }
 
             /**
@@ -434,7 +442,7 @@ namespace gridtools {
              */
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    !is_integral_constant<Stride>::value && is_integral_constant_of<1, Offset>::value>
+                                    !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
             shift(T &obj, Stride const &stride, Offset) {
                 obj += stride;
             }
@@ -445,7 +453,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value &&
-                                    is_integral_constant_of<-1, Offset>::value && has_dec_assignment<T, Stride>::value>
+                                    is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
             shift(T &obj, Stride const &stride, Offset) {
                 obj -= stride;
             }
@@ -455,7 +463,7 @@ namespace gridtools {
              */
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    is_integral_constant_of<1, Stride>::value && !is_integral_constant<Offset>::value>
+                                    is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
             shift(T &obj, Stride const &, Offset offset) {
                 obj += offset;
             }
@@ -465,7 +473,7 @@ namespace gridtools {
              */
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
-                                    is_integral_constant_of<-1, Stride>::value &&
+                                    is_integral_constant_of<Stride, -1>::value &&
                                     !is_integral_constant<Offset>::value && has_dec_assignment<T, Stride>::value>
             shift(T &obj, Stride const &, Offset offset) {
                 obj -= offset;
@@ -478,9 +486,9 @@ namespace gridtools {
             GT_FUNCTION
                 enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                             !(is_integral_constant<Stride>::value && is_integral_constant<Offset>::value) &&
-                            !(is_integral_constant_of<1, Stride>::value || is_integral_constant_of<1, Offset>::value) &&
-                            !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<-1, Stride>::value ||
-                                                                          is_integral_constant_of<-1, Offset>::value))>
+                            !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
+                            !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
+                                                                          is_integral_constant_of<Offset, -1>::value))>
                 shift(T &obj, Stride const &stride, Offset offset) {
                 obj += stride * offset;
             }
@@ -597,14 +605,14 @@ namespace gridtools {
         /**
          *  A getter from Strides to the given stride.
          *
-         *  If `I` exceeds the actual number of strides, std::integral_constant<int_t, 0> is returned.
+         *  If `I` exceeds the actual number of strides, integral_constant<int_t, 0> is returned.
          *  Which allows to silently ignore the offsets in non existing dimensions.
          */
         template <size_t I, class Strides, enable_if_t<(I < tuple_util::size<decay_t<Strides>>::value), int> = 0>
         constexpr GT_FUNCTION auto get_stride(Strides &&strides)
             GT_AUTO_RETURN(tuple_util::host_device::get<I>(strides));
         template <size_t I, class Strides, enable_if_t<(I >= tuple_util::size<decay_t<Strides>>::value), int> = 0>
-        constexpr GT_FUNCTION std::integral_constant<int_t, 0> get_stride(Strides &&) {
+        constexpr GT_FUNCTION integral_constant<int_t, 0> get_stride(Strides &&) {
             return {};
         }
 

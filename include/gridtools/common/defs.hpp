@@ -38,6 +38,7 @@
 #include <type_traits>
 
 #include "../meta/defs.hpp"
+#include "../meta/type_traits.hpp"
 #include "./generic_metafunctions/mpl_tags.hpp"
 
 /** \ingroup common
@@ -222,18 +223,18 @@ namespace gridtools {
     using uint_t = unsigned int;
     using ushort_t = unsigned int;
     template <int_t N>
-    using static_int = std::integral_constant<int_t, N>;
+    using static_int = integral_constant<int_t, N>;
     template <uint_t N>
-    using static_uint = std::integral_constant<uint_t, N>;
+    using static_uint = integral_constant<uint_t, N>;
     template <short_t N>
-    using static_short = std::integral_constant<short_t, N>;
+    using static_short = integral_constant<short_t, N>;
     template <ushort_t N>
-    using static_ushort = std::integral_constant<ushort_t, N>;
+    using static_ushort = integral_constant<ushort_t, N>;
 
     template <size_t N>
-    using static_size_t = std::integral_constant<size_t, N>;
+    using static_size_t = integral_constant<size_t, N>;
     template <bool B>
-    using static_bool = std::integral_constant<bool, B>;
+    using static_bool = integral_constant<bool, B>;
 
     /** @} */
 

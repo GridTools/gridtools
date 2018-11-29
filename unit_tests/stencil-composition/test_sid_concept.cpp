@@ -36,13 +36,15 @@
 
 #include <gridtools/stencil-composition/sid/concept.hpp>
 
-#include <tuple>
 #include <type_traits>
 
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
+#include <gridtools/common/host_device.hpp>
+#include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/meta/type_traits.hpp>
 
 namespace gridtools {
     namespace {
@@ -76,9 +78,9 @@ namespace gridtools {
             struct bounds_validator_kind;
 
             struct testee {
-                friend GT_FUNCTION ptr sid_get_origin(testee) { return {}; }
-                friend GT_FUNCTION strides sid_get_strides(testee) { return {}; }
-                friend GT_FUNCTION bounds_validator sid_get_bounds_validator(testee) { return {}; }
+                friend GT_FUNCTION ptr sid_get_origin(testee &) { return {}; }
+                friend GT_FUNCTION strides sid_get_strides(testee const &) { return {}; }
+                friend GT_FUNCTION bounds_validator sid_get_bounds_validator(testee const &) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
                 friend strides_kind sid_get_strides_kind(testee);
@@ -94,7 +96,7 @@ namespace gridtools {
             static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator_kind>(), "");
 
-            static_assert(std::is_same<decltype(sid::get_origin(testee{})), ptr>::value, "");
+            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), ptr>::value, "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
             static_assert(std::is_same<decltype(sid::get_bounds_validator(testee{})), bounds_validator>(), "");
 
@@ -111,7 +113,7 @@ namespace gridtools {
         namespace fallbacks {
 
             struct testee {
-                friend GT_FUNCTION testee *sid_get_origin(testee) { return {}; }
+                friend GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
             };
 
             static_assert(is_sid<testee>(), "");
@@ -130,7 +132,7 @@ namespace gridtools {
             static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator>(), "");
 
-            static_assert(std::is_same<decltype(sid::get_origin(testee{})), testee *>(), "");
+            static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), testee *>(), "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
             static_assert(std::is_same<decltype(sid::get_bounds_validator(testee{})), bounds_validator>(), "");
 
@@ -159,9 +161,10 @@ namespace gridtools {
         };
 
         TEST(shift, default_overloads) {
-            auto samples = std::make_tuple(
+            namespace tu = tuple_util;
+            auto samples = tu::host_device::make<tuple>(
                 2, 3, static_int<-2>{}, static_int<-1>{}, static_int<0>{}, static_int<1>{}, static_int<2>{});
-            tuple_util::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
+            tu::host::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
     } // namespace
 } // namespace gridtools

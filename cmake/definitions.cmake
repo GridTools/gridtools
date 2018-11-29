@@ -46,7 +46,8 @@ if( GT_ENABLE_TARGET_CUDA )
   endif()
 
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-  target_compile_options(GridTools INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+  target_compile_options(GridTools INTERFACE
+      $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<EQUAL:$<TARGET_PROPERTY:CUDA_STANDARD>,14>>:--expt-relaxed-constexpr>)
 
   if(${GT_CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
