@@ -65,7 +65,7 @@
  *
  *   The deducible from `T` types `Ptr`, `PtrDiff` ,`Strides`, `BoundsValidator` in their turn should satisfy
  *   the constraints:
- *     - `Ptr`, `Strides` and `BoundsValidator` are trivialy copiable
+ *     - `Ptr`, `Strides` and `BoundsValidator` are trivially copyable
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
