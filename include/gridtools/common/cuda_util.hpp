@@ -51,16 +51,20 @@ namespace gridtools {
 
 #ifdef __CUDACC__
 
-#include <cuda_runtime.h>
+#include <cassert>
 #include <memory>
+#include <strstream>
+
+#include <cuda_runtime.h>
 
 #include "defs.hpp"
-#include "gt_assert.hpp"
 
-// TODO(anstaf): report error code here
-#define GT_CUDA_CHECK(err)  \
-    if (err != cudaSuccess) \
-    throw std::runtime_error("cuda failure")
+#define GT_CUDA_CHECK(expr)                                                                    \
+    do {                                                                                       \
+        cudaError_t err = expr;                                                                \
+        if (err != cudaSuccess)                                                                \
+            ::gridtools::cuda_util::_impl::on_error(err, #expr, __func__, __FILE__, __LINE__); \
+    } while (false)
 
 namespace gridtools {
     namespace cuda_util {
@@ -71,11 +75,19 @@ namespace gridtools {
                     cudaFree(ptr);
                 }
             };
+
+            void on_error(cudaError_t err, const char snippet[], const char fun[], const char file[], int line) {
+                std::ostrstream strm;
+                strm << "cuda failure: \"" << cudaGetErrorString(err) << "\" [" << cudaGetErrorName(err) << "(" << err
+                     << ")] in \"" << snippet << "\" function: " << fun << ", location: " << file << "(" << line << ")";
+                throw std::runtime_error(strm.str());
+            }
+
         } // namespace _impl
 
         template <class T, class Res = std::unique_ptr<T, _impl::deleter_f>>
         Res make_clone(T const &src) {
-            GRIDTOOLS_STATIC_ASSERT(is_cloneable<T>::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             T *ptr;
             GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T)));
             Res res{ptr};
@@ -85,7 +97,7 @@ namespace gridtools {
 
         template <class T>
         T from_clone(std::unique_ptr<T, _impl::deleter_f> const &clone) {
-            GRIDTOOLS_STATIC_ASSERT(is_cloneable<T>::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             T res;
             GT_CUDA_CHECK(cudaMemcpy(&res, clone.get(), sizeof(T), cudaMemcpyDeviceToHost));
             return res;
