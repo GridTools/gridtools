@@ -53,7 +53,7 @@ namespace gridtools {
 
 #include <cassert>
 #include <memory>
-#include <strstream>
+#include <sstream>
 
 #include <cuda_runtime.h>
 
@@ -77,7 +77,7 @@ namespace gridtools {
             };
 
             void on_error(cudaError_t err, const char snippet[], const char fun[], const char file[], int line) {
-                std::ostrstream strm;
+                std::ostringstream strm;
                 strm << "cuda failure: \"" << cudaGetErrorString(err) << "\" [" << cudaGetErrorName(err) << "(" << err
                      << ")] in \"" << snippet << "\" function: " << fun << ", location: " << file << "(" << line << ")";
                 throw std::runtime_error(strm.str());
