@@ -56,6 +56,8 @@ namespace gridtools {
             Res exec(Fun fun, Args... args) {
                 auto res = cuda_util::make_clone(Res{});
                 kernel<<<1, 1>>>(res.get(), fun, args...);
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
+                GT_CUDA_CHECK(cudaGetLastError());
                 return cuda_util::from_clone(res);
             }
 
