@@ -128,5 +128,4 @@ namespace gridtools {
     using underlying_type_t = typename std::underlying_type<T>::type;
     template <class T>
     using result_of_t = typename std::result_of<T>::type;
-
 } // namespace gridtools
