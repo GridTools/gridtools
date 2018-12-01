@@ -99,7 +99,7 @@ namespace gridtools {
             EXPECT_EQ(59, get<2>(testee).value);
         }
 
-        TEST(scalar_tuple, get) {
+        TEST(one_tuple, get) {
             tuple<int> testee;
             EXPECT_EQ(0, get<0>(testee));
 
@@ -114,7 +114,7 @@ namespace gridtools {
             EXPECT_EQ(2, val.value);
         }
 
-        TEST(scalar_tuple, move_get) {
+        TEST(one_tuple, move_get) {
             auto val = get<0>(tuple<move_only>{move_only{2}});
             static_assert(std::is_same<decltype(val), move_only>(), "");
             EXPECT_EQ(2, val.value);
@@ -130,7 +130,7 @@ namespace gridtools {
             EXPECT_EQ(59, get<2>(testee).value);
         }
 
-        TEST(scalar_tuple, element_wise_ctor) {
+        TEST(one_tuple, element_wise_ctor) {
             int const v = 3;
             tuple<int> testee{v};
             EXPECT_EQ(3, get<0>(testee));
@@ -144,7 +144,7 @@ namespace gridtools {
             EXPECT_EQ(get<2>(src).value, get<2>(testee).value);
         }
 
-        TEST(scalar_tuple, copy_ctor) {
+        TEST(one_tuple, copy_ctor) {
             tuple<int> src{3};
             auto testee = src;
             EXPECT_EQ(get<0>(src), get<0>(testee));
@@ -156,7 +156,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(testee).value);
         }
 
-        TEST(scalar_tuple, move_element_wise_ctor) {
+        TEST(one_tuple, move_element_wise_ctor) {
             tuple<move_only> testee{move_only{47}};
             EXPECT_EQ(47, get<0>(testee).value);
         }
@@ -167,7 +167,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(testee).value);
         }
 
-        TEST(scalar_tuple, move_ctor) {
+        TEST(one_tuple, move_ctor) {
             auto testee = tuple<move_only>{move_only{47}};
             EXPECT_EQ(47, get<0>(testee).value);
         }
@@ -178,7 +178,7 @@ namespace gridtools {
             EXPECT_EQ('b', get<1>(testee));
         }
 
-        TEST(scalar_tuple, element_wise_conversion_ctor) {
+        TEST(one_tuple, element_wise_conversion_ctor) {
             tuple<int> testee{'a'};
             EXPECT_EQ('a', get<0>(testee));
         }
@@ -190,7 +190,7 @@ namespace gridtools {
             EXPECT_EQ('b', get<1>(testee));
         }
 
-        TEST(scalar_tuple, tuple_conversion_copy_ctor) {
+        TEST(one_tuple, tuple_conversion_copy_ctor) {
             tuple<char> src{'a'};
             tuple<int> testee = src;
             EXPECT_EQ('a', get<0>(testee));
@@ -204,7 +204,7 @@ namespace gridtools {
             EXPECT_EQ(3, get<1>(testee));
         }
 
-        TEST(scalar_tuple, tuple_conversion_copy_ctor_nested) {
+        TEST(one_tuple, tuple_conversion_copy_ctor_nested) {
             tuple<tuple<int>> const src{{1}};
             tuple<tuple<double>> testee = src;
             EXPECT_EQ(1, get<0>(get<0>(testee)));
@@ -216,7 +216,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(testee).value);
         }
 
-        TEST(scalar_tuple, tuple_conversion_move_ctor) {
+        TEST(one_tuple, tuple_conversion_move_ctor) {
             tuple<take_move_only> testee = tuple<move_only>{move_only{2}};
             EXPECT_EQ(2, get<0>(testee).value);
         }
@@ -231,7 +231,7 @@ namespace gridtools {
             EXPECT_EQ(1.5, get<1>(testee));
         }
 
-        TEST(scalar_tuple, copy_assign) {
+        TEST(one_tuple, copy_assign) {
             tuple<int> src = {1};
             tuple<int> testee;
             auto &res = testee = src;
@@ -249,7 +249,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(testee).value);
         }
 
-        TEST(scalar_tuple, move_assign) {
+        TEST(one_tuple, move_assign) {
             tuple<take_move_only> testee;
             auto &res = testee = tuple<move_only>{move_only{47}};
             static_assert(std::is_same<decltype(res), tuple<take_move_only> &>(), "");
@@ -267,7 +267,7 @@ namespace gridtools {
             EXPECT_EQ('b', get<1>(testee));
         }
 
-        TEST(scalar_tuple, copy_conversion_assign) {
+        TEST(one_tuple, copy_conversion_assign) {
             tuple<char> src = {'a'};
             tuple<int> testee;
             auto &res = testee = src;
@@ -285,7 +285,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(testee).value);
         }
 
-        TEST(scalar_tuple, move_conversion_assign) {
+        TEST(one_tuple, move_conversion_assign) {
             tuple<take_move_only> testee;
             auto &res = testee = tuple<move_only>{move_only{2}};
             static_assert(std::is_same<decltype(res), tuple<take_move_only> &>(), "");
@@ -302,7 +302,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(b));
         }
 
-        TEST(scalar_tuple, swap_method) {
+        TEST(one_tuple, swap_method) {
             tuple<int> a{1}, b{10};
             a.swap(b);
             EXPECT_EQ(10, get<0>(a));
@@ -318,7 +318,7 @@ namespace gridtools {
             EXPECT_EQ(2, get<1>(b));
         }
 
-        TEST(scalar_tuple, swap) {
+        TEST(one_tuple, swap) {
             tuple<int> a{1}, b{10};
             swap(a, b);
             EXPECT_EQ(10, get<0>(a));

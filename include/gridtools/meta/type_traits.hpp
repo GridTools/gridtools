@@ -45,7 +45,6 @@ namespace gridtools {
     struct integral_constant : std::integral_constant<T, V> {
         constexpr __forceinline__ __host__ __device__ operator T() const { return V; }
     };
-
     using true_type = integral_constant<bool, true>;
     using false_type = integral_constant<bool, false>;
 #else
