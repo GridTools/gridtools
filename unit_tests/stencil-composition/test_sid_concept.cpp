@@ -71,7 +71,10 @@ namespace gridtools {
             };
             using strides = array<stride, 2>;
             struct bounds_validator {
-                GT_FUNCTION std::false_type operator()(...) const { return {}; }
+                template <class T>
+                GT_FUNCTION false_type operator()(T &&) const {
+                    return {};
+                }
             };
 
             struct strides_kind;

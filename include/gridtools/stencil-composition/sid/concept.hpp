@@ -286,7 +286,10 @@ namespace gridtools {
              *  optimistic validator
              */
             struct always_happy {
-                constexpr GT_FUNCTION std::true_type operator()(...) const { return {}; }
+                template <class T>
+                constexpr GT_FUNCTION true_type operator()(T &&) const {
+                    return {};
+                }
             };
 
             /**
