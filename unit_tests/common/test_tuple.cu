@@ -53,8 +53,8 @@ namespace gridtools {
 
             template <class Fun, class... Args, class Res = decay_t<result_of_t<Fun(Args...)>>>
             Res exec(Fun fun, Args... args) {
-                static_assert(!std::is_pointer<Fun>(), "");
-                static_assert(conjunction<negation<std::is_pointer<Args>>...>(), "");
+                static_assert(!std::is_pointer<Fun>::value, "");
+                static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
                 auto res = cuda_util::make_clone(Res{});
                 auto fun_clone = cuda_util::make_clone(fun);
                 kernel<<<1, 1>>>(res.get(), fun, args...);
