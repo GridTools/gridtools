@@ -34,13 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "./check_flags.hpp"
+#include "gtest/gtest.h"
 #include <fstream>
 #include <iostream>
 #include <mpi.h>
-#ifdef __CUDACC__
-#include <cuda.h>
-#endif
-#include "gtest/gtest.h"
 
 #include "../../communication/GCL.hpp"
 #include "./device_binding.hpp"
@@ -48,9 +45,7 @@
 
 int main(int argc, char **argv) {
 
-#ifdef _USE_GPU_
     device_binding();
-#endif
 
     // We need to set the communicator policy at the top level
     // this allows us to build multiple communicators in the tests

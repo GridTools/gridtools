@@ -58,7 +58,7 @@ namespace gridtools {
         typename DataStoreField,
         typename DecayedDSF = typename boost::decay<DataStoreField>::type>
     typename boost::enable_if<boost::mpl::and_<is_mc_storage<typename DecayedDSF::storage_t>,
-                                  is_mc_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         data_field_view<DecayedDSF, AccessMode>>::type
     make_field_host_view(DataStoreField &ds) {
@@ -92,7 +92,7 @@ namespace gridtools {
         typename DecayedDSF = typename boost::decay<DataStoreField>::type,
         typename DecayedDFV = typename boost::decay<DataFieldView>::type>
     typename boost::enable_if<boost::mpl::and_<is_mc_storage<typename DecayedDSF::storage_t>,
-                                  is_mc_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         bool>::type
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {

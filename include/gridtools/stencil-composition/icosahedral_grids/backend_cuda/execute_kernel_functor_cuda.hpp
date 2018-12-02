@@ -200,11 +200,11 @@ namespace gridtools {
             void operator()() {
 #ifdef VERBOSE
                 short_t count;
-                cudaGetDeviceCount(&count);
+                GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
                 if (count) {
                     cudaDeviceProp prop;
-                    cudaGetDeviceProperties(&prop, 0);
+                    GT_CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
                     std::cout << "total global memory " << prop.totalGlobalMem << std::endl;
                     std::cout << "shared memory per block " << prop.sharedMemPerBlock << std::endl;
                     std::cout << "registers per block " << prop.regsPerBlock << std::endl;
@@ -264,12 +264,7 @@ namespace gridtools {
                 _impl_iccuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
                     <<<blocks, threads>>>(m_local_domain, m_grid);
 #ifndef NDEBUG
-                cudaDeviceSynchronize();
-                cudaError_t error = cudaGetLastError();
-                if (error != cudaSuccess) {
-                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorName(error), __FILE__, __LINE__);
-                    exit(-1);
-                }
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             }
 

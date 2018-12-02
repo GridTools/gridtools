@@ -57,7 +57,7 @@ namespace gridtools {
         typename DataStore,
         typename DecayedDS = decay_t<DataStore>>
     enable_if_t<is_mc_storage<typename DecayedDS::storage_t>::value &&
-                    is_mc_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         data_view<DataStore, AccessMode>>
     make_host_view(DataStore const &ds) {
         return ds.valid() ? data_view<DecayedDS, AccessMode>(ds.get_storage_ptr()->get_cpu_ptr(),
@@ -77,7 +77,7 @@ namespace gridtools {
         typename DataStore,
         typename DecayedDS = decay_t<DataStore>>
     enable_if_t<is_mc_storage<typename DecayedDS::storage_t>::value &&
-                    is_mc_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         data_view<DataStore, AccessMode>>
     make_target_view(DataStore const &ds) {
         return make_host_view<AccessMode>(ds);
@@ -94,7 +94,7 @@ namespace gridtools {
         typename DecayedDS = decay_t<DataStore>,
         typename DecayedDV = decay_t<DataView>>
     enable_if_t<is_mc_storage<typename DecayedDS::storage_t>::value &&
-                    is_mc_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>
     check_consistency(DataStore const &ds, DataView const &dv) {
         GRIDTOOLS_STATIC_ASSERT(

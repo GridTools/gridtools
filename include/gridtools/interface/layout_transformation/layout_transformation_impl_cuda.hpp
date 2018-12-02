@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include "../../common/cuda_util.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/hypercube_iterator.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
@@ -49,7 +50,6 @@
 
 namespace gridtools {
     namespace impl {
-#ifdef __CUDACC__
         template <typename DataType>
         __global__ void transform_cuda_loop_kernel(DataType *dst,
             DataType *src,
@@ -86,7 +86,6 @@ namespace gridtools {
                 dst[si_dst.index(index)] = src[si_src.index(index)];
             }
         }
-#endif
 
         template <typename DataType>
         void transform_cuda_loop(DataType *dst,
@@ -94,7 +93,6 @@ namespace gridtools {
             const std::vector<uint_t> &dims,
             const std::vector<uint_t> &dst_strides,
             const std::vector<uint_t> &src_strides) {
-#ifdef __CUDACC__
             int block_size_1d = 8;
 
             auto a_dims = impl::vector_to_dims_array<GT_TRANSFORM_MAX_DIM>(dims);
@@ -114,18 +112,7 @@ namespace gridtools {
                 outer_dims);
 
 #ifndef NDEBUG
-            {
-                cudaDeviceSynchronize();
-                cudaError_t error = cudaGetLastError();
-                if (error != cudaSuccess) {
-                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
-                    exit(-1);
-                }
-            }
-#endif
-
-#else
-            throw std::runtime_error("calling CUDA transformation, but not compiled with CUDA support");
+            GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
         }
     } // namespace impl

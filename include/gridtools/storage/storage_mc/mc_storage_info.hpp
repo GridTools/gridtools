@@ -36,13 +36,9 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
 
 namespace gridtools {
-
     /*
      * @brief The mc storage info implementation.
      * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
@@ -54,33 +50,5 @@ namespace gridtools {
         typename Layout,
         typename Halo = zero_halo<Layout::masked_length>,
         typename Alignment = alignment<8>>
-    struct mc_storage_info : storage_info_interface<Id, Layout, Halo, Alignment> {
-        GRIDTOOLS_STATIC_ASSERT((is_halo<Halo>::value), "Given type is not a halo type.");
-        GRIDTOOLS_STATIC_ASSERT((is_alignment<Alignment>::value), "Given type is not an alignment type.");
-
-      public:
-        static constexpr uint_t ndims = storage_info_interface<Id, Layout, Halo, Alignment>::ndims;
-
-        /*
-         * @brief mc_storage_info constructor.
-         * @param dims_ the dimensionality (e.g., 128x128x80)
-         */
-        template <typename... Dims,
-            typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
-        constexpr mc_storage_info(Dims... dims) : storage_info_interface<Id, Layout, Halo, Alignment>(dims...) {}
-
-        /*
-         * @brief cuda_storage_info constructor.
-         * @param dims the dimensionality (e.g., 128x128x80)
-         * @param strides the strides used to describe a layout of the data in memory
-         */
-        constexpr mc_storage_info(std::array<uint_t, ndims> dims, std::array<uint_t, ndims> strides)
-            : storage_info_interface<Id, Layout, Halo, Alignment>(dims, strides) {}
-    };
-
-    template <typename T>
-    struct is_mc_storage_info : std::false_type {};
-
-    template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    struct is_mc_storage_info<mc_storage_info<Id, Layout, Halo, Alignment>> : std::true_type {};
+    using mc_storage_info = storage_info_interface<Id, Layout, Halo, Alignment>;
 } // namespace gridtools

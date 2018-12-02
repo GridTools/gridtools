@@ -37,16 +37,16 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/common/storage_info_interface.hpp>
 #include <gridtools/storage/data_store_field.hpp>
 #include <gridtools/storage/storage_host/data_field_view_helpers.hpp>
 #include <gridtools/storage/storage_host/data_view_helpers.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
 TEST(DataStoreFieldTest, InstantiateAllocateFree) {
-    typedef host_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<2, 1, 0>> storage_info_t;
     storage_info_t si(3, 3, 3);
     // create unallocated data_store_field
     data_store_field<data_store<host_storage<double>, storage_info_t>, 1, 1, 1> f;
@@ -67,7 +67,7 @@ TEST(DataStoreFieldTest, InstantiateAllocateFree) {
 }
 
 TEST(DataStoreFieldTest, FillAndReadData) {
-    typedef host_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<2, 1, 0>> storage_info_t;
     storage_info_t si(3, 3, 3);
     // create unallocated data_store_field
     data_store_field<data_store<host_storage<double>, storage_info_t>, 2, 1, 1> f(si);
@@ -98,7 +98,7 @@ TEST(DataStoreFieldTest, FillAndReadData) {
 }
 
 TEST(DataStoreFieldTest, GetSet) {
-    typedef host_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<2, 1, 0>> storage_info_t;
     storage_info_t si(3, 3, 3);
     // create unallocated data_store_field
     data_store_field<data_store<host_storage<double>, storage_info_t>, 1, 1, 1> f;
@@ -122,7 +122,7 @@ TEST(DataStoreFieldTest, GetSet) {
 }
 
 TEST(DataStoreFieldTest, Cycle) {
-    typedef host_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<2, 1, 0>> storage_info_t;
     storage_info_t si(3, 3, 3);
     data_store_field<data_store<host_storage<double>, storage_info_t>, 5, 5, 5> f(si);
     // extract ptrs
@@ -192,7 +192,7 @@ TEST(DataStoreFieldTest, Cycle) {
 }
 
 TEST(DataStoreFieldTest, CycleAll) {
-    typedef host_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<2, 1, 0>> storage_info_t;
     storage_info_t si(3, 3, 3);
     data_store_field<data_store<host_storage<double>, storage_info_t>, 3, 3, 3> f(si);
     // extract ptrs

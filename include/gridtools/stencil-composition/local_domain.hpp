@@ -40,7 +40,6 @@
 #include <boost/fusion/include/pair.hpp>
 
 #include "../common/array.hpp"
-#include "../common/cuda_util.hpp"
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
 
@@ -119,12 +118,18 @@ namespace gridtools {
 
     template <class>
     struct local_domain_esf_args;
+} // namespace gridtools
 
+#ifdef _USE_GPU_
+#include "../common/cuda_util.hpp"
+
+namespace gridtools {
     // Force cloning to cuda device, even though local_domain is not trivially copyable because of boost fusion
     // containers implementation.
     namespace cuda_util {
         template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
         struct is_cloneable<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : std::true_type {};
     } // namespace cuda_util
-
 } // namespace gridtools
+
+#endif
