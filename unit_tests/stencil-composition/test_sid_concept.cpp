@@ -172,5 +172,111 @@ namespace gridtools {
                 2, 3, int_constant<-2>{}, int_constant<-1>{}, int_constant<0>{}, int_constant<1>{}, int_constant<2>{});
             tu::host::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
+
+        // trying to hack the concept providing non const `value` in the custom defined stride
+        namespace dispel_hannes_doubts {
+            namespace naive_attempt {
+                struct stride {
+                    static const double value;
+                };
+                const double stride::value = 42;
+
+                struct testee {};
+
+                GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
+                GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+
+                // not a sid: don't know how to to shift
+                static_assert(!is_sid<testee>(), "");
+            } // namespace naive_attempt
+
+            namespace attempt_to_provide_custom_shift {
+                struct stride {
+                    static const double value;
+                };
+                const double stride::value = 42;
+
+                struct testee {};
+
+                GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
+                GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+
+                // now we no how to do `shift`
+                template <class T>
+                GT_FUNCTION void sid_shift(T &obj, stride, int) {
+                    obj += 11;
+                }
+
+                static_assert(sid::impl_::is_sid<testee>(), "");
+
+                TEST(attempt_to_provide_custom_shift, shift) {
+                    ptrdiff_t val = 22;
+                    sid::shift(val, stride{}, 0);
+                    EXPECT_EQ(33, val);
+
+                    // try to use constant as an offset
+                    val = 22;
+                    sid::shift(val, stride{}, int_constant<3>());
+                    EXPECT_EQ(33, val);
+                }
+            } // namespace attempt_to_provide_custom_shift
+
+            namespace attempt_to_use_default_shift {
+                struct stride {
+                    static const double value;
+                };
+                const double stride::value = 42;
+
+                struct testee {};
+
+                GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
+                GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+
+                // now we no how to do `shift`
+                GT_FUNCTION int operator*(stride, int) { return 100; }
+
+                static_assert(sid::impl_::is_sid<testee>(), "");
+
+                TEST(attempt_to_use_default_shift, shift) {
+                    ptrdiff_t val = 22;
+                    sid::shift(val, stride{}, 0);
+                    EXPECT_EQ(122, val);
+
+                    // try to use constant as an offset
+                    val = 22;
+                    sid::shift(val, stride{}, int_constant<3>());
+                    EXPECT_EQ(122, val);
+                }
+            } // namespace attempt_to_use_default_shift
+
+            namespace attempt_to_misuse_value_method {
+                struct stride {
+                    GT_FUNCTION void value() {}
+                };
+
+                struct testee {};
+
+                GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
+                GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+
+                // now we no how to do `shift`
+                GT_FUNCTION int operator*(stride, int) { return 100; }
+
+                static_assert(sid::impl_::is_sid<testee>(), "");
+
+                TEST(attempt_to_misuse_value_method, shift) {
+                    ptrdiff_t val = 22;
+                    sid::shift(val, stride{}, 0);
+                    EXPECT_EQ(122, val);
+
+                    // try to use constant as an offset
+                    val = 22;
+                    sid::shift(val, stride{}, int_constant<3>());
+                    EXPECT_EQ(122, val);
+                }
+            } // namespace attempt_to_misuse_value_method
+
+        } // namespace dispel_hannes_doubts
+
     } // namespace
 } // namespace gridtools
