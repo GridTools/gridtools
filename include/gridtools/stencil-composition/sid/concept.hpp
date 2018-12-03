@@ -158,6 +158,22 @@ namespace gridtools {
         namespace impl_ {
 
             /**
+             *   get_static_const_value<T>::value acts as T::value
+             *
+             *   It is here because in the case where value is a non static member of T, `gcc` generates an error
+             *   for `T::value` even in the substitution context. I.e `gcc` fails to follow SFINAE principle.
+             *   [Checked for gcc 8.2]
+             *
+             */
+            template <class T, class = void>
+            struct get_static_const_value;
+            template <class T>
+            struct get_static_const_value<T,
+                enable_if_t<std::is_integral<decltype(T::value)>::value && std::is_const<decltype(T::value)>::value &&
+                            !std::is_member_pointer<decltype(&T::value)>::value>>
+                : std::integral_constant<decltype(T::value), T::value> {};
+
+            /**
              *  generic trait for integral constant
              *
              *  TODO(anstaf) : consider moving it to `meta` or to `common`
@@ -167,7 +183,8 @@ namespace gridtools {
             template <class T>
             struct is_integral_constant<T,
                 enable_if_t<std::is_empty<T>::value && std::is_integral<decltype(T::value)>::value &&
-                            std::is_convertible<T, decltype(T::value)>::value && T() == T::value>> : std::true_type {};
+                            std::is_convertible<T, typename get_static_const_value<T>::value_type>::value &&
+                            T() == get_static_const_value<T>::value>> : std::true_type {};
 
             /**
              *  generic trait for integral constant of Val
@@ -357,6 +374,13 @@ namespace gridtools {
                     is_integral_constant_of<Offset, 0>::value)));
 
             /**
+             *  additional proxy is used here to ensure that evaluation context of `obj += stride * offset`
+             *  is always the same.
+             */
+            template <class T, class Strides>
+            auto default_shift(T &obj, Strides const &stride, int offset = 0) -> decltype(obj += stride * offset);
+
+            /**
              *  true if we can do implement shift as `obj += stride * offset`
              */
             template <class T, class Strides, class = void>
@@ -364,8 +388,11 @@ namespace gridtools {
             template <class T, class Stride>
             struct is_default_shiftable<T,
                 Stride,
-                void_t<decltype(std::declval<T &>() += std::declval<Stride const &>() * std::declval<int_t>())>>
-                : std::true_type {};
+                void_t<decltype(::gridtools::sid::impl_::default_shift(
+                    std::declval<T &>(), std::declval<Stride const &>()))>> : std::true_type {};
+
+            template <class T>
+            auto inc_operator(T &obj) -> decltype(++obj);
 
             /**
              *  True if T has operator++
@@ -373,7 +400,11 @@ namespace gridtools {
             template <class T, class = void>
             struct has_inc : std::false_type {};
             template <class T>
-            struct has_inc<T, void_t<decltype(++std::declval<T &>())>> : std::true_type {};
+            struct has_inc<T, void_t<decltype(::gridtools::sid::impl_::inc_operator(std::declval<T &>()))>>
+                : std::true_type {};
+
+            template <class T>
+            auto dec_operator(T &obj) -> decltype(--obj);
 
             /**
              *  True if T has operator--
@@ -381,7 +412,11 @@ namespace gridtools {
             template <class T, class = void>
             struct has_dec : std::false_type {};
             template <class T>
-            struct has_dec<T, void_t<decltype(--std::declval<T &>())>> : std::true_type {};
+            struct has_dec<T, void_t<decltype(::gridtools::sid::impl_::dec_operator(std::declval<T &>()))>>
+                : std::true_type {};
+
+            template <class T, class Arg>
+            auto dec_assignment_operator(T &obj, Arg const &arg) -> decltype(obj = -arg);
 
             /**
              *  True if T has operator-=
@@ -389,14 +424,17 @@ namespace gridtools {
             template <class T, class Arg, class = void>
             struct has_dec_assignment : std::false_type {};
             template <class T, class Arg>
-            struct has_dec_assignment<T, Arg, void_t<decltype(std::declval<T &>() -= std::declval<Arg const &>())>>
-                : std::true_type {};
+            struct has_dec_assignment<T,
+                Arg,
+                void_t<decltype(::gridtools::sid::impl_::dec_assignment_operator(
+                    std::declval<T &>(), std::declval<Arg const &>()))>> : std::true_type {};
 
             /**
              *  noop `shift` overload
              */
             template <class T, class Stride, class Offset>
-            GT_FUNCTION enable_if_t<!need_shift<T, Stride, Offset>::value> shift(T &, Stride const &stride, Offset) {}
+            GT_FUNCTION enable_if_t<!need_shift<T, Stride, Offset>::value> shift(
+                T &, Stride const &stride, Offset const &) {}
 
             /**
              * `shift` overload that delegates to `sid_shift`
@@ -407,36 +445,45 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
-            GT_FUNCTION auto shift(T &obj, Stride const &stride, Offset offset)
+            GT_FUNCTION auto shift(T &obj, Stride const &stride, Offset const &offset)
                 GT_AUTO_RETURN(sid_shift(obj, stride, offset));
 
             /**
              *  `shift` overload where both `stride` and `offset` are known in compile time
              */
-            template <class T, class Stride, class Offset, int_t PtrOffset = Stride::value *Offset::value>
+            template <class T,
+                class Stride,
+                class Offset,
+                int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !(has_inc<T>::value && PtrOffset == 1) && !(has_dec<T>::value && PtrOffset == -1)>
-            shift(T &obj, Stride const &, Offset) {
+            shift(T &obj, Stride const &, Offset const &) {
                 obj += integral_constant<int_t, PtrOffset>{};
             }
 
             /**
              *  `shift` overload where the stride and offset are both 1 (or both -1)
              */
-            template <class T, class Stride, class Offset, int_t PtrOffset = Stride::value *Offset::value>
+            template <class T,
+                class Stride,
+                class Offset,
+                int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     has_inc<T>::value && PtrOffset == 1>
-            shift(T &obj, Stride const &, Offset) {
+            shift(T &obj, Stride const &, Offset const &) {
                 ++obj;
             }
 
             /**
              *  `shift` overload where the stride are offset are both 1, -1 (or -1, 1)
              */
-            template <class T, class Stride, class Offset, int_t PtrOffset = Stride::value *Offset::value>
+            template <class T,
+                class Stride,
+                class Offset,
+                int_t PtrOffset = get_static_const_value<Stride>::value *Offset::value>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     has_dec<T>::value && PtrOffset == -1>
-            shift(T &obj, Stride const &, Offset) {
+            shift(T &obj, Stride const &, Offset const &) {
                 --obj;
             }
 
@@ -446,7 +493,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-            shift(T &obj, Stride const &stride, Offset) {
+            shift(T &obj, Stride const &stride, Offset const &) {
                 obj += stride;
             }
 
@@ -457,7 +504,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value &&
                                     is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &obj, Stride const &stride, Offset) {
+            shift(T &obj, Stride const &stride, Offset const &) {
                 obj -= stride;
             }
 
@@ -467,7 +514,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &obj, Stride const &, Offset offset) {
+            shift(T &obj, Stride const &, Offset const &offset) {
                 obj += offset;
             }
 
@@ -478,7 +525,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, -1>::value &&
                                     !is_integral_constant<Offset>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &obj, Stride const &, Offset offset) {
+            shift(T &obj, Stride const &, Offset const &offset) {
                 obj -= offset;
             }
 
@@ -492,7 +539,7 @@ namespace gridtools {
                             !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                             !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
                                                                           is_integral_constant_of<Offset, -1>::value))>
-                shift(T &obj, Stride const &stride, Offset offset) {
+                shift(T &obj, Stride const &stride, Offset const &offset) {
                 obj += stride * offset;
             }
 
