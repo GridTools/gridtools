@@ -38,7 +38,7 @@
 
 #include <gtest/gtest.h>
 
-#include <utility>
+#include <memory>
 
 TEST(test_is_gpu_ptr, host_ptr_is_no_cuda_ptr) {
     auto testee = std::unique_ptr<double>(new double);
