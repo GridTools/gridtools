@@ -276,6 +276,33 @@ namespace gridtools {
                 }
             } // namespace attempt_to_misuse_value_method
 
+            namespace non_static_value {
+                struct stride {
+                    int value;
+                };
+
+                struct testee {};
+
+                GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
+                GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+
+                // now we no how to do `shift`
+                GT_FUNCTION int operator*(stride, int) { return 100; }
+
+                static_assert(sid::impl_::is_sid<testee>(), "");
+
+                TEST(non_static_value, shift) {
+                    ptrdiff_t val = 22;
+                    sid::shift(val, stride{}, 0);
+                    EXPECT_EQ(122, val);
+
+                    // try to use constant as an offset
+                    val = 22;
+                    sid::shift(val, stride{}, int_constant<3>());
+                    EXPECT_EQ(122, val);
+                }
+            } // namespace non_static_value
+
         } // namespace dispel_hannes_doubts
 
     } // namespace
