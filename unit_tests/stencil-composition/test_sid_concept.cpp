@@ -207,7 +207,7 @@ namespace gridtools {
                     obj += 11;
                 }
 
-                static_assert(sid::impl_::is_sid<testee>(), "");
+                static_assert(is_sid<testee>(), "");
 
                 TEST(attempt_to_provide_custom_shift, shift) {
                     ptrdiff_t val = 22;
@@ -262,7 +262,7 @@ namespace gridtools {
                 // now we no how to do `shift`
                 GT_FUNCTION int operator*(stride, int) { return 100; }
 
-                static_assert(sid::impl_::is_sid<testee>(), "");
+                static_assert(is_sid<testee>(), "");
 
                 TEST(attempt_to_misuse_value_method, shift) {
                     ptrdiff_t val = 22;
@@ -302,6 +302,46 @@ namespace gridtools {
                     EXPECT_EQ(122, val);
                 }
             } // namespace non_static_value
+
+            namespace non_static_value_2 {
+                struct stride {
+                    int value = 42;
+                };
+
+                template <typename T>
+                struct ptr {
+                    T *val;
+                    GT_FUNCTION T &operator*() const { return *val; }
+                    friend GT_FUNCTION ptr operator+(ptr, std::ptrdiff_t) { return {}; }
+                };
+
+                struct testee {};
+
+                GT_FUNCTION ptr<testee> sid_get_origin(testee &obj) { return {&obj}; }
+                GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+                std::ptrdiff_t sid_get_ptr_diff(testee);
+
+                template <typename T>
+                GT_FUNCTION void sid_shift(ptr<T> &p, stride const &s, int offset) {
+                    p.val += s.value * offset;
+                }
+                GT_FUNCTION void sid_shift(std::ptrdiff_t &, stride const &, int offset) {}
+
+                static_assert(is_sid<testee>(), "");
+
+                TEST(non_static_value, shift) {
+                    testee data;
+                    auto orig = sid::get_origin(data);
+                    auto shifted = orig;
+                    sid::shift(shifted, stride{}, 55);
+                    EXPECT_EQ(orig.val + 42 * 55, shifted.val);
+
+                    // try to use constant as an offset
+                    shifted = orig;
+                    sid::shift(shifted, stride{}, int_constant<55>());
+                    EXPECT_EQ(orig.val + 42 * 55, shifted.val);
+                }
+            } // namespace non_static_value_2
 
         } // namespace dispel_hannes_doubts
 
