@@ -118,7 +118,11 @@ namespace gridtools {
 
         template <size_t... Is, class... Ts>
         struct tuple_impl<meta::index_sequence<Is...>, Ts...> : tuple_leaf<Is, Ts>... {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+            constexpr GT_FUNCTION tuple_impl() noexcept {}
+#else
             tuple_impl() = default;
+#endif
             tuple_impl(tuple_impl const &) = default;
             tuple_impl(tuple_impl &&) = default;
             tuple_impl &operator=(tuple_impl const &) = default;
@@ -176,7 +180,11 @@ namespace gridtools {
 
     template <class... Ts>
     struct tuple : impl_::tuple_impl<meta::index_sequence_for<Ts...>, Ts...> {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+        constexpr GT_FUNCTION tuple() noexcept {}
+#else
         tuple() = default;
+#endif
         tuple(tuple const &) = default;
         tuple(tuple &&) = default;
         tuple &operator=(tuple const &) = default;
@@ -208,7 +216,11 @@ namespace gridtools {
 
     template <class T>
     struct tuple<T> : impl_::tuple_leaf<0, T> {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+        constexpr GT_FUNCTION tuple() noexcept {}
+#else
         tuple() = default;
+#endif
         tuple(tuple const &) = default;
         tuple(tuple &&) = default;
         tuple &operator=(tuple const &) = default;
