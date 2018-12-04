@@ -58,6 +58,7 @@ namespace gridtools {
                 static_assert(std::is_trivially_copyable<Res>::value, "");
                 auto res = cuda_util::cuda_malloc<Res>();
                 kernel<<<1, 1>>>(res.get(), fun, args...);
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
                 return cuda_util::from_clone(res);
             }
 
