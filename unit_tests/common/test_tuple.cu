@@ -55,8 +55,8 @@ namespace gridtools {
             Res exec(Fun fun, Args... args) {
                 static_assert(!std::is_pointer<Fun>::value, "");
                 static_assert(conjunction<negation<std::is_pointer<Args>>...>::value, "");
-                auto res = cuda_util::make_clone(Res{});
-                auto fun_clone = cuda_util::make_clone(fun);
+                static_assert(std::is_trivially_copyable<Res>::value, "");
+                auto res = cuda_util::cuda_malloc<Res>();
                 kernel<<<1, 1>>>(res.get(), fun, args...);
                 GT_CUDA_CHECK(cudaDeviceSynchronize());
                 return cuda_util::from_clone(res);

@@ -197,7 +197,7 @@ TEST(DataStoreTest, States) {
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(12, 12, 8);
     data_store<cuda_storage<double>, storage_info_t> ds(si, 3.1415);
-    check_vals<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    check_vals<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), get_gpu_storage_info_ptr(*ds.get_storage_info_ptr()));
     ds.clone_from_device();
     for (uint_t i = 0; i < 12; ++i)
         for (uint_t j = 0; j < 12; ++j)
@@ -208,7 +208,8 @@ TEST(DataStoreTest, Initializer) {
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
     data_store<cuda_storage<double>, storage_info_t> ds(si, [](int i, int j, int k) { return i + j + k; });
-    check_vals_lambda<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    check_vals_lambda<<<1, 1>>>(
+        ds.get_storage_ptr()->get_gpu_ptr(), get_gpu_storage_info_ptr(*ds.get_storage_info_ptr()));
     ds.clone_from_device();
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 11; ++j)

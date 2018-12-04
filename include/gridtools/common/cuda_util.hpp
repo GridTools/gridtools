@@ -35,20 +35,10 @@
 */
 #pragma once
 
-#include <type_traits>
-
-namespace gridtools {
-    namespace cuda_util {
-        template <class T>
-        struct is_cloneable : std::is_trivially_copyable<T> {};
-    } // namespace cuda_util
-} // namespace gridtools
-
-#ifdef __CUDACC__
-
 #include <cassert>
 #include <memory>
 #include <sstream>
+#include <type_traits>
 
 #include <cuda_runtime.h>
 
@@ -63,42 +53,42 @@ namespace gridtools {
 
 namespace gridtools {
     namespace cuda_util {
-        namespace _impl {
-            struct deleter_f {
-                template <class T>
-                void operator()(T *ptr) const {
-                    cudaFree(ptr);
-                }
-            };
+        template <class T>
+        struct is_cloneable : std::is_trivially_copyable<T> {};
 
-            void on_error(cudaError_t err, const char snippet[], const char fun[], const char file[], int line) {
+        namespace _impl {
+            inline void on_error(cudaError_t err, const char snippet[], const char fun[], const char file[], int line) {
                 std::ostringstream strm;
                 strm << "cuda failure: \"" << cudaGetErrorString(err) << "\" [" << cudaGetErrorName(err) << "(" << err
                      << ")] in \"" << snippet << "\" function: " << fun << ", location: " << file << "(" << line << ")";
                 throw std::runtime_error(strm.str());
             }
-
         } // namespace _impl
 
-        template <class T, class Res = std::unique_ptr<T, _impl::deleter_f>>
-        Res make_clone(T const &src) {
-            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
+        template <class T>
+        using unique_cuda_ptr = std::unique_ptr<T, std::integral_constant<decltype(&cudaFree), &cudaFree>>;
+
+        template <class T>
+        unique_cuda_ptr<T> cuda_malloc(size_t size = 1) {
             T *ptr;
-            GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(T)));
-            Res res{ptr};
-            GT_CUDA_CHECK(cudaMemcpy(ptr, &src, sizeof(T), cudaMemcpyHostToDevice));
+            GT_CUDA_CHECK(cudaMalloc(&ptr, size * sizeof(T)));
+            return unique_cuda_ptr<T>{ptr};
+        }
+
+        template <class T>
+        unique_cuda_ptr<T> make_clone(T const &src) {
+            GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
+            unique_cuda_ptr<T> res = cuda_malloc<T>();
+            GT_CUDA_CHECK(cudaMemcpy(res.get(), &src, sizeof(T), cudaMemcpyHostToDevice));
             return res;
         }
 
         template <class T>
-        T from_clone(std::unique_ptr<T, _impl::deleter_f> const &clone) {
+        T from_clone(unique_cuda_ptr<T> const &clone) {
             GRIDTOOLS_STATIC_ASSERT(std::is_trivially_copyable<T>::value, GT_INTERNAL_ERROR);
             T res;
             GT_CUDA_CHECK(cudaMemcpy(&res, clone.get(), sizeof(T), cudaMemcpyDeviceToHost));
             return res;
         }
-
     } // namespace cuda_util
 } // namespace gridtools
-
-#endif

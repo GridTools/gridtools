@@ -37,15 +37,15 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/common/storage_info_interface.hpp>
 #include <gridtools/storage/data_store.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
-typedef host_storage_info<0, layout_map<0, 1, 2>> storage_info_t;
-typedef host_storage_info<0, layout_map<0, 1, 2>, halo<2, 1, 0>> storage_info_halo_t;
-typedef host_storage_info<0, layout_map<0, 1, 2>, halo<2, 1, 0>, alignment<16>> storage_info_halo_aligned_t;
+typedef storage_info_interface<0, layout_map<0, 1, 2>> storage_info_t;
+typedef storage_info_interface<0, layout_map<0, 1, 2>, halo<2, 1, 0>> storage_info_halo_t;
+typedef storage_info_interface<0, layout_map<0, 1, 2>, halo<2, 1, 0>, alignment<16>> storage_info_halo_aligned_t;
 
 TEST(DataStoreTest, Simple) {
     storage_info_t si(3, 3, 3);

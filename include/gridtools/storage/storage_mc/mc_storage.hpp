@@ -60,17 +60,14 @@ namespace gridtools {
     template <typename DataType>
     struct mc_storage : storage_interface<mc_storage<DataType>> {
         typedef DataType data_t;
-        typedef data_t *ptrs_t;
+        typedef DataType *ptrs_t;
         typedef state_machine state_machine_t;
 
       private:
-        data_t *m_allocated_ptr = nullptr;
-        data_t *m_cpu_ptr = nullptr;
-        ownership m_ownership = ownership::Full;
+        std::unique_ptr<DataType, std::integral_constant<decltype(&free), &free>> m_holder;
+        DataType *m_ptr;
 
       public:
-        mc_storage(mc_storage const &) = delete;
-        mc_storage &operator=(mc_storage const &) = delete;
         /*
          * @brief mc_storage constructor. Allocates data aligned to 2MB pages (to encourage the system to use
          * transparent huge pages) and adds an additional samll offset which changes for every allocation to reduce the
@@ -85,22 +82,24 @@ namespace gridtools {
             uint_t data_type_offset = 0;
             uint_t next_data_offset;
             do {
-                data_type_offset = data_offset / sizeof(data_t);
+                data_type_offset = data_offset / sizeof(DataType);
                 next_data_offset = 2 * data_offset;
                 if (next_data_offset > 8192)
                     next_data_offset = 64;
             } while (!s_data_offset.compare_exchange_weak(data_offset, next_data_offset, std::memory_order_relaxed));
 
-            if (posix_memalign(reinterpret_cast<void **>(&m_allocated_ptr),
+            DataType *allocated_ptr;
+            if (posix_memalign(reinterpret_cast<void **>(&allocated_ptr),
                     2 * 1024 * 1024,
                     (size + (data_type_offset + Align)) * sizeof(data_t)))
                 throw std::bad_alloc();
 
             uint_t delta =
-                ((reinterpret_cast<std::uintptr_t>(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
+                ((reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
-            m_cpu_ptr = (delta == 0) ? m_allocated_ptr + data_type_offset
-                                     : m_allocated_ptr + (data_type_offset + Align - delta);
+            m_holder.reset(allocated_ptr);
+            m_ptr =
+                (delta == 0) ? allocated_ptr + data_type_offset : allocated_ptr + (data_type_offset + Align - delta);
         }
 
         /*
@@ -110,10 +109,9 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (in this case only externalCPU is valid)
          */
-        explicit constexpr mc_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
-            : m_cpu_ptr(external_ptr),
-              m_ownership(error_or_return(
-                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using mc_storage")) {}
+        mc_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU) : m_ptr(external_ptr) {
+            assert(own == ownership::ExternalCPU);
+        }
 
         /*
          * @brief mc_storage constructor. Allocate memory on Mic and initialize the memory according to the given
@@ -121,21 +119,11 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        template <typename Funct, uint_t Align = 1>
-        mc_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
+        template <typename Fun, uint_t Align = 1>
+        mc_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
             : mc_storage(size, offset_to_align, a) {
-            for (uint_t i = 0; i < size; ++i) {
-                m_cpu_ptr[i] = initializer(i);
-            }
-        }
-
-        /*
-         * @brief mc_storage destructor.
-         */
-        ~mc_storage() {
-            if (m_ownership == ownership::Full && m_allocated_ptr) {
-                free(m_allocated_ptr);
-            }
+            for (uint_t i = 0; i < size; ++i)
+                m_ptr[i] = initializer(i);
         }
 
         /*
@@ -143,29 +131,25 @@ namespace gridtools {
          */
         void swap_impl(mc_storage &other) {
             using std::swap;
-            swap(m_cpu_ptr, other.m_cpu_ptr);
-            swap(m_allocated_ptr, other.m_allocated_ptr);
-            swap(m_ownership, other.m_ownership);
+            swap(m_holder, other.m_holder);
+            swap(m_ptr, other.m_ptr);
         }
 
         /*
          * @brief retrieve the mc data pointer.
          * @return data pointer
          */
-        data_t *get_cpu_ptr() const {
-            ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized");
-            return m_cpu_ptr;
-        }
+        DataType *get_cpu_ptr() const { return m_ptr; }
 
         /*
          * @brief get_ptrs implementation for mc_storage.
          */
-        ptrs_t get_ptrs_impl() const { return m_cpu_ptr; }
+        DataType *get_ptrs_impl() const { return m_ptr; }
 
         /*
          * @brief valid implementation for mc_storage.
          */
-        bool valid_impl() const { return m_cpu_ptr; }
+        bool valid_impl() const { return true; }
 
         /*
          * @brief clone_to_device implementation for mc_storage.

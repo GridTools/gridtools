@@ -163,7 +163,7 @@ namespace gridtools {
          */
         template <typename... Dims,
             enable_if_t<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int> = 0>
-        GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
+        GT_FUNCTION constexpr storage_info_interface(Dims... dims_)
             : m_total_lengths{static_cast<uint_t>(dims_)...},
               m_padded_lengths{pad_dimensions<alignment_t, max_layout_v, LayoutArgs>(
                   handle_masked_dims<LayoutArgs>::extend(dims_))...},
@@ -394,10 +394,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_storage_info
-        : std::is_base_of<
-              storage_info_interface<T::id, typename T::layout_t, typename T::halo_t, typename T::alignment_t>,
-              T> {};
+    struct is_storage_info : std::false_type {};
+
+    template <uint_t Id, typename Layout, typename Halo, typename Alignment>
+    struct is_storage_info<storage_info_interface<Id, Layout, Halo, Alignment>> : std::true_type {};
 
     /**
      * @}
