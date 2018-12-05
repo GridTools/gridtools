@@ -279,9 +279,9 @@ namespace gridtools {
             swap(m_name, other.m_name);
         }
 
-        friend void swap(data_store& lhs, data_store& rhs) {
-            lhs.swap(rhs);
-        }
+        friend void swap(data_store& a, data_store& b) {
+            a.swap(b);
+        };
 
         /**
          * @brief function to retrieve the size of a dimension (e.g., I, J, or K).

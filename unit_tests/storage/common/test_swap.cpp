@@ -64,7 +64,8 @@ TEST(Storage, Swap) {
     auto ptr2 = ds2.get_storage_ptr();
     auto iptr2 = ds2.get_storage_info_ptr();
 
-    std::swap(ds1, ds2);
+    using std::swap;
+    swap(ds1, ds2);
 
     EXPECT_EQ(name1, ds2.name());
     EXPECT_EQ(ptr1, ds2.get_storage_ptr());
