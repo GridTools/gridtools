@@ -58,7 +58,6 @@
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/storage/storage-facility.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
@@ -77,8 +76,8 @@ struct dummy_functor {
 typedef backend<target::x86, grid_type_t, strategy::naive> naive_backend_t;
 typedef layout_map<2, 1, 0> layout_ijk_t;
 typedef layout_map<0, 1, 2> layout_kji_t;
-typedef host_storage_info<0, layout_ijk_t> meta_ijk_t;
-typedef host_storage_info<0, layout_kji_t> meta_kji_t;
+typedef storage_info_interface<0, layout_ijk_t> meta_ijk_t;
+typedef storage_info_interface<0, layout_kji_t> meta_kji_t;
 typedef storage_traits<naive_backend_t::backend_id_t>::data_store_t<float_type, meta_ijk_t> storage_t;
 typedef storage_traits<naive_backend_t::backend_id_t>::data_store_t<float_type, meta_kji_t> storage_buff_t;
 

@@ -39,7 +39,6 @@
 #include <gridtools/distributed-boundaries/bound_bc.hpp>
 #include <gridtools/storage/data_store.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;
@@ -55,7 +54,7 @@ TEST(DistributedBoundaries, SelectElement) {
 }
 
 TEST(DistributedBoundaries, DataStoreOrPlc) {
-    typedef gt::host_storage_info<0, gt::layout_map<0, 1, 2>> storage_info_t;
+    typedef gt::storage_info_interface<0, gt::layout_map<0, 1, 2>> storage_info_t;
     using ds = gt::data_store<gt::host_storage<double>, storage_info_t>;
 
     EXPECT_EQ((gt::_impl::data_stores_or_placeholders<decltype(_1), decltype(_2)>()), true);
@@ -122,7 +121,7 @@ TEST(DistributedBoundaries, ContainsPlaceholders) {
 }
 
 TEST(DistributedBoundaries, BoundBC) {
-    typedef gt::host_storage_info<0, gt::layout_map<0, 1, 2>> storage_info_t;
+    typedef gt::storage_info_interface<0, gt::layout_map<0, 1, 2>> storage_info_t;
     using ds = gt::data_store<gt::host_storage<double>, storage_info_t>;
 
     ds a(storage_info_t{3, 3, 3}, "a");

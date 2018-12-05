@@ -61,7 +61,7 @@ namespace gridtools {
         typename DataStoreField,
         typename DecayedDSF = typename boost::decay<DataStoreField>::type>
     typename boost::enable_if<boost::mpl::and_<is_cuda_storage<typename DecayedDSF::storage_t>,
-                                  is_cuda_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         data_field_view<DecayedDSF, AccessMode>>::type
     make_field_host_view(DataStoreField &ds) {
@@ -100,7 +100,7 @@ namespace gridtools {
         typename DataStoreField,
         typename DecayedDSF = typename boost::decay<DataStoreField>::type>
     typename boost::enable_if<boost::mpl::and_<is_cuda_storage<typename DecayedDSF::storage_t>,
-                                  is_cuda_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         data_field_view<DecayedDSF, AccessMode>>::type
     make_field_device_view(DataStoreField &ds) {
@@ -114,7 +114,7 @@ namespace gridtools {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
         for (uint_t i = 0; i < DecayedDSF::num_of_components; ++i) {
-            info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr()->get_gpu_ptr();
+            info_ptrs[i] = get_gpu_storage_info_ptr(*ds.get_field()[offsets[i]].get_storage_info_ptr());
         }
         for (uint_t i = 0; i < DecayedDSF::num_of_storages; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_gpu_ptr();
@@ -140,7 +140,7 @@ namespace gridtools {
         typename DecayedDSF = typename boost::decay<DataStoreField>::type,
         typename DecayedDFV = typename boost::decay<DataFieldView>::type>
     typename boost::enable_if<boost::mpl::and_<is_cuda_storage<typename DecayedDSF::storage_t>,
-                                  is_cuda_storage_info<typename DecayedDSF::storage_info_t>,
+                                  is_storage_info<typename DecayedDSF::storage_info_t>,
                                   is_data_store_field<DecayedDSF>>,
         bool>::type
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {

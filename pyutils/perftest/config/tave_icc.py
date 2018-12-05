@@ -4,7 +4,8 @@ from perftest.config import tave_common as default
 
 
 modules = default.modules | {'PrgEnv-intel',
-                             'craype-mic-knl'}
+                             'craype-mic-knl',
+                             'gcc'}
 
 env = dict(default.env,
            CXX='icpc',

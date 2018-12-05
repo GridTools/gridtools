@@ -35,10 +35,12 @@
 */
 #pragma once
 
-#include <cuda_runtime.h>
 #include <memory>
 #include <string>
 
+#include <cuda_runtime.h>
+
+#include "../../common/cuda_util.hpp"
 #include "../timer.hpp"
 
 namespace gridtools {
@@ -49,14 +51,12 @@ namespace gridtools {
      */
     class timer_cuda : public timer<timer_cuda> // CRTP
     {
-        struct event_deleter {
-            void operator()(cudaEvent_t event) const { cudaEventDestroy(event); }
-        };
-        using event_holder = std::unique_ptr<CUevent_st, event_deleter>;
+        using event_holder =
+            std::unique_ptr<CUevent_st, std::integral_constant<decltype(&cudaEventDestroy), cudaEventDestroy>>;
 
         static event_holder create_event() {
             cudaEvent_t event;
-            cudaEventCreate(&event);
+            GT_CUDA_CHECK(cudaEventCreate(&event));
             return event_holder{event};
         }
 
@@ -76,7 +76,7 @@ namespace gridtools {
          */
         void start_impl() {
             // insert a start event
-            cudaEventRecord(m_start.get(), 0);
+            GT_CUDA_CHECK(cudaEventRecord(m_start.get(), 0));
         }
 
         /**
@@ -84,12 +84,12 @@ namespace gridtools {
          */
         double pause_impl() {
             // insert stop event and wait for it
-            cudaEventRecord(m_stop.get(), 0);
-            cudaEventSynchronize(m_stop.get());
+            GT_CUDA_CHECK(cudaEventRecord(m_stop.get(), 0));
+            GT_CUDA_CHECK(cudaEventSynchronize(m_stop.get()));
 
             // compute the timing
             float result;
-            cudaEventElapsedTime(&result, m_start.get(), m_stop.get());
+            GT_CUDA_CHECK(cudaEventElapsedTime(&result, m_start.get(), m_stop.get()));
             return result * 0.001; // convert ms to s
         }
     };

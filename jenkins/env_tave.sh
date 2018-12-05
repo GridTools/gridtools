@@ -45,6 +45,7 @@ elif [[ ${COMPILER} == "icc" ]]; then
     *)
       module swap intel/18.0.2.199
   esac
+  module load gcc
   export CXX=`which icpc`
   export CC=`which icc`
   export FC=`which ifort`

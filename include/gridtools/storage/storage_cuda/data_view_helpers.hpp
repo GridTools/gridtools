@@ -60,8 +60,7 @@ namespace gridtools {
         typename CudaDataStore,
         typename DecayedCDS = decay_t<CudaDataStore>>
     enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
-                    is_cuda_storage_info<typename DecayedCDS::storage_info_t>::value &&
-                    is_data_store<DecayedCDS>::value,
+                    is_storage_info<typename DecayedCDS::storage_info_t>::value && is_data_store<DecayedCDS>::value,
         data_view<DecayedCDS, AccessMode>>
     make_host_view(CudaDataStore const &ds) {
         if (!ds.valid())
@@ -90,8 +89,7 @@ namespace gridtools {
         typename CudaDataStore,
         typename DecayedCDS = decay_t<CudaDataStore>>
     enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
-                    is_cuda_storage_info<typename DecayedCDS::storage_info_t>::value &&
-                    is_data_store<DecayedCDS>::value,
+                    is_storage_info<typename DecayedCDS::storage_info_t>::value && is_data_store<DecayedCDS>::value,
         data_view<DecayedCDS, AccessMode>>
     make_device_view(CudaDataStore const &ds) {
         if (!ds.valid())
@@ -105,7 +103,7 @@ namespace gridtools {
             ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
         }
         return data_view<DecayedCDS, AccessMode>(ds.get_storage_ptr()->get_gpu_ptr(),
-            ds.get_storage_info_ptr()->get_gpu_ptr(),
+            get_gpu_storage_info_ptr(*ds.get_storage_info_ptr()),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             true);
     }
@@ -120,8 +118,7 @@ namespace gridtools {
         typename CudaDataStore,
         typename DecayedCDS = decay_t<CudaDataStore>>
     enable_if_t<is_cuda_storage<typename DecayedCDS::storage_t>::value &&
-                    is_cuda_storage_info<typename DecayedCDS::storage_info_t>::value &&
-                    is_data_store<DecayedCDS>::value,
+                    is_storage_info<typename DecayedCDS::storage_info_t>::value && is_data_store<DecayedCDS>::value,
         data_view<DecayedCDS, AccessMode>>
     make_target_view(CudaDataStore const &ds) {
         return make_device_view<AccessMode>(ds);
@@ -138,7 +135,7 @@ namespace gridtools {
         typename DecayedDS = decay_t<DataStore>,
         typename DecayedDV = decay_t<DataView>>
     enable_if_t<is_cuda_storage<typename DecayedDS::storage_t>::value &&
-                    is_cuda_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
+                    is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>
     check_consistency(DataStore const &d, DataView const &v) {
         GRIDTOOLS_STATIC_ASSERT(is_data_view<DecayedDV>::value, "Passed type is no data_view type");

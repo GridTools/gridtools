@@ -49,7 +49,6 @@ namespace gridtools {
     struct state_machine {
         bool m_hnu; // hnu = host needs update, set to true if a non-read-only device view is instantiated.
         bool m_dnu; // dnu = device needs update, set to true if a non-read-only host view is instantiated.
-        state_machine() : m_hnu(false), m_dnu(false) {}
     };
 
     /**

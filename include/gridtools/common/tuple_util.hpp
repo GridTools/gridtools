@@ -237,14 +237,23 @@ namespace gridtools {
             // Here ADL definitions of `tuple_*` functions are picked up
             // The versions in this namespace will be chosen if nothing is found by `ADL`.
             // it is important to have all builtins above this line.
-            template <class T>
-            GT_META_DEFINE_ALIAS(getter, meta::id, decltype(tuple_getter(std::declval<T>())));
 
             template <class T>
-            GT_META_DEFINE_ALIAS(to_types, meta::id, decltype(tuple_to_types(std::declval<T>())));
+            decltype(tuple_getter(std::declval<T>())) get_getter(T);
+            template <class T>
+            decltype(tuple_to_types(std::declval<T>())) get_to_types(T);
+            template <class T>
+            decltype(tuple_from_types(std::declval<T>())) get_from_types(T);
 
             template <class T>
-            GT_META_DEFINE_ALIAS(from_types, meta::id, decltype(tuple_from_types(std::declval<T>())));
+            GT_META_DEFINE_ALIAS(
+                getter, meta::id, decltype(::gridtools::tuple_util::traits::get_getter(std::declval<T>())));
+            template <class T>
+            GT_META_DEFINE_ALIAS(
+                to_types, meta::id, decltype(::gridtools::tuple_util::traits::get_to_types(std::declval<T>())));
+            template <class T>
+            GT_META_DEFINE_ALIAS(
+                from_types, meta::id, decltype(::gridtools::tuple_util::traits::get_from_types(std::declval<T>())));
         } // namespace traits
         /// @endcond
 

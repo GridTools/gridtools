@@ -107,14 +107,14 @@ namespace gridtools {
 #else
             using layout = typename get_layout<Dims, true>::type;
 #endif
-            using type = mc_storage_info<Id, layout, Halo, Align>;
+            using type = storage_info_interface<Id, layout, Halo, Align>;
         };
 
         template <uint_t Id, typename Layout, typename Halo, typename Align>
         struct select_custom_layout_storage_info_align {
             GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
-            using type = mc_storage_info<Id, Layout, Halo, Align>;
+            using type = storage_info_interface<Id, Layout, Halo, Align>;
         };
 
         template <uint_t Id, typename Selector, typename Halo, typename Align>
@@ -126,7 +126,7 @@ namespace gridtools {
 #else
             using layout = typename get_layout<Selector::size, true>::type;
 #endif
-            using type = mc_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align>;
+            using type = storage_info_interface<Id, typename get_special_layout<layout, Selector>::type, Halo, Align>;
         };
     };
 } // namespace gridtools
