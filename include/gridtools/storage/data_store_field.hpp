@@ -288,7 +288,7 @@ namespace gridtools {
      *  will swap the  storages 0, 0 and 0, 1. This operation invalidates the previously created views.
      **/
     template <uint_t Dim_S, uint_t Snapshot_S>
-    struct swap {
+    struct exchange {
         template <uint_t Dim_T, uint_t Snapshot_T, typename T, uint_t... N>
         static void with(data_store_field<T, N...> &data_field) {
             GRIDTOOLS_STATIC_ASSERT((Dim_S == Dim_T), GT_INTERNAL_ERROR_MSG("Inter-component swap is not allowed."));

@@ -45,7 +45,7 @@
 using namespace gridtools;
 using namespace expressions;
 
-namespace test_cycle_and_swap {
+namespace test_cycle_and_exchange {
     using namespace gridtools;
     using namespace enumtype;
 
@@ -95,7 +95,7 @@ namespace test_cycle_and_swap {
 
         comp.run(p_i_data = i_data.get<0, 0>());
         i_data.sync();
-        swap<0, 0>::with<0, 1>(i_data);
+        exchange<0, 0>::with<0, 1>(i_data);
         comp.run(p_i_data = i_data.get<0, 0>());
         i_data.sync();
         iv = make_field_host_view(i_data);
@@ -169,7 +169,7 @@ namespace test_cycle_and_swap {
         }
         comp.run(p_in = i_data.get<0, 0>(), p_out = i_data.get<0, 1>());
         i_data.sync();
-        swap<0, 0>::with<0, 1>(i_data);
+        exchange<0, 0>::with<0, 1>(i_data);
 
         // note that the second run will do wrong computations at the first line of the 2D domain of the coordinates,
         // because the first line of
@@ -235,4 +235,4 @@ namespace test_cycle_and_swap {
                 iv.get<2, 3>()(0, 0, 0) == 22);
     }
 
-} // namespace test_cycle_and_swap
+} // namespace test_cycle_and_exchange

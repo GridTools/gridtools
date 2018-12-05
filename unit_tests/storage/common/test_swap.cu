@@ -33,4 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cycle_and_swap.cpp"
+
+#include "test_swap.cpp"

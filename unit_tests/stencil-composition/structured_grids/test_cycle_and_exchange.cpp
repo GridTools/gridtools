@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cycle_and_swap.hpp"
+#include "test_cycle_and_exchange.hpp"
 
 #include "gtest/gtest.h"
 
-TEST(cycle_and_swap, 2D) { EXPECT_TRUE(test_cycle_and_swap::test_2D()); }
+TEST(cycle_and_exchange, 2D) { EXPECT_TRUE(test_cycle_and_exchange::test_2D()); }
 
-TEST(cycle_and_swap, 3D) { EXPECT_TRUE(test_cycle_and_swap::test_3D()); }
+TEST(cycle_and_exchange, 3D) { EXPECT_TRUE(test_cycle_and_exchange::test_3D()); }
 
-TEST(cycle_and_swap, cycle) { EXPECT_TRUE(test_cycle_and_swap::test_cycle()); }
+TEST(cycle_and_exchange, cycle) { EXPECT_TRUE(test_cycle_and_exchange::test_cycle()); }

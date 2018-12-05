@@ -272,6 +272,17 @@ namespace gridtools {
             m_shared_storage.reset();
         }
 
+        void swap(data_store& other) {
+            using std::swap;
+            swap(m_shared_storage, other.m_shared_storage);
+            swap(m_shared_storage_info, other.m_shared_storage_info);
+            swap(m_name, other.m_name);
+        }
+
+        friend void swap(data_store& lhs, data_store& rhs) {
+            lhs.swap(rhs);
+        }
+
         /**
          * @brief function to retrieve the size of a dimension (e.g., I, J, or K).
          *
