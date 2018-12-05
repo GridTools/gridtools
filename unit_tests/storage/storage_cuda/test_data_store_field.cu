@@ -110,7 +110,7 @@ TEST(DataStoreFieldTest, FillAndReadData) {
     auto hv2 = make_host_view<access_mode::ReadOnly>(partial_2);
 
     // do a swap operation
-    swap<0, 0>::with<0, 1>(f);
+    exchange<0, 0>::with<0, 1>(f);
 
     // views are invalid now, because ptrs do not match anymore
     EXPECT_FALSE(check_consistency(f.get<0, 0>(), hv1));
