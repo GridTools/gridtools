@@ -36,19 +36,17 @@
 
 #include "gtest/gtest.h"
 
-
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 #include <gridtools/tools/backend_select.hpp>
-#include <utility>
 #include <iostream>
+#include <utility>
 
 namespace gt = gridtools;
 
 TEST(Storage, Swap) {
-    typedef gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
-    typedef gt::storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_t> data_store_t;
-    typedef gt::storage_traits<backend_t::backend_id_t>::data_store_t<float, storage_info_t> data_store_tt;
+    using storage_info_t = typedef gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
+    using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_t> data_store_t;
 
     storage_info_t s1(3, 3, 3);
     data_store_t ds1(s1, "ds1");
@@ -74,5 +72,4 @@ TEST(Storage, Swap) {
     EXPECT_EQ(name2, ds1.name());
     EXPECT_EQ(ptr2, ds1.get_storage_ptr());
     EXPECT_EQ(iptr2, ds1.get_storage_info_ptr());
-
 }
