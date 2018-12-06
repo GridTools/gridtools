@@ -117,11 +117,11 @@
  *    Fallbacks
  *    ---------
  *
- *    `sid_get_strides(Sid)` returns an empty tuple.
- *    `sid_get_bounds_validator(Sid)` returns a validator that never returns false
- *    `sid_get_ptr_diff(Sid)` returns the same type as `decltype(Ptr{} - Ptr{})`
- *    `sid_get_strides_kind(Sid)` is enabled if `Strides` is empty and returns `Strides`
- *    `sid_get_bounds_validator_kind` fallback is like sid_get_strides_kind one.
+ *    `get_strides(Sid)` returns an empty tuple.
+ *    `get_bounds_validator(Sid)` returns a validator that never returns false
+ *    `get_ptr_diff(Sid)` returns the same type as `decltype(Ptr{} - Ptr{})`
+ *    `get_strides_kind(Sid)` is enabled if `Strides` is empty and returns `Strides`
+ *    `get_bounds_validator_kind(Sid)` fallback is like sid_get_strides_kind one.
  *
  *   Compile time API
  *   =================
@@ -198,9 +198,60 @@ namespace gridtools {
             struct is_integral_constant_of<T, Val, enable_if_t<is_integral_constant<T>::value && T() == Val>>
                 : std::true_type {};
 
-            // BEGIN `get_origin` PART
+            /////// BEGIN defaults PART /////
+            template <class...>
+            struct default_strides_templ;
+            template <>
+            struct default_strides_templ<> {};
+            using default_strides = default_strides_templ<>;
 
-            // `sid_get_origin` doesn't have fallback
+            struct default_bounds_validator {
+                template <class T>
+                constexpr GT_FUNCTION true_type operator()(T &&) const {
+                    return {};
+                }
+            };
+
+            template <class Ptr>
+            auto sid_get_default_ptr_diff(Ptr const &ptr) -> decltype(ptr - ptr);
+
+            template <class Ptr>
+            using default_ptr_diff = decltype(::gridtools::sid::impl_::sid_get_default_ptr_diff(
+                std::declval<add_lvalue_reference_t<add_const_t<Ptr>>>()));
+
+            GT_META_LAZY_NAMESPACE {
+                template <class, class = void>
+                struct default_kind;
+                template <class T>
+                struct default_kind<T, enable_if_t<std::is_empty<decay_t<T>>::value>> : std::decay<T> {};
+            }
+            GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);
+            /////// END defaults PART ///////
+
+            /////// Fallbacks
+
+            struct not_provided;
+
+            not_provided sid_get_strides(...);
+            not_provided sid_get_bounds_validator(...);
+            not_provided sid_get_ptr_diff(...);
+            not_provided sid_get_strides_kind(...);
+            not_provided sid_get_bounds_validator_kind(...);
+
+#define DEFINE_HAS_ADL(property) \
+    template <class T>           \
+    using has_adl_##property =   \
+        negation<std::is_same<decltype(sid_get_##property(std::declval<T const &>())), not_provided>>
+
+            DEFINE_HAS_ADL(strides);
+            DEFINE_HAS_ADL(bounds_validator);
+            DEFINE_HAS_ADL(ptr_diff);
+            DEFINE_HAS_ADL(strides_kind);
+            DEFINE_HAS_ADL(bounds_validator_kind);
+
+#undef DEFINE_HAS_ADL
+
+            // BEGIN `get_origin` PART
 
             /**
              *  `get_origin` delegates to `sid_get_origin`
@@ -233,8 +284,11 @@ namespace gridtools {
             /**
              *  a proxy for sid_get_ptr_diff ADL resolution
              */
-            template <class Sid>
+            template <class Sid, enable_if_t<has_adl_ptr_diff<Sid>::value, int> = 0>
             auto get_ptr_diff(Sid const &sid) -> decltype(sid_get_ptr_diff(sid));
+
+            template <class Sid, enable_if_t<!has_adl_ptr_diff<Sid>::value, int> = 0>
+            default_ptr_diff<ptr_type<Sid>> get_ptr_diff(Sid const &);
 
             /**
              *  `PtrDiff` type is deduced from `get_ptr_diff`
@@ -246,28 +300,16 @@ namespace gridtools {
 
             // BEGIN `get_strides` PART
 
-            template <class...>
-            struct empty_strides;
-
-            template <>
-            struct empty_strides<> {};
-
-            /**
-             *  `sid_get_strides` fallback
-             *
-             *  By default Sid provides no strides.
-             */
-            template <class Sid>
-            constexpr GT_FUNCTION empty_strides<> sid_get_strides(Sid const &) {
-                return {};
-            }
-
             /**
              *  `get_strides` delegates to `sid_get_strides`
              */
-            template <class Sid>
+            template <class Sid, enable_if_t<has_adl_strides<Sid>::value, int> = 0>
             constexpr GT_FUNCTION auto get_strides(Sid const &obj) GT_AUTO_RETURN(sid_get_strides(obj));
 
+            template <class Sid, enable_if_t<!has_adl_strides<Sid>::value, int> = 0>
+            constexpr GT_FUNCTION default_strides get_strides(Sid const &obj) {
+                return {};
+            }
             /**
              *  `Strides` type is deduced from `get_strides`
              */
@@ -278,15 +320,11 @@ namespace gridtools {
 
             // BEGIN `strides_kind` PART
 
-            /**
-             *  `sid_get_strides_kind` fallback
-             *
-             *  It is enabled only if `Strides` type has no members.
-             */
-            template <class Sid, class Strides = decay_t<strides_type<Sid>>>
-            enable_if_t<std::is_empty<Strides>::value, Strides> sid_get_strides_kind(Sid const &);
+            template <class Sid, enable_if_t<!has_adl_strides_kind<Sid>::value, int> = 0>
+            GT_META_CALL(default_kind, strides_type<Sid>)
+            get_strides_kind(Sid const &);
 
-            template <class Sid>
+            template <class Sid, enable_if_t<has_adl_strides_kind<Sid>::value, int> = 0>
             auto get_strides_kind(Sid const &sid) -> decltype(sid_get_strides_kind(sid));
 
             /**
@@ -300,31 +338,16 @@ namespace gridtools {
             // BEGIN `bounds_validator` PART
 
             /**
-             *  optimistic validator
-             */
-            struct always_happy {
-                template <class T>
-                constexpr GT_FUNCTION true_type operator()(T &&) const {
-                    return {};
-                }
-            };
-
-            /**
-             *  `sid_get_bounds_validator` fallback
-             *
-             *  By default don't validate.
-             */
-            template <class Sid>
-            constexpr GT_FUNCTION always_happy sid_get_bounds_validator(Sid const &) {
-                return {};
-            }
-
-            /**
              *  `get_bounds_validator` delegates to `sid_get_bounds_validator`
              */
-            template <class Sid>
+            template <class Sid, enable_if_t<has_adl_bounds_validator<Sid>::value, int> = 0>
             constexpr GT_FUNCTION auto get_bounds_validator(Sid const &obj)
                 GT_AUTO_RETURN(sid_get_bounds_validator(obj));
+
+            template <class Sid, enable_if_t<!has_adl_bounds_validator<Sid>::value, int> = 0>
+            constexpr GT_FUNCTION default_bounds_validator get_bounds_validator(Sid const &obj) {
+                return {};
+            }
 
             /**
              *  `BoundsValidator` types is deduced from `sid_get_bounds_validator`
@@ -337,17 +360,12 @@ namespace gridtools {
 
             // BEGIN `bounds_validator_kind` PART
 
-            /**
-             *  `sid_get_bounds_validator_kind` fallback
-             *
-             *  It is enabled only if `BoundsValidator` type has no members.
-             */
-            template <class Sid, class BoundsValidator = decay_t<bounds_validator_type<Sid>>>
-            enable_if_t<std::is_empty<BoundsValidator>::value, BoundsValidator> sid_get_bounds_validator_kind(
-                Sid const &);
-
-            template <class Sid>
+            template <class Sid, enable_if_t<has_adl_bounds_validator_kind<Sid>::value, int> = 0>
             auto get_bounds_validator_kind(Sid const &obj) -> decltype(sid_get_bounds_validator_kind(obj));
+
+            template <class Sid, enable_if_t<!has_adl_bounds_validator_kind<Sid>::value, int> = 0>
+            GT_META_CALL(default_kind, bounds_validator_type<Sid>)
+            get_bounds_validator_kind(Sid const &obj);
 
             /**
              *  `bounds_validator_kind` is deduced from `sid_get_bounds_validator_kind`
@@ -618,6 +636,8 @@ namespace gridtools {
         SID_DELEGATE_FROM_IMPL(bounds_validator_type);
         SID_DELEGATE_FROM_IMPL(bounds_validator_kind);
 
+        SID_DELEGATE_FROM_IMPL(default_ptr_diff);
+
 #undef SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
@@ -625,6 +645,11 @@ namespace gridtools {
         using impl_::get_origin;
         using impl_::get_strides;
         using impl_::shift;
+
+        // Default behaviour
+        using impl_::default_bounds_validator;
+        using impl_::default_kind;
+        using impl_::default_strides;
 
         /**
          *  Does the type models the SID concept
