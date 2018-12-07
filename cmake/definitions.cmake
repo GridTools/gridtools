@@ -26,12 +26,11 @@ target_include_directories(GridTools
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
 )
-include(workaround_cuda)
-_workaround_cuda()
 include(workaround_icc)
-_workaround_icc()
+_workaround_icc(GridTools)
 
-find_package( Boost 1.58 REQUIRED )
+set(REQUIRED_BOOST_VERSION 1.58)
+find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
 target_link_libraries( GridTools INTERFACE Boost::boost)
 
 if (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC)
@@ -69,6 +68,10 @@ if( GT_USE_MPI )
 endif()
 
 add_library(GridToolsTest INTERFACE)
+# NOTE: The CUDA workaround can only be applied to the test because it cannot work
+# with generator expressions. Thus, this needs to be redone in the Config.cmake.in.
+include(workaround_cuda)
+_workaround_cuda(GridToolsTest)
 target_link_libraries(GridToolsTest INTERFACE GridTools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)

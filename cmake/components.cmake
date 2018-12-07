@@ -25,29 +25,6 @@ function(generate_target_for)
     endif()
 endfunction(generate_target_for)
 
-### The following function works like this:
-###
-### First argument the name of the library as exported
-###
-### Second is the folder in `include/gridtools` where the headers to be installed are
-###
-function(generate_install_targets_for name folder)
-    install(TARGETS ${name} EXPORT ${name}targets
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib
-      RUNTIME DESTINATION bin
-      INCLUDES DESTINATION include
-    )
-    install(EXPORT ${name}targets
-      FILE ${name}Targets.cmake
-      NAMESPACE gridtools::
-      DESTINATION ${INSTALL_CONFIGDIR}
-    )
-
-    install(DIRECTORY "include/gridtools/" DESTINATION include/gridtools COMPONENT ${name} )
-endfunction(generate_install_targets_for)
-
-
 include (CMakeDependentOption)
 set(INSTALL_ALL ON CACHE BOOL "Install all")
 CMAKE_DEPENDENT_OPTION(INSTALL_GCL "GCL/communication component" OFF "NOT INSTALL_ALL" ON)

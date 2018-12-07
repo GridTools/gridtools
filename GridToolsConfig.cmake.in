@@ -1,32 +1,26 @@
-get_filename_component(GRIDTOOLS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(GRIDTOOLS_CUDA_MANDATORY_FLAGS "@GT_CUDA_MANDATORY_FLAGS@")
-set(GRIDTOOLS_CUDA_OPTIONAL_FLAGS "@GT_CUDA_OPTIONAL_FLAGS@")
-set(GRIDTOOLS_CUDA_INTERNAL_BUILDING_FLAGS "@GT_CUDA_BUILDING_FLAGS@")
-set(GRIDTOOLS_CUDA_OPTIMIZATION_FLAGS "@GT_CUDA_OPTIMIZATION_FLAGS@")
-set(GRIDTOOLS_CUDA_FLAGS "@GT_CUDA_FLAGS@")
+@PACKAGE_INIT@
 
-set(GRIDTOOLS_CXX_MANDATORY_FLAGS "@GT_CXX_MANDATORY_FLAGS@")
-set(GRIDTOOLS_CXX_OPTIONAL_FLAGS "@GT_CXX_OPTIONAL_FLAGS@")
-set(GRIDTOOLS_CXX_INTERNAL_BUILDING_FLAGS "@GT_CXX_BUILDING_FLAGS@")
-set(GRIDTOOLS_CXX_OPTIMIZATION_FLAGS "@GT_CXX_OPTIMIZATION_FLAGS@")
-set(GRIDTOOLS_CXX_FLAGS "@GT_CXX_FLAGS@")
+include(CMakeFindDependencyMacro)
+find_dependency(Boost @REQUIRED_BOOST_VERSION@)
 
-find_package(MPI REQUIRED)
-find_package(Boost 1.58 REQUIRED)
+if (@GT_USE_MPI@)
+    find_dependency(MPI COMPONENTS CXX)
+endif()
 
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/array_descriptorTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/boundary-conditionsTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/c_bindings_generatorTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/c_bindings_generator_mainTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/c_bindings_handleTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/commonTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/distributed-boundariesTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/gclTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/stencil-compositionTargets.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/gridtools/storageTargets.cmake")
+if (@OPENMP_AVAILABLE@)
+    find_dependency(OpenMP COMPONENTS CXX)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/gridtools/GridToolsTargets.cmake")
+
+# CUDA workaround
+if(${CMAKE_CUDA_COMPILER_LOADED})
+    if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2" AND ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "10.1")
+        target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
+        target_compile_definitions(GridTools INTERFACE BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
+    endif()
+endif()
 
 target_compile_definitions(gridtools::GridTools INTERFACE STRUCTURED_GRIDS)
-
-@PACKAGE_INIT@
 
 check_required_components(gridtools)

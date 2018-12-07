@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-project(GridTools VERSION "0.1" LANGUAGES CXX)
+project(GridTools VERSION "1.9" LANGUAGES CXX)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -51,51 +51,48 @@ if( COMPONENT_COMMON )
     )
 
     generate_target_for(NAME common)
-    generate_install_targets_for(common common)
     target_link_libraries(common INTERFACE GridTools)
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
     generate_target_for(NAME boundary-conditions)
-    generate_install_targets_for(boundary-conditions boundary-conditions)
     target_link_libraries( boundary-conditions INTERFACE common )
 endif()
 
 if( COMPONENT_STENCIL_COMPOSITION )
     generate_target_for(NAME stencil-composition)
-    generate_install_targets_for(stencil-composition stencil-composition)
     target_link_libraries( stencil-composition INTERFACE common )
 endif()
 
 if( COMPONENT_GCL )
-    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
-    generate_install_targets_for(gcl communication)
-    target_link_libraries(gcl common)
+    generate_target_for(NAME GridToolsGCL SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+    target_link_libraries(GridToolsGCL GridTools)
     if( GT_USE_MPI )
-        target_link_libraries(gcl MPI::MPI_CXX)
+        target_link_libraries(GridToolsGCL MPI::MPI_CXX)
     endif()
+    add_library(gcl ALIAS GridToolsGCL)
 endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
     generate_target_for(NAME distributed-boundaries)
-    generate_install_targets_for(distributed-boundaries distributed-boundaries)
     target_link_libraries( distributed-boundaries INTERFACE boundary-conditions gcl )
 endif()
 
 if( COMPONENT_STORAGE )
     generate_target_for(NAME storage)
-    generate_install_targets_for(storage storage)
     target_link_libraries( distributed-boundaries INTERFACE common )
 endif()
 
 if( COMPONENT_INTERFACE )
     generate_target_for(NAME interface)
-    generate_install_targets_for(interface interface)
 endif()
 
 if( COMPONENT_TOOLS )
     generate_target_for(NAME tools)
-    generate_install_targets_for(tools tools)
+endif()
+
+if(COMPONENT_C_BINDINGS)
+    generate_target_for(NAME c_bindings)
 endif()
 
 # ===============
@@ -128,49 +125,7 @@ if(GT_ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
-export(PACKAGE GridTools)
-
-include(CMakePackageConfigHelpers)
-configure_package_config_file(GridToolsConfig.cmake.in
-  ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
-write_basic_package_version_file(
-  ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
-  VERSION 1.2.3
-  COMPATIBILITY SameMajorVersion )
-
-# Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
-install(FILES "${PROJECT_BINARY_DIR}/GridToolsConfig.cmake"
-  "${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake" COMPONENT dev)
-
-# TODO for a next CMake refactoring: move this to an appropriate location
-# Also consider using a separate directory for source files which are installed, e.g. src_public
-if(COMPONENT_C_BINDINGS)
-    generate_target_for(NAME c_bindings)
-    generate_install_targets_for(c_bindings c_bindings)
-    install(FILES
-        "${PROJECT_SOURCE_DIR}/cmake/gt_bindings.cmake"
-        "${PROJECT_SOURCE_DIR}/cmake/gt_bindings_generate.cmake"
-        "${PROJECT_SOURCE_DIR}/cmake/fortran_helpers.cmake"
-        DESTINATION "cmake")
-    install(FILES
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/generator.cpp"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/generator_main.cpp"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/array_descriptor.f90"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.f90"
-        "${PROJECT_SOURCE_DIR}/src/c_bindings/handle.cpp"
-        DESTINATION "src/c_bindings")
-endif()
-
-if ( GT_INSTALL_EXAMPLES )
-    install(DIRECTORY
-            gt_examples
-            DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/src"
-            FILES_MATCHING REGEX ".*cpp|.*hpp")
-endif()
+include(export)
 
 # ===========
 # Apply final actions
