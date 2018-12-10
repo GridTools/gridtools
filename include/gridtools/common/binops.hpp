@@ -35,20 +35,22 @@
 */
 #pragma once
 
+#include "defs.hpp"
+#include "generic_metafunctions/utility.hpp"
+#include "host_device.hpp"
+
 namespace gridtools {
     namespace binop {
         struct sum {
-            template <typename Type>
-            GT_FUNCTION Type operator()(Type const &x, Type const &y) const {
-                return x + y;
-            }
+            template <class Lhs, class Rhs>
+            GT_FUNCTION constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const
+                GT_AUTO_RETURN(const_expr::forward<Lhs>(lhs) + const_expr::forward<Rhs>(rhs));
         };
 
         struct prod {
-            template <typename Type>
-            GT_FUNCTION Type operator()(Type const &x, Type const &y) const {
-                return x * y;
-            }
+            template <class Lhs, class Rhs>
+            GT_FUNCTION constexpr auto operator()(Lhs &&lhs, Rhs &&rhs) const
+                GT_AUTO_RETURN(const_expr::forward<Lhs>(lhs) * const_expr::forward<Rhs>(rhs));
         };
     } // namespace binop
 } // namespace gridtools

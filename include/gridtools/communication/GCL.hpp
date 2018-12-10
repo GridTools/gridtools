@@ -68,9 +68,6 @@ inline bool checkCudaStatus(cudaError_t status) {
 #ifdef _GCL_GPU_
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
-#ifndef SUPPRESS_MESSAGES
-#pragma message "Using 3 streams for packing and unpaking in GCL"
-#endif
 extern cudaStream_t ZL_stream;
 extern cudaStream_t &ZU_stream;
 extern cudaStream_t YL_stream;
@@ -78,9 +75,6 @@ extern cudaStream_t &YU_stream;
 extern cudaStream_t XL_stream;
 extern cudaStream_t &XU_stream;
 #else
-#ifndef SUPPRESS_MESSAGES
-#pragma message "Using 6 streams for packing and unpaking in GCL"
-#endif
 extern cudaStream_t ZL_stream;
 extern cudaStream_t ZU_stream;
 extern cudaStream_t YL_stream;

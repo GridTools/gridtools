@@ -34,17 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 #include <iomanip>
 
-#include <gridtools/distributed-boundaries/comm_traits.hpp>
-#include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
+#ifdef _GCL_MPI_
+#include <mpi.h>
+#endif
+
+#include <gtest/gtest.h>
 
 #include <gridtools/boundary-conditions/copy.hpp>
 #include <gridtools/boundary-conditions/value.hpp>
-
-#include "backend_select.hpp"
+#include <gridtools/distributed-boundaries/comm_traits.hpp>
+#include <gridtools/distributed-boundaries/distributed_boundaries.hpp>
+#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/tools/mpi_unit_test_driver/device_binding.hpp>
 
 #include "../tools/triplet.hpp"
 
@@ -118,7 +121,7 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
 
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.padded_length<0>()};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length<1>()};
-    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim<2>()};
+    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
 #ifndef _GCL_MPI_
@@ -129,7 +132,21 @@ TEST(DistributedBoundaries, AvoidCommunicationOnlyBoundary) {
     }
 #endif
 
-    cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
+#ifdef _GCL_MPI_
+    int dims[3] = {0, 0, 0};
+
+    MPI_Dims_create(PROCS, 3, dims);
+
+    int period[3] = {1, 1, 1};
+
+    MPI_Comm CartComm;
+
+    MPI_Cart_create(GCL_WORLD, 3, dims, period, false, &CartComm);
+#else
+    MPI_Comm CartComm = GCL_WORLD;
+#endif
+
+    cabc_t cabc{halos, {false, false, false}, 3, CartComm};
 
     int pi, pj, pk;
     cabc.proc_grid().coords(pi, pj, pk);
@@ -328,10 +345,24 @@ TEST(DistributedBoundaries, Test) {
 
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, (unsigned)storage_info.padded_length<0>()};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, (unsigned)storage_info.padded_length<1>()};
-    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.dim<2>()};
+    halo_descriptor dk{0, 0, 0, d3 - 1, (unsigned)storage_info.total_length<2>()};
     array<halo_descriptor, 3> halos{di, dj, dk};
 
-    cabc_t cabc{halos, {false, false, false}, 3, GCL_WORLD};
+#ifdef _GCL_MPI_
+    int dims[3] = {0, 0, 0};
+
+    MPI_Dims_create(PROCS, 3, dims);
+
+    int period[3] = {1, 1, 1};
+
+    MPI_Comm CartComm;
+
+    MPI_Cart_create(GCL_WORLD, 3, dims, period, false, &CartComm);
+#else
+    MPI_Comm CartComm = GCL_WORLD;
+#endif
+
+    cabc_t cabc{halos, {false, false, false}, 3, CartComm};
 
     int pi, pj, pk;
     cabc.proc_grid().coords(pi, pj, pk);

@@ -38,9 +38,9 @@
 
 #include <array>
 #include <utility>
+#include <vector>
 
-#include <boost/mpl/bool.hpp>
-
+#include "../../common/cuda_util.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
@@ -67,40 +67,32 @@ namespace gridtools {
     template <typename DataType>
     struct cuda_storage : storage_interface<cuda_storage<DataType>> {
         typedef DataType data_t;
-        typedef std::array<data_t *, 2> ptrs_t;
+        typedef std::array<DataType *, 2> ptrs_t;
         typedef state_machine state_machine_t;
 
       private:
-        data_t *m_gpu_ptr = nullptr;
-        data_t *m_cpu_ptr = nullptr;
+        cuda_util::unique_cuda_ptr<DataType> m_gpu_ptr_holder;
+        std::unique_ptr<DataType[]> m_cpu_ptr_holder;
+
+        DataType *m_gpu_ptr;
+        DataType *m_cpu_ptr;
         state_machine m_state;
         uint_t m_size;
-        short_t m_offset;
-        ownership m_ownership = ownership::Full;
 
       public:
-        cuda_storage(cuda_storage const &) = delete;
-        cuda_storage &operator=(cuda_storage const &) = delete;
-
         /*
          * @brief cuda_storage constructor. Just allocates enough memory on Host and Device.
          * @param size defines the size of the storage and the allocated space.
          */
         template <uint_t Align = 1>
         cuda_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{})
-            : m_cpu_ptr(new data_t[size]), m_size{size} {
-            // New will align addresses according to the size(data_t)
-            data_t *allocated_ptr;
-            cudaError_t err = cudaMalloc(&allocated_ptr, (size + Align - 1) * sizeof(data_t));
-            if (err != cudaSuccess) {
-                delete[] m_cpu_ptr;
-                throw std::runtime_error("failed to allocate GPU memory in constructor.");
-            }
-            uint_t delta =
-                ((reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
-                sizeof(data_t);
-            m_gpu_ptr = (delta == 0) ? allocated_ptr : allocated_ptr + (Align - delta);
-            m_offset = allocated_ptr - m_gpu_ptr;
+            : m_gpu_ptr_holder(cuda_util::cuda_malloc<DataType>(size + Align - 1)),
+              m_cpu_ptr_holder(new DataType[size]), m_cpu_ptr(m_cpu_ptr_holder.get()), m_state{}, m_size{size} {
+            DataType *allocated_ptr = m_gpu_ptr_holder.get();
+            auto delta =
+                (reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align) % (Align * sizeof(DataType))) /
+                sizeof(DataType);
+            m_gpu_ptr = delta == 0 ? allocated_ptr : allocated_ptr + Align - delta;
         }
 
         /*
@@ -111,25 +103,14 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (external CPU pointer, or external GPU pointer)
          */
-        explicit cuda_storage(uint_t size, data_t *external_ptr, ownership own) : m_size(size), m_ownership(own) {
-            ASSERT_OR_THROW(((own == ownership::ExternalGPU) || (own == ownership::ExternalCPU)),
-                "external pointer cuda_storage ownership must be either ExternalGPU or ExternalCPU.");
-            if (own == ownership::ExternalGPU) {
-                m_cpu_ptr = new data_t[size];
-                m_gpu_ptr = external_ptr;
-                m_state.m_hnu = true;
-            } else if (own == ownership::ExternalCPU) {
-                m_cpu_ptr = external_ptr;
-                data_t *allocated_ptr;
-                cudaError_t err = cudaMalloc(&allocated_ptr, size * sizeof(data_t));
-                if (err != cudaSuccess) {
-                    throw std::runtime_error("failed to allocate GPU memory in constructor.");
-                }
-                m_gpu_ptr = allocated_ptr;
-                m_offset = allocated_ptr - m_gpu_ptr;
-                m_state.m_dnu = true;
-            }
-            ASSERT_OR_THROW((m_gpu_ptr && m_cpu_ptr), "Failed to create cuda_storage.");
+        explicit cuda_storage(uint_t size, DataType *external_ptr, ownership own)
+            : m_gpu_ptr_holder(own != ownership::ExternalGPU ? cuda_util::cuda_malloc<DataType>(size)
+                                                             : cuda_util::unique_cuda_ptr<DataType>()),
+              m_cpu_ptr_holder(own == ownership::ExternalCPU ? nullptr : new DataType[size]),
+              m_gpu_ptr(own == ownership::ExternalGPU ? external_ptr : m_gpu_ptr_holder.get()),
+              m_cpu_ptr(own == ownership::ExternalCPU ? external_ptr : m_cpu_ptr_holder.get()),
+              m_state{own != ownership::ExternalCPU, own != ownership::ExternalGPU}, m_size{size} {
+            assert(external_ptr);
         }
 
         /*
@@ -138,26 +119,12 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        template <typename Funct, uint_t Align = 1>
-        cuda_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
+        template <typename Fun, uint_t Align = 1>
+        cuda_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
             : cuda_storage(size, offset_to_align, a) {
-            for (uint_t i = 0; i < size; ++i) {
+            for (uint_t i = 0; i < size; ++i)
                 m_cpu_ptr[i] = initializer(i);
-            }
-
             this->clone_to_device();
-        }
-
-        /*
-         * @brief cuda_storage destructor.
-         */
-        ~cuda_storage() {
-            if ((m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full) && m_cpu_ptr)
-                delete[] m_cpu_ptr;
-            if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr) {
-                cudaError_t err = cudaFree(m_gpu_ptr + m_offset);
-                assert(err == cudaSuccess);
-            }
         }
 
         /*
@@ -165,19 +132,19 @@ namespace gridtools {
          */
         void swap_impl(cuda_storage &other) {
             using std::swap;
+            swap(m_gpu_ptr_holder, other.m_gpu_ptr_holder);
+            swap(m_cpu_ptr_holder, other.m_cpu_ptr_holder);
             swap(m_gpu_ptr, other.m_gpu_ptr);
-            swap(m_offset, other.m_offset);
             swap(m_cpu_ptr, other.m_cpu_ptr);
             swap(m_state, other.m_state);
             swap(m_size, other.m_size);
-            swap(m_ownership, other.m_ownership);
         }
 
         /*
          * @brief retrieve the device data pointer.
          * @return device pointer
          */
-        data_t *get_gpu_ptr() const {
+        DataType *get_gpu_ptr() const {
             ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
             return m_gpu_ptr;
         }
@@ -186,7 +153,7 @@ namespace gridtools {
          * @brief retrieve the host data pointer.
          * @return host pointer
          */
-        data_t *get_cpu_ptr() const {
+        DataType *get_cpu_ptr() const {
             ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized.");
             return m_cpu_ptr;
         }
@@ -198,22 +165,16 @@ namespace gridtools {
             ASSERT_OR_THROW(m_cpu_ptr, "CPU pointer seems not initialized.");
             ASSERT_OR_THROW(m_gpu_ptr, "GPU pointer seems not initialized.");
 
-            cudaError_t err =
-                cudaMemcpy((void *)m_gpu_ptr, (void *)this->m_cpu_ptr, m_size * sizeof(data_t), cudaMemcpyHostToDevice);
-            ASSERT_OR_THROW((err == cudaSuccess), "failed to clone data to the device.");
-            m_state.m_hnu = false;
-            m_state.m_dnu = false;
+            GT_CUDA_CHECK(cudaMemcpy(m_gpu_ptr, m_cpu_ptr, m_size * sizeof(DataType), cudaMemcpyHostToDevice));
+            m_state = {};
         }
 
         /*
          * @brief clone_from_device implementation for cuda_storage.
          */
         void clone_from_device_impl() {
-            cudaError_t err =
-                cudaMemcpy((void *)this->m_cpu_ptr, (void *)m_gpu_ptr, m_size * sizeof(data_t), cudaMemcpyDeviceToHost);
-            ASSERT_OR_THROW((err == cudaSuccess), "failed to clone data from the device.");
-            m_state.m_hnu = false;
-            m_state.m_dnu = false;
+            GT_CUDA_CHECK(cudaMemcpy(m_cpu_ptr, m_gpu_ptr, m_size * sizeof(DataType), cudaMemcpyDeviceToHost));
+            m_state = {};
         }
 
         /*
@@ -277,10 +238,10 @@ namespace gridtools {
 
     // simple metafunction to check if a type is a cuda storage
     template <typename T>
-    struct is_cuda_storage : boost::mpl::false_ {};
+    struct is_cuda_storage : std::false_type {};
 
     template <typename T>
-    struct is_cuda_storage<cuda_storage<T>> : boost::mpl::true_ {};
+    struct is_cuda_storage<cuda_storage<T>> : std::true_type {};
 
     /**
      * @}

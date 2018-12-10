@@ -34,8 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "esf.hpp"
 #include <boost/mpl/equal.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
 
@@ -45,15 +48,6 @@ namespace gridtools {
         typedef static_bool<boost::is_same<typename Esf1::esf_function, typename Esf2::esf_function>::value &&
                             boost::mpl::equal<typename Esf1::args_t, typename Esf2::args_t>::value>
             type;
-    };
-
-    struct extract_esf_functor {
-        template <typename Esf>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::esf_function type;
-        };
     };
 
     template <typename Esf>
@@ -69,8 +63,23 @@ namespace gridtools {
     template <typename Esf>
     struct esf_extent;
 
-    template <typename ESF, typename Extent, typename ArgArray, typename Staggering>
-    struct esf_extent<esf_descriptor_with_extent<ESF, Extent, ArgArray, Staggering>> {
+    template <typename ESF, typename Extent, typename ArgArray>
+    struct esf_extent<esf_descriptor_with_extent<ESF, Extent, ArgArray>> {
         using type = Extent;
     };
+
+    GT_META_LAZY_NAMESPACE {
+        template <class Esf, class Args>
+        struct esf_replace_args;
+        template <class F, class OldArgs, class NewArgs>
+        struct esf_replace_args<esf_descriptor<F, OldArgs>, NewArgs> {
+            using type = esf_descriptor<F, NewArgs>;
+        };
+        template <class F, class Extent, class OldArgs, class NewArgs>
+        struct esf_replace_args<esf_descriptor_with_extent<F, Extent, OldArgs>, NewArgs> {
+            using type = esf_descriptor_with_extent<F, Extent, NewArgs>;
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
+
 } // namespace gridtools

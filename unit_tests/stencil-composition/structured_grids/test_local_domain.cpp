@@ -58,7 +58,7 @@
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/storage/storage-facility.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -73,21 +73,20 @@ struct dummy_functor {
     GT_FUNCTION static void Do(Evaluation &eval);
 };
 
-typedef backend<platform::x86, GRIDBACKEND, strategy::naive> backend_t;
+typedef backend<target::x86, grid_type_t, strategy::naive> naive_backend_t;
 typedef layout_map<2, 1, 0> layout_ijk_t;
 typedef layout_map<0, 1, 2> layout_kji_t;
-typedef host_storage_info<0, layout_ijk_t> meta_ijk_t;
-typedef host_storage_info<0, layout_kji_t> meta_kji_t;
-typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_ijk_t> storage_t;
-typedef storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_kji_t> storage_buff_t;
+typedef storage_info_interface<0, layout_ijk_t> meta_ijk_t;
+typedef storage_info_interface<0, layout_kji_t> meta_kji_t;
+typedef storage_traits<naive_backend_t::backend_id_t>::data_store_t<float_type, meta_ijk_t> storage_t;
+typedef storage_traits<naive_backend_t::backend_id_t>::data_store_t<float_type, meta_kji_t> storage_buff_t;
 
 typedef arg<0, storage_t> p_in;
 typedef arg<1, storage_buff_t> p_buff;
 typedef arg<2, storage_t> p_out;
 
-typedef intermediate<1,
-    false,
-    backend<platform::x86, GRIDBACKEND, strategy::naive>,
+typedef intermediate<false,
+    backend<target::x86, grid_type_t, strategy::naive>,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor

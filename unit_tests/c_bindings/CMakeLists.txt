@@ -1,3 +1,3 @@
 # collect all tests in current folder
-fetch_host_tests(.)
-fetch_gpu_tests(.)
+fetch_x86_tests(. LABELS unittest_x86)
+fetch_gpu_tests(. LABELS unittest_cuda)

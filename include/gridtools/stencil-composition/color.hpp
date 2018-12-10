@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include "../common/defs.hpp"
+
 namespace gridtools {
     template <uint_t c>
     struct color_type {

@@ -35,17 +35,12 @@
 */
 
 #include <gridtools/common/cuda_is_ptr.hpp>
+
 #include <gtest/gtest.h>
 
+#include <memory>
+
 TEST(test_is_gpu_ptr, host_ptr_is_no_cuda_ptr) {
-    double *ptr = new double;
-
-    ASSERT_FALSE(gridtools::is_gpu_ptr(ptr));
-
-#ifdef __CUDACC__
-    // check that the error code is clean, see implementation of is_gpu_ptr()
-    ASSERT_TRUE(cudaGetLastError() == cudaSuccess);
-#endif
-
-    delete ptr;
+    auto testee = std::unique_ptr<double>(new double);
+    EXPECT_FALSE(gridtools::is_gpu_ptr(testee.get()));
 }

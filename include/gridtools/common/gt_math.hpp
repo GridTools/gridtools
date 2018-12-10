@@ -34,9 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <cmath>
+
+#include "defs.hpp"
 #include "host_device.hpp"
 
-#include <cmath>
 namespace gridtools {
 
     /** \ingroup common
@@ -212,6 +214,14 @@ namespace gridtools {
         GT_FUNCTION double pow(const double x, const double y) { return ::pow(x, y); }
 #else
         using std::pow;
+#endif
+
+#ifdef __CUDA_ARCH__
+        GT_FUNCTION float sqrt(const float x) { return ::sqrtf(x); }
+
+        GT_FUNCTION double sqrt(const double x) { return ::sqrt(x); }
+#else
+        using std::sqrt;
 #endif
 
 #ifdef __CUDACC__

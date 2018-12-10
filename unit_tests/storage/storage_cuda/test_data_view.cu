@@ -95,7 +95,10 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
 
     // check if the user protections are working
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 9
+    // CUDA10 does not like to evaluate storage_info functions constexpr as a member (m_gpu_ptr) is mutable
     static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
+#endif
 
     ASSERT_TRUE(si.index(1, 0, 1) == c_y * 32 + 1);
     // check if data is there
@@ -190,6 +193,20 @@ TEST(DataViewTest, Looping) {
             }
         }
     }
+}
+
+TEST(DataViewTest, TargetView) {
+    typedef cuda_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>> storage_info_t;
+    storage_info_t si(2 + 2, 2 + 4, 2 + 6);
+
+    typedef data_store<cuda_storage<triplet>, storage_info_t> data_store_t;
+
+    data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
+
+    auto target_view = make_target_view<access_mode::ReadOnly>(ds);
+    auto device_view = make_device_view<access_mode::ReadOnly>(ds);
+
+    ASSERT_EQ(advanced::get_raw_pointer_of(device_view), advanced::get_raw_pointer_of(target_view));
 }
 
 TEST(DataViewTest, CheckMemorySpace) {

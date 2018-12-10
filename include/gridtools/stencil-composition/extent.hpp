@@ -35,8 +35,4 @@
 */
 #pragma once
 
-#include "./empty_extent.hpp"
-
 #include "structured_grids/extent.hpp"
-
-#include "./empty_extent_specializations.hpp"

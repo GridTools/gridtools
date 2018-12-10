@@ -1,204 +1,197 @@
-cmake_minimum_required(VERSION 2.8.8)
+# This file will only be included when BUILD_TESTING = ON
+# TODO move GridToolsTest target to this file
 enable_testing()
+
+include(detect_test_features)
+detect_c_compiler()
+detect_fortran_compiler()
 
 ####################################################################################
 ########################### GET GTEST LIBRARY ############################
 ####################################################################################
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
 
-include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googlemock/include)
+# include Threads manually before googletest such that we can properly apply the workaround
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package( Threads REQUIRED )
+target_link_libraries( GridToolsTest INTERFACE Threads::Threads)
+include(workaround_threads)
+_fix_threads_flags()
 
-# ===============
-add_library(gtest ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
-add_library(gtest_main ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
-if( NOT GCL_ONLY )
-    if( USE_MPI )
-        if ( ENABLE_CUDA )
-            include_directories ( "${CUDA_INCLUDE_DIRS}" )
-        endif()
+option(INSTALL_GTEST OFF)
+add_subdirectory(./tools/googletest)
+
+if( NOT GT_GCL_ONLY )
+    if( GT_USE_MPI )
         add_library( mpi_gtest_main include/gridtools/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
-        set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${GPU_SPECIFIC_FLAGS}" )
-        #target_link_libraries(mpi_gtest_main ${exe_LIBS} )
+        target_link_libraries(mpi_gtest_main gtest MPI::MPI_CXX GridToolsTest gcl)
+        if (GT_ENABLE_TARGET_CUDA)
+            target_include_directories( mpi_gtest_main PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+        endif()
     endif()
 endif()
-set( exe_LIBS ${exe_LIBS} gtest)
 
 ####################################################################################
 ######################### ADDITIONAL TEST MODULE FUNCTIONS #########################
 ####################################################################################
 
-# This function will fetch all host test cases in the given directory.
-# Only used for gcc or clang compilations
-function(fetch_host_tests subfolder)
-    if (ENABLE_HOST)
-        # get all source files in the current directory
-        file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
-        file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
-        file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
+function (fetch_tests_helper target_arch filetype test_environment subfolder )
+    set(options)
+    set(one_value_args)
+    set(multi_value_args LABELS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
 
-        # create all targets
-        foreach( test_source ${test_sources} )
+    string(TOLOWER ${target_arch} target_arch_l)
+    string(TOUPPER ${target_arch} target_arch_u)
+
+    set(labels ${___LABELS})
+    list(APPEND labels target_${target_arch_l})
+
+    if (GT_ENABLE_TARGET_${target_arch_u})
+        # get all source files in the current directory
+        file(GLOB test_sources "./${subfolder}/test_*.${filetype}" )
+        foreach(test_source IN LISTS test_sources )
             # create a nice name for the test case
             get_filename_component (unit_test ${test_source} NAME_WE )
-            set(unit_test "${unit_test}_host")
-            # set binary output name and dir
-            set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
+            set(unit_test "${unit_test}_${target_arch_l}")
             # create the test
-            add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_definitions(${unit_test} PUBLIC ${HOST_BACKEND_DEFINE})
-            add_test (NAME ${unit_test} COMMAND ${exe} )
-            gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
-            # message( "added test " ${unit_test} )
-        endforeach(test_source)
-    endif(ENABLE_HOST)
-endfunction(fetch_host_tests)
+            add_executable (${unit_test} ${test_source} )
+            target_link_libraries(${unit_test} GridToolsTest${target_arch_u} c_bindings_generator c_bindings_handle gtest gmock_main)
 
-# This function will fetch all mic test cases in the given directory.
+            gridtools_add_test(
+                NAME ${unit_test}
+                SCRIPT ${TEST_SCRIPT}
+                COMMAND $<TARGET_FILE:${unit_test}>
+                LABELS ${labels}
+                ENVIRONMENT ${test_environment}
+                )
+        endforeach()
+    endif()
+endfunction()
+
+# This function will fetch all x86 test cases in the given directory.
 # Only used for gcc or clang compilations
-function(fetch_mic_tests subfolder)
-    if (ENABLE_MIC)
-        # get all source files in the current directory
-        file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
-        file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
-        file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
+function(fetch_x86_tests)
+    fetch_tests_helper(x86 cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(fetch_x86_tests)
 
-        # create all targets
-        foreach( test_source ${test_sources} )
-            # create a nice name for the test case
-            get_filename_component (unit_test ${test_source} NAME_WE )
-            set(unit_test "${unit_test}_mic")
-            # set binary output name and dir
-            set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
-            # create the test
-            add_executable (${unit_test} ${test_source} ${test_headers})
-            target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
-            target_compile_definitions(${unit_test} PUBLIC ${MIC_BACKEND_DEFINE})
-            add_test (NAME ${unit_test} COMMAND ${exe} )
-            gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
-            # message( "added test " ${unit_test} )
-        endforeach(test_source)
-    endif(ENABLE_MIC)
-endfunction(fetch_mic_tests)
+# This function will fetch all mc test cases in the given directory.
+# Only used for gcc or clang compilations
+function(fetch_mc_tests)
+    fetch_tests_helper(mc cpp "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(fetch_mc_tests)
 
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
-function(fetch_gpu_tests subfolder)
-    if(ENABLE_CUDA)
-        # get all source files in the current directory
-        file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
-        file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cu" )
-        file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
-
-        # create all targets
-        foreach( test_source ${test_sources} )
-            # create a nice name for the test case
-            get_filename_component (filename ${test_source} NAME_WE )
-            set(unit_test "${filename}_cuda")
-            # set binary output name and dir
-            set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
-            # create the gpu test
-            set(CUDA_SEPARABLE_COMPILATION OFF)
-            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
-            target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
-            gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
-            # message( "added gpu test " ${unit_test} )
-        endforeach(test_source)
-    endif(ENABLE_CUDA)
+function(fetch_gpu_tests)
+    set(CUDA_SEPARABLE_COMPILATION OFF) # TODO required?
+    fetch_tests_helper(cuda cu "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
 endfunction(fetch_gpu_tests)
 
-# This function can be used to add a custom host test
-function(add_custom_host_test name sources cc_flags ld_flags)
-    if (ENABLE_HOST)
-        set(name "${name}_host")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
-        # create the test
-        add_executable (${name} ${sources})
-        set(cflags "${cc_flags} ${CMAKE_CXX_FLAGS}" )
-        set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )
-        target_link_libraries(${name} ${exe_LIBS} gtest_main)
-        target_compile_definitions(${name} PUBLIC ${HOST_BACKEND_DEFINE})
-        add_test (NAME ${name} COMMAND ${exe} )
-        gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-    endif (ENABLE_HOST)
-endfunction(add_custom_host_test)
+function(add_custom_test_helper target_arch test_environment)
+    set(options )
+    set(one_value_args TARGET)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+    if (NOT ___TARGET)
+        message(FATAL_ERROR "add_custom_${target_arch}_test was called without TARGET")
+    endif()
+    if (NOT ___SOURCES)
+        message(FATAL_ERROR "add_custom_${target_arch}_test was called without SOURCES")
+    endif()
 
-# This function can be used to add a custom mic test
-function(add_custom_mic_test name sources cc_flags ld_flags)
-    if (ENABLE_MIC)
-        set(name "${name}_mic")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+    string(TOLOWER ${target_arch} target_arch_l)
+    string(TOUPPER ${target_arch} target_arch_u)
+
+    if (___TARGET MATCHES "_${target_arch_l}$")
+        message(WARNING "Test ${___TARGET} already has suffix _${target_arch_l}. Please remove suffix.")
+    endif ()
+
+    set(labels ${___LABELS})
+    list(APPEND labels target_${target_arch_l})
+
+    if (GT_ENABLE_TARGET_${target_arch_u})
+        set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
-        add_executable (${name} ${sources})
-        set(cflags "${cc_flags} ${CMAKE_CXX_FLAGS}" )
-        set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )
-        target_link_libraries(${name} ${exe_LIBS} gtest_main)
-        target_compile_definitions(${name} PUBLIC ${MIC_BACKEND_DEFINE})
-        add_test (NAME ${name} COMMAND ${exe} )
-        gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-    endif (ENABLE_MIC)
-endfunction(add_custom_mic_test)
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock gtest_main GridToolsTest${target_arch_u})
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_test(
+            NAME ${unit_test}
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            ENVIRONMENT ${test_environment}
+            )
+    endif ()
+
+endfunction()
+
+# This function can be used to add a custom x86 test
+function(add_custom_x86_test)
+    add_custom_test_helper(x86 "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(add_custom_x86_test)
+
+# This function can be used to add a custom mc test
+function(add_custom_mc_test)
+    add_custom_test_helper(mc "${TEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(add_custom_mc_test)
 
 # This function can be used to add a custom gpu test
-function(add_custom_gpu_test name sources cc_flags ld_flags)
-    if (ENABLE_CUDA)
-        set(name "${name}_cuda")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
-        # create the test
-        set(CUDA_SEPARABLE_COMPILATION OFF)
-        cuda_add_executable (${name} ${test_source} OPTIONS "-D${CUDA_BACKEND_DEFINE}")
-        set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags} COMPILE_FLAGS ${GPU_SPECIFIC_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX)
-        target_link_libraries(${name} ${exe_LIBS} gtest_main)
-        gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-    endif (ENABLE_CUDA)
+function(add_custom_gpu_test)
+    add_custom_test_helper(cuda "${TEST_CUDA_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_gpu_test)
 
+function(add_custom_mpi_test_helper target_arch test_script test_environment)
+    set(options)
+    set(one_value_args TARGET NPROC)
+    set(multi_value_args SOURCES COMPILE_DEFINITIONS LABELS)
+    cmake_parse_arguments(__ "${options}" "${one_value_args}" "${multi_value_args}" ${ARGN})
+    if (NOT ___NPROC)
+        message(FATAL_ERROR "add_custom_mpi_${target_arch}_test was called without NPROC")
+    endif()
+    if (NOT ___TARGET)
+        message(FATAL_ERROR "add_custom_mpi_${target_arch}_test was called without TARGET")
+    endif()
+    if (NOT ___SOURCES)
+        message(FATAL_ERROR "add_custom_mpi_${target_arch}_test was called without SOURCES")
+    endif()
 
-function(add_custom_mpi_host_test name sources cc_flags ld_flags)
-    if (ENABLE_HOST)
-        set(name "${name}_host")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
-        # create the test
-        add_executable (${name} ${sources})
-        set(cflags "${CMAKE_CXX_FLAGS} ${cc_flags}" )
-        set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
-        target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
-        target_compile_definitions(${name} PUBLIC ${HOST_BACKEND_DEFINE})
-        gridtools_add_mpi_test(${name} ${exe})
-    endif (ENABLE_HOST)
-endfunction(add_custom_mpi_host_test)
+    string(TOLOWER ${target_arch} target_arch_l)
+    string(TOUPPER ${target_arch} target_arch_u)
 
-function(add_custom_mpi_mic_test name sources cc_flags ld_flags)
-    if (ENABLE_MIC)
-        set(name "${name}_mic")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
-        # create the test
-        add_executable (${name} ${sources})
-        set(cflags "${CMAKE_CXX_FLAGS} ${cc_flags}" )
-        set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
-        target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
-        target_compile_definitions(${name} PUBLIC ${MIC_BACKEND_DEFINE})
-        gridtools_add_mpi_test(${name} ${exe})
-    endif (ENABLE_MIC)
-endfunction(add_custom_mpi_mic_test)
+    if (___TARGET MATCHES "_${target_arch_l}$")
+        message(WARNING "Test ${___TARGET} already has suffix _${target_arch_l}. Please remove suffix.")
+    endif ()
 
-# This function can be used to add a custom gpu test
-function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
-    if (ENABLE_CUDA)
-        set(name "${name}_cuda")
-        # set binary output name and dir
-        set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
+    set(labels ${___LABELS})
+    list(APPEND labels target_${target_arch_l} )
+
+    if (GT_ENABLE_TARGET_${target_arch_u})
+        set(unit_test "${___TARGET}_${target_arch_l}")
         # create the test
-        #set(CUDA_SEPARABLE_COMPILATION OFF)
-        cuda_add_executable (${name} ${sources} OPTIONS ${GPU_SPECIFIC_FLAGS} ${cc_flags} "-D${CUDA_BACKEND_DEFINE}")
-        set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags} ${GPU_SPECIFIC_FLAGS}" )
-        target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
-        gridtools_add_cuda_mpi_test(${name} ${exe})
-    endif (ENABLE_CUDA)
+        add_executable (${unit_test} ${___SOURCES})
+        target_link_libraries(${unit_test} gmock mpi_gtest_main GridToolsTest${target_arch_u})
+        target_compile_definitions(${unit_test} PRIVATE ${___COMPILE_DEFINITIONS})
+        gridtools_add_mpi_test(
+            NAME ${unit_test}
+            NPROC ${___NPROC}
+            SCRIPT ${test_script}
+            COMMAND $<TARGET_FILE:${unit_test}>
+            LABELS ${labels}
+            ENVIRONMENT ${test_environment}
+            )
+    endif ()
+
+endfunction()
+
+function(add_custom_mpi_x86_test)
+    add_custom_mpi_test_helper(x86 ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(add_custom_mpi_x86_test)
+
+function(add_custom_mpi_mc_test)
+    add_custom_mpi_test_helper(mc ${TEST_MPI_SCRIPT} "${MPITEST_HOST_ENVIRONMENT}" ${ARGN})
+endfunction(add_custom_mpi_mc_test)
+
+function(add_custom_mpi_gpu_test)
+    add_custom_mpi_test_helper(cuda ${TEST_CUDA_MPI_SCRIPT} "${MPITEST_CUDA_ENVIRONMENT}" ${ARGN})
 endfunction(add_custom_mpi_gpu_test)

@@ -35,15 +35,15 @@
 */
 
 #pragma once
-#include <assert.h>
-#include <iostream>
-//#include <utility>
 
-#include "../../common/gt_assert.hpp"
+#include <cassert>
+#include <cstddef>
+#include <utility>
+
 #include "../common/alignment.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
-#include <cstddef>
+
 namespace gridtools {
 
     /** \ingroup storage
@@ -65,29 +65,27 @@ namespace gridtools {
     template <typename DataType>
     struct host_storage : storage_interface<host_storage<DataType>> {
         typedef DataType data_t;
-        typedef data_t *ptrs_t;
+        typedef DataType *ptrs_t;
         typedef state_machine state_machine_t;
 
       private:
-        data_t *m_allocated_ptr = nullptr;
-        data_t *m_cpu_ptr;
-        ownership m_ownership = ownership::Full;
+        std::unique_ptr<DataType[]> m_holder;
+        DataType *m_ptr;
 
       public:
-        host_storage(host_storage const &) = delete;
-        host_storage &operator=(host_storage const &) = delete;
         /*
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.
          */
         template <uint_t Align = 1>
         host_storage(uint_t size, uint_t offset_to_align = 0u, alignment<Align> = alignment<1u>{})
-            : m_allocated_ptr(new data_t[size + Align - 1]), m_cpu_ptr(nullptr) {
-            // New will align addresses according to the size(data_t)
-            uint_t delta =
-                ((reinterpret_cast<std::uintptr_t>(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
-                sizeof(data_t);
-            m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
+            : m_holder(new DataType[size + Align - 1]), m_ptr(nullptr) {
+            auto *allocated_ptr = m_holder.get();
+            // New will align addresses according to the size(DataType)
+            auto delta =
+                (reinterpret_cast<std::uintptr_t>(allocated_ptr + offset_to_align) % (Align * sizeof(DataType))) /
+                sizeof(DataType);
+            m_ptr = delta == 0 ? allocated_ptr : allocated_ptr + (Align - delta);
         }
 
         /*
@@ -97,10 +95,10 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (in this case only externalCPU is valid)
          */
-        explicit host_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
-            : m_cpu_ptr(external_ptr),
-              m_ownership(error_or_return(
-                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using host_storage")) {
+        host_storage(uint_t size, DataType *external_ptr, ownership own = ownership::ExternalCPU)
+            : m_ptr(external_ptr) {
+            assert(external_ptr);
+            assert(own == ownership::ExternalCPU);
         }
 
         /*
@@ -109,20 +107,11 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        template <typename Funct, uint_t Align = 1>
-        host_storage(uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
+        template <typename Fun, uint_t Align = 1>
+        host_storage(uint_t size, Fun &&initializer, uint_t offset_to_align = 0u, alignment<Align> a = alignment<1u>{})
             : host_storage(size, offset_to_align, a) {
-            for (uint_t i = 0; i < size; ++i) {
-                m_cpu_ptr[i] = initializer(i);
-            }
-        }
-
-        /*
-         * @brief host_storage destructor.
-         */
-        ~host_storage() {
-            if (m_ownership == ownership::Full && m_cpu_ptr)
-                delete[] m_allocated_ptr;
+            for (uint_t i = 0; i < size; ++i)
+                m_ptr[i] = initializer(i);
         }
 
         /*
@@ -130,28 +119,25 @@ namespace gridtools {
          */
         void swap_impl(host_storage &other) {
             using std::swap;
-            swap(m_cpu_ptr, other.m_cpu_ptr);
-            swap(m_ownership, other.m_ownership);
+            swap(m_holder, other.m_holder);
+            swap(m_ptr, other.m_ptr);
         }
 
         /*
          * @brief retrieve the host data pointer.
          * @return data pointer
          */
-        data_t *get_cpu_ptr() const {
-            ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized");
-            return m_cpu_ptr;
-        }
+        DataType *get_cpu_ptr() const { return m_ptr; }
 
         /*
          * @brief get_ptrs implementation for host_storage.
          */
-        ptrs_t get_ptrs_impl() const { return m_cpu_ptr; }
+        DataType *get_ptrs_impl() const { return m_ptr; }
 
         /*
          * @brief valid implementation for host_storage.
          */
-        bool valid_impl() const { return m_cpu_ptr; }
+        bool valid_impl() const { return true; }
 
         /*
          * @brief clone_to_device implementation for host_storage.
@@ -196,10 +182,10 @@ namespace gridtools {
 
     // simple metafunction to check if a type is a host storage
     template <typename T>
-    struct is_host_storage : boost::mpl::false_ {};
+    struct is_host_storage : std::false_type {};
 
     template <typename T>
-    struct is_host_storage<host_storage<T>> : boost::mpl::true_ {};
+    struct is_host_storage<host_storage<T>> : std::true_type {};
 
     /**
      * @}

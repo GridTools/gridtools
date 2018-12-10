@@ -126,6 +126,8 @@ namespace gridtools {
                     return fortran_type_name<long double>();
                 case gt_fk_SignedChar:
                     return fortran_type_name<signed char>();
+                default:
+                    assert(false && "Invalid element kind");
                 }
             }
         } // namespace _impl
@@ -159,7 +161,8 @@ namespace gridtools {
         }
 
         void generate_c_interface(std::ostream &strm) {
-            strm << "\n#pragma once\n\n";
+            strm << "// This file is generated!\n";
+            strm << "#pragma once\n\n";
             strm << "#include <gridtools/c_bindings/array_descriptor.h>\n";
             strm << "#include <gridtools/c_bindings/handle.h>\n\n";
             strm << "#ifdef __cplusplus\n";
@@ -172,7 +175,8 @@ namespace gridtools {
         }
 
         void generate_fortran_interface(std::ostream &strm, std::string const &module_name) {
-            strm << "\nmodule " << module_name << "\n";
+            strm << "! This file is generated!\n";
+            strm << "module " << module_name << "\n";
             strm << "implicit none\n";
             strm << "  interface\n\n";
             strm << _impl::get_entities<_impl::fortran_bindings_traits>();

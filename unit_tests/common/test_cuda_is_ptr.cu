@@ -34,49 +34,43 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include <gridtools/common/cuda_is_ptr.hpp>
+
+#include <utility>
+
 #include <gtest/gtest.h>
 
-#include "test_cuda_is_ptr.cpp"
+#include <gridtools/common/cuda_util.hpp>
+
+using gridtools::is_gpu_ptr;
+using gridtools::cuda_util::cuda_malloc;
+
+TEST(test_is_gpu_ptr, host_ptr_is_no_cuda_ptr) {
+    auto testee = std::unique_ptr<double>(new double);
+    EXPECT_FALSE(is_gpu_ptr(testee.get()));
+    EXPECT_EQ(cudaSuccess, cudaGetLastError());
+}
 
 TEST(test_is_gpu_ptr, cuda_ptr_is_cuda_ptr) {
-    double *ptr;
-    cudaError_t error = cudaMalloc(&ptr, sizeof(double));
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
-        exit(-1);
-    }
-
-    ASSERT_TRUE(gridtools::is_gpu_ptr(ptr));
-
-    cudaFree(ptr);
+    auto testee = cuda_malloc<double>();
+    EXPECT_TRUE(is_gpu_ptr(testee.get()));
+    EXPECT_EQ(cudaSuccess, cudaGetLastError());
 }
 
 TEST(test_is_gpu_ptr, cudaMallocHost_ptr_is_not_cuda_ptr) {
-    double *ptr;
-    cudaError_t error = cudaMallocHost(&ptr, sizeof(double));
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
-        exit(-1);
-    }
-
-    ASSERT_FALSE(gridtools::is_gpu_ptr(ptr));
-
-    cudaFreeHost(ptr);
+    auto testee = std::shared_ptr<double>(
+        []() {
+            double *res;
+            GT_CUDA_CHECK(cudaMallocHost(&res, sizeof(double)));
+            return res;
+        }(),
+        cudaFreeHost);
+    EXPECT_FALSE(is_gpu_ptr(testee.get()));
+    EXPECT_EQ(cudaSuccess, cudaGetLastError());
 }
 
 TEST(test_is_gpu_ptr, cuda_ptr_inner_region_are_cuda_ptr) {
-    double *ptr;
-    const size_t n_elem = 32;
-    cudaError_t error = cudaMalloc(&ptr, sizeof(double) * n_elem);
-    if (error != cudaSuccess) {
-        fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
-        exit(-1);
-    }
-
-    for (size_t i = 0; i < n_elem; ++i) {
-        ASSERT_TRUE(gridtools::is_gpu_ptr(&ptr[i]));
-    }
-    ASSERT_FALSE(gridtools::is_gpu_ptr(&ptr[n_elem + 1])); // out of bounds
-
-    cudaFree(ptr);
+    auto testee = cuda_malloc<double>(2);
+    EXPECT_TRUE(is_gpu_ptr(testee.get() + 1));
+    EXPECT_EQ(cudaSuccess, cudaGetLastError());
 }

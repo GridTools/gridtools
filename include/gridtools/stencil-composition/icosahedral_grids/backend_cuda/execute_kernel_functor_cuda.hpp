@@ -39,12 +39,12 @@
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
+#include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
 #include "./iterate_domain_cuda.hpp"
-#include "./run_esf_functor_cuda.hpp"
 
 namespace gridtools {
 
@@ -77,9 +77,7 @@ namespace gridtools {
 
             using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
 
-            typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
-
-            typedef backend_traits_from_id<platform::cuda> backend_traits_t;
+            typedef backend_traits_from_id<target::cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
@@ -163,14 +161,12 @@ namespace gridtools {
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
-            typedef typename boost::mpl::front<typename RunFunctorArguments::loop_intervals_t>::type interval;
-            typedef typename index_to_level<typename interval::first>::type from;
-            typedef typename index_to_level<typename interval::second>::type to;
-            typedef _impl::iteration_policy<from, to, execution_type_t::iteration> iteration_policy_t;
+            using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+            using from_t = GT_META_CALL(meta::first, interval_t);
 
             const int_t kblock = execution_type_t::iteration == enumtype::parallel
                                      ? blockIdx.z * execution_type_t::block_size - grid.k_min()
-                                     : grid.template value_at<iteration_policy_t::from>() - grid.k_min();
+                                     : grid.template value_at<from_t>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
@@ -204,11 +200,11 @@ namespace gridtools {
             void operator()() {
 #ifdef VERBOSE
                 short_t count;
-                cudaGetDeviceCount(&count);
+                GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
                 if (count) {
                     cudaDeviceProp prop;
-                    cudaGetDeviceProperties(&prop, 0);
+                    GT_CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
                     std::cout << "total global memory " << prop.totalGlobalMem << std::endl;
                     std::cout << "shared memory per block " << prop.sharedMemPerBlock << std::endl;
                     std::cout << "registers per block " << prop.regsPerBlock << std::endl;
@@ -268,12 +264,7 @@ namespace gridtools {
                 _impl_iccuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
                     <<<blocks, threads>>>(m_local_domain, m_grid);
 #ifndef NDEBUG
-                cudaDeviceSynchronize();
-                cudaError_t error = cudaGetLastError();
-                if (error != cudaSuccess) {
-                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorName(error), __FILE__, __LINE__);
-                    exit(-1);
-                }
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             }
 

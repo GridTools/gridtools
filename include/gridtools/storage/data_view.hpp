@@ -36,16 +36,15 @@
 
 #pragma once
 
-#include <assert.h>
+#include <type_traits>
 
-#include <boost/mpl/and.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/type_traits.hpp>
-
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
+#include "../common/host_device.hpp"
 #include "common/definitions.hpp"
-#include "common/storage_info_interface.hpp"
+#include "data_store.hpp"
 
 #ifndef CHECK_MEMORY_SPACE
 
@@ -64,57 +63,6 @@ namespace gridtools {
     /** \ingroup storage
      * @{
      */
-    template <typename DataStore, access_mode AccessMode = access_mode::ReadWrite>
-    struct data_view;
-
-    namespace advanced {
-        /** Function to access the protected data member of the views
-            containing the raw pointers.  This is an interface we want to avoid
-            using (and future fixed of the communication library will not need
-            this. We made the use of this function difficult on purpose.
-
-            \tparam DataView The data_view type (deduced)
-
-            \param dv The data_view object
-            \param i The index of the pointer in the arrays of raw pointers
-        */
-        template <typename DataView>
-        typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
-            return dv.m_raw_ptrs[i];
-        }
-
-        /**
-         *  Copy the raw pointers from the data_view or data_field_view to the destination.
-         *
-         *  Destination should be an array or should model STL container concept.
-         */
-        template <typename Src, typename Dst>
-        void copy_raw_pointers(Src const &src, Dst &dst) {
-            using std::begin;
-            using std::copy;
-            using std::end;
-            copy(begin(src.m_raw_ptrs), end(src.m_raw_ptrs), begin(dst));
-        }
-
-        /** Function to obtain the address of the first element of the view,
-            that is &view(0,0,0). This fuction gives that address without
-            de-referencing the actual value. This is useful to interface
-            C or Fortran code that needs raw pointers to the data.
-
-            \tparam DataView The data_view type (deduced)
-
-            \param dv The data_view object
-            \param i The index of the pointer in the arrays of raw pointers
-        */
-        template <typename DataView>
-        inline typename DataView::data_t *get_address_of(DataView const &dv, int i = 0) {
-            return dv.m_raw_ptrs[i];
-        }
-
-        template <typename DataStore, access_mode AccessMode>
-        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view<DataStore, AccessMode> const &);
-
-    } // namespace advanced
 
     /**
      * @brief data_view implementation. This struct provides means to modify contents of
@@ -122,7 +70,7 @@ namespace gridtools {
      * @tparam DataStore data store type
      * @tparam AccessMode access mode (default is read-write)
      */
-    template <typename DataStore, access_mode AccessMode>
+    template <typename DataStore, access_mode AccessMode = access_mode::ReadWrite>
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
@@ -131,10 +79,9 @@ namespace gridtools {
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
         const static access_mode mode = AccessMode;
-        const static uint_t num_of_storages = 1;
 
       private:
-        data_t *m_raw_ptrs[1];
+        data_t *m_raw_ptr;
 
         state_machine_t *m_state_machine_ptr;
         storage_info_t const *m_storage_info;
@@ -145,7 +92,7 @@ namespace gridtools {
          * @brief data_view constructor
          */
         GT_FUNCTION data_view()
-            : m_raw_ptrs{NULL}, m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
+            : m_raw_ptr(NULL), m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
 
         /**
          * @brief data_view constructor. This constructor is normally not called by the user because it is more
@@ -157,7 +104,7 @@ namespace gridtools {
          */
         GT_FUNCTION data_view(
             data_t *data_ptr, storage_info_t const *info_ptr, state_machine_t *state_ptr, bool device_view)
-            : m_raw_ptrs{data_ptr}, m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
+            : m_raw_ptr(data_ptr), m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
               m_device_view(device_view) {
             ASSERT_OR_THROW(data_ptr, "Cannot create data_view with invalid data pointer");
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
@@ -172,13 +119,13 @@ namespace gridtools {
          * data getter
          */
         GT_FUNCTION
-        data_t *data() { return m_raw_ptrs[0]; }
+        data_t *data() { return m_raw_ptr; }
 
         /**
          * data getter
          */
         GT_FUNCTION
-        data_t const *data() const { return m_raw_ptrs[0]; }
+        data_t const *data() const { return m_raw_ptr; }
 
         /**
          * @return pointer to the first position
@@ -200,13 +147,12 @@ namespace gridtools {
          * @return reference to the queried value
          */
         template <typename... Coords>
-        typename boost::mpl::if_c<(AccessMode == access_mode::ReadOnly), data_t const &, data_t &>::type GT_FUNCTION
-        operator()(Coords... c) const {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_<boost::mpl::bool_<(sizeof...(Coords) > 0)>,
-                                        typename is_all_integral_or_enum<Coords...>::type>::value),
+        conditional_t<AccessMode == access_mode::ReadOnly, data_t const &, data_t &> GT_FUNCTION operator()(
+            Coords... c) const {
+            GRIDTOOLS_STATIC_ASSERT(conjunction<is_all_integral_or_enum<Coords...>>::value,
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
             CHECK_MEMORY_SPACE(m_device_view);
-            return m_raw_ptrs[0][m_storage_info->index(c...)];
+            return m_raw_ptr[m_storage_info->index(c...)];
         }
 
         /**
@@ -214,10 +160,10 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        typename boost::mpl::if_c<(AccessMode == access_mode::ReadOnly), data_t const &, data_t &>::type GT_FUNCTION
-        operator()(gridtools::array<int, storage_info_t::ndims> const &arr) const {
+        conditional_t<AccessMode == access_mode::ReadOnly, data_t const &, data_t &> GT_FUNCTION operator()(
+            gridtools::array<int, storage_info_t::ndims> const &arr) const {
             CHECK_MEMORY_SPACE(m_device_view);
-            return m_raw_ptrs[0][m_storage_info->index(arr)];
+            return m_raw_ptr[m_storage_info->index(arr)];
         }
 
         /**
@@ -228,7 +174,7 @@ namespace gridtools {
          */
         bool valid() const {
             // ptrs invalid -> view invalid
-            if (!m_raw_ptrs[0] || !m_storage_info)
+            if (!m_raw_ptr || !m_storage_info)
                 return false;
             // when used in combination with a host storage the view is always valid as long as the ptrs are
             if (!m_state_machine_ptr)
@@ -236,9 +182,10 @@ namespace gridtools {
             // read only -> simple check
             if (AccessMode == access_mode::ReadOnly)
                 return m_device_view ? !m_state_machine_ptr->m_dnu : !m_state_machine_ptr->m_hnu;
-            // check state machine ptrs
-            return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu))
-                                 : (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu));
+            else
+                // check state machine ptrs
+                return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu))
+                                     : (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu));
         }
 
         /*
@@ -309,31 +256,29 @@ namespace gridtools {
             return m_storage_info->template end<Dim>();
         }
 
-        template <typename T>
-        friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
-
-        template <typename T>
-        friend typename T::data_t *advanced::get_address_of(T const &, int);
-
-        template <typename Src, typename Dst>
-        friend void advanced::copy_raw_pointers(Src const &src, Dst &dst);
-
-        template <typename D, access_mode A>
-        friend typename D::storage_info_t const *advanced::storage_info_raw_ptr(data_view<D, A> const &);
+        friend data_t *advanced_get_raw_pointer_of(data_view const &src) { return src.m_raw_ptr; }
+        friend storage_info_t const *advanced_storage_info_raw_ptr(data_view const &src) { return src.m_storage_info; }
     };
 
     template <typename T>
-    struct is_data_view : boost::mpl::false_ {};
+    struct is_data_view : std::false_type {};
 
     template <typename Storage, access_mode AccessMode>
-    struct is_data_view<data_view<Storage, AccessMode>> : boost::mpl::true_ {};
+    struct is_data_view<data_view<Storage, AccessMode>> : std::true_type {};
 
     namespace advanced {
-        template <typename DataStore, access_mode AccessMode>
-        typename DataStore::storage_info_t const *storage_info_raw_ptr(data_view<DataStore, AccessMode> const &src) {
-            return src.m_storage_info;
-        }
+        /** Function to access the protected data member of the views
+            containing the raw pointers.  This is an interface we want to avoid
+            using (and future fixed of the communication library will not need
+            this. We made the use of this function difficult on purpose.
+        */
+        template <class T>
+        auto get_raw_pointer_of(T const &src) GT_AUTO_RETURN(advanced_get_raw_pointer_of(src));
+
+        template <class T>
+        auto storage_info_raw_ptr(T const &src) GT_AUTO_RETURN(advanced_storage_info_raw_ptr(src));
     } // namespace advanced
+
     /**
      * @}
      */

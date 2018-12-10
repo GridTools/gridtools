@@ -36,15 +36,16 @@
 
 #pragma once
 
+#include <vector>
+
 #include "../../common/defs.hpp"
 #include "../../common/hypercube_iterator.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/make_array.hpp"
+#include "../../common/tuple_util.hpp"
 #include "../../storage/storage-facility.hpp"
 #include "layout_transformation_config.hpp"
 #include "layout_transformation_helper.hpp"
-
-#include <vector>
 
 namespace gridtools {
     namespace impl {
@@ -82,7 +83,7 @@ namespace gridtools {
                 for (int i = 0; i < size_i; ++i)
                     for (int j = 0; j < size_j; ++j)
                         for (int k = 0; k < size_k; ++k) {
-                            auto index = join_array(make_array(i, j, k), convert_to_array<int>(outer));
+                            auto index = tuple_util::push_front(tuple_util::convert_to<array, int>(outer), i, j, k);
                             dst[si_dst.index(index)] = src[si_src.index(index)];
                         }
             }

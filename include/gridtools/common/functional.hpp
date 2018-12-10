@@ -33,7 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 /**
 @file
 @brief Unstructured collection of small generic purpose functors and related helpers.
@@ -44,7 +43,21 @@
 
 */
 
+#ifndef GT_TARGET_ITERATING
+// DON'T USE #pragma once HERE!!!
+#ifndef GRIDTOOLS_COMMON_FUNCTIONAL_HPP_
+#define GRIDTOOLS_COMMON_FUNCTIONAL_HPP_
+
 #include <utility>
+
+#include "./host_device.hpp"
+
+#define GT_FILENAME <gridtools/common/functional.hpp>
+#include GT_ITERATE_ON_TARGETS()
+#undef GT_FILENAME
+
+#endif
+#else
 
 namespace gridtools {
     /** \ingroup common
@@ -52,67 +65,71 @@ namespace gridtools {
         \defgroup functional Functional
         @{
     */
+    GT_TARGET_NAMESPACE {
 
-    /// Forward the args to constructor.
-    //
-    template <typename T>
-    struct ctor {
-        template <typename... Args>
-        T operator()(Args &&... args) const {
-            return {std::forward<Args>(args)...};
-        }
+        /// Forward the args to constructor.
+        //
+        template <typename T>
+        struct ctor {
+            template <typename... Args>
+            GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&... args) const {
+                return T{std::forward<Args>(args)...};
+            }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
-        using result_type = T;
+            using result_type = T;
 #endif
-    };
-
-    /// Do nothing.
-    //
-    struct noop {
-        template <typename... Args>
-        void operator()(Args &&...) const {}
-
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-        using result_type = void;
-#endif
-    };
-
-    /// Perfectly forward the argument.
-    //
-    struct identity {
-        template <typename Arg>
-        Arg operator()(Arg &&arg) const {
-            return arg;
-        }
-
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-        template <typename>
-        struct result;
-        template <typename Arg>
-        struct result<identity(Arg &&)> {
-            using type = Arg;
         };
-#endif
-    };
 
-    /// Copy the argument.
-    //
-    struct clone {
-        template <typename Arg>
-        Arg operator()(Arg const &arg) const {
-            return arg;
-        }
+        /// Do nothing.
+        //
+        struct noop {
+            template <typename... Args>
+            GT_TARGET GT_FORCE_INLINE void operator()(Args &&...) const {}
+
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
-        template <typename>
-        struct result;
-        template <typename Arg>
-        struct result<clone(Arg const &)> {
-            using type = Arg;
-        };
+            using result_type = void;
 #endif
-    };
+        };
+
+        /// Perfectly forward the argument.
+        //
+        struct identity {
+            template <typename Arg>
+            GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg &&arg) const {
+                return arg;
+            }
+
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+            template <typename>
+            struct result;
+            template <typename Arg>
+            struct result<identity(Arg &&)> {
+                using type = Arg;
+            };
+#endif
+        };
+
+        /// Copy the argument.
+        //
+        struct clone {
+            template <typename Arg>
+            GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg const &arg) const {
+                return arg;
+            }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+            template <typename>
+            struct result;
+            template <typename Arg>
+            struct result<clone(Arg const &)> {
+                using type = Arg;
+            };
+#endif
+        };
+    }
 
     /** @} */
     /** @} */
 } // namespace gridtools
+
+#endif

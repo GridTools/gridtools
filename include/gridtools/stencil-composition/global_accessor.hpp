@@ -38,8 +38,8 @@
 #include <boost/fusion/include/vector.hpp>
 
 #include "../common/defs.hpp"
-#include "./empty_extent.hpp"
-#include "accessor.hpp"
+#include "./accessor.hpp"
+#include "./extent.hpp"
 
 namespace gridtools {
 
@@ -88,7 +88,7 @@ namespace gridtools {
 
         typedef static_uint<I> index_t;
 
-        typedef empty_extent extent_t;
+        typedef extent<> extent_t;
 
         GT_FUNCTION constexpr global_accessor() {}
 
