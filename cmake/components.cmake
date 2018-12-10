@@ -1,4 +1,4 @@
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/gridtools)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/)
 ### This file define the GridTools components and their dependencies
 
 ### The following function works like this:
