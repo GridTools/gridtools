@@ -154,10 +154,6 @@ namespace gridtools {
         std::string m_name;
 
       public:
-        // following members are declared in order to have same API as data_store_fields
-        const static uint_t num_of_storages = 1;
-        const static uint_t num_of_components = 1;
-
         /**
          * @brief data_store constructor. This constructor does not trigger an allocation of the required space.
          */
@@ -272,16 +268,14 @@ namespace gridtools {
             m_shared_storage.reset();
         }
 
-        void swap(data_store& other) {
+        void swap(data_store &other) {
             using std::swap;
             swap(m_shared_storage, other.m_shared_storage);
             swap(m_shared_storage_info, other.m_shared_storage_info);
             swap(m_name, other.m_name);
         }
 
-        friend void swap(data_store& a, data_store& b) {
-            a.swap(b);
-        };
+        friend void swap(data_store &a, data_store &b) { a.swap(b); };
 
         /**
          * @brief function to retrieve the size of a dimension (e.g., I, J, or K).

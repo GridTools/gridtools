@@ -58,14 +58,11 @@ struct shallow_water_reference {
 
     using solution_meta_t = typename RefBackend::storage_traits_t::template storage_info_t<0, 3>;
     using data_store_t = typename RefBackend::storage_traits_t::template data_store_t<float_type, solution_meta_t>;
-    using sol_type =
-        typename RefBackend::storage_traits_t::template data_store_field_t<float_type, solution_meta_t, 1, 1, 1>;
 
     uint_t DimI;
     uint_t DimJ;
 
     solution_meta_t solution_meta;
-    sol_type solution;
     data_store_t u;
     data_store_t v;
     data_store_t h;
@@ -84,15 +81,10 @@ struct shallow_water_reference {
     static constexpr float_type height = 2.;
 
     shallow_water_reference(uint_t DimI, uint_t DimJ)
-        : DimI{DimI}, DimJ{DimJ}, solution_meta(DimI, DimJ, 1u), solution(solution_meta), u(solution_meta, 0.0, "u"),
-          v(solution_meta, 0.0, "v"),
+        : DimI{DimI}, DimJ{DimJ}, solution_meta(DimI, DimJ, 1u), u(solution_meta, 0.0, "u"), v(solution_meta, 0.0, "v"),
           h(solution_meta, [](int i, int j, int k) { return droplet_(i, j, dx(), dy(), height); }, "h"),
           ux(solution_meta, 0.0, "ux"), vx(solution_meta, 0.0, "vx"), hx(solution_meta, 0.0, "hx"),
-          uy(solution_meta, 0.0, "uy"), vy(solution_meta, 0.0, "vy"), hy(solution_meta, 0.0, "hy") {
-        solution.template set<0, 0>(h);
-        solution.template set<1, 0>(u);
-        solution.template set<2, 0>(v);
-    }
+          uy(solution_meta, 0.0, "uy"), vy(solution_meta, 0.0, "vy"), hy(solution_meta, 0.0, "hy") {}
 
     void iterate() {
         auto hxv = make_host_view(hx);
