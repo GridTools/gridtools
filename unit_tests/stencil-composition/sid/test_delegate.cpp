@@ -42,13 +42,14 @@
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
 #include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {
 
         template <class Sid>
-        class i_shifted : sid::delegate<Sid> {
+        class i_shifted : public sid::delegate<Sid> {
             friend GT_FUNCTION GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
                 auto &&impl = obj.impl();
                 auto res = sid::get_origin(impl);
@@ -71,6 +72,8 @@ namespace gridtools {
             auto strides = tu::make<tuple>(integral_constant<int, 1>(), integral_constant<int, 5>());
             auto src = sid::synthetic().set<property::origin>(&data[0][0]).set<property::strides>(strides);
             auto testee = i_shift(src);
+
+            static_assert(is_sid<decltype(testee)>(), "");
 
             EXPECT_EQ(&data[0][0], sid::get_origin(src));
             EXPECT_EQ(&data[1][0], sid::get_origin(testee));
