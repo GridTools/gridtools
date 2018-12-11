@@ -35,4 +35,7 @@ if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
     target_compile_definitions(${GridToolsTarget} GridTools INTERFACE ENABLE_METERS)
 endif()
 
+set_and_check(GridTools_MODULE_PATH @PACKAGE_GRIDTOOLS_MODULE_PATH@)
+set_and_check(GridTools_ROOT @PACKAGE_GRIDTOOLS_ROOT@)
+
 check_required_components(gridtools)

@@ -3,16 +3,19 @@ export(PACKAGE GridTools)
 
 include(CMakePackageConfigHelpers)
 # for install tree
-configure_package_config_file(GridToolsConfig.cmake.in
+set(GRIDTOOLS_MODULE_PATH lib/cmake)
+set(GRIDTOOLS_ROOT .)
+configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/GridToolsConfig.cmake
+  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_ROOT
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 # for build tree
-configure_package_config_file(GridToolsConfig.cmake.in
+configure_package_config_file(cmake/GridToolsConfig.cmake.in
   ${PROJECT_BINARY_DIR}/GridToolsConfig.cmake
-  INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
+  PATH_VARS GRIDTOOLS_MODULE_PATH GRIDTOOLS_ROOT
+  INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
   COMPATIBILITY SameMajorVersion )
 
 install(TARGETS GridTools EXPORT GridToolsTargets
@@ -29,12 +32,12 @@ if (COMPONENT_GCL)
       INCLUDES DESTINATION include
     )
     export(TARGETS GridTools GridToolsGCL
-        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
+        FILE ${PROJECT_BINARY_DIR}/lib/cmake/GridToolsTargets.cmake
         NAMESPACE gridtools::
     )
 else()
     export(TARGETS GridTools
-        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
+        FILE ${PROJECT_BINARY_DIR}/lib/cmake/GridToolsTargets.cmake
         NAMESPACE gridtools::
     )
 endif()
