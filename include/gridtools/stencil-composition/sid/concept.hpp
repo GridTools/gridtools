@@ -219,11 +219,20 @@ namespace gridtools {
             using default_ptr_diff = decltype(::gridtools::sid::impl_::sid_get_default_ptr_diff(
                 std::declval<add_lvalue_reference_t<add_const_t<Ptr>>>()));
 
+            template <class T, class = void>
+            struct is_empty_or_tuple_of_empties : std::is_empty<T> {};
+
+            template <class Tup, class Types = GT_META_CALL(tuple_util::traits::to_types, Tup)>
+            GT_META_DEFINE_ALIAS(is_tuple_of_empties, meta::all_of, (is_empty_or_tuple_of_empties, Types));
+
+            template <class Tup>
+            struct is_empty_or_tuple_of_empties<Tup, enable_if_t<is_tuple_of_empties<Tup>::value>> : std::true_type {};
+
             GT_META_LAZY_NAMESPACE {
                 template <class, class = void>
                 struct default_kind;
                 template <class T>
-                struct default_kind<T, enable_if_t<std::is_empty<decay_t<T>>::value>> : std::decay<T> {};
+                struct default_kind<T, enable_if_t<is_empty_or_tuple_of_empties<decay_t<T>>::value>> : std::decay<T> {};
             }
             GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);
             /////// END defaults PART ///////
@@ -592,7 +601,9 @@ namespace gridtools {
                 class PtrDiff = ptr_diff_type<Sid>,
                 class StridesType = strides_type<Sid>,
                 class BoundsValidatorType = bounds_validator_type<Sid>,
-                class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, decay_t<StridesType>)>
+                class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, decay_t<StridesType>),
+                class StridesKind = strides_kind<Sid>,
+                class BoundsValidatorKind = bounds_validator_kind<Sid>>
             GT_META_DEFINE_ALIAS(is_sid,
                 conjunction,
                 (
@@ -603,7 +614,7 @@ namespace gridtools {
 
                     // verify that `PtrDiff` is sane
                     std::is_default_constructible<PtrDiff>,
-                    std::is_same<decltype(std::declval<Ptr>() + PtrDiff{}), Ptr>,
+                    std::is_same<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
 
                     // verify that `Reference` is sane
                     negation<std::is_void<ReferenceType>>,
@@ -614,7 +625,7 @@ namespace gridtools {
 
                     // `BoundsValidators` apllied to `Ptr` should return `bool`
                     std::is_constructible<bool,
-                        decltype(std::declval<BoundsValidatorType const &>()(std::declval<Ptr const &>))>));
+                        decltype(std::declval<BoundsValidatorType const &>()(std::declval<Ptr const &>()))>));
 
         } // namespace impl_
 
@@ -650,9 +661,10 @@ namespace gridtools {
         using impl_::default_bounds_validator;
         using impl_::default_kind;
         using impl_::default_strides;
+        using default_stride = integral_constant<int_t, 0>;
 
         /**
-         *  Does the type models the SID concept
+         *  Does a type models the SID concept
          */
         template <class T, class = void>
         struct is_sid : std::false_type {};
@@ -687,10 +699,19 @@ namespace gridtools {
         constexpr GT_FUNCTION auto get_stride(Strides &&strides)
             GT_AUTO_RETURN(tuple_util::host_device::get<I>(strides));
         template <size_t I, class Strides, enable_if_t<(I >= tuple_util::size<decay_t<Strides>>::value), int> = 0>
-        constexpr GT_FUNCTION integral_constant<int_t, 0> get_stride(Strides &&) {
+        constexpr GT_FUNCTION default_stride get_stride(Strides &&) {
             return {};
         }
 
+        struct get_origin_f {
+            template <class T>
+            constexpr GT_FUNCTION auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
+        };
+
+        struct get_bounds_validator_f {
+            template <class T>
+            constexpr GT_FUNCTION auto operator()(const T &obj) const GT_AUTO_RETURN(get_bounds_validator(obj));
+        };
     } // namespace sid
 
     /*

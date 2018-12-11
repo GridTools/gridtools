@@ -71,6 +71,8 @@ namespace gridtools {
         //
         template <typename T>
         struct ctor {
+            using type = ctor;
+
             template <typename... Args>
             GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&... args) const {
                 return T{std::forward<Args>(args)...};
@@ -84,6 +86,8 @@ namespace gridtools {
         /// Do nothing.
         //
         struct noop {
+            using type = noop;
+
             template <typename... Args>
             GT_TARGET GT_FORCE_INLINE void operator()(Args &&...) const {}
 
@@ -95,6 +99,7 @@ namespace gridtools {
         /// Perfectly forward the argument.
         //
         struct identity {
+            using type = identity;
             template <typename Arg>
             GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg &&arg) const {
                 return arg;
@@ -113,6 +118,8 @@ namespace gridtools {
         /// Copy the argument.
         //
         struct clone {
+            using type = clone;
+
             template <typename Arg>
             GT_TARGET GT_FORCE_INLINE constexpr Arg operator()(Arg const &arg) const {
                 return arg;

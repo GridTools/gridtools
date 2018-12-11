@@ -33,49 +33,47 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
-#include "../../common/host_device.hpp"
-#include "../../meta/macros.hpp"
-#include "concept.hpp"
+#include <gridtools/stencil-composition/sid/delegate.hpp>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/host_device.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/tuple_util.hpp>
+#include <gridtools/meta.hpp>
+#include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
-    namespace sid {
+    namespace {
+
         template <class Sid>
-        class delegate {
-            Sid m_impl;
-
-            GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
-
-            friend constexpr GT_FUNCTION GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
-                return get_origin(obj.m_impl);
+        class i_shifted : sid::delegate<Sid> {
+            friend GT_FUNCTION GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
+                auto &&impl = obj.impl();
+                auto res = sid::get_origin(impl);
+                sid::shift(res, sid::get_stride<1>(sid::get_strides(impl)), integral_constant<int, 1>());
+                return res;
             }
-            friend constexpr GT_FUNCTION GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
-                return get_strides(obj.m_impl);
-            }
-            friend constexpr GT_FUNCTION GT_META_CALL(bounds_validator_type, Sid)
-                sid_get_bounds_validator(delegate const &obj) {
-                return get_bounds_validator(obj.m_impl);
-            }
-            friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
-
-          protected:
-            constexpr GT_FUNCTION Sid const &impl() const { return m_impl; }
-            GT_FUNCTION Sid &impl() { return m_impl; }
-
-          public:
-            explicit constexpr GT_FUNCTION delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit constexpr GT_FUNCTION delegate(Sid &&impl) noexcept : m_impl(const_expr::move(impl)) {}
+            using i_shifted::delegate::delegate;
         };
 
         template <class Sid>
-        GT_META_CALL(strides_kind, Sid)
-        sid_get_strides_kind(delegate<Sid> const &);
+        i_shifted<Sid> i_shift(Sid const &sid) {
+            return i_shifted<Sid>{sid};
+        }
 
-        template <class Sid>
-        GT_META_CALL(bounds_validator_kind, Sid)
-        sid_get_bounds_validator_kind(delegate<Sid> const &);
-    } // namespace sid
+        using sid::property;
+        namespace tu = tuple_util;
+
+        TEST(delegate, smoke) {
+            double data[3][5];
+            auto strides = tu::make<tuple>(integral_constant<int, 1>(), integral_constant<int, 5>());
+            auto src = sid::synthetic().set<property::origin>(&data[0][0]).set<property::strides>(strides);
+            auto testee = i_shift(src);
+
+            EXPECT_EQ(&data[0][0], sid::get_origin(src));
+            EXPECT_EQ(&data[1][0], sid::get_origin(testee));
+        }
+    } // namespace
 } // namespace gridtools

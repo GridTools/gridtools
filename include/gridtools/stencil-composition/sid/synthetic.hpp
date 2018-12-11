@@ -68,18 +68,18 @@ namespace gridtools {
 
             template <class T>
             struct mixin<property::ptr_diff, T> {
-                friend T sid_get_ptr_diff(mixin const &);
+                friend T sid_get_ptr_diff(mixin const &) { return {}; }
             };
 
             template <class T>
-            struct mixin<property::strides_kind, T> {
-                friend T sid_get_strides_kind(mixin const &);
-            };
+            struct mixin<property::strides_kind, T> {};
+            template <class T>
+            T sid_get_strides_kind(mixin<property::strides_kind, T> const &);
 
             template <class T>
-            struct mixin<property::bounds_validator_kind, T> {
-                friend T sid_get_bounds_validator_kind(mixin const &);
-            };
+            struct mixin<property::bounds_validator_kind, T> {};
+            template <class T>
+            T sid_get_bounds_validator_kind(mixin<property::bounds_validator_kind, T> const &);
 
             template <property>
             struct unique {};
@@ -89,6 +89,9 @@ namespace gridtools {
                 unique_mixin() = default;
                 unique_mixin(unique_mixin const &) = default;
                 unique_mixin(unique_mixin &&) = default;
+                unique_mixin &operator=(unique_mixin const &) = default;
+                unique_mixin &operator=(unique_mixin &&) = default;
+
                 template <class U>
                 constexpr GT_FUNCTION unique_mixin(U &&obj) noexcept
                     : mixin<Property, T>{const_expr::forward<U>(obj)} {}

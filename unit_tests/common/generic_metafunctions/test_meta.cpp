@@ -279,6 +279,34 @@ namespace gridtools {
         static_assert(std::is_same<GT_META_CALL(reverse, (f<int, int *, int **, int ***, int ****, int *****>)),
                           f<int *****, int ****, int ***, int **, int *, int>>{},
             "");
+
+        static_assert(find<f<>, int>::type::value == 0, "");
+        static_assert(find<f<void>, int>::type::value == 1, "");
+        static_assert(find<f<double, int, int, double, int>, int>::type::value == 1, "");
+        static_assert(find<f<double, int, int, double, int>, void>::type::value == 5, "");
+
+        static_assert(std::is_same<GT_META_CALL(mp_insert, (f<>, g<int, int *>)), f<g<int, int *>>>{}, "");
+        static_assert(std::is_same<GT_META_CALL(mp_insert, (f<g<void, void *>>, g<int, int *>)),
+                          f<g<void, void *>, g<int, int *>>>{},
+            "");
+        static_assert(
+            std::is_same<GT_META_CALL(mp_insert, (f<g<int, int *>>, g<int, int **>)), f<g<int, int *, int **>>>{}, "");
+
+        static_assert(std::is_same<GT_META_CALL(mp_remove, (f<g<int, int *>>, void)), f<g<int, int *>>>{}, "");
+        static_assert(std::is_same<GT_META_CALL(mp_remove, (f<g<int, int *>>, int)), f<>>{}, "");
+        static_assert(
+            std::is_same<GT_META_CALL(mp_remove, (f<g<int, int *>, g<void, void *>>, int)), f<g<void, void *>>>{}, "");
+
+        static_assert(std::is_same<GT_META_CALL(mp_inverse, f<>), f<>>{}, "");
+        static_assert(std::is_same<GT_META_CALL(mp_inverse, (f<g<int, int *>, g<void, void *>>)),
+                          f<g<int *, int>, g<void *, void>>>{},
+            "");
+        static_assert(std::is_same<GT_META_CALL(mp_inverse, (f<g<int, int *, int **>, g<void, void *>>)),
+                          f<g<int *, int>, g<int **, int>, g<void *, void>>>{},
+            "");
+        static_assert(std::is_same<GT_META_CALL(mp_inverse, (f<g<int *, int>, g<int **, int>, g<void *, void>>)),
+                          f<g<int, int *, int **>, g<void, void *>>>{},
+            "");
     } // namespace meta
 } // namespace gridtools
 

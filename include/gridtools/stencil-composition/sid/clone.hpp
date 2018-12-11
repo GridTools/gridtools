@@ -42,33 +42,57 @@
 
 namespace gridtools {
     namespace sid {
-        template <class Sid>
-        class cloned {
+        namespace impl_ {
+            template <class Ptr,
+                class Strides,
+                class BoundsValidator,
+                class PtrDiff,
+                class StridesKind,
+                class BoundsValidatorKind>
+            struct cloned {
+                Ptr m_origin;
+                Strides m_strides;
+                BoundsValidator m_bounds_validator;
+
+                friend constexpr GT_FUNCTION Ptr sid_get_origin(cloned &obj) { return obj.m_origin; }
+                friend constexpr GT_FUNCTION Strides sid_get_strides(cloned const &obj) { return obj.m_strides; }
+                friend constexpr GT_FUNCTION BoundsValidator sid_get_bounds_validator(cloned const &obj) {
+                    return obj.m_bounds_validator;
+                }
+
+                friend PtrDiff sid_get_ptr_diff(cloned const &) { return {}; }
+            };
+
+            template <class Ptr,
+                class Strides,
+                class BoundsValidator,
+                class PtrDiff,
+                class StridesKind,
+                class BoundsValidatorKind>
+            StridesKind sid_get_strides_kind(
+                cloned<Ptr, Strides, BoundsValidator, PtrDiff, StridesKind, BoundsValidatorKind> const &);
+
+            template <class Ptr,
+                class Strides,
+                class BoundsValidator,
+                class PtrDiff,
+                class StridesKind,
+                class BoundsValidatorKind>
+            BoundsValidatorKind sid_get_bounds_validator_kind(
+                cloned<Ptr, Strides, BoundsValidator, PtrDiff, StridesKind, BoundsValidatorKind> const &);
+        } // namespace impl_
+
+        template <class Sid,
+            class Res = impl_::cloned<GT_META_CALL(ptr_type, Sid),
+                GT_META_CALL(strides_type, Sid),
+                GT_META_CALL(bounds_validator_type, Sid),
+                GT_META_CALL(ptr_diff_type, Sid),
+                GT_META_CALL(strides_kind, Sid),
+                GT_META_CALL(bounds_validator_kind, Sid)>>
+        constexpr GT_FUNCTION Res clone(Sid &src) noexcept {
             GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
-
-            GT_META_CALL(sid::ptr_type, Sid) m_origin;
-            GT_META_CALL(sid::ptr_type, Sid) m_strides;
-            GT_META_CALL(sid::bounds_validator, Sid) m_bounds_validator;
-
-            friend constexpr GT_FUNCTION Ptr sid_get_origin(cloned &obj) { return obj.m_origin; }
-            friend constexpr GT_FUNCTION Strides sid_get_strides(cloned const &obj) { return obj.m_strides; }
-            friend constexpr GT_FUNCTION BoundsValidator sid_get_bounds_validator(cloned const &obj) {
-                return obj.m_bounds_validator;
-            }
-            friend GT_META_CALL(sid::ptr_diff_type, Sid) PtrDiff sid_get_ptr_diff(cloned const &);
-            friend GT_META_CALL(sid::strides_kind, Sid) sid_get_strides_kind(cloned const &);
-            friend GT_META_CALL(sid::bounds_validator_kind, Sid) sid_get_bounds_validator_kind(cloned const &);
-
-          public:
-            explicit constexpr GT_FUNCTION cloned(Sid &src) noexcept
-                : m_origin(sid::get_origin(src)), m_strides(sid::get_strides(src)),
-                  m_bounds_validator(sid::get_bounds_validator(src)) {}
-        };
-
-        template <class Sid>
-        constexpr GT_FUNCTION cloned<Sid> clone(Sid &src) noexcept {
-            GRIDTOOLS_STATIC_ASSERT(is_sid<clonded<Sid>>::value, GT_INTERNAL_ERROR);
-            return cloned<Sid>(src);
+            GRIDTOOLS_STATIC_ASSERT(is_sid<Res>::value, GT_INTERNAL_ERROR);
+            return {get_origin(src), get_strides(src), get_bounds_validator(src)};
         }
     } // namespace sid
 } // namespace gridtools
