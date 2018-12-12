@@ -44,18 +44,16 @@ namespace gridtools {
             return first == last || *first ? 0 : 1 + find_impl_helper(first + 1, last);
         }
 
-        template <size_t N>
-        constexpr size_t find_impl(bool const (&vals)[N]) {
-            return find_impl_helper(vals, vals + N);
-        }
-
         template <class, class>
-        struct find;
-
-        template <template <class...> class L, class Key>
-        struct find<L<>, Key> : std::integral_constant<size_t, 0> {};
+        struct find_impl;
 
         template <template <class...> class L, class... Ts, class Key>
-        struct find<L<Ts...>, Key> : std::integral_constant<size_t, find_impl({std::is_same<Ts, Key>::value...})> {};
+        struct find_impl<L<Ts...>, Key> {
+            static constexpr bool values[] = {std::is_same<Ts, Key>::value...};
+            static constexpr size_t value = find_impl_helper(values, values + sizeof...(Ts));
+        };
+
+        template <class List, class Key>
+        struct find : std::integral_constant<size_t, find_impl<List, Key>::value> {};
     } // namespace meta
 } // namespace gridtools
