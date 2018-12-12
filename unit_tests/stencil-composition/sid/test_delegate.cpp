@@ -47,7 +47,6 @@
 
 namespace gridtools {
     namespace {
-
         template <class Sid>
         class i_shifted : public sid::delegate<Sid> {
             friend GT_FUNCTION GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
@@ -56,7 +55,7 @@ namespace gridtools {
                 sid::shift(res, sid::get_stride<1>(sid::get_strides(impl)), integral_constant<int, 1>());
                 return res;
             }
-            using i_shifted::delegate::delegate;
+            using sid::delegate<Sid>::delegate;
         };
 
         template <class Sid>

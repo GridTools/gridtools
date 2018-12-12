@@ -143,7 +143,7 @@
 #include "host_device.hpp"
 #include "pair.hpp"
 
-#define GT_TULPE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
+#define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
     template <class... Args>                                                                                        \
     constexpr GT_FUNCTION class_name(Args &&... args) noexcept : member_name{const_expr::forward<Args>(args)...} {} \
     class_name() = default;                                                                                         \
@@ -424,26 +424,29 @@ namespace gridtools {
                     GT_TARGET GT_FORCE_INLINE constexpr
                         typename std::result_of<Fun && (result_of_t<get_nth_f<I>(Tups &&)>...)>::type
                         operator()(Fun &&fun, Tups &&... tups) const {
-                        return const_expr::forward<Fun>(fun)(get<I>(const_expr::forward<Tups>(tups))...);
+                        return const_expr::forward<Fun>(fun)(
+                            GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...);
                     }
 #elif (defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1800) || \
     (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ <= 10)
                     template <class Fun, class Tup>
-                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Fun &&fun, Tup &&tup) const
-                        GT_AUTO_RETURN(const_expr::forward<Fun>(fun)(get<I>(const_expr::forward<Tup>(tup))));
+                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Fun &&fun, Tup &&tup) const GT_AUTO_RETURN(
+                        const_expr::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup>(tup))));
                     template <class Fun, class Tup1, class Tup2>
-                    auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(const_expr::forward<Fun>(
-                        fun)(get<I>(const_expr::forward<Tup1>(tup1)), get<I>(const_expr::forward<Tup2>(tup2))));
+                    GT_TARGET auto operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2) const GT_AUTO_RETURN(
+                        const_expr::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup1>(tup1)),
+                            GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup2>(tup2))));
                     template <class Fun, class Tup1, class Tup2, class Tup3>
-                    GT_TARGET GT_FORCE_INLINE constexpr auto operator()(
-                        Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const
-                        GT_AUTO_RETURN(const_expr::forward<Fun>(fun)(get<I>(const_expr::forward<Tup1>(tup1)),
-                            get<I>(const_expr::forward<Tup2>(tup2)),
-                            get<I>(const_expr::forward<Tup3>(tup3))));
+                    GT_TARGET GT_FORCE_INLINE constexpr auto
+                    operator()(Fun &&fun, Tup1 &&tup1, Tup2 &&tup2, Tup3 &&tup3) const GT_AUTO_RETURN(
+                        const_expr::forward<Fun>(fun)(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup1>(tup1)),
+                            GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup2>(tup2)),
+                            GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup3>(tup3))));
 #else
                     template <class Fun, class... Tups>
                     GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Fun &&fun, Tups &&... tups) const
-                        GT_AUTO_RETURN(const_expr::forward<Fun>(fun)(get<I>(const_expr::forward<Tups>(tups))...));
+                        GT_AUTO_RETURN(const_expr::forward<Fun>(fun)(
+                            GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...));
 #endif
                 };
 
@@ -498,8 +501,9 @@ namespace gridtools {
                 template <template <class...> class L, class... Is>
                 struct apply_to_elements_f<L<Is...>> {
                     template <class Fun, class... Tups>
-                    GT_TARGET GT_FORCE_INLINE auto operator()(Fun &&fun, Tups &&... tups) const GT_AUTO_RETURN(
-                        const_expr::forward<Fun>(fun)(get<Is::value>(const_expr::forward<Tups>(tups))...));
+                    GT_TARGET GT_FORCE_INLINE auto operator()(Fun &&fun, Tups &&... tups) const
+                        GT_AUTO_RETURN(const_expr::forward<Fun>(fun)(
+                            GT_TARGET_NAMESPACE_NAME::get<Is::value>(const_expr::forward<Tups>(tups))...));
                 };
 
                 template <class>
@@ -531,7 +535,8 @@ namespace gridtools {
                     struct generator_f {
                         template <class Tup>
                         GT_TARGET GT_FORCE_INLINE constexpr auto operator()(Tup &&tup) const
-                            GT_AUTO_RETURN(get<InnerI>(get<OuterI>(const_expr::forward<Tup>(tup))));
+                            GT_AUTO_RETURN(GT_TARGET_NAMESPACE_NAME::get<InnerI>(
+                                GT_TARGET_NAMESPACE_NAME::get<OuterI>(const_expr::forward<Tup>(tup))));
                     };
 
                     template <class OuterI, class InnerI>
@@ -579,7 +584,8 @@ namespace gridtools {
                 struct push_back_impl_f<L<Int, Is...>, Res> {
                     template <class Tup, class... Args>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
-                        return Res{get<Is>(const_expr::forward<Tup>(tup))..., const_expr::forward<Args>(args)...};
+                        return Res{GT_TARGET_NAMESPACE_NAME::get<Is>(const_expr::forward<Tup>(tup))...,
+                            const_expr::forward<Args>(args)...};
                     }
                 };
 
@@ -602,7 +608,8 @@ namespace gridtools {
                 struct push_front_impl_f<L<Int, Is...>, Res> {
                     template <class Tup, class... Args>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
-                        return Res{const_expr::forward<Args>(args)..., get<Is>(const_expr::forward<Tup>(tup))...};
+                        return Res{const_expr::forward<Args>(args)...,
+                            GT_TARGET_NAMESPACE_NAME::get<Is>(const_expr::forward<Tup>(tup))...};
                     }
                 };
 
@@ -636,25 +643,29 @@ namespace gridtools {
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 1 == N, int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const
-                        GT_AUTO_RETURN(m_fun(const_expr::forward<State>(state), get<I>(const_expr::forward<Tup>(tup))));
+                        GT_AUTO_RETURN(m_fun(const_expr::forward<State>(state),
+                            GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup>(tup))));
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 2 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(
-                        m_fun(m_fun(const_expr::forward<State>(state), get<I>(const_expr::forward<Tup>(tup))),
-                            get<I + 1>(const_expr::forward<Tup>(tup))));
+                    GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const
+                        GT_AUTO_RETURN(m_fun(m_fun(const_expr::forward<State>(state),
+                                                 GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup>(tup))),
+                            GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tup>(tup))));
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 3 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(
-                        m_fun(m_fun(m_fun(const_expr::forward<State>(state), get<I>(const_expr::forward<Tup>(tup))),
-                                  get<I + 1>(const_expr::forward<Tup>(tup))),
-                            get<I + 2>(const_expr::forward<Tup>(tup))));
+                    GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const
+                        GT_AUTO_RETURN(m_fun(m_fun(m_fun(const_expr::forward<State>(state),
+                                                       GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup>(tup))),
+                                                 GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tup>(tup))),
+                            GT_TARGET_NAMESPACE_NAME::get<I + 2>(const_expr::forward<Tup>(tup))));
 
                     template <size_t I, size_t N, class State, class Tup, enable_if_t<I + 4 == N, int> = 0>
-                    GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(m_fun(
-                        m_fun(m_fun(m_fun(const_expr::forward<State>(state), get<I>(const_expr::forward<Tup>(tup))),
-                                  get<I + 1>(const_expr::forward<Tup>(tup))),
-                            get<I + 2>(const_expr::forward<Tup>(tup))),
-                        get<I + 3>(const_expr::forward<Tup>(tup))));
+                    GT_TARGET GT_FORCE_INLINE constexpr auto impl(State &&state, Tup &&tup) const GT_AUTO_RETURN(
+                        m_fun(m_fun(m_fun(m_fun(const_expr::forward<State>(state),
+                                              GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup>(tup))),
+                                        GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tup>(tup))),
+                                  GT_TARGET_NAMESPACE_NAME::get<I + 2>(const_expr::forward<Tup>(tup))),
+                            GT_TARGET_NAMESPACE_NAME::get<I + 3>(const_expr::forward<Tup>(tup))));
 
                     template <size_t I,
                         size_t N,
@@ -665,12 +676,14 @@ namespace gridtools {
                         class Res = GT_META_CALL(meta::lfold, (meta_fun, State &&, Accessors)),
                         enable_if_t<(I + 4 < N), int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr Res impl(State &&state, Tup &&tup) const {
-                        return impl<I + 5, N>(m_fun(m_fun(m_fun(m_fun(m_fun(const_expr::forward<State>(state),
-                                                                          get<I>(const_expr::forward<Tup>(tup))),
-                                                                    get<I + 1>(const_expr::forward<Tup>(tup))),
-                                                              get<I + 2>(const_expr::forward<Tup>(tup))),
-                                                        get<I + 3>(const_expr::forward<Tup>(tup))),
-                                                  get<I + 4>(const_expr::forward<Tup>(tup))),
+                        return impl<I + 5, N>(
+                            m_fun(
+                                m_fun(m_fun(m_fun(m_fun(const_expr::forward<State>(state),
+                                                      GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tup>(tup))),
+                                                GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tup>(tup))),
+                                          GT_TARGET_NAMESPACE_NAME::get<I + 2>(const_expr::forward<Tup>(tup))),
+                                    GT_TARGET_NAMESPACE_NAME::get<I + 3>(const_expr::forward<Tup>(tup))),
+                                GT_TARGET_NAMESPACE_NAME::get<I + 4>(const_expr::forward<Tup>(tup))),
                             const_expr::forward<Tup>(tup));
                     }
 
@@ -690,7 +703,8 @@ namespace gridtools {
                         class Res = GT_META_CALL(meta::lfold, (meta_fun, StateAccessor, Accessors))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
                         return impl<1, size<decay_t<Tup>>::value>(
-                            get<0>(const_expr::forward<Tup>(tup)), const_expr::forward<Tup>(tup));
+                            GT_TARGET_NAMESPACE_NAME::get<0>(const_expr::forward<Tup>(tup)),
+                            const_expr::forward<Tup>(tup));
                     }
                 };
 
@@ -705,36 +719,36 @@ namespace gridtools {
 
                     template <size_t I, size_t N, class... Tups, enable_if_t<I + 1 == N, int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&... tups) const {
-                        return m_fun(get<I>(const_expr::forward<Tups>(tups))...);
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, enable_if_t<I + 2 == N, int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&... tups) const {
-                        return m_fun(get<I>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 1>(const_expr::forward<Tups>(tups))...);
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, enable_if_t<I + 3 == N, int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&... tups) const {
-                        return m_fun(get<I>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 1>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 2>(const_expr::forward<Tups>(tups))...);
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(const_expr::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, enable_if_t<I + 4 == N, int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&... tups) const {
-                        return m_fun(get<I>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 1>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 2>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 3>(const_expr::forward<Tups>(tups))...);
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 3>(const_expr::forward<Tups>(tups))...);
                     }
 
                     template <size_t I, size_t N, class... Tups, enable_if_t<(I + 4 < N), int> = 0>
                     GT_TARGET GT_FORCE_INLINE constexpr bool impl(Tups &&... tups) const {
-                        return m_fun(get<I>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 1>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 2>(const_expr::forward<Tups>(tups))...) &&
-                               m_fun(get<I + 3>(const_expr::forward<Tups>(tups))...) &&
+                        return m_fun(GT_TARGET_NAMESPACE_NAME::get<I>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 1>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 2>(const_expr::forward<Tups>(tups))...) &&
+                               m_fun(GT_TARGET_NAMESPACE_NAME::get<I + 3>(const_expr::forward<Tups>(tups))...) &&
                                impl<I + 4, N>(const_expr::forward<Tups>(tups)...);
                     }
 
@@ -750,7 +764,7 @@ namespace gridtools {
                     using type = implicit_convert_to_f;
                     template <class Tup>
                     GT_TARGET GT_FORCE_INLINE constexpr To operator()(Tup &&tup) const {
-                        return get<Index::value>(tup);
+                        return GT_TARGET_NAMESPACE_NAME::get<Index::value>(tup);
                     }
                 };
 

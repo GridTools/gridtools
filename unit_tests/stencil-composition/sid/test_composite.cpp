@@ -72,7 +72,7 @@ namespace gridtools {
             T *m_origin;
             ptrdiff_t m_size;
 
-            bool operator()(T *ptr) const {
+            GT_FUNCTION bool operator()(T *ptr) const {
                 ptrdiff_t diff = ptr - m_origin;
                 return diff >= 0 && diff < m_size;
             }
@@ -164,12 +164,12 @@ namespace gridtools {
             EXPECT_EQ(&four[3][2][1], get<3>(ptr));
 
             ptr_diff = {};
-            sid::shift(ptr_diff, get<0>(strides), 2);
-            sid::shift(ptr_diff, get<1>(strides), 3);
+            sid::shift(ptr_diff, get<0>(strides), 3);
+            sid::shift(ptr_diff, get<1>(strides), 2);
             sid::shift(ptr_diff, get<2>(strides), 1);
             ptr = sid::get_origin(testee) + ptr_diff;
-            EXPECT_EQ(&three[1][3][2], get<2>(ptr));
-            EXPECT_EQ(&four[1][3][2], get<3>(ptr));
+            EXPECT_EQ(&three[1][2][3], get<2>(ptr));
+            EXPECT_EQ(&four[1][2][3], get<3>(ptr));
 
             auto validator = sid::get_bounds_validator(testee);
 
