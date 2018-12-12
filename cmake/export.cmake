@@ -32,12 +32,12 @@ if (COMPONENT_GCL)
       INCLUDES DESTINATION include
     )
     export(TARGETS GridTools GridToolsGCL
-        FILE ${PROJECT_BINARY_DIR}/lib/cmake/GridToolsTargets.cmake
+        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE gridtools::
     )
 else()
     export(TARGETS GridTools
-        FILE ${PROJECT_BINARY_DIR}/lib/cmake/GridToolsTargets.cmake
+        FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
         NAMESPACE gridtools::
     )
 endif()
