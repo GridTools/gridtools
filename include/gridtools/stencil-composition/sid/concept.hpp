@@ -254,7 +254,6 @@ namespace gridtools {
 
             DEFINE_HAS_ADL(strides);
             DEFINE_HAS_ADL(bounds_validator);
-            DEFINE_HAS_ADL(ptr_diff);
             DEFINE_HAS_ADL(strides_kind);
             DEFINE_HAS_ADL(bounds_validator_kind);
 
@@ -285,19 +284,14 @@ namespace gridtools {
             // BEGIN `ptr_diff_type`
 
             /**
-             *  `sid_get_ptr_diff` fallback
-             */
-            template <class Sid, class Ptr = ptr_type<Sid>>
-            auto sid_get_ptr_diff(Sid const &sid) -> decltype(std::declval<Ptr>() - std::declval<Ptr>());
-
-            /**
              *  a proxy for sid_get_ptr_diff ADL resolution
              */
-            template <class Sid, enable_if_t<has_adl_ptr_diff<Sid>::value, int> = 0>
-            auto get_ptr_diff(Sid const &sid) -> decltype(sid_get_ptr_diff(sid));
+            template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
+            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_ptr_diff(Sid const &sid);
 
-            template <class Sid, enable_if_t<!has_adl_ptr_diff<Sid>::value, int> = 0>
-            default_ptr_diff<ptr_type<Sid>> get_ptr_diff(Sid const &);
+            template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
+            enable_if_t<std::is_same<Res, not_provided>::value, default_ptr_diff<ptr_type<Sid>>> get_ptr_diff(
+                Sid const &);
 
             /**
              *  `PtrDiff` type is deduced from `get_ptr_diff`
