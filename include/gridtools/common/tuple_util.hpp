@@ -268,15 +268,23 @@ namespace gridtools {
             template <class T>
             decltype(tuple_from_types(std::declval<T>())) get_from_types(T);
 
-            template <class T>
-            GT_META_DEFINE_ALIAS(
-                getter, meta::id, decltype(::gridtools::tuple_util::traits::get_getter(std::declval<T>())));
-            template <class T>
-            GT_META_DEFINE_ALIAS(
-                to_types, meta::id, decltype(::gridtools::tuple_util::traits::get_to_types(std::declval<T>())));
-            template <class T>
-            GT_META_DEFINE_ALIAS(
-                from_types, meta::id, decltype(::gridtools::tuple_util::traits::get_from_types(std::declval<T>())));
+#if GT_BROKEN_TEMPLATE_ALIASES
+#define GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(name)                                                          \
+    template <class, class = void>                                                                     \
+    struct name;                                                                                       \
+    template <class T>                                                                                 \
+    struct name<T, void_t<decltype(::gridtools::tuple_util::traits::get_##name(std::declval<T>()))>> { \
+        using type = decltype(::gridtools::tuple_util::traits::get_##name(std::declval<T>()));         \
+    }
+#else
+#define GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(name) \
+    template <class T>                        \
+    using name = decltype(::gridtools::tuple_util::traits::get_##name(std::declval<T>()))
+#endif
+            GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(getter);
+            GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(to_types);
+            GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS(from_types);
+#undef GT_TUPLE_UTIL_DEFINE_SAFE_ALIAS
         } // namespace traits
         /// @endcond
 
