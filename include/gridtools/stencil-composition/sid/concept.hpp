@@ -247,17 +247,6 @@ namespace gridtools {
             not_provided sid_get_strides_kind(...);
             not_provided sid_get_bounds_validator_kind(...);
 
-#define DEFINE_HAS_ADL(property) \
-    template <class T>           \
-    using has_adl_##property =   \
-        negation<std::is_same<decltype(sid_get_##property(std::declval<T const &>())), not_provided>>
-
-            DEFINE_HAS_ADL(strides);
-            DEFINE_HAS_ADL(strides_kind);
-            DEFINE_HAS_ADL(bounds_validator_kind);
-
-#undef DEFINE_HAS_ADL
-
             // BEGIN `get_origin` PART
 
             /**
@@ -286,7 +275,7 @@ namespace gridtools {
              *  a proxy for sid_get_ptr_diff ADL resolution
              */
             template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
-            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_ptr_diff(Sid const &sid);
+            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_ptr_diff(Sid const &);
 
             template <class Sid, class Res = decltype(sid_get_ptr_diff(std::declval<Sid const &>()))>
             enable_if_t<std::is_same<Res, not_provided>::value, default_ptr_diff<ptr_type<Sid>>> get_ptr_diff(
@@ -305,11 +294,15 @@ namespace gridtools {
             /**
              *  `get_strides` delegates to `sid_get_strides`
              */
-            template <class Sid, enable_if_t<has_adl_strides<Sid>::value, int> = 0>
-            constexpr GT_FUNCTION auto get_strides(Sid const &obj) GT_AUTO_RETURN(sid_get_strides(obj));
+            template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
+            constexpr GT_FUNCTION enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides(
+                Sid const &obj) {
+                return sid_get_strides(obj);
+            }
 
-            template <class Sid, enable_if_t<!has_adl_strides<Sid>::value, int> = 0>
-            constexpr GT_FUNCTION default_strides get_strides(Sid const &obj) {
+            template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
+            constexpr GT_FUNCTION enable_if_t<std::is_same<Res, not_provided>::value, default_strides> get_strides(
+                Sid const &obj) {
                 return {};
             }
             /**
@@ -322,12 +315,12 @@ namespace gridtools {
 
             // BEGIN `strides_kind` PART
 
-            template <class Sid, enable_if_t<!has_adl_strides_kind<Sid>::value, int> = 0>
-            GT_META_CALL(default_kind, strides_type<Sid>)
-            get_strides_kind(Sid const &);
+            template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
+            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides_kind(Sid const &);
 
-            template <class Sid, enable_if_t<has_adl_strides_kind<Sid>::value, int> = 0>
-            auto get_strides_kind(Sid const &sid) -> decltype(sid_get_strides_kind(sid));
+            template <class Sid, class Res = decltype(sid_get_strides_kind(std::declval<Sid const &>()))>
+            enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_kind, strides_type<Sid>)>
+            get_strides_kind(Sid const &);
 
             /**
              *  `strides_kind` is deduced from `get_strides_kind`
@@ -347,6 +340,7 @@ namespace gridtools {
                 Sid const &obj) {
                 return sid_get_bounds_validator(obj);
             }
+
             template <class Sid, class Res = decltype(sid_get_bounds_validator(std::declval<Sid const &>()))>
             constexpr GT_FUNCTION enable_if_t<std::is_same<Res, not_provided>::value, default_bounds_validator>
             get_bounds_validator(Sid const &obj) {
@@ -364,11 +358,11 @@ namespace gridtools {
 
             // BEGIN `bounds_validator_kind` PART
 
-            template <class Sid, enable_if_t<has_adl_bounds_validator_kind<Sid>::value, int> = 0>
-            auto get_bounds_validator_kind(Sid const &obj) -> decltype(sid_get_bounds_validator_kind(obj));
+            template <class Sid, class Res = decltype(sid_get_bounds_validator_kind(std::declval<Sid const &>()))>
+            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_bounds_validator_kind(Sid const &);
 
-            template <class Sid, enable_if_t<!has_adl_bounds_validator_kind<Sid>::value, int> = 0>
-            GT_META_CALL(default_kind, bounds_validator_type<Sid>)
+            template <class Sid, class Res = decltype(sid_get_bounds_validator_kind(std::declval<Sid const &>()))>
+            enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_kind, bounds_validator_type<Sid>)>
             get_bounds_validator_kind(Sid const &obj);
 
             /**
