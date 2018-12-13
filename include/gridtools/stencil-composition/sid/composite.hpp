@@ -90,10 +90,17 @@ namespace gridtools {
                 meta::first,
                 (GT_META_CALL(meta::lfold, (make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds))));
 
-            template <class T>
-            GT_FUNCTION auto maybe_equal(T const &lhs, T const &rhs) GT_AUTO_RETURN(lhs == rhs);
+            struct low_rank {};
 
-            GT_FUNCTION bool maybe_equal(...) { return true; }
+            struct high_rank : low_rank {};
+
+            template <class T>
+            GT_FUNCTION auto maybe_equal(T const &lhs, T const &rhs, high_rank) GT_AUTO_RETURN(lhs == rhs);
+
+            template <class T>
+            GT_FUNCTION bool maybe_equal(T const &lhs, T const &rhs, low_rank) {
+                return true;
+            }
 
             template <class Primary, class Tup>
             GT_FUNCTION bool are_secondaries_equal_to_primary(Primary const &, Tup const &) {
@@ -103,7 +110,7 @@ namespace gridtools {
             template <class Secondary, class... Secondaries, class Primary, class Tup>
             GT_FUNCTION bool are_secondaries_equal_to_primary(Primary const &primary, Tup const &tup) {
                 return are_secondaries_equal_to_primary<Secondaries...>(primary, tup) &&
-                       maybe_equal(tuple_util::host_device::get<Secondary::value>(tup), primary);
+                       maybe_equal(tuple_util::host_device::get<Secondary::value>(tup), primary, high_rank{});
             }
 
             template <class>
