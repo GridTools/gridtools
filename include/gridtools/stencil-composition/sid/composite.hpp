@@ -48,7 +48,7 @@
 
 namespace gridtools {
     namespace sid {
-        namespace impl_ {
+        namespace composite_impl_ {
             struct deref_f {
                 template <class T>
                 constexpr GT_FUNCTION auto operator()(T const &obj) const GT_AUTO_RETURN(*obj);
@@ -252,7 +252,7 @@ namespace gridtools {
                     return {get_stride<Is::value>(get_strides(sid))...};
                 }
             };
-        } // namespace impl_
+        } // namespace composite_impl_
 
         /**
          *  This class models both `SID` and `tuple_like` concepts at the same time
@@ -280,33 +280,36 @@ namespace gridtools {
             using strides_kinds_t = meta::list<GT_META_CALL(strides_kind, Sids)...>;
             using bounds_validator_kinds_t = meta::list<GT_META_CALL(bounds_validator_kind, Sids)...>;
 
-            using strides_map_t = GT_META_CALL(impl_::make_index_map, strides_kinds_t);
-            using bounds_validator_map_t = GT_META_CALL(impl_::make_index_map, bounds_validator_kinds_t);
+            using strides_map_t = GT_META_CALL(composite_impl_::make_index_map, strides_kinds_t);
+            using bounds_validator_map_t = GT_META_CALL(composite_impl_::make_index_map, bounds_validator_kinds_t);
 
             using stride_indices_t = GT_META_CALL(meta::make_indices_c,
-                (impl_::max({tuple_util::size<GT_META_CALL(strides_type, Sids)>::value...}), tuple));
+                (composite_impl_::max({tuple_util::size<GT_META_CALL(strides_type, Sids)>::value...}), tuple));
 
             template <class I>
             GT_META_DEFINE_ALIAS(get_stride_type,
                 meta::id,
-                (typename impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
-                        impl_::normalized_stride_type, (I, GT_META_CALL(strides_type, Sids)))...>));
+                (typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
+                        composite_impl_::normalized_stride_type, (I, GT_META_CALL(strides_type, Sids)))...>));
 
-            using ptr_t = impl_::composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
+            using ptr_t = composite_impl_::composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
             using strides_t = GT_META_CALL(meta::transform, (get_stride_type, stride_indices_t));
 
             using bounds_validator_t =
-                typename impl_::compressed<bounds_validator_map_t>::template composite<bounds_validator_type<Sids>...>;
-            using ptr_diff_t = typename impl_::compressed<strides_map_t>::template composite<ptr_diff_type<Sids>...>;
+                typename composite_impl_::compressed<bounds_validator_map_t>::template composite<GT_META_CALL(
+                    bounds_validator_type, Sids)...>;
+            using ptr_diff_t = typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
+                ptr_diff_type, Sids)...>;
 
             friend constexpr GT_FUNCTION ptr_t sid_get_origin(composite &obj) {
                 return tuple_util::host_device::transform(get_origin_f{}, obj.m_sids);
             }
 
             friend constexpr GT_FUNCTION strides_t sid_get_strides(composite const &obj) {
-                return tuple_util::host_device::transform(typename impl_::compressed<strides_map_t>::convert_f{},
+                return tuple_util::host_device::transform(
+                    typename composite_impl_::compressed<strides_map_t>::convert_f{},
                     tuple_util::host_device::transpose(tuple_util::host_device::transform(
-                        impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
+                        composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
             }
 
             friend constexpr GT_FUNCTION bounds_validator_t sid_get_bounds_validator(composite const &obj) {

@@ -42,7 +42,7 @@
 
 namespace gridtools {
     namespace sid {
-        namespace impl_ {
+        namespace clone_impl_ {
             template <class Ptr,
                 class Strides,
                 class BoundsValidator,
@@ -80,10 +80,10 @@ namespace gridtools {
                 class BoundsValidatorKind>
             BoundsValidatorKind sid_get_bounds_validator_kind(
                 cloned<Ptr, Strides, BoundsValidator, PtrDiff, StridesKind, BoundsValidatorKind> const &);
-        } // namespace impl_
+        } // namespace clone_impl_
 
         template <class Sid,
-            class Res = impl_::cloned<GT_META_CALL(ptr_type, Sid),
+            class Res = clone_impl_::cloned<GT_META_CALL(ptr_type, Sid),
                 GT_META_CALL(strides_type, Sid),
                 GT_META_CALL(bounds_validator_type, Sid),
                 GT_META_CALL(ptr_diff_type, Sid),

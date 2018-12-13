@@ -44,7 +44,7 @@ namespace gridtools {
 
         enum class property { origin, strides, bounds_validator, ptr_diff, strides_kind, bounds_validator_kind };
 
-        namespace impl_ {
+        namespace synthetic_impl_ {
             template <property Property, class T>
             struct mixin;
 
@@ -136,7 +136,7 @@ namespace gridtools {
                     return {const_expr::forward<T>(val), const_expr::move(*this)};
                 }
             };
-        } // namespace impl_
+        } // namespace synthetic_impl_
 
         /**
          *  A tiny EDSL for creating SIDs from the parts described in the concept.
@@ -156,6 +156,6 @@ namespace gridtools {
          *  Duplicated property `set`'s cause compiler error.
          *  Works both in run time and in compile time.
          */
-        constexpr GT_FUNCTION impl_::synthetic<> synthetic() { return {}; }
+        constexpr GT_FUNCTION synthetic_impl_::synthetic<> synthetic() { return {}; }
     } // namespace sid
 } // namespace gridtools

@@ -155,7 +155,7 @@
 
 namespace gridtools {
     namespace sid {
-        namespace impl_ {
+        namespace concept_impl_ {
 
             /**
              *   get_static_const_value<T>::value acts as T::value
@@ -216,7 +216,7 @@ namespace gridtools {
             auto sid_get_default_ptr_diff(Ptr const &ptr) -> decltype(ptr - ptr);
 
             template <class Ptr>
-            using default_ptr_diff = decltype(::gridtools::sid::impl_::sid_get_default_ptr_diff(
+            using default_ptr_diff = decltype(::gridtools::sid::concept_impl_::sid_get_default_ptr_diff(
                 std::declval<add_lvalue_reference_t<add_const_t<Ptr>>>()));
 
             template <class T, class = void>
@@ -259,7 +259,7 @@ namespace gridtools {
              *  `Ptr` type is deduced from `get_origin`
              */
             template <class Sid>
-            using ptr_type = decltype(::gridtools::sid::impl_::get_origin(std::declval<Sid &>()));
+            using ptr_type = decltype(::gridtools::sid::concept_impl_::get_origin(std::declval<Sid &>()));
 
             /**
              *  `Reference` type is deduced from `Ptr` type
@@ -285,7 +285,7 @@ namespace gridtools {
              *  `PtrDiff` type is deduced from `get_ptr_diff`
              */
             template <class Sid>
-            using ptr_diff_type = decltype(::gridtools::sid::impl_::get_ptr_diff(std::declval<Sid const &>()));
+            using ptr_diff_type = decltype(::gridtools::sid::concept_impl_::get_ptr_diff(std::declval<Sid const &>()));
 
             // END `ptr_diff_type`
 
@@ -309,7 +309,7 @@ namespace gridtools {
              *  `Strides` type is deduced from `get_strides`
              */
             template <class Sid>
-            using strides_type = decltype(::gridtools::sid::impl_::get_strides(std::declval<Sid const &>()));
+            using strides_type = decltype(::gridtools::sid::concept_impl_::get_strides(std::declval<Sid const &>()));
 
             // END `get_strides` PART
 
@@ -326,7 +326,8 @@ namespace gridtools {
              *  `strides_kind` is deduced from `get_strides_kind`
              */
             template <class Sid>
-            using strides_kind = decltype(::gridtools::sid::impl_::get_strides_kind(std::declval<Sid const &>()));
+            using strides_kind =
+                decltype(::gridtools::sid::concept_impl_::get_strides_kind(std::declval<Sid const &>()));
 
             // END `strides_kind` PART
 
@@ -352,7 +353,7 @@ namespace gridtools {
              */
             template <class Sid>
             using bounds_validator_type =
-                decltype(::gridtools::sid::impl_::get_bounds_validator(std::declval<Sid const &>()));
+                decltype(::gridtools::sid::concept_impl_::get_bounds_validator(std::declval<Sid const &>()));
 
             // END `bounds_validator` PART
 
@@ -370,7 +371,7 @@ namespace gridtools {
              */
             template <class Sid>
             using bounds_validator_kind =
-                decltype(::gridtools::sid::impl_::get_bounds_validator_kind(std::declval<Sid const &>()));
+                decltype(::gridtools::sid::concept_impl_::get_bounds_validator_kind(std::declval<Sid const &>()));
 
             // END `bounds_validator_kind` PART
 
@@ -404,7 +405,7 @@ namespace gridtools {
             template <class T, class Stride>
             struct is_default_shiftable<T,
                 Stride,
-                void_t<decltype(::gridtools::sid::impl_::default_shift(
+                void_t<decltype(::gridtools::sid::concept_impl_::default_shift(
                     std::declval<T &>(), std::declval<Stride const &>()))>> : std::true_type {};
 
             template <class T>
@@ -416,7 +417,7 @@ namespace gridtools {
             template <class T, class = void>
             struct has_inc : std::false_type {};
             template <class T>
-            struct has_inc<T, void_t<decltype(::gridtools::sid::impl_::inc_operator(std::declval<T &>()))>>
+            struct has_inc<T, void_t<decltype(::gridtools::sid::concept_impl_::inc_operator(std::declval<T &>()))>>
                 : std::true_type {};
 
             template <class T>
@@ -428,7 +429,7 @@ namespace gridtools {
             template <class T, class = void>
             struct has_dec : std::false_type {};
             template <class T>
-            struct has_dec<T, void_t<decltype(::gridtools::sid::impl_::dec_operator(std::declval<T &>()))>>
+            struct has_dec<T, void_t<decltype(::gridtools::sid::concept_impl_::dec_operator(std::declval<T &>()))>>
                 : std::true_type {};
 
             template <class T, class Arg>
@@ -442,7 +443,7 @@ namespace gridtools {
             template <class T, class Arg>
             struct has_dec_assignment<T,
                 Arg,
-                void_t<decltype(::gridtools::sid::impl_::dec_assignment_operator(
+                void_t<decltype(::gridtools::sid::concept_impl_::dec_assignment_operator(
                     std::declval<T &>(), std::declval<Arg const &>()))>> : std::true_type {};
 
             /**
@@ -570,7 +571,7 @@ namespace gridtools {
                 struct apply : std::false_type {};
                 template <class Stride>
                 struct apply<Stride,
-                    void_t<decltype(::gridtools::sid::impl_::shift(
+                    void_t<decltype(::gridtools::sid::concept_impl_::shift(
                         std::declval<T &>(), std::declval<Stride &>(), int_t{}))>> : std::true_type {};
             };
 
@@ -616,16 +617,16 @@ namespace gridtools {
                     std::is_constructible<bool,
                         decltype(std::declval<BoundsValidatorType const &>()(std::declval<Ptr const &>()))>));
 
-        } // namespace impl_
+        } // namespace concept_impl_
 
         // Meta functions
 
 #if GT_BROKEN_TEMPLATE_ALIASES
 #define SID_DELEGATE_FROM_IMPL(name) \
     template <class Sid>             \
-    struct name : meta::id<impl_::name<Sid>> {}
+    struct name : meta::id<concept_impl_::name<Sid>> {}
 #else
-#define SID_DELEGATE_FROM_IMPL(name) using impl_::name
+#define SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
 #endif
 
         SID_DELEGATE_FROM_IMPL(ptr_type);
@@ -641,15 +642,15 @@ namespace gridtools {
 #undef SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
-        using impl_::get_bounds_validator;
-        using impl_::get_origin;
-        using impl_::get_strides;
-        using impl_::shift;
+        using concept_impl_::get_bounds_validator;
+        using concept_impl_::get_origin;
+        using concept_impl_::get_strides;
+        using concept_impl_::shift;
 
         // Default behaviour
-        using impl_::default_bounds_validator;
-        using impl_::default_kind;
-        using impl_::default_strides;
+        using concept_impl_::default_bounds_validator;
+        using concept_impl_::default_kind;
+        using concept_impl_::default_strides;
         using default_stride = integral_constant<int_t, 0>;
 
         /**
@@ -658,7 +659,7 @@ namespace gridtools {
         template <class T, class = void>
         struct is_sid : std::false_type {};
         template <class T>
-        struct is_sid<T, enable_if_t<impl_::is_sid<T>::value>> : std::true_type {};
+        struct is_sid<T, enable_if_t<concept_impl_::is_sid<T>::value>> : std::true_type {};
 
         // Auxiliary API
 
