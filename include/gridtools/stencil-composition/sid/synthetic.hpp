@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
