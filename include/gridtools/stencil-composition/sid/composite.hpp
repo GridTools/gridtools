@@ -37,7 +37,6 @@
 
 #include "../../common/binops.hpp"
 #include "../../common/defs.hpp"
-#include "../../common/functional.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
 #include "../../common/host_device.hpp"
