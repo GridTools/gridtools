@@ -231,10 +231,11 @@ namespace gridtools {
                 return cur == last ? acc : max_impl(*cur > acc ? *cur : acc, cur + 1, last);
             }
 
-            template <size_t N>
-            constexpr size_t max(size_t const (&vals)[N]) {
-                return max_impl(0, vals, vals + N);
-            }
+            template <size_t... Vals>
+            struct max {
+                static constexpr size_t values[] = {Vals...};
+                static constexpr size_t value = max_impl(0, values, values + sizeof...(Vals));
+            };
 
             template <class I, class Strides>
 #if GT_BROKEN_TEMPLATE_ALIASES
@@ -291,7 +292,7 @@ namespace gridtools {
             using bounds_validator_map_t = GT_META_CALL(composite_impl_::make_index_map, bounds_validator_kinds_t);
 
             using stride_indices_t = GT_META_CALL(meta::make_indices_c,
-                (composite_impl_::max({tuple_util::size<GT_META_CALL(strides_type, Sids)>::value...}), tuple));
+                (composite_impl_::max<tuple_util::size<GT_META_CALL(strides_type, Sids)>::value...>::value, tuple));
 
             template <class I>
             GT_META_DEFINE_ALIAS(get_stride_type,
