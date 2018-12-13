@@ -94,23 +94,37 @@ namespace gridtools {
 
             struct high_rank : low_rank {};
 
+            /**
+             *  `maybe_equal(lhs, rhs, high_rank{})` is a functional equivalent of the following pseudo code:
+             *   `<no_equal_operator_exists> || lhs == rhs;
+             *
+             *   It is implemented as following:
+             *   - the first overload can be chosen only if `lhs == rhs` defined [SFINAE: `decltype(lhs == rhs)` is a
+             *     part of the signature]
+             *   - the second overload can be chosen only if the first failed. [because matching `high_rank` (actual
+             *     argument type) against `low_rank` (parameter type) is worse than matching `high_rank` against
+             *     `high_rank`]
+             */
             template <class T>
-            GT_FUNCTION auto maybe_equal(T const &lhs, T const &rhs, high_rank) GT_AUTO_RETURN(lhs == rhs);
+            GT_FUNCTION auto maybe_equal(T const &lhs, T const &rhs, high_rank) -> decltype(lhs == rhs) {
+                return lhs == rhs;
+            }
 
             template <class T>
             GT_FUNCTION bool maybe_equal(T const &lhs, T const &rhs, low_rank) {
                 return true;
             }
 
-            template <class Primary, class Tup>
-            GT_FUNCTION bool are_secondaries_equal_to_primary(Primary const &, Tup const &) {
+            template <class PrimaryValue, class Tup>
+            GT_FUNCTION bool are_secondaries_equal_to_primary(PrimaryValue const &, Tup const &) {
                 return true;
             }
 
-            template <class Secondary, class... Secondaries, class Primary, class Tup>
-            GT_FUNCTION bool are_secondaries_equal_to_primary(Primary const &primary, Tup const &tup) {
-                return are_secondaries_equal_to_primary<Secondaries...>(primary, tup) &&
-                       maybe_equal(tuple_util::host_device::get<Secondary::value>(tup), primary, high_rank{});
+            template <class SecondaryIndex, class... SecondaryIndices, class PrimaryValue, class Tup>
+            GT_FUNCTION bool are_secondaries_equal_to_primary(PrimaryValue const &primary_value, Tup const &tup) {
+                return are_secondaries_equal_to_primary<SecondaryIndices...>(primary_value, tup) &&
+                       maybe_equal(
+                           tuple_util::host_device::get<SecondaryIndex::value>(tup), primary_value, high_rank{});
             }
 
             template <class>
@@ -155,9 +169,32 @@ namespace gridtools {
                     shift_t<ObjTup, StrideTup, Offset>{obj_tup, stride_tup, offset});
             }
 
+            /**
+             *  Implements strides, ptr_diffs and bounds_validators compression based on skipping the objects of the
+             *  same kind.
+             *
+             *  `composite` objects pretend to be a tuples of `uncompressed` types (aka external tuple), but internally
+             *  they store a tuple of `compressed` types (aka internal tuple).
+             *
+             *  @tparam Map - compile time map from the index in external tuple to the index of internal tuple.
+             *                `compile time map` here is a tuple of tuples: `tuple<tuple<Key, Value>...>`
+             */
             template <class Map>
             struct compressed {
+                /**
+                 *  Inverse map is like that: tuple<tuple<Value, Keys...>...>, where values and keys are taken
+                 *  from the source.
+                 *
+                 *  In the concrete case of the map of indices it would be:
+                 *  tuple<tuple<CompressedIndex, UncompressedIndices...>>
+                 *
+                 *  Note that it could be several UncompressedIndices per one CompressedIndex
+                 *
+                 */
                 using inversed_map_t = GT_META_CALL(meta::mp_inverse, Map);
+                /**
+                 *  A tuple of the first of UncompressedIndices per each CompressedIndex
+                 */
                 using primary_indices_t = GT_META_CALL(meta::transform, (meta::second, inversed_map_t));
 
                 using generators_t = GT_META_CALL(meta::transform, (item_generator, inversed_map_t));
@@ -285,29 +322,42 @@ namespace gridtools {
 
             tuple<Sids...> m_sids;
 
+            // Extracted lists of raw kinds (uncompresed)
             using strides_kinds_t = meta::list<GT_META_CALL(strides_kind, Sids)...>;
             using bounds_validator_kinds_t = meta::list<GT_META_CALL(bounds_validator_kind, Sids)...>;
 
+            // The index maps that is needed to build `compressed<Map>::composite` objects
             using strides_map_t = GT_META_CALL(composite_impl_::make_index_map, strides_kinds_t);
             using bounds_validator_map_t = GT_META_CALL(composite_impl_::make_index_map, bounds_validator_kinds_t);
 
+            // A helper for generating strides_t
+            // It is a tuple containing indices of the strides to generate
             using stride_indices_t = GT_META_CALL(meta::make_indices_c,
                 (composite_impl_::max<tuple_util::size<GT_META_CALL(strides_type, Sids)>::value...>::value, tuple));
 
+            // A helper for generating strides_t
+            // It is a metafuntion from the stride index to the stride type
             template <class I>
             GT_META_DEFINE_ALIAS(get_stride_type,
                 meta::id,
                 (typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
-                        composite_impl_::normalized_stride_type, (I, GT_META_CALL(strides_type, Sids)))...>));
+                        composite_impl_::normalized_stride_type,
+                        (I, decay_t < GT_META_CALL(strides_type, Sids)) >)...>));
 
+            // all `SID` types are here
             using ptr_t = composite_impl_::composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
+
             using strides_t = GT_META_CALL(meta::transform, (get_stride_type, stride_indices_t));
 
             using bounds_validator_t =
                 typename composite_impl_::compressed<bounds_validator_map_t>::template composite<GT_META_CALL(
                     bounds_validator_type, Sids)...>;
+
             using ptr_diff_t = typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
                 ptr_diff_type, Sids)...>;
+
+          public:
+            // Here the `SID` concept is modeled
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
             // Shame on you CUDA 8!!!
@@ -336,14 +386,17 @@ namespace gridtools {
 #undef GT_SID_COMPOSIT_CONSTEXPR
 
             friend ptr_diff_t sid_get_ptr_diff(composite const &) { return {}; }
+
             friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(composite const &) { return {}; }
+
             friend GT_META_CALL(meta::dedup, bounds_validator_kinds_t)
                 sid_get_bounds_validator_kind(composite const &) {
                 return {};
             }
-            GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite, m_sids);
 
-          public:
+            // Here the `tule_like` concept is modeled
+
+            GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite, m_sids);
             GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite, m_sids);
         };
     } // namespace sid

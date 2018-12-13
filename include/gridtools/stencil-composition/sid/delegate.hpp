@@ -43,6 +43,13 @@
 
 namespace gridtools {
     namespace sid {
+        /**
+         *  A helper class for implementing delegate design pattern for `SID`s
+         *  Typically the user template class should inherit from `delegate`
+         *  For example please look into `test_sid_delegate.cpp`
+         *
+         * @tparam Sid a object that models `SID` concept.
+         */
         template <class Sid>
         class delegate {
             Sid m_impl;

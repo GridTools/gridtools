@@ -82,6 +82,18 @@ namespace gridtools {
                 cloned<Ptr, Strides, BoundsValidator, PtrDiff, StridesKind, BoundsValidatorKind> const &);
         } // namespace clone_impl_
 
+        /**
+         *  Create an object that models `SID` concept and create another object that also models a `SID`.
+         *
+         *  The created object is implemnted as triple of `origin`, `strides` and `bounds_validator` from the source.
+         *  The remarkable feature of it, that it is trivially copyable. This allows to send it through the
+         * `host`/`device` boundaries.
+         *
+         *  Be aware that the cloned object doesn't explicitly copy its source. I.e. the validity of the pointers is
+         *  guarantied only during the life time of the source.
+         *
+         *  @param src - An object to be cloned. Must model the `SID` concept.
+         */
         template <class Sid,
             class Res = clone_impl_::cloned<GT_META_CALL(ptr_type, Sid),
                 GT_META_CALL(strides_type, Sid),
