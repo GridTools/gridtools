@@ -36,42 +36,35 @@
 
 #pragma once
 
-#include "../../common/host_device.hpp"
-
 #ifdef _USE_GPU_
-/* device_binding added by Devendar Bureddy, OSU */
-inline void device_binding() {
 
-    int local_rank = 0 /*, num_local_procs*/;
-    int dev_count, use_dev_count, my_dev_id;
-    char *str;
+#include <cstdlib>
 
-    printf("HOME %s\n", getenv("HOME"));
+#include <cuda_runtime.h>
 
-    if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK")) != NULL) {
-        local_rank = atoi(str);
-        printf("MV2_COMM_WORLD_LOCAL_RANK %s\n", str);
-    } else if ((str = getenv("SLURM_LOCALID")) != NULL) {
-        local_rank = atoi(str);
-        printf("SLURM_LOCALID %s\n", str);
+#include "../../common/cuda_util.hpp"
+
+namespace _impl {
+    inline int get_local_rank() {
+        for (auto var : {"MV2_COMM_WORLD_LOCAL_RANK", "SLURM_LOCALID"})
+            if (auto *str = std::getenv(var))
+                return std::atoi(str);
+        return 0;
     }
 
-    if ((str = getenv("MPISPAWN_LOCAL_NPROCS")) != NULL) {
-        // num_local_procs = atoi (str);
-        printf("MPISPAWN_LOCAL_NPROCS %s\n", str);
+    inline int dev_device_count() {
+        if (auto *str = std::getenv("NUM_GPU_DEVICES"))
+            return std::atoi(str);
+        int res;
+        GT_CUDA_CHECK(cudaGetDeviceCount(&res));
+        return res;
     }
+} // namespace _impl
 
-    cudaGetDeviceCount(&dev_count);
-    if ((str = getenv("NUM_GPU_DEVICES")) != NULL) {
-        use_dev_count = atoi(str);
-        printf("NUM_GPU_DEVICES %s\n", str);
-    } else {
-        use_dev_count = dev_count;
-        printf("NUM_GPU_DEVICES %d\n", use_dev_count);
-    }
+inline void device_binding() { GT_CUDA_CHECK(cudaSetDevice(_impl::get_local_rank() % _impl::dev_device_count())); }
 
-    my_dev_id = local_rank % use_dev_count;
-    printf("local rank = %d dev id = %d\n", local_rank, my_dev_id);
-    cudaSetDevice(my_dev_id);
-}
+#else
+
+inline void device_binding() {}
+
 #endif

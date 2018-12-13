@@ -33,44 +33,47 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "stencil_on_neighcell_of_edges.hpp"
-#include "../Options.hpp"
-#include "gtest/gtest.h"
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/common/binops.hpp>
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+#include "neighbours_of.hpp"
+
+using namespace gridtools;
+
+template <uint_t>
+struct test_on_cells_functor {
+    using in = in_accessor<0, enumtype::cells, extent<1, -1, 1, -1>>;
+    using out = inout_accessor<1, enumtype::edges>;
+    using arg_list = boost::mpl::vector<in, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out{}) = eval(on_cells(binop::sum{}, float_type{}, in{}));
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using stencil_on_neighcell_of_edges = regression_fixture<1>;
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-TEST(StencilOnEdges, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(soncoe::test(x, y, z, t, verify));
+TEST_F(stencil_on_neighcell_of_edges, test) {
+    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
+    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
+        float_type res = {};
+        for (auto &&item : neighbours_of<edges, cells>(i, c, j, k))
+            res += item.call(in);
+        return res;
+    };
+    arg<0, cells> p_in;
+    arg<1, edges> p_out;
+    auto out = make_storage<edges>();
+    auto comp = make_computation(p_in = make_storage<cells>(in),
+        p_out = out,
+        make_multistage(
+            enumtype::execute<enumtype::forward>(), make_stage<test_on_cells_functor, topology_t, edges>(p_in, p_out)));
+    comp.run();
+    verify(make_storage<edges>(ref), out);
+    benchmark(comp);
 }

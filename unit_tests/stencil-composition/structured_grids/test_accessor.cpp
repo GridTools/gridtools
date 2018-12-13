@@ -138,7 +138,6 @@ TEST(accessor, alternative2) {
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
     constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
-
     GRIDTOOLS_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
 
     EXPECT_EQ(-5, get<0>(first));

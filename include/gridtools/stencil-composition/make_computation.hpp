@@ -115,10 +115,6 @@ namespace gridtools {
 
 #ifndef NDEBUG
 #define POSITIONAL_WHEN_DEBUGGING true
-#ifndef SUPPRESS_MESSAGES
-#pragma message( \
-    ">>\n>> In debug mode each computation is positional,\n>> so the loop indices can be queried from within\n>> the operator functions")
-#endif
 #else
 #define POSITIONAL_WHEN_DEBUGGING false
 #endif

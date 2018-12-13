@@ -38,7 +38,7 @@
 #include "../../common/defs.hpp"
 #include "../backend_ids.hpp"
 
-#include "./backend_mic/tmp_storage.hpp"
+#include "./backend_mc/tmp_storage.hpp"
 
 namespace gridtools {
     namespace tmp_storage {

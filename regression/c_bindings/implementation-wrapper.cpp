@@ -41,10 +41,8 @@
 #include <boost/mpl/vector.hpp>
 
 #include <gridtools/c_bindings/export.hpp>
-
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-
-#include "backend_select.hpp"
+#include <gridtools/tools/backend_select.hpp>
 
 namespace {
 
@@ -85,6 +83,7 @@ namespace gridtools {
         gt_fortran_array_descriptor descriptor;
         descriptor.type = c_bindings::fortran_array_element_kind<typename T::data_t>::value;
         descriptor.rank = 3;
+        descriptor.is_acc_present = false;
         return descriptor;
     }
 

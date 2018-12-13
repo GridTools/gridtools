@@ -33,36 +33,51 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "expandable_parameters_icosahedral.hpp"
-#include "../Options.hpp"
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-int main(int argc, char **argv) {
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+using namespace gridtools;
 
-    if (argc < 4) {
-        printf("Usage: expandable_parameters_icosahedral_<whatever> dimx dimy dimz\n where args are integer sizes of "
-               "the data fields\n");
-        return 1;
+template <uint_t>
+struct functor_copy {
+    using out = inout_accessor<0, enumtype::cells>;
+    using in = in_accessor<1, enumtype::cells>;
+    using arg_list = boost::mpl::vector<out, in>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out{}) = eval(in{});
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using expandable_parameters_icosahedral = regression_fixture<>;
 
-    return RUN_ALL_TESTS();
-}
+TEST_F(expandable_parameters_icosahedral, test) {
+    using storages_t = std::vector<storage_type<cells>>;
+    storages_t in = {make_storage<cells>(10.),
+        make_storage<cells>(20.),
+        make_storage<cells>(30.),
+        make_storage<cells>(40.),
+        make_storage<cells>(50.)};
+    storages_t out = {make_storage<cells>(1.),
+        make_storage<cells>(2.),
+        make_storage<cells>(3.),
+        make_storage<cells>(4.),
+        make_storage<cells>(5.)};
 
-TEST(StencilOnCells, Test) {
-    gridtools::uint_t x = Options::getInstance().m_size[0];
-    gridtools::uint_t y = Options::getInstance().m_size[1];
-    gridtools::uint_t z = Options::getInstance().m_size[2];
-    gridtools::uint_t t = Options::getInstance().m_size[3];
+    arg<0, cells, storages_t> p_out;
+    arg<1, cells, storages_t> p_in;
 
-    if (t == 0)
-        t = 1;
+    gridtools::make_computation<backend_t>(expand_factor<2>(),
+        make_grid(),
+        p_out = out,
+        p_in = in,
+        make_multistage(
+            enumtype::execute<enumtype::forward>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
+        .run();
 
-    ASSERT_TRUE(test_expandable_parameters_icosahedral::test(x, y, z, t));
+    for (size_t i = 0; i != in.size(); ++i)
+        verify(in[i], out[i]);
 }

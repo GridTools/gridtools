@@ -118,13 +118,12 @@ TEST(extended_repo, inherited_functions) {
     ASSERT_EQ(10, repo.u().total_length<0>());
 }
 
-using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::platform::x86>::storage_info_t<2, 3>;
+using IJKWStorageInfo = typename gridtools::storage_traits<gridtools::target::x86>::storage_info_t<2, 3>;
 using IJKWDataStore =
-    typename gridtools::storage_traits<gridtools::platform::x86>::data_store_t<gridtools::float_type, IJKWStorageInfo>;
-using IKStorageInfo = typename gridtools::storage_traits<gridtools::platform::x86>::special_storage_info_t<2,
-    gridtools::selector<1, 0, 1>>;
-using IKDataStore =
-    typename gridtools::storage_traits<gridtools::platform::x86>::data_store_t<gridtools::float_type, IKStorageInfo>;
+    typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<float_type, IJKWStorageInfo>;
+using IKStorageInfo =
+    typename gridtools::storage_traits<gridtools::target::x86>::special_storage_info_t<2, gridtools::selector<1, 0, 1>>;
+using IKDataStore = typename gridtools::storage_traits<gridtools::target::x86>::data_store_t<float_type, IKStorageInfo>;
 
 #define MY_FIELDTYPES \
     (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
@@ -178,10 +177,4 @@ TEST(repository_with_custom_getter_prefix, constructor) {
     ASSERT_EQ(Ni, repo.get_v().total_length<0>());
     ASSERT_EQ(Nj, repo.get_v().total_length<1>());
     ASSERT_EQ(Nk, repo.get_v().total_length<2>());
-}
-
-extern "C" void call_repository(); // implemented in test_repository.f90
-TEST(repository_with_custom_getter_prefix, fortran_bindings) {
-    // the test for this code is in exported_repository.cpp
-    call_repository();
 }

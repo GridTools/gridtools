@@ -33,44 +33,61 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "stencil_on_edges_multiplefields.hpp"
-#include "../Options.hpp"
-#include "gtest/gtest.h"
+/*
+ * This shows an example on how to use on_edges syntax with multiple input fields
+ * (with location type edge) that are needed in the reduction over the edges of a cell
+ * An typical operator that needs this functionality is the divergence where we need
+ * sum_reduce(edges) {sign_edge * lengh_edge}
+ * The sign of the edge indicates whether flows go inward or outward (with respect the center of the cell).
+ */
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+#include "neighbours_of.hpp"
+
+using namespace gridtools;
+
+template <uint_t>
+struct test_on_edges_functor {
+    using in1 = in_accessor<0, enumtype::edges, extent<1, -1, 1, -1>>;
+    using in2 = in_accessor<1, enumtype::edges, extent<1, -1, 1, -1>>;
+    using out = inout_accessor<2, enumtype::edges>;
+    using arg_list = boost::mpl::vector<in1, in2, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        eval(out{}) = eval(
+            on_edges([](float_type in1, float_type in2, float_type res) { return in1 + in2 * float_type{.1} + res; },
+                float_type{},
+                in1{},
+                in2{}));
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using stencil_on_edges_multiplefields = regression_fixture<1>;
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-TEST(StencilOnEdgesMultipleFields, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(soem::test(x, y, z, t, verify));
+TEST_F(stencil_on_edges_multiplefields, test) {
+    auto in1 = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
+    auto in2 = [](int_t i, int_t c, int_t j, int_t k) { return i / 2 + c + j / 2 + k / 2; };
+    auto ref = [=](int_t i, int_t c, int_t j, int_t k) {
+        float_type res{};
+        for (auto &&item : neighbours_of<edges, edges>(i, c, j, k))
+            res += item.call(in1) + .1 * item.call(in2);
+        return res;
+    };
+    arg<0, edges> p_in1;
+    arg<1, edges> p_in2;
+    arg<2, edges> p_out;
+    auto out = make_storage<edges>();
+    auto comp = make_computation(p_in1 = make_storage<edges>(in1),
+        p_in2 = make_storage<edges>(in2),
+        p_out = out,
+        make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage<test_on_edges_functor, topology_t, edges>(p_in1, p_in2, p_out)));
+    comp.run();
+    verify(make_storage<edges>(ref), out);
+    benchmark(comp);
 }

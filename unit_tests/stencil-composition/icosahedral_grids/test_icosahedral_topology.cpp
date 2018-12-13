@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-
-#include "backend_select.hpp"
-#include <gridtools/common/defs.hpp>
-#include <gridtools/common/gt_assert.hpp>
 #include <gridtools/stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 
@@ -82,8 +82,8 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MIC
-        // 3rd dimension is padded for MIC
+#ifdef BACKEND_MC
+        // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
         ASSERT_EQ(ameta.padded_length<2>(), 6);
@@ -108,8 +108,8 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MIC
-        // 3rd dimension is padded for MIC
+#ifdef BACKEND_MC
+        // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
 #ifdef BACKEND_CUDA
@@ -119,5 +119,3 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<5>(), 9);
     }
 }
-
-TEST(icosahedral_topology, make_tmp_storage) {}

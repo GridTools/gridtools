@@ -82,9 +82,11 @@ __global__ void check_vals_lambda(double *s, StorageInfo const *si) {
 TEST(DataStoreTest, Simple) {
     using data_store_t = data_store<cuda_storage<double>, storage_info_t>;
     storage_info_t si(3, 3, 3);
+
     constexpr storage_info_interface<0, layout_map<2, 1, 0>> csi(3, 3, 3);
     constexpr storage_info_interface<1, layout_map<2, 1, 0>, halo<2, 1, 0>> csih(7, 5, 3);
     constexpr storage_info_interface<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
+
     // check sizes, strides, and alignment
     GRIDTOOLS_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
@@ -195,7 +197,7 @@ TEST(DataStoreTest, States) {
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(12, 12, 8);
     data_store<cuda_storage<double>, storage_info_t> ds(si, 3.1415);
-    check_vals<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    check_vals<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), get_gpu_storage_info_ptr(*ds.get_storage_info_ptr()));
     ds.clone_from_device();
     for (uint_t i = 0; i < 12; ++i)
         for (uint_t j = 0; j < 12; ++j)
@@ -206,7 +208,8 @@ TEST(DataStoreTest, Initializer) {
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
     data_store<cuda_storage<double>, storage_info_t> ds(si, [](int i, int j, int k) { return i + j + k; });
-    check_vals_lambda<<<1, 1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    check_vals_lambda<<<1, 1>>>(
+        ds.get_storage_ptr()->get_gpu_ptr(), get_gpu_storage_info_ptr(*ds.get_storage_info_ptr()));
     ds.clone_from_device();
     for (uint_t i = 0; i < 10; ++i)
         for (uint_t j = 0; j < 11; ++j)

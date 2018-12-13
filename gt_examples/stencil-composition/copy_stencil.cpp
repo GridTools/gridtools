@@ -39,9 +39,9 @@
 #include <iostream>
 
 #include <boost/mpl/vector.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
 
-#include "backend_select.hpp"
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 /**
   @file
@@ -50,7 +50,7 @@
 namespace gt = gridtools;
 
 using storage_info_t = gt::storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
-using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<gt::float_type, storage_info_t>;
+using data_store_t = gt::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct copy_functor {

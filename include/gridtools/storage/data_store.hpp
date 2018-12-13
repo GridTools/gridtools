@@ -38,6 +38,7 @@
 
 #include <array>
 #include <assert.h>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -153,10 +154,6 @@ namespace gridtools {
         std::string m_name;
 
       public:
-        // following members are declared in order to have same API as data_store_fields
-        const static uint_t num_of_storages = 1;
-        const static uint_t num_of_components = 1;
-
         /**
          * @brief data_store constructor. This constructor does not trigger an allocation of the required space.
          */

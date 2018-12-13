@@ -46,6 +46,7 @@
 #include "../common/host_device.hpp"
 
 namespace gridtools {
+
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
@@ -63,9 +64,7 @@ namespace gridtools {
 
                 constexpr type(array<T, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
 
-                constexpr type() : data0(0), data1(0), data2(0) {}
-
-                constexpr type(T const &data0, T const &data1, T const &data2)
+                constexpr type(T const &data0 = {}, T const &data1 = {}, T const &data2 = {})
                     : data0(data0), data1(data1), data2(data2) {}
 
                 GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }

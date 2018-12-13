@@ -9,9 +9,11 @@ function exit_if_error {
 }
 
 module load daint-gpu
-module load cudatoolkit/9.0.103_3.7-6.0.4.1_2.1__g72b395b
+module load cudatoolkit/9.2.148_3.19-6.0.7.1_2.1__g3d9acc8
 module rm   PrgEnv-cray
-module load CMake
+module rm CMake
+module load /users/jenkins/easybuild/daint/haswell/modules/all/CMake/3.12.4
+
 
 if [[ ${COMPILER} == "gcc" ]]; then
   module load PrgEnv-gnu
@@ -28,8 +30,11 @@ if [[ ${COMPILER} == "gcc" ]]; then
     "7.1")
       module swap gcc/7.1.0
       ;;
+    "7.3")
+      module swap gcc/7.3.0
+      ;;
     *)
-      module swap gcc/4.9.3
+      module swap gcc/7.3.0
   esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
@@ -55,6 +60,7 @@ else
   exit_if_error 444
 fi
 
+export CPATH=$CPATH:$MPICH_DIR/include
 export BOOST_ROOT=$SCRATCH/../jenkins/install/boost/boost_1_67_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
@@ -63,12 +69,27 @@ export MPICH_RDMA_ENABLED_CUDA=1
 export MPICH_G2G_PIPELINE=30
 export CUDA_ARCH=sm_60
 export LAUNCH_MPI_TEST="srun"
-export JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=30"
-export MPI_HOST_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
-export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=64"
+
+JOB_ENV_ARR=(
+    LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
+    MPICH_RDMA_ENABLED_CUDA=1
+    MPICH_G2G_PIPELINE=30
+    )
+MPI_HOST_JOB_ENV_ARR=(
+    LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
+    )
+MPI_CUDA_JOB_ENV_ARR=(
+    LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
+    MPICH_RDMA_ENABLED_CUDA=1
+    MPICH_G2G_PIPELINE=64)
+export HOST_JOB_ENV="${JOB_ENV_ARR[*]}"
+export CUDA_JOB_ENV="${JOB_ENV_ARR[*]}"
+export MPI_HOST_JOB_ENV="${MPI_HOST_JOB_ENV_ARR[*]}"
+export MPI_CUDA_JOB_ENV="${MPI_CUDA_JOB_ENV_ARR[*]}"
+
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export MAKE_THREADS=24
-export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:20:00"
+export SRUN_BUILD_COMMAND="srun -C gpu --account c14 -p cscsci --time=00:20:00"
 

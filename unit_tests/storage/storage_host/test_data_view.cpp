@@ -37,15 +37,15 @@
 #include "../../tools/triplet.hpp"
 #include "gtest/gtest.h"
 #include <gridtools/common/gt_assert.hpp>
+#include <gridtools/storage/common/storage_info_interface.hpp>
 #include <gridtools/storage/data_store.hpp>
 #include <gridtools/storage/storage_host/data_view_helpers.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
 TEST(DataViewTest, Simple) {
-    typedef host_storage_info<0, layout_map<2, 1, 0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<2, 1, 0>> storage_info_t;
     typedef data_store<host_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
     storage_info_t si(3, 5, 7);
@@ -130,7 +130,7 @@ TEST(DataViewTest, Simple) {
 }
 
 TEST(DataViewTest, ZeroSize) {
-    typedef host_storage_info<0, layout_map<0>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<0>> storage_info_t;
     typedef data_store<host_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
     data_store_t ds;
@@ -138,7 +138,7 @@ TEST(DataViewTest, ZeroSize) {
 }
 
 TEST(DataViewTest, ArrayAPI) {
-    typedef host_storage_info<0, layout_map<0, 1, 2>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<0, 1, 2>> storage_info_t;
     storage_info_t si(2, 2, 2);
 
     typedef data_store<host_storage<double>, storage_info_t> data_store_t;
@@ -151,7 +151,7 @@ TEST(DataViewTest, ArrayAPI) {
 }
 
 TEST(DataViewTest, Looping) {
-    typedef host_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>> storage_info_t;
+    typedef storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>> storage_info_t;
     storage_info_t si(2 + 2, 2 + 4, 2 + 6);
 
     typedef data_store<host_storage<triplet>, storage_info_t> data_store_t;

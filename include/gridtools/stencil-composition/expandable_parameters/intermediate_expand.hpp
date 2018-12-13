@@ -78,7 +78,7 @@ namespace gridtools {
              *     (meta class). He the inner name `apply` is not arbitrary. It just the requirement of meta class
              *     concept.
              */
-            GT_META_LAZY_NAMESPASE {
+            GT_META_LAZY_NAMESPACE {
                 template <size_t I, class Plh>
                 struct convert_plh {
                     using type = Plh;
@@ -92,10 +92,10 @@ namespace gridtools {
                 template <class I, class Cache>
                 struct convert_cache;
 
-                template <class I, cache_type CacheType, class Plh, cache_io_policy cacheIOPolicy, class Interval>
-                struct convert_cache<I, detail::cache_impl<CacheType, Plh, cacheIOPolicy, Interval>> {
-                    using type = detail::
-                        cache_impl<CacheType, typename convert_plh<I::value, Plh>::type, cacheIOPolicy, Interval>;
+                template <class I, cache_type CacheType, class Plh, cache_io_policy cacheIOPolicy>
+                struct convert_cache<I, detail::cache_impl<CacheType, Plh, cacheIOPolicy>> {
+                    using type =
+                        detail::cache_impl<CacheType, typename convert_plh<I::value, Plh>::type, cacheIOPolicy>;
                 };
 
                 template <class I, class ArgStoragePair>
@@ -186,7 +186,7 @@ namespace gridtools {
             template <size_t ExpandFactor>
             struct expand_esf_f;
 
-            GT_META_LAZY_NAMESPASE {
+            GT_META_LAZY_NAMESPACE {
                 template <size_t ExpandFactor, class Esf>
                 struct expand_esf {
                     using indices_t = GT_META_CALL(meta::make_indices_c, ExpandFactor);

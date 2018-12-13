@@ -79,7 +79,7 @@ namespace gridtools {
                     meta::lazy::id<positional_iterate_domain<iterate_domain_cuda_t>>,
                     meta::lazy::id<iterate_domain_cuda_t>>::type;
 
-            typedef backend_traits_from_id<platform::cuda> backend_traits_t;
+            typedef backend_traits_from_id<target::cuda> backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             // number of threads
@@ -167,10 +167,12 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            // initialize the indices
-            const int_t kblock = execution_type_t::iteration == enumtype::parallel
-                                     ? blockIdx.z * execution_type_t::block_size - grid.k_min()
-                                     : grid.template value_at<from_t>() - grid.k_min();
+            // initialize the indices. Note: We subtract grid.k_min() here as it will be added again in
+            // it_domain.initialize()
+            const int_t kblock =
+                execution_type_t::iteration == enumtype::parallel
+                    ? max(blockIdx.z * execution_type_t::block_size, grid.template value_at<from_t>()) - grid.k_min()
+                    : grid.template value_at<from_t>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
                 {blockIdx.x, blockIdx.y, blockIdx.z},
                 {iblock, jblock, kblock});
@@ -204,11 +206,11 @@ namespace gridtools {
             void operator()() {
 #ifdef VERBOSE
                 short_t count;
-                cudaGetDeviceCount(&count);
+                GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
                 if (count) {
                     cudaDeviceProp prop;
-                    cudaGetDeviceProperties(&prop, 0);
+                    GT_CUDA_CHECK(cudaGetDeviceProperties(&prop, 0));
                     std::cout << "total global memory " << prop.totalGlobalMem << std::endl;
                     std::cout << "shared memory per block " << prop.sharedMemPerBlock << std::endl;
                     std::cout << "registers per block " << prop.regsPerBlock << std::endl;
@@ -268,12 +270,7 @@ namespace gridtools {
                     <<<blocks, threads>>>(m_local_domain, m_grid);
 
 #ifndef NDEBUG
-                cudaDeviceSynchronize();
-                cudaError_t error = cudaGetLastError();
-                if (error != cudaSuccess) {
-                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorName(error), __FILE__, __LINE__);
-                    exit(-1);
-                }
+                GT_CUDA_CHECK(cudaDeviceSynchronize());
 #endif
             }
 

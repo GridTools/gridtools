@@ -33,45 +33,58 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "stencil_on_cells_color.hpp"
-#include "../Options.hpp"
-#include "gtest/gtest.h"
+/*
+ * This example demonstrates how to code operators that are specialized for
+ * one color. Like that we can implement different equations for downward
+ * and upward triangles.
+ * The example is making use of the syntax make_cesf
+ *
+ */
 
-int main(int argc, char **argv) {
+#include <gtest/gtest.h>
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/regression_fixture.hpp>
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
+#include "neighbours_of.hpp"
+
+using namespace gridtools;
+
+template <uint_t Color>
+struct on_cells_color_functor {
+    using in = in_accessor<0, enumtype::cells, extent<1, -1, 1, -1>>;
+    using out = inout_accessor<1, enumtype::cells>;
+    using arg_list = boost::mpl::vector<in, out>;
+
+    template <typename Evaluation>
+    GT_FUNCTION static void Do(Evaluation eval) {
+        if (Color == downward_triangle)
+            eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return rhs - lhs; }, float_type{}, in()));
+        else
+            eval(out()) = eval(on_cells([](float_type lhs, float_type rhs) { return lhs + rhs; }, float_type{}, in()));
     }
+};
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+using stencil_on_cells = regression_fixture<1>;
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-TEST(StencilOnCells, WithColor) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(socc::test(x, y, z, t, verify));
+TEST_F(stencil_on_cells, with_color) {
+    auto in = [](int_t i, int_t c, int_t j, int_t k) { return i + c + j + k; };
+    auto ref = [&](int_t i, int_t c, int_t j, int_t k) {
+        float_type res = {};
+        for (auto &&item : neighbours_of<cells, cells>(i, c, j, k))
+            if (c == 0)
+                res -= item.call(in);
+            else
+                res += item.call(in);
+        return res;
+    };
+    arg<0, cells> p_in;
+    arg<1, cells> p_out;
+    auto out = make_storage<cells>();
+    make_computation(p_in = make_storage<cells>(in),
+        p_out = out,
+        make_multistage(
+            enumtype::execute<enumtype::forward>(), make_stage<on_cells_color_functor, topology_t, cells>(p_in, p_out)))
+        .run();
+    verify(make_storage<cells>(ref), out);
 }

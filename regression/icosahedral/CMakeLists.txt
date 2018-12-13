@@ -1,78 +1,93 @@
-list(APPEND SRCFILES copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells_color)
-list(APPEND SRCFILES stencil_on_edges stencil_on_edges_of_cells stencil_fused  stencil_on_neighedge_of_cells)
-list(APPEND SRCFILES stencil_on_vertices curl div lap)
-list(APPEND PERFTEST_SRCFILES stencil_on_edges_multiplefields stencil_on_cells stencil_on_neighcell_of_edges stencil_manual_fold)
-  
-
-file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
-list ( APPEND INC_ALL ${INC_ALL_} )
-file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
-list ( APPEND INC_ALL ${INC_ALL_} )
-set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
-
-add_definitions("-DBENCHMARK")
-set(exe_LIBS gtest gtest_main "${exe_LIBS}" )
+set(SOURCES_PERFTEST
+    stencil_on_edges_multiplefields
+    stencil_on_cells
+    stencil_on_neighcell_of_edges
+    stencil_manual_fold
+    )
+set(SOURCES
+    ${SOURCES_PERFTEST}
+    copy_stencil_icosahedral
+    expandable_parameters_icosahedral
+    stencil_on_cells_color
+    stencil_on_edges
+    stencil_fused
+    stencil_on_neighedge_of_cells
+    stencil_on_vertices
+    curl
+    div
+    lap
+    )
 
 # special target for executables which are used from performance benchmarks
 add_custom_target(perftests)
 
-if(ENABLE_HOST)
-    foreach(srcfile IN LISTS SRCFILES PERFTEST_SRCFILES)
-        add_executable(${srcfile}_host_naive   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
-        add_executable(${srcfile}_host_block   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
-        set_target_properties(${srcfile}_host_naive PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-        set_target_properties(${srcfile}_host_block PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-        target_link_libraries(${srcfile}_host_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
-        target_link_libraries(${srcfile}_host_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
-        target_compile_definitions(${srcfile}_host_naive PUBLIC ${HOST_BACKEND_DEFINE} "BACKEND_STRATEGY_NAIVE")
-        target_compile_definitions(${srcfile}_host_block PUBLIC ${HOST_BACKEND_DEFINE})
+if(GT_ENABLE_TARGET_X86)
+    foreach(srcfile IN LISTS SOURCES)
+        add_executable(${srcfile}_x86_naive ${srcfile}.cpp)
+        target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
+        target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
 
-        gridtools_add_test( tests.${srcfile}_host_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_host_block" "12 33 61")
-        gridtools_add_test( tests.${srcfile}_host_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_host_block" "23 11 43")
-        gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_host_naive" "12 33 21")
-        gridtools_add_test( tests.${srcfile}_host_naive ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_host_naive" "23 11 23")
+        add_executable(${srcfile}_x86_block ${srcfile}.cpp)
+        target_link_libraries(${srcfile}_x86_block regression_main GridToolsTestX86)
+
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_block_12_33_61
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_block> 12 33 61
+            LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_block_23_11_43
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_block> 23 11 43
+            LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_naive_12_33_21
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 12 33 21
+            LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_x86_naive_23_11_23
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_x86_naive> 23 11 23
+            LABELS regression_x86 target_x86
+            ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+            )
+
+        if (srcfile IN_LIST SOURCES_PERFTEST)
+            add_dependencies(perftests ${srcfile}_x86_block)
+        endif()
     endforeach(srcfile)
-    foreach(perftest IN LISTS PERFTEST_SRCFILES)
-      add_dependencies(perftests ${perftest}_host_block)
-    endforeach()
-endif(ENABLE_HOST)
+endif(GT_ENABLE_TARGET_X86)
 
-if(ENABLE_MIC)
-    foreach(srcfile IN LISTS SRCFILES PERFTEST_SRCFILES)
-        add_executable(${srcfile}_mic   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
-        set_target_properties(${srcfile}_mic PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-        target_link_libraries(${srcfile}_mic ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS})
-        target_compile_definitions(${srcfile}_mic PUBLIC ${MIC_BACKEND_DEFINE})
+if(GT_ENABLE_TARGET_CUDA)
+    set(CUDA_SEPARABLE_COMPILATION OFF)
+    foreach(srcfile IN LISTS SOURCES)
+        add_executable( ${srcfile}_cuda ${srcfile}.cu  )
+        target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
 
-        gridtools_add_test( tests.${srcfile}_mic ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_mic" "12 33 61")
-        gridtools_add_test( tests.${srcfile}_mic ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_mic" "23 11 43")
+        gridtools_add_test(
+            NAME tests.${srcfile}_cuda_77_48_61
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_cuda> 77 48 61
+            LABELS regression_cuda target_cuda
+            ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
+            )
+        gridtools_add_test(
+            NAME tests.${srcfile}_cuda_63_55_43
+            SCRIPT ${TEST_SCRIPT}
+            COMMAND $<TARGET_FILE:${srcfile}_cuda> 63 55 43
+            LABELS regression_cuda target_cuda
+            ENVIRONMENT ${TEST_CUDA_ENVIRONMENT}
+            )
+
+        if (srcfile IN_LIST SOURCES_PERFTEST)
+            add_dependencies(perftests ${srcfile}_cuda)
+        endif()
     endforeach(srcfile)
-    foreach(perftest IN LISTS PERFTEST_SRCFILES)
-      add_dependencies(perftests ${perftest}_mic)
-    endforeach()
-endif(ENABLE_MIC)
-
-if(ENABLE_CUDA)
-    foreach(srcfile IN LISTS SRCFILES MPISRCFILES PERFTEST_SRCFILES)
-         set(CUDA_SEPARABLE_COMPILATION OFF)
-         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
-         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
-
-         if( ${srcfile} STREQUAL "stencil_on_vertexes")
-             # K lenght larger than 48 fails for stencil_on_vertexes_cuda... this need to be investigated
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "77 48 48")
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "63 55 43")
-         else()
-                  if( ${srcfile} STREQUAL "expandable_parameters_icosahedral" OR ${srcfile} STREQUAL "copy_stencil_icosahedral")
-                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "32 48 61")
-                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "64 55 43")
-                  else()
-                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "77 48 61")
-                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/regression/icosahedral/${srcfile}_cuda" "63 55 43")
-                  endif()
-         endif()
-    endforeach(srcfile)
-    foreach(perftest IN LISTS PERFTEST_SRCFILES)
-      add_dependencies(perftests ${perftest}_cuda)
-    endforeach()
-endif(ENABLE_CUDA)
+endif(GT_ENABLE_TARGET_CUDA)

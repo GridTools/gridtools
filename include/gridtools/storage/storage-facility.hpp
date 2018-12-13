@@ -39,22 +39,18 @@
 #include "../common/layout_map.hpp"
 #include "common/definitions.hpp"
 #include "data_store.hpp"
-#include "data_store_field.hpp"
 
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 
-#include "storage_cuda/data_field_view_helpers.hpp"
 #include "storage_cuda/data_view_helpers.hpp"
 #endif
 
 #include "storage_traits_host.hpp"
-#include "storage_traits_mic.hpp"
+#include "storage_traits_mc.hpp"
 
-#include "storage_host/data_field_view_helpers.hpp"
 #include "storage_host/data_view_helpers.hpp"
-#include "storage_mic/data_field_view_helpers.hpp"
-#include "storage_mic/data_view_helpers.hpp"
+#include "storage_mc/data_view_helpers.hpp"
 
 /**
  * \defgroup storage Storage
@@ -69,7 +65,7 @@ namespace gridtools {
     /**
      * @brief storage traits used to retrieve the correct storage_info, data_store, and data_store_field types.
      * Additionally to the default types, specialized and custom storage_info types can be retrieved
-     * @tparam T used platform (e.g., Cuda or Host)
+     * @tparam T used target (e.g., Cuda or Host)
      */
     template <class BackendId>
     struct storage_traits : gridtools::storage_traits_from_id<BackendId> {
@@ -93,9 +89,6 @@ namespace gridtools {
 
         template <typename ValueType, typename StorageInfo>
         using data_store_t = data_store<storage_t<ValueType>, StorageInfo>;
-
-        template <typename ValueType, typename StorageInfo, uint_t... N>
-        using data_store_field_t = data_store_field<data_store_t<ValueType, StorageInfo>, N...>;
 
         template <uint_t Id, uint_t Dims, typename Halo, typename Align>
         using storage_info_align_t = typename gridtools::storage_traits_from_id<

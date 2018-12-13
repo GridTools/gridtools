@@ -37,6 +37,7 @@
 
 #include <type_traits>
 
+#include "../meta/defs.hpp"
 #include "./generic_metafunctions/mpl_tags.hpp"
 
 /** \ingroup common
@@ -62,9 +63,6 @@
 #elif defined(_MSC_VER)
 #define GT_DEPRECATED(msg) __declspec(deprecated)
 #else
-#ifndef SUPPRESS_MESSAGES
-#pragma message("WARNING: You need to implement GT_DEPRECATED for this compiler")
-#endif
 #define GT_DEPRECATED(msg)
 #endif
 #endif
@@ -125,23 +123,6 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
-// some compilers have the problem that template alias instantiations have exponential complexity
-#if !defined(GT_BROKEN_TEMPLATE_ALIASES)
-#if defined(__CUDACC_VER_MAJOR__)
-// CUDA 9.0 and 9.1 have an different problem (not related to the exponential complexity of template alias
-// instantiation) see https://github.com/eth-cscs/gridtools/issues/976
-#define GT_BROKEN_TEMPLATE_ALIASES (__CUDACC_VER_MAJOR__ < 9)
-#elif defined(__INTEL_COMPILER)
-#define GT_BROKEN_TEMPLATE_ALIASES (__INTEL_COMPILER < 1800)
-#elif defined(__clang__)
-#define GT_BROKEN_TEMPLATE_ALIASES 0
-#elif defined(__GNUC__) && defined(__GNUC_MINOR__)
-#define GT_BROKEN_TEMPLATE_ALIASES (__GNUC__ * 10 + __GNUC_MINOR__ < 47)
-#else
-#define GT_BROKEN_TEMPLATE_ALIASES 1
-#endif
-#endif
-
 // check boost::optional workaround for CUDA9.2
 #if (defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ == 9 && __CUDACC_VER_MINOR__ == 2)
 #if (not defined(BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL) || \
@@ -160,12 +141,12 @@ namespace gridtools {
         @{
     */
 
-    /** tags specifying the platform to use */
-    namespace platform {
+    /** tags specifying the target to use */
+    namespace target {
         struct cuda {};
         struct mc {};
         struct x86 {};
-    } // namespace platform
+    } // namespace target
 
     /** tags specifying the strategy to use */
     namespace strategy {
@@ -201,12 +182,6 @@ namespace gridtools {
 
     } // namespace enumtype
 
-#ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND gridtools::grid_type::structured
-#else
-#define GRIDBACKEND gridtools::grid_type::icosahedral
-#endif
-
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 
 #define GT_INTERNAL_ERROR                                                                                       \
@@ -237,22 +212,6 @@ namespace gridtools {
        with an unsigned iteration index.
        https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
     */
-
-#ifndef FLOAT_PRECISION
-#define FLOAT_PRECISION 8
-#endif
-
-#if FLOAT_PRECISION == 4
-    typedef float float_type;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_FLOAT_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_FLOAT_EQ(reference, actual)
-#elif FLOAT_PRECISION == 8
-    typedef double float_type;
-#define ASSERT_REAL_EQ(reference, actual) ASSERT_DOUBLE_EQ(reference, actual)
-#define EXPECT_REAL_EQ(reference, actual) EXPECT_DOUBLE_EQ(reference, actual)
-#else
-#error float precision not properly set (4 or 8 bytes supported)
-#endif
 
     // define a gridtools notype for metafunctions that would return something like void
     // but still to point to a real integral type so that it can be passed as argument to functions

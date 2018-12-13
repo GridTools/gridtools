@@ -34,25 +34,25 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <boost/type_traits/conditional.hpp>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/verifier.hpp>
+#include <gtest/gtest.h>
 
-#include "backend_select.hpp"
+#include <boost/type_traits/conditional.hpp>
+
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
+#include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, platform::x86>::value,
+using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
     layout_map<3, 4, 5, 0, 1, 2>,
     layout_map<5, 4, 3, 2, 1, 0>>::type;
-using layout_map_global_quad_t =
-    typename boost::conditional<std::is_same<backend_t::backend_id_t, platform::x86>::value,
-        layout_map<1, 2, 3, 0>,
-        layout_map<3, 2, 1, 0>>::type;
-using layout_map_local_quad_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, platform::x86>::value,
+using layout_map_global_quad_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
+    layout_map<1, 2, 3, 0>,
+    layout_map<3, 2, 1, 0>>::type;
+using layout_map_local_quad_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,
     layout_map<-1, -1, -1, 1, 2, 3, 0>,
     layout_map<-1, -1, -1, 3, 2, 1, 0>>::type;
 

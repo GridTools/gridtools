@@ -143,13 +143,13 @@ namespace gridtools {
                 using type = ISeq;
             };
 
-            template <std::size_t I, typename ISeq, typename First, typename... Elems>
+            template <std::size_t I, size_t... Is, typename First, typename... Elems>
             struct collect_indices<I,
-                ISeq,
+                gt_integer_sequence<size_t, Is...>,
                 std::tuple<First, Elems...>,
                 typename std::enable_if<(std::is_placeholder<First>::value == 0), void>::type> {
                 using type = typename collect_indices<I + 1,
-                    typename append<ISeq, gt_integer_sequence<std::size_t, I>>::type,
+                    gt_integer_sequence<std::size_t, Is..., I>,
                     std::tuple<Elems...>>::type;
             };
 
@@ -286,13 +286,13 @@ namespace gridtools {
         auto associate(ReadOnly &&... ro_stores) const -> bound_bc<BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
-                typename make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>::type{})),
+                make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>{})),
             typename _impl::comm_indices<stores_type>::type> {
             auto ro_store_tuple = std::forward_as_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(ro_store_tuple,
                 m_stores,
-                typename make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>::type{});
+                make_gt_integer_sequence<std::size_t, std::tuple_size<decltype(m_stores)>::value>{});
 
             return bound_bc<BCApply, decltype(full_list), typename _impl::comm_indices<stores_type>::type>{
                 m_bcapply, std::move(full_list)};
@@ -317,7 +317,7 @@ namespace gridtools {
     template <typename BCApply, typename... DataStores>
     bound_bc<BCApply,
         std::tuple<typename std::decay<DataStores>::type...>,
-        typename make_gt_integer_sequence<std::size_t, sizeof...(DataStores)>::type>
+        make_gt_integer_sequence<std::size_t, sizeof...(DataStores)>>
     bind_bc(BCApply bc_apply, DataStores &&... stores) {
 
         // Concept checking on BCApply is not ready yet.

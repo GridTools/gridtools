@@ -87,6 +87,7 @@ namespace {
         gt_fortran_array_descriptor d;
         d.rank = 2;
         d.type = gt_fk_Int;
+        d.is_acc_present = false;
         return d;
     }
     void test_c_bindings_and_wrapper_compatible_type_impl(c_bindings_compatible_type, wrapper_compatible_type) {}
@@ -106,7 +107,7 @@ namespace {
         gt_release(obj);
     }
 
-    const char expected_c_interface[] = R"?(
+    const char expected_c_interface[] = R"?(// This file is generated!
 #pragma once
 
 #include <gridtools/c_bindings/array_descriptor.h>
@@ -139,7 +140,7 @@ void test_c_bindings_and_wrapper_compatible_type_b(gt_fortran_array_descriptor*,
         EXPECT_EQ(strm.str(), expected_c_interface);
     }
 
-    const char expected_fortran_interface[] = R"?(
+    const char expected_fortran_interface[] = R"?(! This file is generated!
 module my_module
 implicit none
   interface

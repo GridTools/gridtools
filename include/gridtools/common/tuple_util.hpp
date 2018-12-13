@@ -135,6 +135,7 @@
 #include "array.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
+#include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "generic_metafunctions/implicit_cast.hpp"
 #include "generic_metafunctions/meta.hpp"
 #include "generic_metafunctions/type_traits.hpp"
@@ -236,14 +237,23 @@ namespace gridtools {
             // Here ADL definitions of `tuple_*` functions are picked up
             // The versions in this namespace will be chosen if nothing is found by `ADL`.
             // it is important to have all builtins above this line.
-            template <class T>
-            GT_META_DEFINE_ALIAS(getter, meta::id, decltype(tuple_getter(std::declval<T>())));
 
             template <class T>
-            GT_META_DEFINE_ALIAS(to_types, meta::id, decltype(tuple_to_types(std::declval<T>())));
+            decltype(tuple_getter(std::declval<T>())) get_getter(T);
+            template <class T>
+            decltype(tuple_to_types(std::declval<T>())) get_to_types(T);
+            template <class T>
+            decltype(tuple_from_types(std::declval<T>())) get_from_types(T);
 
             template <class T>
-            GT_META_DEFINE_ALIAS(from_types, meta::id, decltype(tuple_from_types(std::declval<T>())));
+            GT_META_DEFINE_ALIAS(
+                getter, meta::id, decltype(::gridtools::tuple_util::traits::get_getter(std::declval<T>())));
+            template <class T>
+            GT_META_DEFINE_ALIAS(
+                to_types, meta::id, decltype(::gridtools::tuple_util::traits::get_to_types(std::declval<T>())));
+            template <class T>
+            GT_META_DEFINE_ALIAS(
+                from_types, meta::id, decltype(::gridtools::tuple_util::traits::get_from_types(std::declval<T>())));
         } // namespace traits
         /// @endcond
 
@@ -282,7 +292,7 @@ namespace gridtools {
             template <class T>
             struct get_ref_kind<T const &> : std::integral_constant<ref_kind, ref_kind::const_lvalue> {};
 
-            GT_META_LAZY_NAMESPASE {
+            GT_META_LAZY_NAMESPACE {
                 template <ref_kind Kind, class Dst>
                 struct add_ref;
 

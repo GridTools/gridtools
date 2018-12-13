@@ -1,48 +1,39 @@
-if( STRUCTURED_GRIDS )
-    set( EXAMPLES_SRCFILES )
-    list( APPEND EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited)
+macro(install_example name)
+    if ( GT_INSTALL_EXAMPLES )
+        install(TARGETS name
+                DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/bin" )
+    endif()
+endmacro()
 
-      if(ENABLE_HOST)
+if( GT_TESTS_STRUCTURED_GRID )
+    set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited)
+
+    if(GT_ENABLE_TARGET_X86)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
-          add_executable(${srcfile}_host_naive_ex   ${srcfile}.cpp ${INC_ALL})
-          add_executable(${srcfile}_host_block_ex   ${srcfile}.cpp ${INC_ALL})
-          target_link_libraries(${srcfile}_host_naive_ex ${exe_LIBS})
-          target_link_libraries(${srcfile}_host_block_ex ${exe_LIBS})
-          target_compile_definitions(${srcfile}_host_naive_ex PUBLIC ${HOST_BACKEND_DEFINE} "BACKEND_STRATEGY_NAIVE")
-          target_compile_definitions(${srcfile}_host_block_ex PUBLIC ${HOST_BACKEND_DEFINE})
-          if ( INSTALL_GT_EXAMPLES )
-              install(TARGETS
-                      ${srcfile}_host_naive_ex
-                      ${srcfile}_host_block_ex
-                      DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/bin" )
-          endif()
-        endforeach()
-    endif(ENABLE_HOST)
+            add_executable(${srcfile}_x86_naive_ex   ${srcfile}.cpp)
+            target_link_libraries(${srcfile}_x86_naive_ex GridToolsTestX86)
+            target_compile_definitions(${srcfile}_x86_naive_ex PRIVATE BACKEND_STRATEGY_NAIVE)
+            install_example(${srcfile}_x86_naive_ex)
 
-    if(ENABLE_MIC)
+            add_executable(${srcfile}_x86_block_ex   ${srcfile}.cpp)
+            target_link_libraries(${srcfile}_x86_block_ex GridToolsTestX86)
+            install_example(${srcfile}_x86_block_ex)
+        endforeach()
+    endif(GT_ENABLE_TARGET_X86)
+
+    if(ENABLE_MC)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
-          add_executable(${srcfile}_mic_ex   ${srcfile}.cpp ${INC_ALL})
-          target_link_libraries(${srcfile}_mic_ex ${exe_LIBS})
-          target_compile_definitions(${srcfile}_mic_ex PUBLIC ${MIC_BACKEND_DEFINE})
-
-          if ( INSTALL_GT_EXAMPLES )
-              install(TARGETS
-                      ${srcfile}_mic_ex
-                      DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/bin" )
-          endif()
+            add_executable(${srcfile}_mc_ex   ${srcfile}.cpp)
+            target_link_libraries(${srcfile}_mc_ex GridToolsTestMC )
+            install_example(${srcfile}_mc_ex)
         endforeach()
-    endif(ENABLE_MIC)
+    endif(ENABLE_MC)
 
-    if(ENABLE_CUDA)
+    if(GT_ENABLE_TARGET_CUDA)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
-           cuda_add_executable( ${srcfile}_cuda_ex ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GPU_SPECIFIC_FLAGS} "-D${CUDA_BACKEND_DEFINE}")
-           target_link_libraries(${srcfile}_cuda_ex ${exe_LIBS})
-
-          if ( INSTALL_GT_EXAMPLES )
-              install(TARGETS
-                      ${srcfile}_cuda_ex
-                      DESTINATION "${INSTALL_GT_EXAMPLES_PATH}/examples/bin" )
-          endif()
-            endforeach()
-      endif(ENABLE_CUDA)
+            add_executable( ${srcfile}_cuda_ex ${srcfile}.cu )
+            target_link_libraries(${srcfile}_cuda_ex GridToolsTestCUDA )
+            install_example(${srcfile}_cuda_ex)
+        endforeach()
+    endif(GT_ENABLE_TARGET_CUDA)
 endif()

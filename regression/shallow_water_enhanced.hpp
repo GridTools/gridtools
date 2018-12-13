@@ -37,13 +37,12 @@
 
 // [includes]
 #include <fstream>
-#include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/storage/storage-facility.hpp>
 #include <iostream>
 
-#include "backend_select.hpp"
 #include <gridtools/communication/halo_exchange.hpp>
-
+#include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/storage/storage-facility.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 // [includes]
@@ -272,8 +271,13 @@ namespace shallow_water {
         arg<2, sol_type> p_v;
 
         //! [proc_grid_dims]
+        MPI_Comm CartComm;
         array<int, 3> dimensions{0, 0, 1};
-        MPI_Dims_create(PROCS, 3, &dimensions[0]);
+        int period[3] = {1, 1, 1};
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
+        assert(dimensions[2] == 1);
+
+        MPI_Cart_create(MPI_COMM_WORLD, 3, &dimensions[0], period, false, &CartComm);
 
         //! [proc_grid_dims]
 
@@ -290,7 +294,7 @@ namespace shallow_water {
             gridtools::version_manual>
             pattern_type;
 
-        pattern_type he(gridtools::boollist<3>(false, false, false), GCL_WORLD, dimensions);
+        pattern_type he(gridtools::boollist<3>(false, false, false), CartComm);
         //! [pattern_type]
 
         auto c_grid = he.comm();
@@ -471,10 +475,9 @@ namespace shallow_water {
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE INIT ################" << std::endl;
-        auto view = make_field_host_view(reference.solution);
-        view00 = view.get<0, 0>();
-        view10 = view.get<1, 0>();
-        view20 = view.get<2, 0>();
+        view00 = make_host_view(reference.h);
+        view10 = make_host_view(reference.u);
+        view20 = make_host_view(reference.v);
         myfile << "REF INIT VALUES view00" << std::endl;
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
             for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
@@ -505,14 +508,13 @@ namespace shallow_water {
             reference.iterate();
         }
 
-        retval &= check_result.verify(grid, reference.solution.get_field()[0], h, halos);
+        retval &= check_result.verify(grid, reference.h, h, halos);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
-        view = make_field_host_view(reference.solution);
-        view00 = view.get<0, 0>();
-        view10 = view.get<1, 0>();
-        view20 = view.get<2, 0>();
+        view00 = make_host_view(reference.h);
+        view10 = make_host_view(reference.u);
+        view20 = make_host_view(reference.v);
 
         myfile << "REF VALUES view00" << std::endl;
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {

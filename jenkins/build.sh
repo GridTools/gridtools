@@ -20,14 +20,13 @@ function help {
    echo "-z      force build                              "
    echo "-i      build for icosahedral grids              "
    echo "-d      do not clean build                       "
-   echo "-v      compile in VERBOSE mode                  "
    echo "-q      queue for testing                        "
    echo "-x      compiler version                         "
    echo "-n      execute the build on a compute node      "
-   echo "-c      disable CPU communication tests          "
    echo "-k      build only the given Makefile targets    "
    echo "-o      compile only (not tests are run)         "
    echo "-p      enable performance testing               "
+   echo "-C      Only run CMAKE configure and generation  "
    exit 1
 }
 
@@ -35,11 +34,11 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 ABSOLUTEPATH_SCRIPT=${INITPATH}/${BASEPATH_SCRIPT#$INITPATH}
 FORCE_BUILD=OFF
-VERBOSE_RUN="OFF"
 VERSION_="5.3"
+GENERATE_ONLY="OFF"
 PERFORMANCE_TESTING="OFF"
 
-while getopts "hb:t:f:l:zmsidvq:x:incok:p" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:incok:pC" opt; do
     case "$opt" in
     h|\?)
         help
@@ -63,21 +62,19 @@ while getopts "hb:t:f:l:zmsidvq:x:incok:p" opt; do
         ;;
     l) export COMPILER=$OPTARG
         ;;
-    v) VERBOSE_RUN="ON"
-        ;;
     q) QUEUE=$OPTARG
         ;;
     x) VERSION_=$OPTARG
         ;;
     n) BUILD_ON_CN="ON"
         ;;
-    c) DISABLE_CPU_MPI_TESTS="ON"
-        ;;
     k) MAKE_TARGETS="$MAKE_TARGETS $OPTARG"
         ;;
     o) COMPILE_ONLY="ON"
         ;;
     p) PERFORMANCE_TESTING="ON"
+        ;;
+    C) GENERATE_ONLY="ON"
         ;;
     esac
 done
@@ -117,28 +114,28 @@ mkdir -p build;
 cd build;
 
 if [ "x$TARGET" == "xgpu" ]; then
-    ENABLE_HOST=OFF
+    ENABLE_X86=OFF
     ENABLE_CUDA=ON
-    ENABLE_MIC=OFF
+    ENABLE_MC=OFF
 else
-    ENABLE_HOST=ON
+    ENABLE_X86=ON
     ENABLE_CUDA=OFF
     if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
-        ENABLE_MIC=ON
+        ENABLE_MC=ON
     else
-        ENABLE_MIC=OFF
+        ENABLE_MC=OFF
     fi
 fi
 echo "ENABLE_CUDA=$ENABLE_CUDA"
-echo "ENABLE_HOST=$ENABLE_HOST"
-echo "ENABLE_MIC=$ENABLE_MIC"
+echo "ENABLE_X86=$ENABLE_X86"
+echo "ENABLE_MC=$ENABLE_MC"
 
 if [[ "$FLOAT_TYPE" == "float" ]]; then
-    SINGLE_PRECISION=ON
+    GT_SINGLE_PRECISION=ON
 else
-    SINGLE_PRECISION=OFF
+    GT_SINGLE_PRECISION=OFF
 fi
-echo "SINGLE_PRECISION=$SINGLE_PRECISION"
+echo "GT_SINGLE_PRECISION=$GT_SINGLE_PRECISION"
 
 if [[ "$MPI" == "ON" ]]; then
     USE_MPI=ON
@@ -146,13 +143,6 @@ else
     USE_MPI=OFF
 fi
 echo "MPI = $USE_MPI"
-
-if [[ "${DISABLE_CPU_MPI_TESTS}" == "ON" ]]; then
-  DISABLE_MPI_TESTS_ON_TARGET="CPU"
-else
-  DISABLE_MPI_TESTS_ON_TARGET="OFF"
-fi
-echo "DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET=}"
 
 RUN_MPI_TESTS=$USE_MPI ##$SINGLE_PRECISION
 
@@ -182,54 +172,61 @@ else
     SRUN_BUILD_COMMAND=""
 fi
 
+if [[ -z ${GT_ENABLE_BINDINGS_GENERATION} ]]; then
+	GT_ENABLE_BINDINGS_GENERATION=ON
+fi
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DENABLE_HOST:BOOL=$ENABLE_HOST \
--DENABLE_CUDA:BOOL=$ENABLE_CUDA \
--DENABLE_MIC:BOOL=$ENABLE_MIC \
--DGNU_COVERAGE:BOOL=OFF \
--DGCL_ONLY:BOOL=OFF \
+-DGT_ENABLE_TARGET_X86:BOOL=$ENABLE_X86 \
+-DGT_ENABLE_TARGET_CUDA:BOOL=$ENABLE_CUDA \
+-DGT_ENABLE_TARGET_MC:BOOL=$ENABLE_MC \
+-DGT_GCL_ONLY:BOOL=OFF \
+-DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
--DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
--DUSE_MPI:BOOL=$USE_MPI \
--DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
--DENABLE_PERFORMANCE_METERS:BOOL=ON \
--DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
+-DCMAKE_CUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
+-DGT_USE_MPI:BOOL=$USE_MPI \
+-DGT_SINGLE_PRECISION:BOOL=$GT_SINGLE_PRECISION \
+-DGT_ENABLE_PERFORMANCE_METERS:BOOL=ON \
+-DGT_TESTS_STRUCTURED_GRID:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
--DVERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
--DDISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
--DENABLE_PYUTILS=$PERFORMANCE_TESTING \
+-DGT_ENABLE_BINDINGS_GENERATION=$GT_ENABLE_BINDINGS_GENERATION \
+-DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
+-DGT_TESTS_REQUIRE_FORTRAN_COMPILER=ON \
+-DGT_TESTS_REQUIRE_C_COMPILER=ON \
 ../
 
-echo "cmake \
--DBoost_NO_BOOST_CMAKE=true \
--DCUDA_ARCH:STRING=$CUDA_ARCH \
--DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE \
+echo "
+cmake \
+-DBoost_NO_BOOST_CMAKE=\"true\" \
+-DCMAKE_BUILD_TYPE:STRING=\"$BUILD_TYPE\" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DENABLE_HOST:BOOL=$ENABLE_HOST \
--DENABLE_CUDA:BOOL=$ENABLE_CUDA \
--DENABLE_MIC:BOOL=$ENABLE_MIC \
--DGNU_COVERAGE:BOOL=OFF \
--DGCL_ONLY:BOOL=OFF \
--DCMAKE_CXX_COMPILER=${HOST_COMPILER} \
--DCMAKE_CXX_FLAGS:STRING=-I${MPI_HOME}/include ${ADDITIONAL_FLAGS} \
--DCUDA_HOST_COMPILER:STRING=${HOST_COMPILER} \
--DUSE_MPI:BOOL=$USE_MPI \
--DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
--DENABLE_PERFORMANCE_METERS:BOOL=ON \
--DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
+-DGT_ENABLE_TARGET_X86:BOOL=$ENABLE_X86 \
+-DGT_ENABLE_TARGET_CUDA:BOOL=$ENABLE_CUDA \
+-DGT_ENABLE_TARGET_MC:BOOL=$ENABLE_MC \
+-DGT_GCL_ONLY:BOOL=OFF \
+-DCMAKE_CXX_COMPILER=\"${HOST_COMPILER}\" \
+-DCMAKE_CXX_FLAGS:STRING=\"-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}\" \
+-DCMAKE_CUDA_HOST_COMPILER:STRING=\"${HOST_COMPILER}\" \
+-DGT_USE_MPI:BOOL=$USE_MPI \
+-DGT_SINGLE_PRECISION:BOOL=$GT_SINGLE_PRECISION \
+-DGT_ENABLE_PERFORMANCE_METERS:BOOL=ON \
+-DGT_TESTS_STRUCTURED_GRID:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
--DVERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
--DDISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
--DENABLE_PYUTILS=$PERFORMANCE_TESTING \
+-DGT_ENABLE_PYUTILS=$PERFORMANCE_TESTING \
+-DGT_TESTS_REQUIRE_FORTRAN_COMPILER=ON \
+-DGT_TESTS_REQUIRE_C_COMPILER=ON \
 ../
 "
+
+if [ "x$GENERATE_ONLY" == "xON" ]; then
+    exit 0
+fi
 
 exit_if_error $?
 
@@ -258,9 +255,11 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     done
 
     nwarnings=`grep -i "warning" ${log_file} | wc -l`
-    if [ ${nwarnings} -ne 0 ]; then
-        echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
-        error_code=$((error_code || `echo "1"` ))
+    if [[ ${TARGET} != "cpu" ]]; then
+        if [ ${nwarnings} -ne 0 ]; then
+            echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
+            error_code=$((error_code || `echo "1"` ))
+        fi
     fi
 
     if [ ${error_code} -ne 0 ]; then

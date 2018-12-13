@@ -1,93 +1,94 @@
 # collect all tests in current folder
-fetch_host_tests(.)
-fetch_mic_tests(.)
-fetch_gpu_tests(.)
+fetch_x86_tests(. LABELS unittest_x86 )
+fetch_mc_tests(. LABELS unittest_mc )
+fetch_gpu_tests(. LABELS unittest_gpu )
 
+add_custom_x86_test(
+    TARGET boolist
+    SOURCES boolist.cpp
+    LABELS unittest_x86
+    )
+add_custom_x86_test(
+    TARGET ndloops
+    SOURCES ndloops.cpp
+    LABELS unittest_x86
+    )
+add_custom_mc_test(
+    TARGET boolist
+    SOURCES boolist.cpp
+    LABELS unittest_mc
+    )
+add_custom_mc_test(
+    TARGET ndloops
+    SOURCES ndloops.cpp
+    LABELS unittest_mc
+    )
 
-add_custom_host_test(boolist boolist.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
-add_custom_host_test(ndloops ndloops.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
-add_custom_mic_test(boolist boolist.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
-add_custom_mic_test(ndloops ndloops.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
+set(testdir ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication)
+
+set(SOURCES
+    ${testdir}/test_halo_exchange_3D_all.cpp
+    ${testdir}/test_halo_exchange_3D_all_2.cpp
+    ${testdir}/test_halo_exchange_3D_all_3.cpp
+    ${testdir}/test_halo_exchange_3D_generic.cpp
+    ${testdir}/test_halo_exchange_3D_generic_full.cpp
+    )
+set(ADDITIONAL_SOURCES
+    halo_exchange_3D.cpp
+    ${testdir}/test_all_to_all_halo_3D.cpp
+    )
 
 # custom test cases
-if( NOT GCL_ONLY )
-    if( USE_MPI )
-        set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
-        set(ldflags " ")
-        
-        if( NOT "${DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "CPU") 
-            add_custom_mpi_host_test(halo_exchange_3D halo_exchange_3D.cpp ${ccflags} ${ldflags})
+if( NOT GT_GCL_ONLY )
+    if( GT_USE_MPI )
+        foreach (source IN LISTS SOURCES ADDITIONAL_SOURCES)
+            get_filename_component(target ${source} NAME)
+            add_custom_mpi_x86_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                LABELS mpitest_x86
+                )
+            add_custom_mpi_mc_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                LABELS mpitest_mc
+                )
+        endforeach()
+        foreach (source IN LISTS SOURCES)
+            get_filename_component(target ${source} NAME)
+            add_custom_mpi_x86_test(
+                TARGET ${target}_vector
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_x86
+                )
+            add_custom_mpi_mc_test(
+                TARGET ${target}_vector
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_mc
+                )
+        endforeach()
 
-            add_custom_mpi_host_test(all_to_all_halo_3D ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_all_to_all_halo_3D.cpp ${ccflags} ${ldflags})
-
-            add_custom_mpi_host_test(halo_exchange_3D_all ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_all_2 ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_all_3 ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_3.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_generic ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_generic_full ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ${ccflags} ${ldflags})
-
-            set(ccflags " ${HOST_SPECIFIC_OPTIONS} -DVECTOR_INTERFACE" )
-            set(ldflags " ")
-
-            add_custom_mpi_host_test(halo_exchange_3D_all_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_all_2_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_all_3_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_3.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_generic_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_host_test(halo_exchange_3D_generic_full_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ${ccflags} ${ldflags})
-
-            set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
-            set(ldflags " ")
-
-            add_custom_mpi_mic_test(halo_exchange_3D halo_exchange_3D.cpp ${ccflags} ${ldflags})
-
-            add_custom_mpi_mic_test(all_to_all_halo_3D ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_all_to_all_halo_3D.cpp ${ccflags} ${ldflags})
-
-            add_custom_mpi_mic_test(halo_exchange_3D_all ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_all_2 ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_all_3 ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_3.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_generic ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_generic_full ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ${ccflags} ${ldflags})
-
-            set(ccflags " ${HOST_SPECIFIC_OPTIONS} -DVECTOR_INTERFACE" )
-            set(ldflags " ")
-
-            add_custom_mpi_mic_test(halo_exchange_3D_all_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_all_2_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_all_3_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_3.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_generic_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cpp ${ccflags} ${ldflags})
-            add_custom_mpi_mic_test(halo_exchange_3D_generic_full_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cpp ${ccflags} ${ldflags})
-        endif()
-
-        if ( NOT "${DISABLE_MPI_TESTS_ON_TARGET}" STREQUAL "GPU")
-            set(ccflags " ")
-            set(ldflags " ")
-
-            add_custom_mpi_gpu_test(halo_exchange_3D_all ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_all_2 ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_all_3 ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_3.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_generic ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_generic_full ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cu ${ccflags} ${ldflags})
-
-            set(ccflags " -DVECTOR_INTERFACE")
-            set(ldflags " ")
-
-            add_custom_mpi_gpu_test(halo_exchange_3D_all_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_all_2_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_2.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_all_3_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_all_3.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_generic_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic.cu ${ccflags} ${ldflags})
-            add_custom_mpi_gpu_test(halo_exchange_3D_generic_full_v ${CMAKE_CURRENT_SOURCE_DIR}/../../regression/communication/test_halo_exchange_3D_generic_full.cu ${ccflags} ${ldflags})
-        endif()
-
-        ### # 3D MPI tests
-        ### foreach(srcfile halo_exchange_3D ) # proc_grid_3D)
-        ###     set(filename "${srcfile}.cpp")
-        ###     add_custom_comm_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
-        ### endforeach()
-
-        ### # 2D MPI tests
-        ### foreach(srcfile descriptors_3D empty_descriptors_3D boolist ndloops)
-        ###     set(filename "${srcfile}.cpp")
-        ###     add_custom_comm_host_test(${srcfile} ${filename} ${ccflags} ${ldflags})
-        ### endforeach()
-        endif()
+        foreach (source IN LISTS SOURCES)
+            get_filename_component(target ${source} NAME)
+            add_custom_mpi_gpu_test(
+                TARGET ${target}
+                NPROC 4
+                SOURCES ${source}
+                LABELS mpitest_cuda
+                )
+            add_custom_mpi_gpu_test(
+                TARGET ${target}_vector
+                NPROC 4
+                SOURCES ${source}
+                COMPILE_DEFINITIONS VECTOR_INTERFACE
+                LABELS mpitest_cuda
+                )
+        endforeach()
+    endif()
 endif()
