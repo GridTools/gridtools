@@ -86,7 +86,7 @@ namespace gridtools {
 
             template <property Property, class T>
             struct unique_mixin : mixin<Property, T>, unique<Property> {
-                unique_mixin() = default;
+                GT_DECLARE_DEFAULT_EMPTY_CTOR(unique_mixin);
                 unique_mixin(unique_mixin const &) = default;
                 unique_mixin(unique_mixin &&) = default;
                 unique_mixin &operator=(unique_mixin const &) = default;
@@ -116,7 +116,7 @@ namespace gridtools {
             template <class Mixin, class... Mixins>
             struct synthetic<Mixin, Mixins...> : Mixin, Mixins... {
 
-                synthetic() = default;
+                GT_DECLARE_DEFAULT_EMPTY_CTOR(synthetic);
 
                 constexpr GT_FUNCTION synthetic(synthetic<Mixins...> const &&src) noexcept
                     : Mixins(const_expr::move(src))... {}

@@ -186,7 +186,7 @@ namespace gridtools {
                     constexpr GT_FUNCTION composite(tuple<Args...> &&tup) noexcept
                         : m_vals{tuple_util::host_device::generate<generators_t, vals_t>(const_expr::move(tup))} {}
 
-                    composite() = default;
+                    GT_DECLARE_DEFAULT_EMPTY_CTOR(composite);
                     composite(composite const &) = default;
                     composite(composite &&) noexcept = default;
                     composite &operator=(composite const &) = default;

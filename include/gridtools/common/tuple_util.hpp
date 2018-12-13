@@ -146,7 +146,7 @@
 #define GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(class_name, member_name)                                              \
     template <class... Args>                                                                                        \
     constexpr GT_FUNCTION class_name(Args &&... args) noexcept : member_name{const_expr::forward<Args>(args)...} {} \
-    class_name() = default;                                                                                         \
+    GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name);                                                                      \
     class_name(class_name const &) = default;                                                                       \
     class_name(class_name &&) = default;                                                                            \
     class_name &operator=(class_name const &) = default;                                                            \
