@@ -309,20 +309,31 @@ namespace gridtools {
             using ptr_diff_t = typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
                 ptr_diff_type, Sids)...>;
 
-            friend constexpr GT_FUNCTION ptr_t sid_get_origin(composite &obj) {
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+            // Shame on you CUDA 8!!!
+            // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
+#define GT_SID_COMPOSIT_CONSTEXPR
+#else
+#define GT_SID_COMPOSIT_CONSTEXPR constexpr
+#endif
+
+            friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION ptr_t sid_get_origin(composite &obj) {
                 return tuple_util::host_device::transform(get_origin_f{}, obj.m_sids);
             }
 
-            friend constexpr GT_FUNCTION strides_t sid_get_strides(composite const &obj) {
+            friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION strides_t sid_get_strides(composite const &obj) {
                 return tuple_util::host_device::transform(
                     typename composite_impl_::compressed<strides_map_t>::convert_f{},
                     tuple_util::host_device::transpose(tuple_util::host_device::transform(
                         composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
             }
 
-            friend constexpr GT_FUNCTION bounds_validator_t sid_get_bounds_validator(composite const &obj) {
+            friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION bounds_validator_t sid_get_bounds_validator(
+                composite const &obj) {
                 return tuple_util::host_device::transform(get_bounds_validator_f{}, obj.m_sids);
             }
+
+#undef GT_SID_COMPOSIT_CONSTEXPR
 
             friend ptr_diff_t sid_get_ptr_diff(composite const &) { return {}; }
             friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(composite const &) { return {}; }
