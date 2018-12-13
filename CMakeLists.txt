@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-project(GridTools VERSION "1.9.1" LANGUAGES CXX)
+project(GridTools VERSION "0.1.9.1" LANGUAGES CXX)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -33,7 +33,7 @@ include (definitions)
 if (BUILD_TESTING)
     include (testing)
 endif()
-include (gt_bindings)
+include (bindings)
 include (components)
 
 # TODO this install targets are not finished on purpose.
