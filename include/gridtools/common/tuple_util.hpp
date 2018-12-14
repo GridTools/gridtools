@@ -132,13 +132,11 @@
 #include <type_traits>
 #include <utility>
 
+#include "../meta.hpp"
 #include "array.hpp"
 #include "defs.hpp"
 #include "functional.hpp"
-#include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "generic_metafunctions/implicit_cast.hpp"
-#include "generic_metafunctions/meta.hpp"
-#include "generic_metafunctions/type_traits.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
 #include "pair.hpp"
@@ -564,7 +562,7 @@ namespace gridtools {
                         class Res = GT_META_CALL(
                             from_types, (Tup, GT_META_CALL(meta::push_back, (Accessors, Args &&...))))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
-                        return push_back_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
+                        return push_back_impl_f<meta::make_index_sequence<size<Accessors>::value>, Res>{}(
                             const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...);
                     }
                 };
@@ -587,7 +585,7 @@ namespace gridtools {
                         class Res = GT_META_CALL(
                             from_types, (Tup, GT_META_CALL(meta::push_front, (Accessors, Args &&...))))>
                     GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup, Args &&... args) const {
-                        return push_front_impl_f<make_gt_index_sequence<size<Accessors>::value>, Res>{}(
+                        return push_front_impl_f<meta::make_index_sequence<size<Accessors>::value>, Res>{}(
                             const_expr::forward<Tup>(tup), const_expr::forward<Args>(args)...);
                     }
                 };
@@ -1197,7 +1195,7 @@ namespace gridtools {
                     GT_AUTO_RETURN(const_expr::forward<Fun>(f)(const_expr::forward<Args>(args)...));
 
                 template <class Fun, class Tup, std::size_t... Is>
-                GT_TARGET GT_FORCE_INLINE constexpr auto apply_impl(Fun &&f, Tup &&tup, gt_index_sequence<Is...>)
+                GT_TARGET GT_FORCE_INLINE constexpr auto apply_impl(Fun &&f, Tup &&tup, meta::index_sequence<Is...>)
                     GT_AUTO_RETURN(invoke_impl(const_expr::forward<Fun>(f), get<Is>(const_expr::forward<Tup>(tup))...));
             } // namespace detail
 
@@ -1215,7 +1213,7 @@ namespace gridtools {
             GT_TARGET GT_FORCE_INLINE constexpr auto apply(Fun && fun, Tup && tup)
                 GT_AUTO_RETURN(detail::apply_impl(const_expr::forward<Fun>(fun),
                     const_expr::forward<Tup>(tup),
-                    make_gt_index_sequence<size<decay_t<Tup>>::value>{}));
+                    meta::make_index_sequence<size<decay_t<Tup>>::value>{}));
 
             /// Generalization of `std::make_tuple`
             //

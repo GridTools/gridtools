@@ -309,7 +309,7 @@ namespace gridtools {
          */
         template <typename Container, typename Tuple, uint_t... Ids>
         GT_FUNCTION auto static tuple_to_container(
-            Container &&container_, Tuple const &tuple_, gt_integer_sequence<uint_t, Ids...>)
+            Container &&container_, Tuple const &tuple_, meta::integer_sequence<uint_t, Ids...>)
             -> decltype(container_(boost::fusion::at_c<Ids>(tuple_)...)) {
             return container_(boost::fusion::at_c<Ids>(tuple_)...);
         }
@@ -318,7 +318,7 @@ namespace gridtools {
         using ret_t = typename boost::remove_reference<decltype(tuple_to_container(
             std::declval<typename get_storage_accessor<local_domain_t, Acc>::type::storage_t::data_t>(),
             std::declval<global_accessor_with_arguments<Acc, Args...>>().get_arguments(),
-            make_gt_integer_sequence<uint_t, sizeof...(Args)>()))>::type;
+            meta::make_integer_sequence<uint_t, sizeof...(Args)>()))>::type;
 
         /**
          * @brief Method called in the Do methods of the functors.
@@ -339,7 +339,7 @@ namespace gridtools {
             typedef typename Acc::index_t index_t;
             auto storage_ = boost::fusion::at<index_t>(local_data_ptrs()).second;
             return tuple_to_container(
-                *storage_, accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
+                *storage_, accessor.get_arguments(), meta::make_integer_sequence<uint_t, sizeof...(Args)>());
         }
 
         // some aliases to ease the notation

@@ -58,9 +58,8 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/host_device.hpp"
+#include "../../meta.hpp"
 #include "../arg.hpp"
 #include "../hasdo.hpp"
 #include "../iterate_domain_fwd.hpp"

@@ -45,11 +45,9 @@
 #include <boost/fusion/functional/invocation/invoke.hpp>
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
-
+#include "../../../meta.hpp"
 #include "../../../storage/data_field_view.hpp"
-
 #include "../../caches/cache_metafunctions.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
@@ -429,7 +427,7 @@ namespace gridtools {
         }
 
         template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>
-        GT_FUNCTION int_t compute_offset_impl(Accessor const &accessor, gt_index_sequence<Coordinates...>) const {
+        GT_FUNCTION int_t compute_offset_impl(Accessor const &accessor, meta::index_sequence<Coordinates...>) const {
             return accumulate(plus_functor(),
                 (storage_stride<StorageInfo, Coordinates>() *
                     coordinate_offset<StorageInfo, Coordinates>(accessor))...);
@@ -447,7 +445,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, typename Accessor>
         GT_FUNCTION int_t compute_offset(Accessor const &accessor) const {
-            using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+            using sequence_t = meta::make_index_sequence<StorageInfo::layout_t::masked_length>;
             return compute_offset_impl<StorageInfo>(accessor, sequence_t());
         }
     };

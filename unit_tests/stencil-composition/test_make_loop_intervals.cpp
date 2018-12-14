@@ -39,7 +39,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/meta.hpp>
+#include <gridtools/meta.hpp>
 #include <gridtools/stencil-composition/interval.hpp>
 #include <gridtools/stencil-composition/level.hpp>
 

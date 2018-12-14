@@ -40,9 +40,9 @@
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/type_traits.hpp"
 #include "common/definitions.hpp"
 #include "data_store.hpp"
 

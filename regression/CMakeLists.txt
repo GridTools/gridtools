@@ -74,9 +74,6 @@ if( COMPONENT_STENCIL_COMPOSITION )
           endif()
         endforeach(srcfile)
 
-        add_executable(vanilla_laplacian_x86  vanilla_laplacian.cpp)
-        target_link_libraries(vanilla_laplacian_x86 GridToolsTestX86)
-
         if( GT_USE_MPI )
             add_custom_mpi_x86_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
@@ -110,10 +107,6 @@ if( COMPONENT_STENCIL_COMPOSITION )
             add_dependencies(perftests ${srcfile}_mc)
           endif()
         endforeach(srcfile)
-
-
-        add_executable(vanilla_laplacian_mc  vanilla_laplacian.cpp)
-        target_link_libraries(vanilla_laplacian_mc GridToolsTestMC)
 
         if( GT_USE_MPI )
             add_custom_mpi_mc_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)

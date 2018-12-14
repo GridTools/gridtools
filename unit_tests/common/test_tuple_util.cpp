@@ -45,9 +45,8 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/meta.hpp>
-#include <gridtools/common/generic_metafunctions/type_traits.hpp>
 #include <gridtools/common/host_device.hpp>
+#include <gridtools/meta.hpp>
 
 namespace custom {
     struct foo {

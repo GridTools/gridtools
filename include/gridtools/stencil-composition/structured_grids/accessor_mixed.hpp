@@ -37,8 +37,8 @@
 #pragma once
 #include "../../common/defs.hpp"
 #include "../../common/dimension.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/host_device.hpp"
+#include "../../meta.hpp"
 #include "../accessor_fwd.hpp"
 #include "../accessor_metafunctions.hpp"
 

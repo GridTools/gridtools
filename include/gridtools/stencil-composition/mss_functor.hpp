@@ -48,7 +48,7 @@
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta/type_traits.hpp"
 #include "./backend_ids.hpp"
 #include "./backend_traits_fwd.hpp"
 #include "./grid.hpp"

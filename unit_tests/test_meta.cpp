@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/common/generic_metafunctions/meta.hpp>
+#include <gridtools/meta.hpp>
 
 #include <tuple>
 #include <type_traits>
@@ -279,6 +279,12 @@ namespace gridtools {
         static_assert(std::is_same<GT_META_CALL(reverse, (f<int, int *, int **, int ***, int ****, int *****>)),
                           f<int *****, int ****, int ***, int **, int *, int>>{},
             "");
+
+        static_assert(std::is_same<integer_sequence<int>::value_type, int>::value, "");
+        static_assert(integer_sequence<int, 1, 2, 3>::size() == 3, "");
+
+        static_assert(std::is_same<make_integer_sequence<int, 3>, integer_sequence<int, 0, 1, 2>>::value, "");
+        static_assert(std::is_same<make_integer_sequence<bool, 1>, integer_sequence<bool, false>>::value, "");
     } // namespace meta
 } // namespace gridtools
 

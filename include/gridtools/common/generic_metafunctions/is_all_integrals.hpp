@@ -35,8 +35,10 @@
 */
 #pragma once
 
-#include "meta.hpp"
-#include "type_traits.hpp"
+#include <type_traits>
+
+#include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
 
 namespace gridtools {
 

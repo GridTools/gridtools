@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../location_type.hpp"
 #include "./accessor_metafunctions.hpp"
 

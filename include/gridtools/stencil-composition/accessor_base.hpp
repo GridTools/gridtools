@@ -40,10 +40,12 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
-#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/is_list.hpp"
+#include "../meta/is_set.hpp"
+#include "../meta/list.hpp"
+#include "../meta/type_traits.hpp"
+#include "../meta/utility.hpp"
 
 namespace gridtools {
 
@@ -126,13 +128,13 @@ namespace gridtools {
         }
 
         template <ushort_t Dim, ushort_t... Is, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(gt_integer_sequence<ushort_t, Is...>, Ts... srcs) {
+        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(meta::integer_sequence<ushort_t, Is...>, Ts... srcs) {
             return {sum_dimensions<Is + 1>(srcs...)...};
         }
 
         template <ushort_t Dim, class... Ts>
         GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
-            return make_offsets_impl<Dim>(make_gt_integer_sequence<ushort_t, Dim>{}, srcs...);
+            return make_offsets_impl<Dim>(meta::make_integer_sequence<ushort_t, Dim>{}, srcs...);
         }
     } // namespace _impl
 

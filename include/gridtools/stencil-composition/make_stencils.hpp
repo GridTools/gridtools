@@ -41,8 +41,10 @@
 #include <boost/fusion/include/std_tuple.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta/flatten.hpp"
+#include "../meta/list.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/type_traits.hpp"
 #include "independent_esf.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"

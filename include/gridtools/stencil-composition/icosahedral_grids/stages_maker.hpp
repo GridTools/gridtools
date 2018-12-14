@@ -39,8 +39,7 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta.hpp"
 #include "../bind_functor_with_interval.hpp"
 #include "../compute_extents_metafunctions.hpp"
 #include "../fuse_stages.hpp"
