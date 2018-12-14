@@ -36,24 +36,28 @@
 
 #pragma once
 
-#include <type_traits>
-
-#include "list.hpp"
+#include "first.hpp"
 #include "macros.hpp"
+#include "mp_find.hpp"
+#include "mp_remove.hpp"
+#include "push_back.hpp"
 
 namespace gridtools {
     namespace meta {
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
         GT_META_LAZY_NAMESPACE {
-            template <class, template <class...> class = list>
-            struct iseq_to_list;
-            template <template <class T, T...> class ISec, class Int, Int... Is, template <class...> class L>
-            struct iseq_to_list<ISec<Int, Is...>, L> {
-                using type = L<std::integral_constant<Int, Is>...>;
+            template <class Map, class Elem, class OldElem = typename mp_find<Map, typename first<Elem>::type>::type>
+            struct mp_insert;
+
+            template <class Map, template <class...> class L, class Key, class... Vals, class OldElem>
+            struct mp_insert<Map, L<Key, Vals...>, OldElem> {
+                using type = typename push_back<GT_META_CALL(mp_remove, (Map, Key)),
+                    typename push_back<OldElem, Vals...>::type>::type;
             };
+
+            template <class Map, template <class...> class L, class Key, class... Vals>
+            struct mp_insert<Map, L<Key, Vals...>, void> : push_back<Map, L<Key, Vals...>> {};
         }
-        GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
+        GT_META_DELEGATE_TO_LAZY(
+            mp_insert, (class Map, class Elem, class OldElem = mp_find<Map, first<Elem>>), (Map, Elem, OldElem));
     } // namespace meta
 } // namespace gridtools

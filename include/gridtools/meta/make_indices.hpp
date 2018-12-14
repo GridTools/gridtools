@@ -41,6 +41,7 @@
 #include "defs.hpp"
 #include "iseq_to_list.hpp"
 #include "length.hpp"
+#include "list.hpp"
 #include "macros.hpp"
 #include "utility.hpp"
 
@@ -50,25 +51,27 @@ namespace gridtools {
             /**
              *  Make a list of integral constants of indices from 0 to N
              */
-            template <std::size_t N>
-            GT_META_DEFINE_ALIAS(make_indices_c, iseq_to_list, make_index_sequence<N>);
+            template <std::size_t N, template <class...> class L = list>
+            GT_META_DEFINE_ALIAS(make_indices_c, iseq_to_list, (make_index_sequence<N>, L));
 
-            template <class N>
-            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, make_index_sequence<N::value>);
+            template <class N, template <class...> class L = list>
+            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, (make_index_sequence<N::value>, L));
 
             /**
              *  Make a list of integral constants of indices from 0 to length< List >
              */
-            template <class List>
-            GT_META_DEFINE_ALIAS(make_indices_for, iseq_to_list, make_index_sequence<length<List>::value>);
+            template <class List,
+                template <class...> class L = list,
+                template <class T, T> class C = std::integral_constant>
+            GT_META_DEFINE_ALIAS(make_indices_for, iseq_to_list, (make_index_sequence<length<List>::value>, L));
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES
-        template <std::size_t N>
-        using make_indices_c = typename lazy::iseq_to_list<make_index_sequence<N>>::type;
-        template <class N>
-        using make_indices = typename lazy::iseq_to_list<make_index_sequence<N::value>>::type;
-        template <class List>
-        using make_indices_for = typename lazy::iseq_to_list<make_index_sequence<length<List>::value>>::type;
+        template <std::size_t N, template <class...> class L = list>
+        using make_indices_c = typename lazy::iseq_to_list<make_index_sequence<N>, L>::type;
+        template <class N, template <class...> class L = list>
+        using make_indices = typename lazy::iseq_to_list<make_index_sequence<N::value>, L>::type;
+        template <class List, template <class...> class L = list>
+        using make_indices_for = typename lazy::iseq_to_list<make_index_sequence<length<List>::value>, L>::type;
 #endif
     } // namespace meta
 } // namespace gridtools

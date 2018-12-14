@@ -34,26 +34,48 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
+#include <gridtools/stencil-composition/sid/delegate.hpp>
 
-#include <type_traits>
+#include <gtest/gtest.h>
 
-#include "list.hpp"
-#include "macros.hpp"
+#include <gridtools/common/host_device.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/tuple_util.hpp>
+#include <gridtools/meta.hpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
+#include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
-    namespace meta {
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
-        GT_META_LAZY_NAMESPACE {
-            template <class, template <class...> class = list>
-            struct iseq_to_list;
-            template <template <class T, T...> class ISec, class Int, Int... Is, template <class...> class L>
-            struct iseq_to_list<ISec<Int, Is...>, L> {
-                using type = L<std::integral_constant<Int, Is>...>;
-            };
+    namespace {
+        template <class Sid>
+        class i_shifted : public sid::delegate<Sid> {
+            friend GT_FUNCTION GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
+                auto &&impl = obj.impl();
+                auto res = sid::get_origin(impl);
+                sid::shift(res, sid::get_stride<1>(sid::get_strides(impl)), integral_constant<int, 1>());
+                return res;
+            }
+            using sid::delegate<Sid>::delegate;
+        };
+
+        template <class Sid>
+        i_shifted<Sid> i_shift(Sid const &sid) {
+            return i_shifted<Sid>{sid};
         }
-        GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
-    } // namespace meta
+
+        using sid::property;
+        namespace tu = tuple_util;
+
+        TEST(delegate, smoke) {
+            double data[3][5];
+            auto strides = tu::make<tuple>(integral_constant<int, 1>(), integral_constant<int, 5>());
+            auto src = sid::synthetic().set<property::origin>(&data[0][0]).set<property::strides>(strides);
+            auto testee = i_shift(src);
+
+            static_assert(is_sid<decltype(testee)>(), "");
+
+            EXPECT_EQ(&data[0][0], sid::get_origin(src));
+            EXPECT_EQ(&data[1][0], sid::get_origin(testee));
+        }
+    } // namespace
 } // namespace gridtools

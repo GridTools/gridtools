@@ -34,26 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
+#include <gridtools/stencil-composition/sid/clone.hpp>
 
-#include <type_traits>
+#include <gtest/gtest.h>
 
-#include "list.hpp"
-#include "macros.hpp"
+#include <gridtools/stencil-composition/sid/concept.hpp>
+#include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
-    namespace meta {
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
-        GT_META_LAZY_NAMESPACE {
-            template <class, template <class...> class = list>
-            struct iseq_to_list;
-            template <template <class T, T...> class ISec, class Int, Int... Is, template <class...> class L>
-            struct iseq_to_list<ISec<Int, Is...>, L> {
-                using type = L<std::integral_constant<Int, Is>...>;
-            };
+    namespace {
+        TEST(clone, smoke) {
+            double data;
+            auto src = sid::synthetic().set<sid::property::origin>(&data);
+            auto dst = sid::clone(src);
+            EXPECT_EQ(&data, sid::get_origin(dst));
         }
-        GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
-    } // namespace meta
+    } // namespace
 } // namespace gridtools

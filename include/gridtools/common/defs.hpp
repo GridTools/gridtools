@@ -200,6 +200,14 @@ namespace gridtools {
     static_assert(1, "")
 #endif
 
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \
+    __forceinline__ __host__ __device__ constexpr class_name() noexcept {} \
+    static_assert(1, "")
+#else
+#define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name) class_name() = default
+#endif
+
     //################ Type aliases for GridTools ################
 
     /**

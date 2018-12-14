@@ -38,22 +38,24 @@
 
 #include <type_traits>
 
+#include "fold.hpp"
 #include "list.hpp"
 #include "macros.hpp"
+#include "mp_insert.hpp"
 
 namespace gridtools {
     namespace meta {
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
         GT_META_LAZY_NAMESPACE {
-            template <class, template <class...> class = list>
-            struct iseq_to_list;
-            template <template <class T, T...> class ISec, class Int, Int... Is, template <class...> class L>
-            struct iseq_to_list<ISec<Int, Is...>, L> {
-                using type = L<std::integral_constant<Int, Is>...>;
-            };
+            template <class State, class Item>
+            struct mp_inverse_helper;
+
+            template <class State, template <class...> class L, class Key, class... Vals>
+            struct mp_inverse_helper<State, L<Key, Vals...>>
+                : lfold<meta::mp_insert, State, meta::list<L<Vals, Key>...>> {};
         }
-        GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
+        GT_META_DELEGATE_TO_LAZY(mp_inverse_helper, (class State, class Item), (State, Item));
+
+        template <class Src>
+        GT_META_DEFINE_ALIAS(mp_inverse, lfold, (mp_inverse_helper, GT_META_CALL(clear, Src), Src));
     } // namespace meta
 } // namespace gridtools
