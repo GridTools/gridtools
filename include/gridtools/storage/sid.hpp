@@ -37,12 +37,50 @@
 #pragma once
 
 #include "../common/defs.hpp"
+#include "../common/gt_assert.hpp"
 #include "../common/host_device.hpp"
+#include "../common/layout_map.hpp"
+#include "../common/tuple.hpp"
+#include "../common/tuple_util.hpp"
+#include "../meta.hpp"
+#include "common/storage_info_interface.hpp"
 #include "data_store.hpp"
 #include "storage-facility.hpp"
 
 namespace gridtools {
-    namespace storage_sid_impl_ {} // namespace storage_sid_impl_
+    namespace storage_sid_impl_ {
+        template <int I, int MaxI>
+        GT_META_DEFINE_ALIAS(stride_type,
+            meta::if_c,
+            ((I < 0),
+                integral_constant<int_t, 0>,
+                GT_META_CALL(meta::if_c, (I == MaxI, integral_constant<int_t, 1>, int_t))));
+
+        template <class I, class Res>
+        struct stride_generator_f {
+            template <class Src>
+            Res operator()(Src const &) {}
+        };
+
+        template <class I, int V>
+        struct stride_generator_f<I, integral_constant<int_t, V>> {
+            template <class Src>
+            integral_constant<int_t, V> operator()(Src const &src) {
+                assert(src[I::value] == V);
+                return {};
+            }
+        };
+
+        template <class I>
+        struct stride_generator_f<I, int_t> {
+            template <class Src>
+            int_t operator()(Src const &src) {
+                assert(src[I::value] != 0);
+                assert(src[I::value] != 1);
+                return (int)src[I::value];
+            }
+        };
+    } // namespace storage_sid_impl_
 
     template <class Storage, class StorageInfo>
     typename Storage::data_t *sid_get_origin(data_store<Storage, StorageInfo> const &obj) {
@@ -51,14 +89,23 @@ namespace gridtools {
         return advanced::get_raw_pointer_of(make_target_view(obj));
     }
 
-    // TODO(anstaf): we can do better here: return a tuple where strides that are known in complile time are replaced by
-    // integral_constants
-    template <class Storage, class StorageInfo>
-    auto sid_get_strides(data_store<Storage, StorageInfo> const &obj) GT_AUTO_RETURN(obj.strides());
-
-    template <class Storage, class StorageInfo>
-    int_t sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);
+    template <class Storage,
+        uint_t Id,
+        int... Is,
+        class Halo,
+        class Alignment,
+        int MaxI = int(layout_map<Is...>::unmasked_length - 1),
+        class Res = tuple<GT_META_CALL(storage_sid_impl_::stride_type, (Is, MaxI))...>>
+    Res sid_get_strides(
+        data_store<Storage, storage_info_interface<Id, layout_map<Is...>, Halo, Alignment>> const &obj) {
+        using indices_t = GT_META_CALL(meta::make_indices_c, sizeof...(Is));
+        using generators_t = GT_META_CALL(meta::transform, (storage_sid_impl_::stride_generator_f, indices_t, Res));
+        return tuple_util::generate<generators_t, Res>(obj.strides());
+    }
 
     template <class Storage, class StorageInfo>
     StorageInfo sid_get_strides_kind(data_store<Storage, StorageInfo> const &);
+
+    template <class Storage, class StorageInfo>
+    int_t sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);
 } // namespace gridtools
