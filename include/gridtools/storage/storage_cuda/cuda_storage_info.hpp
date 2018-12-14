@@ -64,10 +64,16 @@ namespace gridtools {
     using cuda_storage_info = storage_info_interface<Id, Layout, Halo, Alignment>;
 
     namespace impl_ {
+        /*
+         * @brief Allocates cuda_storage_info on device. Note that the pointer is released from the unique_ptr and
+         * memory is leaked here. This is currently needed as otherwise the device storage_infos of (temporary) fields
+         * with same ID but different storage size might be freed (and overwritten) before access in a stencil run()
+         * method.
+         */
         template <class SI>
         auto make_storage_info_ptr_cache(SI const &src)
             GT_AUTO_RETURN(std::make_pair(src, cuda_util::make_clone(src).release()));
-    }
+    } // namespace impl_
 
     /*
      * @brief retrieve the device pointer. This information is needed when the storage information should be passed
