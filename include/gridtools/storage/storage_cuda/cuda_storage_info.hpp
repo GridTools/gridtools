@@ -63,11 +63,6 @@ namespace gridtools {
         typename Alignment = alignment<32>>
     using cuda_storage_info = storage_info_interface<Id, Layout, Halo, Alignment>;
 
-    namespace impl_ {
-        template <class SI>
-        auto make_storage_info_ptr_cache(SI const &src) GT_AUTO_RETURN(std::make_pair(src, cuda_util::make_clone(src)));
-    }
-
     /*
      * @brief retrieve the device pointer. This information is needed when the storage information should be passed
      * to a kernel.
@@ -76,10 +71,10 @@ namespace gridtools {
     template <uint_t Id, typename Layout, typename Halo, typename Alignment>
     storage_info_interface<Id, Layout, Halo, Alignment> *get_gpu_storage_info_ptr(
         storage_info_interface<Id, Layout, Halo, Alignment> const &src) {
-        thread_local static auto cache = impl_::make_storage_info_ptr_cache(src);
-        if (cache.first != src)
-            cache = impl_::make_storage_info_ptr_cache(src);
-        return cache.second.get();
+        storage_info_interface<Id, Layout, Halo, Alignment> *ptr;
+        GT_CUDA_CHECK(cudaMalloc(&ptr, sizeof(decltype(*ptr))));
+        GT_CUDA_CHECK(cudaMemcpy(ptr, &src, sizeof(decltype(*ptr)), cudaMemcpyHostToDevice));
+        return ptr;
     }
     /**
      * @}
