@@ -475,10 +475,9 @@ namespace shallow_water {
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE INIT ################" << std::endl;
-        auto view = make_field_host_view(reference.solution);
-        view00 = view.get<0, 0>();
-        view10 = view.get<1, 0>();
-        view20 = view.get<2, 0>();
+        view00 = make_host_view(reference.h);
+        view10 = make_host_view(reference.u);
+        view20 = make_host_view(reference.v);
         myfile << "REF INIT VALUES view00" << std::endl;
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
             for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
@@ -509,14 +508,13 @@ namespace shallow_water {
             reference.iterate();
         }
 
-        retval &= check_result.verify(grid, reference.solution.get_field()[0], h, halos);
+        retval &= check_result.verify(grid, reference.h, h, halos);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
-        view = make_field_host_view(reference.solution);
-        view00 = view.get<0, 0>();
-        view10 = view.get<1, 0>();
-        view20 = view.get<2, 0>();
+        view00 = make_host_view(reference.h);
+        view10 = make_host_view(reference.u);
+        view20 = make_host_view(reference.v);
 
         myfile << "REF VALUES view00" << std::endl;
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {

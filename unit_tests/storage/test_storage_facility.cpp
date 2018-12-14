@@ -83,16 +83,6 @@ struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
     // storage check
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, cuda_storage<double>>::type::value),
         "data store storage type is wrong");
-
-    /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits_t::data_store_field_t<double, storage_info_ty, 1, 2, 3> data_store_field_t;
-    // data store check (data_t is common, storage_info_t was typedefed before)
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::storage_info_t, storage_info_ty>::type::value),
-        "data store field info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_store_t, data_store_t>::type::value),
-        "internal data store type of data store field type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_t, double>::type::value),
-        "data store field value type is wrong");
 };
 #endif
 
@@ -142,16 +132,6 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
     // storage check
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
         "data store storage type is wrong");
-
-    /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits_t::data_store_field_t<double, storage_info_ty, 1, 2, 3> data_store_field_t;
-    // data store check (data_t is common, storage_info_t was typedefed before)
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::storage_info_t, storage_info_ty>::type::value),
-        "data store field info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_store_t, data_store_t>::type::value),
-        "internal data store type of data store field type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_t, double>::type::value),
-        "data store field value type is wrong");
 };
 
 // static type tests for Host backend
@@ -186,16 +166,6 @@ struct static_type_tests<backend<target::x86, GridBackend, Strategy>> {
     // storage check
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, host_storage<double>>::type::value),
         "data store storage type is wrong");
-
-    /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits_t::data_store_field_t<double, storage_info_ty, 1, 2, 3> data_store_field_t;
-    // data store check (data_t is common, storage_info_t was typedefed before)
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::storage_info_t, storage_info_ty>::type::value),
-        "data store field info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_store_t, data_store_t>::type::value),
-        "internal data store type of data store field type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_t, double>::type::value),
-        "data store field value type is wrong");
 };
 
 template class static_type_tests<backend_t>;
@@ -213,8 +183,6 @@ __global__ void kernel(View v) {
 TEST(StorageFacility, ViewTests) {
     typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_ty;
     typedef storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_ty> data_store_t;
-    typedef storage_traits<backend_t::backend_id_t>::data_store_field_t<double, storage_info_ty, 1, 2, 3>
-        data_store_field_t;
 
     // create a data_store_t
     storage_info_ty si(3, 3, 3);
