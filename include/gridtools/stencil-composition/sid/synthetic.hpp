@@ -43,7 +43,7 @@
 namespace gridtools {
     namespace sid {
 
-        enum class property { origin, strides, bounds_validator, ptr_diff, strides_kind, bounds_validator_kind };
+        enum class property { origin, strides, ptr_diff, strides_kind };
 
         namespace synthetic_impl_ {
             template <property Property, class T>
@@ -62,12 +62,6 @@ namespace gridtools {
             };
 
             template <class T>
-            struct mixin<property::bounds_validator, T> {
-                T m_val;
-                friend constexpr GT_FUNCTION T sid_get_bounds_validator(mixin const &obj) noexcept { return obj.m_val; }
-            };
-
-            template <class T>
             struct mixin<property::ptr_diff, T> {
                 friend T sid_get_ptr_diff(mixin const &) { return {}; }
             };
@@ -76,11 +70,6 @@ namespace gridtools {
             struct mixin<property::strides_kind, T> {};
             template <class T>
             T sid_get_strides_kind(mixin<property::strides_kind, T> const &);
-
-            template <class T>
-            struct mixin<property::bounds_validator_kind, T> {};
-            template <class T>
-            T sid_get_bounds_validator_kind(mixin<property::bounds_validator_kind, T> const &);
 
             template <property>
             struct unique {};
@@ -147,10 +136,8 @@ namespace gridtools {
          *  auto my_sid = synthetic()
          *      .set<property::origin>(origin)
          *      .set<property::strides>(strides)
-         *      .set<property::bounds_validator>(the_bounds_validator)
          *      .set<property::ptr_diff, ptr_diff>()
-         *      .set<property::strides_kind, strides_kind>()
-         *      .set<property::bounds_validator_kind, bounds_validator_kind>();
+         *      .set<property::strides_kind, strides_kind>();
          *
          *  only `set<property::origin>` is required. Other `set`'s can be skipped.
          *  `set`'s can go in any order. `set` of the given property can participate at most once.

@@ -67,22 +67,6 @@ namespace gridtools {
 
         struct my_strides_kind;
 
-        template <class T>
-        struct ptr_validadator_f {
-            T *m_origin;
-            ptrdiff_t m_size;
-
-            GT_FUNCTION bool operator()(T *ptr) const {
-                ptrdiff_t diff = ptr - m_origin;
-                return diff >= 0 && diff < m_size;
-            }
-        };
-
-        template <class T>
-        ptr_validadator_f<T> ptr_validator(T *origin, ptrdiff_t size) {
-            return {origin, size};
-        }
-
         TEST(composite, functional) {
             double const one[5] = {0, 10, 20, 30, 40};
             double two = -1;
@@ -96,8 +80,6 @@ namespace gridtools {
                     sid::synthetic()                                                                  //
                         .set<property::origin>(&one[0])                                               //
                         .set<property::strides>(tuple_util::make<tuple>(integral_constant<int, 1>())) //
-                        .set<property::bounds_validator>(ptr_validator(&one[0], 5))                   //
-                        .set<property::bounds_validator_kind, integral_constant<int, 1>>()            //
                     ,                                                                                 //
                     sid::synthetic()                                                                  //
                         .set<property::origin>(&two)                                                  //
@@ -106,15 +88,11 @@ namespace gridtools {
                         .set<property::origin>(&three[0][0][0])                                       //
                         .set<property::strides>(my_strides)                                           //
                         .set<property::strides_kind, my_strides_kind>()                               //
-                        .set<property::bounds_validator>(ptr_validator(&three[0][0][0], 60))          //
-                        .set<property::bounds_validator_kind, integral_constant<int, 2>>()            //
                     ,                                                                                 //
                     sid::synthetic()                                                                  //
                         .set<property::origin>(&four[0][0][0])                                        //
                         .set<property::strides>(my_strides)                                           //
                         .set<property::strides_kind, my_strides_kind>()                               //
-                        .set<property::bounds_validator>(ptr_validator(&four[0][0][0], 60))           //
-                        .set<property::bounds_validator_kind, integral_constant<int, 3>>()            //
                 );
             static_assert(is_sid<decltype(testee)>(), "");
 
@@ -170,35 +148,6 @@ namespace gridtools {
             ptr = sid::get_origin(testee) + ptr_diff;
             EXPECT_EQ(&three[1][2][3], get<2>(ptr));
             EXPECT_EQ(&four[1][2][3], get<3>(ptr));
-
-            auto validator = sid::get_bounds_validator(testee);
-
-            ptr = sid::get_origin(testee);
-
-            EXPECT_TRUE(validator(ptr));
-            EXPECT_TRUE(get<0>(validator)(get<0>(ptr)));
-            EXPECT_TRUE(get<1>(validator)(get<1>(ptr)));
-            EXPECT_TRUE(get<2>(validator)(get<2>(ptr)));
-            EXPECT_TRUE(get<3>(validator)(get<3>(ptr)));
-
-            sid::shift(ptr, get<0>(strides), -1);
-
-            EXPECT_FALSE(validator(ptr));
-            EXPECT_FALSE(get<0>(validator)(get<0>(ptr)));
-            EXPECT_TRUE(get<1>(validator)(get<1>(ptr)));
-            EXPECT_FALSE(get<2>(validator)(get<2>(ptr)));
-            EXPECT_FALSE(get<3>(validator)(get<3>(ptr)));
-
-            ptr = sid::get_origin(testee);
-            sid::shift(ptr, get<0>(strides), 4);
-            sid::shift(ptr, get<1>(strides), 3);
-            sid::shift(ptr, get<2>(strides), 3);
-
-            EXPECT_FALSE(validator(ptr));
-            EXPECT_TRUE(get<0>(validator)(get<0>(ptr)));
-            EXPECT_TRUE(get<1>(validator)(get<1>(ptr)));
-            EXPECT_FALSE(get<2>(validator)(get<2>(ptr)));
-            EXPECT_FALSE(get<3>(validator)(get<3>(ptr)));
         }
     } // namespace
 } // namespace gridtools

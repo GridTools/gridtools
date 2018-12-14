@@ -70,12 +70,6 @@ namespace gridtools {
                 friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
             };
             using strides = array<stride, 2>;
-            struct bounds_validator {
-                template <class T>
-                GT_FUNCTION false_type operator()(T &&) const {
-                    return {};
-                }
-            };
 
             struct strides_kind;
             struct bounds_validator_kind;
@@ -83,7 +77,6 @@ namespace gridtools {
             struct testee {
                 friend GT_FUNCTION ptr sid_get_origin(testee &) { return {}; }
                 friend GT_FUNCTION strides sid_get_strides(testee const &) { return {}; }
-                friend GT_FUNCTION bounds_validator sid_get_bounds_validator(testee const &) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
                 friend strides_kind sid_get_strides_kind(testee);
@@ -92,16 +85,13 @@ namespace gridtools {
 
             static_assert(is_sid<testee>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_type, testee), bounds_validator>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::reference_type, testee), element &>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::element_type, testee), element>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::const_reference_type, testee), element const &>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator_kind>(), "");
 
             static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), ptr>::value, "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
-            static_assert(std::is_same<decltype(sid::get_bounds_validator(testee{})), bounds_validator>(), "");
 
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<0>(strides{}))>, stride>(), "");
             static_assert(std::is_same<decay_t<decltype(sid::get_stride<1>(strides{}))>, stride>(), "");
@@ -129,15 +119,8 @@ namespace gridtools {
             using strides = GT_META_CALL(sid::strides_type, testee);
             static_assert(tuple_util::size<strides>() == 0, "");
 
-            using bounds_validator = GT_META_CALL(sid::bounds_validator_type, testee);
-            static_assert(bounds_validator{}(testee{}), "");
-
-            static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator>(), "");
-
             static_assert(std::is_same<decltype(sid::get_origin(std::declval<testee &>())), testee *>(), "");
             static_assert(std::is_same<decltype(sid::get_strides(testee{})), strides>(), "");
-            static_assert(std::is_same<decltype(sid::get_bounds_validator(testee{})), bounds_validator>(), "");
 
             constexpr auto stride = sid::get_stride<0>(strides{});
             static_assert(stride == 0, "");

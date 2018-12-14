@@ -53,12 +53,6 @@ namespace gridtools {
                 constexpr GT_FUNCTION auto operator()(T const &obj) const GT_AUTO_RETURN(*obj);
             };
 
-            struct call_with_f {
-                template <class Fun, class... Args>
-                constexpr GT_FUNCTION auto operator()(Fun &&fun, Args &&... args) const
-                    GT_AUTO_RETURN(const_expr::forward<Fun>(fun)(const_expr::forward<Args>(args)...));
-            };
-
             template <class... Ptrs>
             struct composite_ptr {
                 tuple<Ptrs...> m_vals;
@@ -169,7 +163,7 @@ namespace gridtools {
             }
 
             /**
-             *  Implements strides, ptr_diffs and bounds_validators compression based on skipping the objects of the
+             *  Implements strides and ptr_diffs compression based on skipping the objects of the
              *  same kind.
              *
              *  `composite` objects pretend to be a tuples of `uncompressed` types (aka external tuple), but internally
@@ -227,11 +221,6 @@ namespace gridtools {
                     composite(composite &&) noexcept = default;
                     composite &operator=(composite const &) = default;
                     composite &operator=(composite &&) noexcept = default;
-
-                    template <class... Ptrs>
-                    constexpr GT_FUNCTION bool operator()(composite_ptr<Ptrs...> const &ptr) const {
-                        return tuple_util::host_device::all_of(call_with_f{}, *this, ptr.m_vals);
-                    }
 
                     friend compressed tuple_getter(composite const &) { return {}; }
 
@@ -323,11 +312,13 @@ namespace gridtools {
 
             // Extracted lists of raw kinds (uncompresed)
             using strides_kinds_t = meta::list<GT_META_CALL(strides_kind, Sids)...>;
-            using bounds_validator_kinds_t = meta::list<GT_META_CALL(bounds_validator_kind, Sids)...>;
 
-            // The index maps that is needed to build `compressed<Map>::composite` objects
-            using strides_map_t = GT_META_CALL(composite_impl_::make_index_map, strides_kinds_t);
-            using bounds_validator_map_t = GT_META_CALL(composite_impl_::make_index_map, bounds_validator_kinds_t);
+            // The index map that is needed to build compressed composite objects
+            using map_t = GT_META_CALL(composite_impl_::make_index_map, strides_kinds_t);
+            using compressed_t = composite_impl_::compressed<map_t>;
+
+            template <class... Ts>
+            GT_META_DEFINE_ALIAS(compress, meta::id, (typename compressed_t::template composite<Ts...>));
 
             // A helper for generating strides_t
             // It is a tuple containing indices of the strides to generate
@@ -338,22 +329,14 @@ namespace gridtools {
             // It is a metafuntion from the stride index to the stride type
             template <class I>
             GT_META_DEFINE_ALIAS(get_stride_type,
-                meta::id,
-                (typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
-                        composite_impl_::normalized_stride_type,
-                        (I, decay_t < GT_META_CALL(strides_type, Sids)) >)...>));
+                compress,
+                (GT_META_CALL(
+                    composite_impl_::normalized_stride_type, (I, decay_t < GT_META_CALL(strides_type, Sids)) >)...));
 
             // all `SID` types are here
             using ptr_t = composite_impl_::composite_ptr<GT_META_CALL(ptr_type, Sids)...>;
-
             using strides_t = GT_META_CALL(meta::transform, (get_stride_type, stride_indices_t));
-
-            using bounds_validator_t =
-                typename composite_impl_::compressed<bounds_validator_map_t>::template composite<GT_META_CALL(
-                    bounds_validator_type, Sids)...>;
-
-            using ptr_diff_t = typename composite_impl_::compressed<strides_map_t>::template composite<GT_META_CALL(
-                ptr_diff_type, Sids)...>;
+            using ptr_diff_t = GT_META_CALL(compress, (GT_META_CALL(ptr_diff_type, Sids)...));
 
           public:
             // Here the `SID` concept is modeled
@@ -371,15 +354,9 @@ namespace gridtools {
             }
 
             friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION strides_t sid_get_strides(composite const &obj) {
-                return tuple_util::host_device::transform(
-                    typename composite_impl_::compressed<strides_map_t>::convert_f{},
+                return tuple_util::host_device::transform(typename compressed_t::convert_f{},
                     tuple_util::host_device::transpose(tuple_util::host_device::transform(
                         composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
-            }
-
-            friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION bounds_validator_t sid_get_bounds_validator(
-                composite const &obj) {
-                return tuple_util::host_device::transform(get_bounds_validator_f{}, obj.m_sids);
             }
 
 #undef GT_SID_COMPOSIT_CONSTEXPR
@@ -387,11 +364,6 @@ namespace gridtools {
             friend ptr_diff_t sid_get_ptr_diff(composite const &) { return {}; }
 
             friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(composite const &) { return {}; }
-
-            friend GT_META_CALL(meta::dedup, bounds_validator_kinds_t)
-                sid_get_bounds_validator_kind(composite const &) {
-                return {};
-            }
 
             // Here the `tule_like` concept is modeled
 

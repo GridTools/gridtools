@@ -43,49 +43,25 @@
 namespace gridtools {
     namespace sid {
         namespace clone_impl_ {
-            template <class Ptr,
-                class Strides,
-                class BoundsValidator,
-                class PtrDiff,
-                class StridesKind,
-                class BoundsValidatorKind>
+            template <class Ptr, class Strides, class PtrDiff, class StridesKind>
             struct cloned {
                 Ptr m_origin;
                 Strides m_strides;
-                BoundsValidator m_bounds_validator;
 
                 friend constexpr GT_FUNCTION Ptr sid_get_origin(cloned &obj) { return obj.m_origin; }
                 friend constexpr GT_FUNCTION Strides sid_get_strides(cloned const &obj) { return obj.m_strides; }
-                friend constexpr GT_FUNCTION BoundsValidator sid_get_bounds_validator(cloned const &obj) {
-                    return obj.m_bounds_validator;
-                }
 
                 friend PtrDiff sid_get_ptr_diff(cloned const &) { return {}; }
             };
 
-            template <class Ptr,
-                class Strides,
-                class BoundsValidator,
-                class PtrDiff,
-                class StridesKind,
-                class BoundsValidatorKind>
-            StridesKind sid_get_strides_kind(
-                cloned<Ptr, Strides, BoundsValidator, PtrDiff, StridesKind, BoundsValidatorKind> const &);
-
-            template <class Ptr,
-                class Strides,
-                class BoundsValidator,
-                class PtrDiff,
-                class StridesKind,
-                class BoundsValidatorKind>
-            BoundsValidatorKind sid_get_bounds_validator_kind(
-                cloned<Ptr, Strides, BoundsValidator, PtrDiff, StridesKind, BoundsValidatorKind> const &);
+            template <class Ptr, class Strides, class PtrDiff, class StridesKind>
+            StridesKind sid_get_strides_kind(cloned<Ptr, Strides, PtrDiff, StridesKind> const &);
         } // namespace clone_impl_
 
         /**
          *  Create an object that models `SID` concept and create another object that also models a `SID`.
          *
-         *  The created object is implemnted as triple of `origin`, `strides` and `bounds_validator` from the source.
+         *  The created object is implemented as a pair of `origin` and `strides` from the source.
          *  The remarkable feature of it, that it is trivially copyable. This allows to send it through the
          * `host`/`device` boundaries.
          *
@@ -97,14 +73,12 @@ namespace gridtools {
         template <class Sid,
             class Res = clone_impl_::cloned<GT_META_CALL(ptr_type, Sid),
                 GT_META_CALL(strides_type, Sid),
-                GT_META_CALL(bounds_validator_type, Sid),
                 GT_META_CALL(ptr_diff_type, Sid),
-                GT_META_CALL(strides_kind, Sid),
-                GT_META_CALL(bounds_validator_kind, Sid)>>
+                GT_META_CALL(strides_kind, Sid)>>
         constexpr GT_FUNCTION Res clone(Sid &src) noexcept {
             GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(is_sid<Res>::value, GT_INTERNAL_ERROR);
-            return {get_origin(src), get_strides(src), get_bounds_validator(src)};
+            return {get_origin(src), get_strides(src)};
         }
     } // namespace sid
 } // namespace gridtools

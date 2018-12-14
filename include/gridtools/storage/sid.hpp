@@ -42,15 +42,7 @@
 #include "storage-facility.hpp"
 
 namespace gridtools {
-    namespace storage_sid_impl_ {
-        template <class T>
-        struct bounds_validator_f {
-            T *m_begin;
-            T *m_end;
-
-            GT_FUNCTION bool operator()(T *ptr) const { return ptr >= m_begin && ptr < m_end; }
-        };
-    } // namespace storage_sid_impl_
+    namespace storage_sid_impl_ {} // namespace storage_sid_impl_
 
     template <class Storage, class StorageInfo>
     typename Storage::data_t *sid_get_origin(data_store<Storage, StorageInfo> const &obj) {
@@ -63,13 +55,6 @@ namespace gridtools {
     // integral_constants
     template <class Storage, class StorageInfo>
     auto sid_get_strides(data_store<Storage, StorageInfo> const &obj) GT_AUTO_RETURN(obj.strides());
-
-    template <class Storage, class StorageInfo>
-    storage_sid_impl_::bounds_validator_f<typename Storage::data_t> sid_get_bounds_validator(
-        data_store<Storage, StorageInfo> const &obj) {
-        auto origin = sid_get_origin(obj);
-        return {origin, origin + obj.total_length()};
-    }
 
     template <class Storage, class StorageInfo>
     int_t sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);

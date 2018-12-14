@@ -62,10 +62,6 @@ namespace gridtools {
             friend constexpr GT_FUNCTION GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
-            friend constexpr GT_FUNCTION GT_META_CALL(bounds_validator_type, Sid)
-                sid_get_bounds_validator(delegate const &obj) {
-                return get_bounds_validator(obj.m_impl);
-            }
             friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
 
           protected:
@@ -80,9 +76,5 @@ namespace gridtools {
         template <class Sid>
         GT_META_CALL(strides_kind, Sid)
         sid_get_strides_kind(delegate<Sid> const &);
-
-        template <class Sid>
-        GT_META_CALL(bounds_validator_kind, Sid)
-        sid_get_bounds_validator_kind(delegate<Sid> const &);
     } // namespace sid
 } // namespace gridtools
