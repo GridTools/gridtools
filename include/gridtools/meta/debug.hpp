@@ -36,24 +36,39 @@
 
 #pragma once
 
-#include <type_traits>
+#include <boost/preprocessor.hpp>
 
-#include "list.hpp"
-#include "macros.hpp"
+/**
+ *  This macro expands to the code snippet that generates a compiler error that refers to the type(s) `x`
+ *
+ *  Works also with parameter packs. I.e you can both `GT_META_PRINT_TYPE(SomeType)` and
+ * `GT_META_PRINT_TYPE(SomeTypes...)`
+ */
+#define GT_META_PRINT_TYPE(x) static_assert(::gridtools::meta::debug::type<BOOST_PP_REMOVE_PARENS(x)>::_, "")
+
+/**
+ *  This macro expands to the code snippet that generates a compiler error that refers to the compile time value(s) of
+ * the integral type  `x`
+ *
+ *  Works also with parameter packs. I.e you can both `GT_META_PRINT_VALUE(SomeValue)` and
+ * `GT_META_PRINT_VALUE(SomeValues...)`
+ */
+#define GT_META_PRINT_VALUE(x)                                                                                \
+    static_assert(                                                                                            \
+        ::gridtools::meta::debug::value<decltype(::gridtools::meta::debug::first(BOOST_PP_REMOVE_PARENS(x))), \
+            BOOST_PP_REMOVE_PARENS(x)>::_,                                                                    \
+        "")
 
 namespace gridtools {
     namespace meta {
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
-        GT_META_LAZY_NAMESPACE {
-            template <class, template <class...> class = list>
-            struct iseq_to_list;
-            template <template <class T, T...> class ISec, class Int, Int... Is, template <class...> class L>
-            struct iseq_to_list<ISec<Int, Is...>, L> {
-                using type = L<std::integral_constant<Int, Is>...>;
-            };
-        }
-        GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
-    } // namespace meta
+        namespace debug {
+            template <class T>
+            T first(T, ...);
+
+            template <class...>
+            struct type {};
+            template <class T, T...>
+            struct value {};
+        } // namespace debug
+    }     // namespace meta
 } // namespace gridtools

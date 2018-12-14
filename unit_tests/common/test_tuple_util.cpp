@@ -326,5 +326,14 @@ namespace gridtools {
                 transpose(make<std::array>(make<std::pair>(1, 10), make<std::pair>(2, 20), make<std::pair>(3, 30))),
                 make<std::pair>(make<std::array>(1, 2, 3), make<std::array>(10, 20, 30)));
         }
+
+        TEST(all_of, functional) {
+            auto testee = all_of([](int i) { return i % 2; });
+            EXPECT_TRUE(testee(make<std::tuple>(1, 3, 99, 7)));
+            EXPECT_FALSE(testee(make<std::tuple>(1, 3, 2, 7, 100)));
+
+            EXPECT_TRUE(all_of(
+                [](int l, int r) { return l == r; }, make<std::tuple>(1, 3, 99, 7), make<std::tuple>(1, 3, 99, 7)));
+        }
     } // namespace tuple_util
 } // namespace gridtools

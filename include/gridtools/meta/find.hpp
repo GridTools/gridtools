@@ -38,22 +38,22 @@
 
 #include <type_traits>
 
-#include "list.hpp"
-#include "macros.hpp"
-
 namespace gridtools {
     namespace meta {
-        /**
-         *  Convert an integer sequence to a list of corresponding integral constants.
-         */
-        GT_META_LAZY_NAMESPACE {
-            template <class, template <class...> class = list>
-            struct iseq_to_list;
-            template <template <class T, T...> class ISec, class Int, Int... Is, template <class...> class L>
-            struct iseq_to_list<ISec<Int, Is...>, L> {
-                using type = L<std::integral_constant<Int, Is>...>;
-            };
+        constexpr size_t find_impl_helper(bool const *first, bool const *last) {
+            return first == last || *first ? 0 : 1 + find_impl_helper(first + 1, last);
         }
-        GT_META_DELEGATE_TO_LAZY(iseq_to_list, (class ISec, template <class...> class L = list), (ISec, L));
+
+        template <class, class>
+        struct find_impl;
+
+        template <template <class...> class L, class... Ts, class Key>
+        struct find_impl<L<Ts...>, Key> {
+            static constexpr bool values[] = {std::is_same<Ts, Key>::value...};
+            static constexpr size_t value = find_impl_helper(values, values + sizeof...(Ts));
+        };
+
+        template <class List, class Key>
+        struct find : std::integral_constant<size_t, find_impl<List, Key>::value> {};
     } // namespace meta
 } // namespace gridtools
