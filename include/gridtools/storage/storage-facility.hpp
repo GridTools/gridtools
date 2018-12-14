@@ -39,21 +39,17 @@
 #include "../common/layout_map.hpp"
 #include "common/definitions.hpp"
 #include "data_store.hpp"
-#include "data_store_field.hpp"
 
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 
-#include "storage_cuda/data_field_view_helpers.hpp"
 #include "storage_cuda/data_view_helpers.hpp"
 #endif
 
 #include "storage_traits_host.hpp"
 #include "storage_traits_mc.hpp"
 
-#include "storage_host/data_field_view_helpers.hpp"
 #include "storage_host/data_view_helpers.hpp"
-#include "storage_mc/data_field_view_helpers.hpp"
 #include "storage_mc/data_view_helpers.hpp"
 
 /**
@@ -93,9 +89,6 @@ namespace gridtools {
 
         template <typename ValueType, typename StorageInfo>
         using data_store_t = data_store<storage_t<ValueType>, StorageInfo>;
-
-        template <typename ValueType, typename StorageInfo, uint_t... N>
-        using data_store_field_t = data_store_field<data_store_t<ValueType, StorageInfo>, N...>;
 
         template <uint_t Id, uint_t Dims, typename Halo, typename Align>
         using storage_info_align_t = typename gridtools::storage_traits_from_id<

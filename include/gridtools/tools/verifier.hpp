@@ -94,9 +94,6 @@ namespace gridtools {
             StorageType const &expected_field,
             StorageType const &actual_field,
             array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> halos = {}) {
-            if (StorageType::num_of_storages > 1)
-                throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
-
             // TODO This is following the original implementation. Shouldn't we deduce the range from the grid (as we
             // already pass it)?
             storage_info_rt meta_rt = make_storage_info_rt(*(expected_field.get_storage_info_ptr()));

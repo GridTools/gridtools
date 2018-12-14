@@ -47,7 +47,6 @@
 #include "../../../common/generic_metafunctions/for_each.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../../meta.hpp"
-#include "../../../storage/data_field_view.hpp"
 #include "../../caches/cache_metafunctions.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
