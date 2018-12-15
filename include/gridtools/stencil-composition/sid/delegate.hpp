@@ -36,8 +36,6 @@
 #pragma once
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
-#include "../../common/host_device.hpp"
 #include "../../meta/macros.hpp"
 #include "concept.hpp"
 
@@ -56,21 +54,21 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-            friend constexpr GT_FUNCTION GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
+            friend constexpr GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
                 return get_origin(obj.m_impl);
             }
-            friend constexpr GT_FUNCTION GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
+            friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
                 return get_strides(obj.m_impl);
             }
             friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
 
           protected:
-            constexpr GT_FUNCTION Sid const &impl() const { return m_impl; }
-            GT_FUNCTION Sid &impl() { return m_impl; }
+            constexpr Sid const &impl() const { return m_impl; }
+            Sid &impl() { return m_impl; }
 
           public:
-            explicit constexpr GT_FUNCTION delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit constexpr GT_FUNCTION delegate(Sid &&impl) noexcept : m_impl(const_expr::move(impl)) {}
+            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
+            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
         };
 
         template <class Sid>

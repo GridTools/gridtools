@@ -58,7 +58,8 @@ namespace gridtools {
                 tuple<Ptrs...> m_vals;
                 GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite_ptr, m_vals);
                 GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite_ptr, m_vals);
-                constexpr auto operator*() const GT_AUTO_RETURN(tuple_util::host_device::transform(deref_f{}, m_vals));
+                constexpr GT_FUNCTION auto operator*() const
+                    GT_AUTO_RETURN(tuple_util::host_device::transform(deref_f{}, m_vals));
             };
 
             GT_META_LAZY_NAMESPACE {
@@ -83,41 +84,31 @@ namespace gridtools {
                 meta::first,
                 (GT_META_CALL(meta::lfold, (make_map_helper, meta::list<tuple<>, meta::list<>>, Kinds))));
 
-            struct low_rank {};
-
-            struct high_rank : low_rank {};
-
             /**
-             *  `maybe_equal(lhs, rhs, high_rank{})` is a functional equivalent of the following pseudo code:
+             *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
              *   `<no_equal_operator_exists> || lhs == rhs;
              *
              *   It is implemented as following:
              *   - the first overload can be chosen only if `lhs == rhs` defined [SFINAE: `decltype(lhs == rhs)` is a
              *     part of the signature]
-             *   - the second overload can be chosen only if the first failed. [because matching `high_rank` (actual
-             *     argument type) against `low_rank` (parameter type) is worse than matching `high_rank` against
-             *     `high_rank`]
+             *   - the second overload can be chosen only if the first failed.
              */
             template <class T>
-            GT_FUNCTION auto maybe_equal(T const &lhs, T const &rhs, high_rank) -> decltype(lhs == rhs) {
+            auto maybe_equal(T const &lhs, T const &rhs) -> decltype(lhs == rhs) {
                 return lhs == rhs;
             }
 
-            template <class T>
-            GT_FUNCTION bool maybe_equal(T const &lhs, T const &rhs, low_rank) {
-                return true;
-            }
+            GT_FORCE_INLINE bool maybe_equal(...) { return true; }
 
             template <class PrimaryValue, class Tup>
-            GT_FUNCTION bool are_secondaries_equal_to_primary(PrimaryValue const &, Tup const &) {
+            bool are_secondaries_equal_to_primary(PrimaryValue const &, Tup const &) {
                 return true;
             }
 
             template <class SecondaryIndex, class... SecondaryIndices, class PrimaryValue, class Tup>
-            GT_FUNCTION bool are_secondaries_equal_to_primary(PrimaryValue const &primary_value, Tup const &tup) {
+            bool are_secondaries_equal_to_primary(PrimaryValue const &primary_value, Tup const &tup) {
                 return are_secondaries_equal_to_primary<SecondaryIndices...>(primary_value, tup) &&
-                       maybe_equal(
-                           tuple_util::host_device::get<SecondaryIndex::value>(tup), primary_value, high_rank{});
+                       maybe_equal(tuple_util::get<SecondaryIndex::value>(tup), primary_value);
             }
 
             template <class>
@@ -128,14 +119,14 @@ namespace gridtools {
                 using type = item_generator;
 
                 template <class Args, class Res = GT_META_CALL(tuple_util::element, (PrimaryIndex::value, Args))>
-                GT_FUNCTION Res const &operator()(Args const &args) const noexcept {
+                Res const &operator()(Args const &args) const noexcept {
                     GRIDTOOLS_STATIC_ASSERT(
                         (conjunction<std::is_same<GT_META_CALL(tuple_util::element, (SecondaryIndices::value, Args)),
                                 Res>...>::value),
                         GT_INTERNAL_ERROR);
                     assert((are_secondaries_equal_to_primary<SecondaryIndices...>(
-                        tuple_util::host_device::get<PrimaryIndex::value>(args), args)));
-                    return tuple_util::host_device::get<PrimaryIndex::value>(args);
+                        tuple_util::get<PrimaryIndex::value>(args), args)));
+                    return tuple_util::get<PrimaryIndex::value>(args);
                 }
             };
 
@@ -143,7 +134,7 @@ namespace gridtools {
             struct shift_t {
                 ObjTup &RESTRICT m_obj_tup;
                 StrideTup const &RESTRICT m_stride_tup;
-                Offset const &m_offset;
+                Offset const &RESTRICT m_offset;
 
                 template <class I>
                 GT_FUNCTION void operator()() const {
@@ -155,7 +146,7 @@ namespace gridtools {
 
             template <class ObjTup, class StrideTup, class Offset>
             GT_FUNCTION void composite_shift_impl(
-                ObjTup &RESTRICT obj_tup, StrideTup const &RESTRICT stride_tup, Offset const &offset) {
+                ObjTup &RESTRICT obj_tup, StrideTup const &RESTRICT stride_tup, Offset const &RESTRICT offset) {
                 static constexpr size_t size = tuple_util::size<ObjTup>::value;
                 GRIDTOOLS_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
                 host_device::for_each_type<GT_META_CALL(meta::make_indices_c, size)>(
@@ -209,12 +200,12 @@ namespace gridtools {
                     vals_t m_vals;
 
                     template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                    constexpr GT_FUNCTION composite(Args &&... args) noexcept
-                        : composite(tuple<Args &&...>{const_expr::forward<Args &&>(args)...}) {}
+                    constexpr composite(Args &&... args) noexcept
+                        : composite(tuple<Args &&...>{std::forward<Args &&>(args)...}) {}
 
                     template <class... Args, enable_if_t<sizeof...(Args) == sizeof...(Ts), int> = 0>
-                    constexpr GT_FUNCTION composite(tuple<Args...> &&tup) noexcept
-                        : m_vals{tuple_util::host_device::generate<generators_t, vals_t>(const_expr::move(tup))} {}
+                    constexpr composite(tuple<Args...> &&tup) noexcept
+                        : m_vals{tuple_util::generate<generators_t, vals_t>(std::move(tup))} {}
 
                     GT_DECLARE_DEFAULT_EMPTY_CTOR(composite);
                     composite(composite const &) = default;
@@ -232,7 +223,7 @@ namespace gridtools {
 
                     template <class... Ptrs, class Offset>
                     friend GT_FUNCTION void sid_shift(
-                        composite_ptr<Ptrs...> &ptr, composite const &stride, Offset const &offset) {
+                        composite_ptr<Ptrs...> &ptr, composite const &stride, Offset const &RESTRICT offset) {
                         composite_shift_impl(ptr.m_vals, stride, offset);
                     }
                 };
@@ -240,14 +231,14 @@ namespace gridtools {
                 template <class... PtrDiffs, class... Strides, class Offset>
                 friend GT_FUNCTION void sid_shift(composite<PtrDiffs...> &RESTRICT ptr_diff,
                     composite<Strides...> const &RESTRICT stride,
-                    Offset const &offset) {
+                    Offset const &RESTRICT offset) {
                     composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
                 }
 
                 struct convert_f {
                     template <class... Ts>
-                    constexpr GT_FUNCTION composite<remove_reference_t<Ts>...> operator()(tuple<Ts...> &&tup) const {
-                        return {const_expr::move(tup)};
+                    constexpr composite<remove_reference_t<Ts>...> operator()(tuple<Ts...> &&tup) const {
+                        return {std::move(tup)};
                     }
                 };
             };
@@ -280,7 +271,7 @@ namespace gridtools {
             template <template <class...> class L, class... Is>
             struct normalize_strides_f<L<Is...>> {
                 template <class Sid, class Strides = GT_META_CALL(strides_type, Sid)>
-                constexpr GT_FUNCTION tuple<GT_META_CALL(normalized_stride_type, (Is, decay_t<Strides>))...> operator()(
+                constexpr tuple<GT_META_CALL(normalized_stride_type, (Is, decay_t<Strides>))...> operator()(
                     Sid const &sid) const {
                     return {get_stride<Is::value>(get_strides(sid))...};
                 }
@@ -349,14 +340,14 @@ namespace gridtools {
 #define GT_SID_COMPOSIT_CONSTEXPR constexpr
 #endif
 
-            friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION ptr_t sid_get_origin(composite &obj) {
-                return tuple_util::host_device::transform(get_origin_f{}, obj.m_sids);
+            friend GT_SID_COMPOSIT_CONSTEXPR ptr_t sid_get_origin(composite &obj) {
+                return tuple_util::transform(get_origin_f{}, obj.m_sids);
             }
 
-            friend GT_SID_COMPOSIT_CONSTEXPR GT_FUNCTION strides_t sid_get_strides(composite const &obj) {
-                return tuple_util::host_device::transform(typename compressed_t::convert_f{},
-                    tuple_util::host_device::transpose(tuple_util::host_device::transform(
-                        composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
+            friend GT_SID_COMPOSIT_CONSTEXPR strides_t sid_get_strides(composite const &obj) {
+                return tuple_util::transform(typename compressed_t::convert_f{},
+                    tuple_util::transpose(
+                        tuple_util::transform(composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
             }
 
 #undef GT_SID_COMPOSIT_CONSTEXPR

@@ -75,8 +75,8 @@ namespace gridtools {
             struct bounds_validator_kind;
 
             struct testee {
-                friend GT_FUNCTION ptr sid_get_origin(testee &) { return {}; }
-                friend GT_FUNCTION strides sid_get_strides(testee const &) { return {}; }
+                friend ptr sid_get_origin(testee &) { return {}; }
+                friend strides sid_get_strides(testee const &) { return {}; }
 
                 friend ptr_diff sid_get_ptr_diff(testee);
                 friend strides_kind sid_get_strides_kind(testee);
@@ -106,7 +106,7 @@ namespace gridtools {
         namespace fallbacks {
 
             struct testee {
-                friend GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
+                friend testee *sid_get_origin(testee &obj) { return &obj; }
             };
 
             static_assert(is_sid<testee>(), "");
@@ -163,10 +163,10 @@ namespace gridtools {
 
             struct testee {};
 
-            GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
-            GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
+            testee *sid_get_origin(testee &obj) { return &obj; }
+            tuple<stride> sid_get_strides(testee const &) { return {}; }
             GT_FUNCTION int operator*(stride, int) { return 100; }
-            GT_FUNCTION integral_constant<int, 42> sid_get_strides_kind(testee const &);
+            integral_constant<int, 42> sid_get_strides_kind(testee const &);
 
             static_assert(is_sid<testee>(), "");
 

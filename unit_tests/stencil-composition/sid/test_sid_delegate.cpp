@@ -38,7 +38,6 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/host_device.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta.hpp>
@@ -49,7 +48,7 @@ namespace gridtools {
     namespace {
         template <class Sid>
         class i_shifted : public sid::delegate<Sid> {
-            friend GT_FUNCTION GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
+            friend GT_META_CALL(sid::ptr_type, Sid) sid_get_origin(i_shifted &obj) {
                 auto &&impl = obj.impl();
                 auto res = sid::get_origin(impl);
                 sid::shift(res, sid::get_stride<1>(sid::get_strides(impl)), integral_constant<int, 1>());

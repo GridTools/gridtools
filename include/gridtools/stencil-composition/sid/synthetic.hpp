@@ -36,8 +36,6 @@
 #pragma once
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/utility.hpp"
-#include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
 
 namespace gridtools {
@@ -52,13 +50,13 @@ namespace gridtools {
             template <class T>
             struct mixin<property::origin, T> {
                 T m_val;
-                friend constexpr GT_FUNCTION T sid_get_origin(mixin const &obj) noexcept { return obj.m_val; }
+                friend constexpr T sid_get_origin(mixin const &obj) noexcept { return obj.m_val; }
             };
 
             template <class T>
             struct mixin<property::strides, T> {
                 T m_val;
-                friend constexpr GT_FUNCTION T sid_get_strides(mixin const &obj) noexcept { return obj.m_val; }
+                friend constexpr T sid_get_strides(mixin const &obj) noexcept { return obj.m_val; }
             };
 
             template <class T>
@@ -83,8 +81,7 @@ namespace gridtools {
                 unique_mixin &operator=(unique_mixin &&) = default;
 
                 template <class U>
-                constexpr GT_FUNCTION unique_mixin(U &&obj) noexcept
-                    : mixin<Property, T>{const_expr::forward<U>(obj)} {}
+                constexpr unique_mixin(U &&obj) noexcept : mixin<Property, T>{std::forward<U>(obj)} {}
             };
 
             template <class...>
@@ -93,13 +90,13 @@ namespace gridtools {
             template <>
             struct synthetic<> {
                 template <property Property, class T>
-                constexpr GT_FUNCTION synthetic<unique_mixin<Property, T>> set() const &&noexcept {
+                constexpr synthetic<unique_mixin<Property, T>> set() const &&noexcept {
                     return synthetic{};
                 }
 
                 template <property Property, class T>
-                constexpr GT_FUNCTION synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
-                    return {const_expr::forward<T>(val), synthetic{}};
+                constexpr synthetic<unique_mixin<Property, decay_t<T>>> set(T &&val) const &&noexcept {
+                    return {std::forward<T>(val), synthetic{}};
                 }
             };
 
@@ -108,22 +105,21 @@ namespace gridtools {
 
                 GT_DECLARE_DEFAULT_EMPTY_CTOR(synthetic);
 
-                constexpr GT_FUNCTION synthetic(synthetic<Mixins...> const &&src) noexcept
-                    : Mixins(const_expr::move(src))... {}
+                constexpr synthetic(synthetic<Mixins...> const &&src) noexcept : Mixins(std::move(src))... {}
 
                 template <class T>
-                constexpr GT_FUNCTION synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
-                    : Mixin{std::forward<T>(val)}, Mixins(const_expr::move(src))... {}
+                constexpr synthetic(T &&val, synthetic<Mixins...> const &&src) noexcept
+                    : Mixin{std::forward<T>(val)}, Mixins(std::move(src))... {}
 
                 template <property Property, class U>
-                constexpr GT_FUNCTION synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
-                    return {const_expr::move(*this)};
+                constexpr synthetic<unique_mixin<Property, U>, Mixin, Mixins...> set() const &&noexcept {
+                    return {std::move(*this)};
                 }
 
                 template <property Property, class T>
-                constexpr GT_FUNCTION synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
+                constexpr synthetic<unique_mixin<Property, decay_t<T>>, Mixin, Mixins...> set(
                     T &&val) const &&noexcept {
-                    return {const_expr::forward<T>(val), const_expr::move(*this)};
+                    return {std::forward<T>(val), std::move(*this)};
                 }
             };
         } // namespace synthetic_impl_
@@ -144,6 +140,6 @@ namespace gridtools {
          *  Duplicated property `set`'s cause compiler error.
          *  Works both in run time and in compile time.
          */
-        constexpr GT_FUNCTION synthetic_impl_::synthetic<> synthetic() { return {}; }
+        constexpr synthetic_impl_::synthetic<> synthetic() { return {}; }
     } // namespace sid
 } // namespace gridtools

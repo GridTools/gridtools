@@ -56,8 +56,8 @@
  *   -----------------------------
  *
  *   A type `T` models SID concept if it has the following functions defined and available via ADL:
- *     `GT_FUNCTION Ptr sid_get_origin(T&);`
- *     `GT_FUNCTION Strides sid_get_strides(T const&);`
+ *     `Ptr sid_get_origin(T&);`
+ *     `Strides sid_get_strides(T const&);`
  *
  *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
@@ -233,7 +233,7 @@ namespace gridtools {
              *  `get_origin` delegates to `sid_get_origin`
              */
             template <class Sid>
-            constexpr GT_FUNCTION auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
+            constexpr auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
 
             /**
              *  `Ptr` type is deduced from `get_origin`
@@ -275,14 +275,12 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr GT_FUNCTION enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides(
-                Sid const &obj) {
+            constexpr enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides(Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr GT_FUNCTION enable_if_t<std::is_same<Res, not_provided>::value, default_strides> get_strides(
-                Sid const &obj) {
+            constexpr enable_if_t<std::is_same<Res, not_provided>::value, default_strides> get_strides(Sid const &obj) {
                 return {};
             }
             /**
@@ -398,7 +396,7 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
-            GT_FUNCTION auto shift(T &obj, Stride const &stride, Offset const &offset)
+            GT_FUNCTION auto shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset)
                 GT_AUTO_RETURN(sid_shift(obj, stride, offset));
 
             /**
@@ -446,7 +444,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-            shift(T &obj, Stride const &stride, Offset const &) {
+            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
                 obj += stride;
             }
 
@@ -457,7 +455,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value &&
                                     is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &obj, Stride const &stride, Offset const &) {
+            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
                 obj -= stride;
             }
 
@@ -467,7 +465,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &obj, Stride const &, Offset const &offset) {
+            shift(T &RESTRICT obj, Stride const &RESTRICT, Offset const &offset) {
                 obj += offset;
             }
 
@@ -492,7 +490,7 @@ namespace gridtools {
                             !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                             !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
                                                                           is_integral_constant_of<Offset, -1>::value))>
-                shift(T &obj, Stride const &stride, Offset const &offset) {
+                shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset) {
                 obj += stride * offset;
             }
 
@@ -620,7 +618,7 @@ namespace gridtools {
 
         struct get_origin_f {
             template <class T>
-            constexpr GT_FUNCTION auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
+            constexpr auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
         };
     } // namespace sid
 
