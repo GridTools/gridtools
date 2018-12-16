@@ -53,12 +53,31 @@
 
 namespace gridtools {
     namespace storage_sid_impl_ {
-        template <int I, int MaxI>
-        GT_META_DEFINE_ALIAS(stride_type,
-            meta::if_c,
-            ((I < 0),
-                integral_constant<int_t, 0>,
-                GT_META_CALL(meta::if_c, (I == MaxI, integral_constant<int_t, 1>, int_t))));
+
+        enum class dimension_kind { masked, innermost, dynamic };
+
+        constexpr dimension_kind get_dimension_kind(int i, size_t n_dim) {
+            return i < 0 ? dimension_kind::masked
+                         : i + 1 == n_dim ? dimension_kind::innermost : dimension_kind::dynamic;
+        }
+
+        template <dimension_kind Kind>
+        struct stride_type;
+
+        template <>
+        struct stride_type<dimension_kind::masked> {
+            using type = integral_constant<int_t, 0>;
+        };
+
+        template <>
+        struct stride_type<dimension_kind::innermost> {
+            using type = integral_constant<int_t, 1>;
+        };
+
+        template <>
+        struct stride_type<dimension_kind::dynamic> {
+            using type = int_t;
+        };
 
         template <class I, class Res>
         struct stride_generator_f;
@@ -87,7 +106,8 @@ namespace gridtools {
 
         template <int... Is>
         struct convert_strides_f<layout_map<Is...>> {
-            using res_t = tuple<GT_META_CALL(stride_type, (Is, int(layout_map<Is...>::unmasked_length) - 1))...>;
+            using res_t =
+                tuple<typename stride_type<get_dimension_kind(Is, layout_map<Is...>::unmasked_length)>::type...>;
             using generators_t = GT_META_CALL(
                 meta::transform, (stride_generator_f, GT_META_CALL(meta::make_indices_c, sizeof...(Is)), res_t));
 
