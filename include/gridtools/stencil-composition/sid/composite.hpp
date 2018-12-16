@@ -335,22 +335,22 @@ namespace gridtools {
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
             // Shame on you CUDA 8!!!
             // Why on the Earth a composition of `constexpr` functions could fail to be `constexpr`?
-#define GT_SID_COMPOSIT_CONSTEXPR
+#define GT_SID_COMPOSITE_CONSTEXPR
 #else
-#define GT_SID_COMPOSIT_CONSTEXPR constexpr
+#define GT_SID_COMPOSITE_CONSTEXPR constexpr
 #endif
 
-            friend GT_SID_COMPOSIT_CONSTEXPR ptr_t sid_get_origin(composite &obj) {
+            friend GT_SID_COMPOSITE_CONSTEXPR ptr_t sid_get_origin(composite &obj) {
                 return tuple_util::transform(get_origin_f{}, obj.m_sids);
             }
 
-            friend GT_SID_COMPOSIT_CONSTEXPR strides_t sid_get_strides(composite const &obj) {
+            friend GT_SID_COMPOSITE_CONSTEXPR strides_t sid_get_strides(composite const &obj) {
                 return tuple_util::transform(typename compressed_t::convert_f{},
                     tuple_util::transpose(
                         tuple_util::transform(composite_impl_::normalize_strides_f<stride_indices_t>{}, obj.m_sids)));
             }
 
-#undef GT_SID_COMPOSIT_CONSTEXPR
+#undef GT_SID_COMPOSITE_CONSTEXPR
 
             friend ptr_diff_t sid_get_ptr_diff(composite const &) { return {}; }
 
