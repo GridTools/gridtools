@@ -39,6 +39,8 @@
 #include <cassert>
 
 #include "../common/defs.hpp"
+#include "../common/generic_metafunctions/utility.hpp"
+#include "../common/host_device.hpp"
 #include "../common/layout_map.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"
@@ -85,7 +87,7 @@ namespace gridtools {
 
         template <int... Is>
         struct convert_strides_f<layout_map<Is...>> {
-            using res_t = tuple<GT_META_CALL(stride_type, (Is, int(layout_map<Is...>::unmasked_length - 1)))...>;
+            using res_t = tuple<GT_META_CALL(stride_type, (Is, int(layout_map<Is...>::unmasked_length) - 1))...>;
             using generators_t = GT_META_CALL(
                 meta::transform, (stride_generator_f, GT_META_CALL(meta::make_indices_c, sizeof...(Is)), res_t));
 
@@ -95,19 +97,28 @@ namespace gridtools {
             }
         };
 
+        struct empty_ptr_diff {
+            template <class T>
+            friend constexpr GT_FUNCTION T &&operator+(T &&lhs, empty_ptr_diff) {
+                return const_expr::forward<T>(lhs);
+            }
+        };
+
         template <class Storage, class StorageInfo>
         class const_adapter {
-            data_store<Storage, StorageInfo> m_impl;
+            using impl_t = data_store<Storage, StorageInfo>;
+            impl_t m_impl;
+
+            static impl_t const &impl();
 
             friend typename Storage::data_t const *sid_get_origin(const_adapter const &obj) {
                 return sid_get_origin(obj.m_impl);
             }
-            friend decltype(sid_get_strides(std::declval<data_store<Storage, StorageInfo>>())) sid_get_strides(
-                const_adapter const &obj) {
+            friend decltype(sid_get_strides(impl())) sid_get_strides(const_adapter const &obj) {
                 return sid_get_strides(obj.m_impl);
             }
-            friend StorageInfo sid_get_strides_kind(const_adapter const &) { return {}; }
-            friend int_t sid_get_ptr_diff(const_adapter const &) { return {}; }
+            friend decltype(sid_get_strides_kind(impl())) sid_get_strides_kind(const_adapter const &) { return {}; }
+            friend decltype(sid_get_ptr_diff(impl())) sid_get_ptr_diff(const_adapter const &) { return {}; }
 
           public:
             const_adapter(data_store<Storage, StorageInfo> obj) : m_impl(std::move(obj)) {}
@@ -123,13 +134,17 @@ namespace gridtools {
             obj.sync();
         return advanced_get_raw_pointer_of(make_target_view(obj));
     }
+
     template <class Storage, class StorageInfo>
     auto sid_get_strides(data_store<Storage, StorageInfo> const &obj)
         GT_AUTO_RETURN(storage_sid_impl_::convert_strides_f<typename StorageInfo::layout_t>{}(obj.strides()));
+
     template <class Storage, class StorageInfo>
     StorageInfo sid_get_strides_kind(data_store<Storage, StorageInfo> const &);
+
     template <class Storage, class StorageInfo>
-    int_t sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);
+    GT_META_CALL(meta::if_c, (StorageInfo::layout_t::unmasked_length == 0, storage_sid_impl_::empty_ptr_diff, int_t))
+    sid_get_ptr_diff(data_store<Storage, StorageInfo> const &);
 
     /**
      *  Returns an object that models the `SID` concept the same way as original object does except that the pointers

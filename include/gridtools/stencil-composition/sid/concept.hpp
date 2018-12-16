@@ -535,7 +535,7 @@ namespace gridtools {
 
                     // verify that `PtrDiff` is sane
                     std::is_default_constructible<PtrDiff>,
-                    std::is_same<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
+                    std::is_convertible<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
 
                     // verify that `Reference` is sane
                     negation<std::is_void<ReferenceType>>,

@@ -109,5 +109,21 @@ namespace gridtools {
             EXPECT_EQ(get<2>(data_strides), get<2>(testee_strides));
             EXPECT_EQ(get<3>(data_strides), get<3>(testee_strides));
         }
+
+        TEST(storage_sid, scalar) {
+            using storage_info_t = traits_t::custom_layout_storage_info_t<0, layout_map<-1>>;
+            using testee_t = traits_t::data_store_t<float_type, storage_info_t>;
+
+            static_assert(sid::concept_impl_::is_sid<testee_t>(), "");
+
+            using diff_t = GT_META_CALL(sid::ptr_diff_type, testee_t);
+            static_assert(std::is_empty<diff_t>(), "");
+
+            testee_t testee = {{10}, 0};
+
+            auto ptr = sid::get_origin(testee);
+
+            EXPECT_EQ(ptr, ptr + diff_t{});
+        }
     } // namespace
 } // namespace gridtools
