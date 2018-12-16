@@ -356,7 +356,7 @@ namespace gridtools {
 
             friend GT_META_CALL(meta::dedup, strides_kinds_t) sid_get_strides_kind(composite const &) { return {}; }
 
-            // Here the `tule_like` concept is modeled
+            // Here the `tuple_like` concept is modeled
 
             GT_TUPLE_UTIL_FORWARD_GETTER_TO_MEMBER(composite, m_sids);
             GT_TUPLE_UTIL_FORWARD_CTORS_TO_MEMBER(composite, m_sids);
