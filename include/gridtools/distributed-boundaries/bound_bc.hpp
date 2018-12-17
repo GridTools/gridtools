@@ -103,8 +103,7 @@ namespace gridtools {
             \param all      Tuple of elements that may include placeholders
         */
         template <typename ROTuple, typename AllTuple, std::size_t... IDs>
-        auto substitute_placeholders(
-            ROTuple const &ro_tuple, AllTuple const &all, meta::integer_sequence<std::size_t, IDs...>)
+        auto substitute_placeholders(ROTuple const &ro_tuple, AllTuple const &all, meta::index_sequence<IDs...>)
             -> decltype(std::make_tuple(select_element<IDs>(ro_tuple,
                 all,
                 typename PlcOrNot<std::is_placeholder</*typename std::decay<*/
@@ -116,13 +115,13 @@ namespace gridtools {
                     typename std::tuple_element<IDs, AllTuple>::type /*>::type*/>::value>::type{})...);
         }
 
-        inline std::tuple<> rest_tuple(std::tuple<>, meta::integer_sequence<std::size_t>) { return {}; }
+        inline std::tuple<> rest_tuple(std::tuple<>, meta::index_sequence<>) { return {}; }
 
         /** \internal
             Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
         */
         template <typename... Elems, std::size_t... IDs>
-        auto rest_tuple(std::tuple<Elems...> const &x, meta::integer_sequence<std::size_t, IDs...>)
+        auto rest_tuple(std::tuple<Elems...> const &x, meta::index_sequence<IDs...>)
             -> decltype(std::make_tuple(std::get<IDs + 1u>(x)...)) {
             return std::make_tuple(std::get<IDs + 1u>(x)...);
         }
@@ -145,12 +144,11 @@ namespace gridtools {
 
             template <std::size_t I, size_t... Is, typename First, typename... Elems>
             struct collect_indices<I,
-                meta::integer_sequence<size_t, Is...>,
+                meta::index_sequence<Is...>,
                 std::tuple<First, Elems...>,
                 typename std::enable_if<(std::is_placeholder<First>::value == 0), void>::type> {
-                using type = typename collect_indices<I + 1,
-                    meta::integer_sequence<std::size_t, Is..., I>,
-                    std::tuple<Elems...>>::type;
+                using type =
+                    typename collect_indices<I + 1, meta::index_sequence<Is..., I>, std::tuple<Elems...>>::type;
             };
 
             template <std::size_t I, typename ISeq, typename First, typename... Elems>
@@ -161,7 +159,7 @@ namespace gridtools {
                 using type = typename collect_indices<I + 1, ISeq, std::tuple<Elems...>>::type;
             };
 
-            using type = typename collect_indices<0, meta::integer_sequence<std::size_t>, InputTuple>::type;
+            using type = typename collect_indices<0, meta::index_sequence<>, InputTuple>::type;
         };
 
         template <typename T>
@@ -230,7 +228,7 @@ namespace gridtools {
     struct bound_bc;
 
     template <typename BCApply, typename... DataStores, std::size_t... ExcStoresIndices>
-    struct bound_bc<BCApply, std::tuple<DataStores...>, meta::integer_sequence<std::size_t, ExcStoresIndices...>> {
+    struct bound_bc<BCApply, std::tuple<DataStores...>, meta::index_sequence<ExcStoresIndices...>> {
         using boundary_class = BCApply;
         using stores_type = std::tuple<DataStores...>;
         using exc_stores_type = std::tuple<typename std::tuple_element<ExcStoresIndices, stores_type>::type const &...>;
