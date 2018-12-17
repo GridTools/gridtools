@@ -81,14 +81,15 @@ namespace gridtools {
             EXPECT_EQ(get<3>(strides), 100);
         }
 
-        TEST(storage_sid, const_smoke) {
-            data_store_t data = {{10, 10, 10, 10}, 0};
-            auto testee = as_const(data);
+        TEST(storage_sid, as_host) {
+            data_store_t data = {{10, 10, 10, 10}, 42};
+            auto testee = as_host(data);
 
             using testee_t = decltype(testee);
 
             static_assert(is_sid<testee_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee_t), float_type const *>(), "");
+            static_assert(
+                std::is_same<GT_META_CALL(sid::ptr_type, testee_t), GT_META_CALL(sid::ptr_type, data_store_t)>(), "");
             static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee_t),
                               GT_META_CALL(sid::ptr_diff_type, data_store_t)>(),
                 "");
@@ -99,8 +100,6 @@ namespace gridtools {
                               GT_META_CALL(sid::strides_type, data_store_t)>(),
                 "");
 
-            EXPECT_EQ(sid::get_origin(data), sid::get_origin(testee));
-
             auto testee_strides = sid::get_strides(testee);
             auto data_strides = sid::get_strides(data);
 
@@ -108,6 +107,9 @@ namespace gridtools {
             EXPECT_EQ(get<1>(data_strides), get<1>(testee_strides));
             EXPECT_EQ(get<2>(data_strides), get<2>(testee_strides));
             EXPECT_EQ(get<3>(data_strides), get<3>(testee_strides));
+
+            // we can dereference in the host context
+            EXPECT_EQ(42, *sid::get_origin(testee));
         }
 
         TEST(storage_sid, scalar) {
@@ -119,7 +121,7 @@ namespace gridtools {
             using diff_t = GT_META_CALL(sid::ptr_diff_type, testee_t);
             static_assert(std::is_empty<diff_t>(), "");
 
-            testee_t testee = {{10}, 0};
+            testee_t testee = {storage_info_t{10}, 0};
 
             auto ptr = sid::get_origin(testee);
 

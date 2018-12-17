@@ -125,23 +125,26 @@ namespace gridtools {
         };
 
         template <class Storage, class StorageInfo>
-        class const_adapter {
+        class host_adapter {
             using impl_t = data_store<Storage, StorageInfo>;
             impl_t m_impl;
 
             static impl_t const &impl();
 
-            friend typename Storage::data_t const *sid_get_origin(const_adapter const &obj) {
-                return sid_get_origin(obj.m_impl);
+            friend typename Storage::data_t *sid_get_origin(host_adapter const &obj) {
+                impl_t const &impl = obj.m_impl;
+                if (impl.host_needs_update())
+                    impl.sync();
+                return advanced_get_raw_pointer_of(make_host_view(impl));
             }
-            friend decltype(sid_get_strides(impl())) sid_get_strides(const_adapter const &obj) {
+            friend decltype(sid_get_strides(impl())) sid_get_strides(host_adapter const &obj) {
                 return sid_get_strides(obj.m_impl);
             }
-            friend decltype(sid_get_strides_kind(impl())) sid_get_strides_kind(const_adapter const &) { return {}; }
-            friend decltype(sid_get_ptr_diff(impl())) sid_get_ptr_diff(const_adapter const &) { return {}; }
+            friend decltype(sid_get_strides_kind(impl())) sid_get_strides_kind(host_adapter const &) { return {}; }
+            friend decltype(sid_get_ptr_diff(impl())) sid_get_ptr_diff(host_adapter const &) { return {}; }
 
           public:
-            const_adapter(data_store<Storage, StorageInfo> obj) : m_impl(std::move(obj)) {}
+            host_adapter(data_store<Storage, StorageInfo> obj) : m_impl(std::move(obj)) {}
         };
     } // namespace storage_sid_impl_
 
@@ -168,10 +171,10 @@ namespace gridtools {
 
     /**
      *  Returns an object that models the `SID` concept the same way as original object does except that the pointers
-     *  are `const`.
+     *  are taken from the host view.
      */
     template <class Storage, class StorageInfo>
-    storage_sid_impl_::const_adapter<Storage, StorageInfo> as_const(data_store<Storage, StorageInfo> obj) {
+    storage_sid_impl_::host_adapter<Storage, StorageInfo> as_host(data_store<Storage, StorageInfo> obj) {
         return {std::move(obj)};
     }
 } // namespace gridtools
