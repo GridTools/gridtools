@@ -30,7 +30,7 @@
 option(GT_ENABLE_BINDINGS_GENERATION "If turned off, bindings will not be generated." ON)
 
 set(BINDINGS_SOURCE_DIR @BINDINGS_SOURCE_DIR@)
-set(BINDINGS_GENERATE_PATH @BINDINGS_GENERATE_PATH@)
+set(BINDINGS_CMAKE_DIR @BINDINGS_CMAKE_DIR@)
 set(BINDINGS_LIBRARIES @BINDINGS_LIBRARIES@)
 
 add_library(c_bindings_generator ${BINDINGS_SOURCE_DIR}/c_bindings/generator.cpp)
@@ -113,7 +113,7 @@ macro(add_bindings_library target_name)
                 -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename}
                 -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename}
                 -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME}
-                -P ${BINDINGS_GENERATE_PATH}/gt_bindings_generate.cmake
+                -P ${BINDINGS_CMAKE_DIR}/gt_bindings_generate.cmake
             BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
             DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
     else()
