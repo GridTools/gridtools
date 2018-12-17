@@ -84,6 +84,7 @@ namespace gridtools {
 
         template <class I, int V>
         struct stride_generator_f<I, integral_constant<int_t, V>> {
+            using type = stride_generator_f;
             template <class Src>
             integral_constant<int_t, V> operator()(Src const &src) {
                 assert(src[I::value] == V);
@@ -93,6 +94,7 @@ namespace gridtools {
 
         template <class I>
         struct stride_generator_f<I, int_t> {
+            using type = stride_generator_f;
             template <class Src>
             int_t operator()(Src const &src) {
                 assert(src[I::value] != 0);
