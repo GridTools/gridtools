@@ -36,8 +36,8 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/is_instantiation_of.hpp"
 #include "./level.hpp"
 
 namespace gridtools {

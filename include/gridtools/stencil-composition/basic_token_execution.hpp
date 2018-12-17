@@ -50,9 +50,12 @@ between levels.
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
 #include "../common/host_device.hpp"
-
+#include "../meta/at.hpp"
+#include "../meta/first.hpp"
+#include "../meta/length.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/second.hpp"
 #include "execution_types.hpp"
 #include "grid_traits_fwd.hpp"
 #include "interval.hpp"

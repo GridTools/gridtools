@@ -37,7 +37,6 @@
 
 #include <type_traits>
 
-#include "../meta/defs.hpp"
 #include "./generic_metafunctions/mpl_tags.hpp"
 
 /** \ingroup common

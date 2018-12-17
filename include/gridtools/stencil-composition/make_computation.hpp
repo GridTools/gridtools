@@ -34,13 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include <type_traits>
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/split_args.hpp"
+#include "../meta/defs.hpp"
+#include "../meta/transform.hpp"
+#include "../meta/type_traits.hpp"
 #include "expandable_parameters/expand_factor.hpp"
 #include "expandable_parameters/intermediate_expand.hpp"
 #include "grid.hpp"

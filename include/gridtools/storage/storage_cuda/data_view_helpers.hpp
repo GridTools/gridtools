@@ -38,8 +38,8 @@
 
 #include <assert.h>
 
-#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../data_store.hpp"
 #include "../data_view.hpp"
 #include "cuda_storage.hpp"

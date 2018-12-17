@@ -55,27 +55,25 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
 
+#include "../common/tuple_util.hpp"
+#include "../meta.hpp"
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
+#include "computation_grammar.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "conditionals/condition_tree.hpp"
 #include "coordinate.hpp"
 #include "esf.hpp"
+#include "extract_placeholders.hpp"
 #include "grid.hpp"
 #include "grid_traits.hpp"
 #include "intermediate_impl.hpp"
+#include "iterate_on_esfs.hpp"
 #include "level.hpp"
 #include "local_domain.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "reductions/reduction_data.hpp"
-
-#include "computation_grammar.hpp"
-#include "extract_placeholders.hpp"
-#include "iterate_on_esfs.hpp"
-
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/tuple_util.hpp"
 
 /**
  * @file

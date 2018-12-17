@@ -35,17 +35,6 @@
 */
 #pragma once
 
-#include "../common/array.hpp"
-#include "../common/generic_metafunctions/for_each.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/static_if.hpp"
-#include "arg.hpp"
-#include "block.hpp"
-#include "expressions/expressions.hpp"
-#include "offset_computation.hpp"
-#include "pos3.hpp"
-#include "run_functor_arguments.hpp"
-#include "tmp_storage.hpp"
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/at.hpp>
@@ -61,6 +50,21 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/utility/enable_if.hpp>
+
+#include "../common/array.hpp"
+#include "../common/generic_metafunctions/for_each.hpp"
+#include "../common/generic_metafunctions/static_if.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/make_indices.hpp"
+#include "../meta/st_contains.hpp"
+#include "../meta/st_position.hpp"
+#include "arg.hpp"
+#include "block.hpp"
+#include "expressions/expressions.hpp"
+#include "offset_computation.hpp"
+#include "pos3.hpp"
+#include "run_functor_arguments.hpp"
+#include "tmp_storage.hpp"
 
 /**
    @file

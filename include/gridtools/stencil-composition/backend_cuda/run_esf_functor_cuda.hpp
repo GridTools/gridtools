@@ -37,8 +37,11 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
 #include "../../common/host_device.hpp"
+#include "../../meta/first.hpp"
+#include "../../meta/is_empty.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/pop_front.hpp"
 
 namespace gridtools {
     namespace _impl {

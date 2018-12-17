@@ -36,7 +36,7 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../meta.hpp"
 #include "./execution_types.hpp"
 #include "./level.hpp"
 
