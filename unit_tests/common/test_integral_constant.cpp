@@ -34,42 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
+#include <gridtools/common/integral_constant.hpp>
 
-#include <cstddef>
-
-#include "defs.hpp"
-#include "iseq_to_list.hpp"
-#include "length.hpp"
-#include "list.hpp"
-#include "macros.hpp"
-#include "utility.hpp"
+#include <gtest/gtest.h>
 
 namespace gridtools {
-    namespace meta {
-        GT_META_LAZY_NAMESPACE {
-            /**
-             *  Make a list of integral constants of indices from 0 to N
-             */
-            template <std::size_t N, template <class...> class L = list>
-            GT_META_DEFINE_ALIAS(make_indices_c, iseq_to_list, (make_index_sequence<N>, L));
+    namespace {
+        using namespace literals;
 
-            template <class N, template <class...> class L = list>
-            GT_META_DEFINE_ALIAS(make_indices, iseq_to_list, (make_index_sequence<N::value>, L));
+        static_assert(0_c == 0, "");
+        static_assert(42_c == 42, "");
+        static_assert(-12345_c == -12345, "");
+        static_assert(2_c + 3_c == 5_c, "");
 
-            /**
-             *  Make a list of integral constants of indices from 0 to length< List >
-             */
-            template <class List, template <class...> class L = list>
-            GT_META_DEFINE_ALIAS(make_indices_for, iseq_to_list, (make_index_sequence<length<List>::value>, L));
-        }
-#if !GT_BROKEN_TEMPLATE_ALIASES
-        template <std::size_t N, template <class...> class L = list>
-        using make_indices_c = typename lazy::iseq_to_list<make_index_sequence<N>, L>::type;
-        template <class N, template <class...> class L = list>
-        using make_indices = typename lazy::iseq_to_list<make_index_sequence<N::value>, L>::type;
-        template <class List, template <class...> class L = list>
-        using make_indices_for = typename lazy::iseq_to_list<make_index_sequence<length<List>::value>, L>::type;
-#endif
-    } // namespace meta
+        TEST(integral_constant, dummy) {}
+    } // namespace
 } // namespace gridtools
