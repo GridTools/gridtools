@@ -35,8 +35,7 @@
 */
 #pragma once
 
-#include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/generic_metafunctions/type_traits.hpp"
+#include "../../../meta.hpp"
 #include "../../backend_x86/basic_token_execution_x86.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"

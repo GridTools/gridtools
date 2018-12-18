@@ -42,8 +42,7 @@
 #pragma once
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta.hpp"
 #include "../accessor.hpp"
 #include "../arg.hpp"
 #include "../iterate_domain_fwd.hpp"

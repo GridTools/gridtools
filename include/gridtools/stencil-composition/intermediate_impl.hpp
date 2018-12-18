@@ -46,6 +46,7 @@
 #include "../common/functional.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/tuple_util.hpp"
+#include "../meta/defs.hpp"
 #include "./esf_metafunctions.hpp"
 #include "./extract_placeholders.hpp"
 #include "./local_domain.hpp"

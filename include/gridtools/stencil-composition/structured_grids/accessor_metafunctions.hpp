@@ -37,7 +37,7 @@
 
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../accessor_metafunctions.hpp"
 #include "../expressions/expressions.hpp"
 #include "accessor.hpp"

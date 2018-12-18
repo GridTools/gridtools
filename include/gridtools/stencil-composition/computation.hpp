@@ -40,8 +40,8 @@
 #include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/permute_to.hpp"
+#include "../meta/type_traits.hpp"
 #include "arg.hpp"
 
 namespace gridtools {

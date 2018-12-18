@@ -60,16 +60,14 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/void.hpp>
 
-#include "../esf_metafunctions.hpp"
-#include "./cache.hpp"
-#include "./cache_storage.hpp"
-
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-
+#include "../../meta/st_position.hpp"
 #include "../accessor_fwd.hpp"
 #include "../block_size.hpp"
+#include "../esf_metafunctions.hpp"
 #include "../local_domain.hpp"
+#include "./cache.hpp"
+#include "./cache_storage.hpp"
 #include "cache_traits.hpp"
 
 namespace gridtools {

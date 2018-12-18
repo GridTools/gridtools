@@ -37,8 +37,7 @@
 #pragma once
 
 #include "../../../common/generic_metafunctions/for_each.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/generic_metafunctions/type_traits.hpp"
+#include "../../../meta.hpp"
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "../../loop_interval.hpp"

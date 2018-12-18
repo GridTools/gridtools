@@ -39,10 +39,16 @@
 #include <type_traits>
 #include <utility>
 
+#include "../meta/filter.hpp"
+#include "../meta/first.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/make_indices.hpp"
+#include "../meta/not.hpp"
+#include "../meta/second.hpp"
+#include "../meta/transform.hpp"
+#include "../meta/type_traits.hpp"
+#include "../meta/zip.hpp"
 #include "defs.hpp"
-
-#include "generic_metafunctions/meta.hpp"
-#include "generic_metafunctions/type_traits.hpp"
 
 namespace gridtools {
     namespace _impl {

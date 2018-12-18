@@ -49,7 +49,7 @@
 #include <boost/mpl/size.hpp>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../meta/macros.hpp"
 #include "../extent.hpp"
 #include "./cache_traits.hpp"
 
