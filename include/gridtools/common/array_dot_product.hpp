@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "../meta/utility.hpp"
 #include "./array.hpp"
 #include "./generic_metafunctions/accumulate.hpp"
-#include "./generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
     /** \addtogroup common
@@ -51,7 +51,7 @@ namespace gridtools {
     namespace _impl {
         template <typename T, typename U, size_t D, size_t... Is>
         GT_FUNCTION constexpr auto dot_impl(
-            array<T, D> const &a, array<U, D> const &b, gt_integer_sequence<size_t, Is...>)
+            array<T, D> const &a, array<U, D> const &b, meta::integer_sequence<size_t, Is...>)
             -> decltype(accumulate(plus_functor{}, (a[Is] * b[Is])...)) {
             return accumulate(plus_functor{}, (a[Is] * b[Is])...);
         }
@@ -74,7 +74,7 @@ namespace gridtools {
         size_t D,
         typename std::enable_if<std::is_arithmetic<T>::value and std::is_arithmetic<U>::value, T>::type = 0>
     GT_FUNCTION constexpr T array_dot_product(array<T, D> const &a, array<U, D> const &b) {
-        return _impl::dot_impl(a, b, make_gt_integer_sequence<size_t, D>{});
+        return _impl::dot_impl(a, b, meta::make_integer_sequence<size_t, D>{});
     }
 
     /** @} */

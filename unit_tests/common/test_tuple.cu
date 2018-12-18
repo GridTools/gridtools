@@ -39,6 +39,7 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/cuda_util.hpp>
+#include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/type_traits.hpp>
 

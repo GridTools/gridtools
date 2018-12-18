@@ -217,10 +217,10 @@ namespace gridtools {
             }
 
             call_pack(all_stores_for_exc,
-                make_gt_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
+                meta::make_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
             m_he.exchange();
             call_unpack(all_stores_for_exc,
-                make_gt_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
+                meta::make_integer_sequence<uint_t, std::tuple_size<decltype(all_stores_for_exc)>::value>{});
 
             boundary_only(jobs...);
         }
@@ -230,7 +230,7 @@ namespace gridtools {
       private:
         template <typename BoundaryApply, typename ArgsTuple, uint_t... Ids>
         static void call_apply(
-            BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence<uint_t, Ids...>) {
+            BoundaryApply boundary_apply, ArgsTuple const &args, meta::integer_sequence<uint_t, Ids...>) {
             boundary_apply.apply(std::get<Ids>(args)...);
         }
 
@@ -243,7 +243,7 @@ namespace gridtools {
                            bcapply.boundary_to_apply(),
                            proc_grid_predicate<typename CTraits::proc_grid_type>(m_he.comm())),
                 bcapply.stores(),
-                make_gt_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
+                meta::make_integer_sequence<uint_t, std::tuple_size<typename BCApply::stores_type>::value>{});
         }
 
         template <typename BCApply>
@@ -266,7 +266,7 @@ namespace gridtools {
         }
 
         template <typename Stores, uint_t... Ids>
-        void call_pack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
+        void call_pack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.pack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
@@ -274,10 +274,10 @@ namespace gridtools {
         }
 
         template <typename Stores, uint_t... Ids>
-        void call_pack(Stores const &stores, gt_integer_sequence<uint_t>) {}
+        void call_pack(Stores const &stores, meta::integer_sequence<uint_t>) {}
 
         template <typename Stores, uint_t... Ids>
-        void call_unpack(Stores const &stores, gt_integer_sequence<uint_t, Ids...>) {
+        void call_unpack(Stores const &stores, meta::integer_sequence<uint_t, Ids...>) {
             m_he.unpack(advanced::get_raw_pointer_of(_impl::proper_view<typename CTraits::compute_arch,
                 access_mode::ReadWrite,
                 typename std::decay<typename std::tuple_element<Ids, Stores>::type>::type>::
@@ -285,7 +285,7 @@ namespace gridtools {
         }
 
         template <typename Stores, uint_t... Ids>
-        static void call_unpack(Stores const &stores, gt_integer_sequence<uint_t>) {}
+        static void call_unpack(Stores const &stores, meta::integer_sequence<uint_t>) {}
     };
 
     /** @} */

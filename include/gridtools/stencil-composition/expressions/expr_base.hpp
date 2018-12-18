@@ -38,8 +38,8 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/host_device.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../accessor_fwd.hpp"
 #include "../global_accessor_fwd.hpp"
 

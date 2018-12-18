@@ -35,9 +35,7 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta.hpp"
 #include "./interval.hpp"
 #include "./level.hpp"
 #include "./loop_interval.hpp"

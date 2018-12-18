@@ -34,6 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
+#include <gridtools/common/integral_constant.hpp>
 
-#include "../../meta/type_traits.hpp"
+#include <gtest/gtest.h>
+
+namespace gridtools {
+    namespace {
+        using namespace literals;
+
+        static_assert(0_c == 0, "");
+        static_assert(42_c == 42, "");
+        static_assert(-12345_c == -12345, "");
+        static_assert(2_c + 3_c == 5_c, "");
+
+        TEST(integral_constant, dummy) {}
+    } // namespace
+} // namespace gridtools

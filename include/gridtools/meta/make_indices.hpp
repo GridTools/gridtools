@@ -60,9 +60,7 @@ namespace gridtools {
             /**
              *  Make a list of integral constants of indices from 0 to length< List >
              */
-            template <class List,
-                template <class...> class L = list,
-                template <class T, T> class C = std::integral_constant>
+            template <class List, template <class...> class L = list>
             GT_META_DEFINE_ALIAS(make_indices_for, iseq_to_list, (make_index_sequence<length<List>::value>, L));
         }
 #if !GT_BROKEN_TEMPLATE_ALIASES

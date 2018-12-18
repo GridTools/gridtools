@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "../meta/type_traits.hpp"
 #include "array.hpp"
 #include "defs.hpp"
-#include "generic_metafunctions/type_traits.hpp"
 #include "host_device.hpp"
 
 /*@file

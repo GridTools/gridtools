@@ -40,6 +40,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/meta/macros.hpp>
 #include <gridtools/meta/type_traits.hpp>
@@ -74,11 +75,12 @@ namespace gridtools {
             EXPECT_EQ(advanced_get_raw_pointer_of(make_target_view(testee)), sid::get_origin(testee));
 
             auto strides = sid::get_strides(testee);
+            auto expected_strides = testee.strides();
 
-            EXPECT_EQ(get<0>(strides), 10);
-            EXPECT_EQ(get<1>(strides), 0);
-            EXPECT_EQ(get<2>(strides), 1);
-            EXPECT_EQ(get<3>(strides), 100);
+            EXPECT_EQ(expected_strides[0], get<0>(strides));
+            EXPECT_EQ(expected_strides[1], get<1>(strides));
+            EXPECT_EQ(expected_strides[2], get<2>(strides));
+            EXPECT_EQ(expected_strides[3], get<3>(strides));
         }
 
         TEST(storage_sid, as_host) {

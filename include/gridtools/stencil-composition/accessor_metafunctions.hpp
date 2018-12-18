@@ -38,8 +38,9 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta/at.hpp"
+#include "../meta/length.hpp"
+#include "../meta/type_traits.hpp"
 #include "./accessor_fwd.hpp"
 
 namespace gridtools {

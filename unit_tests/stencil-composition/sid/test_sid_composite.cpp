@@ -39,11 +39,13 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/array.hpp>
+#include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {
+        using namespace literals;
         using sid::property;
         namespace tu = tuple_util;
         using tu::get;
@@ -75,24 +77,24 @@ namespace gridtools {
 
             auto my_strides = tu::make<array>(1, 5, 15);
 
-            auto testee = tu::make<sid::composite>                                                    //
-                (                                                                                     //
-                    sid::synthetic()                                                                  //
-                        .set<property::origin>(&one[0])                                               //
-                        .set<property::strides>(tuple_util::make<tuple>(integral_constant<int, 1>())) //
-                    ,                                                                                 //
-                    sid::synthetic()                                                                  //
-                        .set<property::origin>(&two)                                                  //
-                    ,                                                                                 //
-                    sid::synthetic()                                                                  //
-                        .set<property::origin>(&three[0][0][0])                                       //
-                        .set<property::strides>(my_strides)                                           //
-                        .set<property::strides_kind, my_strides_kind>()                               //
-                    ,                                                                                 //
-                    sid::synthetic()                                                                  //
-                        .set<property::origin>(&four[0][0][0])                                        //
-                        .set<property::strides>(my_strides)                                           //
-                        .set<property::strides_kind, my_strides_kind>()                               //
+            auto testee = tu::make<sid::composite>                            //
+                (                                                             //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&one[0])                       //
+                        .set<property::strides>(tuple_util::make<tuple>(1_c)) //
+                    ,                                                         //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&two)                          //
+                    ,                                                         //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&three[0][0][0])               //
+                        .set<property::strides>(my_strides)                   //
+                        .set<property::strides_kind, my_strides_kind>()       //
+                    ,                                                         //
+                    sid::synthetic()                                          //
+                        .set<property::origin>(&four[0][0][0])                //
+                        .set<property::strides>(my_strides)                   //
+                        .set<property::strides_kind, my_strides_kind>()       //
                 );
             static_assert(is_sid<decltype(testee)>(), "");
 
@@ -118,7 +120,7 @@ namespace gridtools {
             EXPECT_EQ(1, get<0>(ptr_diff));
             EXPECT_EQ(0, get<1>(ptr_diff));
 
-            sid::shift(ptr_diff, stride0, integral_constant<int, 2>());
+            sid::shift(ptr_diff, stride0, 2_c);
             EXPECT_EQ(3, get<0>(ptr_diff));
             EXPECT_EQ(0, get<1>(ptr_diff));
 
@@ -137,7 +139,7 @@ namespace gridtools {
             EXPECT_EQ(&four[0][0][1], get<3>(ptr));
 
             sid::shift(ptr, get<1>(strides), 2);
-            sid::shift(ptr, get<2>(strides), integral_constant<int, 3>());
+            sid::shift(ptr, get<2>(strides), 3_c);
             EXPECT_EQ(&three[3][2][1], get<2>(ptr));
             EXPECT_EQ(&four[3][2][1], get<3>(ptr));
 

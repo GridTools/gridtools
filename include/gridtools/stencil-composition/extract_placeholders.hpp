@@ -38,9 +38,12 @@
 
 #include <tuple>
 
-#include "../common/defs.hpp"
 #include "../common/generic_metafunctions/copy_into_variadic.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../meta/dedup.hpp"
+#include "../meta/defs.hpp"
+#include "../meta/flatten.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/transform.hpp"
 
 #include "independent_esf.hpp"
 

@@ -38,7 +38,6 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
 #include "../common/host_device.hpp"
 #include "./execution_types.hpp"
 #include "./iterate_domain_fwd.hpp"
