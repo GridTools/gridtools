@@ -26,9 +26,9 @@ if(NOT GT_GCL_ONLY)
                 test_halo_exchange_3D_generic
                 test_halo_exchange_3D_generic_full
                 )
-          add_executable( ${srcfile}_cu ${srcfile}.cu )
-          target_link_libraries( ${srcfile}_cu gtest gcl mpi_gtest_main GridToolsTestCUDA)
-          target_compile_definitions( ${srcfile}_cu PRIVATE STANDALONE)
+          add_executable( ${srcfile}_regression_cuda ${srcfile}.cu )
+          target_link_libraries( ${srcfile}_regression_cuda gtest gcl mpi_gtest_main GridToolsTestCUDA)
+          target_compile_definitions( ${srcfile}_regression_cuda PRIVATE STANDALONE)
         endforeach()
       endif()
     endif()
