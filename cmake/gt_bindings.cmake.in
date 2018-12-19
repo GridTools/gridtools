@@ -31,13 +31,12 @@ option(GT_ENABLE_BINDINGS_GENERATION "If turned off, bindings will not be genera
 
 set(BINDINGS_SOURCE_DIR @BINDINGS_SOURCE_DIR@)
 set(BINDINGS_CMAKE_DIR @BINDINGS_CMAKE_DIR@)
-set(BINDINGS_LIBRARIES @BINDINGS_LIBRARIES@)
 
 add_library(c_bindings_generator ${BINDINGS_SOURCE_DIR}/c_bindings/generator.cpp)
-target_link_libraries(c_bindings_generator ${BINDINGS_LIBRARIES})
+target_link_libraries(c_bindings_generator GridTools::gridtools)
 
 add_library(c_bindings_handle ${BINDINGS_SOURCE_DIR}/c_bindings/handle.cpp)
-target_link_libraries(c_bindings_handle ${BINDINGS_LIBRARIES})
+target_link_libraries(c_bindings_handle GridTools::gridtools)
 
 # enable_bindings_library_fortran()
 #

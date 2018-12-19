@@ -74,7 +74,7 @@ else()
 endif()
 
 add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
-target_link_libraries(repository_${prec} PUBLIC GridTools gtest)
+target_link_libraries(repository_${prec} PUBLIC gridtools gtest)
 if(GT_SINGLE_PRECISION)
     target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=4)
 else()

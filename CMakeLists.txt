@@ -38,7 +38,7 @@ include (components)
 
 # TODO this install targets are not finished on purpose.
 if( COMPONENT_COMMON )
-    install(TARGETS GridTools EXPORT GridToolstargets
+    install(TARGETS gridtools EXPORT GridToolstargets
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib
       RUNTIME DESTINATION bin
@@ -51,7 +51,7 @@ if( COMPONENT_COMMON )
     )
 
     generate_target_for(NAME common)
-    target_link_libraries(common INTERFACE GridTools)
+    target_link_libraries(common INTERFACE gridtools)
 endif()
 
 if( COMPONENT_BOUNDARY_CONDITIONS )
@@ -65,12 +65,11 @@ if( COMPONENT_STENCIL_COMPOSITION )
 endif()
 
 if( COMPONENT_GCL )
-    generate_target_for(NAME GridToolsGCL SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
-    target_link_libraries(GridToolsGCL GridTools)
+    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+    target_link_libraries(gcl gridtools)
     if( GT_USE_MPI )
-        target_link_libraries(GridToolsGCL MPI::MPI_CXX)
+        target_link_libraries(gcl MPI::MPI_CXX)
     endif()
-    add_library(gcl ALIAS GridToolsGCL)
 endif()
 
 if( COMPONENT_DISTRIBUTED_BOUNDARIES )
@@ -105,7 +104,7 @@ endif()
 if(BUILD_TESTING)
   # TODO move to the right directory
   add_library(regression_main src/tools/regression_fixture.cpp)
-  target_link_libraries(regression_main gtest GridTools)
+  target_link_libraries(regression_main gtest gridtools)
 
   add_subdirectory(regression)
   add_subdirectory(unit_tests)

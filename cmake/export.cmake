@@ -26,32 +26,32 @@ write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
   COMPATIBILITY SameMajorVersion )
 
-install(TARGETS GridTools EXPORT GridToolsTargets
+install(TARGETS gridtools EXPORT GridToolsTargets
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
 if (COMPONENT_GCL)
-    install(TARGETS GridToolsGCL EXPORT GridToolsTargets
+    install(TARGETS gcl EXPORT GridToolsTargets
       LIBRARY DESTINATION lib
       ARCHIVE DESTINATION lib
       RUNTIME DESTINATION bin
       INCLUDES DESTINATION include
     )
-    export(TARGETS GridTools GridToolsGCL
+    export(TARGETS gridtools gcl
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
-        NAMESPACE gridtools::
+        NAMESPACE GridTools::
     )
 else()
-    export(TARGETS GridTools
+    export(TARGETS gridtools
         FILE ${PROJECT_BINARY_DIR}/GridToolsTargets.cmake
-        NAMESPACE gridtools::
+        NAMESPACE GridTools::
     )
 endif()
 install(EXPORT GridToolsTargets
   FILE GridToolsTargets.cmake
-  NAMESPACE gridtools::
+  NAMESPACE GridTools::
   DESTINATION ${INSTALL_CONFIGDIR}
 )
 
@@ -67,7 +67,6 @@ install(FILES "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsCo
 if(COMPONENT_C_BINDINGS)
     set(BINDINGS_SOURCE_DIR "\${GridTools_SOURCES_PATH}")
     set(BINDINGS_CMAKE_PATH "\${GridTools_MODULE_PATH}")
-    set(BINDINGS_LIBRARIES gridtools::GridTools)
     configure_file(cmake/gt_bindings.cmake.in
         ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake/gt_bindings.cmake
         @ONLY)

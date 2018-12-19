@@ -14,56 +14,57 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CUDA_STANDARD ${GT_CXX_STANDARD_VALUE})
 set(CMAKE_CUDA_EXTENSIONS OFF)
 
-add_library(GridTools INTERFACE)
+add_library(gridtools INTERFACE)
+add_library(GridTools::gridtools ALIAS gridtools)
 # TODO This is a workaround because cmake thinks that clang supports features,
 # but it does it wrong because our clang 5.0 RC2 does not match cmakes 5.0
 # specification (but 5.0 does)
 if (CMAKE_CXX_KNOWN_FEATURES)
-    target_compile_features(GridTools INTERFACE cxx_std_11)
+    target_compile_features(gridtools INTERFACE cxx_std_11)
 endif()
-target_include_directories(GridTools
+target_include_directories(gridtools
     INTERFACE
       $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
       $<INSTALL_INTERFACE:include>
 )
 include(workaround_icc)
-_workaround_icc(GridTools)
+_workaround_icc(gridtools)
 
 set(REQUIRED_BOOST_VERSION 1.58)
 find_package( Boost ${REQUIRED_BOOST_VERSION} REQUIRED )
-target_link_libraries( GridTools INTERFACE Boost::boost)
+target_link_libraries( gridtools INTERFACE Boost::boost)
 
 if (GT_ENABLE_TARGET_X86 OR GT_ENABLE_TARGET_MC)
-    target_link_libraries( GridTools INTERFACE OpenMP::OpenMP_CXX)
+    target_link_libraries( gridtools INTERFACE OpenMP::OpenMP_CXX)
 endif()
 
-target_compile_definitions(GridTools INTERFACE BOOST_PP_VARIADICS=1)
+target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if( GT_ENABLE_TARGET_CUDA )
-  target_compile_definitions(GridTools INTERFACE _USE_GPU_)
+  target_compile_definitions(gridtools INTERFACE _USE_GPU_)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()
 
   # allow to call constexpr __host__ from constexpr __device__, e.g. call std::max in constexpr context
-  target_compile_options(GridTools INTERFACE
+  target_compile_options(gridtools INTERFACE
       $<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<STREQUAL:$<TARGET_PROPERTY:CUDA_STANDARD>,14>>:--expt-relaxed-constexpr>)
 
   if(${GT_CXX_STANDARD} STREQUAL "c++17")
     message(FATAL_ERROR "c++17 is not supported for CUDA compilation")
   endif()
 
-  target_include_directories( GridTools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
-  target_link_libraries( GridTools INTERFACE ${CUDA_CUDART_LIBRARY} )
+  target_include_directories( gridtools INTERFACE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} )
+  target_link_libraries( gridtools INTERFACE ${CUDA_CUDART_LIBRARY} )
 endif()
 
 # Controls preprocessor expansion of macros in Fortran source code.
 # TODO decide where to put this. Probably this should go into fortran bindings
-target_compile_options(GridTools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
+target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
 
 if( GT_USE_MPI )
-    target_compile_definitions(GridTools INTERFACE _GCL_MPI_)
+    target_compile_definitions(gridtools INTERFACE _GCL_MPI_)
     if( GT_ENABLE_TARGET_CUDA )
-      target_compile_definitions(GridTools INTERFACE _GCL_GPU_)
+      target_compile_definitions(gridtools INTERFACE _GCL_GPU_)
     endif()
 endif()
 
@@ -72,7 +73,7 @@ add_library(GridToolsTest INTERFACE)
 # with generator expressions. Thus, this needs to be redone in the Config.cmake.in.
 include(workaround_cuda)
 _workaround_cuda(GridToolsTest)
-target_link_libraries(GridToolsTest INTERFACE GridTools)
+target_link_libraries(GridToolsTest INTERFACE gridtools)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_VECTOR_SIZE=20)
 target_compile_definitions(GridToolsTest INTERFACE FUSION_MAX_MAP_SIZE=20)
 target_compile_options(GridToolsTest INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
