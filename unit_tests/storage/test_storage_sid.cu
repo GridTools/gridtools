@@ -35,3 +35,5 @@
 */
 
 #include "test_storage_sid.cpp"
+
+// TODO(anstaf): Add a test to dereference sid::get_origin(data_store) on device.

@@ -41,7 +41,6 @@
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/utility.hpp"
 #include "../common/host_device.hpp"
-#include "../common/integral_constant.hpp"
 #include "../common/layout_map.hpp"
 #include "../common/tuple.hpp"
 #include "../common/tuple_util.hpp"

@@ -39,7 +39,6 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
-#include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta/defs.hpp"
 #include "../../meta/id.hpp"
@@ -64,8 +63,7 @@
  *     `PtrDiff sid_get_ptr_diff(T const&)`
  *     `StridesKind sid_get_strides_kind(T const&);`
  *
- *   The deductible from `T` types `Ptr`, `PtrDiff` ,`Strides`, `BoundsValidator` in their turn should satisfy
- *   the constraints:
+ *   The deducible from `T` types `Ptr`, `PtrDiff` and `Strides` in their turn should satisfy the constraints:
  *     - `Ptr` and `Strides` are trivially copyable
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
