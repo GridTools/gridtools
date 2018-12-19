@@ -50,6 +50,9 @@
 
 #include <utility>
 
+#include "../meta/type_traits.hpp"
+#include "./defs.hpp"
+#include "./generic_metafunctions/utility.hpp"
 #include "./host_device.hpp"
 
 #define GT_FILENAME <gridtools/common/functional.hpp>
@@ -73,7 +76,7 @@ namespace gridtools {
         struct ctor {
             template <typename... Args>
             GT_TARGET GT_FORCE_INLINE constexpr T operator()(Args &&... args) const {
-                return T{std::forward<Args>(args)...};
+                return T{const_expr::forward<Args>(args)...};
             }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
@@ -125,6 +128,22 @@ namespace gridtools {
                 using type = Arg;
             };
 #endif
+        };
+
+        template <class F, class G>
+        struct compose_f {
+            F m_f;
+            G m_g;
+            template <class... Args>
+            constexpr GT_TARGET GT_FORCE_INLINE auto operator()() const
+                GT_AUTO_RETURN(m_f(m_g(const_expr::forward<Args>()...)));
+        };
+
+        struct compose {
+            template <class F, class G>
+            constexpr GT_TARGET GT_FORCE_INLINE compose_f<decay_t<F>, decay_t<G>> operator()(F &&f, G &&g) const {
+                return {const_expr::forward<F>(f), const_expr::forward<G>(g)};
+            }
         };
     }
 
