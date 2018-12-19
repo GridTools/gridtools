@@ -33,46 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "../../common/defs.hpp"
-#include "../../meta/macros.hpp"
-#include "concept.hpp"
+#include <gridtools/stencil-composition/sid/as_const.hpp>
+
+#include <type_traits>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/meta/macros.hpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
+#include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
-    namespace sid {
-        /**
-         *  A helper class for implementing delegate design pattern for `SID`s
-         *  Typically the user template class should inherit from `delegate`
-         *  For example please look into `test_sid_delegate.cpp`
-         *
-         * @tparam Sid a object that models `SID` concept.
-         */
-        template <class Sid>
-        class delegate {
-            Sid m_impl;
+    namespace {
+        using sid::property;
 
-            GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
+        TEST(as_const, smoke) {
+            double data = 42;
+            auto src = sid::synthetic().set<property::origin>(&data);
+            auto testtee = sid::as_const(src);
+            using testtee_t = decltype(testtee);
 
-            friend constexpr GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
-                return get_origin(obj.m_impl);
-            }
-            friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
-                return get_strides(obj.m_impl);
-            }
-            friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
-
-          protected:
-            constexpr Sid const &impl() const { return m_impl; }
-            Sid &impl() { return m_impl; }
-
-          public:
-            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
-        };
-
-        template <class Sid>
-        GT_META_CALL(strides_kind, Sid)
-        sid_get_strides_kind(delegate<Sid> const &);
-    } // namespace sid
+            static_assert(is_sid<testtee_t>(), "");
+            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testtee_t), double const *>(), "");
+            EXPECT_EQ(sid::get_origin(src), sid::get_origin(testtee));
+        }
+    } // namespace
 } // namespace gridtools

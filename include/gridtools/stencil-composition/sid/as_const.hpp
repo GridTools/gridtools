@@ -35,44 +35,35 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
+#include <type_traits>
+#include <utility>
+
 #include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
 #include "concept.hpp"
+#include "delegate.hpp"
 
 namespace gridtools {
     namespace sid {
+        namespace as_const_impl_ {
+            template <class Sid>
+            class const_adapter : public delegate<Sid> {
+                friend GT_META_CALL(sid::element_type, Sid) const *sid_get_origin(const_adapter const &obj) {
+                    return sid::get_origin(const_cast<Sid &>(obj.impl()));
+                }
+                using sid::delegate<Sid>::delegate;
+            };
+        } // namespace as_const_impl_
+
         /**
-         *  A helper class for implementing delegate design pattern for `SID`s
-         *  Typically the user template class should inherit from `delegate`
-         *  For example please look into `test_sid_delegate.cpp`
-         *
-         * @tparam Sid a object that models `SID` concept.
+         *   Returns a `SID`, which ptr_type is a pointer to const.
+         *   enabled only if the original ptr_type is a pointer.
          */
-        template <class Sid>
-        class delegate {
-            Sid m_impl;
-
-            GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
-
-            friend constexpr GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
-                return get_origin(obj.m_impl);
-            }
-            friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
-                return get_strides(obj.m_impl);
-            }
-            friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
-
-          protected:
-            constexpr Sid const &impl() const { return m_impl; }
-            Sid &impl() { return m_impl; }
-
-          public:
-            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
-            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
-        };
-
-        template <class Sid>
-        GT_META_CALL(strides_kind, Sid)
-        sid_get_strides_kind(delegate<Sid> const &);
+        template <class SrcRef,
+            class Src = decay_t<SrcRef>,
+            enable_if_t<std::is_pointer<GT_META_CALL(sid::ptr_type, Src)>::value, int> = 0>
+        as_const_impl_::const_adapter<Src> as_const(SrcRef &&src) {
+            return as_const_impl_::const_adapter<Src>{std::forward<SrcRef>(src)};
+        }
     } // namespace sid
 } // namespace gridtools

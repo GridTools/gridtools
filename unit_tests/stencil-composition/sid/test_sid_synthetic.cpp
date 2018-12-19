@@ -72,30 +72,19 @@ namespace gridtools {
                 friend GT_FUNCTION std::false_type sid_shift(ptr_diff &, stride const &, int) { return {}; }
             };
             using strides = array<stride, 2>;
-            struct bounds_validator {
-                int val;
-                template <class T>
-                GT_FUNCTION false_type operator()(T &&) const {
-                    return {};
-                }
-            };
 
             struct strides_kind;
-            struct bounds_validator_kind;
 
             TEST(sid_synthetic, custom) {
                 element the_element = {};
                 ptr the_origin = {&the_element};
                 strides the_strides = {stride{3}, stride{4}};
-                bounds_validator the_bounds_validator = {88};
 
                 auto the_testee = sid::synthetic()
                                       .set<property::origin>(the_origin)
                                       .set<property::strides>(the_strides)
-                                      .set<property::bounds_validator>(the_bounds_validator)
                                       .set<property::ptr_diff, ptr_diff>()
-                                      .set<property::strides_kind, strides_kind>()
-                                      .set<property::bounds_validator_kind, bounds_validator_kind>();
+                                      .set<property::strides_kind, strides_kind>();
 
                 using testee = decltype(the_testee);
 
@@ -104,16 +93,12 @@ namespace gridtools {
 
                 static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee), ptr>(), "");
                 static_assert(std::is_same<GT_META_CALL(sid::strides_type, testee), strides>(), "");
-                static_assert(std::is_same<GT_META_CALL(sid::bounds_validator_type, testee), bounds_validator>(), "");
                 static_assert(std::is_same<GT_META_CALL(sid::ptr_diff_type, testee), ptr_diff>(), "");
                 static_assert(std::is_same<GT_META_CALL(sid::strides_kind, testee), strides_kind>(), "");
-                static_assert(
-                    std::is_same<GT_META_CALL(sid::bounds_validator_kind, testee), bounds_validator_kind>(), "");
 
                 EXPECT_EQ(&the_element, sid::get_origin(the_testee).val);
                 EXPECT_EQ(3, tuple_util::get<0>(sid::get_strides(the_testee)).val);
                 EXPECT_EQ(4, tuple_util::get<1>(sid::get_strides(the_testee)).val);
-                EXPECT_EQ(88, sid::get_bounds_validator(the_testee).val);
             }
         } // namespace custom
     }     // namespace

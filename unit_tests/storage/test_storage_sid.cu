@@ -34,20 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/stencil-composition/sid/clone.hpp>
+#include "test_storage_sid.cpp"
 
-#include <gtest/gtest.h>
-
-#include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/stencil-composition/sid/synthetic.hpp>
-
-namespace gridtools {
-    namespace {
-        TEST(clone, smoke) {
-            double data;
-            auto src = sid::synthetic().set<sid::property::origin>(&data);
-            auto dst = sid::clone(src);
-            EXPECT_EQ(&data, sid::get_origin(dst));
-        }
-    } // namespace
-} // namespace gridtools
+// TODO(anstaf): Add a test to dereference sid::get_origin(data_store) on device.

@@ -56,23 +56,19 @@
  *   -----------------------------
  *
  *   A type `T` models SID concept if it has the following functions defined and available via ADL:
- *     `GT_FUNCTION Ptr sid_get_origin(T&);`
- *     `GT_FUNCTION Strides sid_get_strides(T const&);`
- *     `GT_FUNCTION BoundsValidator sid_get_bounds_validator(T const&);`
+ *     `Ptr sid_get_origin(T&);`
+ *     `Strides sid_get_strides(T const&);`
  *
  *   The following functions should be declared (definition is not needed) and available via ADL:
  *     `PtrDiff sid_get_ptr_diff(T const&)`
  *     `StridesKind sid_get_strides_kind(T const&);`
- *     `BoundsValidatorKind sid_get_bounds_validator_kind(T const&);`
  *
- *   The deducible from `T` types `Ptr`, `PtrDiff` ,`Strides`, `BoundsValidator` in their turn should satisfy
- *   the constraints:
- *     - `Ptr`, `Strides` and `BoundsValidator` are trivially copyable
+ *   The deducible from `T` types `Ptr`, `PtrDiff` and `Strides` in their turn should satisfy the constraints:
+ *     - `Ptr` and `Strides` are trivially copyable
  *     - `PtrDiff` is default constructible
  *     - `Ptr` has `Ptr::operator*() const` which returns non void
  *     - there is `Ptr operator+(Ptr, PtrDiff)` defined
  *     - decayed `Strides` is a tuple-like in the terms of `tuple_util` library
- *     - `BoundsValidator` is callable and `BoundsValidator(Ptr)` is at least explicitly convertible to bool.
  *
  *   Each type that participate in `Strides` tuple-like (aka `Stride`) should:
  *     - be an integral
@@ -86,8 +82,7 @@
  *     - the functions `sid_shift(Ptr&, Stride, Offset)` and `sid_shift(PtrDiff&, Stride, Offset)` are defined and
  *       available by ADL;
  *
- *   No constraints on `StridesKind` and `BoundsValidatorKind`. They not even have to be complete. (Can be declared but
- *   not defined or can be `void`)
+ *   No constraints on `StridesKind`. It not even has to be complete. (Can be declared but not defined or can be `void`)
  *
  *   Semantic part of the concept
  *   ----------------------------
@@ -102,15 +97,13 @@
  *   Any SIDs that have the same `StridesKind` would return the equivalent instances from their `sid_get_strides`.
  *   You can think that `sid_get_strides` returns a singleton instance of Strides.
  *
- *   The same is applied to `BoundsValidatorKind` and `sid_get_bounds_validator`
- *
  *   `ptr == ptr + PtrDiff{}`,    for any ptr that is an instance of `Ptr`
  *   `ptr + a + b == ptr + b + a` for any ptr that is an instance of `Ptr` and any a, b of type `PtrDiff`
  *
- *    For concept users: the life time of `Ptr`, `PtrDiff`, `Reference`, `Strides` and `BoundsValidator` objects must
- *    not exceed the life time of the originated `SID`.
+ *    For concept users: the life time of `Ptr`, `PtrDiff`, `Reference` and `Strides` objects must not exceed
+ *    the lifetime of the originated `SID`.
  *    For concept implementors it means that the inferred from the `SID` types can delegate the ownership handling
- *    to `SID`. It is leagal for example the `Strides` can be implemented as a reference (or a tuple of references)
+ *    to `SID`. It is legal for example the `Strides` can be implemented as a reference (or a tuple of references)
  *
  *    TODO(anstaf): formal semantic definition is not complete.
  *
@@ -118,10 +111,8 @@
  *    ---------
  *
  *    `get_strides(Sid)` returns an empty tuple.
- *    `get_bounds_validator(Sid)` returns a validator that never returns false
  *    `get_ptr_diff(Sid)` returns the same type as `decltype(Ptr{} - Ptr{})`
  *    `get_strides_kind(Sid)` is enabled if `Strides` is empty and returns `Strides`
- *    `get_bounds_validator_kind(Sid)` fallback is like sid_get_strides_kind one.
  *
  *   Compile time API
  *   =================
@@ -131,8 +122,6 @@
  *     sid::ptr_diff_type,
  *     sid::strides_type,
  *     sid::strides_kind,
- *     sid::bounds_validator_type,
- *     sid::bounds_validator_kind,
  *     sid::reference_type,
  *     sid::const_reference_type,
  *     sid::element_type - functions in terms of `meta` library. They return various types deducible from the Sid
@@ -144,7 +133,6 @@
  *
  *  - Ptr sid::get_origin(Sid&);
  *  - Strides sid::get_strides(Sid const&);
- *  - BoundsValidator sid::get_bounds_validator(Sid const&);
  *  - void sid::shift(T&, Stride, Offset);
  *
  *  Auxiliary functions:
@@ -205,13 +193,6 @@ namespace gridtools {
             struct default_strides_templ<> {};
             using default_strides = default_strides_templ<>;
 
-            struct default_bounds_validator {
-                template <class T>
-                constexpr GT_FUNCTION true_type operator()(T &&) const {
-                    return {};
-                }
-            };
-
             template <class Ptr>
             auto sid_get_default_ptr_diff(Ptr const &ptr) -> decltype(ptr - ptr);
 
@@ -242,10 +223,8 @@ namespace gridtools {
             struct not_provided;
 
             not_provided sid_get_strides(...);
-            not_provided sid_get_bounds_validator(...);
             not_provided sid_get_ptr_diff(...);
             not_provided sid_get_strides_kind(...);
-            not_provided sid_get_bounds_validator_kind(...);
 
             // BEGIN `get_origin` PART
 
@@ -253,7 +232,7 @@ namespace gridtools {
              *  `get_origin` delegates to `sid_get_origin`
              */
             template <class Sid>
-            constexpr GT_FUNCTION auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
+            constexpr auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
 
             /**
              *  `Ptr` type is deduced from `get_origin`
@@ -295,14 +274,12 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr GT_FUNCTION enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides(
-                Sid const &obj) {
+            constexpr enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides(Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr GT_FUNCTION enable_if_t<std::is_same<Res, not_provided>::value, default_strides> get_strides(
-                Sid const &obj) {
+            constexpr enable_if_t<std::is_same<Res, not_provided>::value, default_strides> get_strides(Sid const &obj) {
                 return {};
             }
             /**
@@ -330,50 +307,6 @@ namespace gridtools {
                 decltype(::gridtools::sid::concept_impl_::get_strides_kind(std::declval<Sid const &>()));
 
             // END `strides_kind` PART
-
-            // BEGIN `bounds_validator` PART
-
-            /**
-             *  `get_bounds_validator` delegates to `sid_get_bounds_validator`
-             */
-            template <class Sid, class Res = decltype(sid_get_bounds_validator(std::declval<Sid const &>()))>
-            constexpr GT_FUNCTION enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_bounds_validator(
-                Sid const &obj) {
-                return sid_get_bounds_validator(obj);
-            }
-
-            template <class Sid, class Res = decltype(sid_get_bounds_validator(std::declval<Sid const &>()))>
-            constexpr GT_FUNCTION enable_if_t<std::is_same<Res, not_provided>::value, default_bounds_validator>
-            get_bounds_validator(Sid const &obj) {
-                return {};
-            }
-
-            /**
-             *  `BoundsValidator` types is deduced from `sid_get_bounds_validator`
-             */
-            template <class Sid>
-            using bounds_validator_type =
-                decltype(::gridtools::sid::concept_impl_::get_bounds_validator(std::declval<Sid const &>()));
-
-            // END `bounds_validator` PART
-
-            // BEGIN `bounds_validator_kind` PART
-
-            template <class Sid, class Res = decltype(sid_get_bounds_validator_kind(std::declval<Sid const &>()))>
-            enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_bounds_validator_kind(Sid const &);
-
-            template <class Sid, class Res = decltype(sid_get_bounds_validator_kind(std::declval<Sid const &>()))>
-            enable_if_t<std::is_same<Res, not_provided>::value, GT_META_CALL(default_kind, bounds_validator_type<Sid>)>
-            get_bounds_validator_kind(Sid const &obj);
-
-            /**
-             *  `bounds_validator_kind` is deduced from `sid_get_bounds_validator_kind`
-             */
-            template <class Sid>
-            using bounds_validator_kind =
-                decltype(::gridtools::sid::concept_impl_::get_bounds_validator_kind(std::declval<Sid const &>()));
-
-            // END `bounds_validator_kind` PART
 
             // BEGIN `shift` PART
 
@@ -462,7 +395,7 @@ namespace gridtools {
                 class Stride,
                 class Offset,
                 enable_if_t<need_shift<T, Stride, Offset>::value && !is_default_shiftable<T, Stride>::value, int> = 0>
-            GT_FUNCTION auto shift(T &obj, Stride const &stride, Offset const &offset)
+            GT_FUNCTION auto shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset)
                 GT_AUTO_RETURN(sid_shift(obj, stride, offset));
 
             /**
@@ -510,7 +443,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value && is_integral_constant_of<Offset, 1>::value>
-            shift(T &obj, Stride const &stride, Offset const &) {
+            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
                 obj += stride;
             }
 
@@ -521,7 +454,7 @@ namespace gridtools {
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     !is_integral_constant<Stride>::value &&
                                     is_integral_constant_of<Offset, -1>::value && has_dec_assignment<T, Stride>::value>
-            shift(T &obj, Stride const &stride, Offset const &) {
+            shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &) {
                 obj -= stride;
             }
 
@@ -531,7 +464,7 @@ namespace gridtools {
             template <class T, class Stride, class Offset>
             GT_FUNCTION enable_if_t<need_shift<T, Stride, Offset>::value && is_default_shiftable<T, Stride>::value &&
                                     is_integral_constant_of<Stride, 1>::value && !is_integral_constant<Offset>::value>
-            shift(T &obj, Stride const &, Offset const &offset) {
+            shift(T &RESTRICT obj, Stride const &RESTRICT, Offset const &offset) {
                 obj += offset;
             }
 
@@ -556,7 +489,7 @@ namespace gridtools {
                             !(is_integral_constant_of<Stride, 1>::value || is_integral_constant_of<Offset, 1>::value) &&
                             !(has_dec_assignment<T, Stride>::value && (is_integral_constant_of<Stride, -1>::value ||
                                                                           is_integral_constant_of<Offset, -1>::value))>
-                shift(T &obj, Stride const &stride, Offset const &offset) {
+                shift(T &RESTRICT obj, Stride const &RESTRICT stride, Offset const &RESTRICT offset) {
                 obj += stride * offset;
             }
 
@@ -590,32 +523,25 @@ namespace gridtools {
                 class ReferenceType = reference_type<Sid>,
                 class PtrDiff = ptr_diff_type<Sid>,
                 class StridesType = strides_type<Sid>,
-                class BoundsValidatorType = bounds_validator_type<Sid>,
                 class StrideTypeList = GT_META_CALL(tuple_util::traits::to_types, decay_t<StridesType>),
-                class StridesKind = strides_kind<Sid>,
-                class BoundsValidatorKind = bounds_validator_kind<Sid>>
+                class StridesKind = strides_kind<Sid>>
             GT_META_DEFINE_ALIAS(is_sid,
                 conjunction,
                 (
                     // `is_trivially_copyable` check is applied to the types that are will be passed from host to device
                     std::is_trivially_copyable<Ptr>,
                     std::is_trivially_copyable<StridesType>,
-                    std::is_trivially_copyable<BoundsValidatorType>,
 
                     // verify that `PtrDiff` is sane
                     std::is_default_constructible<PtrDiff>,
-                    std::is_same<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
+                    std::is_convertible<decltype(std::declval<Ptr const &>() + std::declval<PtrDiff const &>()), Ptr>,
 
                     // verify that `Reference` is sane
                     negation<std::is_void<ReferenceType>>,
 
                     // all strides must be applied via `shift` with both `Ptr` and `PtrDiff`
                     are_valid_strides<StrideTypeList, Ptr>,
-                    are_valid_strides<StrideTypeList, PtrDiff>,
-
-                    // `BoundsValidators` apllied to `Ptr` should return `bool`
-                    std::is_constructible<bool,
-                        decltype(std::declval<BoundsValidatorType const &>()(std::declval<Ptr const &>()))>));
+                    are_valid_strides<StrideTypeList, PtrDiff>));
 
         } // namespace concept_impl_
 
@@ -634,21 +560,17 @@ namespace gridtools {
         SID_DELEGATE_FROM_IMPL(reference_type);
         SID_DELEGATE_FROM_IMPL(strides_type);
         SID_DELEGATE_FROM_IMPL(strides_kind);
-        SID_DELEGATE_FROM_IMPL(bounds_validator_type);
-        SID_DELEGATE_FROM_IMPL(bounds_validator_kind);
 
         SID_DELEGATE_FROM_IMPL(default_ptr_diff);
 
 #undef SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
-        using concept_impl_::get_bounds_validator;
         using concept_impl_::get_origin;
         using concept_impl_::get_strides;
         using concept_impl_::shift;
 
         // Default behaviour
-        using concept_impl_::default_bounds_validator;
         using concept_impl_::default_kind;
         using concept_impl_::default_strides;
         using default_stride = integral_constant<int_t, 0>;
@@ -695,12 +617,7 @@ namespace gridtools {
 
         struct get_origin_f {
             template <class T>
-            constexpr GT_FUNCTION auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
-        };
-
-        struct get_bounds_validator_f {
-            template <class T>
-            constexpr GT_FUNCTION auto operator()(const T &obj) const GT_AUTO_RETURN(get_bounds_validator(obj));
+            constexpr auto operator()(T &obj) const GT_AUTO_RETURN(get_origin(obj));
         };
     } // namespace sid
 
