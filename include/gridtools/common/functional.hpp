@@ -135,8 +135,8 @@ namespace gridtools {
             F m_f;
             G m_g;
             template <class... Args>
-            constexpr GT_TARGET GT_FORCE_INLINE auto operator()() const
-                GT_AUTO_RETURN(m_f(m_g(const_expr::forward<Args>()...)));
+            constexpr GT_TARGET GT_FORCE_INLINE auto operator()(Args &&... args) const
+                GT_AUTO_RETURN(m_f(m_g(const_expr::forward<Args>(args)...)));
         };
 
         struct compose {

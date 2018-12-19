@@ -36,11 +36,12 @@
 
 #pragma once
 
-#include <cstddef>
+#include <type_traits>
 
 #include "../../common/defs.hpp"
 #include "../../common/functional.hpp"
 #include "../../common/generic_metafunctions/utility.hpp"
+#include "../../common/gt_assert.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
@@ -69,13 +70,15 @@ namespace gridtools {
 
                 template <class Ptr, class Strides>
                 void GT_FUNCTION operator()(Ptr &RESTRICT ptr, const Strides &RESTRICT strides) {
+                    assert(m_num_steps >= 0);
+                    if (m_num_steps <= 0)
+                        return;
                     auto &&stride = get_stride<I>(strides);
                     for (T i = 0; i < m_num_steps; ++i) {
                         m_fun(ptr, strides);
                         shift(ptr, stride, m_step);
                     }
-                    if (m_num_steps)
-                        shift(ptr, stride, -m_step * m_num_steps);
+                    shift(ptr, stride, -m_step * m_num_steps);
                 }
             };
 
@@ -107,20 +110,22 @@ namespace gridtools {
 
                 template <class Ptr, class Strides>
                 void GT_FUNCTION operator()(Ptr &RESTRICT ptr, const Strides &RESTRICT strides) {
+                    assert(m_num_steps >= 0);
+                    if (m_num_steps <= 0)
+                        return;
                     auto &&stride = get_stride<I>(strides);
                     for (T i = 0; i < m_num_steps; ++i) {
                         m_fun(ptr, strides);
                         shift(ptr, stride, integral_constant<T, Step>{});
                     }
-                    if (m_num_steps) {
-                        static constexpr T minus_step = -Step;
-                        shift(ptr, stride, minus_step * m_num_steps);
-                    }
+                    static constexpr T minus_step = -Step;
+                    shift(ptr, stride, minus_step * m_num_steps);
                 }
             };
 
           public:
-            constexpr GT_FUNCTION loop(integral_constant<T, Step>, T num_steps) : m_num_steps(num_steps) {}
+            template <class U>
+            constexpr GT_FUNCTION loop(U &&, T num_steps) : m_num_steps(num_steps) {}
 
             template <class Fun>
             constexpr GT_FUNCTION invocation_f<decay_t<Fun>> operator()(Fun &&fun) const {
@@ -147,13 +152,15 @@ namespace gridtools {
 
                 template <class Ptr, class Strides>
                 void GT_FUNCTION operator()(Ptr &RESTRICT ptr, const Strides &RESTRICT strides) {
+                    assert(m_num_steps >= 0);
                     for (T i = 0; i < m_num_steps; ++i)
                         m_fun(ptr, strides);
                 }
             };
 
           public:
-            constexpr GT_FUNCTION loop(integral_constant<T, 0>, T num_steps) : m_num_steps(num_steps) {}
+            template <class U>
+            constexpr GT_FUNCTION loop(U &&, T num_steps) : m_num_steps(num_steps) {}
 
             template <class Fun>
             constexpr GT_FUNCTION invocation_f<decay_t<Fun>> operator()(Fun &&fun) const {
@@ -192,7 +199,8 @@ namespace gridtools {
             };
 
           public:
-            constexpr GT_FUNCTION loop(T step, integral_constant<T, NumSteps>) : m_step(step) {}
+            template <class U>
+            constexpr GT_FUNCTION loop(T step, U &&) : m_step(step) {}
 
             template <class Fun>
             constexpr GT_FUNCTION invocation_f<decay_t<Fun>> operator()(Fun &&fun) const {
@@ -203,48 +211,6 @@ namespace gridtools {
 
             constexpr GT_FUNCTION T step() const { return m_step; }
             constexpr GT_FUNCTION integral_constant<T, NumSteps> num_steps() const { return {}; }
-        };
-
-        template <size_t I, class T>
-        class loop<I, T, integral_constant<T, 1>> {
-            GRIDTOOLS_STATIC_ASSERT(std::is_integral<T>::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
-
-            T m_step;
-
-          public:
-            constexpr GT_FUNCTION loop(T step, integral_constant<T, 1>) : m_step(step) {}
-
-            template <class Fun>
-            constexpr GT_FUNCTION decay_t<Fun> operator()(Fun &&fun) const {
-                return const_expr::forward<Fun>(fun);
-            }
-
-            static constexpr size_t index = I;
-
-            constexpr GT_FUNCTION T step() const { return m_step; }
-            constexpr GT_FUNCTION integral_constant<T, 1> num_steps() const { return {}; }
-        };
-
-        template <size_t I, class T>
-        class loop<I, T, integral_constant<T, 0>> {
-            GRIDTOOLS_STATIC_ASSERT(std::is_integral<T>::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
-
-            T m_step;
-
-          public:
-            constexpr GT_FUNCTION loop(T step, integral_constant<T, 0>) {}
-
-            template <class Fun>
-            constexpr GT_FUNCTION host_device::noop operator()(Fun &&fun) const {
-                return {};
-            }
-
-            static constexpr size_t index = I;
-
-            constexpr GT_FUNCTION T step() const { return m_step; }
-            constexpr GT_FUNCTION integral_constant<T, 0> num_steps() const { return {}; }
         };
 
         template <size_t I, class T, T Step, T NumSteps>
@@ -268,7 +234,8 @@ namespace gridtools {
             };
 
           public:
-            constexpr GT_FUNCTION loop(integral_constant<T, Step>, integral_constant<T, NumSteps>) {}
+            template <class U, class X>
+            constexpr GT_FUNCTION loop(U &&, X &&) {}
 
             template <class Fun>
             constexpr GT_FUNCTION invocation_f<decay_t<Fun>> operator()(Fun &&fun) const {
@@ -287,7 +254,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
           public:
-            constexpr GT_FUNCTION loop(integral_constant<T, 0>, integral_constant<T, 1>) {}
+            template <class U, class X>
+            constexpr GT_FUNCTION loop(U &&, X &&) {}
 
             template <class Fun>
             constexpr GT_FUNCTION decay_t<Fun> operator()(Fun &&fun) const {
@@ -306,7 +274,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
           public:
-            constexpr GT_FUNCTION loop(integral_constant<T, 0>, integral_constant<T, 1>) {}
+            template <class U, class X>
+            constexpr GT_FUNCTION loop(U &&, X &&) {}
 
             template <class Fun>
             constexpr GT_FUNCTION host_device::noop operator()(Fun &&fun) const {
@@ -319,8 +288,76 @@ namespace gridtools {
             constexpr GT_FUNCTION integral_constant<T, 0> num_steps() const { return {}; }
         };
 
-        template <size_t I, class Step, class NumSteps>
-        constexpr GT_FUNCTION loop<I, Step, NumSteps> make_loop(Step step, NumSteps num_steps) {
+        namespace loop_impl_ {
+
+            template <class T, class = void>
+            struct is_constant : std::false_type {};
+
+            template <class T>
+            struct is_constant<T,
+                enable_if_t<std::is_base_of<std::integral_constant<typename T::value_type, T::value>, T>::value>>
+                : std::true_type {};
+
+            template <class T, class = void>
+            struct value_type;
+
+            template <class T>
+            struct value_type<T, enable_if_t<std::is_integral<T>::value>> {
+                using type = T;
+            };
+
+            template <class T>
+            struct value_type<T, enable_if_t<is_constant<T>::value>> {
+                using type = typename T::value_type;
+            };
+
+            template <class NumSteps, class T, bool = is_constant<NumSteps>::value>
+            struct num_steps_type {
+                using type = T;
+            };
+
+            template <class NumSteps, class T>
+            struct num_steps_type<NumSteps, T, true> {
+                using type = integral_constant<T, NumSteps::value>;
+            };
+
+            template <class Step, class NumSteps, class T, bool = is_constant<Step>::value>
+            struct step_type {
+                using type = T;
+            };
+
+            template <class Step, class T, bool IsStepConstant>
+            struct step_type<Step, integral_constant<T, 0>, T, IsStepConstant> {
+                using type = integral_constant<T, 0>;
+            };
+
+            template <class Step, class T, bool IsStepConstant>
+            struct step_type<Step, integral_constant<T, 1>, T, IsStepConstant> {
+                using type = integral_constant<T, 0>;
+            };
+
+            template <class Step, class NumSteps, class T>
+            struct step_type<Step, NumSteps, T, true> {
+                using type = integral_constant<T, Step::value>;
+            };
+
+            template <class T, bool = is_constant<T>::value>
+            struct may_be_non_negative : std::true_type {};
+
+            template <class T>
+            struct may_be_non_negative<T, true> : bool_constant<(T::value >= 0)> {};
+
+        } // namespace loop_impl_
+
+        template <size_t I,
+            class RawStep,
+            class RawNumSteps,
+            class T = make_signed_t<common_type_t<typename loop_impl_::value_type<RawStep>::type,
+                typename loop_impl_::value_type<RawNumSteps>::type>>,
+            class NumSteps = typename loop_impl_::num_steps_type<RawNumSteps, T>::type,
+            class Step = typename loop_impl_::step_type<RawStep, NumSteps, T>::type,
+            enable_if_t<loop_impl_::may_be_non_negative<RawNumSteps>::value, int> = 0>
+        constexpr GT_FUNCTION loop<I, Step, NumSteps> make_loop(RawStep step, RawNumSteps num_steps) {
             return {step, num_steps};
         }
 
