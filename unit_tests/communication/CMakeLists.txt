@@ -42,7 +42,7 @@ set(ADDITIONAL_SOURCES
 if( NOT GT_GCL_ONLY )
     if( GT_USE_MPI )
         foreach (source IN LISTS SOURCES ADDITIONAL_SOURCES)
-            get_filename_component(target ${source} NAME)
+            get_filename_component(target ${source} NAME_WE )
             add_custom_mpi_x86_test(
                 TARGET ${target}
                 NPROC 4
@@ -57,7 +57,8 @@ if( NOT GT_GCL_ONLY )
                 )
         endforeach()
         foreach (source IN LISTS SOURCES)
-            get_filename_component(target ${source} NAME)
+            get_filename_component(target ${source} NAME_WE )
+
             add_custom_mpi_x86_test(
                 TARGET ${target}_vector
                 NPROC 4
@@ -75,17 +76,22 @@ if( NOT GT_GCL_ONLY )
         endforeach()
 
         foreach (source IN LISTS SOURCES)
-            get_filename_component(target ${source} NAME)
+            get_filename_component(name ${source} NAME )
+            get_filename_component(path ${source} DIRECTORY )
+            get_filename_component(source_name ${name} NAME_WE )
+            set (source_ ${path}/${source_name}.cu)
+            set(target ${source_name})
+
             add_custom_mpi_gpu_test(
                 TARGET ${target}
                 NPROC 4
-                SOURCES ${source}
+                SOURCES ${source_}
                 LABELS mpitest_cuda
                 )
             add_custom_mpi_gpu_test(
                 TARGET ${target}_vector
                 NPROC 4
-                SOURCES ${source}
+                SOURCES ${source_}
                 COMPILE_DEFINITIONS VECTOR_INTERFACE
                 LABELS mpitest_cuda
                 )

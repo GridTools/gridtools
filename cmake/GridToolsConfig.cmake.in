@@ -1,0 +1,36 @@
+@PACKAGE_INIT@
+
+get_filename_component(GRIDTOOLS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+include(CMakeFindDependencyMacro)
+find_dependency(Boost @REQUIRED_BOOST_VERSION@)
+
+if (@GT_USE_MPI@)
+    find_dependency(MPI COMPONENTS CXX)
+endif()
+
+if (@OPENMP_AVAILABLE@)
+    find_dependency(OpenMP COMPONENTS CXX)
+endif()
+
+include("${GRIDTOOLS_CMAKE_DIR}/GridToolsTargets.cmake")
+
+# CUDA workaround
+if(${CMAKE_CUDA_COMPILER_LOADED})
+    if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_GREATER_EQUAL "9.2" AND ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "10.1")
+        target_compile_definitions(GridTools::gridtools INTERFACE BOOST_OPTIONAL_CONFIG_USE_OLD_IMPLEMENTATION_OF_OPTIONAL)
+        target_compile_definitions(GridTools::gridtools INTERFACE BOOST_OPTIONAL_USE_OLD_DEFINITION_OF_NONE)
+    endif()
+endif()
+
+target_compile_definitions(GridTools::gridtools INTERFACE STRUCTURED_GRIDS)
+
+if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
+    target_compile_definitions(GridTools::gridtools INTERFACE ENABLE_METERS)
+endif()
+
+set_and_check(GridTools_MODULE_PATH @PACKAGE_GRIDTOOLS_MODULE_PATH@)
+set_and_check(GridTools_SOURCES_PATH @PACKAGE_GRIDTOOLS_SOURCES_PATH@)
+set_and_check(GridTools_INCLUDE_PATH @PACKAGE_GRIDTOOLS_INCLUDE_PATH@)
+
+check_required_components(GridTools)

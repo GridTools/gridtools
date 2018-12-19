@@ -118,8 +118,8 @@ namespace halo_exchange_3D_all {
            the others.
         */
         static const int version =
-            gridtools::version_manual; // 0 is the usual version, 1 is the one that build the whole
-        // datatype (Only vector interface supported)
+            gridtools::version_manual;
+
         typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
             gridtools::layout_map<0, 1, 2>,
             triple_t<USE_DOUBLE>::data_type,
@@ -146,12 +146,13 @@ namespace halo_exchange_3D_all {
         he.template add_halo<2>(H, H, H, DIM3 + H - 1, DIM3 + 2 * H);
 
         /* Pattern is set up. This must be done only once per pattern. The
-             parameter must me greater or equal to the largest number of
-             arrays updated in a single step.
-             */
+           parameter must me greater or equal to the largest number of
+           arrays updated in a single step.
+        */
         he.setup(3);
 
         file << "Proc: (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")\n";
+        file.flush();
 
         /* Data is initialized in the inner region of size DIM1xDIM2
          */
@@ -169,14 +170,13 @@ namespace halo_exchange_3D_all {
                 }
 
         printbuff(file, a, DIM1 + 2 * H, DIM2 + 2 * H, DIM3 + 2 * H);
-        //  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-        //  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
 
         /* This is self explanatory now
          */
 
 #ifdef __CUDACC__
         file << "***** GPU ON *****\n";
+        file.flush();
 
         triple_t<USE_DOUBLE> *gpu_a = 0;
         triple_t<USE_DOUBLE> *gpu_b = 0;
@@ -223,12 +223,15 @@ namespace halo_exchange_3D_all {
         vect[1] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type *>(b.ptr);
         vect[2] = reinterpret_cast<triple_t<USE_DOUBLE>::data_type *>(c.ptr);
 #endif
-
         MPI_Barrier(gridtools::GCL_WORLD);
 
         gettimeofday(&start_tv, NULL);
 
+#ifdef VECTOR_INTERFACE
         he.pack(vect);
+#else
+        he.pack(vect[0], vect[1], vect[2]);
+#endif
 
         gettimeofday(&stop1_tv, NULL);
 
@@ -236,8 +239,13 @@ namespace halo_exchange_3D_all {
 
         gettimeofday(&stop2_tv, NULL);
 
+#ifdef VECTOR_INTERFACE
         he.unpack(vect);
+#else
+        he.unpack(vect[0], vect[1], vect[2]);
+#endif
 
+        MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop3_tv, NULL);
 
         lapse_time1 =
@@ -262,6 +270,7 @@ namespace halo_exchange_3D_all {
         file << "TIME ALL : " << lapse_time1 + lapse_time2 + lapse_time3 << std::endl;
 
         file << "\n********************************************************************************\n";
+        file.flush();
 
 #ifdef __CUDACC__
         status = cudaMemcpy(a.ptr,
@@ -297,8 +306,6 @@ namespace halo_exchange_3D_all {
 #endif
 
         printbuff(file, a, DIM1 + 2 * H, DIM2 + 2 * H, DIM3 + 2 * H);
-        //  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-        //  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
 
         int passed = true;
 
@@ -384,7 +391,7 @@ namespace halo_exchange_3D_all {
         the H width border is the inner region of an hypothetical stencil
         computation whise halo width is H.
     */
-    bool test(int DIM1, int DIM2, int DIM3, int H) {
+    bool test(int DIM1, int DIM2, int DIM3, int H, int P0 = 0, int P1 = 0) {
         /* Here we compute the computing gris as in many applications
          */
         MPI_Comm_rank(MPI_COMM_WORLD, &pid);
@@ -402,11 +409,13 @@ namespace halo_exchange_3D_all {
 
         file << pid << "  " << nprocs << "\n";
 
+        dims[0] = P0;
+        dims[1] = P1;
+        dims[2] = 0;
         MPI_Dims_create(nprocs, 3, dims);
         int period[3] = {1, 1, 1};
 
         file << "@" << pid << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2] << "\n";
-
         MPI_Cart_create(MPI_COMM_WORLD, 3, dims, period, false, &CartComm);
 
         MPI_Cart_get(CartComm, 3, dims, period, coords);
@@ -418,17 +427,12 @@ namespace halo_exchange_3D_all {
         triple_t<USE_DOUBLE> *_b = new triple_t<USE_DOUBLE>[(DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H)];
         triple_t<USE_DOUBLE> *_c = new triple_t<USE_DOUBLE>[(DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H)];
 
-        file << "Permutation 0,1,2\n";
-
-        // #ifndef BENCH
-        // #define BENCH 5
-        // #endif
-
         bool passed = true;
 
 #ifdef BENCH
         for (int i = 0; i < BENCH; ++i) {
-            file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
+            file << "run<std::ostream, 0,1,2, false, false, false>(file, DIM1, DIM2, DIM3, H, _a, _b, _c)\n";
+            file.flush();
             passed = passed and run<std::ostream, 0, 1, 2, true, true, true>(file, DIM1, DIM2, DIM3, H, _a, _b, _c);
             file.flush();
         }
@@ -682,7 +686,7 @@ int main(int argc, char **argv) {
 }
 #else
 TEST(Communication, test_halo_exchange_3D_all) {
-    bool passed = halo_exchange_3D_all::test(123, 46, 78, 5);
+    bool passed = halo_exchange_3D_all::test(12, 12, 12, 2, 2, 1);
     EXPECT_TRUE(passed);
 }
 #endif
