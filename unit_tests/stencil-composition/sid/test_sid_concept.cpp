@@ -183,6 +183,7 @@ namespace gridtools {
             GT_FUNCTION testee *sid_get_origin(testee &obj) { return &obj; }
             GT_FUNCTION tuple<stride> sid_get_strides(testee const &) { return {}; }
             GT_FUNCTION int operator*(stride, int) { return 100; }
+            GT_FUNCTION integral_constant<int, 42> sid_get_strides_kind(testee const &);
 
             static_assert(is_sid<testee>(), "");
 

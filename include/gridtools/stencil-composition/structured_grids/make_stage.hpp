@@ -42,7 +42,7 @@
 #endif
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../arg.hpp"
 #include "./esf.hpp"
 

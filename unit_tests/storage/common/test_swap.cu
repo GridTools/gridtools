@@ -33,58 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include <type_traits>
-
-#include "../../meta/utility.hpp"
-#include "../defs.hpp"
-#include "../host_device.hpp"
-
-namespace gridtools {
-
-    /** \ingroup common
-        @{
-        \ingroup allmeta
-        @{
-        \defgroup gtintegersequence GridTools Integer Sequence
-        @{
-    */
-
-    /**
-       @brief helper struct to use an integer sequence in order to fill a generic container
-
-       can be used with an arbitrary container with elements of the same type (not a tuple),
-       it is consexpr constructable.
-     */
-    template <typename UInt, UInt... Indices>
-    using gt_integer_sequence = meta::integer_sequence<UInt, Indices...>;
-
-    /** @brief constructs an integer sequence
-
-        @tparam N size of the integer sequence
-     */
-    template <typename UInt, UInt N>
-    using make_gt_integer_sequence = meta::make_integer_sequence<UInt, N>;
-
-    template <size_t... Ints>
-    using gt_index_sequence = meta::index_sequence<Ints...>;
-
-    template <size_t N>
-    using make_gt_index_sequence = meta::make_index_sequence<N>;
-
-    template <class... Ts>
-    using gt_index_sequence_for = meta::make_index_sequence<sizeof...(Ts)>;
-
-    // with CXX14 the gt_integer_sequence from the standard can directly replace this one:
-    // template <typename UInt, UInt ... Indices>
-    // using gt_integer_sequence=std::integer_sequence<UInt, Indices ...>;
-
-    // template<typename UInt, UInt N>
-    // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
-
-    /** @} */
-    /** @} */
-    /** @} */
-
-} // namespace gridtools
+#include "test_swap.cpp"

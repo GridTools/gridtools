@@ -41,7 +41,7 @@
 #include <boost/mpl/set/set0.hpp>
 
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../meta/macros.hpp"
 #include "./esf.hpp"
 
 namespace gridtools {

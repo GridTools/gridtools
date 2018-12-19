@@ -38,7 +38,7 @@
 
 #include <gtest/gtest.h>
 
-#include <gridtools/common/generic_metafunctions/type_traits.hpp>
+#include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/regression_fixture.hpp>
 

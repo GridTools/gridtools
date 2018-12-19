@@ -39,9 +39,9 @@
 
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../meta/type_traits.hpp"
+#include "../../meta/utility.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../iteration_policy.hpp"
@@ -72,7 +72,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION constexpr int_t compute_offset_cache(
-            Accessor const &RESTRICT accessor, gt_index_sequence<Coordinates...>) {
+            Accessor const &RESTRICT accessor, meta::index_sequence<Coordinates...>) {
             return accumulate(plus_functor(),
                 (StorageInfo::template stride<Coordinates>() * accessor_offset<Coordinates>(accessor))...);
         }
@@ -93,7 +93,7 @@ namespace gridtools {
      */
     template <typename StorageInfo, typename Accessor>
     GT_FUNCTION constexpr int_t compute_offset_cache(Accessor const &accessor) {
-        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+        using sequence_t = meta::make_index_sequence<StorageInfo::layout_t::masked_length>;
         return _impl::compute_offset_cache<StorageInfo>(accessor, sequence_t());
     }
 
@@ -139,9 +139,8 @@ namespace gridtools {
         static constexpr int extra_dims = 0;
 #endif
 
-        typedef
-            typename _impl::generate_layout_map<make_gt_integer_sequence<uint_t, sizeof...(Tiles) + (extra_dims)>>::type
-                layout_t;
+        typedef typename _impl::generate_layout_map<
+            meta::make_integer_sequence<uint_t, sizeof...(Tiles) + (extra_dims)>>::type layout_t;
 
         using iminus_t = typename boost::mpl::at_c<typename minus_t::type, 0>::type;
         using jminus_t = typename boost::mpl::at_c<typename minus_t::type, 1>::type;
@@ -239,7 +238,7 @@ namespace gridtools {
 
         template <typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION static void check_kcache_access_in_bounds(
-            Accessor const &accessor, gt_index_sequence<Coordinates...>) {
+            Accessor const &accessor, meta::index_sequence<Coordinates...>) {
             assert(accumulate(logical_and(),
                        (accessor_offset<Coordinates>(accessor) <= meta_t::template dim<Coordinates>())...) &&
                    "Out of bounds access in cache");
@@ -253,7 +252,7 @@ namespace gridtools {
             typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
             typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
 
-            check_kcache_access_in_bounds(accessor, make_gt_index_sequence<meta_t::layout_t::masked_length>());
+            check_kcache_access_in_bounds(accessor, meta::make_index_sequence<meta_t::layout_t::masked_length>());
         }
     };
 

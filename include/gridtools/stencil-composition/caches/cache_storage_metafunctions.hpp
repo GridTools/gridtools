@@ -102,7 +102,7 @@ namespace gridtools {
            i and j have the smallest stride. The largest stride is in the field dimension. This reduces bank conflicts.
          */
         template <uint_t... Id>
-        struct generate_layout_map<gt_integer_sequence<uint_t, Id...>> {
+        struct generate_layout_map<meta::integer_sequence<uint_t, Id...>> {
             static constexpr int_t s = sizeof...(Id) - 1;
 
             template <uint_t... D>

@@ -42,7 +42,7 @@
 #pragma once
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../meta.hpp"
 #include "../accessor.hpp"
 #include "../arg.hpp"
 #include "../expressions/expr_base.hpp"

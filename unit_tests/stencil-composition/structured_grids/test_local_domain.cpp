@@ -46,9 +46,9 @@
 #include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/meta.hpp>
 #include <gridtools/common/host_device.hpp>
 #include <gridtools/common/layout_map.hpp>
+#include <gridtools/meta.hpp>
 #include <gridtools/stencil-composition/accessor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/axis.hpp>

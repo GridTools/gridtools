@@ -2,6 +2,9 @@
 fetch_x86_tests(. LABELS unittest_x86)
 fetch_gpu_tests(. LABELS unittest_cuda)
 
+fetch_x86_tests(sid LABELS unittest_x86)
+fetch_gpu_tests(sid LABELS unittest_cuda)
+
 # collect the grid specific test cases
 if (GT_TESTS_STRUCTURED_GRID)
     fetch_mc_tests(. LABELS unittest_mc)

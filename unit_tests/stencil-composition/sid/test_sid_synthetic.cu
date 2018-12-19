@@ -33,6 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "../../meta.hpp"
+#include "test_sid_synthetic.cpp"

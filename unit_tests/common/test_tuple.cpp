@@ -351,5 +351,7 @@ namespace gridtools {
             swap(src, dst);
         }
 
+        TEST(nested_empty, regression) { EXPECT_EQ(42, get<0>(get<0>(tuple<tuple<an_empty<42>>>())).value); }
+
     } // namespace
 } // namespace gridtools

@@ -38,9 +38,9 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/type_traits.hpp"
 #include "./hasdo.hpp"
 #include "./interval.hpp"
 #include "./level.hpp"

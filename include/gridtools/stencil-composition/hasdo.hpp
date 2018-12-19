@@ -38,7 +38,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta/type_traits.hpp"
 
 namespace gridtools {
     namespace _impl {

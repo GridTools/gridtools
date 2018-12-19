@@ -36,8 +36,8 @@
 #pragma once
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../../meta.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"

@@ -41,7 +41,7 @@
 
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../meta.hpp"
 
 #include "./arg.hpp"
 #include "./extent.hpp"

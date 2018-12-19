@@ -35,8 +35,14 @@
 */
 #pragma once
 
-#include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../meta/dedup.hpp"
+#include "../meta/defs.hpp"
+#include "../meta/filter.hpp"
+#include "../meta/is_empty.hpp"
+#include "../meta/length.hpp"
+#include "../meta/logical.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/transform.hpp"
 
 namespace gridtools {
 
