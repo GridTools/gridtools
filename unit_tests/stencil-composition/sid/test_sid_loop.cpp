@@ -86,7 +86,7 @@ namespace gridtools {
             auto strides = tu::make<tuple>(10_c, 1_c);
             using strides_t = decltype(strides);
 
-            constexpr auto testee = host_device::compose(sid::make_loop<0>(10_c), sid::make_loop<1>(10_c));
+            auto testee = host_device::compose(sid::make_loop<0>(10_c), sid::make_loop<1>(10_c));
 
             testee(assignment_f{42})(ptr, strides);
 
