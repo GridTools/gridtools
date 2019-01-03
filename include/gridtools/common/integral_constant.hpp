@@ -45,6 +45,10 @@ namespace gridtools {
     struct integral_constant : std::integral_constant<T, V> {
         using type = integral_constant;
 
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
+        constexpr GT_FORCE_INLINE integral_constant() noexcept {}
+#endif
+
         constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
 
