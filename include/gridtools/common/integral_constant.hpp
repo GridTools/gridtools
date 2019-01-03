@@ -45,14 +45,25 @@ namespace gridtools {
     struct integral_constant : std::integral_constant<T, V> {
         using type = integral_constant;
 
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1900
+        constexpr GT_FORCE_INLINE integral_constant() noexcept {}
+#endif
+
         constexpr GT_FUNCTION operator T() const noexcept { return V; }
     };
 
-#define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op)                                                                 \
-    template <class T, T V>                                                                                            \
-    constexpr GT_FUNCTION integral_constant<decltype(op V), (op V)> operator op(integral_constant<T, V> &&) noexcept { \
-        return {};                                                                                                     \
-    }                                                                                                                  \
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#define GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, expr) type
+#else
+#define GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, expr) decltype(expr)
+#endif
+
+#define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op)                                                               \
+    template <class T, T V>                                                                                          \
+    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(T, op V), (op V)> operator op( \
+        integral_constant<T, V> &&) noexcept {                                                                       \
+        return {};                                                                                                   \
+    }                                                                                                                \
     static_assert(1, "")
 
     GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(+);
@@ -62,12 +73,12 @@ namespace gridtools {
 
 #undef GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR
 
-#define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op)                                  \
-    template <class T, T TV, class U, U UV>                                              \
-    constexpr GT_FUNCTION integral_constant<decltype(TV op UV), (TV op UV)> operator op( \
-        integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                   \
-        return {};                                                                       \
-    }                                                                                    \
+#define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op)                                                         \
+    template <class T, T TV, class U, U UV>                                                                     \
+    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(T, TV op UV), (TV op UV)> \
+    operator op(integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                                  \
+        return {};                                                                                              \
+    }                                                                                                           \
     static_assert(1, "")
 
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+);
@@ -89,6 +100,8 @@ namespace gridtools {
     GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(||);
 
 #undef GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR
+
+#undef GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE
 
     namespace literals {
         namespace impl_ {
