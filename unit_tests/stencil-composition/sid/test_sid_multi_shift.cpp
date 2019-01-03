@@ -33,48 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include <type_traits>
+#include <gridtools/stencil-composition/sid/multi_shift.hpp>
 
-#include "../../common/integral_constant.hpp"
-#include "../../common/tuple.hpp"
-#include "../../meta/id.hpp"
-#include "../../meta/macros.hpp"
-#include "../../meta/push_back.hpp"
-#include "../../meta/transform.hpp"
-#include "../../meta/type_traits.hpp"
+#include <gtest/gtest.h>
 
-namespace c_array_impl_ {
-    template <class T>
-    struct get_strides {
-        using type = gridtools::tuple<>;
-    };
+#include <gridtools/common/integral_constant.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/tuple_util.hpp>
 
-    template <class T>
-    struct get_strides<T[]> {
-        template <class Stride>
-        GT_META_DEFINE_ALIAS(multiply_f,
-            gridtools::meta::id,
-            (gridtools::integral_constant<ptrdiff_t, std::extent<T>::value * Stride::value>));
+namespace gridtools {
+    namespace {
+        using namespace literals;
+        namespace tu = tuple_util;
 
-        using multiplied_strides_t = GT_META_CALL(
-            gridtools::meta::transform, (multiply_f, typename get_strides<T>::type));
-        using type = GT_META_CALL(
-            gridtools::meta::push_back, (multiplied_strides_t, gridtools::integral_constant<ptrdiff_t, 1>));
-    };
+        TEST(multi_shift, smoke) {
+            double data[15][42];
 
-    template <class T, size_t N>
-    struct get_strides<T[N]> : get_strides<T[]> {};
-} // namespace c_array_impl_
+            auto ptr = &data[0][0];
+            auto strides = tu::make<tuple>(42, 1);
 
-template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
-constexpr gridtools::enable_if_t<std::is_array<T>::value, Res> sid_get_origin(T &obj) {
-    return (Res)obj;
-}
+            sid::multi_shift(ptr, strides, tu::make<tuple>(3_c, 5_c, 2_c));
+            EXPECT_EQ(&data[3][5], ptr);
 
-template <class T>
-constexpr gridtools::enable_if_t<std::is_array<T>::value, typename c_array_impl_::get_strides<T>::type> sid_get_strides(
-    T const &) {
-    return {};
-}
+            sid::multi_shift(ptr, strides, tu::make<tuple>(0_c, -2_c));
+            EXPECT_EQ(&data[3][3], ptr);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(-2));
+            EXPECT_EQ(&data[1][3], ptr);
+        }
+    } // namespace
+} // namespace gridtools

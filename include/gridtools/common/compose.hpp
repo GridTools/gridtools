@@ -79,7 +79,7 @@ namespace gridtools {
         ///
         template <class Funs>
         constexpr GT_TARGET GT_FORCE_INLINE auto compose(Funs && funs) GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::fold(compose_impl_::compose2_f{}, const_expr::forward<funs>(funs)));
+            tuple_util::GT_TARGET_NAMESPACE_NAME::fold(compose_impl_::compose2_f{}, const_expr::forward<Funs>(funs)));
 
         /// Make function composition from provided functions
         ///

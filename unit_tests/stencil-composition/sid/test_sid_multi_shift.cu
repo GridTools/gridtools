@@ -34,4 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "test_sid_c_array.cpp"
+#include "test_sid_multi_shift.cpp"

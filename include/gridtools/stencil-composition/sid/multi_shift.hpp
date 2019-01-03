@@ -33,31 +33,38 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include <gridtools/stencil-composition/sid/c_array.hpp>
-
-#include <gtest/gtest.h>
-
-#include <gridtools/common/tuple_util.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/make_indices.hpp"
+#include "concept.hpp"
 
 namespace gridtools {
-    namespace {
-        namespace tu = tuple_util;
+    namespace sid {
+        namespace multi_shift_impl_ {
+            template <class Ptr, class Strides, class Offsets>
+            struct shift_f {
+                Ptr &RESTRICT m_ptr;
+                Strides const &RESTRICT m_strides;
+                Offsets const &RESTRICT m_offsets;
 
-        TEST(c_array, smoke) {
-            double testee[15][43] = {};
-            static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
+                template <class I>
+                GT_FUNCTION void operator()() const {
+                    shift(m_ptr, get_stride<I::value>(m_strides), tuple_util::host_device::get<I::value>(m_offsets));
+                }
+            };
+        } // namespace multi_shift_impl_
 
-            EXPECT_EQ(&testee[0][0], sid::get_origin(testee));
-
-            auto strides = sid::get_strides(testee);
-            using strides_t = decltype(strides);
-            using stride_0_t = GT_META_CALL(tu::element, (0, strides_t));
-            using stride_1_t = GT_META_CALL(tu::element, (1, strides_t));
-
-            static_assert(stride_0_t::value == 43, "");
-            static_assert(stride_1_t::value == 1, "");
+        template <class Ptr, class Strides, class Offsets>
+        GT_FUNCTION void multi_shift(
+            Ptr &RESTRICT ptr, Strides const &RESTRICT strides, Offsets const &RESTRICT offsets) {
+            using indices_t = GT_META_CALL(meta::make_indices, tuple_util::size<Offsets>);
+            host_device::for_each_type<indices_t>(
+                multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
         }
-    } // namespace
+    } // namespace sid
 } // namespace gridtools

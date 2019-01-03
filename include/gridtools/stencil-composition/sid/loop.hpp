@@ -600,12 +600,6 @@ namespace gridtools {
             return {};
         }
 
-        //        template <class Ptr, class Strides, class... Loops>
-        //        constexpr GT_FUNCTION auto make_range(Ptr ptr, Strides const &strides, Loops &&... loops)
-        //            GT_AUTO_RETURN(loop_impl_::make_range(const_expr::move(ptr),
-        //                strides,
-        //                loop_impl_::make_cursor(tuple<Loops...>{const_expr::forward<Loops>(loops)...})));
-
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
         constexpr GT_FUNCTION auto make_range(
             Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)
