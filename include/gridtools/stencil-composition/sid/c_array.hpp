@@ -33,30 +33,48 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
-#include <gridtools/stencil-composition/sid/as_const.hpp>
+#pragma once
 
 #include <type_traits>
 
-#include <gtest/gtest.h>
+#include "../../common/integral_constant.hpp"
+#include "../../common/tuple.hpp"
+#include "../../meta/id.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/push_back.hpp"
+#include "../../meta/transform.hpp"
+#include "../../meta/type_traits.hpp"
 
-#include <gridtools/meta/macros.hpp>
-#include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/stencil-composition/sid/synthetic.hpp>
+namespace c_array_impl_ {
+    template <class T>
+    struct get_strides {
+        using type = gridtools::tuple<>;
+    };
 
-namespace gridtools {
-    namespace {
-        using sid::property;
+    template <class T>
+    struct get_strides<T[]> {
+        template <class Stride>
+        GT_META_DEFINE_ALIAS(multiply_f,
+            gridtools::meta::id,
+            (gridtools::integral_constant<ptrdiff_t, std::extent<T>::value * Stride::value>));
 
-        TEST(as_const, smoke) {
-            double data = 42;
-            auto src = sid::synthetic().set<property::origin>(&data);
-            auto testee = sid::as_const(src);
-            using testee_t = decltype(testee);
+        using multiplied_strides_t = GT_META_CALL(
+            gridtools::meta::transform, (multiply_f, typename get_strides<T>::type));
+        using type = GT_META_CALL(
+            gridtools::meta::push_back, (multiplied_strides_t, gridtools::integral_constant<ptrdiff_t, 1>));
+    };
 
-            static_assert(is_sid<testee_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee_t), double const *>(), "");
-            EXPECT_EQ(sid::get_origin(src), sid::get_origin(testee));
-        }
-    } // namespace
-} // namespace gridtools
+    template <class T, size_t N>
+    struct get_strides<T[N]> : get_strides<T[]> {};
+} // namespace c_array_impl_
+
+template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
+constexpr gridtools::enable_if_t<std::is_array<T>::value, Res> sid_get_origin(T &obj) {
+    return (Res)obj;
+}
+
+template <class T>
+constexpr gridtools::enable_if_t<std::is_array<T>::value, typename c_array_impl_::get_strides<T>::type> sid_get_strides(
+    T const &) {
+    return {};
+}

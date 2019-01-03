@@ -39,6 +39,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta/defs.hpp"
 #include "../../meta/id.hpp"
@@ -141,6 +142,14 @@
  *
  */
 
+/////// Fallbacks
+
+struct not_provided;
+
+not_provided sid_get_strides(...);
+not_provided sid_get_ptr_diff(...);
+not_provided sid_get_strides_kind(...);
+
 namespace gridtools {
     namespace sid {
         namespace concept_impl_ {
@@ -217,14 +226,6 @@ namespace gridtools {
             }
             GT_META_DELEGATE_TO_LAZY(default_kind, class T, T);
             /////// END defaults PART ///////
-
-            /////// Fallbacks
-
-            struct not_provided;
-
-            not_provided sid_get_strides(...);
-            not_provided sid_get_ptr_diff(...);
-            not_provided sid_get_strides_kind(...);
 
             // BEGIN `get_origin` PART
 

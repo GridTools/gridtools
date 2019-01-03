@@ -34,4 +34,30 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "test_sid_range.cpp"
+#include <gridtools/stencil-composition/sid/c_array.hpp>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
+
+namespace gridtools {
+    namespace {
+        namespace tu = tuple_util;
+
+        TEST(c_array, smoke) {
+            double testee[15][43] = {};
+            static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
+
+            EXPECT_EQ(&testee[0][0], sid::get_origin(testee));
+
+            auto strides = sid::get_strides(testee);
+            using strides_t = decltype(strides);
+            using stride_0_t = GT_META_CALL(tu::element, (0, strides_t));
+            using stride_1_t = GT_META_CALL(tu::element, (1, strides_t));
+
+            static_assert(stride_0_t::value == 43, "");
+            static_assert(stride_1_t::value == 1, "");
+        }
+    } // namespace
+} // namespace gridtools

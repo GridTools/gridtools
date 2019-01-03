@@ -34,14 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/stencil-composition/sid/range.hpp>
-
-#include <gtest/gtest.h>
-
-#include <gridtools/stencil-composition/sid/concept.hpp>
-
-namespace gridtools {
-    namespace {
-        TEST(sid_range, smoke) {}
-    } // namespace
-} // namespace gridtools
+#include "test_sid_c_array.cpp"

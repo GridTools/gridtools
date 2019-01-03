@@ -38,6 +38,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gridtools/common/compose.hpp>
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
@@ -55,18 +56,17 @@ namespace gridtools {
             using strides_t = decltype(strides);
 
             double *ptr = &data[0][0];
-            sid::make_loop<0>(1, 5)([](double *ptr, strides_t) { *ptr = 42; })(ptr, strides);
+            sid::make_loop<0>(5, 1)([](double *ptr, strides_t) { *ptr = 42; })(ptr, strides);
             for (int i = 0; i < 5; ++i)
-                EXPECT_EQ(42, data[i][0]);
+                EXPECT_EQ(42, data[i][0]) << " i:" << i;
 
             ptr = &data[2][3];
-            sid::make_loop<1>(-1_c, 4_c)([](double *ptr, strides_t) { *ptr = 5; })(ptr, strides);
+            sid::make_loop<1>(4_c, -1_c)([](double *ptr, strides_t) { *ptr = 5; })(ptr, strides);
             for (int i = 0; i < 4; ++i)
                 EXPECT_EQ(5, data[2][i]) << " i:" << i;
 
             ptr = &data[0][0];
-            sid::make_loop<0>(1_c, 10_c)(sid::make_loop<1>(1_c, 10_c)([](double *ptr, strides_t) { *ptr = 88; }))(
-                ptr, strides);
+            sid::make_loop<0>(10_c)(sid::make_loop<1>(10_c)([](double *ptr, strides_t) { *ptr = 88; }))(ptr, strides);
             for (int i = 0; i < 10; ++i)
                 for (int j = 0; j < 10; ++j)
                     EXPECT_EQ(88, data[i][j]) << " i:" << i << ", j:" << j;
@@ -74,13 +74,28 @@ namespace gridtools {
 
         TEST(nest_loops, smoke) {
             double data[10][10] = {};
+            double *ptr = &data[0][0];
             auto strides = tu::make<tuple>(10_c, 1_c);
             using strides_t = decltype(strides);
 
-            double *ptr = &data[0][0];
+            constexpr auto testee = compose(sid::make_loop<0>(10_c), sid::make_loop<1>(10_c));
 
-            sid::nest_loops(tu::make<tuple>(sid::make_loop<0>(1_c, 10_c), sid::make_loop<1>(1_c, 10_c)))(
-                [](double *ptr, strides_t) { *ptr = 42; })(ptr, strides);
+            testee([](double *ptr, strides_t) { *ptr = 42; })(ptr, strides);
+
+            for (int i = 0; i < 10; ++i)
+                for (int j = 0; j < 10; ++j)
+                    EXPECT_EQ(42, data[i][j]) << " i:" << i << ", j:" << j;
+        }
+
+        TEST(range, smoke) {
+            double data[10][10] = {};
+            double *ptr = &data[0][0];
+            auto strides = tu::make<tuple>(10_c, 1_c);
+
+            auto testee = sid::make_range(ptr, strides, sid::make_loop<0>(10_c), sid::make_loop<1>(10_c));
+
+            for (auto &&val : testee)
+                val = 42;
 
             for (int i = 0; i < 10; ++i)
                 for (int j = 0; j < 10; ++j)
