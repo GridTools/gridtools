@@ -110,18 +110,41 @@ namespace gridtools {
 
             using literal_int_t = int;
 
-            constexpr literal_int_t to_int(char c) {
-                return c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'f' ? c - 'a' + 10 : c - '0';
+            template <literal_int_t Base>
+            constexpr literal_int_t to_int(char c);
+
+            template <>
+            constexpr literal_int_t to_int<2>(char c) {
+                return c == '0' ? 0 : c == '1' ? 1 : throw "invalid binary _c literal";
             };
 
-            constexpr literal_int_t parse(literal_int_t base, char const *first, char const *last) {
-                return to_int(*last) + (first == last ? 0 : parse(base, first, last - 1) * base);
+            template <>
+            constexpr literal_int_t to_int<8>(char c) {
+                return c >= '0' && c <= '7' ? c - '0' : throw "invalid octal _c literal";
+            };
+            template <>
+            constexpr literal_int_t to_int<10>(char c) {
+                return c >= '0' && c <= '9' ? c - '0' : throw "invalid decimal _c literal";
+            };
+
+            template <>
+            constexpr literal_int_t to_int<16>(char c) {
+                return c >= 'A' && c <= 'F'
+                           ? c - 'A' + 10
+                           : c >= 'a' && c <= 'f' ? c - 'a' + 10
+                                                  : c >= '0' && c <= '9' ? c - '0' : throw "invalid hex _c literal";
+            };
+
+            template <literal_int_t Base>
+            constexpr literal_int_t parse(char const *first, char const *last) {
+                return *last == '\'' ? parse<Base>(first, last - 1)
+                                     : to_int<Base>(*last) + (first == last ? 0 : parse<Base>(first, last - 1) * Base);
             }
 
             template <literal_int_t Base, char... Chars>
             struct digits_parser {
                 constexpr static char digits[] = {Chars...};
-                constexpr static literal_int_t value = parse(Base, digits, digits + sizeof...(Chars) - 1);
+                constexpr static literal_int_t value = parse<Base>(digits, digits + sizeof...(Chars) - 1);
             };
 
             template <char... Chars>
