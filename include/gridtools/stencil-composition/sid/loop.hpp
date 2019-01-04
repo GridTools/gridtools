@@ -546,6 +546,64 @@ namespace gridtools {
             }
         } // namespace loop_impl_
 
+        /**
+         *   A set of `make_loop<I>(num_steps, step = 1)` overloads
+         *
+         *   @tparam I dimension index
+         *   @param num_steps number of iterations in the loop. Can be of integral or integral_constant type
+         *   @param step (optional) a step for each iteration. Can be of integral or integral_constant type.
+         *               THe default is integral_constant<int, 1>
+         *   @return a functor that accept another functor with the signature: `void(Ptr&, Strides const&)` and
+         *           returns a functor also with the same signature.
+         *
+         *   Usage:
+         *     1. One dimensional traversal:
+         *
+         *     // define the way we are going to traverse the data
+         *     auto loop = sid::make_loop<2>(32);
+         *
+         *     // define what we are going to do with the data
+         *     auto loop_body = [](auto& ptr, auto const& strides) { ... }
+         *
+         *     // bind traversal description with the body
+         *     auto the_concrete_loop = loop(loop_body);
+         *
+         *     // execute the loop on the provided data
+         *     the_concrete_loop(the_origin_of_my_data, the_strides_of_my_data);
+         *
+         *
+         *     2. Multi dimensional traversal:
+         *
+         *     // define traversal path: k dimension is innermost and will be traversed backward
+         *     auto multi_loop = compose(
+         *       sid::make_loop<0>(i_size),
+         *       sid::make_loop<1>(j_size),
+         *       sid::make_loop<2>(k_size, -1_c));
+         *
+         *     // define what we are going to do with the data
+         *     auto loop_body = [](auto& ptr, auto const& strides) { ... }
+         *
+         *     // bind traversal description with the body
+         *     auto the_concrete_loop = multi_loop(loop_body);
+         *
+         *     auto ptr = the_origin_of_my_data;
+         *     // first move the pointer to the end of data in k-direction
+         *     sid::shift(ptr, sid::get_strides<2>(the_strides_of_my_data), 1_c - k_size);
+         *
+         *     // execute the loop on the provided data
+         *     the_concrete_loop(ptr, the_strides_of_my_data);
+         *
+         *   Rationale:
+         *
+         *     The goal of the design is to separate traversal description (dimensions order, numbers of steps,
+         *     traversal directions), the body of the loop and the structure of the concrete data (begin point, strides)
+         *     into orthogonal components.
+         *
+         *   Oveloads:
+         *
+         *      `make_loop` goes with large number of overloads to benefit from the fact that some aspects of traversal
+         *      description are known in complie time.
+         */
         template <size_t I,
             class T1,
             class T2,
@@ -600,6 +658,20 @@ namespace gridtools {
             return {};
         }
 
+        /**
+         *   A helper that allows to use `SID`s with C++11 range based loop
+         *
+         *   Example:
+         *
+         *   using namespace gridtools::sid;
+         *
+         *   double data[3][4][5];
+         *
+         *   for(auto& ref : make_range(get_origin(data), get_strides(data),
+         *                              make_loop<0>(3_c), make_loop<0>(4_c), make_loop<0>(5_c))) {
+         *     ref = 42;
+         *   }
+         */
         template <class Ptr, class Strides, class OuterMostLoop, class... Loops>
         constexpr GT_FUNCTION auto make_range(
             Ptr ptr, Strides const &strides, OuterMostLoop &&outer_most_loop, Loops &&... loops)

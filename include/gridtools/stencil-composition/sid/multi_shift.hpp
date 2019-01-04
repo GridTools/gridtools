@@ -59,6 +59,10 @@ namespace gridtools {
             };
         } // namespace multi_shift_impl_
 
+        /**
+         *   A helper the invokes sid::shift in several dimensions.
+         *   `offsets` should be a tuple-like of individual offsets.
+         */
         template <class Ptr, class Strides, class Offsets>
         GT_FUNCTION void multi_shift(
             Ptr &RESTRICT ptr, Strides const &RESTRICT strides, Offsets const &RESTRICT offsets) {
