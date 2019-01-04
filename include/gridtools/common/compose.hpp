@@ -42,8 +42,6 @@
 #include "defs.hpp"
 #include "generic_metafunctions/utility.hpp"
 #include "host_device.hpp"
-#include "tuple.hpp"
-#include "tuple_util.hpp"
 
 #define GT_FILENAME <gridtools/common/compose.hpp>
 #include GT_ITERATE_ON_TARGETS()
@@ -55,42 +53,34 @@
 namespace gridtools {
     GT_TARGET_NAMESPACE {
         namespace compose_impl_ {
+            template <class... Funs>
+            struct composed_f;
+
             template <class F, class G>
-            struct composed_f {
+            struct composed_f<F, G> {
                 F m_f;
                 G m_g;
+
                 template <class... Args>
                 constexpr GT_TARGET GT_FORCE_INLINE auto operator()(Args &&... args) const
                     GT_AUTO_RETURN(m_f(m_g(const_expr::forward<Args>(args)...)));
             };
 
-            struct compose2_f {
-                template <class F, class G>
-                constexpr GT_TARGET GT_FORCE_INLINE composed_f<F, G> operator()(F &&f, G &&g) const {
-                    return {const_expr::forward<F>(f), const_expr::forward<G>(g)};
-                }
+            template <class F, class... Fs>
+            struct composed_f<F, Fs...> : composed_f<F, composed_f<Fs...>> {
+                constexpr GT_TARGET GT_FORCE_INLINE composed_f(F f, Fs... fs)
+                    : composed_f<F, composed_f<Fs...>>{const_expr::move(f), {const_expr::move(fs)...}} {}
             };
         } // namespace compose_impl_
-
-        /// Make function composition from tuple-like of functions
-        ///
-        /// auto funs = make<tuple>(a, b, c);
-        /// compose(funs)(x, y) <==> a(b(c(x, y)))
-        ///
-        template <class Funs>
-        constexpr GT_TARGET GT_FORCE_INLINE auto compose(Funs && funs) GT_AUTO_RETURN(
-            tuple_util::GT_TARGET_NAMESPACE_NAME::fold(compose_impl_::compose2_f{}, const_expr::forward<Funs>(funs)));
 
         /// Make function composition from provided functions
         ///
         /// compose(a, b, c)(x, y) <==> a(b(c(x, y)))
         ///
-        template <class Fun0, class Fun1, class... Funs>
-        constexpr GT_TARGET GT_FORCE_INLINE auto compose(Fun0 && fun0,
-            Fun1 && fun1,
-            Funs && ... funs) GT_AUTO_RETURN(tuple_util::GT_TARGET_NAMESPACE_NAME::fold(compose_impl_::compose2_f{},
-            tuple<Fun0, Fun1, Funs...>{
-                const_expr::forward<Fun0>(fun0), const_expr::forward<Fun1>(fun1), const_expr::forward<Funs>(funs)...}));
+        template <class... Funs>
+        constexpr GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<Funs...> compose(Funs && ... funs) {
+            return {const_expr::forward<Funs>(funs)...};
+        }
     }
 } // namespace gridtools
 
