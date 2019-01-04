@@ -50,6 +50,12 @@ namespace gridtools {
         static_assert(0100_c == 0100, "");
         static_assert(0xDEAD_c == 0xDEAD, "");
 
+#if __cplusplus < 201402
+        static_assert(impl_::parser<'1', '\'', '2'>::value == 12, "");
+#else
+        static_assert(1'2_c == 12, "");
+#endif
+
         static_assert(2_c + 3_c == 5_c, "");
 
         TEST(integral_constant, dummy) {}
