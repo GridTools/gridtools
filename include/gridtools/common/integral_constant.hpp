@@ -38,6 +38,8 @@
 
 #include <type_traits>
 
+#include <boost/preprocessor.hpp>
+
 #include "host_device.hpp"
 
 namespace gridtools {
@@ -53,51 +55,51 @@ namespace gridtools {
     };
 
 #if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
-#define GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, expr) type
+#define GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, expr) BOOST_PP_REMOVE_PARENS(type)
 #else
 #define GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, expr) decltype(expr)
 #endif
 
-#define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op)                                                               \
-    template <class T, T V>                                                                                          \
-    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(T, op V), (op V)> operator op( \
-        integral_constant<T, V> &&) noexcept {                                                                       \
-        return {};                                                                                                   \
-    }                                                                                                                \
+#define GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(op, type)                                               \
+    template <class T, T V>                                                                                \
+    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, op V), (op V)> \
+    operator op(integral_constant<T, V> &&) noexcept {                                                     \
+        return {};                                                                                         \
+    }                                                                                                      \
     static_assert(1, "")
 
-    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(+);
-    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(-);
-    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(~);
-    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(!);
+    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(+, T);
+    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(-, T);
+    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(~, T);
+    GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR(!, bool);
 
 #undef GT_INTEGRAL_CONSTANT_DEFINE_UNARY_OPERATOR
 
-#define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op)                                                         \
-    template <class T, T TV, class U, U UV>                                                                     \
-    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(T, TV op UV), (TV op UV)> \
-    operator op(integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                                  \
-        return {};                                                                                              \
-    }                                                                                                           \
+#define GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(op, type)                                                      \
+    template <class T, T TV, class U, U UV>                                                                        \
+    constexpr GT_FUNCTION integral_constant<GT_INTEGRAL_CONSTANT_OPERATOR_RESULT_TYPE(type, TV op UV), (TV op UV)> \
+    operator op(integral_constant<T, TV>, integral_constant<U, UV>) noexcept {                                     \
+        return {};                                                                                                 \
+    }                                                                                                              \
     static_assert(1, "")
 
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(*);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(/);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(%);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(==);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(!=);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<=);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>=);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(|);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<<);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>>);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&&);
-    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(||);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(+, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(-, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(*, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(/, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(%, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(==, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(!=, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<=, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>=, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(|, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(<<, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(>>, (typename std::common_type<T, U>::type));
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(&&, bool);
+    GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR(||, bool);
 
 #undef GT_INTEGRAL_CONSTANT_DEFINE_BINARY_OPERATOR
 
@@ -109,7 +111,7 @@ namespace gridtools {
             using literal_int_t = int;
 
             constexpr literal_int_t to_int(char c) {
-                return c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'a' ? c - 'a' + 10 : c - '0';
+                return c >= 'A' && c <= 'F' ? c - 'A' + 10 : c >= 'a' && c <= 'f' ? c - 'a' + 10 : c - '0';
             };
 
             constexpr literal_int_t parse(literal_int_t base, char const *first, char const *last) {
@@ -139,7 +141,7 @@ namespace gridtools {
         } // namespace impl_
 
         template <char... Chars>
-        constexpr integral_constant<impl_::literal_int_t, impl_::parser<Chars...>::value> operator"" _c() {
+        constexpr GT_FUNCTION integral_constant<impl_::literal_int_t, impl_::parser<Chars...>::value> operator"" _c() {
             return {};
         }
     } // namespace literals
