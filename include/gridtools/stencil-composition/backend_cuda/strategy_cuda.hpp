@@ -38,7 +38,8 @@
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/make_indices.hpp"
 #include "../backend_ids.hpp"
 #include "../grid.hpp"
 #include "../mss_components.hpp"
@@ -85,7 +86,7 @@ namespace gridtools {
                 LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-                host_for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
+                host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
                     mss_functor<MssComponents,
                         Grid,
                         LocalDomainListArray,

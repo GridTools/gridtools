@@ -34,15 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
 #include <boost/mpl/int.hpp>
 #include <boost/type_traits.hpp>
 
 #include <gridtools/common/gt_assert.hpp>
 #include <gridtools/storage/storage-facility.hpp>
-
-#include "backend_select.hpp"
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 
@@ -54,22 +53,24 @@ struct static_type_tests {
 #ifdef __CUDACC__
 // static type tests for Cuda backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<platform::cuda, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<platform::cuda>;
+struct static_type_tests<backend<target::cuda, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<target::cuda>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                                cuda_storage_info<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<storage_info_ty,
+            storage_info_interface<0, layout_map<2, 1, 0>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                                cuda_storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<special_storage_info_ty,
+            storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<32>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
@@ -82,23 +83,13 @@ struct static_type_tests<backend<platform::cuda, GridBackend, Strategy>> {
     // storage check
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, cuda_storage<double>>::type::value),
         "data store storage type is wrong");
-
-    /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits_t::data_store_field_t<double, storage_info_ty, 1, 2, 3> data_store_field_t;
-    // data store check (data_t is common, storage_info_t was typedefed before)
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::storage_info_t, storage_info_ty>::type::value),
-        "data store field info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_store_t, data_store_t>::type::value),
-        "internal data store type of data store field type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_t, double>::type::value),
-        "data store field value type is wrong");
 };
 #endif
 
 // static type tests for Mic backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<platform::mc, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<platform::mc>;
+struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<target::mc>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
@@ -106,24 +97,28 @@ struct static_type_tests<backend<platform::mc, GridBackend, Strategy>> {
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
 #ifdef STRUCTURED_GRIDS
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                                mic_storage_info<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<storage_info_ty,
+            storage_info_interface<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                                mic_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<storage_info_ty,
+            storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
 #ifdef STRUCTURED_GRIDS
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                                mic_storage_info<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<special_storage_info_ty,
+            storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                                mic_storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<special_storage_info_ty,
+            storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
         "storage info test failed");
 #endif
 
@@ -135,38 +130,30 @@ struct static_type_tests<backend<platform::mc, GridBackend, Strategy>> {
         (boost::is_same<typename data_store_t::data_t, double>::type::value), "data store value type is wrong");
 
     // storage check
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mic_storage<double>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, mc_storage<double>>::type::value),
         "data store storage type is wrong");
-
-    /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits_t::data_store_field_t<double, storage_info_ty, 1, 2, 3> data_store_field_t;
-    // data store check (data_t is common, storage_info_t was typedefed before)
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::storage_info_t, storage_info_ty>::type::value),
-        "data store field info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_store_t, data_store_t>::type::value),
-        "internal data store type of data store field type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_t, double>::type::value),
-        "data store field value type is wrong");
 };
 
 // static type tests for Host backend
 template <class GridBackend, class Strategy>
-struct static_type_tests<backend<platform::x86, GridBackend, Strategy>> {
-    using storage_traits_t = storage_traits<platform::x86>;
+struct static_type_tests<backend<target::x86, GridBackend, Strategy>> {
+    using storage_traits_t = storage_traits<target::x86>;
 
     /*########## STORAGE INFO CHECKS ########## */
     // storage info check
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<storage_info_ty,
-                                host_storage_info<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<storage_info_ty,
+            storage_info_interface<0, layout_map<0, 1, 2>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<special_storage_info_ty,
-                                host_storage_info<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same<special_storage_info_ty,
+            storage_info_interface<0, layout_map<0, 1, -1>, halo<1, 2, 3>, alignment<1>>>::type::value),
         "storage info test failed");
 
     /*########## DATA STORE CHECKS ########## */
@@ -179,16 +166,6 @@ struct static_type_tests<backend<platform::x86, GridBackend, Strategy>> {
     // storage check
     GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_t::storage_t, host_storage<double>>::type::value),
         "data store storage type is wrong");
-
-    /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits_t::data_store_field_t<double, storage_info_ty, 1, 2, 3> data_store_field_t;
-    // data store check (data_t is common, storage_info_t was typedefed before)
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::storage_info_t, storage_info_ty>::type::value),
-        "data store field info type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_store_t, data_store_t>::type::value),
-        "internal data store type of data store field type is wrong");
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename data_store_field_t::data_t, double>::type::value),
-        "data store field value type is wrong");
 };
 
 template class static_type_tests<backend_t>;
@@ -206,8 +183,6 @@ __global__ void kernel(View v) {
 TEST(StorageFacility, ViewTests) {
     typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_ty;
     typedef storage_traits<backend_t::backend_id_t>::data_store_t<double, storage_info_ty> data_store_t;
-    typedef storage_traits<backend_t::backend_id_t>::data_store_field_t<double, storage_info_ty, 1, 2, 3>
-        data_store_field_t;
 
     // create a data_store_t
     storage_info_ty si(3, 3, 3);
@@ -546,23 +521,22 @@ struct static_layout_tests {
 
 #ifdef __CUDACC__
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<platform::cuda, GridBackend, Strategy>>
-    : static_layout_tests_decreasing<platform::cuda> {};
+struct static_layout_tests<backend<target::cuda, GridBackend, Strategy>>
+    : static_layout_tests_decreasing<target::cuda> {};
 #endif
 
 #ifdef STRUCTURED_GRIDS
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<platform::mc, GridBackend, Strategy>>
-    : static_layout_tests_decreasing_swappedxy<platform::mc> {};
+struct static_layout_tests<backend<target::mc, GridBackend, Strategy>>
+    : static_layout_tests_decreasing_swappedxy<target::mc> {};
 #else
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<platform::mc, GridBackend, Strategy>>
-    : static_layout_tests_increasing<platform::mc> {};
+struct static_layout_tests<backend<target::mc, GridBackend, Strategy>> : static_layout_tests_increasing<target::mc> {};
 #endif
 
 template <class GridBackend, class Strategy>
-struct static_layout_tests<backend<platform::x86, GridBackend, Strategy>>
-    : static_layout_tests_increasing<platform::x86> {};
+struct static_layout_tests<backend<target::x86, GridBackend, Strategy>> : static_layout_tests_increasing<target::x86> {
+};
 
 template class static_layout_tests<backend_t>;
 

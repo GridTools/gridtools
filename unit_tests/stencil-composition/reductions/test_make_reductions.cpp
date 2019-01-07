@@ -42,16 +42,15 @@
 
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/mpl/equal.hpp>
-#include <gridtools/gridtools.hpp>
 
 #include "gtest/gtest.h"
 
-#include "backend_select.hpp"
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
 #include <gridtools/stencil-composition/reductions/reductions.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

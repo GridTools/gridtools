@@ -1,0 +1,30 @@
+if (GT_ENABLE_TARGET_X86)
+    if(GT_SINGLE_PRECISION)
+        set(prec float)
+    else()
+        set(prec double)
+    endif()
+
+    add_bindings_library(implementation_${prec} SOURCES implementation.cpp FORTRAN_MODULE_NAME implementation)
+    target_link_libraries(implementation_${prec} PUBLIC GridToolsTestX86)
+    add_bindings_library(implementation_wrapper_${prec} SOURCES implementation-wrapper.cpp FORTRAN_MODULE_NAME implementation_wrapper)
+    target_link_libraries(implementation_wrapper_${prec} PUBLIC GridToolsTestX86)
+
+    if (CMAKE_C_COMPILER_LOADED)
+        add_executable(driver driver.c)
+        target_link_libraries(driver implementation_${prec}_c)
+    endif()
+
+    if (CMAKE_Fortran_COMPILER_LOADED)
+        include(fortran_helpers)
+
+        add_executable(fdriver fdriver.f90)
+        target_link_libraries(fdriver implementation_${prec}_fortran)
+        set_target_properties(fdriver PROPERTIES LINKER_LANGUAGE Fortran)
+        enable_fortran_preprocessing_on_target(fdriver)
+
+        add_executable(fdriver_wrapper fdriver-wrapper.f90)
+        target_link_libraries(fdriver_wrapper implementation_wrapper_${prec}_fortran)
+        enable_fortran_preprocessing_on_target(fdriver_wrapper)
+    endif()
+endif(GT_ENABLE_TARGET_X86)

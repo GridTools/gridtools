@@ -60,16 +60,14 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/void.hpp>
 
-#include "../esf_metafunctions.hpp"
-#include "./cache.hpp"
-#include "./cache_storage.hpp"
-
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-
+#include "../../meta/st_position.hpp"
 #include "../accessor_fwd.hpp"
 #include "../block_size.hpp"
+#include "../esf_metafunctions.hpp"
 #include "../local_domain.hpp"
+#include "./cache.hpp"
+#include "./cache_storage.hpp"
 #include "cache_traits.hpp"
 
 namespace gridtools {
@@ -155,7 +153,7 @@ namespace gridtools {
             typedef typename LocalDomain::template get_arg<IndexT>::type arg_t;
             using block_size_t = typename boost::mpl::if_<is_k_cache<Cache>, block_size<1, 1, 1>, BlockSize>::type;
 
-            typedef typename boost::mpl::if_<is_arg<arg_t>,
+            typedef typename boost::mpl::if_<is_plh<arg_t>,
                 cache_storage<Cache, block_size_t, typename boost::mpl::at<CacheExtentsMap, Cache>::type, arg_t>,
                 boost::mpl::void_>::type type;
         };

@@ -233,7 +233,7 @@ void m_unpackYL_variadic(value_type **d_msgbufTab_r,
     const gridtools::halo_descriptor halo[3],
     const gridtools::halo_descriptor halo_d[3],
     const datas &d_datas,
-    gridtools::gt_integer_sequence<unsigned int, Ids...>) {
+    gridtools::meta::integer_sequence<unsigned int, Ids...>) {
     // threads per block. Should be at least one warp in x, could be wider in y
     const int ntx = 32;
     const int nty = 1;

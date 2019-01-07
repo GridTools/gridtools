@@ -34,75 +34,80 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
 #include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "./execution_types.hpp"
 #include "./iterate_domain_fwd.hpp"
+#include "./level.hpp"
 
 namespace gridtools {
-    namespace _impl {
 
-        /**\brief policy defining the behaviour on the vertical direction*/
-        template <typename From, typename To, enumtype::execution ExecutionType>
-        struct iteration_policy;
+    /**\brief policy defining the behaviour on the vertical direction*/
+    template <class From, class To, enumtype::execution ExecutionType>
+    struct iteration_policy {
+        GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value <= level_to_index<From>::value, GT_INTERNAL_ERROR);
 
-        /**\brief specialization for the forward iteration loop over k*/
-        template <typename From, typename To>
-        struct iteration_policy_forward {
-            typedef From from;
-            typedef To to;
+        using from = From;
+        using to = To;
 
-            GT_FUNCTION
-            static int_t increment(int_t &k) { return ++k; }
+        static constexpr enumtype::execution value = ExecutionType;
 
-            template <typename IterateDomain>
-            GT_FUNCTION static void increment(IterateDomain &eval) {
-                GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, "Error: wrong type");
-                eval.increment_k();
-            }
+        GT_FUNCTION static int_t increment(int_t &k) { return ++k; }
 
-            GT_FUNCTION
-            static bool condition(int_t const &a, int_t const &b) {
-                return a <= b;
-            } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
-              // should have allocated more memory)
-        };
+        template <typename IterateDomain>
+        GT_FUNCTION static void increment(IterateDomain &eval) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            eval.increment_k();
+        }
 
-        template <typename From, typename To>
-        struct iteration_policy<From, To, enumtype::forward> : iteration_policy_forward<From, To> {
-            static const enumtype::execution value = enumtype::forward;
-        };
-        template <typename From, typename To>
-        struct iteration_policy<From, To, enumtype::parallel> : iteration_policy_forward<From, To> {
-            static const enumtype::execution value = enumtype::parallel;
-        };
+        template <typename IterateDomain>
+        GT_FUNCTION static void increment_by(IterateDomain &eval, int_t step) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            eval.increment_k(step);
+        }
 
-        /**\brief specialization for the backward iteration loop over k*/
-        template <typename From, typename To>
-        struct iteration_policy<From, To, enumtype::backward> {
-            static const enumtype::execution value = enumtype::backward;
-            typedef To from;
-            typedef From to;
+        GT_FUNCTION static bool condition(int_t a, int_t b) { return a <= b; }
+    };
 
-            GT_FUNCTION
-            static int_t increment(int_t &k) { return --k; }
+    /**\brief specialization for the backward iteration loop over k*/
+    template <class From, class To>
+    struct iteration_policy<From, To, enumtype::backward> {
+        GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value >= level_to_index<From>::value, GT_INTERNAL_ERROR);
 
-            template <typename Domain>
-            GT_FUNCTION static void increment(Domain &dom) {
-                dom.template increment_k<-1>();
-            }
+        using from = From;
+        using to = To;
 
-            GT_FUNCTION
-            static bool condition(int_t const &a, int_t const &b) {
-                return a >= b;
-            } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
-              // should have allocated more memory)
-        };
+        static constexpr enumtype::execution value = enumtype::backward;
 
-    } // namespace _impl
+        GT_FUNCTION
+        static int_t increment(int_t &k) { return --k; }
+
+        template <typename Domain>
+        GT_FUNCTION static void increment(Domain &dom) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<Domain>::value, GT_INTERNAL_ERROR);
+            dom.template increment_k<-1>();
+        }
+
+        template <typename IterateDomain>
+        GT_FUNCTION static void increment_by(IterateDomain &eval, int_t step) {
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
+            eval.increment_k(-step);
+        }
+
+        GT_FUNCTION static bool condition(int_t const &a, int_t const &b) { return a >= b; }
+    };
 
     template <typename T>
-    struct is_iteration_policy : boost::mpl::false_ {};
+    struct is_iteration_policy : std::false_type {};
 
     template <typename From, typename To, enumtype::execution ExecutionType>
-    struct is_iteration_policy<_impl::iteration_policy<From, To, ExecutionType>> : boost::mpl::true_ {};
+    struct is_iteration_policy<iteration_policy<From, To, ExecutionType>> : std::true_type {};
 
 } // namespace gridtools

@@ -37,25 +37,25 @@
 #include <vector>
 
 #include <boost/mpl/vector.hpp>
+
 #include <gtest/gtest.h>
 
-#include "backend_select.hpp"
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
 #include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
-#include <gridtools/stencil-composition/expandable_parameters/vector_accessor.hpp>
 #include <gridtools/stencil-composition/grid.hpp>
 #include <gridtools/stencil-composition/make_computation.hpp>
 #include <gridtools/stencil-composition/make_stage.hpp>
 #include <gridtools/stencil-composition/make_stencils.hpp>
+#include <gridtools/tools/backend_select.hpp>
 #include <gridtools/tools/verifier.hpp>
 
 namespace gridtools {
     struct test_functor {
-        using in = vector_accessor<0, enumtype::in, extent<>>;
-        using out = vector_accessor<1, enumtype::inout, extent<>>;
+        using in = accessor<0, enumtype::in, extent<>>;
+        using out = accessor<1, enumtype::inout, extent<>>;
         using arg_list = boost::mpl::vector<in, out>;
 
         template <typename Evaluation>
@@ -67,7 +67,7 @@ namespace gridtools {
     class fixture : public ::testing::Test {
       public:
         using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3>;
-        using storage_t = backend_t::storage_traits_t::data_store_t<gridtools::float_type, storage_info_t>;
+        using storage_t = backend_t::storage_traits_t::data_store_t<float_type, storage_info_t>;
         using p_tmp = tmp_arg<2, std::vector<storage_t>>;
 
         const uint_t m_d1 = 6, m_d2 = 6, m_d3 = 10;

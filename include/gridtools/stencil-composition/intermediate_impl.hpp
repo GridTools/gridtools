@@ -40,16 +40,17 @@
 #include <boost/fusion/include/flatten.hpp>
 #include <boost/fusion/include/move.hpp>
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/mpl/transform_view.hpp>
 #include <boost/optional.hpp>
 
 #include "../common/functional.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/tuple_util.hpp"
-#include "../common/vector_traits.hpp"
-#include "./tmp_storage.hpp"
-
+#include "../meta/defs.hpp"
+#include "./esf_metafunctions.hpp"
 #include "./extract_placeholders.hpp"
 #include "./local_domain.hpp"
+#include "./tmp_storage.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -85,13 +86,6 @@ namespace gridtools {
                 }
                 assert(*stored == *src.get_storage_info_ptr());
                 return {std::move(src), *stored};
-            }
-
-            template <class DataStore, uint_t... N>
-            data_store_field<DataStore, N...> operator()(data_store_field<DataStore, N...> src) const {
-                for (auto &item : src.m_field)
-                    item = this->operator()(item);
-                return src;
             }
 
             template <class Arg, class DataStore>
@@ -130,13 +124,6 @@ namespace gridtools {
             typedef decltype(make_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
         };
 
-        template <typename Elem, access_mode AccessMode>
-        struct get_view<Elem, AccessMode, typename boost::enable_if<is_data_store_field<Elem>>::type> {
-            // we can use make_field_host_view here because the type is the
-            // same for make_field_device_view and make_field_host_view.
-            typedef decltype(make_field_host_view<AccessMode, Elem>(std::declval<Elem &>())) type;
-        };
-
         /// This struct is used to hold bound storages. It holds a view.
         /// the method updated_view return creates a view only if the previously returned view was inconsistent.
         template <class Arg, class DataStorage>
@@ -168,8 +155,17 @@ namespace gridtools {
             }
         };
 
+        template <class DataStorage>
+        struct view_info_data {
+            using view_t = typename get_view<DataStorage>::type;
+            using storage_info_t = typename DataStorage::storage_info_t;
+
+            boost::optional<view_t> m_view;
+            storage_info_t m_storage_info;
+        };
+
         template <class Arg, class DataStorage>
-        using view_info_t = boost::fusion::pair<Arg, boost::optional<typename get_view<DataStorage>::type>>;
+        using view_info_t = boost::fusion::pair<Arg, view_info_data<DataStorage>>;
 
         template <class Backend>
         struct make_view_info_f {
@@ -178,11 +174,13 @@ namespace gridtools {
                 const auto &storage = src.m_value;
                 if (storage.device_needs_update())
                     storage.sync();
-                return boost::make_optional(typename Backend::make_view_f{}(storage));
+
+                return view_info_data<DataStorage>{
+                    boost::make_optional(typename Backend::make_view_f{}(storage)), storage.info()};
             }
             template <class Arg, class DataStorage>
             view_info_t<Arg, DataStorage> operator()(bound_arg_storage_pair<Arg, DataStorage> &src) const {
-                return src.template updated_view<Backend>();
+                return view_info_data<DataStorage>{src.template updated_view<Backend>(), src.m_data_storage.info()};
             }
         };
 
@@ -196,15 +194,19 @@ namespace gridtools {
             template <class Arg, class OptView, class LocalDomain>
             enable_if_t<local_domain_has_arg<LocalDomain, Arg>::value> operator()(
                 boost::fusion::pair<Arg, OptView> const &info, LocalDomain &local_domain) const {
-                if (!info.second)
+                if (!info.second.m_view)
                     return;
-                auto const &view = *info.second;
+                auto const &view = *info.second.m_view;
                 namespace f = boost::fusion;
                 // here we set data pointers
-                advanced::copy_raw_pointers(view, f::at_key<Arg>(local_domain.m_local_data_ptrs));
+                f::at_key<Arg>(local_domain.m_local_data_ptrs) = advanced::get_raw_pointer_of(view);
                 // here we set meta data pointers
                 auto const *storage_info = advanced::storage_info_raw_ptr(view);
-                *f::find<decltype(storage_info)>(local_domain.m_local_storage_info_ptrs) = storage_info;
+                constexpr auto storage_info_index =
+                    meta::st_position<typename LocalDomain::storage_info_ptr_list, decltype(storage_info)>::value;
+                f::at_c<storage_info_index>(local_domain.m_local_storage_info_ptrs) = storage_info;
+                local_domain.m_local_padded_total_lengths[storage_info_index] =
+                    info.second.m_storage_info.padded_total_length();
             }
             // do nothing if arg is not in this local domain
             template <class Arg, class OptView, class LocalDomain>
@@ -252,7 +254,8 @@ namespace gridtools {
                   Extent> {};
 
         template <class Extents>
-        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent<boost::mpl::_1, boost::mpl::_2>> {};
+        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>> {
+        };
 
         template <class MssComponents>
         struct get_max_extent_for_tmp_from_mss_components

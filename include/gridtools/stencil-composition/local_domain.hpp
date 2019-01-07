@@ -39,9 +39,9 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/pair.hpp>
 
-#include "../common/cuda_util.hpp"
+#include "../common/array.hpp"
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
+#include "../meta.hpp"
 
 #include "./arg.hpp"
 #include "./extent.hpp"
@@ -50,10 +50,9 @@ namespace gridtools {
 
     namespace _impl {
         namespace local_domain_details {
-            template <class Arg, class DataStore = typename Arg::data_store_t>
-            GT_META_DEFINE_ALIAS(get_data_ptrs_elem,
-                meta::id,
-                (boost::fusion::pair<Arg, array<typename DataStore::data_t *, DataStore::num_of_storages>>));
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(
+                get_data_ptrs_elem, meta::id, (boost::fusion::pair<Arg, typename Arg::data_store_t::data_t *>));
 
             template <class Arg, class StorageInfo = typename Arg::data_store_t::storage_info_t>
             GT_META_DEFINE_ALIAS(get_storage_info_ptr, meta::id, StorageInfo const *);
@@ -78,7 +77,7 @@ namespace gridtools {
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {
         GRIDTOOLS_STATIC_ASSERT(is_extent<MaxExtentForTmp>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_arg, EsfArgs>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, EsfArgs>::value), GT_INTERNAL_ERROR);
 
         using type = local_domain;
 
@@ -95,12 +94,14 @@ namespace gridtools {
 
         using data_ptr_fusion_map = typename boost::fusion::result_of::as_map<arg_to_data_ptr_map_t>::type;
         using storage_info_ptr_fusion_list = typename boost::fusion::result_of::as_vector<storage_info_ptr_list>::type;
+        using size_array = array<uint_t, meta::length<storage_info_ptr_list>::value>;
 
         template <class N>
         struct get_arg : meta::lazy::at_c<EsfArgs, N::value> {};
 
         data_ptr_fusion_map m_local_data_ptrs;
         storage_info_ptr_fusion_list m_local_storage_info_ptrs;
+        size_array m_local_padded_total_lengths;
     };
 
     template <class>
@@ -117,12 +118,18 @@ namespace gridtools {
 
     template <class>
     struct local_domain_esf_args;
+} // namespace gridtools
 
+#ifdef _USE_GPU_
+#include "../common/cuda_util.hpp"
+
+namespace gridtools {
     // Force cloning to cuda device, even though local_domain is not trivially copyable because of boost fusion
     // containers implementation.
     namespace cuda_util {
         template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
         struct is_cloneable<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : std::true_type {};
     } // namespace cuda_util
-
 } // namespace gridtools
+
+#endif

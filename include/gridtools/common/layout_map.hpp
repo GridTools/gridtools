@@ -38,10 +38,15 @@
 
 #include <boost/mpl/bool.hpp>
 
+#include "../meta/combine.hpp"
+#include "../meta/filter.hpp"
+#include "../meta/length.hpp"
+#include "../meta/list.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/push_back.hpp"
+#include "../meta/type_traits.hpp"
 #include "defs.hpp"
 #include "generic_metafunctions/accumulate.hpp"
-#include "generic_metafunctions/meta.hpp"
-#include "generic_metafunctions/type_traits.hpp"
 #include "gt_assert.hpp"
 #include "variadic_pack_metafunctions.hpp"
 

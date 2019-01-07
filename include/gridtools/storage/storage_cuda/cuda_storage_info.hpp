@@ -36,8 +36,11 @@
 
 #pragma once
 
-#include <assert.h>
+#include <cassert>
+#include <type_traits>
+#include <utility>
 
+#include "../../common/cuda_util.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
 
@@ -58,61 +61,33 @@ namespace gridtools {
         typename Layout,
         typename Halo = zero_halo<Layout::masked_length>,
         typename Alignment = alignment<32>>
-    struct cuda_storage_info : storage_info_interface<Id, Layout, Halo, Alignment> {
-      private:
-        mutable cuda_storage_info<Id, Layout, Halo, Alignment> *m_gpu_ptr;
-        GRIDTOOLS_STATIC_ASSERT((is_halo<Halo>::value), "Given type is not a halo type.");
-        GRIDTOOLS_STATIC_ASSERT((is_alignment<Alignment>::value), "Given type is not an alignment type.");
+    using cuda_storage_info = storage_info_interface<Id, Layout, Halo, Alignment>;
 
-      public:
-        static constexpr uint_t ndims = storage_info_interface<Id, Layout, Halo, Alignment>::ndims;
+    namespace impl_ {
         /*
-         * @brief cuda_storage_info constructor.
-         * @param dims_ the dimensionality (e.g., 128x128x80)
+         * @brief Allocates cuda_storage_info on device. Note that the pointer is released from the unique_ptr and
+         * memory is leaked here. This is currently needed as otherwise the device storage_infos of (temporary) fields
+         * with same ID but different storage size might be freed (and overwritten) before access in a stencil run()
+         * method.
          */
-        template <typename... Dims,
-            typename std::enable_if<sizeof...(Dims) == ndims && is_all_integral_or_enum<Dims...>::value, int>::type = 0>
-        explicit constexpr cuda_storage_info(Dims... dims_)
-            : storage_info_interface<Id, Layout, Halo, Alignment>(dims_...), m_gpu_ptr(nullptr) {}
+        template <class SI>
+        auto make_storage_info_ptr_cache(SI const &src)
+            GT_AUTO_RETURN(std::make_pair(src, cuda_util::make_clone(src).release()));
+    } // namespace impl_
 
-        /*
-         * @brief cuda_storage_info constructor.
-         * @param dims the dimensionality (e.g., 128x128x80)
-         * @param strides the strides used to describe a layout the data in memory
-         */
-        constexpr cuda_storage_info(array<uint_t, ndims> dims, array<uint_t, ndims> strides)
-            : storage_info_interface<Id, Layout, Halo, Alignment>(dims, strides), m_gpu_ptr(nullptr) {}
-
-        /*
-         * @brief cuda_storage_info destructor.
-         */
-        ~cuda_storage_info() = default;
-
-        /*
-         * @brief retrieve the device pointer. This information is needed when the storage information should be passed
-         * to a kernel.
-         * @return a storage info device pointer
-         */
-        cuda_storage_info<Id, Layout, Halo, Alignment> *get_gpu_ptr() const {
-            if (!m_gpu_ptr) {
-                cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info<Id, Layout, Halo, Alignment>));
-                ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
-                err = cudaMemcpy((void *)m_gpu_ptr,
-                    (void *)this,
-                    sizeof(cuda_storage_info<Id, Layout, Halo, Alignment>),
-                    cudaMemcpyHostToDevice);
-                ASSERT_OR_THROW((err == cudaSuccess), "failed to clone storage_info to the device.");
-            }
-            return m_gpu_ptr;
-        }
-    };
-
-    template <typename T>
-    struct is_cuda_storage_info : boost::mpl::false_ {};
-
+    /*
+     * @brief retrieve the device pointer. This information is needed when the storage information should be passed
+     * to a kernel.
+     * @return a storage info device pointer
+     */
     template <uint_t Id, typename Layout, typename Halo, typename Alignment>
-    struct is_cuda_storage_info<cuda_storage_info<Id, Layout, Halo, Alignment>> : boost::mpl::true_ {};
-
+    storage_info_interface<Id, Layout, Halo, Alignment> *get_gpu_storage_info_ptr(
+        storage_info_interface<Id, Layout, Halo, Alignment> const &src) {
+        thread_local static auto cache = impl_::make_storage_info_ptr_cache(src);
+        if (cache.first != src)
+            cache = impl_::make_storage_info_ptr_cache(src);
+        return cache.second;
+    }
     /**
      * @}
      */

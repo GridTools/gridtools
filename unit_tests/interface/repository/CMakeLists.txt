@@ -1,12 +1,13 @@
-# The following macro is a trick to generate a file containing pre-processed compiler output (-E flag) 
+# The following macro is a trick to generate a file containing pre-processed compiler output (-E flag)
 macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     # check if ${cpp_file} is a file that exists (to protect that the user passes in multiple files or something else)
     if( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${cpp_file}" )
         # pretend to generate an object file ...
         add_library( ${cpp_file}_OBJECTS OBJECT EXCLUDE_FROM_ALL ${cpp_file} )
-        # ... but actually generate the preprocessed file 
-        target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC "-E")
-    
+        # ... but actually generate the preprocessed file
+        target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
+        target_link_libraries( ${cpp_file}_OBJECTS common )
+
         # now use the preprocessed file to generate a library (which we will never use) ...
         add_library( dummy_${cpp_file} STATIC EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)
         # ... but before linking we copy the preprocessed file to the given file "preprocessed_file_out"
@@ -14,7 +15,7 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         add_custom_command( TARGET dummy_${cpp_file} PRE_LINK
             COMMAND ${CMAKE_COMMAND} -E copy '$<TARGET_OBJECTS:${cpp_file}_OBJECTS>' ${preprocessed_file_out}
         )
-        
+
         # add a target for the generated file
         add_custom_command( OUTPUT ${preprocessed_file_out} COMMAND "" DEPENDS dummy_${cpp_file})
     else()
@@ -22,12 +23,11 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
     endif()
 endmacro(generate_preprocessed_file)
 
-# only CMake > 3.8 because of $<TARGET_OBJECTS:${cpp_file}_OBJECTS> not supported
-IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
+if (GT_ENABLE_TARGET_X86)
     # generate a file where we can inspect the generated repository
     set( GENERATED_REPOSITORY ${CMAKE_CURRENT_BINARY_DIR}/generated_repository.cpp )
     generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
-    
+
     # clean the preprocessed file from comments and from everything before our class starts
     add_custom_target( process_generated_repository
       # remove all lines starting with '#'
@@ -36,43 +36,91 @@ IF (${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} VERSION_GREATER 3.8)
       COMMAND cp ${GENERATED_REPOSITORY}_tmp ${GENERATED_REPOSITORY}
       DEPENDS ${GENERATED_REPOSITORY}
       )
-    
-    # format the generated file if we can 
+
+    # format the generated file if we can
     if( CLANG_FORMAT_FOUND )
       add_custom_target( format_generated_repository COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY}
           DEPENDS process_generated_repository
       )
     else()
       #dummy target for dependency
-      add_custom_target( format_generated_repository COMMAND "" DEPENDS process_generated_repository) 
+      add_custom_target( format_generated_repository COMMAND "" DEPENDS process_generated_repository)
     endif()
-    
+
     # generate the driver
     configure_file( custom_test_generated_repository.cpp.in ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
-    
+
     add_executable( custom_test_generated_repository ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository.cpp )
-    target_link_libraries(custom_test_generated_repository ${exe_LIBS} gtest_main)
-    gridtools_add_test(custom_test_generated_repository ${TEST_SCRIPT} ${CMAKE_CURRENT_BINARY_DIR}/custom_test_generated_repository)
+    target_link_libraries(custom_test_generated_repository gtest_main GridToolsTestX86 )
+    gridtools_add_test(
+        NAME custom_test_generated_repository
+        SCRIPT ${TEST_SCRIPT}
+        COMMAND $<TARGET_FILE:custom_test_generated_repository>
+        LABELS unittest_x86 target_x86
+        ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
+        )
     add_dependencies( custom_test_generated_repository format_generated_repository )
-else()
-    message("Not building the test for the generated repository (CMAKE should be > 3.8)")
 endif()
 
 # collect test cases
-fetch_host_tests(.)
-fetch_gpu_tests(.)
+fetch_x86_tests(. LABELS unittest_x86 )
+fetch_gpu_tests(. LABELS unittest_cuda )
+fetch_mc_tests(. LABELS unittest_mc )
 
-add_bindings_library(repository exported_repository.cpp)
-target_link_libraries(repository gtest)
-
-add_library(repository_fortran_lib test_repository.f90)
-target_compile_options(repository_fortran_lib PRIVATE "-cpp")
-target_include_directories(repository_fortran_lib PRIVATE ${CMAKE_BINARY_DIR})
-target_link_libraries(repository_fortran_lib array_descriptor repository_fortran)
-
-if (ENABLE_HOST)
-    target_link_libraries(test_repository_host repository_fortran_lib)
+if(GT_SINGLE_PRECISION)
+    set(prec float)
+else()
+    set(prec double)
 endif()
-if (ENABLE_CUDA)
-    target_link_libraries(test_repository_cuda repository_fortran_lib)
+
+add_bindings_library(repository_${prec} SOURCES exported_repository.cpp FORTRAN_MODULE_NAME repository)
+target_link_libraries(repository_${prec} PUBLIC gridtools gtest)
+if(GT_SINGLE_PRECISION)
+    target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=4)
+else()
+    target_compile_definitions(repository_${prec} PUBLIC FLOAT_PRECISION=8)
+endif()
+
+if (CMAKE_Fortran_COMPILER_LOADED)
+    include(fortran_helpers)
+
+    add_library(repository_fortran_lib test_repository.f90)
+    target_link_libraries(repository_fortran_lib repository_${prec}_fortran)
+    enable_fortran_preprocessing_on_target(repository_fortran_lib)
+
+    if (GT_ENABLE_TARGET_X86)
+        add_custom_x86_test(
+            TARGET custom_test_exported_repository
+            SOURCES custom_test_exported_repository.cpp
+            LABELS unittest_x86
+            )
+        target_link_libraries(custom_test_exported_repository_x86
+            repository_fortran_lib
+            )
+    endif()
+    # TODO Fix this test. This test does not work right now because repository_${proc}_fortran
+    # is not compiled with ACC. ACC cannot be activated for CUDA 8.X because it requires
+    # gfortran <= 5.X
+    # if (GT_ENABLE_TARGET_CUDA)
+        # add_custom_gpu_test(
+            # TARGET custom_test_exported_repository
+            # SOURCES custom_test_exported_repository.cpp
+            # LABELS unittest_cuda
+            # )
+        # target_link_libraries(custom_test_exported_repository_cuda
+            # repository_fortran_lib
+            # )
+    # endif()
+    if (GT_ENABLE_TARGET_MC AND NOT GT_ENABLE_TARGET_X86)
+        add_custom_mc_test(
+            TARGET custom_test_exported_repository
+            SOURCES custom_test_exported_repository.cpp
+            LABELS unittest_mc
+            )
+        target_link_libraries(custom_test_exported_repository_mc
+            repository_fortran_lib
+            )
+    endif()
+
+
 endif()

@@ -34,11 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+
 #include <boost/mpl/equal.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/set/set0.hpp>
+
+#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../../meta/macros.hpp"
+#include "./esf.hpp"
 
 namespace gridtools {
     namespace icgrid {
@@ -89,15 +93,6 @@ namespace gridtools {
             type;
     };
 
-    struct extract_esf_functor {
-        template <typename Esf>
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::template esf_function<0> type;
-        };
-    };
-
     template <typename Esf>
     struct esf_arg_list {
         template <typename Set, typename Item>
@@ -133,5 +128,27 @@ namespace gridtools {
     struct esf_extent<esf_descriptor_with_extent<Functor, Grid, LocationType, Extent, Color, ArgSequence>> {
         using type = Extent;
     };
+
+    GT_META_LAZY_NAMESPACE {
+        template <class Esf, class Args>
+        struct esf_replace_args;
+
+        template <template <uint_t> class F, class Grid, class Location, class Color, class OldArgs, class NewArgs>
+        struct esf_replace_args<esf_descriptor<F, Grid, Location, Color, OldArgs>, NewArgs> {
+            using type = esf_descriptor<F, Grid, Location, Color, NewArgs>;
+        };
+
+        template <template <uint_t> class F,
+            class Grid,
+            class Location,
+            class Extent,
+            class Color,
+            class OldArgs,
+            class NewArgs>
+        struct esf_replace_args<esf_descriptor_with_extent<F, Grid, Location, Extent, Color, OldArgs>, NewArgs> {
+            using type = esf_descriptor_with_extent<F, Grid, Location, Extent, Color, NewArgs>;
+        };
+    }
+    GT_META_DELEGATE_TO_LAZY(esf_replace_args, (class Esf, class Args), (Esf, Args));
 
 } // namespace gridtools

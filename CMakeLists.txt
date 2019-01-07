@@ -1,18 +1,22 @@
+cmake_minimum_required(VERSION 3.12.4)
+
 cmake_policy(SET CMP0048 NEW)
-project(GridTools VERSION "0.1")
-enable_language (CXX Fortran)
+project(GridTools VERSION "0.1.8.2" LANGUAGES CXX)
 
-enable_language (CXX Fortran)
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-if( GRIDTOOLS_MODULES )
-# To be completed!
-  
-  add_subdirectory( modules/storage )
+include(CTest)
 
-else()
+# ===============
+# Load some cmake modules.
+# 1) define what flags should be available,
 
-cmake_minimum_required(VERSION 3.0)
-set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(detect_features)
+detect_cuda()
+detect_openmp()
+detect_mpi()
+
+include (flags)
 
 if(POLICY CMP0060)
   # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
@@ -21,124 +25,108 @@ endif()
 
 # ===============
 # Load some cmake modules.
-# 1) define what flags should be available,
 # 2) package by name finder
 # 3) testing methods
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
-include (flags)
 include (definitions)
-include (testing)
+if (BUILD_TESTING)
+    include (testing)
+endif()
 include (bindings)
+include (components)
 
-# ===============
-# library header files
-# ===============
-include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/" )
+# TODO this install targets are not finished on purpose.
+if( COMPONENT_COMMON )
+    install(TARGETS gridtools EXPORT GridToolstargets
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib
+      RUNTIME DESTINATION bin
+      INCLUDES DESTINATION include
+    )
+    install(EXPORT GridToolstargets
+      FILE GridToolsTargets.cmake
+      NAMESPACE gridtools::
+      DESTINATION ${INSTALL_CONFIGDIR}
+    )
 
-# ===============
-# compile gcl:
-# ===============
-add_library( gcl src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
-set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+    generate_target_for(NAME common)
+    target_link_libraries(common INTERFACE gridtools)
+endif()
 
-set(exe_LIBS ${exe_LIBS} gcl)
+if( COMPONENT_BOUNDARY_CONDITIONS )
+    generate_target_for(NAME boundary-conditions)
+    target_link_libraries( boundary-conditions INTERFACE common )
+endif()
 
-# ===============
-# compile c_bindings_generator:
-# ===============
+if( COMPONENT_STENCIL_COMPOSITION )
+    generate_target_for(NAME stencil-composition)
+    target_link_libraries( stencil-composition INTERFACE common )
+endif()
 
-add_library(c_bindings_handle src/c_bindings/handle.cpp)
-set_target_properties(c_bindings_handle PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+if( COMPONENT_GCL )
+    generate_target_for(NAME gcl SOURCES src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
+    target_link_libraries(gcl gridtools)
+    if( GT_USE_MPI )
+        target_link_libraries(gcl MPI::MPI_CXX)
+    endif()
+endif()
 
-set(exe_LIBS ${exe_LIBS} c_bindings_handle)
+if( COMPONENT_DISTRIBUTED_BOUNDARIES )
+    generate_target_for(NAME distributed-boundaries)
+    target_link_libraries( distributed-boundaries INTERFACE boundary-conditions gcl )
+endif()
 
-set(CMAKE_FORTRAN_MODOUT_FLAG ON)
-set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/mod)
+if( COMPONENT_STORAGE )
+    generate_target_for(NAME storage)
+    target_link_libraries( distributed-boundaries INTERFACE common )
+endif()
 
-add_library(c_bindings_handle_fortran src/c_bindings/handle.f90)
-target_link_libraries(c_bindings_handle_fortran c_bindings_handle)
-target_include_directories(c_bindings_handle_fortran PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+if( COMPONENT_INTERFACE )
+    generate_target_for(NAME interface)
+endif()
 
-add_library(c_bindings_generator src/c_bindings/generator.cpp)
-set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+if( COMPONENT_TOOLS )
+    generate_target_for(NAME tools)
+endif()
 
-set(exe_LIBS ${exe_LIBS} c_bindings_generator)
-
-add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
-target_link_libraries(c_bindings_generator_main c_bindings_generator)
-
-add_library(array_descriptor src/c_bindings/array_descriptor.f90)
+if(COMPONENT_C_BINDINGS)
+    generate_target_for(NAME c_bindings)
+endif()
 
 # ===============
 # examples and tests
 # ===============
-include (fix_test_case_name)
-if(NOT DISABLE_TESTING)
-  add_subdirectory(examples)
+if( GT_INSTALL_EXAMPLES )
+  add_subdirectory(gt_examples)
+endif()
+
+if(BUILD_TESTING)
+  # TODO move to the right directory
+  add_library(regression_main src/tools/regression_fixture.cpp)
+  target_link_libraries(regression_main gtest gridtools)
+
+  add_subdirectory(regression)
   add_subdirectory(unit_tests)
 endif()
 
 # ===============
 # Downloads the gridtools_experimental repository
 # ===============
-if(ENABLE_EXPERIMENTAL_REPOSITORY)
+if(GT_ENABLE_EXPERIMENTAL_REPOSITORY)
   include(gridtools_experimental/download_gridtools_experimental)
 endif()
 
 # ===============
 # Python scripts
 # ===============
-if(ENABLE_PYUTILS)
+if(GT_ENABLE_PYUTILS)
     add_subdirectory(pyutils)
 endif()
 
-# Add all targets to the build-tree export set
-export(TARGETS gcl
-  FILE "${PROJECT_BINARY_DIR}/cmake/GridToolsTargets.cmake")
-
-# Export the package for use from the build-tree
-# (this registers the build-tree with a global CMake-registry)
-export(PACKAGE GridTools)
-
-configure_file(GridToolsConfig.cmake.in
-  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake" @ONLY)
-configure_file(GridToolsConfigVersion.cmake.in
-  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake" @ONLY)
-
-# Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
-install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
-  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
-
-# TODO this needs to be cleaned up when cleaning up the CMakeLists (FindGridtools)
-# We need to define which files go where (e.g. bindings.cmake)
-install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
-install(TARGETS
-        gcl
-        c_bindings_generator
-        c_bindings_handle
-        c_bindings_handle_fortran
-        c_bindings_generator_main
-        array_descriptor
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
-install(FILES
-    "${PROJECT_BINARY_DIR}/mod/gt_handle.mod"
-    "${PROJECT_BINARY_DIR}/mod/array_descriptor.mod"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/include/gridtools")
-install(FILES
-    "${PROJECT_SOURCE_DIR}/cmake/bindings.cmake"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}")
-# Install the export set for use with the install-tree
-# TODO should this really be installed to PROJECT_BINARY_DIR (why not install?)
-install(EXPORT GridTools DESTINATION
-    "${PROJECT_BINARY_DIR}/cmake" COMPONENT dev)
-message("compile definitions: ${COMPILE_DEFINITIONS}")
+include(export)
 
 # ===========
 # Apply final actions
 # ===========
 include (post_config_actions)
-
-endif()
-

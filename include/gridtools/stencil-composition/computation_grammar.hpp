@@ -34,7 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../common/defs.hpp"
+
+#include "../meta/macros.hpp"
+#include "../meta/type_traits.hpp"
+
 namespace gridtools {
 
     template <typename T>
@@ -48,5 +51,6 @@ namespace gridtools {
      */
 
     template <typename T>
-    using is_computation_token = boost::mpl::or_<boost::mpl::or_<is_mss_descriptor<T>>, is_reduction_descriptor<T>>;
+    GT_META_DEFINE_ALIAS(
+        is_computation_token, bool_constant, is_mss_descriptor<T>::value || is_reduction_descriptor<T>::value);
 } // namespace gridtools

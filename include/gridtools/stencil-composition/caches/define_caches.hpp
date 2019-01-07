@@ -34,27 +34,29 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "./cache.hpp"
+
+#include <tuple>
+
+#include "../../common/defs.hpp"
+#include "../../meta/concat.hpp"
+#include "../../meta/logical.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
+#include "./cache_traits.hpp"
 
 namespace gridtools {
 
     /**
      * function that captures the list of caches provided by the user for a stencil
      */
-    template <typename... CacheSequences>
-    typename flatten<typename variadic_to_vector<CacheSequences...>::type>::type define_caches(
-        CacheSequences &&... caches) {
+    template <class... CacheSequences>
+    GT_META_CALL(meta::concat, (std::tuple<>, CacheSequences...))
+    define_caches(CacheSequences...) {
         // the call to define_caches might gets a variadic list of cache sequences as input
         // (e.g., define_caches(cache<IJ, local>(p_flx(), p_fly()), cache<K, fill>(p_in())); ).
-        // Therefore we have to merge the cache sequences into one single mpl vector.
-        typedef typename flatten<typename variadic_to_vector<CacheSequences...>::type>::type cache_sequence_t;
-        // perform a check if all elements in the merged vector are cache types
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<cache_sequence_t, is_cache>::value),
+        GRIDTOOLS_STATIC_ASSERT((conjunction<meta::all_of<is_cache, CacheSequences>...>::value),
             "Error: did not provide a sequence of caches to define_caches syntax");
-
-        return cache_sequence_t();
+        return {};
     }
 
 } // namespace gridtools

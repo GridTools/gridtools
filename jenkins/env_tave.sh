@@ -9,7 +9,8 @@ function exit_if_error {
 }
 
 module rm   PrgEnv-cray
-module load CMake
+module rm CMake
+module load /users/jenkins/easybuild/tave/modules/all/CMake/3.12.4
 
 if [[ ${COMPILER} == "gcc" ]]; then
   module load PrgEnv-gnu
@@ -29,7 +30,9 @@ if [[ ${COMPILER} == "gcc" ]]; then
     *)
       module swap gcc/4.9.3
   esac
-  export HOST_COMPILER=`which CC`
+  export CXX=`which g++`
+  export CC=`which gcc`
+  export FC=`which gfortran`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
   case ${VERSION} in
@@ -42,7 +45,10 @@ elif [[ ${COMPILER} == "icc" ]]; then
     *)
       module swap intel/18.0.2.199
   esac
-  export HOST_COMPILER=`which icpc`
+  module load gcc
+  export CXX=`which icpc`
+  export CC=`which icc`
+  export FC=`which ifort`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
@@ -52,11 +58,18 @@ export BOOST_ROOT=/project/c14/install/kesch/boost/boost_1_67_0 #since it is hea
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export LAUNCH_MPI_TEST="srun"
-export JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
-export MPI_HOST_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
-export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
+
+JOB_ENV=(
+    LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST
+    )
+export HOST_JOB_ENV="${JOB_ENV[*]}"
+export CUDA_JOB_ENV="${JOB_ENV[*]}"
+export MPI_HOST_JOB_ENV="${JOB_ENV[*]}"
+export MPI_CUDA_JOB_ENV="${JOB_ENV[*]}"
+
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export MAKE_THREADS=16
+export GT_ENABLE_BINDINGS_GENERATION=OFF
 

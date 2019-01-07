@@ -40,12 +40,15 @@
 #include "../common/array.hpp"
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
-#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/host_device.hpp"
+#include "../meta/is_list.hpp"
+#include "../meta/is_set.hpp"
+#include "../meta/list.hpp"
+#include "../meta/type_traits.hpp"
+#include "../meta/utility.hpp"
 
 namespace gridtools {
+
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base
@@ -61,12 +64,9 @@ namespace gridtools {
             struct type {
                 T data0, data1, data2;
 
-                constexpr type(array<T, 3> const &a)
-                    : data0(a.template get<0>()), data1(a.template get<1>()), data2(a.template get<2>()) {}
+                constexpr type(array<T, 3> const &a) : data0(get<0>(a)), data1(get<1>(a)), data2(get<2>(a)) {}
 
-                constexpr type() : data0(0), data1(0), data2(0) {}
-
-                constexpr type(T const &data0, T const &data1, T const &data2)
+                constexpr type(T const &data0 = {}, T const &data1 = {}, T const &data2 = {})
                     : data0(data0), data1(data1), data2(data2) {}
 
                 GT_FUNCTION T &operator[](std::size_t i) { return (&data0)[i]; }
@@ -128,13 +128,13 @@ namespace gridtools {
         }
 
         template <ushort_t Dim, ushort_t... Is, class... Ts>
-        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(gt_integer_sequence<ushort_t, Is...>, Ts... srcs) {
+        GT_FUNCTION constexpr array<int_t, Dim> make_offsets_impl(meta::integer_sequence<ushort_t, Is...>, Ts... srcs) {
             return {sum_dimensions<Is + 1>(srcs...)...};
         }
 
         template <ushort_t Dim, class... Ts>
         GT_FUNCTION constexpr array<int_t, Dim> make_offsets(Ts... srcs) {
-            return make_offsets_impl<Dim>(make_gt_integer_sequence<ushort_t, Dim>{}, srcs...);
+            return make_offsets_impl<Dim>(meta::make_integer_sequence<ushort_t, Dim>{}, srcs...);
         }
     } // namespace _impl
 

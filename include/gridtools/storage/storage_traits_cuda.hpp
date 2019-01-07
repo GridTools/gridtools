@@ -42,7 +42,6 @@
 #include "./common/storage_traits_metafunctions.hpp"
 #include "./storage_cuda/cuda_storage.hpp"
 #include "./storage_cuda/cuda_storage_info.hpp"
-#include "./storage_cuda/data_field_view_helpers.hpp"
 #include "./storage_cuda/data_view_helpers.hpp"
 
 namespace gridtools {
@@ -55,7 +54,7 @@ namespace gridtools {
 
     /** @brief storage traits for the CUDA backend*/
     template <>
-    struct storage_traits_from_id<platform::cuda> {
+    struct storage_traits_from_id<target::cuda> {
 
         template <typename ValueType>
         struct select_storage {
@@ -88,14 +87,14 @@ namespace gridtools {
         struct select_storage_info_align {
             GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a Halo type.");
             typedef typename get_layout<Dims, false>::type layout;
-            typedef cuda_storage_info<Id, layout, Halo, Align> type;
+            typedef storage_info_interface<Id, layout, Halo, Align> type;
         };
 
         template <uint_t Id, typename Layout, typename Halo, typename Align>
         struct select_custom_layout_storage_info_align {
             GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a halo type.");
             GRIDTOOLS_STATIC_ASSERT(is_layout_map<Layout>::value, "Given type is not a layout map type.");
-            typedef cuda_storage_info<Id, Layout, Halo, Align> type;
+            typedef storage_info_interface<Id, Layout, Halo, Align> type;
         };
 
         template <uint_t Id, typename Selector, typename Halo, typename Align>
@@ -103,7 +102,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_halo<Halo>::value, "Given type is not a Halo type.");
             GRIDTOOLS_STATIC_ASSERT(is_selector<Selector>::value, "Given type is not a selector type.");
             typedef typename get_layout<Selector::size, false>::type layout;
-            typedef cuda_storage_info<Id, typename get_special_layout<layout, Selector>::type, Halo, Align> type;
+            typedef storage_info_interface<Id, typename get_special_layout<layout, Selector>::type, Halo, Align> type;
         };
     };
 

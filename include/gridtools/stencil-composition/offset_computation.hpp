@@ -38,9 +38,9 @@
 #include <boost/mpl/eval_if.hpp>
 
 #include "../common/generic_metafunctions/accumulate.hpp"
-#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
+#include "../meta/type_traits.hpp"
+#include "../meta/utility.hpp"
 
 namespace gridtools {
 
@@ -108,28 +108,10 @@ namespace gridtools {
         template <typename StorageInfo, typename StridesCached, typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION constexpr int_t compute_offset(StridesCached const &RESTRICT strides,
             Accessor const &RESTRICT accessor,
-            gt_index_sequence<Coordinates...>) {
+            meta::index_sequence<Coordinates...>) {
             /* sum stride_x * offset_x + stride_y * offset_y + ... */
             return accumulate(plus_functor(),
                 (stride<StorageInfo, Coordinates>(strides) * accessor_offset<Coordinates>(accessor))...);
-        }
-
-        /**
-         * This function computes the total accessor-induces pointer offset for multiple axes for a cache storage.
-         *
-         * @tparam StorageInfo The storage info to be used.
-         * @tparam Accessor Type of the accessor.
-         * @tparam Coordinates The axes along which the offsets should be accumulated.
-         *
-         * @param accessor Accessor for which the offsets should be computed.
-         *
-         * @return The data offset computed for the given storage info and accessor for the given axes.
-         */
-        template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>
-        GT_FUNCTION constexpr int_t compute_offset_cache(
-            Accessor const &RESTRICT accessor, gt_index_sequence<Coordinates...>) {
-            return accumulate(plus_functor(),
-                (StorageInfo::template stride<Coordinates>() * accessor_offset<Coordinates>(accessor))...);
         }
     } // namespace _impl
 
@@ -148,24 +130,7 @@ namespace gridtools {
     template <typename StorageInfo, typename Accessor, typename StridesCached>
     GT_FUNCTION constexpr int_t compute_offset(
         StridesCached const &RESTRICT strides, Accessor const &RESTRICT accessor) {
-        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+        using sequence_t = meta::make_index_sequence<StorageInfo::layout_t::masked_length>;
         return _impl::compute_offset<StorageInfo>(strides, accessor, sequence_t());
-    }
-
-    /**
-     * This function computes the total accessor-induces pointer offset (sum) for all axes in the given cache storage
-     * info.
-     *
-     * @tparam StorageInfo The storage info to be used.
-     * @tparam Accessor Type of the accessor.
-     *
-     * @param accessor Accessor for which the offsets should be computed.
-     *
-     * @return The total data offset computed for the given storage info and accessor.
-     */
-    template <typename StorageInfo, typename Accessor>
-    GT_FUNCTION constexpr int_t compute_offset_cache(Accessor const &accessor) {
-        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
-        return _impl::compute_offset_cache<StorageInfo>(accessor, sequence_t());
     }
 } // namespace gridtools

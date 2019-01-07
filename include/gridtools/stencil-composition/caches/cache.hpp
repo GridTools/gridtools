@@ -41,17 +41,14 @@
 
 #pragma once
 
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/preprocessor.hpp>
-#include <boost/type_traits/is_same.hpp>
+#include <tuple>
+#include <type_traits>
+
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/gt_assert.hpp"
-#include "../accessor.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../arg.hpp"
 #include "../interval.hpp"
 #include "../location_type.hpp"
@@ -74,60 +71,34 @@ namespace gridtools {
          * @tparam  cacheType type of cache
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
-         * @tparam Interval vertical interval of validity of the cache
          */
-        template <cache_type CacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval>
+        template <cache_type CacheType, class Arg, cache_io_policy cacheIOPolicy>
         struct cache_impl {
-            GRIDTOOLS_STATIC_ASSERT((is_arg<Arg>::value), "argument passed to ij cache is not of the right arg<> type");
-            typedef Arg arg_t;
-// TODO ICO_STORAGE
-#ifndef STRUCTURED_GRIDS
-            GRIDTOOLS_STATIC_ASSERT((!boost::is_same<typename Arg::location_t, enumtype::default_location_type>::value),
-                "args in irregular grids require a location type");
-#endif
-            typedef Interval interval_t;
+            GRIDTOOLS_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
+            using arg_t = Arg;
             static constexpr cache_type cacheType = CacheType;
             static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
-        };
-
-        /**
-         * @brief helper metafunction class that is used to force the resolution of an mpl placeholder type
-         */
-        template <cache_type cacheType, cache_io_policy cacheIOPolicy, typename Interval>
-        struct force_arg_resolution {
-            template <typename T>
-            struct apply {
-                typedef cache_impl<cacheType, T, cacheIOPolicy, Interval> type;
-            };
         };
     } // namespace detail
 
     /**
-     *	@brief function that forms a vector of caches that share the same cache type and input/output policy  (c++11
-     *version)
+     *	@brief function that forms a vector of caches that share the same cache type and input/output policy
      *	@tparam cacheType type of cache (e.g., IJ, IJK, ...)
      *	@tparam cacheIOPolicy input/output policy (e.g., cFill, cLocal, ...)
      *	@tparam Args arbitrary number of storages that should be cached
-     *	@return vector of caches
+     *	@return tuple of caches
      */
-    template <cache_type cacheType,
-        cache_io_policy cacheIOPolicy,
-        typename Interval = boost::mpl::void_,
-        typename... Args>
-    constexpr typename boost::mpl::transform<boost::mpl::vector<Args...>,
-        detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval>>::type
-    cache(Args &&...) {
+    template <cache_type cacheType, cache_io_policy cacheIOPolicy, class... Args>
+    std::tuple<detail::cache_impl<cacheType, Args, cacheIOPolicy>...> cache(Args...) {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
-        GRIDTOOLS_STATIC_ASSERT(((boost::is_same<Interval, boost::mpl::void_>::value) || cacheType == K),
-            "Passing an interval to the cache<> construct is only allowed and required by the K caches");
-        GRIDTOOLS_STATIC_ASSERT((!(boost::is_same<Interval, boost::mpl::void_>::value) || cacheType != K ||
-                                    cacheIOPolicy == cache_io_policy::local),
-            "cache<K, ... > construct requires an interval (unless the IO policy is local)");
-
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same<Interval, boost::mpl::void_>::value || is_interval<Interval>::value),
-            "Invalid Interval type passed to cache construct");
-        typedef typename boost::mpl::transform<boost::mpl::vector<Args...>,
-            detail::force_arg_resolution<cacheType, cacheIOPolicy, Interval>>::type res_ty;
-        return res_ty();
+        GRIDTOOLS_STATIC_ASSERT(
+            conjunction<is_plh<Args>...>::value, "argument passed to cache is not of the right arg<> type");
+        // TODO ICO_STORAGE
+#ifndef STRUCTURED_GRIDS
+        GRIDTOOLS_STATIC_ASSERT(
+            (!disjunction<std::is_same<typename Args::location_t, enumtype::default_location_type>...>::value),
+            "args in irregular grids require a location type");
+#endif
+        return {};
     }
 } // namespace gridtools

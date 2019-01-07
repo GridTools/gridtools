@@ -35,318 +35,185 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 
+#ifdef BACKEND_X86
+#include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
+#endif
+
+#ifdef BACKEND_MC
+#include <gridtools/stencil-composition/structured_grids/backend_mc/iterate_domain_mc.hpp>
+#endif
+
 #include <tuple>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
 #include <gridtools/common/defs.hpp>
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/tools/backend_select.hpp>
 
-#ifdef BACKEND_HOST
-#include <gridtools/stencil-composition/structured_grids/backend_host/iterate_domain_host.hpp>
+namespace gridtools {
+    namespace {
+
+        using in_acc = in_accessor<0, extent<>, 4>;
+        using buff_acc = in_accessor<1>;
+        using out_acc = inout_accessor<2, extent<>, 2>;
+
+        struct dummy_functor {
+            using arg_list = boost::mpl::vector<in_acc, buff_acc, out_acc>;
+            template <typename Evaluation>
+            GT_FUNCTION static void Do(Evaluation &eval);
+        };
+
+        using layout_ijkp_t = layout_map<3, 2, 1, 0>;
+        using layout_kji_t = layout_map<0, 1, 2>;
+        using layout_ij_t = layout_map<0, 1>;
+
+        using backend_traits_t = backend_traits_from_id<backend_t::backend_id_t>;
+        using storage_traits_t = storage_traits<backend_t::backend_id_t>;
+
+        using meta_ijkp_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ijkp_t>;
+        using meta_kji_t = storage_traits_t::custom_layout_storage_info_t<0, layout_kji_t>;
+        using meta_ij_t = storage_traits_t::custom_layout_storage_info_t<0, layout_ij_t>;
+
+        using storage_t = gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_ijkp_t>;
+        using storage_buff_t = gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_kji_t>;
+        using storage_out_t = gridtools::storage_traits<backend_t::backend_id_t>::data_store_t<float_type, meta_ij_t>;
+
+        TEST(testdomain, iterate_domain) {
+
+            uint_t d1 = 15;
+            uint_t d2 = 13;
+            uint_t d3 = 18;
+            uint_t d4 = 6;
+
+            meta_ijkp_t meta_ijkp_(d1 + 3, d2 + 2, d3 + 1, d4);
+            storage_t in(meta_ijkp_);
+            meta_kji_t meta_kji_(d1, d2, d3);
+            storage_buff_t buff(meta_kji_);
+            meta_ij_t meta_ij_(d1 + 2, d2 + 1);
+            storage_out_t out(meta_ij_);
+
+            arg<0, storage_t> p_in;
+            arg<1, storage_buff_t> p_buff;
+            arg<2, storage_out_t> p_out;
+
+            auto grid = make_grid(d1, d2, d3);
+
+            auto mss_ = gridtools::make_multistage // mss_descriptor
+                (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
+            auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
+                grid, p_in = in, p_buff = buff, p_out = out, mss_);
+            auto local_domain1 = std::get<0>(computation_.local_domains());
+
+            using esf_t = decltype(gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
+
+            using iterate_domain_arguments_t =
+                iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
+                    decltype(local_domain1),
+                    boost::mpl::vector1<esf_t>,
+                    boost::mpl::vector1<extent<>>,
+                    extent<>,
+                    boost::mpl::vector0<>,
+                    gridtools::grid<gridtools::axis<1>::axis_interval_t>,
+                    boost::mpl::false_,
+                    notype>;
+
+#ifdef BACKEND_MC
+            using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
 #endif
 
-#ifdef BACKEND_MIC
-#include <gridtools/stencil-composition/structured_grids/backend_mic/iterate_domain_mic.hpp>
+#ifdef BACKEND_X86
+            using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
 #endif
 
-#include "backend_select.hpp"
+            it_domain_t it_domain(local_domain1, 0);
 
-namespace test_iterate_domain {
-    using namespace gridtools;
-    using namespace enumtype;
+            GRIDTOOLS_STATIC_ASSERT(
+                it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
 
-    // These are the stencil operators that compose the multistage stencil in this test
-    struct dummy_functor {
-        typedef accessor<0, enumtype::in, extent<0, 0, 0, 0>, 6> in;
-        typedef accessor<1, enumtype::in, extent<0, 0, 0, 0>, 5> buff;
-        typedef accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4> out;
-        typedef boost::mpl::vector<in, buff, out> arg_list;
+#ifndef BACKEND_MC
+            typedef typename it_domain_t::strides_cached_t strides_t;
+            strides_t strides;
 
-        template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
-    };
+            it_domain.set_strides_pointer_impl(&strides);
 
-    std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
-
-    bool static test() {
-        typedef layout_map<3, 2, 1, 0> layout_ijkp_t;
-        typedef layout_map<0, 1, 2> layout_kji_t;
-        typedef layout_map<0, 1> layout_ij_t;
-
-        typedef backend_traits_from_id<backend_t::backend_id_t> backend_traits_t;
-        typedef storage_traits<backend_t::backend_id_t> storage_traits_t;
-        typedef typename storage_traits_t::custom_layout_storage_info_t<0, layout_ijkp_t> meta_ijkp_t;
-        typedef typename storage_traits_t::custom_layout_storage_info_t<0, layout_kji_t> meta_kji_t;
-        typedef typename storage_traits_t::custom_layout_storage_info_t<0, layout_ij_t> meta_ij_t;
-
-        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, meta_ijkp_t, 3, 2, 1>
-            storage_t;
-        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, meta_kji_t, 4, 7>
-            storage_buff_t;
-        typedef gridtools::storage_traits<backend_t::backend_id_t>::data_store_field_t<float_type, meta_ij_t, 2, 2, 2>
-            storage_out_t;
-
-        uint_t d1 = 15;
-        uint_t d2 = 13;
-        uint_t d3 = 18;
-        uint_t d4 = 6;
-
-        meta_ijkp_t meta_ijkp_(d1 + 3, d2 + 2, d3 + 1, d4);
-        storage_t in(meta_ijkp_);
-        meta_kji_t meta_kji_(d1, d2, d3);
-        storage_buff_t buff(meta_kji_);
-        meta_ij_t meta_ij_(d1 + 2, d2 + 1);
-        storage_out_t out(meta_ij_);
-
-        typedef arg<0, storage_t> p_in;
-        typedef arg<1, storage_buff_t> p_buff;
-        typedef arg<2, storage_out_t> p_out;
-
-        auto grid = make_grid(d1, d2, d3);
-
-        auto mss_ = gridtools::make_multistage // mss_descriptor
-            (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out()));
-        auto computation_ = make_computation<gridtools::backend<platform::x86, GRIDBACKEND, strategy::naive>>(
-            grid, p_in() = in, p_buff() = buff, p_out() = out, mss_);
-        auto local_domain1 = std::get<0>(computation_.local_domains());
-
-        typedef decltype(gridtools::make_stage<dummy_functor>(p_in(), p_buff(), p_out())) esf_t;
-
-        using iterate_domain_arguments_t =
-            iterate_domain_arguments<backend_ids<platform::x86, GRIDBACKEND, strategy::naive>,
-                decltype(local_domain1),
-                boost::mpl::vector1<esf_t>,
-                boost::mpl::vector1<extent<0, 0, 0, 0>>,
-                extent<0, 0, 0, 0>,
-                boost::mpl::vector0<>,
-                gridtools::grid<gridtools::axis<1>::axis_interval_t>,
-                boost::mpl::false_,
-                notype>;
-
-#ifdef BACKEND_MIC
-        using it_domain_t = iterate_domain_mic<iterate_domain_arguments_t>;
-#endif
-
-#ifdef BACKEND_HOST
-        using it_domain_t = iterate_domain_host<iterate_domain_arguments_t>;
-#endif
-
-        it_domain_t it_domain(local_domain1, 0);
-
-        GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
-
-#ifndef BACKEND_MIC
-        typedef typename it_domain_t::strides_cached_t strides_t;
-        strides_t strides;
-
-        it_domain.set_strides_pointer_impl(&strides);
-
-        it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
+            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 #endif
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-#ifndef BACKEND_MIC
-        it_domain.initialize({}, {}, {});
+#ifndef BACKEND_MC
+            it_domain.initialize({}, {}, {});
 #endif
-        auto inv = make_field_host_view(in);
-        inv.get<0, 0>()(0, 0, 0, 0) = 0.; // is accessor<0>
-        inv.get<0, 1>()(0, 0, 0, 0) = 1.;
-        inv.get<0, 2>()(0, 0, 0, 0) = 2.;
-        inv.get<1, 0>()(0, 0, 0, 0) = 10.;
-        inv.get<1, 1>()(0, 0, 0, 0) = 11.;
-        inv.get<2, 0>()(0, 0, 0, 0) = 20.;
+            auto inv = make_host_view(in);
+            inv(0, 0, 0, 0) = 0.; // is accessor<0>
 
-        assert(it_domain(alias<inout_accessor<0, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<6>>::set<0>()) == 0.);
-        assert(it_domain(alias<inout_accessor<0, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<6>>::set<1>()) == 1.);
-        assert(it_domain(alias<inout_accessor<0, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<6>>::set<2>()) == 2.);
-        assert(it_domain(alias<inout_accessor<0, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<5>>::set<1>()) == 10.);
-        assert(
-            it_domain(alias<inout_accessor<0, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<6>, dimension<5>>::set<1, 1>()) ==
-            11.);
-        assert(it_domain(alias<inout_accessor<0, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<5>>::set<2>()) == 20.);
+            EXPECT_EQ(0, it_domain(in_acc()));
 
-        // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-        auto buffv = make_field_host_view(buff);
-        buffv.get<0, 0>()(0, 0, 0) = 0.; // is accessor<1>
-        buffv.get<0, 1>()(0, 0, 0) = 1.;
-        buffv.get<0, 2>()(0, 0, 0) = 2.;
-        buffv.get<0, 3>()(0, 0, 0) = 3.;
-        buffv.get<1, 0>()(0, 0, 0) = 10.;
-        buffv.get<1, 1>()(0, 0, 0) = 11.;
-        buffv.get<1, 2>()(0, 0, 0) = 12.;
-        buffv.get<1, 3>()(0, 0, 0) = 13.;
-        buffv.get<1, 4>()(0, 0, 0) = 14.;
-        buffv.get<1, 5>()(0, 0, 0) = 15.;
-        buffv.get<1, 6>()(0, 0, 0) = 16.;
+            // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
+            auto buffv = make_host_view(buff);
+            buffv(0, 0, 0) = 0.; // is accessor<1>
 
-        assert(it_domain(alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<5>>::set<0>()) == 0.);
-        assert(it_domain(alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<5>>::set<1>()) == 1.);
-        assert(it_domain(alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<5>>::set<2>()) == 2.);
-        assert(it_domain(alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>>::set<1>()) == 10.);
-        assert(
-            it_domain(
-                alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>, dimension<5>>::set<1, 1>()) ==
-            11.);
-        assert(
-            it_domain(
-                alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>, dimension<5>>::set<1, 2>()) ==
-            12.);
-        assert(
-            it_domain(
-                alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>, dimension<5>>::set<1, 3>()) ==
-            13.);
-        assert(
-            it_domain(
-                alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>, dimension<5>>::set<1, 4>()) ==
-            14.);
-        assert(
-            it_domain(
-                alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>, dimension<5>>::set<1, 5>()) ==
-            15.);
-        assert(
-            it_domain(
-                alias<accessor<1, enumtype::in, extent<0, 0, 0, 0, 0>, 5>, dimension<4>, dimension<5>>::set<1, 6>()) ==
-            16.);
+            EXPECT_EQ(0, it_domain(buff_acc()));
 
-        auto outv = make_field_host_view(out);
-        outv.get<0, 0>()(0, 0) = 0.; // is accessor<2>
-        outv.get<0, 1>()(0, 0) = 1.;
-        outv.get<1, 0>()(0, 0) = 10.;
-        outv.get<1, 1>()(0, 0) = 11.;
-        outv.get<2, 0>()(0, 0) = 20.;
-        outv.get<2, 1>()(0, 0) = 21.;
+            auto outv = make_host_view(out);
+            outv(0, 0) = 0.; // is accessor<2>
 
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>()) == 0.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<4>(1))) == 1.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<3>(1))) == 10.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<4>(1), dimension<3>(1))) == 11.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<3>(2))) == 20.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<3>(2), dimension<4>(1))) == 21.);
+            EXPECT_EQ(0, it_domain(out_acc()));
+            EXPECT_EQ(0, it_domain(out_acc(0, 0)));
 
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 0, 0)) == 0.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 0, 1)) == 1.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 1, 0)) == 10.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 1, 1)) == 11.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 2, 0)) == 20.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 2, 1)) == 21.);
+            // check index initialization and increment
 
-        // check index initialization and increment
+            auto index = it_domain.index();
+            ASSERT_EQ(0, index[0]);
+            ASSERT_EQ(0, index[1]);
+            ASSERT_EQ(0, index[2]);
+#ifndef BACKEND_MC
+            index[0] += 3;
+            index[1] += 2;
+            index[2] += 1;
+            it_domain.set_index(index);
 
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>()) == 0.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<4>(1))) == 1.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<3>(1))) == 10.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<4>(1), dimension<3>(1))) == 11.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<3>(2))) == 20.);
-        assert(it_domain(accessor<2, enumtype::inout, extent<0, 0, 0, 0>, 4>(dimension<3>(2), dimension<4>(1))) == 21.);
-
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 0, 0)) == 0.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 0, 1)) == 1.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 1, 0)) == 10.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 1, 1)) == 11.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 2, 0)) == 20.);
-        assert(it_domain(inout_accessor<2, extent<0, 0, 0, 0>, 4>(0, 0, 2, 1)) == 21.);
-
-        // check index initialization and increment
-
-        auto index = it_domain.index();
-        assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
-#ifndef BACKEND_MIC
-        index[0] += 3;
-        index[1] += 2;
-        index[2] += 1;
-        it_domain.set_index(index);
-
-        index = it_domain.index();
-        assert(index[0] == 3 && index[1] == 2 && index[2] == 1);
+            index = it_domain.index();
+            EXPECT_EQ(3, index[0]);
+            EXPECT_EQ(2, index[1]);
+            EXPECT_EQ(1, index[2]);
 #endif
 
-        auto mdo = out.template get<0, 0>().get_storage_info_ptr();
-        auto mdb = buff.template get<0, 0>().get_storage_info_ptr();
-        auto mdi = in.template get<0, 0>().get_storage_info_ptr();
+            auto mdo = out.get_storage_info_ptr();
+            auto mdb = buff.get_storage_info_ptr();
+            auto mdi = in.get_storage_info_ptr();
 
-#ifdef BACKEND_MIC
-        it_domain.set_i_block_index(1);
-        it_domain.set_j_block_index(1);
-        it_domain.set_k_block_index(1);
+#ifdef BACKEND_MC
+            it_domain.set_i_block_index(1);
+            it_domain.set_j_block_index(1);
+            it_domain.set_k_block_index(1);
 #else
-        it_domain.increment_i();
-        it_domain.increment_j();
-        it_domain.increment_k();
+            it_domain.increment_i();
+            it_domain.increment_j();
+            it_domain.increment_k();
 #endif
-        auto new_index = it_domain.index();
+            auto new_index = it_domain.index();
 
-        // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra
-        // stride
-        assert(index[0] + mdi->template stride<0>() + mdi->template stride<1>() + mdi->template stride<2>() ==
-               new_index[0]);
+            // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the
+            // extra stride
+            EXPECT_EQ(index[0] + mdi->stride<0>() + mdi->stride<1>() + mdi->stride<2>(), new_index[0]);
+            EXPECT_EQ(index[1] + mdb->stride<0>() + mdb->stride<1>() + mdb->stride<2>(), new_index[1]);
+            EXPECT_EQ(index[2] + mdo->stride<0>() + mdo->stride<1>(), new_index[2]);
 
-        assert(index[1] + mdb->template stride<0>() + mdb->template stride<1>() + mdb->template stride<2>() ==
-               new_index[1]);
+#ifndef BACKEND_MC
+            // check strides initialization
+            // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
+            EXPECT_EQ(mdi->stride<3>(), strides.get<0>()[0]);
+            EXPECT_EQ(mdi->stride<2>(), strides.get<0>()[1]);
+            EXPECT_EQ(mdi->stride<1>(), strides.get<0>()[2]); // 4D storage
 
-        assert(index[2] + mdo->template stride<0>() + mdo->template stride<1>() == new_index[2]);
+            EXPECT_EQ(mdb->stride<0>(), strides.get<1>()[0]);
+            EXPECT_EQ(mdb->stride<1>(), strides.get<1>()[1]); // 3D storage
 
-        // check offsets for the space dimensions
-        using in_1_1 =
-            alias<accessor<0, enumtype::inout, extent<0, 0, 0, 0, 0, 0>, 6>, dimension<6>, dimension<5>>::set<1, 1>;
-
-        auto d1_ = in_1_1{dimension<1>{1}};
-        auto d2_ = in_1_1{dimension<2>{1}};
-        auto d3_ = in_1_1{dimension<3>{1}};
-        auto d4_ = in_1_1{dimension<4>{1}};
-        assert(((
-            float_type *)(&inv.get<1, 1>()(0, 0, 0, 0) + new_index[0] + mdi->template stride<0>() == &it_domain(d1_))));
-
-        assert(((
-            float_type *)(&inv.get<1, 1>()(0, 0, 0, 0) + new_index[0] + mdi->template stride<1>() == &it_domain(d2_))));
-
-        assert(((
-            float_type *)(&inv.get<1, 1>()(0, 0, 0, 0) + new_index[0] + mdi->template stride<2>() == &it_domain(d3_))));
-
-        assert(((
-            float_type *)(&inv.get<1, 1>()(0, 0, 0, 0) + new_index[0] + mdi->template stride<3>() == &it_domain(d4_))));
-
-        // check offsets for the space dimensions
-        using buff_1_1 =
-            alias<accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0>, 5>, dimension<5>, dimension<4>>::set<1, 1>;
-        auto b1_ = buff_1_1{dimension<1>{1}};
-        auto b2_ = buff_1_1{dimension<2>{1}};
-        auto b3_ = buff_1_1{dimension<3>{1}};
-
-        assert((
-            (float_type *)(&buffv.get<1, 1>()(0, 0, 0) + new_index[1] + mdb->template stride<0>() == &it_domain(b1_))));
-
-        assert((
-            (float_type *)(&buffv.get<1, 1>()(0, 0, 0) + new_index[1] + mdb->template stride<1>() == &it_domain(b2_))));
-
-        assert((
-            (float_type *)(&buffv.get<1, 1>()(0, 0, 0) + new_index[1] + mdb->template stride<2>() == &it_domain(b3_))));
-
-        using out_1 = alias<inout_accessor<2, extent<0, 0, 0, 0>, 4>, dimension<4>, dimension<3>>::set<1, 1>;
-
-        auto c1_ = out_1{dimension<1>{1}};
-        auto c2_ = out_1{dimension<2>{1}};
-
-        assert(((float_type *)(&outv.get<1, 1>()(0, 0) + new_index[2] + mdo->template stride<0>() == &it_domain(c1_))));
-
-        assert(((float_type *)(&outv.get<1, 1>()(0, 0) + new_index[2] + mdo->template stride<1>() == &it_domain(c2_))));
-
-#ifndef BACKEND_MIC
-        // check strides initialization
-        // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
-        assert(mdi->template stride<3>() == strides.get<0>()[0]);
-        assert(mdi->template stride<2>() == strides.get<0>()[1]);
-        assert(mdi->template stride<1>() == strides.get<0>()[2]); // 4D storage
-
-        assert(mdb->template stride<0>() == strides.get<1>()[0]);
-        assert(mdb->template stride<1>() == strides.get<1>()[1]); // 3D storage
-
-        assert(mdo->template stride<0>() == strides.get<2>()[0]); // 2D storage
+            EXPECT_EQ(mdo->stride<0>(), strides.get<2>()[0]); // 2D storage
 #endif
-
-        return true;
-    }
-} // namespace test_iterate_domain
-
-TEST(testdomain, iterate_domain) { EXPECT_EQ(test_iterate_domain::test(), true); }
+        }
+    } // namespace
+} // namespace gridtools

@@ -39,7 +39,6 @@
 #include <gridtools/distributed-boundaries/bound_bc.hpp>
 #include <gridtools/storage/data_store.hpp>
 #include <gridtools/storage/storage_host/host_storage.hpp>
-#include <gridtools/storage/storage_host/host_storage_info.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;
@@ -55,7 +54,7 @@ TEST(DistributedBoundaries, SelectElement) {
 }
 
 TEST(DistributedBoundaries, DataStoreOrPlc) {
-    typedef gt::host_storage_info<0, gt::layout_map<0, 1, 2>> storage_info_t;
+    typedef gt::storage_info_interface<0, gt::layout_map<0, 1, 2>> storage_info_t;
     using ds = gt::data_store<gt::host_storage<double>, storage_info_t>;
 
     EXPECT_EQ((gt::_impl::data_stores_or_placeholders<decltype(_1), decltype(_2)>()), true);
@@ -70,32 +69,33 @@ TEST(DistributedBoundaries, CollectIndices) {
     using p1 = decltype(_1);
     using p2 = decltype(_2);
 
+    EXPECT_TRUE(
+        (std::is_same<typename gt::_impl::comm_indices<
+                          std::tuple<>>::collect_indices<0, gt::meta::index_sequence<>, std::tuple<int, int>>::type,
+            gt::meta::index_sequence<0, 1>>::value));
+
     EXPECT_TRUE((std::is_same<typename gt::_impl::comm_indices<std::tuple<>>::
-                                  collect_indices<0, gt::gt_integer_sequence<std::size_t>, std::tuple<int, int>>::type,
-        gt::gt_integer_sequence<std::size_t, 0, 1>>::value));
+                                  collect_indices<0, gt::meta::index_sequence<>, std::tuple<int, p1, int, p2>>::type,
+        gt::meta::index_sequence<0, 2>>::value));
 
     EXPECT_TRUE(
-        (std::is_same<typename gt::_impl::comm_indices<std::tuple<>>::
-                          collect_indices<0, gt::gt_integer_sequence<std::size_t>, std::tuple<int, p1, int, p2>>::type,
-            gt::gt_integer_sequence<std::size_t, 0, 2>>::value));
-
-    EXPECT_TRUE((std::is_same<typename gt::_impl::comm_indices<std::tuple<>>::
-                                  collect_indices<0, gt::gt_integer_sequence<std::size_t>, std::tuple<p1, p2>>::type,
-        gt::gt_integer_sequence<std::size_t>>::value));
+        (std::is_same<typename gt::_impl::comm_indices<
+                          std::tuple<>>::collect_indices<0, gt::meta::index_sequence<>, std::tuple<p1, p2>>::type,
+            gt::meta::index_sequence<>>::value));
 }
 
 TEST(DistributedBoundaries, RestTuple) {
     {
         auto all = std::make_tuple();
-        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence<std::size_t, 0>{}), (std::tuple<>{}));
+        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::meta::make_index_sequence<0>{}), (std::tuple<>{}));
     }
     {
         auto all = std::make_tuple(1);
-        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence<std::size_t, 0>{}), (std::tuple<>{}));
+        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::meta::make_index_sequence<0>{}), (std::tuple<>{}));
     }
     {
         auto all = std::make_tuple(1, 2);
-        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence<std::size_t, 1>{}), (std::tuple<int>{2}));
+        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::meta::make_index_sequence<1>{}), (std::tuple<int>{2}));
     }
 }
 
@@ -122,14 +122,14 @@ TEST(DistributedBoundaries, ContainsPlaceholders) {
 }
 
 TEST(DistributedBoundaries, BoundBC) {
-    typedef gt::host_storage_info<0, gt::layout_map<0, 1, 2>> storage_info_t;
+    typedef gt::storage_info_interface<0, gt::layout_map<0, 1, 2>> storage_info_t;
     using ds = gt::data_store<gt::host_storage<double>, storage_info_t>;
 
     ds a(storage_info_t{3, 3, 3}, "a");
     ds b(storage_info_t{3, 3, 3}, "b");
     ds c(storage_info_t{3, 3, 3}, "c");
 
-    gt::bound_bc<gt::zero_boundary, std::tuple<ds, ds, ds>, gt::gt_integer_sequence<std::size_t, 1>> bbc{
+    gt::bound_bc<gt::zero_boundary, std::tuple<ds, ds, ds>, gt::meta::index_sequence<1>> bbc{
         gt::zero_boundary{}, std::make_tuple(a, b, c)};
 
     auto x = bbc.stores();

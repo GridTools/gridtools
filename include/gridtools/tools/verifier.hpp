@@ -35,67 +35,71 @@
 */
 #pragma once
 
+#include <iostream>
+#include <type_traits>
+
 #include "../common/array.hpp"
+#include "../common/array_addons.hpp"
 #include "../common/gt_math.hpp"
 #include "../common/hypercube_iterator.hpp"
+#include "../common/tuple_util.hpp"
+#include "../meta/type_traits.hpp"
 #include "../stencil-composition/grid_traits_fwd.hpp"
 #include "../storage/common/storage_info_rt.hpp"
 #include "../storage/storage-facility.hpp"
-#include <iostream>
 
 namespace gridtools {
 
-    namespace _impl {
+    namespace impl_ {
         template <class T>
-        class default_precision {
-            static const double value;
+        class default_precision_impl;
 
-          public:
-            GT_FUNCTION operator double() const { return value; }
+        template <>
+        struct default_precision_impl<float> {
+            static constexpr double value = 1e-6;
         };
 
         template <>
-        const double default_precision<float>::value = 1e-6;
+        struct default_precision_impl<double> {
+            static constexpr double value = 1e-14;
+        };
+    } // namespace impl_
 
-        template <>
-        const double default_precision<double>::value = 1e-14;
-    } // namespace _impl
+    template <class T>
+    GT_FUNCTION double default_precision() {
+        return impl_::default_precision_impl<T>::value;
+    }
 
-    template <typename value_type>
-    GT_FUNCTION bool compare_below_threshold(
-        value_type expected, value_type actual, double precision = _impl::default_precision<value_type>()) {
-        value_type absmax = math::max(math::fabs(expected), math::fabs(actual));
-        value_type absolute_error = math::fabs(expected - actual);
-        value_type relative_error = absolute_error / absmax;
-        if (relative_error <= precision || absolute_error < precision) {
-            return true;
-        }
-        return false;
+    template <typename T, enable_if_t<std::is_floating_point<T>::value, int> = 0>
+    GT_FUNCTION bool expect_with_threshold(T expected, T actual, double precision = default_precision<T>()) {
+        auto abs_error = math::fabs(expected - actual);
+        auto abs_max = math::max(math::fabs(expected), math::fabs(actual));
+        return abs_error < precision || abs_error < abs_max * precision;
+    }
+
+    template <typename T, typename Dummy = int, enable_if_t<!std::is_floating_point<T>::value, int> = 0>
+    GT_FUNCTION bool expect_with_threshold(T const &expected, T const &actual, Dummy = 0) {
+        return actual == expected;
     }
 
     class verifier {
-      private:
         double m_precision;
         size_t m_max_error;
 
       public:
         verifier(double precision, size_t max_error = 20) : m_precision(precision), m_max_error(max_error) {}
-        ~verifier() {}
 
         template <typename Grid, typename StorageType>
         bool verify(Grid const &grid_ /*TODO: unused*/,
             StorageType const &expected_field,
             StorageType const &actual_field,
-            const array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> &halos) {
-            if (StorageType::num_of_storages > 1)
-                throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
-
+            array<array<uint_t, 2>, StorageType::storage_info_t::layout_t::masked_length> halos = {}) {
             // TODO This is following the original implementation. Shouldn't we deduce the range from the grid (as we
             // already pass it)?
             storage_info_rt meta_rt = make_storage_info_rt(*(expected_field.get_storage_info_ptr()));
             array<array<size_t, 2>, StorageType::storage_info_t::layout_t::masked_length> bounds;
             for (size_t i = 0; i < bounds.size(); ++i) {
-                bounds[i] = {halos[i][0], meta_rt.unaligned_dims()[i] - halos[i][1]};
+                bounds[i] = {halos[i][0], meta_rt.total_lengths()[i] - halos[i][1]};
             }
             auto cube_view = make_hypercube_view(bounds);
 
@@ -106,13 +110,12 @@ namespace gridtools {
 
             size_t error_count = 0;
             for (auto &&pos : cube_view) {
-                auto expected = expected_view(convert_to_array<int>(pos));
-                auto actual = actual_view(convert_to_array<int>(pos));
-                if (!compare_below_threshold(expected, actual, m_precision)) {
+                auto expected = expected_view(tuple_util::convert_to<array, int>(pos));
+                auto actual = actual_view(tuple_util::convert_to<array, int>(pos));
+                if (!expect_with_threshold(expected, actual, m_precision)) {
                     if (error_count < m_max_error)
                         std::cout << "Error in position " << pos << " ; expected : " << expected
-                                  << " ; actual : " << actual << "  " << std::fabs((expected - actual) / (expected))
-                                  << "\n";
+                                  << " ; actual : " << actual << "\n";
                     error_count++;
                 }
             }

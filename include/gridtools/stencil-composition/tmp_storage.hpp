@@ -76,7 +76,7 @@
 #include "./pos3.hpp"
 
 #include "./backend_cuda/tmp_storage.hpp"
-#include "./backend_host/tmp_storage.hpp"
+#include "./backend_x86/tmp_storage.hpp"
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/tmp_storage.hpp"
@@ -96,9 +96,9 @@ namespace gridtools {
         }
     } // namespace tmp_storage
 
-    template <class MaxExtent, uint_t ArgId, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
+    template <class MaxExtent, class ArgTag, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
-        Backend const &, arg<ArgId, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
+        Backend const &, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;

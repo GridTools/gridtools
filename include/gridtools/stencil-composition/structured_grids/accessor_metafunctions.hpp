@@ -35,6 +35,9 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include "../../meta/type_traits.hpp"
 #include "../accessor_metafunctions.hpp"
 #include "../expressions/expressions.hpp"
 #include "accessor.hpp"
@@ -61,15 +64,6 @@ namespace gridtools {
 
     template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
     struct is_grid_accessor<accessor<ID, Intent, Extent, Number>> : boost::mpl::true_ {};
-
-    // TODO add documentation
-    template <typename Accessor, unsigned Ext>
-    struct accessor_extend;
-
-    template <ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, unsigned Ext>
-    struct accessor_extend<accessor<ID, Intent, Extent, Number>, Ext> {
-        typedef accessor<ID, Intent, Extent, (Number + Ext)> type;
-    };
 
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
@@ -100,9 +94,7 @@ namespace gridtools {
     };
 
     template <typename T, typename ArgsMap>
-    struct remap_accessor_type<T,
-        ArgsMap,
-        typename boost::enable_if<typename boost::is_arithmetic<T>::type, void>::type> {
+    struct remap_accessor_type<T, ArgsMap, enable_if_t<std::is_arithmetic<T>::value>> {
         // when a leaf don't do anything
         typedef T type;
     };

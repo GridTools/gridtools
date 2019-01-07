@@ -36,9 +36,11 @@
 
 #pragma once
 
-#include "../common/defs.hpp"
-#include "../common/host_device.hpp"
-#include <iostream>
+#ifdef _USE_GPU_
+
+#include <cuda_runtime.h>
+
+#include "../common/cuda_util.hpp"
 
 namespace gridtools {
     /**
@@ -46,21 +48,28 @@ namespace gridtools {
      * @warning A ptr which is not allocated by cudaMalloc, cudaMallocHost, ... (a normal cpu ptr) will emit an error in
      * cuda-memcheck.
      */
-    GT_FUNCTION_HOST bool is_gpu_ptr(void *ptr) {
-#ifndef _USE_GPU_
-        return false;
-#else
+    inline bool is_gpu_ptr(void *ptr) {
         cudaPointerAttributes ptrAttributes;
         cudaError_t error = cudaPointerGetAttributes(&ptrAttributes, ptr);
         if (error == cudaSuccess)
-            return ptrAttributes.memoryType == cudaMemoryTypeDevice;
-        else if (error == cudaErrorInvalidValue) {
-            cudaGetLastError(); // clear the error code
-            return false;       // it is not a ptr allocated with cudaMalloc, cudaMallocHost, ...
-        } else {
-            std::cerr << "CUDA ERROR in cudaPointerGetAttributes(): " << cudaGetErrorString(error) << std::endl;
-        }
-        return false;
+
+#if CUDART_VERSION < 10000
+            return ptrAttributes.memoryType == cudaMemoryTypeDevice; // deprecated in CUDA 10
+#else
+            return ptrAttributes.type == cudaMemoryTypeDevice;
 #endif
+        if (error != cudaErrorInvalidValue)
+            GT_CUDA_CHECK(error);
+
+        cudaGetLastError(); // clear the error code
+        return false;       // it is not a ptr allocated with cudaMalloc, cudaMallocHost, ...
     }
 } // namespace gridtools
+
+#else
+
+namespace gridtools {
+    inline bool is_gpu_ptr(void *) { return false; }
+} // namespace gridtools
+
+#endif

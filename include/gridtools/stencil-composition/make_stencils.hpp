@@ -41,13 +41,29 @@
 #include <boost/fusion/include/std_tuple.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta/flatten.hpp"
+#include "../meta/list.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/type_traits.hpp"
 #include "independent_esf.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
 
 namespace gridtools {
+    namespace _impl {
+        template <class Esf>
+        struct tuple_from_esf {
+            using type = std::tuple<Esf>;
+        };
+        template <class Esfs>
+        struct tuple_from_esf<independent_esf<Esfs>> {
+            using type = Esfs;
+        };
+
+        template <class... Esfs>
+        GT_META_DEFINE_ALIAS(
+            tuple_from_esfs, meta::flatten, (meta::list<std::tuple<>, typename tuple_from_esf<Esfs>::type...>));
+    } // namespace _impl
 
     /*!
        \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
@@ -75,16 +91,21 @@ namespace gridtools {
 
     /*!
        \fn independent_esf<...> make_independent(esf1, esf2, ...)
-       \brief Function to create a list of independent Elementary Styencil Functions
+       \brief Function to create a list of independent Elementary Stencil Functions
 
        \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as
        independent
 
-       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute
+       Function to create a list of independent Elementary Stencil Functions. This is used to let the library compute
        tight bounds on blocks to be used by backends
+
+       _impl::tuple_from_esfs is used here to flatten the Esfs within independent_esf. It ensures that nested
+       make_independent calls produces a single independent_esf
+       for example:
+       make_independent(make_independent(f1, f2), f3) will produce independent_esf<tuple<f1, f2, f3>>
      */
-    template <class... Esfs>
-    independent_esf<std::tuple<Esfs...>> make_independent(Esfs...) {
+    template <class Esf1, class Esf2, class... Esfs>
+    independent_esf<GT_META_CALL(_impl::tuple_from_esfs, (Esf1, Esf2, Esfs...))> make_independent(Esf1, Esf2, Esfs...) {
         return {};
     }
 

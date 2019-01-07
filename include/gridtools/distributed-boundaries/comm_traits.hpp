@@ -36,16 +36,14 @@
 
 #pragma once
 
-#include "../gridtools.hpp"
-
-#include "../common/boollist.hpp"
+#include "../common/defs.hpp"
+#include "../common/layout_map.hpp"
+#include "../communication/GCL.hpp"
 #ifdef _GCL_MPI_
 #include "../communication/low-level/proc_grids_3D.hpp"
 #else
 #include "./mock_pattern.hpp"
 #endif
-
-#include "../stencil-composition/stencil-composition.hpp"
 
 namespace gridtools {
 
@@ -60,12 +58,12 @@ namespace gridtools {
     struct comm_traits {
         template <typename GCLArch, typename = void>
         struct compute_arch_of {
-            using type = platform::x86;
+            using type = target::x86;
         };
 
         template <typename T>
         struct compute_arch_of<gcl_gpu, T> {
-            using type = platform::cuda;
+            using type = target::cuda;
         };
 
         using proc_layout = gridtools::layout_map<0, 1, 2>;

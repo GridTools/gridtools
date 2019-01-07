@@ -34,8 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
 #include "../common/defs.hpp"
-#include "../common/string_c.hpp"
 
 namespace gridtools {
     template <int_t I, ushort_t NColors>
@@ -45,15 +47,10 @@ namespace gridtools {
     };
 
     template <typename T>
-    struct is_location_type : boost::mpl::false_ {};
+    struct is_location_type : std::false_type {};
 
     template <int I, ushort_t NColors>
-    struct is_location_type<location_type<I, NColors>> : boost::mpl::true_ {};
-
-    template <int I, ushort_t NColors>
-    std::ostream &operator<<(std::ostream &s, location_type<I, NColors>) {
-        return s << "location_type<" << I << "> with " << NColors << " colors";
-    }
+    struct is_location_type<location_type<I, NColors>> : std::true_type {};
 
     namespace enumtype {
         typedef static_int<0> cells_index;

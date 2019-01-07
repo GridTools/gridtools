@@ -36,10 +36,11 @@
 #pragma once
 
 #include <type_traits>
+#include <utility>
 
-#include "defs.hpp"
-#include "generic_metafunctions/gt_integer_sequence.hpp"
-#include "generic_metafunctions/meta.hpp"
+#include "../meta/st_position.hpp"
+#include "../meta/type_traits.hpp"
+#include "../meta/utility.hpp"
 #include "tuple_util.hpp"
 
 namespace gridtools {
@@ -51,7 +52,7 @@ namespace gridtools {
         struct permute_to_impl<Res<Elems...>> {
             template <typename Src>
             Res<Elems...> operator()(Src &&src) {
-                using src_t = typename std::decay<Src>::type;
+                using src_t = decay_t<Src>;
                 return Res<Elems...>{
                     tuple_util::get<meta::st_position<src_t, Elems>::value>(std::forward<Src>(src))...};
             }
