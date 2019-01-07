@@ -39,6 +39,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/integral_constant.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta/defs.hpp"
 #include "../../meta/id.hpp"

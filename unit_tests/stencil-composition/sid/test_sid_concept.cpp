@@ -42,12 +42,14 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/host_device.hpp>
+#include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
-#include <gridtools/meta/type_traits.hpp>
 
 namespace gridtools {
     namespace {
+        using namespace literals;
+
         // several primitive not sids
         static_assert(!is_sid<void>(), "");
         static_assert(!is_sid<int>(), "");
@@ -146,13 +148,9 @@ namespace gridtools {
             }
         };
 
-        template <int I>
-        using int_constant = integral_constant<int, I>;
-
         TEST(shift, default_overloads) {
             namespace tu = tuple_util;
-            auto samples = tu::host_device::make<tuple>(
-                2, 3, int_constant<-2>{}, int_constant<-1>{}, int_constant<0>{}, int_constant<1>{}, int_constant<2>{});
+            auto samples = tu::host_device::make<tuple>(2, 3, -2_c, -1_c, 0_c, 1_c, 2_c);
             tu::host::for_each_in_cartesian_product(verify_shift_f{}, samples, samples);
         }
 
@@ -175,7 +173,7 @@ namespace gridtools {
                 sid::shift(val, stride{}, 0);
                 EXPECT_EQ(122, val);
                 val = 22;
-                sid::shift(val, stride{}, int_constant<3>());
+                sid::shift(val, stride{}, 3_c);
                 EXPECT_EQ(122, val);
             }
         } // namespace non_static_value
