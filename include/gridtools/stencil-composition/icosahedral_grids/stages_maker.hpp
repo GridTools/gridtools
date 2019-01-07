@@ -88,7 +88,7 @@ namespace gridtools {
             };
 
             template <class Esf>
-            struct get_functors<Esf, notype> {
+            struct get_functors<Esf, void> {
                 using type = GT_META_CALL(meta::transform,
                     (esf_functor_f<Esf>::template apply,
                         GT_META_CALL(meta::make_indices_c, Esf::location_type::n_colors::value)));
