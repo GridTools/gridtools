@@ -35,17 +35,25 @@
 */
 #pragma once
 
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/back_inserter.hpp>
-#include <boost/mpl/zip_view.hpp>
+#include <tuple>
 
-#include "../common/gt_assert.hpp"
-#include "compute_extents_metafunctions.hpp"
-#include "grid.hpp"
-#include "hasdo.hpp"
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/identity.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/reverse_fold.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
+
+#include "../common/defs.hpp"
+#include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "linearize_mss_functions.hpp"
 #include "mss.hpp"
 #include "mss_components.hpp"
-#include "mss_metafunctions.hpp"
 
 namespace gridtools {
 
