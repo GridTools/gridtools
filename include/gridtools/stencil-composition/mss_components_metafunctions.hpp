@@ -40,25 +40,18 @@
 #include <boost/mpl/zip_view.hpp>
 
 #include "../common/gt_assert.hpp"
-#include "./reductions/reduction_descriptor.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "grid.hpp"
 #include "hasdo.hpp"
+#include "mss.hpp"
 #include "mss_components.hpp"
 #include "mss_metafunctions.hpp"
 
 namespace gridtools {
 
-    template <typename T>
-    struct mss_components_is_reduction;
-
-    template <typename MssDescriptor, typename ExtentMap, typename Axis>
-    struct mss_components_is_reduction<mss_components<MssDescriptor, ExtentMap, Axis>> : MssDescriptor::is_reduction_t {
-    };
-
     template <typename MssDescriptor>
     struct mss_split_esfs {
-        GRIDTOOLS_STATIC_ASSERT(is_computation_token<MssDescriptor>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
 
         using execution_engine_t = typename mss_descriptor_execution_engine<MssDescriptor>::type;
 
@@ -87,7 +80,7 @@ namespace gridtools {
      */
     template <typename Msses>
     struct split_mss_into_independent_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Msses, is_computation_token>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Msses, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::reverse_fold<Msses,
             boost::mpl::vector0<>,
@@ -102,7 +95,7 @@ namespace gridtools {
      */
     template <typename MssFuseEsfStrategy, typename MssDescriptors, typename ExtentMap, typename Axis>
     struct build_mss_components_array {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_computation_token>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
 
         using mss_seq_t = typename boost::mpl::eval_if<MssFuseEsfStrategy,
             boost::mpl::identity<MssDescriptors>,

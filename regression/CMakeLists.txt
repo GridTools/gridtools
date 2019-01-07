@@ -23,10 +23,6 @@ if( COMPONENT_STENCIL_COMPOSITION )
           expandable_parameters_single_kernel
           horizontal_diffusion_functions
           )
-      set(SOURCES_X86
-          ${SOURCES_CUDA}
-          reduction
-          )
 
       # special target for executables which are used from performance benchmarks
       add_custom_target(perftests)

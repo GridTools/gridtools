@@ -149,7 +149,7 @@ namespace gridtools {
      * @tparam MssDescriptor -   mss descriptor
      * @tparam ExtentMap -    a compile time map that maps placeholders to computed extents.
      *                        `stages_maker` uses ExtentMap parameter in an opaque way -- it just delegates it to
-     *                        get_extent_for/reduction_get_extent_for when it is needed.
+     *                        `get_extent_for` when it is needed.
      *
      *   This metafunction returns another metafunction (i.e. has nested `apply` metafunction) that accepts
      *   a single argument that has to be a level_index and returns the stages (classes that model Stage concept)

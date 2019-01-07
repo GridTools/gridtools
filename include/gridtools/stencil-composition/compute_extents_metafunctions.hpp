@@ -41,12 +41,10 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "../common/gt_assert.hpp"
-#include "computation_grammar.hpp"
 #include "esf_metafunctions.hpp"
 #include "linearize_mss_functions.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
-#include "reductions/reduction_descriptor.hpp"
 
 /** @file
     This file implements the metafunctions to perform data dependency analysis on a
@@ -115,8 +113,7 @@ namespace gridtools {
          */
         template <typename MssDescriptor>
         struct for_mss {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_mss_descriptor<MssDescriptor>::value or MssDescriptor::is_reduction_t::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
 
             /**
                This is the main operation perfromed: we first need to
@@ -241,8 +238,7 @@ namespace gridtools {
 
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor<current_ESF, boost::true_type>::type outputs_original;
-                GRIDTOOLS_STATIC_ASSERT(
-                    (MssDescriptor::is_reduction_t::value || boost::mpl::size<outputs_original>::value),
+                GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<outputs_original>::value,
                     "there seems to be a functor without output fields "
                     "check that each stage has at least one accessor "
                     "defined as \'inout\'");
@@ -337,7 +333,7 @@ namespace gridtools {
     template <typename MssDescriptors, typename Placeholders>
     struct placeholder_to_extent_map {
       private:
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_computation_token>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssDescriptors, is_mss_descriptor>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value), GT_INTERNAL_ERROR);
 
         // This is where the data-dependence analysis happens
@@ -407,22 +403,6 @@ namespace gridtools {
         using type = typename esf_extent<Esf>::type;
     };
 
-    template <typename Esf, typename ExtentMap>
-    struct reduction_get_extent_for {
-        typedef typename Esf::args_t w_plcs;
-        typedef typename boost::mpl::at_c<w_plcs, 0>::type first_out;
-        typedef typename boost::mpl::at<ExtentMap, first_out>::type extent;
-
-        // TODO recover
-        //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
-        //                extent >::value),
-        //                    "The output of the ESF do not have all the save extents, so it is not possible to
-        //                    select the "
-        //                    "extent for the whole ESF.");
-
-        typedef extent type;
-    };
-
     /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
         and gather the outputs (check that they have the same extents), and associate
         to them the corresponding extent */
@@ -435,18 +415,6 @@ namespace gridtools {
         using type = typename boost::mpl::transform<typename mss_descriptor_linear_esf_sequence<Mss>::type,
             get_extent_for<boost::mpl::_, ExtentMap>>::type;
     };
-
-    /** A reduction is always the last stage, so the outputs
-        always have the null-extent. In this case then, the map do
-        not need to be updated.
-     */
-    template <typename ReductionType, typename BinOp, typename EsfDescrSequence, typename ExtentMap>
-    struct get_extent_sizes<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>, ExtentMap> {
-        // Iterate over each ESF of the REDUCTION
-        using type =
-            typename boost::mpl::transform<EsfDescrSequence, reduction_get_extent_for<boost::mpl::_, ExtentMap>>::type;
-    };
-
     /**
      * @}
      */

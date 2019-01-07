@@ -45,8 +45,7 @@
  *
  * In the context of stencil computation condition trees correspond to [possibly nested] `if_` constructs or to
  * `switch/case` construct. I.e. the variadic pack within `make_computation` template function signature in it's
- * general form is a sequence of condition trees of computation tokens. Where computation token is either MSS
- * descriptor or reduction descriptor.
+ * general form is a sequence of condition trees of MSS descriptors.
  *
  * This module provides the interface for condition tree manipulations to the rest of stencil computation code base.
  * This interface consists of:
