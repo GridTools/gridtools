@@ -1,10 +1,3 @@
-macro(install_example name)
-    if ( GT_INSTALL_EXAMPLES )
-        install(TARGETS name
-                DESTINATION "${GT_INSTALL_EXAMPLES_PATH}/examples/bin" )
-    endif()
-endmacro()
-
 if( GT_TESTS_STRUCTURED_GRID )
     set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited)
 
