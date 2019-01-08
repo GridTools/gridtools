@@ -60,7 +60,7 @@ namespace gridtools {
         } // namespace multi_shift_impl_
 
         /**
-         *   A helper the invokes sid::shift in several dimensions.
+         *   A helper the invokes `sid::shift` in several dimensions.
          *   `offsets` should be a tuple-like of individual offsets.
          */
         template <class Ptr, class Strides, class Offsets>

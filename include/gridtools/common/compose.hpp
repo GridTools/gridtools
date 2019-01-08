@@ -81,6 +81,11 @@ namespace gridtools {
         constexpr GT_TARGET GT_FORCE_INLINE compose_impl_::composed_f<Funs...> compose(Funs && ... funs) {
             return {const_expr::forward<Funs>(funs)...};
         }
+
+        template <class Fun>
+        constexpr GT_TARGET GT_FORCE_INLINE Fun compose(Fun && fun) {
+            return fun;
+        }
     }
 } // namespace gridtools
 

@@ -41,6 +41,7 @@
 #include <gridtools/common/integral_constant.hpp>
 #include <gridtools/common/tuple.hpp>
 #include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
 
 namespace gridtools {
     namespace {
@@ -50,8 +51,8 @@ namespace gridtools {
         TEST(multi_shift, smoke) {
             double data[15][42];
 
-            auto ptr = &data[0][0];
-            auto strides = tu::make<tuple>(42, 1);
+            auto ptr = sid::get_origin(data);
+            auto strides = sid::get_strides(data);
 
             sid::multi_shift(ptr, strides, tu::make<tuple>(3_c, 5_c, 2_c));
             EXPECT_EQ(&data[3][5], ptr);

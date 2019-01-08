@@ -46,8 +46,7 @@
 #include "../../meta/id.hpp"
 #include "../../meta/logical.hpp"
 #include "../../meta/macros.hpp"
-#include "../../meta/push_back.hpp"
-#include "../../meta/transform.hpp"
+#include "../../meta/push_front.hpp"
 #include "../../meta/type_traits.hpp"
 
 /**
@@ -299,24 +298,20 @@ namespace gridtools {
                 return {};
             }
 
-            template <class T>
+            template <class T, size_t ElemSize = sizeof(remove_all_extents_t<T>)>
             struct get_array_strides {
                 using type = tuple<>;
             };
 
-            template <class T>
-            struct get_array_strides<T[]> {
-                template <class Stride>
-                GT_META_DEFINE_ALIAS(
-                    multiply_f, meta::id, (integral_constant<ptrdiff_t, std::extent<T>::value * Stride::value>));
-
-                using multiplied_strides_t = GT_META_CALL(
-                    meta::transform, (multiply_f, typename get_array_strides<T>::type));
-                using type = GT_META_CALL(meta::push_back, (multiplied_strides_t, integral_constant<ptrdiff_t, 1>));
+            template <class Inner, size_t ElemSize>
+            struct get_array_strides<Inner[], ElemSize> {
+                using type = GT_META_CALL(meta::push_front,
+                    (typename get_array_strides<Inner, ElemSize>::type,
+                        integral_constant<ptrdiff_t, sizeof(Inner) / ElemSize>));
             };
 
-            template <class T, size_t N>
-            struct get_array_strides<T[N]> : get_array_strides<T[]> {};
+            template <class Inner, size_t N, size_t ElemSize>
+            struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
 
             template <class T>
             constexpr enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(T const &) {

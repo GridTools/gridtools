@@ -552,13 +552,13 @@ namespace gridtools {
          *   @tparam I dimension index
          *   @param num_steps number of iterations in the loop. Can be of integral or integral_constant type
          *   @param step (optional) a step for each iteration. Can be of integral or integral_constant type.
-         *               THe default is integral_constant<int, 1>
-         *   @return a functor that accept another functor with the signature: `void(Ptr&, Strides const&)` and
+         *               The default is integral_constant<int, 1>
+         *   @return a functor that accepts another functor with the signature: `void(Ptr&, Strides const&)` and
          *           returns a functor also with the same signature.
          *
          *   Usage:
          *     1. One dimensional traversal:
-         *
+         *     ```
          *     // define the way we are going to traverse the data
          *     auto loop = sid::make_loop<2>(32);
          *
@@ -570,10 +570,10 @@ namespace gridtools {
          *
          *     // execute the loop on the provided data
          *     the_concrete_loop(the_origin_of_my_data, the_strides_of_my_data);
-         *
+         *     ```
          *
          *     2. Multi dimensional traversal:
-         *
+         *     ```
          *     // define traversal path: k dimension is innermost and will be traversed backward
          *     auto multi_loop = compose(
          *       sid::make_loop<0>(i_size),
@@ -592,14 +592,14 @@ namespace gridtools {
          *
          *     // execute the loop on the provided data
          *     the_concrete_loop(ptr, the_strides_of_my_data);
-         *
+         *     ```
          *   Rationale:
          *
          *     The goal of the design is to separate traversal description (dimensions order, numbers of steps,
          *     traversal directions), the body of the loop and the structure of the concrete data (begin point, strides)
          *     into orthogonal components.
          *
-         *   Oveloads:
+         *   Overloads:
          *
          *      `make_loop` goes with large number of overloads to benefit from the fact that some aspects of traversal
          *      description are known in complie time.
