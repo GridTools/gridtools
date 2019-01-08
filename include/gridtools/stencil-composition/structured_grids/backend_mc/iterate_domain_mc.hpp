@@ -52,7 +52,6 @@
 #include "../../iterate_domain_fwd.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../offset_computation.hpp"
-#include "../../reductions/iterate_domain_reduction.hpp"
 
 namespace gridtools {
 
@@ -114,14 +113,12 @@ namespace gridtools {
      * @brief Iterate domain class for the MC backend.
      */
     template <typename IterateDomainArguments>
-    class iterate_domain_mc : public iterate_domain_reduction<IterateDomainArguments> {
+    class iterate_domain_mc {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
-        using iterate_domain_reduction_t = iterate_domain_reduction<IterateDomainArguments>;
-        using reduction_type_t = typename iterate_domain_reduction_t::reduction_type_t;
         using backend_traits_t = backend_traits_from_id<target::mc>;
 
         using esf_sequence_t = typename IterateDomainArguments::esf_sequence_t;
@@ -226,10 +223,9 @@ namespace gridtools {
 
       public:
         GT_FUNCTION
-        iterate_domain_mc(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_i_block_index(0),
-              m_j_block_index(0), m_k_block_index(0), m_i_block_base(0), m_j_block_base(0), m_prefetch_distance(0),
-              m_enable_ij_caches(false) {
+        iterate_domain_mc(local_domain_t const &local_domain)
+            : local_domain(local_domain), m_i_block_index(0), m_j_block_index(0), m_k_block_index(0), m_i_block_base(0),
+              m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));

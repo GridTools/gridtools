@@ -75,7 +75,7 @@ namespace gridtools {
         using p_in = arg<0, storage_t>;
         using p_out = arg<1, storage_t>;
 
-        computation<void, p_in, p_out> m_computation;
+        computation<p_in, p_out> m_computation;
 
         fixture()
             : m_computation{make_computation<backend_t>(m_grid,

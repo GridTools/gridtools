@@ -382,7 +382,7 @@ namespace gridtools {
                   grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs)), msses) {}
 
         template <class... Args, class... DataStores>
-        notype run(arg_storage_pair<Args, DataStores> const &... args) {
+        void run(arg_storage_pair<Args, DataStores> const &... args) {
             m_meter.start();
             // split arguments to expandable and plain arg_storage_pairs
             auto arg_groups = split_args<_impl::expand_detail::is_expandable>(args...);
@@ -410,7 +410,6 @@ namespace gridtools {
                     m_intermediate_remainder, tuple_util::flatten(std::tie(plain_args, converted_args)));
             }
             m_meter.pause();
-            return {};
         }
 
         void sync_bound_data_stores() const {

@@ -164,18 +164,14 @@ namespace gridtools {
          * \tparam Grid Coordinate class with domain sizes and splitter grid
          * \tparam LocalDomains sequence of local domains
          */
-        template <typename MssComponents,
-            typename Grid,
-            typename LocalDomains, // List of local domain to be passed to functor at<i>
-            typename ReductionData>
-        static void run(Grid const &grid, LocalDomains const &local_domains, ReductionData &reduction_data) {
+        template <typename MssComponents, typename Grid, typename LocalDomains>
+        static void run(Grid const &grid, LocalDomains const &local_domains) {
             // TODO: I would swap the arguments coords and local_domains, for consistency
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<LocalDomains, is_local_domain>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
 
-            strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t, ReductionData>::run(
-                local_domains, grid, reduction_data);
+            strategy_traits_t::template fused_mss_loop<MssComponents, backend_ids_t>::run(local_domains, grid);
         }
     };
 

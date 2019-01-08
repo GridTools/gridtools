@@ -48,31 +48,15 @@ namespace gridtools {
 
     namespace _impl {
         namespace computation_detail {
-
-            template <class ReturnType, class Obj>
-            struct run_f {
-                Obj &m_obj;
-
-                template <class... Args>
-                ReturnType operator()(Args &&... args) const {
-                    return m_obj.run(std::forward<Args>(args)...);
-                }
-                using result_type = ReturnType;
-            };
             template <class Obj>
-            struct run_f<void, Obj> {
+            struct run_f {
                 Obj &m_obj;
 
                 template <class... Args>
                 void operator()(Args &&... args) const {
                     m_obj.run(std::forward<Args>(args)...);
                 }
-                using result_type = void;
             };
-            template <class ReturnType, class Obj, class Args>
-            ReturnType invoke_run(Obj &obj, Args const &args) {
-                return tuple_util::apply(run_f<ReturnType, Obj>{obj}, args);
-            }
         } // namespace computation_detail
     }     // namespace _impl
 
@@ -80,10 +64,9 @@ namespace gridtools {
      * Type erasure for computations (the objects that are produced by make_computation)
      * Note that it is move only (no copy constructor)
      *
-     * @tparam ReturnType what is returned by run method
      * @tparam Args placeholders that should be passed to run as corespondent arg_storage_pairs
      */
-    template <class ReturnType, class... Args>
+    template <class... Args>
     class computation {
         GRIDTOOLS_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
 
@@ -91,7 +74,7 @@ namespace gridtools {
 
         struct iface {
             virtual ~iface() = default;
-            virtual ReturnType run(arg_storage_pair_crefs_t const &) = 0;
+            virtual void run(arg_storage_pair_crefs_t const &) = 0;
             virtual void sync_bound_data_stores() = 0;
             virtual std::string print_meter() const = 0;
             virtual double get_time() const = 0;
@@ -105,8 +88,8 @@ namespace gridtools {
 
             impl(Obj &&obj) : m_obj{std::move(obj)} {}
 
-            ReturnType run(arg_storage_pair_crefs_t const &args) override {
-                return _impl::computation_detail::invoke_run<ReturnType>(m_obj, args);
+            void run(arg_storage_pair_crefs_t const &args) override {
+                tuple_util::apply(_impl::computation_detail::run_f<Obj>{m_obj}, args);
             }
             void sync_bound_data_stores() override { m_obj.sync_bound_data_stores(); }
             std::string print_meter() const override { return m_obj.print_meter(); }
@@ -130,9 +113,9 @@ namespace gridtools {
         explicit operator bool() const { return !!m_impl; }
 
         template <class... SomeArgs, class... SomeDataStores>
-        typename std::enable_if<sizeof...(SomeArgs) == sizeof...(Args), ReturnType>::type run(
+        typename std::enable_if<sizeof...(SomeArgs) == sizeof...(Args)>::type run(
             arg_storage_pair<SomeArgs, SomeDataStores> const &... args) {
-            return m_impl->run(permute_to<arg_storage_pair_crefs_t>(std::make_tuple(std::cref(args)...)));
+            m_impl->run(permute_to<arg_storage_pair_crefs_t>(std::make_tuple(std::cref(args)...)));
         }
 
         void sync_bound_data_stores() { m_impl->sync_bound_data_stores(); }

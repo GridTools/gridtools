@@ -143,10 +143,8 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            template <class ReductionData>
             execute_kernel_functor_x86(const local_domain_t &local_domain,
                 const grid_t &grid,
-                ReductionData &&,
                 uint_t block_size_i,
                 uint_t block_size_j,
                 uint_t block_no_i,

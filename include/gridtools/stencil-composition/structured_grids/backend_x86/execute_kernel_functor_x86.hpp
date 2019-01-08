@@ -63,8 +63,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments<RunFunctorArguments>::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
-            typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
-            typedef typename reduction_data_t::reduction_type_t reduction_type_t;
 
             // in the x86 backend there should be only one esf per mss
             GRIDTOOLS_STATIC_ASSERT(
@@ -78,9 +76,7 @@ namespace gridtools {
                 typename RunFunctorArguments::extent_sizes_t,
                 typename RunFunctorArguments::max_extent_t,
                 typename RunFunctorArguments::cache_sequence_t,
-                grid_t,
-                typename RunFunctorArguments::is_reduction_t,
-                reduction_type_t>;
+                grid_t>;
             using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
             using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
                 meta::lazy::id<positional_iterate_domain<iterate_domain_x86_t>>,
@@ -95,29 +91,25 @@ namespace gridtools {
 
             const local_domain_t &m_local_domain;
             const grid_t &m_grid;
-            reduction_data_t &m_reduction_data;
             pos3<uint_t> m_size;
             pos3<uint_t> m_block_no;
 
           public:
             execute_kernel_functor_x86(const local_domain_t &local_domain,
                 const grid_t &grid,
-                reduction_data_t &reduction_data,
                 uint_t block_size_i,
                 uint_t block_size_j,
                 uint_t block_no_i,
                 uint_t block_no_j)
-                : m_local_domain(local_domain), m_grid(grid),
-                  m_reduction_data(reduction_data), m_size{block_size_i + extent_t::iplus::value -
-                                                               extent_t::iminus::value,
-                                                        block_size_j + extent_t::jplus::value -
-                                                            extent_t::jminus::value},
+                : m_local_domain(local_domain),
+                  m_grid(grid), m_size{block_size_i + extent_t::iplus::value - extent_t::iminus::value,
+                                    block_size_j + extent_t::jplus::value - extent_t::jminus::value},
                   m_block_no{block_no_i, block_no_j} {}
 
             void operator()() const {
                 strides_t strides;
 
-                iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
+                iterate_domain_t it_domain(m_local_domain);
 
                 it_domain.set_strides_pointer_impl(&strides);
                 it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
@@ -141,8 +133,6 @@ namespace gridtools {
                     it_domain.set_index(irestore_index);
                     it_domain.increment_i();
                 }
-                m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
-                m_reduction_data.reduce();
             }
         };
     } // namespace strgrid

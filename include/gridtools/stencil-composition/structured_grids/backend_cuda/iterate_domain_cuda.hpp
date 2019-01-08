@@ -88,7 +88,6 @@ namespace gridtools {
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
-        typedef typename super::reduction_type_t reduction_type_t;
 
         using super::get_value;
         using super::increment_i;
@@ -101,12 +100,9 @@ namespace gridtools {
 
       public:
         GT_FUNCTION
-        explicit iterate_domain_cuda(local_domain_t const &local_domain,
-            const reduction_type_t &reduction_initial_value,
-            const uint_t block_size_i,
-            const uint_t block_size_j)
-            : super(local_domain, reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {
-        }
+        explicit iterate_domain_cuda(
+            local_domain_t const &local_domain, const uint_t block_size_i, const uint_t block_size_j)
+            : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         /**
          * @brief determines whether the current (i,j) position is within the block size
