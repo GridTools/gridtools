@@ -35,24 +35,26 @@
 */
 #pragma once
 
+#include <type_traits>
+
 #include "../common/defs.hpp"
 
 namespace gridtools {
     template <uint_t c>
     struct color_type {
-        typedef static_uint<c> color_t;
+        using color_t = static_uint<c>;
     };
 
     struct nocolor {
-        typedef notype color_t;
+        using color_t = void;
     };
 
     template <typename T>
-    struct is_color_type : boost::mpl::false_ {};
+    struct is_color_type : std::false_type {};
 
     template <uint_t c>
-    struct is_color_type<color_type<c>> : boost::mpl::true_ {};
+    struct is_color_type<color_type<c>> : std::true_type {};
 
     template <>
-    struct is_color_type<nocolor> : boost::mpl::true_ {};
+    struct is_color_type<nocolor> : std::true_type {};
 }; // namespace gridtools

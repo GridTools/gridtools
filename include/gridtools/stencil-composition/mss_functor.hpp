@@ -55,7 +55,6 @@
 #include "./local_domain.hpp"
 #include "./mss_components.hpp"
 #include "./mss_components_metafunctions.hpp"
-#include "./reductions/reduction_data.hpp"
 #include "./run_functor_arguments.hpp"
 
 namespace gridtools {
@@ -66,7 +65,6 @@ namespace gridtools {
         typename Grid,
         typename LocalDomains,
         typename BackendIds,
-        typename ReductionData,
         typename ExecutionInfo>
     struct mss_functor {
       private:
@@ -74,20 +72,14 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponentsArray, is_mss_components>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
 
         LocalDomains const &m_local_domains;
         const Grid &m_grid;
-        ReductionData &m_reduction_data;
         const ExecutionInfo m_execution_info;
 
       public:
-        mss_functor(LocalDomains const &local_domains,
-            const Grid &grid,
-            ReductionData &reduction_data,
-            const ExecutionInfo &execution_info)
-            : m_local_domains(local_domains), m_grid(grid), m_reduction_data(reduction_data),
-              m_execution_info(execution_info) {}
+        mss_functor(LocalDomains const &local_domains, const Grid &grid, const ExecutionInfo &execution_info)
+            : m_local_domains(local_domains), m_grid(grid), m_execution_info(execution_info) {}
 
         /**
          * \brief given the index of a functor in the functors list ,it calls a kernel on the GPU executing the
@@ -104,7 +96,6 @@ namespace gridtools {
 
             using backend_traits_t = backend_traits_from_id<typename BackendIds::backend_id_t>;
 
-            // perform some checks concerning the reduction types
             typedef run_functor_arguments<BackendIds,
                 typename mss_components_t::linear_esf_t,
                 typename mss_components_t::loop_intervals_t,
@@ -112,14 +103,12 @@ namespace gridtools {
                 decay_t<decltype(local_domain)>,
                 typename mss_components_t::cache_sequence_t,
                 Grid,
-                typename mss_components_t::execution_engine_t,
-                typename mss_components_is_reduction<mss_components_t>::type,
-                ReductionData>
+                typename mss_components_t::execution_engine_t>
                 run_functor_args_t;
 
             // now the corresponding backend has to execute all the functors of the mss
             backend_traits_t::template mss_loop<run_functor_args_t>::template run(
-                local_domain, m_grid, m_reduction_data, m_execution_info);
+                local_domain, m_grid, m_execution_info);
         }
     };
 } // namespace gridtools

@@ -58,7 +58,6 @@ namespace gridtools {
         typedef ExecutionEngine execution_engine_t;
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
-        typedef static_bool<false> is_reduction_t;
     };
 
     template <typename mss>
@@ -81,14 +80,6 @@ namespace gridtools {
     template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
     struct mss_descriptor_cache_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
         typedef CacheSequence type;
-    };
-
-    template <typename Mss>
-    struct mss_descriptor_is_reduction;
-
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct mss_descriptor_is_reduction<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
-        typedef static_bool<false> type;
     };
 
     template <typename Mss>

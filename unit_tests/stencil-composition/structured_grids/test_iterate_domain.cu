@@ -148,9 +148,7 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         boost::mpl::vector1<extent<0, 0, 0, 0>>,
         extent<1, -1, 1, -1>,
         caches_t,
-        gridtools::grid<axis_t>,
-        boost::mpl::false_,
-        notype>>
+        gridtools::grid<axis_t>>>
         it_domain_t;
 
     GRIDTOOLS_STATIC_ASSERT(

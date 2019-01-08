@@ -68,7 +68,7 @@
 
 namespace gridtools {
     /**
-     *   A stage that is associated with the non reduction elementary functor.
+     *   A stage that is associated with an elementary functor.
      */
     template <class Functor, class Extent, class Args>
     struct regular_stage {
@@ -84,26 +84,6 @@ namespace gridtools {
             using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
             eval_t eval{it_domain};
             Functor::template Do<eval_t &>(eval);
-        }
-    };
-
-    /**
-     *   A stage that is associated with the reduction elementary functor.
-     */
-    template <class Functor, class Extent, class Args, class BinOp>
-    struct reduction_stage {
-        GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-
-        using extent_t = Extent;
-
-        template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
-            eval_t eval{it_domain};
-            it_domain.set_reduction_value(BinOp{}(it_domain.reduction_value(), Functor::template Do<eval_t &>(eval)));
         }
     };
 

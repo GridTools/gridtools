@@ -98,8 +98,7 @@ namespace gridtools {
             __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the iterate domain and assignment of pointers and strides
-            // for the moment reductions are not supported so that the initial value is 0
-            iterate_domain_t it_domain(l_domain, 0, block_size_i, block_size_j);
+            iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
