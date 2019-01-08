@@ -177,5 +177,57 @@ namespace gridtools {
                 EXPECT_EQ(122, val);
             }
         } // namespace non_static_value
-    }     // namespace
+
+        TEST(c_array, smoke) {
+            double testee[15][43] = {};
+            static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
+
+            EXPECT_EQ(&testee[0][0], sid::get_origin(testee));
+
+            auto strides = sid::get_strides(testee);
+            EXPECT_TRUE(sid::get_stride<0>(strides) == 43);
+            EXPECT_TRUE(sid::get_stride<1>(strides) == 1);
+
+            using strides_t = decltype(strides);
+
+            static_assert(tuple_util::size<strides_t>::value == 2, "");
+
+            using stride_0_t = GT_META_CALL(tuple_util::element, (0, strides_t));
+            using stride_1_t = GT_META_CALL(tuple_util::element, (1, strides_t));
+
+            static_assert(stride_0_t::value == 43, "");
+            static_assert(stride_1_t::value == 1, "");
+
+            testee[7][8] = 555;
+
+            auto *ptr = sid::get_origin(testee);
+            sid::shift(ptr, sid::get_stride<0>(strides), 7);
+            sid::shift(ptr, sid::get_stride<1>(strides), 8);
+
+            EXPECT_EQ(555, *ptr);
+        }
+
+        TEST(c_array, 4D) {
+            double testee[2][3][4][5] = {};
+            static_assert(sid::concept_impl_::is_sid<decltype(testee)>(), "");
+
+            EXPECT_EQ(&testee[0][0][0][0], sid::get_origin(testee));
+
+            auto strides = sid::get_strides(testee);
+            EXPECT_TRUE(sid::get_stride<0>(strides) == 60);
+            EXPECT_TRUE(sid::get_stride<1>(strides) == 20);
+            EXPECT_TRUE(sid::get_stride<2>(strides) == 5);
+            EXPECT_TRUE(sid::get_stride<3>(strides) == 1);
+
+            testee[1][2][3][4] = 555;
+
+            auto *ptr = sid::get_origin(testee);
+            sid::shift(ptr, sid::get_stride<0>(strides), 1);
+            sid::shift(ptr, sid::get_stride<1>(strides), 2);
+            sid::shift(ptr, sid::get_stride<2>(strides), 3);
+            sid::shift(ptr, sid::get_stride<3>(strides), 4);
+
+            EXPECT_EQ(555, *ptr);
+        }
+    } // namespace
 } // namespace gridtools

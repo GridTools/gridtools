@@ -334,5 +334,9 @@ namespace gridtools {
             EXPECT_TRUE(all_of(
                 [](int l, int r) { return l == r; }, make<std::tuple>(1, 3, 99, 7), make<std::tuple>(1, 3, 99, 7)));
         }
+
+        TEST(reverse, functional) {
+            EXPECT_TRUE(reverse(make<std::tuple>(1, 'a', 42.5)) == make<std::tuple>(42.5, 'a', 1));
+        }
     } // namespace tuple_util
 } // namespace gridtools

@@ -814,6 +814,24 @@ namespace gridtools {
                         return generate_f<generators_t, Res>{}(const_expr::forward<Tup>(tup));
                     }
                 };
+
+                struct reverse_f {
+                    template <class N>
+                    struct generator_f {
+                        template <class I>
+                        GT_META_DEFINE_ALIAS(apply, meta::id, get_nth_f<N::value - 1 - I::value>);
+                    };
+
+                    template <class Tup,
+                        class Accessors = GT_META_CALL(get_accessors, Tup &&),
+                        class Res = GT_META_CALL(from_types, (Tup, GT_META_CALL(meta::reverse, Accessors)))>
+                    GT_TARGET GT_FORCE_INLINE constexpr Res operator()(Tup &&tup) const {
+                        using n_t = size<decay_t<Tup>>;
+                        using generators_t = GT_META_CALL(
+                            meta::transform, (generator_f<n_t>::template apply, GT_META_CALL(meta::make_indices, n_t)));
+                        return generate_f<generators_t, Res>{}(const_expr::forward<Tup>(tup));
+                    }
+                };
             } // namespace detail
 
             /**
@@ -1422,6 +1440,12 @@ namespace gridtools {
             template <template <class, size_t> class Arr, class D = void, class Tup>
             GT_TARGET GT_FORCE_INLINE constexpr auto convert_to(Tup const &tup)
                 GT_AUTO_RETURN((detail::convert_to_f<_impl::to_array_converter_helper<Arr, D>>{}(tup)));
+
+            GT_TARGET GT_FORCE_INLINE constexpr detail::reverse_f reverse() { return {}; }
+
+            template <class Tup>
+            GT_TARGET GT_FORCE_INLINE constexpr auto reverse(Tup && tup)
+                GT_AUTO_RETURN(reverse()(const_expr::forward<Tup>(tup)));
         }
     } // namespace tuple_util
 } // namespace gridtools

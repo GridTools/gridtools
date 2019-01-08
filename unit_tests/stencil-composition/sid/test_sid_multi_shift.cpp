@@ -34,29 +34,34 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <gridtools/stencil-composition/sid/as_const.hpp>
-
-#include <type_traits>
+#include <gridtools/stencil-composition/sid/multi_shift.hpp>
 
 #include <gtest/gtest.h>
 
-#include <gridtools/meta/macros.hpp>
+#include <gridtools/common/integral_constant.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/tuple_util.hpp>
 #include <gridtools/stencil-composition/sid/concept.hpp>
-#include <gridtools/stencil-composition/sid/synthetic.hpp>
 
 namespace gridtools {
     namespace {
-        using sid::property;
+        using namespace literals;
+        namespace tu = tuple_util;
 
-        TEST(as_const, smoke) {
-            double data = 42;
-            auto src = sid::synthetic().set<property::origin>(&data);
-            auto testee = sid::as_const(src);
-            using testee_t = decltype(testee);
+        TEST(multi_shift, smoke) {
+            double data[15][42];
 
-            static_assert(is_sid<testee_t>(), "");
-            static_assert(std::is_same<GT_META_CALL(sid::ptr_type, testee_t), double const *>(), "");
-            EXPECT_EQ(sid::get_origin(src), sid::get_origin(testee));
+            auto ptr = sid::get_origin(data);
+            auto strides = sid::get_strides(data);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(3_c, 5_c, 2_c));
+            EXPECT_EQ(&data[3][5], ptr);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(0_c, -2_c));
+            EXPECT_EQ(&data[3][3], ptr);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(-2));
+            EXPECT_EQ(&data[1][3], ptr);
         }
     } // namespace
 } // namespace gridtools
