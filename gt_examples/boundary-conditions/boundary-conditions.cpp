@@ -65,8 +65,9 @@
 #include <gridtools/tools/backend_select.hpp>
 #include <iostream>
 
-using namespace gridtools;
-using namespace enumtype;
+namespace gt = gridtools;
+
+using uint_t = unsigned;
 
 /**
    This class specifies how to apply boundary conditions.
@@ -98,8 +99,8 @@ struct direction_bc_input {
         data_field0(i, j, k) = value;
     }
 
-    template <sign I, sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<I, minus_, K>,
+    template <gt::sign I, gt::sign K, typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(gt::direction<I, gt::minus_, K>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -108,8 +109,8 @@ struct direction_bc_input {
         data_field0(i, j, k) = data_field1(i, j + 1, k);
     }
 
-    template <sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<minus_, minus_, K>,
+    template <gt::sign K, typename DataField0, typename DataField1>
+    GT_FUNCTION void operator()(gt::direction<gt::minus_, gt::minus_, K>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -119,7 +120,7 @@ struct direction_bc_input {
     }
 
     template <typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<minus_, minus_, minus_>,
+    GT_FUNCTION void operator()(gt::direction<gt::minus_, gt::minus_, gt::minus_>,
         DataField0 &data_field0,
         DataField1 const &data_field1,
         uint_t i,
@@ -142,8 +143,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<int_t, meta_data_t> storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>> meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t<int, meta_data_t> storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
@@ -162,10 +163,10 @@ int main(int argc, char **argv) {
 
        You need 3 halo descriptors, one per dimension.
     */
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
+    gt::array<gt::halo_descriptor, 3> halos;
+    halos[0] = gt::halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = gt::halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = gt::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
     // sync the data stores if needed
     in_s.sync();
@@ -175,8 +176,7 @@ int main(int argc, char **argv) {
     // earlier with the class above. GridTools provides default
     // boundary classes to copy fields and to set constant values to
     // the boundaries of fields.
-    gridtools::template boundary<direction_bc_input<uint_t>, backend_t::backend_id_t>(
-        halos, direction_bc_input<uint_t>(42))
+    gt::boundary<direction_bc_input<uint_t>, backend_t::backend_id_t>(halos, direction_bc_input<uint_t>(42))
         .apply(out_s, in_s);
 
     // sync the data stores if needed

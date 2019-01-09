@@ -60,25 +60,7 @@
 #include <gridtools/boundary-conditions/value.hpp>
 #include <gridtools/boundary-conditions/zero.hpp>
 
-using namespace gridtools;
-using namespace enumtype;
-
-// These functions are templates to avoid long signatures that impact readability
-template <typename Halo, typename Field1, typename Field2>
-void apply_copy(Halo const &halos, Field1 &field1, Field2 const &field2) {
-    gridtools::template boundary<copy_boundary, backend_t::backend_id_t>(halos, copy_boundary{}).apply(field1, field2);
-}
-
-template <typename Halo, typename Field1>
-void apply_zero(Halo const &halos, Field1 &field1) {
-    gridtools::template boundary<zero_boundary, backend_t::backend_id_t>(halos, zero_boundary{}).apply(field1);
-}
-
-template <typename Halo, typename Field1, typename T>
-void apply_value(Halo const &halos, Field1 &field1, T value) {
-    gridtools::template boundary<value_boundary<T>, backend_t::backend_id_t>(halos, value_boundary<T>{value})
-        .apply(field1);
-}
+namespace gt = gridtools;
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -89,12 +71,14 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    using uint_t = unsigned;
+
     uint_t d1 = atoi(argv[1]);
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3, halo<1, 1, 1>> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<int_t, meta_data_t> storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>> meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t<int, meta_data_t> storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
@@ -113,10 +97,10 @@ int main(int argc, char **argv) {
 
        You need 3 halo descriptors, one per dimension.
     */
-    gridtools::array<gridtools::halo_descriptor, 3> halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
-    halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
+    gt::array<gt::halo_descriptor, 3> halos;
+    halos[0] = gt::halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = gt::halo_descriptor(1, 1, 1, d2 - 2, d2);
+    halos[2] = gt::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
     bool error = false;
     {
@@ -124,7 +108,7 @@ int main(int argc, char **argv) {
         in_s.sync();
         out_s.sync();
 
-        apply_copy(halos, out_s, in_s);
+        gt::boundary<gt::copy_boundary, backend_t::backend_id_t>(halos, gt::copy_boundary{}).apply(out_s, in_s);
 
         // sync the data stores if needed
         in_s.sync();
@@ -162,7 +146,7 @@ int main(int argc, char **argv) {
         // sync the data stores if needed
         out_s.sync();
 
-        apply_zero(halos, out_s);
+        gt::boundary<gt::zero_boundary, backend_t::backend_id_t>(halos, gt::zero_boundary{}).apply(out_s);
 
         // sync the data stores if needed
         out_s.sync();
@@ -194,7 +178,7 @@ int main(int argc, char **argv) {
         // sync the data stores if needed
         out_s.sync();
 
-        apply_value(halos, out_s, 42);
+        gt::boundary<gt::value_boundary<int>, backend_t::backend_id_t>(halos, gt::value_boundary<int>{42}).apply(out_s);
 
         // sync the data stores if needed
         out_s.sync();
