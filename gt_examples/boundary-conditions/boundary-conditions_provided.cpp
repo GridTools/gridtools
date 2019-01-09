@@ -65,69 +65,28 @@
 #include <gridtools/tools/backend_select.hpp>
 #include <iostream>
 
+#include <gridtools/boundary-conditions/copy.hpp>
+#include <gridtools/boundary-conditions/value.hpp>
+#include <gridtools/boundary-conditions/zero.hpp>
+
 using namespace gridtools;
 using namespace enumtype;
 
-/**
-   This class specifies how to apply boundary conditions.
+template <typename Halo, typename Field1, typename Field2>
+void apply_copy(Halo const &halos, Field1 &field1, Field2 const &field2) {
+    gridtools::template boundary<copy_boundary, backend_t::backend_id_t>(halos, copy_boundary{}).apply(field1, field2);
+}
 
-   For all directions, apart from (0,-1,0), (-1,-1,0), and (-1,-1,-1)
-   it writes the values associated with the object in the boudary of
-   the first field, otherwise it copies the values of the second field
-   from a shifted position.
+template <typename Halo, typename Field1>
+void apply_zero(Halo const &halos, Field1 &field1) {
+    gridtools::template boundary<zero_boundary, backend_t::backend_id_t>(halos, zero_boundary{}).apply(field1);
+}
 
-   The directions here are specified at compile time, and instead of
-   using numbers we use minus_, plus_ and zero_, in order to be more
-   explicit.
-
-   The second field is not modified.
- */
-template <typename T>
-struct direction_bc_input {
-    T value;
-
-    GT_FUNCTION
-    direction_bc_input() : value(1) {}
-
-    GT_FUNCTION
-    direction_bc_input(T v) : value(v) {}
-
-    template <typename Direction, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(
-        Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
-        data_field0(i, j, k) = value;
-    }
-
-    template <sign I, sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<I, minus_, K>,
-        DataField0 &data_field0,
-        DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
-        data_field0(i, j, k) = data_field1(i, j + 1, k);
-    }
-
-    template <sign K, typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<minus_, minus_, K>,
-        DataField0 &data_field0,
-        DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
-        data_field0(i, j, k) = data_field1(i + 1, j + 1, k);
-    }
-
-    template <typename DataField0, typename DataField1>
-    GT_FUNCTION void operator()(direction<minus_, minus_, minus_>,
-        DataField0 &data_field0,
-        DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
-        data_field0(i, j, k) = data_field1(i + 1, j + 1, k + 1);
-    }
-};
+template <typename Halo, typename Field1, typename T>
+void apply_value(Halo const &halos, Field1 &field1, T value) {
+    gridtools::template boundary<value_boundary<T>, backend_t::backend_id_t>(halos, value_boundary<T>{value})
+        .apply(field1);
+}
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -167,70 +126,104 @@ int main(int argc, char **argv) {
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    // sync the data stores if needed
-    in_s.sync();
-    out_s.sync();
-
-    // Here we apply the boundary conditions to the fields created
-    // earlier with the class above. GridTools provides default
-    // boundary classes to copy fields and to set constant values to
-    // the boundaries of fields.
-    gridtools::template boundary<direction_bc_input<uint_t>, backend_t::backend_id_t>(
-        halos, direction_bc_input<uint_t>(42))
-        .apply(out_s, in_s);
-
-    // sync the data stores if needed
-    in_s.sync();
-    out_s.sync();
-
-    // making the views to access and check correctness
-    auto in = make_host_view(in_s);
-    auto out = make_host_view(out_s);
-
-    assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
-    assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
-
-    // reactivate views and check consistency
-    in_s.reactivate_host_write_views();
-    out_s.reactivate_host_write_views();
-    assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
-    assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
-
     bool error = false;
+    {
+        // sync the data stores if needed
+        in_s.sync();
+        out_s.sync();
 
-    // check edge column
-    if (out(0, 0, 0) != in(1, 1, 1)) {
-        std::cout << "Error: out(0, 0, 0) == " << out(0, 0, 0) << " != in(1,1,1) = " << in(1, 1, 1) << "\n";
-        error = true;
-    }
-    for (uint_t k = 1; k < d3; ++k) {
-        if (out(0, 0, k) != in(1, 1, k)) {
-            std::cout << "Error: out(0, 0, " << k << ") == " << out(0, 0, 0) << " != in(1, 1, " << k
-                      << ") = " << in(1, 1, k) << "\n";
-            error = true;
-        }
-    }
+        apply_copy(halos, out_s, in_s);
 
-    // check j==0 i>0 surface
-    for (uint_t i = 1; i < d1; ++i) {
-        for (uint_t k = 0; k < d3; ++k) {
-            if (out(i, 0, k) != in(i, 1, k)) {
-                std::cout << "Error: out(0, 0, 0) == " << out(i, 0, k) << " != in(" << i + 1 << ",0," << k + 1
-                          << ") = " << in(i + 1, 0, k + 1) << "\n";
-                error = true;
+        // sync the data stores if needed
+        in_s.sync();
+        out_s.sync();
+
+        // making the views to access and check correctness
+        auto in = make_host_view(in_s);
+        auto out = make_host_view(out_s);
+
+        assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
+        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+        // reactivate views and check consistency
+        in_s.reactivate_host_write_views();
+        out_s.reactivate_host_write_views();
+        assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
+        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+        for (uint_t i = 0; i < d1; ++i) {
+            for (uint_t j = 0; j < d2; ++j) {
+                for (uint_t k = 0; k < d3; ++k) {
+                    // check outer surfaces of the cube
+                    if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
+                        error |= out(i, j, k) != i + j + k;
+                    } else {
+                        error |= out(i, j, k) != 0;
+                        error |= in(i, j, k) != i + j + k;
+                    }
+                }
             }
         }
     }
 
-    // check outer domain
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                // check outer surfaces of the cube
-                if (((i == 0 || i == d1 - 1) && j > 0) || (j > 0 && (k == 0 || k == d3 - 1))) {
-                    if (out(i, j, k) != 42) {
-                        std::cout << "Error: values in OUTPUT field are wrong " << i << " " << j << " " << k << "\n";
-                        error = true;
+    {
+        // sync the data stores if needed
+        out_s.sync();
+
+        apply_zero(halos, out_s);
+
+        // sync the data stores if needed
+        out_s.sync();
+
+        // making the views to access and check correctness
+        auto out = make_host_view(out_s);
+
+        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+        // reactivate views and check consistency
+        out_s.reactivate_host_write_views();
+        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+        for (uint_t i = 0; i < d1; ++i) {
+            for (uint_t j = 0; j < d2; ++j) {
+                for (uint_t k = 0; k < d3; ++k) {
+                    // check outer surfaces of the cube
+                    if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
+                        error |= out(i, j, k) != 0;
+                    } else {
+                        error |= out(i, j, k) != 0;
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        // sync the data stores if needed
+        out_s.sync();
+
+        apply_value(halos, out_s, 42);
+
+        // sync the data stores if needed
+        out_s.sync();
+
+        // making the views to access and check correctness
+        auto out = make_host_view(out_s);
+
+        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+        // reactivate views and check consistency
+        out_s.reactivate_host_write_views();
+        assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+        for (uint_t i = 0; i < d1; ++i) {
+            for (uint_t j = 0; j < d2; ++j) {
+                for (uint_t k = 0; k < d3; ++k) {
+                    // check outer surfaces of the cube
+                    if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
+                        error |= out(i, j, k) != 42;
+                    } else {
+                        error |= out(i, j, k) != 0;
                     }
                 }
             }
