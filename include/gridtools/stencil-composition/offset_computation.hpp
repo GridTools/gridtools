@@ -38,9 +38,9 @@
 #include <boost/mpl/eval_if.hpp>
 
 #include "../common/generic_metafunctions/accumulate.hpp"
-#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
 #include "../common/gt_assert.hpp"
+#include "../meta/type_traits.hpp"
+#include "../meta/utility.hpp"
 
 namespace gridtools {
 
@@ -108,7 +108,7 @@ namespace gridtools {
         template <typename StorageInfo, typename StridesCached, typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION constexpr int_t compute_offset(StridesCached const &RESTRICT strides,
             Accessor const &RESTRICT accessor,
-            gt_index_sequence<Coordinates...>) {
+            meta::index_sequence<Coordinates...>) {
             /* sum stride_x * offset_x + stride_y * offset_y + ... */
             return accumulate(plus_functor(),
                 (stride<StorageInfo, Coordinates>(strides) * accessor_offset<Coordinates>(accessor))...);
@@ -130,7 +130,7 @@ namespace gridtools {
     template <typename StorageInfo, typename Accessor, typename StridesCached>
     GT_FUNCTION constexpr int_t compute_offset(
         StridesCached const &RESTRICT strides, Accessor const &RESTRICT accessor) {
-        using sequence_t = make_gt_index_sequence<StorageInfo::layout_t::masked_length>;
+        using sequence_t = meta::make_index_sequence<StorageInfo::layout_t::masked_length>;
         return _impl::compute_offset<StorageInfo>(strides, accessor, sequence_t());
     }
 } // namespace gridtools

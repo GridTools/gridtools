@@ -35,56 +35,40 @@
 */
 #pragma once
 
-#include <type_traits>
-
-#include "../../meta/utility.hpp"
-#include "../defs.hpp"
-#include "../host_device.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/make_indices.hpp"
+#include "concept.hpp"
 
 namespace gridtools {
+    namespace sid {
+        namespace multi_shift_impl_ {
+            template <class Ptr, class Strides, class Offsets>
+            struct shift_f {
+                Ptr &RESTRICT m_ptr;
+                Strides const &RESTRICT m_strides;
+                Offsets const &RESTRICT m_offsets;
 
-    /** \ingroup common
-        @{
-        \ingroup allmeta
-        @{
-        \defgroup gtintegersequence GridTools Integer Sequence
-        @{
-    */
+                template <class I>
+                GT_FUNCTION void operator()() const {
+                    shift(m_ptr, get_stride<I::value>(m_strides), tuple_util::host_device::get<I::value>(m_offsets));
+                }
+            };
+        } // namespace multi_shift_impl_
 
-    /**
-       @brief helper struct to use an integer sequence in order to fill a generic container
-
-       can be used with an arbitrary container with elements of the same type (not a tuple),
-       it is consexpr constructable.
-     */
-    template <typename UInt, UInt... Indices>
-    using gt_integer_sequence = meta::integer_sequence<UInt, Indices...>;
-
-    /** @brief constructs an integer sequence
-
-        @tparam N size of the integer sequence
-     */
-    template <typename UInt, UInt N>
-    using make_gt_integer_sequence = meta::make_integer_sequence<UInt, N>;
-
-    template <size_t... Ints>
-    using gt_index_sequence = meta::index_sequence<Ints...>;
-
-    template <size_t N>
-    using make_gt_index_sequence = meta::make_index_sequence<N>;
-
-    template <class... Ts>
-    using gt_index_sequence_for = meta::make_index_sequence<sizeof...(Ts)>;
-
-    // with CXX14 the gt_integer_sequence from the standard can directly replace this one:
-    // template <typename UInt, UInt ... Indices>
-    // using gt_integer_sequence=std::integer_sequence<UInt, Indices ...>;
-
-    // template<typename UInt, UInt N>
-    // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
-
-    /** @} */
-    /** @} */
-    /** @} */
-
+        /**
+         *   A helper the invokes `sid::shift` in several dimensions.
+         *   `offsets` should be a tuple-like of individual offsets.
+         */
+        template <class Ptr, class Strides, class Offsets>
+        GT_FUNCTION void multi_shift(
+            Ptr &RESTRICT ptr, Strides const &RESTRICT strides, Offsets const &RESTRICT offsets) {
+            using indices_t = GT_META_CALL(meta::make_indices, tuple_util::size<Offsets>);
+            host_device::for_each_type<indices_t>(
+                multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
+        }
+    } // namespace sid
 } // namespace gridtools

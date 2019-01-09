@@ -35,8 +35,7 @@
 */
 #pragma once
 
-#include "../../../common/generic_metafunctions/meta.hpp"
-#include "../../../common/generic_metafunctions/type_traits.hpp"
+#include "../../../meta.hpp"
 #include "../../backend_x86/basic_token_execution_x86.hpp"
 #include "../../grid_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
@@ -144,10 +143,8 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            template <class ReductionData>
             execute_kernel_functor_x86(const local_domain_t &local_domain,
                 const grid_t &grid,
-                ReductionData &&,
                 uint_t block_size_i,
                 uint_t block_size_j,
                 uint_t block_no_i,

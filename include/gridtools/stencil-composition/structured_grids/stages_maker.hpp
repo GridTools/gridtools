@@ -39,14 +39,12 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta.hpp"
 #include "../bind_functor_with_interval.hpp"
 #include "../compute_extents_metafunctions.hpp"
 #include "../fuse_stages.hpp"
 #include "../independent_esf.hpp"
 #include "../mss.hpp"
-#include "../reductions/reduction_descriptor.hpp"
 #include "./esf.hpp"
 #include "./stage.hpp"
 
@@ -86,26 +84,8 @@ namespace gridtools {
                 using stages_t = GT_META_CALL(meta::flatten, stage_groups_t);
                 using type = GT_META_CALL(fuse_stages, (compound_stage, stages_t));
             };
-
-            template <class Functor, class Esf, class BinOp, class ExtentMap>
-            struct reduction_stages_from_functor {
-                using extent_t = typename reduction_get_extent_for<Esf, ExtentMap>::type;
-                using type = meta::list<meta::list<reduction_stage<Functor, extent_t, typename Esf::args_t, BinOp>>>;
-            };
-            template <class Esf, class BinOp, class ExtentMap>
-            struct reduction_stages_from_functor<void, Esf, BinOp, ExtentMap> {
-                using type = meta::list<>;
-            };
-            template <class Esf, class Index, class BinOp, class ExtentMap>
-            struct reduction_stages : reduction_stages_from_functor<GT_META_CALL(bind_functor_with_interval,
-                                                                        (typename Esf::esf_function, Index)),
-                                          Esf,
-                                          BinOp,
-                                          ExtentMap> {};
         }
         GT_META_DELEGATE_TO_LAZY(stages_from_esf, (class Esf, class Index, class ExtentMap), (Esf, Index, ExtentMap));
-        GT_META_DELEGATE_TO_LAZY(
-            reduction_stages, (class Esf, class Index, class BinOp, class ExtentMap), (Esf, Index, BinOp, ExtentMap));
 
         template <class Index, class ExtentMap>
         struct stages_from_esf_f {
@@ -115,12 +95,12 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     *   Transforms computation token (mss_descriptor or reduction_descriptor) into a sequence of stages.
+     *   Transforms `mss_descriptor` into a sequence of stages.
      *
-     * @tparam Descriptor -   mss or reduction descriptor
+     * @tparam Descriptor -   mss descriptor
      * @tparam ExtentMap -    a compile time map that maps placeholders to computed extents.
      *                        `stages_maker` uses ExtentMap parameter in an opaque way -- it just delegates it to
-     *                        get_extent_for/reduction_get_extent_for when it is needed.
+     *                        `get_extent_for` when it is needed.
      *
      *   This metafunction returns another metafunction (i.e. has nested `apply` metafunction) that accepts
      *   a single argument that has to be a level_index and returns the stages (classes that model Stage concept)
@@ -150,11 +130,4 @@ namespace gridtools {
         template <class LevelIndex>
         GT_META_DEFINE_ALIAS(apply, _impl::stages_from_esfs, (Esfs, LevelIndex, ExtentMap));
     };
-
-    template <class ReductionType, class BinOp, template <class...> class L, class Esf, class ExtentMap>
-    struct stages_maker<reduction_descriptor<ReductionType, BinOp, L<Esf>>, ExtentMap> {
-        template <class LevelIndex>
-        GT_META_DEFINE_ALIAS(apply, _impl::reduction_stages, (Esf, LevelIndex, BinOp, ExtentMap));
-    };
-
 } // namespace gridtools

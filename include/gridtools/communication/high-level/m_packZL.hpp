@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/halo_descriptor.hpp"
+#include "../../meta/utility.hpp"
 
 template <typename value_type>
 __global__ void m_packZLKernel(const value_type *__restrict__ d_data,
@@ -254,7 +254,7 @@ void m_packZL_variadic(value_type **d_msgbufTab,
     const gridtools::halo_descriptor halo[3],
     const gridtools::halo_descriptor halo_d[3],
     datas const &d_datas,
-    gridtools::gt_integer_sequence<unsigned int, Ids...>) {
+    gridtools::meta::integer_sequence<unsigned int, Ids...>) {
     // threads per block. Should be at least one warp in x, could be wider in y
     const int ntx = 32;
     const int nty = 8;

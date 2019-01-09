@@ -33,12 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "../esf.hpp"
-#include "../make_stage.hpp"
-
-#include "make_reduction.hpp"
-
-#include "../../common/binops.hpp"
-#include "../make_computation.hpp"
+#include "test_swap.cpp"

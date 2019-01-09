@@ -29,26 +29,14 @@
 
 option(GT_ENABLE_BINDINGS_GENERATION "If turned off, bindings will not be generated." ON)
 
-if(DEFINED GRIDTOOLS_LIBRARIES_DIR)
-    set(local_GRIDTOOLS_ROOT ${GRIDTOOLS_LIBRARIES_DIR}/..)
-else()
-    set(local_GRIDTOOLS_ROOT ${CMAKE_SOURCE_DIR})
-endif()
+set(BINDINGS_SOURCE_DIR @BINDINGS_SOURCE_DIR@)
+set(BINDINGS_CMAKE_DIR @BINDINGS_CMAKE_DIR@)
 
-if(NOT TARGET Boost::boost)
-    # TODO(havogt): remove once the targets below link to GridTools::GridTools
-    find_package(Boost REQUIRED)
-endif()
+add_library(c_bindings_generator ${BINDINGS_SOURCE_DIR}/c_bindings/generator.cpp)
+target_link_libraries(c_bindings_generator GridTools::gridtools)
 
-add_library(c_bindings_generator ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator.cpp)
-# TODO in CMake cleanup: should link against GridTools::common or GridTools::gridtools
-target_include_directories(c_bindings_generator PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
-target_link_libraries(c_bindings_generator PRIVATE Boost::boost)
-
-add_library(c_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.cpp)
-# TODO in CMake cleanup: should link against GridTools::common or GridTools::gridtools
-target_include_directories(c_bindings_handle PUBLIC $<BUILD_INTERFACE: ${local_GRIDTOOLS_ROOT}/include> $<INSTALL_INTERFACE:include>)
-target_link_libraries(c_bindings_handle PRIVATE Boost::boost)
+add_library(c_bindings_handle ${BINDINGS_SOURCE_DIR}/c_bindings/handle.cpp)
+target_link_libraries(c_bindings_handle GridTools::gridtools)
 
 # enable_bindings_library_fortran()
 #
@@ -60,7 +48,7 @@ target_link_libraries(c_bindings_handle PRIVATE Boost::boost)
 macro(enable_bindings_library_fortran target_name)
     if(CMAKE_Fortran_COMPILER_LOADED)
         if(NOT TARGET fortran_bindings_handle)
-            add_library(fortran_bindings_handle ${local_GRIDTOOLS_ROOT}/src/c_bindings/array_descriptor.f90 ${local_GRIDTOOLS_ROOT}/src/c_bindings/handle.f90)
+            add_library(fortran_bindings_handle ${BINDINGS_SOURCE_DIR}/c_bindings/array_descriptor.f90 ${BINDINGS_SOURCE_DIR}/c_bindings/handle.f90)
             target_link_libraries(fortran_bindings_handle PUBLIC c_bindings_handle)
             target_include_directories(fortran_bindings_handle PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
         endif()
@@ -99,15 +87,15 @@ macro(add_bindings_library target_name)
     endif()
 
     add_library(${target_name} ${ARG_SOURCES})
-    target_link_libraries(${target_name} PUBLIC c_bindings_generator)
+    target_link_libraries(${target_name} PRIVATE c_bindings_generator)
 
     if(GT_ENABLE_BINDINGS_GENERATION)
         # generator
         add_executable(${target_name}_decl_generator
-            ${local_GRIDTOOLS_ROOT}/src/c_bindings/generator_main.cpp)
+            ${BINDINGS_SOURCE_DIR}/c_bindings/generator_main.cpp)
         set_target_properties(${target_name}_decl_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/decl_generator")
         target_link_libraries(${target_name}_decl_generator c_bindings_generator)
-    
+
         if (${APPLE})
             target_link_libraries(${target_name}_decl_generator
                 -Wl,-force_load ${target_name})
@@ -116,7 +104,7 @@ macro(add_bindings_library target_name)
                 -Xlinker --whole-archive ${target_name}
                 -Xlinker --no-whole-archive)
         endif()
-    
+
         add_custom_target(${target_name}_declarations
             ALL
             COMMAND ${CMAKE_COMMAND}
@@ -124,7 +112,7 @@ macro(add_bindings_library target_name)
                 -DBINDINGS_C_DECL_FILENAME=${bindings_c_decl_filename}
                 -DBINDINGS_FORTRAN_DECL_FILENAME=${bindings_fortran_decl_filename}
                 -DFORTRAN_MODULE_NAME=${ARG_FORTRAN_MODULE_NAME}
-                -P ${local_GRIDTOOLS_ROOT}/cmake/gt_bindings_generate.cmake
+                -P ${BINDINGS_CMAKE_DIR}/gt_bindings_generate.cmake
             BYPRODUCTS ${bindings_c_decl_filename} ${bindings_fortran_decl_filename}
             DEPENDS $<TARGET_FILE:${target_name}_decl_generator>)
     else()

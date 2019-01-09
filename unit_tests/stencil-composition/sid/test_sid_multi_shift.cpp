@@ -33,24 +33,35 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include <tuple>
 
-#include "../esf.hpp"
-#include "../reductions/reduction_descriptor.hpp"
+#include <gridtools/stencil-composition/sid/multi_shift.hpp>
+
+#include <gtest/gtest.h>
+
+#include <gridtools/common/integral_constant.hpp>
+#include <gridtools/common/tuple.hpp>
+#include <gridtools/common/tuple_util.hpp>
+#include <gridtools/stencil-composition/sid/concept.hpp>
 
 namespace gridtools {
+    namespace {
+        using namespace literals;
+        namespace tu = tuple_util;
 
-    template <typename RedFunctor, typename BinOp, typename ReductionType, typename... ExtraArgs>
-    reduction_descriptor<ReductionType, BinOp, std::tuple<esf_descriptor<RedFunctor, std::tuple<ExtraArgs...>>>>
-    make_reduction(const ReductionType initial_value, ExtraArgs...) {
-#ifndef STRUCTURED_GRIDS
-        GRIDTOOLS_STATIC_ASSERT((false), "Reductions are not yet supported for non structured grids");
-#endif
-#ifdef __CUDACC__
-        GRIDTOOLS_STATIC_ASSERT((false), "Reductions are not yet supported for GPU backend");
-#endif
-        return {initial_value};
-    }
+        TEST(multi_shift, smoke) {
+            double data[15][42];
 
+            auto ptr = sid::get_origin(data);
+            auto strides = sid::get_strides(data);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(3_c, 5_c, 2_c));
+            EXPECT_EQ(&data[3][5], ptr);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(0_c, -2_c));
+            EXPECT_EQ(&data[3][3], ptr);
+
+            sid::multi_shift(ptr, strides, tu::make<tuple>(-2));
+            EXPECT_EQ(&data[1][3], ptr);
+        }
+    } // namespace
 } // namespace gridtools

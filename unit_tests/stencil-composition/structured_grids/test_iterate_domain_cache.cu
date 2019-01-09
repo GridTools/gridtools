@@ -127,9 +127,7 @@ TEST(iterate_domain_cache, flush) {
         extents_t,
         max_extent_t,
         caches_t,
-        gridtools::grid<axis_t>,
-        boost::mpl::false_,
-        notype>
+        gridtools::grid<axis_t>>
         iterate_domain_arguments_t;
 
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
@@ -165,9 +163,7 @@ TEST(iterate_domain_cache, fill) {
         extents_t,
         max_extent_t,
         caches_t,
-        gridtools::grid<axis_t>,
-        boost::mpl::false_,
-        notype>
+        gridtools::grid<axis_t>>
         iterate_domain_arguments_t;
 
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;

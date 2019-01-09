@@ -55,7 +55,6 @@ namespace gridtools {
         typedef iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> super;
 
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-        typedef typename super::reduction_type_t reduction_type_t;
 
       public:
         using super::operator();
@@ -63,8 +62,7 @@ namespace gridtools {
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FUNCTION
-        explicit iterate_domain_x86(local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
-            : super(local_domain, reduction_initial_value), m_strides(0) {}
+        explicit iterate_domain_x86(local_domain_t const &local_domain) : super(local_domain), m_strides(0) {}
 
         strides_cached_t &RESTRICT strides_impl() {
             assert(m_strides);

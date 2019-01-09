@@ -2,6 +2,9 @@
 fetch_x86_tests(. LABELS unittest_x86)
 fetch_gpu_tests(. LABELS unittest_cuda)
 
+fetch_x86_tests(sid LABELS unittest_x86)
+fetch_gpu_tests(sid LABELS unittest_cuda)
+
 # collect the grid specific test cases
 if (GT_TESTS_STRUCTURED_GRID)
     fetch_mc_tests(. LABELS unittest_mc)
@@ -11,10 +14,6 @@ if (GT_TESTS_STRUCTURED_GRID)
     fetch_x86_tests(caches LABELS unittest_x86)
     fetch_mc_tests(caches LABELS unittest_mc)
     fetch_gpu_tests(caches LABELS unittest_cuda)
-
-    fetch_x86_tests(reductions LABELS unittest_x86)
-    fetch_mc_tests(reductions LABELS unittest_mc)
-    fetch_gpu_tests(reductions LABELS unittest_cuda)
 
     fetch_x86_tests(conditionals LABELS unittest_x86)
     fetch_mc_tests(conditionals LABELS unittest_mc)

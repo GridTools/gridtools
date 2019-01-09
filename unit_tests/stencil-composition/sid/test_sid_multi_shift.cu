@@ -33,18 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools/common/generic_metafunctions/gt_integer_sequence.hpp>
 
-#include <type_traits>
-
-#include <gtest/gtest.h>
-
-using namespace gridtools;
-
-GRIDTOOLS_STATIC_ASSERT((std::is_same<gt_integer_sequence<int>::value_type, int>::value), "");
-GRIDTOOLS_STATIC_ASSERT((gt_integer_sequence<int, 1, 2, 3>::size() == 3), "");
-
-GRIDTOOLS_STATIC_ASSERT((std::is_same<make_gt_integer_sequence<int, 3>, gt_integer_sequence<int, 0, 1, 2>>::value), "");
-GRIDTOOLS_STATIC_ASSERT((std::is_same<make_gt_integer_sequence<bool, 1>, gt_integer_sequence<bool, false>>::value), "");
-
-TEST(dummy, dummy) {}
+#include "test_sid_multi_shift.cpp"

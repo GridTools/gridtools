@@ -12,7 +12,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
           vertical_advection_dycore
           advection_pdbott_prepare_tracers
           )
-      set(SOURCES_CUDA
+      set(SOURCES
           ${SOURCES_PERFTEST}
           boundary-condition
           laplacian positional_stencil
@@ -23,16 +23,12 @@ if( COMPONENT_STENCIL_COMPOSITION )
           expandable_parameters_single_kernel
           horizontal_diffusion_functions
           )
-      set(SOURCES_X86
-          ${SOURCES_CUDA}
-          reduction
-          )
 
       # special target for executables which are used from performance benchmarks
       add_custom_target(perftests)
 
       if(GT_ENABLE_TARGET_X86)
-        foreach(srcfile IN LISTS SOURCES_X86)
+        foreach(srcfile IN LISTS SOURCES)
           add_executable(${srcfile}_x86_naive   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_x86_naive regression_main GridToolsTestX86)
           target_compile_definitions(${srcfile}_x86_naive PRIVATE BACKEND_STRATEGY_NAIVE)
@@ -74,9 +70,6 @@ if( COMPONENT_STENCIL_COMPOSITION )
           endif()
         endforeach(srcfile)
 
-        add_executable(vanilla_laplacian_x86  vanilla_laplacian.cpp)
-        target_link_libraries(vanilla_laplacian_x86 GridToolsTestX86)
-
         if( GT_USE_MPI )
             add_custom_mpi_x86_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
@@ -88,7 +81,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
       endif(GT_ENABLE_TARGET_X86)
 
       if(GT_ENABLE_TARGET_MC)
-        foreach(srcfile IN LISTS SOURCES_X86)
+        foreach(srcfile IN LISTS SOURCES)
           add_executable(${srcfile}_mc   ${srcfile}.cpp)
           target_link_libraries(${srcfile}_mc regression_main GridToolsTestMC)
 
@@ -111,10 +104,6 @@ if( COMPONENT_STENCIL_COMPOSITION )
           endif()
         endforeach(srcfile)
 
-
-        add_executable(vanilla_laplacian_mc  vanilla_laplacian.cpp)
-        target_link_libraries(vanilla_laplacian_mc GridToolsTestMC)
-
         if( GT_USE_MPI )
             add_custom_mpi_mc_test(TARGET copy_stencil_parallel NPROC 4 SOURCES copy_stencil_parallel.cpp)
 
@@ -127,7 +116,7 @@ if( COMPONENT_STENCIL_COMPOSITION )
 
     if(GT_ENABLE_TARGET_CUDA)
 
-       foreach(srcfile IN LISTS SOURCES_CUDA)
+       foreach(srcfile IN LISTS SOURCES)
            add_executable( ${srcfile}_cuda ${srcfile}.cu)
            target_link_libraries(${srcfile}_cuda regression_main GridToolsTestCUDA)
 

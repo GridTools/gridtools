@@ -37,7 +37,6 @@
 
 #include "./independent_esf.hpp"
 #include "./mss.hpp"
-#include "./reductions/reduction_descriptor.hpp"
 
 /**
 @file
@@ -99,10 +98,4 @@ namespace gridtools {
     struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
         typedef typename _impl::linearize_esf_array<EsfDescrSequence>::type type;
     };
-
-    template <typename ReductionType, typename BinOp, typename EsfDescrSequence>
-    struct mss_descriptor_linear_esf_sequence<reduction_descriptor<ReductionType, BinOp, EsfDescrSequence>> {
-        typedef typename _impl::linearize_esf_array<EsfDescrSequence>::type type;
-    };
-
 } // namespace gridtools

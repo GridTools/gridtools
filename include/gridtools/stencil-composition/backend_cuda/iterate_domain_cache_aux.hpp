@@ -43,7 +43,8 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/make_indices.hpp"
 #include "../accessor.hpp"
 #include "../caches/cache_definitions.hpp"
 #include "../grid.hpp"

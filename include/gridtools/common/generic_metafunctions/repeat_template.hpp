@@ -42,8 +42,10 @@
 
 #include <type_traits>
 
+#include "../../meta/macros.hpp"
+#include "../../meta/push_front.hpp"
+#include "../../meta/repeat.hpp"
 #include "../defs.hpp"
-#include "./meta.hpp"
 
 namespace gridtools {
 

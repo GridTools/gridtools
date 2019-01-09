@@ -36,8 +36,8 @@
 
 #pragma once
 
+#include "../../meta/id.hpp"
 #include "../host_device.hpp"
-#include "meta.hpp"
 
 namespace gridtools {
     /**

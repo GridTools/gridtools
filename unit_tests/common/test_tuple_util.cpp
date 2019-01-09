@@ -45,9 +45,8 @@
 
 #include <gridtools/common/array.hpp>
 #include <gridtools/common/defs.hpp>
-#include <gridtools/common/generic_metafunctions/meta.hpp>
-#include <gridtools/common/generic_metafunctions/type_traits.hpp>
 #include <gridtools/common/host_device.hpp>
+#include <gridtools/meta.hpp>
 
 namespace custom {
     struct foo {
@@ -325,6 +324,19 @@ namespace gridtools {
             EXPECT_EQ(
                 transpose(make<std::array>(make<std::pair>(1, 10), make<std::pair>(2, 20), make<std::pair>(3, 30))),
                 make<std::pair>(make<std::array>(1, 2, 3), make<std::array>(10, 20, 30)));
+        }
+
+        TEST(all_of, functional) {
+            auto testee = all_of([](int i) { return i % 2; });
+            EXPECT_TRUE(testee(make<std::tuple>(1, 3, 99, 7)));
+            EXPECT_FALSE(testee(make<std::tuple>(1, 3, 2, 7, 100)));
+
+            EXPECT_TRUE(all_of(
+                [](int l, int r) { return l == r; }, make<std::tuple>(1, 3, 99, 7), make<std::tuple>(1, 3, 99, 7)));
+        }
+
+        TEST(reverse, functional) {
+            EXPECT_TRUE(reverse(make<std::tuple>(1, 'a', 42.5)) == make<std::tuple>(42.5, 'a', 1));
         }
     } // namespace tuple_util
 } // namespace gridtools

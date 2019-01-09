@@ -35,49 +35,44 @@
 */
 #pragma once
 
+#include "../../common/defs.hpp"
+#include "../../meta/macros.hpp"
+#include "concept.hpp"
+
 namespace gridtools {
+    namespace sid {
+        /**
+         *  A helper class for implementing delegate design pattern for `SID`s
+         *  Typically the user template class should inherit from `delegate`
+         *  For example please look into `test_sid_delegate.cpp`
+         *
+         * @tparam Sid a object that models `SID` concept.
+         */
+        template <class Sid>
+        class delegate {
+            Sid m_impl;
 
-    namespace impl {
-        template <typename IterateDomainArguments, bool IsReduction>
-        class iterate_domain_reduction_impl {
-            typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
+            GRIDTOOLS_STATIC_ASSERT(is_sid<Sid>::value, GT_INTERNAL_ERROR);
 
-          public:
-            GT_FUNCTION
-            iterate_domain_reduction_impl(const reduction_type_t &initial_value) {}
-            GT_FUNCTION
-            reduction_type_t reduction_value() const { return 0; }
-        };
+            friend constexpr GT_META_CALL(ptr_type, Sid) sid_get_origin(delegate &obj) {
+                return get_origin(obj.m_impl);
+            }
+            friend constexpr GT_META_CALL(strides_type, Sid) sid_get_strides(delegate const &obj) {
+                return get_strides(obj.m_impl);
+            }
+            friend GT_META_CALL(ptr_diff_type, Sid) sid_get_ptr_diff(delegate const &) { return {}; }
 
-        template <typename IterateDomainArguments>
-        class iterate_domain_reduction_impl<IterateDomainArguments, true> {
           protected:
-            typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
+            constexpr Sid const &impl() const { return m_impl; }
+            Sid &impl() { return m_impl; }
 
           public:
-            GT_FUNCTION
-            iterate_domain_reduction_impl(const reduction_type_t &initial_value) : m_reduced_value(initial_value) {}
-
-            GT_FUNCTION
-            reduction_type_t reduction_value() const { return m_reduced_value; }
-
-            GT_FUNCTION
-            void set_reduction_value(reduction_type_t value) { m_reduced_value = value; }
-
-          private:
-            reduction_type_t m_reduced_value;
+            explicit constexpr delegate(Sid const &impl) noexcept : m_impl(impl) {}
+            explicit constexpr delegate(Sid &&impl) noexcept : m_impl(std::move(impl)) {}
         };
-    } // namespace impl
 
-    template <typename IterateDomainArguments>
-    class iterate_domain_reduction
-        : public impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction> {
-      public:
-        typedef typename IterateDomainArguments::functor_return_type_t reduction_type_t;
-
-        GT_FUNCTION
-        iterate_domain_reduction(const reduction_type_t &initial_value)
-            : impl::iterate_domain_reduction_impl<IterateDomainArguments, IterateDomainArguments::s_is_reduction>(
-                  initial_value) {}
-    };
+        template <class Sid>
+        GT_META_CALL(strides_kind, Sid)
+        sid_get_strides_kind(delegate<Sid> const &);
+    } // namespace sid
 } // namespace gridtools

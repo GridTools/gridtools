@@ -37,7 +37,6 @@
 
 #include <type_traits>
 
-#include "../meta/defs.hpp"
 #include "./generic_metafunctions/mpl_tags.hpp"
 
 /** \ingroup common
@@ -201,6 +200,14 @@ namespace gridtools {
     static_assert(1, "")
 #endif
 
+#if defined(__CUDACC_VER_MAJOR__) && __CUDACC_VER_MAJOR__ < 9
+#define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name)                          \
+    __forceinline__ __host__ __device__ constexpr class_name() noexcept {} \
+    static_assert(1, "")
+#else
+#define GT_DECLARE_DEFAULT_EMPTY_CTOR(class_name) class_name() = default
+#endif
+
     //################ Type aliases for GridTools ################
 
     /**
@@ -212,10 +219,6 @@ namespace gridtools {
        with an unsigned iteration index.
        https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
     */
-
-    // define a gridtools notype for metafunctions that would return something like void
-    // but still to point to a real integral type so that it can be passed as argument to functions
-    typedef int notype;
 
     using int_t = int;
     using short_t = int;

@@ -42,7 +42,6 @@
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../pos3.hpp"
-#include "../reductions/iterate_domain_reduction.hpp"
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -99,12 +98,10 @@ namespace gridtools {
        the storage placeholders/metadatas and their offsets.
      */
     template <typename IterateDomainImpl, class IterateDomainArguments>
-    struct iterate_domain : iterate_domain_reduction<IterateDomainArguments> {
+    struct iterate_domain {
         // *************** internal type definitions **************
         typedef IterateDomainArguments iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
-        typedef iterate_domain_reduction<iterate_domain_arguments_t> iterate_domain_reduction_t;
-        typedef typename iterate_domain_reduction_t::reduction_type_t reduction_type_t;
         typedef backend_traits_from_id<typename iterate_domain_arguments_t::backend_ids_t::backend_id_t>
             backend_traits_t;
         typedef typename backend_traits_t::template select_iterate_domain_cache<iterate_domain_arguments_t>::type
@@ -187,8 +184,7 @@ namespace gridtools {
            might be shared among several data fields)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_, const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index{0} {}
+        iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_), m_index{0} {}
 
         /**
            @brief recursively assignes all the strides
@@ -307,7 +303,7 @@ namespace gridtools {
          */
         template <typename Container, typename Tuple, uint_t... Ids>
         GT_FUNCTION auto static tuple_to_container(
-            Container &&container_, Tuple const &tuple_, gt_integer_sequence<uint_t, Ids...>)
+            Container &&container_, Tuple const &tuple_, meta::integer_sequence<uint_t, Ids...>)
             -> decltype(container_(boost::fusion::at_c<Ids>(tuple_)...)) {
             return container_(boost::fusion::at_c<Ids>(tuple_)...);
         }
@@ -316,7 +312,7 @@ namespace gridtools {
         using ret_t = typename boost::remove_reference<decltype(tuple_to_container(
             std::declval<typename get_storage_accessor<local_domain_t, Acc>::type::storage_t::data_t>(),
             std::declval<global_accessor_with_arguments<Acc, Args...>>().get_arguments(),
-            make_gt_integer_sequence<uint_t, sizeof...(Args)>()))>::type;
+            meta::make_integer_sequence<uint_t, sizeof...(Args)>()))>::type;
 
         /**
          * @brief Method called in the Do methods of the functors.
@@ -337,7 +333,7 @@ namespace gridtools {
             typedef typename Acc::index_t index_t;
             auto storage_ = boost::fusion::at<index_t>(local_data_ptrs()).second;
             return tuple_to_container(
-                *storage_, accessor.get_arguments(), make_gt_integer_sequence<uint_t, sizeof...(Args)>());
+                *storage_, accessor.get_arguments(), meta::make_integer_sequence<uint_t, sizeof...(Args)>());
         }
 
         // some aliases to ease the notation

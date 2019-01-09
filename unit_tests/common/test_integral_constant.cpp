@@ -33,24 +33,27 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include <gridtools/common/integral_constant.hpp>
+
+#include <gtest/gtest.h>
 
 namespace gridtools {
+    namespace {
+        using namespace literals;
 
-    template <typename T>
-    struct is_mss_descriptor;
-    template <typename T>
-    struct is_reduction_descriptor;
-    /**
-     type traits for the computation grammar. computation_token is any descriptor that implements
-     an API construct exposed at the make_computation level.
-     tokens: currently mss_descriptor, condition, and reduction_descriptor
-     */
+        static_assert(0_c == 0, "");
+        static_assert(42_c == 42, "");
+        static_assert(-12345_c == -12345, "");
 
-    template <typename T>
-    GT_META_DEFINE_ALIAS(
-        is_computation_token, bool_constant, is_mss_descriptor<T>::value || is_reduction_descriptor<T>::value);
+        static_assert(0b100_c == 0b100, "");
+        static_assert(0100_c == 0100, "");
+        static_assert(0xDEAD_c == 0xDEAD, "");
+
+        static_assert(impl_::parser<'1', '\'', '2'>::value == 12, "");
+
+        static_assert(2_c + 3_c == 5_c, "");
+
+        TEST(integral_constant, dummy) {}
+    } // namespace
 } // namespace gridtools

@@ -36,8 +36,8 @@
 #pragma once
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
-#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
+#include "../../../meta.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
@@ -98,8 +98,7 @@ namespace gridtools {
             __shared__ typename iterate_domain_cuda_t::shared_iterate_domain_t shared_iterate_domain;
 
             // Doing construction of the iterate domain and assignment of pointers and strides
-            // for the moment reductions are not supported so that the initial value is 0
-            iterate_domain_t it_domain(l_domain, 0, block_size_i, block_size_j);
+            iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 

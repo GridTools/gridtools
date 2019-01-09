@@ -45,8 +45,12 @@
 #include <tuple>
 
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/generic_metafunctions/type_traits.hpp"
+#include "../meta/filter.hpp"
+#include "../meta/first.hpp"
+#include "../meta/id.hpp"
+#include "../meta/length.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/type_traits.hpp"
 #include "./caches/cache_traits.hpp"
 #include "./esf.hpp"
 

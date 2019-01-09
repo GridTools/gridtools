@@ -34,10 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include <boost/mpl/equal.hpp>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
+#include "../../meta/macros.hpp"
 #include "./esf.hpp"
 
 namespace gridtools {

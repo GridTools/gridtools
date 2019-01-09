@@ -38,8 +38,10 @@
 #include <tuple>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/meta.hpp"
-#include "../../common/generic_metafunctions/type_traits.hpp"
+#include "../../meta/concat.hpp"
+#include "../../meta/logical.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
 #include "./cache_traits.hpp"
 
 namespace gridtools {

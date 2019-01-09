@@ -55,6 +55,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
 
+#include "../common/tuple_util.hpp"
+#include "../meta.hpp"
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"
@@ -62,20 +64,14 @@
 #include "conditionals/condition_tree.hpp"
 #include "coordinate.hpp"
 #include "esf.hpp"
+#include "extract_placeholders.hpp"
 #include "grid.hpp"
 #include "grid_traits.hpp"
 #include "intermediate_impl.hpp"
+#include "iterate_on_esfs.hpp"
 #include "level.hpp"
 #include "local_domain.hpp"
 #include "mss_components_metafunctions.hpp"
-#include "reductions/reduction_data.hpp"
-
-#include "computation_grammar.hpp"
-#include "extract_placeholders.hpp"
-#include "iterate_on_esfs.hpp"
-
-#include "../common/generic_metafunctions/meta.hpp"
-#include "../common/tuple_util.hpp"
 
 /**
  * @file
@@ -165,13 +161,6 @@ namespace gridtools {
         return {grid};
     }
 
-    namespace _impl {
-        struct dummy_run_f {
-            template <typename T>
-            reduction_type<T> operator()(T const &) const;
-        };
-    } // namespace _impl
-
     /**
      *  @brief structure collecting helper metafunctions
      */
@@ -192,12 +181,11 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_computation_token>...>::value),
+        GRIDTOOLS_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         using branch_selector_t = branch_selector<MssDescriptors...>;
         using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
-        using return_type = decltype(std::declval<branch_selector_t>().apply(_impl::dummy_run_f{}));
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
@@ -264,11 +252,9 @@ namespace gridtools {
       private:
         struct run_f {
             template <typename MssDescs>
-            reduction_type<MssDescs> operator()(
+            void operator()(
                 MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
-                auto reduction_data = make_reduction_data(mss_descriptors);
-                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(grid, local_domains, reduction_data);
-                return reduction_data.reduced_value();
+                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(grid, local_domains);
             }
         };
 
@@ -331,7 +317,7 @@ namespace gridtools {
         //               implementation of the `intermediate_expanded` and `computation` by getting rid of
         //               `boost::fusion::invoke`.
         template <class... Args, class... DataStores>
-        typename std::enable_if<sizeof...(Args) == meta::length<free_placeholders_t>::value, return_type>::type run(
+        typename std::enable_if<sizeof...(Args) == meta::length<free_placeholders_t>::value>::type run(
             arg_storage_pair<Args, DataStores> const &... srcs) {
             if (m_meter)
                 m_meter->start();
@@ -348,10 +334,9 @@ namespace gridtools {
                 make_view_infos(dedup_storage_info(std::tie(srcs...)))));
             // now local domains are fully set up.
             // branch selector calls run_f functor on the right branch of mss condition tree.
-            auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_local_domains));
+            m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_local_domains));
             if (m_meter)
                 m_meter->pause();
-            return res;
         }
 
         std::string print_meter() const {
