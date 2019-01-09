@@ -268,7 +268,6 @@ namespace gridtools {
          * fill next k level from main memory for all k caches. The position of the kcache being filled
          * depends on the iteration policy
          * \tparam IterationPolicy forward: backward
-         * \param grid a grid with loop bounds information
          */
         template <typename IterationPolicy>
         GT_FUNCTION void fill_caches(bool first_level) {
@@ -280,7 +279,6 @@ namespace gridtools {
          * flush the last k level of the ring buffer into main memory. The position of the kcache being flushed
          * depends on the iteration policy
          * \tparam IterationPolicy forward: backward
-         * \param grid a grid with loop bounds information
          */
         template <typename IterationPolicy>
         GT_FUNCTION void flush_caches(bool last_level) {

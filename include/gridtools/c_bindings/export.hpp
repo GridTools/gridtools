@@ -77,7 +77,7 @@
  *
  *   @param n The arity of the generated function.
  *   @param name The name of the generated function.
- *   @param signature The signature that will be used to invoke `impl`.
+ *   @param cppsignature The signature that will be used to invoke `impl`.
  *   @param impl The functor that the generated function will delegate to.
  */
 #define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, cppsignature, impl) \
@@ -109,7 +109,7 @@
  *
  *   @param n The arity of the generated function.
  *   @param name The name of the generated function.
- *   @param signature The signature that will be used to invoke `impl`.
+ *   @param cppsignature The signature that will be used to invoke `impl`.
  *   @param impl The functor that the generated function will delegate to.
  */
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED(n, name, cppsignature, impl) \
