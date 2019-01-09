@@ -34,31 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/** @file
-    This file contains several examples of using boundary conditions
+/** @file This file contains several examples of using boundary
+    conditions classes provided by gridtools itself.
 
-    The basic concept, here and in distributed boundaries and
-    communication is the concept of "direction".
+    They are:
 
-    In a 3D regular grid, which is where this implementation of the
-    boundary condition library applies, we associate a 3D axis system,
-    and the cell indices (i,j,k) naturally lie on it. With this axis
-    system the concept of "vector" can be defined to indicate
-    distances and directions. Direction is the one think we need
-    here. Instead of using unitary vectors to indicate directions, as
-    it is usually the case for euclidean spaces, we use vectors whose
-    components are -1, 0, and 1.  For example, (1, 1, 1) is the
-    dicretion indicated by the unit vector (1,1,1)/sqrt(3).
+    - copy_boundary, that takes 2 or 3 fields, and copy the values at
+      the bopundary of the last one into the others;
 
-    If we take the center of a 3D grid, then we can define 26
-    different directions {(i,j,k): i,j,k \in {-1, 0, 1}}\{0,0,0} that
-    identify the different faces, edges and corners of the cube to
-    which the grid is topologically analogous with.
+    - zero_boundary, that set the boundary of the fields (maximum 3 in
+      current implementation) to the default constructed value of the
+      data_store value type;
 
-    THE MAIN IDEA:
-    A boundary condition class specialize operator() to accept a
-    direction and when that diretction is accessed, the data fields in
-    the boundary corresponding to that direction can be accessed.
+    - value_boundary, that set the boundary to a specified value.
+
+    We are using helper functions to show how to use them and a simple
+    code to check correctness.
  */
 
 #include <gridtools/boundary-conditions/boundary.hpp>
@@ -72,6 +63,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
+// These functions are templates to avoid long signatures that impact readability
 template <typename Halo, typename Field1, typename Field2>
 void apply_copy(Halo const &halos, Field1 &field1, Field2 const &field2) {
     gridtools::template boundary<copy_boundary, backend_t::backend_id_t>(halos, copy_boundary{}).apply(field1, field2);
