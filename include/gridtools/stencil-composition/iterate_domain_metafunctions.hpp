@@ -45,13 +45,4 @@ namespace gridtools {
     template <class>
     struct is_iterate_domain : std::false_type {};
 
-    template <class, class = void>
-    struct is_positional_iterate_domain : std::false_type {};
-
-    template <class T>
-    struct is_positional_iterate_domain<T,
-        enable_if_t<is_iterate_domain<T>::value &&
-                    std::is_convertible<decltype(std::declval<T const>().i()), int_t>::value &&
-                    std::is_convertible<decltype(std::declval<T const>().j()), int_t>::value &&
-                    std::is_convertible<decltype(std::declval<T const>().k()), int_t>::value>> : std::true_type {};
 } // namespace gridtools

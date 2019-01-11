@@ -128,9 +128,6 @@ namespace gridtools {
 
             it_domain_t it_domain(local_domain1);
 
-            GRIDTOOLS_STATIC_ASSERT(
-                it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
-
 #ifndef BACKEND_MC
             typedef typename it_domain_t::strides_cached_t strides_t;
             strides_t strides;

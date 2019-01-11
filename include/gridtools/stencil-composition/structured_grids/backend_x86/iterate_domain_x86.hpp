@@ -79,13 +79,8 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        iterate_domain_x86 const &get() const { return *this; }
-
-        template <typename ReturnType, typename Accessor, typename StorageType>
-        GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            return *(storage_pointer + pointer_offset);
-        }
+        template <class Ptr>
+        static GT_FORCE_INLINE auto deref_impl(Ptr ptr) GT_AUTO_RETURN(*ptr);
 
         /**
          * caches are not currently used in x86 backend

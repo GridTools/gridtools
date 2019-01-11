@@ -35,10 +35,11 @@
 */
 #pragma once
 
+#include <type_traits>
+
+#include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../defs.hpp"
-#include <boost/type_traits/remove_cv.hpp>
-#include <boost/type_traits/remove_pointer.hpp>
-#include <boost/type_traits/remove_reference.hpp>
 
 namespace gridtools {
 
@@ -49,39 +50,23 @@ namespace gridtools {
     */
 
     /**
-     * type trait that removes __restrict__ qualifier from a type
-     */
-    template <typename T>
-    struct remove_restrict_reference {
-        typedef T type;
-    };
-
-    template <typename T>
-    struct remove_restrict_reference<T & RESTRICT> {
-        typedef T type;
-    };
-
-    /**
      * @brief remove __restrict__ qualifier
      */
-    template <typename T>
+    template <class T>
     struct remove_restrict {
-        typedef T type;
+        using type = T;
     };
 
-    template <typename T>
+    template <class T>
     struct remove_restrict<T RESTRICT> {
-        typedef T type;
+        using type = T;
     };
 
     /**
      * @brief remove everything from type
      */
-    template <typename T>
-    struct remove_qualifiers {
-        using type = typename boost::remove_cv<typename boost::remove_reference<
-            typename boost::remove_pointer<typename remove_restrict<T>::type>::type>::type>::type;
-    };
+    template <class T>
+    GT_META_DEFINE_ALIAS(remove_qualifiers, std::decay, remove_pointer_t<typename remove_restrict<T>::type>);
     /** @} */
     /** @} */
 } // namespace gridtools

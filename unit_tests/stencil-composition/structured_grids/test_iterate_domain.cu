@@ -120,9 +120,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
 
     auto grid = make_grid(di, dj, axis_t(d3));
 
-    using caches_t = decltype(define_caches(cache<bypass, cache_io_policy::local>(p_read_only_bypass_arg()),
-        cache<IJ, cache_io_policy::local>(p_shared_mem_arg()),
-        cache<K, cache_io_policy::local>(p_kcache_arg())));
+    using caches_t = decltype(define_caches(
+        cache<IJ, cache_io_policy::local>(p_shared_mem_arg()), cache<K, cache_io_policy::local>(p_kcache_arg())));
 
     auto computation_ = gridtools::make_computation<backend_t>(grid,
         gridtools::make_multistage // mss_descriptor
@@ -160,20 +159,6 @@ TEST(test_iterate_domain, accessor_metafunctions) {
 
     GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_points_to_readonly_arg<dummy_functor::out>::type::value), "Error");
-
-    GRIDTOOLS_STATIC_ASSERT(
-        (it_domain_t::template accessor_read_from_texture<dummy_functor::read_only_texture_arg>::type::value), "Error");
-
-    // because is output field
-    GRIDTOOLS_STATIC_ASSERT(
-        !(it_domain_t::template accessor_read_from_texture<dummy_functor::out>::type::value), "Error");
-    // because is being bypass
-    GRIDTOOLS_STATIC_ASSERT(
-        !(it_domain_t::template accessor_read_from_texture<dummy_functor::read_only_bypass_arg>::type::value), "Error");
-    // because is not a texture supported type
-    GRIDTOOLS_STATIC_ASSERT(
-        !(it_domain_t::template accessor_read_from_texture<dummy_functor::read_only_non_texture_type_arg>::type::value),
-        "Error");
 
     // access via shared mem
     GRIDTOOLS_STATIC_ASSERT(

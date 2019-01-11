@@ -81,10 +81,6 @@ namespace gridtools {
             typename ReturnType,
             int OutArg>
         struct function_aggregator_offsets {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain<CallerAggregator>::value or is_function_aggregator<CallerAggregator>::value),
-                "The first argument must be an iterate_domain or a function_aggregator");
-
             typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
             CallerAggregator &m_caller_aggregator;
             ReturnType *RESTRICT m_result;
@@ -111,25 +107,6 @@ namespace gridtools {
             using is_out_arg = boost::mpl::bool_<Accessor::index_t::value == OutArg>;
 
           public:
-            template <typename Accessor, typename Enable = void>
-            struct accessor_return_type;
-
-            template <typename Accessor>
-            struct accessor_return_type<Accessor,
-                typename std::enable_if<passed_argument_is_accessor_t<Accessor>::value>::type> {
-                using type =
-                    typename CallerAggregator::template accessor_return_type<get_passed_argument_t<Accessor>>::type;
-            };
-
-            template <typename Accessor>
-            struct accessor_return_type<Accessor,
-                typename std::enable_if<not passed_argument_is_accessor_t<Accessor>::value>::type> {
-                using type = get_passed_argument_t<Accessor>;
-            };
-
-            template <typename Accessor>
-            using accessor_return_type_t = typename accessor_return_type<Accessor>::type;
-
             GT_FUNCTION
             constexpr function_aggregator_offsets(
                 CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
@@ -138,14 +115,12 @@ namespace gridtools {
             /**
              * @brief Accessor (of the callee) is a regular 3D in_accessor
              */
-            template <typename Accessor>
-            GT_FUNCTION constexpr
-                typename std::enable_if<passed_argument_is_accessor_t<Accessor>::value &&
-                                            not is_out_arg<Accessor>::value && not is_global_accessor<Accessor>::value,
-                    accessor_return_type_t<Accessor>>::type const
-                operator()(Accessor const &accessor) const {
-                GRIDTOOLS_STATIC_ASSERT((not is_global_accessor<get_passed_argument_t<Accessor>>::value),
-                    "In call: you are passing a global_accessor to a normal accessor");
+            template <typename Accessor,
+                enable_if_t<passed_argument_is_accessor_t<Accessor>::value && not is_out_arg<Accessor>::value &&
+                                not is_global_accessor<Accessor>::value,
+                    int> = 0>
+            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
+                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
                     accessor_offset<0>(accessor) + Offi + accessor_offset<0>(get_passed_argument<Accessor>()),
                     accessor_offset<1>(accessor) + Offj + accessor_offset<1>(get_passed_argument<Accessor>()),
@@ -156,9 +131,9 @@ namespace gridtools {
              * @brief If the passed type is not an accessor we assume it is a local variable which we just return.
              */
             template <typename Accessor>
-            GT_FUNCTION constexpr typename std::enable_if<not passed_argument_is_accessor_t<Accessor>::value &&
-                                                              not is_out_arg<Accessor>::value,
-                get_passed_argument_t<Accessor>>::type
+            GT_FUNCTION constexpr enable_if_t<not passed_argument_is_accessor_t<Accessor>::value &&
+                                                  not is_out_arg<Accessor>::value,
+                get_passed_argument_t<Accessor>>
             operator()(Accessor const &accessor) const {
                 return get_passed_argument<Accessor>();
             }
@@ -166,14 +141,12 @@ namespace gridtools {
             /**
              * @brief Accessor is a global_accessor
              */
-            template <typename Accessor>
-            GT_FUNCTION constexpr
-                typename std::enable_if<passed_argument_is_accessor_t<Accessor>::value &&
-                                            not is_out_arg<Accessor>::value && is_global_accessor<Accessor>::value,
-                    accessor_return_type_t<Accessor>>::type
-                operator()(Accessor const &) const {
-                GRIDTOOLS_STATIC_ASSERT((is_global_accessor<get_passed_argument_t<Accessor>>::value),
-                    "In call: you are passing a normal accessor to a global_accessor");
+            template <typename Accessor,
+                enable_if_t<passed_argument_is_accessor_t<Accessor>::value && not is_out_arg<Accessor>::value &&
+                                is_global_accessor<Accessor>::value,
+                    int> = 0>
+            GT_FUNCTION constexpr auto operator()(Accessor const &) const
+                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument<Accessor>());
             }
 
@@ -191,22 +164,16 @@ namespace gridtools {
                 GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
         };
 
-        template <typename Functor, typename Region>
-        struct do_caller {
-            template <typename Aggregator>
-            GT_FUNCTION static void Do(Aggregator &agg) {
-                Functor::template Do<decltype(agg) &>(agg, Region());
-            }
-        };
+        template <class Functor, class Region, class Eval>
+        GT_FUNCTION enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
+            Functor::template Do<Eval &>(eval, Region{});
+        }
 
         // overload for the default interval (Functor with one argument)
-        template <typename Functor>
-        struct do_caller<Functor, void> {
-            template <typename Aggregator>
-            GT_FUNCTION static void Do(Aggregator &agg) {
-                Functor::template Do<decltype(agg) &>(agg);
-            }
-        };
+        template <class Functor, class Region, class Eval>
+        GT_FUNCTION enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
+            Functor::template Do<Eval &>(eval);
+        }
     } // namespace _impl
 
     /** Main interface for calling stencil operators as functions.
@@ -245,26 +212,12 @@ namespace gridtools {
 
       private:
         /**
-         * @brief Deduce the return type of the function.
-         * The (arbitrary) convention is, that the return type is the type of the first argument passed to the function.
-         */
-        template <typename Eval, typename FirstArgument>
-        struct deduce_result_type {
-            using r_type = typename std::conditional<is_accessor<FirstArgument>::value,
-                typename Eval::template accessor_return_type<FirstArgument>::type,
-                FirstArgument>::type;
-            using type = typename remove_qualifiers<r_type>::type;
-        };
-
-        /**
          * @brief Use forced return type (if not void) or deduce the return type.
          */
-        template <typename Eval, typename FirstArgument, typename... Rest>
-        struct get_result_type {
-            using type = typename std::conditional<std::is_void<ReturnType>::value,
-                typename deduce_result_type<Eval, FirstArgument>::type,
-                ReturnType>::type;
-        };
+        template <typename Eval, typename Arg, typename...>
+        struct get_result_type : std::conditional<std::is_void<ReturnType>::value,
+                                     remove_const_t<decltype(std::declval<Eval &>()(std::declval<Arg const &>()))>,
+                                     ReturnType> {};
 
       public:
         /** With this interface a stencil function can be invoked and
@@ -275,10 +228,6 @@ namespace gridtools {
         template <typename Evaluator, typename... Args>
         GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
             Evaluator &eval, Args const &... args) {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain<Evaluator>::value or _impl::is_function_aggregator<Evaluator>::value),
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
@@ -296,7 +245,7 @@ namespace gridtools {
             result_type result;
 
             auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
-            _impl::do_caller<Functor, Region>::Do(agg_p);
+            _impl::call_functor<Functor, Region>(agg_p);
 
             return result;
         }
@@ -327,11 +276,6 @@ namespace gridtools {
         */
         template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments>
         struct function_aggregator_procedure_offsets {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain<CallerAggregator>::value or is_function_aggregator<CallerAggregator>::value),
-                "The first argument must be an iterate_domain or a function_aggregator");
-
             typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
 
             CallerAggregator &m_caller_aggregator;
@@ -340,21 +284,7 @@ namespace gridtools {
             template <typename Accessor>
             using get_passed_argument_t = typename boost::mpl::at_c<PassedArguments, Accessor::index_t::value>::type;
 
-            template <typename Accessor>
-            struct accessor_return_type {
-                using type =
-                    typename CallerAggregator::template accessor_return_type<get_passed_argument_t<Accessor>>::type;
-            };
-
-            template <typename Type>
-            struct accessor_return_type<_impl::wrap_reference<Type>> {
-                using type = Type;
-            };
-
           private:
-            template <typename Accessor>
-            using accessor_return_type_t = typename accessor_return_type<Accessor>::type;
-
             template <typename Accessor>
             using passed_argument_is_accessor_t = typename is_accessor<get_passed_argument_t<Accessor>>::type;
 
@@ -373,13 +303,11 @@ namespace gridtools {
              * @brief Accessor is a normal 3D accessor (not a global_accessor) and the passed Argument is an accessor
              * (not a local variable)
              */
-            template <typename Accessor>
-            GT_FUNCTION constexpr typename std::enable_if<not is_global_accessor<Accessor>::value &&
-                                                              passed_argument_is_accessor_t<Accessor>::value,
-                accessor_return_type_t<Accessor>>::type
-            operator()(Accessor const &accessor) const {
-                GRIDTOOLS_STATIC_ASSERT((not is_global_accessor<get_passed_argument_t<Accessor>>::value),
-                    "In call_proc: you are passing a global_accessor to a regular/vector accessor");
+            template <typename Accessor,
+                enable_if_t<not is_global_accessor<Accessor>::value && passed_argument_is_accessor_t<Accessor>::value,
+                    int> = 0>
+            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
+                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument_t<Accessor>(
                     accessor_offset<0>(accessor) + Offi + accessor_offset<0>(get_passed_argument<Accessor>()),
                     accessor_offset<1>(accessor) + Offj + accessor_offset<1>(get_passed_argument<Accessor>()),
@@ -389,14 +317,11 @@ namespace gridtools {
             /**
              * @brief Accessor is a global_accessor and the passed Argument is an accessor (not a local variable)
              */
-            template <typename Accessor>
-            GT_FUNCTION constexpr typename std::enable_if<is_global_accessor<Accessor>::value &&
-
-                                                              passed_argument_is_accessor_t<Accessor>::value,
-                accessor_return_type_t<Accessor>>::type
-            operator()(Accessor const &accessor) const {
-                GRIDTOOLS_STATIC_ASSERT((is_global_accessor<get_passed_argument_t<Accessor>>::value),
-                    "In call_proc: you are passing a regular/vector accessor to a global_accessor");
+            template <typename Accessor,
+                enable_if_t<is_global_accessor<Accessor>::value && passed_argument_is_accessor_t<Accessor>::value,
+                    int> = 0>
+            GT_FUNCTION constexpr auto operator()(Accessor const &accessor) const
+                -> decltype(m_caller_aggregator(get_passed_argument_t<Accessor>())) {
                 return m_caller_aggregator(get_passed_argument<Accessor>());
             }
 
@@ -458,10 +383,6 @@ namespace gridtools {
         template <typename Evaluator, typename... Args>
         GT_FUNCTION static void with(Evaluator &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain<Evaluator>::value or _impl::is_function_aggregator<Evaluator>::value),
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
-
             typedef _impl::function_aggregator_procedure_offsets<Evaluator,
                 Offi,
                 Offj,
@@ -472,7 +393,7 @@ namespace gridtools {
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             auto agg_p = f_aggregator_t(eval, y);
-            _impl::do_caller<Functor, Region>::Do(agg_p);
+            _impl::call_functor<Functor, Region>(agg_p);
         }
     };
 } // namespace gridtools

@@ -57,16 +57,42 @@
 #include <type_traits>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/for_each.hpp"
 #include "../../common/host_device.hpp"
-#include "../../meta.hpp"
+#include "../../meta/at.hpp"
+#include "../../meta/logical.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/type_traits.hpp"
 #include "../arg.hpp"
+#include "../expressions/expr_base.hpp"
 #include "../hasdo.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "./extent.hpp"
-#include "./iterate_domain_remapper.hpp"
 
 namespace gridtools {
+
+    namespace impl_ {
+        template <class ItDomain, class Args>
+        struct evaluator {
+            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+
+            ItDomain const &m_it_domain;
+
+            template <typename Accessor>
+            GT_FUNCTION auto operator()(Accessor const &arg) const
+                GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
+                                Accessor::intent>(arg)));
+
+            template <class Op, class... Ts>
+            GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
+                GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
+
+            GT_FUNCTION auto i() const GT_AUTO_RETURN(m_it_domain.i());
+            GT_FUNCTION auto j() const GT_AUTO_RETURN(m_it_domain.j());
+            GT_FUNCTION auto k() const GT_AUTO_RETURN(m_it_domain.k());
+        };
+    } // namespace impl_
+
     /**
      *   A stage that is associated with an elementary functor.
      */
@@ -79,11 +105,10 @@ namespace gridtools {
         using extent_t = Extent;
 
         template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
+        static GT_FUNCTION void exec(ItDomain const &it_domain) {
             GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
-            using eval_t = typename get_iterate_domain_remapper<ItDomain, Args>::type;
-            eval_t eval{it_domain};
-            Functor::template Do<eval_t &>(eval);
+            impl_::evaluator<ItDomain, Args> eval{it_domain};
+            Functor::Do(eval);
         }
     };
 

@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <type_traits>
+
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/at.hpp>
@@ -58,6 +60,7 @@
 #include "../meta/make_indices.hpp"
 #include "../meta/st_contains.hpp"
 #include "../meta/st_position.hpp"
+#include "../meta/type_traits.hpp"
 #include "arg.hpp"
 #include "block.hpp"
 #include "expressions/expressions.hpp"
@@ -393,43 +396,25 @@ namespace gridtools {
      * metafunction that evaluates if an accessor is cached by the backend
      * the Accessor parameter is either an Accessor or an expressions
      */
-    template <typename Accessor, typename CachesMap>
-    struct accessor_is_cached {
-        template <typename Accessor_>
-        struct accessor_is_cached_ {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::has_key<CachesMap, typename accessor_index<Accessor_>::type>::type type;
-        };
+    template <size_t Index, class CachesMap>
+    struct index_is_cached : boost::mpl::has_key<CachesMap, static_uint<Index>> {};
 
-        typedef typename boost::mpl::eval_if<is_accessor<Accessor>,
-            accessor_is_cached_<Accessor>,
-            boost::mpl::identity<boost::mpl::false_>>::type type;
+    template <class Accessor, class CachesMap, class = void>
+    struct accessor_is_cached : std::false_type {};
 
-        BOOST_STATIC_CONSTANT(bool, value = (type::value));
-    };
-
-    template <typename LocalDomain, typename Accessor>
-    struct get_storage_accessor {
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, GT_INTERNAL_ERROR);
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size<typename LocalDomain::data_ptr_fusion_map>::value > Accessor::index_t::value),
-            GT_INTERNAL_ERROR);
-        typedef typename LocalDomain::template get_arg<typename Accessor::index_t>::type::data_store_t type;
-    };
+    template <class Accessor, class CachesMap>
+    struct accessor_is_cached<Accessor, CachesMap, enable_if_t<is_accessor<Accessor>::value>>
+        : index_is_cached<Accessor::index_t::value, CachesMap> {};
 
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */
     template <typename Accessor, typename LocalDomain>
-    struct get_arg_from_accessor {
-        using type = typename LocalDomain::template get_arg<typename Accessor::index_t>::type;
-    };
+    struct get_arg_from_accessor : LocalDomain::template get_arg<typename Accessor::index_t> {};
 
     template <typename Accessor, typename LocalDomain>
     struct get_arg_value_type_from_accessor {
-        typedef typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t type;
+        using type = typename get_arg_from_accessor<Accessor, LocalDomain>::type::data_store_t::data_t;
     };
 
     /**
@@ -437,15 +422,15 @@ namespace gridtools {
      */
     template <typename Accessor, typename IterateDomainArguments>
     struct accessor_return_type_impl {
-        typedef typename boost::remove_reference<Accessor>::type acc_t;
+        using acc_t = remove_reference_t<Accessor>;
 
-        typedef typename boost::mpl::eval_if<is_accessor<acc_t>,
+        using accessor_value_type = typename boost::mpl::eval_if<is_accessor<acc_t>,
             get_arg_value_type_from_accessor<acc_t, typename IterateDomainArguments::local_domain_t>,
-            boost::mpl::identity<boost::mpl::void_>>::type accessor_value_type;
+            meta::lazy::id<boost::mpl::void_>>::type;
 
-        typedef typename boost::mpl::if_<is_accessor_readonly<acc_t>,
-            typename boost::add_const<accessor_value_type>::type,
-            typename boost::add_reference<accessor_value_type>::type RESTRICT>::type type;
+        using type = typename std::conditional<is_accessor_readonly<acc_t>::value,
+            add_const_t<accessor_value_type>,
+            add_lvalue_reference_t<accessor_value_type> RESTRICT>::type;
     };
 
     namespace aux {

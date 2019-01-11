@@ -81,8 +81,6 @@ namespace gridtools {
 
         // the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
-        // the number of storages  used in the current functor
-        static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
         typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
 

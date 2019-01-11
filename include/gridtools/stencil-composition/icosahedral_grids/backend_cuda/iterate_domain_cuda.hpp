@@ -75,7 +75,6 @@ namespace gridtools {
         typedef typename super::readonly_args_t readonly_args_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
-        typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
 
       private:
         const uint_t m_block_size_i;
@@ -149,40 +148,19 @@ namespace gridtools {
         template <typename Accessor>
         struct accessor_read_from_texture {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::and_<
-                typename boost::mpl::and_<typename accessor_points_to_readonly_arg<Accessor>::type,
-                    typename boost::mpl::not_<typename boost::mpl::has_key<bypass_caches_set_t,
-                        static_uint<Accessor::index_t::value>>::type>::type>::type,
+            typedef typename boost::mpl::and_<typename accessor_points_to_readonly_arg<Accessor>::type,
                 typename boost::is_arithmetic<typename accessor_return_type<Accessor>::type>>::type type;
         };
 
         /** @brief return a value that was cached
-         * specialization where cache is not explicitly disabled by user
          */
         template <uint_t Color, typename ReturnType, typename Accessor>
-        GT_FUNCTION
-            typename boost::disable_if<boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_t::value>>,
-                ReturnType>::type
-            get_cache_value_impl(Accessor const &_accessor) const {
+        GT_FUNCTION ReturnType get_cache_value_impl(Accessor const &_accessor) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            //        assert(m_pshared_iterate_domain);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
             return m_pshared_iterate_domain->template get_ij_cache<static_uint<Accessor::index_t::value>>()
                 .template at<Color>(m_thread_pos, _accessor);
-        }
-
-        /** @brief return a value that was cached
-         * specialization where cache is explicitly disabled by user
-         */
-        template <typename ReturnType, typename Accessor>
-        GT_FUNCTION
-            typename boost::enable_if<boost::mpl::has_key<bypass_caches_set_t, static_uint<Accessor::index_t::value>>,
-                ReturnType>::type
-            get_cache_value_impl(Accessor const &_accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            return super::template get_value<Accessor, void * RESTRICT>(
-                _accessor, aux::get_data_pointer(super::m_local_domain, _accessor));
         }
 
         /** @brief return a the value in memory pointed to by an accessor

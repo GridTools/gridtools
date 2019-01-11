@@ -248,19 +248,15 @@ namespace gridtools {
         // list of indexes of kcaches that require filling operations
         typedef typename impl_::get_indexes_by_cache<k_caches_map_t, is_filling_cache>::type k_filling_caches_indexes_t;
 
-        // set of "bypass" caches
-        typedef typename get_cache_set_for_type<bypass, caches_t, typename IterateDomainArguments::local_domain_t>::type
-            bypass_caches_set_t;
-
         // associative container with all caches
         typedef typename get_cache_set<caches_t, typename IterateDomainArguments::local_domain_t>::type all_caches_t;
 
         // returns a k cache from the tuple
         template <typename IndexType>
-        GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &RESTRICT get_k_cache() {
+        GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &RESTRICT get_k_cache() const {
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::has_key<k_caches_map_t, IndexType>::value), "Accessing a non registered cached");
-            return boost::fusion::at_key<IndexType>(m_k_caches_tuple);
+            return boost::fusion::at_key<IndexType>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple));
         }
 
         // slide all the k caches
