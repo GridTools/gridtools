@@ -48,11 +48,15 @@ namespace gridtools {
     struct is_accessor_readonly : std::false_type {};
 
     template <class Accessor>
-    struct is_accessor_readonly<Accessor, enable_if_t<Accessor::intent == enumtype::in>> : std::true_type {};
+    struct is_accessor_readonly<Accessor, enable_if_t<is_accessor<Accessor>::value>>
+        : bool_constant<Accessor::intent == enumtype::in> {};
 
-    /* Is written is actually "can be written", since it checks if not read only.*/
+    template <class Accessor, class = void>
+    struct is_accessor_written : std::false_type {};
+
     template <class Accessor>
-    struct is_accessor_written : negation<is_accessor_readonly<Accessor>> {};
+    struct is_accessor_written<Accessor, enable_if_t<is_accessor<Accessor>::value>>
+        : bool_constant<Accessor::intent == enumtype::inout> {};
 
     template <class Accessor>
     struct accessor_index {

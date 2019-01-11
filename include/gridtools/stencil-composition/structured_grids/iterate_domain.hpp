@@ -41,6 +41,7 @@
 #include "../../common/gt_assert.hpp"
 
 #include "../esf_metafunctions.hpp"
+#include "../global_accessor.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../pos3.hpp"

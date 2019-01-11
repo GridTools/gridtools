@@ -144,19 +144,19 @@ namespace gridtools {
             auto inv = make_host_view(in);
             inv(0, 0, 0, 0) = 0.; // is accessor<0>
 
-            EXPECT_EQ(0, it_domain(in_acc()));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), enumtype::in>(in_acc())));
 
             // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
             auto buffv = make_host_view(buff);
             buffv(0, 0, 0) = 0.; // is accessor<1>
 
-            EXPECT_EQ(0, it_domain(buff_acc()));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), enumtype::in>(buff_acc())));
 
             auto outv = make_host_view(out);
             outv(0, 0) = 0.; // is accessor<2>
 
-            EXPECT_EQ(0, it_domain(out_acc()));
-            EXPECT_EQ(0, it_domain(out_acc(0, 0)));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), enumtype::inout>(out_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), enumtype::inout>(out_acc(0, 0))));
 
             // check index initialization and increment
 

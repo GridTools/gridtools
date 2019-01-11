@@ -218,6 +218,11 @@ namespace gridtools {
            definitions)
         */
 
+        //        template <uint_t Color, class Arg, enumtype::intent Intent, class Accessor, enable_if_t <true, int> =
+        //        0> int deref(Accessor const &acc) const {
+        //            return {};
+        //        }
+
         template <uint_t Color, typename Accessor>
         GT_FUNCTION typename boost::enable_if<typename cache_access_accessor<Accessor>::type,
             typename accessor_return_type<Accessor>::type>::type

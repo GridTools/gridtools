@@ -33,13 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
+#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
+#include <gridtools/stencil-composition/structured_grids/accessor_mixed.hpp>
+
+#include <gtest/gtest.h>
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/accessor_metafunctions.hpp>
+#include <gridtools/stencil-composition/expressions/expressions.hpp>
 #include <gridtools/stencil-composition/global_accessor.hpp>
-#include <gridtools/stencil-composition/structured_grids/accessor.hpp>
-
-#include <gridtools/stencil-composition/structured_grids/accessor_metafunctions.hpp>
 
 using namespace gridtools;
 using namespace expressions;
@@ -61,16 +63,6 @@ TEST(accessor, is_accessor_readonly) {
     // TODO test accessor_mixed
 }
 
-TEST(accessor, is_grid_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_grid_accessor<global_accessor<0>>::value), "");
-}
-
-TEST(accessor, is_regular_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_regular_accessor<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor<global_accessor<0>>::value), "");
-}
-
 TEST(accessor, copy_const) {
     const accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3> in(1, 2, 3);
     const accessor<1, enumtype::inout, extent<-1, 0, 0, 0>, 3> out(in);
@@ -78,21 +70,6 @@ TEST(accessor, copy_const) {
     ASSERT_EQ(get<0>(in), get<0>(out));
     ASSERT_EQ(get<1>(in), get<1>(out));
     ASSERT_EQ(get<2>(in), get<2>(out));
-}
-
-TEST(accessor, remap_accessor) {
-    using accessor_t = accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3>;
-    accessor_t in(1, 2, 3);
-
-    using ArgsMap = std::tuple<std::integral_constant<size_t, 8>>;
-    using remap_accessor_t = remap_accessor_type<accessor_t, ArgsMap>::type;
-
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<remap_accessor_t>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((accessor_index<remap_accessor_t>::type::value == 8), "");
-
-    ASSERT_TRUE(get<0>(remap_accessor_t(in)) == 1);
-    ASSERT_TRUE(get<1>(remap_accessor_t(in)) == 2);
-    ASSERT_TRUE(get<2>(remap_accessor_t(in)) == 3);
 }
 
 TEST(accessor, trivial) {

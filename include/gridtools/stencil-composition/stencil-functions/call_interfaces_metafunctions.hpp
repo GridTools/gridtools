@@ -36,7 +36,6 @@
 #pragma once
 
 #include "../../common/defs.hpp"
-#include "../structured_grids/accessor_metafunctions.hpp"
 #include "./call_interfaces_fwd.hpp"
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/find_if.hpp>
@@ -178,9 +177,4 @@ namespace gridtools {
         }
 
     } // namespace _impl
-
-    template <typename Type, typename ArgsMap>
-    struct remap_accessor_type<_impl::wrap_reference<Type>, ArgsMap> {
-        using type = _impl::wrap_reference<Type>;
-    };
 } // namespace gridtools

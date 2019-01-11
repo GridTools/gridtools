@@ -105,7 +105,7 @@ namespace gridtools {
 
         template <uint_t Color, class ItDomain, enable_if_t<contains_color<Color>::value, int> = 0>
         static GT_FUNCTION void exec(ItDomain &it_domain) {
-            using eval_t = typename get_iterate_domain_remapper<ItDomain, Args, LocationType, Color>::type;
+            using eval_t = iterate_domain_remapper<ItDomain, Args, LocationType, Color>;
             eval_t eval{it_domain};
             using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
             functor_t::template Do<eval_t &>(eval);

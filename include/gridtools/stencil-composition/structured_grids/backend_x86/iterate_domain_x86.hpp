@@ -57,7 +57,6 @@ namespace gridtools {
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
 
       public:
-        using super::operator();
         typedef typename super::strides_cached_t strides_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 

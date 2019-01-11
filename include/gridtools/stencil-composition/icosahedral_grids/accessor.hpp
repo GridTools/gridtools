@@ -40,6 +40,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../accessor_base.hpp"
+#include "../accessor_fwd.hpp"
 #include "../extent.hpp"
 #include "../location_type.hpp"
 
@@ -75,5 +76,8 @@ namespace gridtools {
 
     template <uint_t ID, typename LocationType, ushort_t FieldDimensions = 4>
     using inout_accessor = accessor<ID, enumtype::inout, LocationType, extent<0>, FieldDimensions>;
+
+    template <uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions>
+    struct is_accessor<accessor<ID, Intent, LocationType, Extent, FieldDimensions>> : std::true_type {};
 
 } // namespace gridtools

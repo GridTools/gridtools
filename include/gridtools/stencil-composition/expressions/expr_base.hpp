@@ -78,8 +78,7 @@ namespace gridtools {
 
         template <class Arg>
         using expr_or_accessor =
-            bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value || is_global_accessor<Arg>::value ||
-                          is_global_accessor_with_arguments<Arg>::value>;
+            bool_constant<is_expr<Arg>::value || is_accessor<Arg>::value || is_global_accessor<Arg>::value>;
 
         template <class Op, class... Args, enable_if_t<disjunction<expr_or_accessor<Args>...>::value, int> = 0>
         GT_FUNCTION constexpr expr<Op, Args...> make_expr(Op, Args... args) {

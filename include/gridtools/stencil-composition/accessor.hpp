@@ -37,7 +37,6 @@
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/accessor.hpp"
-#include "./structured_grids/accessor_metafunctions.hpp"
 #include "./structured_grids/accessor_mixed.hpp"
 #else
 #include "./icosahedral_grids/accessor.hpp"
@@ -45,4 +44,3 @@
 #endif
 
 #include "./global_accessor.hpp"
-#include "./global_accessor_metafunctions.hpp"

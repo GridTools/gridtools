@@ -87,9 +87,9 @@ namespace gridtools {
             GT_FUNCTION auto operator()(expr<Op, Ts...> const &arg) const
                 GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
 
-            GT_FUNCTION auto i() const GT_AUTO_RETURN(m_it_domain.i());
-            GT_FUNCTION auto j() const GT_AUTO_RETURN(m_it_domain.j());
-            GT_FUNCTION auto k() const GT_AUTO_RETURN(m_it_domain.k());
+            GT_FUNCTION int_t i() const { return m_it_domain.i(); }
+            GT_FUNCTION int_t j() const { return m_it_domain.j(); }
+            GT_FUNCTION int_t k() const { return m_it_domain.k(); }
         };
     } // namespace impl_
 
@@ -121,7 +121,7 @@ namespace gridtools {
             (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
 
         template <class ItDomain>
-        static GT_FUNCTION void exec(ItDomain &it_domain) {
+        static GT_FUNCTION void exec(ItDomain const &it_domain) {
             GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             Stage::exec(it_domain);
             (void)(int[]){((void)Stages::exec(it_domain), 0)...};

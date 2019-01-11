@@ -42,11 +42,11 @@
 #include "../common/generic_metafunctions/binary_ops.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
+#include "accessor_metafunctions.hpp"
 #include "esf.hpp"
 #include "independent_esf.hpp"
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids/accessor_metafunctions.hpp"
 #include "structured_grids/esf_metafunctions.hpp"
 #else
 #include "icosahedral_grids/accessor_metafunctions.hpp"
