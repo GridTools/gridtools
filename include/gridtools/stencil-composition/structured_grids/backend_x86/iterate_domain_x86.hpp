@@ -77,7 +77,7 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        template <class Ptr>
+        template <class Arg, class Ptr>
         static GT_FORCE_INLINE auto deref_impl(Ptr &&ptr) GT_AUTO_RETURN(*ptr);
 
         /**

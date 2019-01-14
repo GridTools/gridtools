@@ -40,6 +40,7 @@
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../iterate_domain_fwd.hpp"
+#include "../esf_metafunctions.hpp"
 #include "../grid_traits.hpp"
 #include "../iterate_domain.hpp"
 
@@ -59,6 +60,8 @@ namespace gridtools {
 
         using super::increment_i;
         using super::increment_j;
+
+        using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
 
       public:
         typedef typename super::strides_cached_t strides_cached_t;
@@ -130,13 +133,15 @@ namespace gridtools {
          * Value is read via texture system
          */
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-        template <class T>
-        static GT_FUNCTION enable_if_t<is_texture_type<T>::value, T> deref_impl(T const *ptr) {
+        template <class Arg, class T>
+        static GT_FUNCTION
+            enable_if_t<!boost::mpl::has_key<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
+            deref_impl(T const *ptr) {
             return __ldg(ptr);
         }
 #endif
 
-        template <class Ptr>
+        template <class Arg, class Ptr>
         static GT_FUNCTION auto deref_impl(Ptr ptr) GT_AUTO_RETURN(*ptr);
 
         // kcaches not yet implemented

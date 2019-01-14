@@ -42,8 +42,4 @@ namespace gridtools {
     static_assert(!is_texture_type<bool>::value, "");
     static_assert(is_texture_type<double>::value, "");
     static_assert(is_texture_type<uint_t>::value, "");
-    static_assert(is_texture_type<int &>::value, "");
-    static_assert(is_texture_type<int const volatile>::value, "");
-    static_assert(is_texture_type<int & RESTRICT>::value, "");
-    static_assert(is_texture_type<int * RESTRICT>::value, "");
 } // namespace gridtools

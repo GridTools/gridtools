@@ -278,7 +278,7 @@ namespace gridtools {
             conditional_t<Intent == enumtype::in, data_t const, data_t> *ptr =
                 boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + pointer_offset;
 
-            return IterateDomainImpl::deref_impl(ptr);
+            return IterateDomainImpl::template deref_impl<Arg>(ptr);
         }
     };
 } // namespace gridtools

@@ -44,7 +44,6 @@
 #include "../meta/macros.hpp"
 #include "../meta/st_contains.hpp"
 #include "../meta/type_traits.hpp"
-#include "generic_metafunctions/gt_remove_qualifiers.hpp"
 
 namespace gridtools {
     namespace impl_ {
@@ -68,7 +67,6 @@ namespace gridtools {
     } // namespace impl_
 
     template <class T>
-    GT_META_DEFINE_ALIAS(
-        is_texture_type, meta::st_contains, (impl_::texture_types, typename remove_qualifiers<T>::type));
+    GT_META_DEFINE_ALIAS(is_texture_type, meta::st_contains, (impl_::texture_types, T));
 
 } // namespace gridtools

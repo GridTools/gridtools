@@ -48,6 +48,7 @@
 #include "../../../common/host_device.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../iterate_domain_fwd.hpp"
+#include "../esf_metafunctions.hpp"
 #include "../iterate_domain.hpp"
 
 namespace gridtools {
@@ -67,6 +68,8 @@ namespace gridtools {
         typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         typedef typename local_domain_t::esf_args local_domain_args_t;
+
+        using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
 
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
@@ -159,13 +162,15 @@ namespace gridtools {
         }
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
-        template <class T>
-        static GT_FUNCTION enable_if_t<is_texture_type<T>::value, T> deref_impl(T const *ptr) {
+        template <class Arg, class T>
+        static GT_FUNCTION
+            enable_if_t<!boost::mpl::has_key<readwrite_args_t, Arg>::value && is_texture_type<T>::value, T>
+            deref_impl(T const *ptr) {
             return __ldg(ptr);
         }
 #endif
 
-        template <class Ptr>
+        template <class Arg, class Ptr>
         static GT_FUNCTION auto deref_impl(Ptr ptr) GT_AUTO_RETURN(*ptr);
 
         template <typename IterationPolicy>
