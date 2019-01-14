@@ -107,7 +107,7 @@ namespace gridtools {
          * @brief determines whether the current (i,j) position is within the block size
          */
         template <typename Extent>
-        __forceinline__ __device__ bool is_thread_in_domain() const {
+        GT_FUNCTION bool is_thread_in_domain() const {
             return m_thread_pos[0] >= Extent::iminus::value &&
                    m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
                    m_thread_pos[1] >= Extent::jminus::value &&
