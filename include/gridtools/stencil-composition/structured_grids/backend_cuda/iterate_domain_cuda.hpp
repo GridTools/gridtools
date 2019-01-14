@@ -75,7 +75,6 @@ namespace gridtools {
         typedef typename super::strides_cached_t strides_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
-        typedef typename super::readonly_args_t readonly_args_t;
 
         typedef shared_iterate_domain<strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
@@ -124,27 +123,6 @@ namespace gridtools {
             return m_pshared_iterate_domain->strides();
         }
         GT_FUNCTION strides_cached_t &RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
-
-        /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs
-         */
-        template <typename Accessor>
-        struct accessor_points_to_readonly_arg {
-
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-
-            typedef typename boost::mpl::at<local_domain_args_t,
-                boost::mpl::integral_c<int, Accessor::index_t::value>>::type arg_t;
-
-            typedef typename boost::mpl::has_key<readonly_args_t, arg_t>::type type;
-        };
-
-        /**
-         * @brief metafunction that determines if an accessor is accessed via shared memory
-         */
-        template <typename Accessor>
-        struct accessor_from_shared_mem : index_is_cached<Accessor::index_t::value, ij_caches_map_t> {
-            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, GT_INTERNAL_ERROR);
-        };
 
         /**
          * @brief metafunction that determines if an accessor is accessed via kcache register set

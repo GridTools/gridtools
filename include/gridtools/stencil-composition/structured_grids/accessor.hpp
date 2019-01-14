@@ -63,7 +63,7 @@ namespace gridtools {
     /**
        @brief the definition of accessor visible to the user
 
-       \tparam ID the integer unic ID of the field placeholder
+       \tparam ID the integer unique ID of the field placeholder
 
        \tparam Extent the extent of i/j indices spanned by the
                placeholder, in the form of <i_minus, i_plus, j_minus,
@@ -86,10 +86,6 @@ namespace gridtools {
 
         /**inheriting all constructors from accessor_base*/
         using accessor_base<Number>::accessor_base;
-
-        template <uint_t OtherID, typename std::enable_if<ID != OtherID, int>::type = 0>
-        GT_FUNCTION constexpr accessor(accessor<OtherID, Intent, Extent, Number> const &src)
-            : accessor_base<Number>(src) {}
     };
 
     template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>

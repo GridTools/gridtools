@@ -71,11 +71,6 @@ struct iterate_domain_mock {
         GT_AUTO_RETURN(expressions::evaluation::value(*this, arg));
 };
 
-namespace gridtools {
-    template <>
-    struct is_iterate_domain<iterate_domain_mock> : boost::mpl::true_ {};
-} // namespace gridtools
-
 using val = accessor_mock<float>;
 
 /*

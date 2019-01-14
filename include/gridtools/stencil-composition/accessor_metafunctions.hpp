@@ -38,8 +38,6 @@
 #include <type_traits>
 
 #include "../common/defs.hpp"
-#include "../meta/at.hpp"
-#include "../meta/length.hpp"
 #include "../meta/type_traits.hpp"
 #include "./accessor_fwd.hpp"
 
@@ -63,13 +61,4 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
         using type = typename Accessor::index_t;
     };
-
-    namespace _impl {
-        template <size_t ID, class ArgsMap>
-        constexpr ushort_t get_remap_accessor_id() {
-            GRIDTOOLS_STATIC_ASSERT(meta::length<ArgsMap>::value != 0, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(ID < meta::length<ArgsMap>::value, GT_INTERNAL_ERROR);
-            return meta::lazy::at_c<ArgsMap, ID>::type::value;
-        }
-    } // namespace _impl
 } // namespace gridtools

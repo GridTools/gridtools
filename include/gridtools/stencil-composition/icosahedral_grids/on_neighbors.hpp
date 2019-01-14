@@ -36,8 +36,8 @@
 #pragma once
 
 #include "../../meta/type_traits.hpp"
+#include "../accessor_fwd.hpp"
 #include "../location_type.hpp"
-#include "./accessor_metafunctions.hpp"
 
 namespace gridtools {
 

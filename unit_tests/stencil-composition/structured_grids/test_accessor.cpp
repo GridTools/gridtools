@@ -63,15 +63,6 @@ TEST(accessor, is_accessor_readonly) {
     // TODO test accessor_mixed
 }
 
-TEST(accessor, copy_const) {
-    const accessor<0, enumtype::inout, extent<-1, 0, 0, 0>, 3> in(1, 2, 3);
-    const accessor<1, enumtype::inout, extent<-1, 0, 0, 0>, 3> out(in);
-
-    ASSERT_EQ(get<0>(in), get<0>(out));
-    ASSERT_EQ(get<1>(in), get<1>(out));
-    ASSERT_EQ(get<2>(in), get<2>(out));
-}
-
 TEST(accessor, trivial) {
     accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
 

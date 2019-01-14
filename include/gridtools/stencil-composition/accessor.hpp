@@ -40,7 +40,6 @@
 #include "./structured_grids/accessor_mixed.hpp"
 #else
 #include "./icosahedral_grids/accessor.hpp"
-#include "./icosahedral_grids/accessor_metafunctions.hpp"
 #endif
 
 #include "./global_accessor.hpp"

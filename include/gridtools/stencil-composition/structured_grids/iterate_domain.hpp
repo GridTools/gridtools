@@ -70,8 +70,6 @@ namespace gridtools {
 
         // **************** end of internal type definitions
         //***************** types exposed in API
-        typedef
-            typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
         typedef typename local_domain_t::esf_args esf_args_t;
         //*****************
 
@@ -211,14 +209,6 @@ namespace gridtools {
                        ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
                        : nullptr;
         }
-
-        template <class Arg, enumtype::intent Intent>
-        struct deref_type : std::add_lvalue_reference<typename Arg::data_store_t::data_t> {};
-
-        template <class Arg>
-        struct deref_type<Arg, enumtype::in> {
-            using type = typename Arg::data_store_t::data_t;
-        };
 
         /**
          * @brief Method called in the Do methods of the functors.

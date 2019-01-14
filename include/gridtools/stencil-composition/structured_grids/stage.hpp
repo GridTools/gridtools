@@ -40,7 +40,7 @@
  *   Stage concept represents elementary functor from the backend implementor point of view.
  *
  *   Stage must have the nested `extent_t` type or an alias that has to model Extent concept.
- *   The meaning: the stage should be computed in the area that is extended from the user provided computation aria by
+ *   The meaning: the stage should be computed in the area that is extended from the user provided computation area by
  *   that much.
  *
  *   Stage also have static `exec` method that accepts an object by reference that models IteratorDomain.
@@ -78,7 +78,7 @@ namespace gridtools {
 
             ItDomain const &m_it_domain;
 
-            template <typename Accessor>
+            template <class Accessor>
             GT_FUNCTION auto operator()(Accessor const &arg) const
                 GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
                                 Accessor::intent>(arg)));

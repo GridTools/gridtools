@@ -36,7 +36,6 @@
 #pragma once
 
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
 #include "../iterate_domain.hpp"
 
@@ -79,7 +78,7 @@ namespace gridtools {
         }
 
         template <class Ptr>
-        static GT_FORCE_INLINE auto deref_impl(Ptr ptr) GT_AUTO_RETURN(*ptr);
+        static GT_FORCE_INLINE auto deref_impl(Ptr &&ptr) GT_AUTO_RETURN(*ptr);
 
         /**
          * caches are not currently used in x86 backend
@@ -115,5 +114,5 @@ namespace gridtools {
     };
 
     template <typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_x86<IterateDomainArguments>> : public boost::mpl::true_ {};
+    struct is_iterate_domain<iterate_domain_x86<IterateDomainArguments>> : std::true_type {};
 } // namespace gridtools

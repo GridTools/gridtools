@@ -52,7 +52,6 @@
 #include "../../global_accessor.hpp"
 #include "../../iterate_domain_aux.hpp"
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
 #include "../../offset_computation.hpp"
 
 namespace gridtools {
@@ -232,14 +231,6 @@ namespace gridtools {
 
         /** @brief Enables ij-caches. */
         GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
-
-        template <class Arg, enumtype::intent Intent>
-        struct deref_type : std::add_lvalue_reference<typename Arg::data_store_t::data_t> {};
-
-        template <class Arg>
-        struct deref_type<Arg, enumtype::in> {
-            using type = typename Arg::data_store_t::data_t;
-        };
 
         /**
          * @brief Method called in the Do methods of the functors.

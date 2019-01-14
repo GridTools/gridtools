@@ -40,7 +40,6 @@
 #include "../../common/host_device.hpp"
 #include "../../meta.hpp"
 #include "../accessor_fwd.hpp"
-#include "../accessor_metafunctions.hpp"
 
 namespace gridtools {
 
