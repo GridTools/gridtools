@@ -38,7 +38,6 @@
 #include <type_traits>
 
 #include "../../common/array.hpp"
-#include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
 #include "../esf_metafunctions.hpp"

@@ -41,7 +41,6 @@
 #include <boost/fusion/include/vector.hpp>
 #include <type_traits>
 
-#include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../accessor.hpp"
 #include "../expressions/expr_base.hpp"
