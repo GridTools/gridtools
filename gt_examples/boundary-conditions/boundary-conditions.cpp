@@ -57,7 +57,7 @@
 
     THE MAIN IDEA:
     A boundary condition class specializes `operator()` to accept a
-    direction and when that diretction is accessed, the data fields in
+    direction and when that direction is accessed, the data fields in
     the boundary corresponding to that direction can be accessed.
  */
 
