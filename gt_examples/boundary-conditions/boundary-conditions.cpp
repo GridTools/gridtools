@@ -56,7 +56,7 @@
     which the grid is topologically analogous with.
 
     THE MAIN IDEA:
-    A boundary condition class specialize operator() to accept a
+    A boundary condition class specializes `operator()` to accept a
     direction and when that diretction is accessed, the data fields in
     the boundary corresponding to that direction can be accessed.
  */
