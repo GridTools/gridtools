@@ -44,20 +44,20 @@
     boundary condition library applies, we associate a 3D axis system,
     and the cell indices (i,j,k) naturally lie on it. With this axis
     system the concept of "vector" can be defined to indicate
-    distances and directions. Direction is the one think we need
+    distances and directions. Direction is the one thing we need
     here. Instead of using unitary vectors to indicate directions, as
     it is usually the case for euclidean spaces, we use vectors whose
     components are -1, 0, and 1.  For example, (1, 1, 1) is the
     dicretion indicated by the unit vector (1,1,1)/sqrt(3).
 
     If we take the center of a 3D grid, then we can define 26
-    different directions {(i,j,k): i,j,k \in {-1, 0, 1}}\{0,0,0} that
+    different directions {(i,j,k): i,j,k \in {-1,0,1}}\{0,0,0} that
     identify the different faces, edges and corners of the cube to
     which the grid is topologically analogous with.
 
     THE MAIN IDEA:
-    A boundary condition class specialize operator() to accept a
-    direction and when that diretction is accessed, the data fields in
+    A boundary condition class specializes `operator()` to accept a
+    direction and when that direction is accessed, the data fields in
     the boundary corresponding to that direction can be accessed.
  */
 

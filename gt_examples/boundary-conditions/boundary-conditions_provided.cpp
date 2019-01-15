@@ -40,7 +40,7 @@
     They are:
 
     - copy_boundary, that takes 2 or 3 fields, and copy the values at
-      the bopundary of the last one into the others;
+      the boundary of the last one into the others;
 
     - zero_boundary, that set the boundary of the fields (maximum 3 in
       current implementation) to the default constructed value of the
