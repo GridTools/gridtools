@@ -96,7 +96,7 @@ namespace gridtools {
             GT_FUNCTION
             precomputed_pred(precomputed_pred const &) = default;
 
-            template <sign I, sign J, sign K>
+            template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
             GT_FUNCTION bool operator()(direction<I, J, K>) const {
                 return m_values[static_cast<int>(I) + 1][static_cast<int>(J) + 1][static_cast<int>(K) + 1];
             }
@@ -360,8 +360,8 @@ namespace gridtools {
                 m_conf,
                 m_halo_descriptors,
                 data_field_views...);
-            cudaDeviceSynchronize();
 #ifndef NDEBUG
+            cudaDeviceSynchronize();
             cudaError_t error = cudaGetLastError();
             if (error != cudaSuccess) {
                 fprintf(stderr, "CUDA ERROR: %s in %s at line %dn", cudaGetErrorString(error), __FILE__, __LINE__);
@@ -460,8 +460,8 @@ namespace gridtools {
                     ny,
                     nz,
                     data_field_views...);
-            cudaDeviceSynchronize();
 #ifndef NDEBUG
+            cudaDeviceSynchronize();
             cudaError_t error = cudaGetLastError();
             if (error != cudaSuccess) {
                 fprintf(stderr, "CUDA ERROR: %s in %s at line %dn", cudaGetErrorString(error), __FILE__, __LINE__);
@@ -538,8 +538,6 @@ namespace gridtools {
                 apply_it<direction<plus_, plus_, zero_>>(data_field_views...);
             if (predicate(direction<plus_, plus_, plus_>()))
                 apply_it<direction<plus_, plus_, plus_>>(data_field_views...);
-
-            cudaDeviceSynchronize();
         }
     };
 
