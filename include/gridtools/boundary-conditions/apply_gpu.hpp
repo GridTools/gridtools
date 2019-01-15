@@ -96,7 +96,7 @@ namespace gridtools {
             GT_FUNCTION
             precomputed_pred(precomputed_pred const &) = default;
 
-            template <sign I, sign J, sign K>
+            template <gridtools::sign I, gridtools::sign J, gridtools::sign K>
             GT_FUNCTION bool operator()(direction<I, J, K>) const {
                 return m_values[static_cast<int>(I) + 1][static_cast<int>(J) + 1][static_cast<int>(K) + 1];
             }
