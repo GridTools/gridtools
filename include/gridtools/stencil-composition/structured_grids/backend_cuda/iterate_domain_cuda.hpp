@@ -127,14 +127,6 @@ namespace gridtools {
         }
         GT_FUNCTION strides_cached_t &RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
 
-        /**
-         * @brief metafunction that determines if an accessor is accessed via kcache register set
-         */
-        template <typename Accessor>
-        struct accessor_from_kcache_reg : index_is_cached<Accessor::index_t::value, k_caches_map_t> {
-            GRIDTOOLS_STATIC_ASSERT(is_accessor<Accessor>::value, GT_INTERNAL_ERROR);
-        };
-
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
          */
