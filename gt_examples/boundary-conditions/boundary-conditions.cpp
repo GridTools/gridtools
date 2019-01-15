@@ -44,7 +44,7 @@
     boundary condition library applies, we associate a 3D axis system,
     and the cell indices (i,j,k) naturally lie on it. With this axis
     system the concept of "vector" can be defined to indicate
-    distances and directions. Direction is the one think we need
+    distances and directions. Direction is the one thing we need
     here. Instead of using unitary vectors to indicate directions, as
     it is usually the case for euclidean spaces, we use vectors whose
     components are -1, 0, and 1.  For example, (1, 1, 1) is the
