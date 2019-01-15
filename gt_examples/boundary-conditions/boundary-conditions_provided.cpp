@@ -52,9 +52,10 @@
     code to check correctness.
  */
 
+#include <iostream>
+
 #include <gridtools/boundary-conditions/boundary.hpp>
 #include <gridtools/tools/backend_select.hpp>
-#include <iostream>
 
 #include <gridtools/boundary-conditions/copy.hpp>
 #include <gridtools/boundary-conditions/value.hpp>
@@ -77,13 +78,13 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<int, meta_data_t> storage_t;
+    using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
+    using storage_t = backend_t::storage_traits_t::data_store_t<int, storage_info_t>;
 
     // Definition of the actual data fields that are used for input/output
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in_s(meta_, [](int i, int j, int k) { return i + j + k; }, "in");
-    storage_t out_s(meta_, 0, "out");
+    storage_info_t storage_info(d1, d2, d3);
+    storage_t in_s(storage_info, [](int i, int j, int k) { return i + j + k; }, "in");
+    storage_t out_s(storage_info, 0, "out");
 
     /* Defintion of the boundaries of the storage. We use
        halo_descriptor, that are used also in the current
@@ -122,7 +123,6 @@ int main(int argc, char **argv) {
         assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 
         // reactivate views and check consistency
-        in_s.reactivate_host_write_views();
         out_s.reactivate_host_write_views();
         assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
         assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
@@ -132,6 +132,7 @@ int main(int argc, char **argv) {
                 for (uint_t k = 0; k < d3; ++k) {
                     // check outer surfaces of the cube
                     if ((i == 0 || i == d1 - 1) || (j == 0 || j == d2 - 1) || (k == 0 || k == d3 - 1)) {
+                        error |= out(i, j, k) != i + j + k;
                         error |= out(i, j, k) != i + j + k;
                     } else {
                         error |= out(i, j, k) != 0;

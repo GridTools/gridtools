@@ -93,6 +93,10 @@ struct direction_bc_input {
     GT_FUNCTION
     direction_bc_input(T v) : value(v) {}
 
+    // This is the primary template and it will be picked when all the
+    // other specializations below fail to be selected. It is
+    // important for debugging to note that, if a needed
+    // specialization i missing, this version will be selected.
     template <typename Direction, typename DataField0, typename DataField1>
     GT_FUNCTION void operator()(
         Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
@@ -143,13 +147,13 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>> meta_data_t;
-    typedef backend_t::storage_traits_t::data_store_t<int, meta_data_t> storage_t;
+    using storage_info_t = backend_t::storage_traits_t::storage_info_t<0, 3, gt::halo<1, 1, 1>>;
+    using storage_t = backend_t::storage_traits_t::data_store_t<int, storage_info_t>;
 
     // Definition of the actual data fields that are used for input/output
-    meta_data_t meta_(d1, d2, d3);
-    storage_t in_s(meta_, [](int i, int j, int k) { return i + j + k; }, "in");
-    storage_t out_s(meta_, 0, "out");
+    storage_info_t storage_info(d1, d2, d3);
+    storage_t in_s(storage_info, [](int i, int j, int k) { return i + j + k; }, "in");
+    storage_t out_s(storage_info, 0, "out");
 
     /* Defintion of the boundaries of the storage. We use
        halo_descriptor, that are used also in the current
@@ -190,8 +194,6 @@ int main(int argc, char **argv) {
     assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
     assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 
-    // reactivate views and check consistency
-    in_s.reactivate_host_write_views();
     out_s.reactivate_host_write_views();
     assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
     assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
@@ -216,7 +218,7 @@ int main(int argc, char **argv) {
         for (uint_t k = 0; k < d3; ++k) {
             if (out(i, 0, k) != in(i, 1, k)) {
                 std::cout << "Error: out(0, 0, 0) == " << out(i, 0, k) << " != in(" << i + 1 << ",0," << k + 1
-                          << ") = " << in(i + 1, 0, k + 1) << "\n";
+                          << ") == " << in(i + 1, 0, k + 1) << "\n";
                 error = true;
             }
         }
@@ -229,7 +231,9 @@ int main(int argc, char **argv) {
                 // check outer surfaces of the cube
                 if (((i == 0 || i == d1 - 1) && j > 0) || (j > 0 && (k == 0 || k == d3 - 1))) {
                     if (out(i, j, k) != 42) {
-                        std::cout << "Error: values in OUTPUT field are wrong " << i << " " << j << " " << k << "\n";
+                        std::cout << "Error: out(0, 0, 0) == " << out(i, 0, k) << " != 42"
+                                  << "\n";
+
                         error = true;
                     }
                 }
