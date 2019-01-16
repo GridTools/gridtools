@@ -40,8 +40,8 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
-#include "../accessor_fwd.hpp"
-#include "../global_accessor_fwd.hpp"
+#include "../is_accessor.hpp"
+#include "../is_global_accessor.hpp"
 
 namespace gridtools {
 

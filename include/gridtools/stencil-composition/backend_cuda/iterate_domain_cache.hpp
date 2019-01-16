@@ -55,7 +55,6 @@
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 
-#include "../accessor_fwd.hpp"
 #include "../block.hpp"
 #include "../block_size.hpp"
 #include "../caches/cache_metafunctions.hpp"

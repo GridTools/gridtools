@@ -39,9 +39,9 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
-#include "./accessor_fwd.hpp"
 #include "./extent.hpp"
-#include "./global_accessor_fwd.hpp"
+#include "./is_accessor.hpp"
+#include "./is_global_accessor.hpp"
 
 namespace gridtools {
 

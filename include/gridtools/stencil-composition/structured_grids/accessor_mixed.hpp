@@ -35,11 +35,12 @@
 */
 
 #pragma once
+
 #include "../../common/defs.hpp"
 #include "../../common/dimension.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta.hpp"
-#include "../accessor_fwd.hpp"
+#include "../is_accessor.hpp"
 
 namespace gridtools {
 
