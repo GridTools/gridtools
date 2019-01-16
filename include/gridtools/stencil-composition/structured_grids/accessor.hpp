@@ -41,7 +41,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../accessor_base.hpp"
-#include "../accessor_fwd.hpp"
+#include "../is_accessor.hpp"
 #include "extent.hpp"
 /**
    @file

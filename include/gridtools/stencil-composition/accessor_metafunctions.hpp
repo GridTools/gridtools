@@ -39,7 +39,7 @@
 
 #include "../common/defs.hpp"
 #include "../meta/type_traits.hpp"
-#include "./accessor_fwd.hpp"
+#include "is_accessor.hpp"
 
 namespace gridtools {
     template <class Accessor, class = void>
