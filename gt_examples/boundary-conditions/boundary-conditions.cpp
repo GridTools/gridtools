@@ -51,7 +51,7 @@
     dicretion indicated by the unit vector (1,1,1)/sqrt(3).
 
     If we take the center of a 3D grid, then we can define 26
-    different directions {(i,j,k): i,j,k \in {-1,0,1}}\{0,0,0} that
+    different directions {(i,j,k): i,j,k \in {-1, 0, 1}} \ { (0,0,0) } that
     identify the different faces, edges and corners of the cube to
     which the grid is topologically analogous with.
 
