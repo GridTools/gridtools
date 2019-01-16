@@ -1,4 +1,6 @@
-Halo Exchanges
+.. _halo-exchanges:
+
+Halo exchanges
 ========================
 
 ----------------
@@ -127,12 +129,14 @@ dimension in the processor grid. Again, the data coordinates
 ordering is the one the user choose to be the logical order in the
 application, not the increasing stride order.
 
+.. _halo-descriptor:
+
 ^^^^^^^^^^^^^^^^
 Halo descriptor
 ^^^^^^^^^^^^^^^^
 
-Given a dimension of the data (array), the communication module
-requires the user to describe it using the ``halo_descriptor`` class,
+Given  a  dimension of  the  data  (array), the  communication  module
+requires the user to describe  it using the ``halo_descriptor`` class,
 which takes five integers.
 
 Consider a dimension which has ``minus`` halo lines on one side, and
