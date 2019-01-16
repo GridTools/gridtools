@@ -136,9 +136,10 @@ namespace gridtools {
         typename BlockSize,
         typename LocalDomain>
     struct get_cache_storage_tuple {
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_block_size<BlockSize>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
 
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
         // into a fusion vector.

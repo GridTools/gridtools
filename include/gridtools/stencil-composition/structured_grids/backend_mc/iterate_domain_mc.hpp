@@ -201,7 +201,7 @@ namespace gridtools {
               m_j_block_base(0), m_prefetch_distance(0), m_enable_ij_caches(false) {
             // assign stride pointers
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>(m_strides));
+                assign_strides<backend_traits_t, strides_cached_t, local_domain_t>{m_strides});
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 _impl::assign_data_ptr_offsets<local_domain_t, data_ptr_offsets_t>{local_domain, m_data_ptr_offsets});
         }

@@ -58,8 +58,7 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
-        : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> // CRTP
-    {
+        : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
         iterate_domain_cuda(iterate_domain_cuda const &) = delete;
         iterate_domain_cuda &operator=(iterate_domain_cuda const &) = delete;
 
@@ -67,7 +66,6 @@ namespace gridtools {
 
         typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
-        typedef typename local_domain_t::esf_args local_domain_args_t;
 
         using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
 
@@ -79,9 +77,7 @@ namespace gridtools {
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
-        typedef shared_iterate_domain<strides_cached_t,
-            typename IterateDomainArguments::max_extent_t,
-            typename iterate_domain_cache_t::ij_caches_tuple_t>
+        typedef shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
 
         static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
@@ -136,8 +132,7 @@ namespace gridtools {
             enable_if_t<index_is_cached<Index, ij_caches_map_t>::value, int> = 0>
         GT_FUNCTION ReturnType get_cache_value_impl(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
-            // position within
-            // the block and the offsets of the accessor
+            // position within the block and the offsets of the accessor
             return m_pshared_iterate_domain->template get_ij_cache<static_uint<Index>>().at<0>(m_thread_pos, acc);
         }
 

@@ -115,9 +115,6 @@ namespace gridtools {
 
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain_is_stateful<local_domain<EsfArgs, MaxExtentForTmp, IsStateful>> : bool_constant<IsStateful> {};
-
-    template <class>
-    struct local_domain_esf_args;
 } // namespace gridtools
 
 #ifdef _USE_GPU_

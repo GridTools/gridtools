@@ -132,7 +132,7 @@ namespace gridtools {
             typedef typename it_domain_t::strides_cached_t strides_t;
             strides_t strides;
 
-            it_domain.set_strides_pointer_impl(&strides);
+            it_domain.set_strides_pointer(&strides);
 
             it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
 #endif

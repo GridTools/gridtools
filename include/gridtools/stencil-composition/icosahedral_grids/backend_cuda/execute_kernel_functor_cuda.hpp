@@ -97,7 +97,7 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
+            it_domain.template assign_stride_pointers<backend_traits_t>();
 
             __syncthreads();
 

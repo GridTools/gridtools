@@ -99,62 +99,6 @@ namespace gridtools {
         };
 
         /**
-         * @brief Boost MPL-style metafunction class, evaluating if `CacheStorage` interval end point matches with
-         * `IterationPolicy` end point.
-         */
-        template <class IterationPolicy>
-        struct is_end_index {
-            static constexpr auto iteration_to_index = level_to_index<typename IterationPolicy::to>::type::value;
-
-            template <class CacheStorage>
-            struct apply {
-                using cache_interval_t = typename CacheStorage::cache_t::interval_t;
-                static constexpr auto from_index = interval_from_index<cache_interval_t>::type::value;
-                static constexpr auto to_index = interval_to_index<cache_interval_t>::type::value;
-                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
-                                                  ? to_index == iteration_to_index
-                                                  : from_index == iteration_to_index;
-            };
-        };
-
-        /**
-         * @brief Boost MPL-style metafunction class, evaluating if `CacheStorage` interval begin point matches with
-         * `IterationPolicy` begin point.
-         */
-        template <class IterationPolicy>
-        struct is_begin_index {
-            static constexpr auto iteration_from_index = level_to_index<typename IterationPolicy::from>::type::value;
-
-            template <class CacheStorage>
-            struct apply {
-                using cache_interval_t = typename CacheStorage::cache_t::interval_t;
-                static constexpr auto from_index = interval_from_index<cache_interval_t>::type::value;
-                static constexpr auto to_index = interval_to_index<cache_interval_t>::type::value;
-                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
-                                                  ? from_index == iteration_from_index
-                                                  : to_index == iteration_from_index;
-            };
-        };
-
-        /**
-         * @brief Boost MPL-style metafunction class, evaluating if `CacheStorage` interval overlaps with
-         * `IterationPolicy` interval.
-         */
-        template <class IterationPolicy>
-        struct is_active_index {
-            static constexpr auto iteration_from_index = level_to_index<typename IterationPolicy::from>::type::value;
-            static constexpr auto iteration_to_index = level_to_index<typename IterationPolicy::to>::type::value;
-
-            template <class CacheStorage>
-            struct apply {
-                using cache_interval_t = typename CacheStorage::cache_t::interval_t;
-                static constexpr auto from_index = interval_from_index<cache_interval_t>::type::value;
-                static constexpr auto to_index = interval_to_index<cache_interval_t>::type::value;
-                static constexpr bool value = (to_index >= iteration_from_index) && (from_index <= iteration_to_index);
-            };
-        };
-
-        /**
          * @brief Functor used to apply the slide operation on all kcache arguments of the kcache tuple.
          */
         template <typename IterationPolicy>
@@ -164,7 +108,7 @@ namespace gridtools {
              */
             template <typename CacheStoragePair>
             GT_FUNCTION void operator()(CacheStoragePair &st_pair) const {
-                st_pair.second.template slide<IterationPolicy>();
+                st_pair.second.template slide<IterationPolicy::value>();
             }
         };
     } // namespace impl_
@@ -180,7 +124,7 @@ namespace gridtools {
     class iterate_domain_cache {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
 
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 
@@ -197,11 +141,7 @@ namespace gridtools {
         using block_size_t = block_size<block_i_size(backend_ids_t{}), block_j_size(backend_ids_t{}), 1>;
 
       public:
-        GT_FUNCTION
-        iterate_domain_cache() {}
-
-        GT_FUNCTION
-        ~iterate_domain_cache() {}
+        iterate_domain_cache() = default;
 
         static constexpr bool has_ij_caches =
             boost::mpl::count_if<cache_sequence_t, cache_is_type<IJ>>::type::value != 0;

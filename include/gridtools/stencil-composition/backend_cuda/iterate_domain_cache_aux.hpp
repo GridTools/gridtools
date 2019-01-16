@@ -182,8 +182,8 @@ namespace gridtools {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
-                static constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                static constexpr int_t kplus = kcache_storage_t::kplus_t::value;
+                static constexpr int_t kminus = kcache_storage_t::kminus;
+                static constexpr int_t kplus = kcache_storage_t::kplus;
 
                 // cache index at which we need to sync (single element)
                 static constexpr int_t sync_point = base::tail ? kminus : kplus;
@@ -219,8 +219,8 @@ namespace gridtools {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
                 // lowest and highest index in cache storage
-                static constexpr int_t kminus = kcache_storage_t::kminus_t::value;
-                static constexpr int_t kplus = kcache_storage_t::kplus_t::value;
+                static constexpr int_t kminus = kcache_storage_t::kminus;
+                static constexpr int_t kplus = kcache_storage_t::kplus;
 
                 // with fill or flush caches, we need to load/store one element less at the begin and endpoints as the
                 // non-endpoint fill or flush on the same k-level will handle this already

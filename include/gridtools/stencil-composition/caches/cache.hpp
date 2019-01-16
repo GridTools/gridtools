@@ -63,11 +63,10 @@ namespace gridtools {
          * Caching assumes a parallelization model where all the processing all elements in the vertical dimension are
          * private to each parallel thread,
          * while the processing of grid points in the horizontal plane is executed by different parallel threads.
-         * Those caches that cover data in the horizontal (IJ and IJK) are accessed by parallel core units, and
-         * therefore require synchronization capabilities (for example shared memory in the GPU), like IJ or IJK caches.
+         * Those caches that cover data in the horizontal (IJ) are accessed by parallel core units, and
+         * therefore require synchronization capabilities (for example shared memory in the GPU), like IJ caches.
          * On the contrary caches in the K dimension are only accessed by one thread, and therefore resources can be
-         * allocated
-         * in on-chip without synchronization capabilities (for example registers in GPU)
+         * allocated in on-chip without synchronization capabilities (for example registers in GPU)
          * @tparam  cacheType type of cache
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
@@ -77,9 +76,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
             using arg_t = Arg;
             static constexpr cache_type cacheType = CacheType;
-            static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
     } // namespace detail
+
+    template <typename T>
+    struct is_cache : std::false_type {};
+
+    template <cache_type cacheType, class Arg, cache_io_policy cacheIOPolicy>
+    struct is_cache<detail::cache_impl<cacheType, Arg, cacheIOPolicy>> : std::true_type {};
 
     /**
      *	@brief function that forms a vector of caches that share the same cache type and input/output policy

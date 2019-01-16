@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <type_traits>
+
 #include <boost/mpl/integral_c.hpp>
 
 #include "../common/defs.hpp"
@@ -46,9 +48,9 @@ namespace gridtools {
         typedef boost::mpl::integral_c<int, Y> j_size_t;
     };
 
-    template <typename T>
-    struct is_block_size : boost::mpl::false_ {};
+    template <class>
+    struct is_block_size : std::false_type {};
 
     template <uint_t X, uint_t Y, uint_t... Rest>
-    struct is_block_size<block_size<X, Y, Rest...>> : boost::mpl::true_ {};
+    struct is_block_size<block_size<X, Y, Rest...>> : std::true_type {};
 } // namespace gridtools

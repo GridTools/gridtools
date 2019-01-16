@@ -151,11 +151,10 @@ namespace gridtools {
            local_domain.m_local_metadata vector, and stores them into an instance of the
            \ref strides_cached class.
          */
-        template <typename BackendType, typename Strides>
+        template <typename BackendType>
         GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                assign_strides<BackendType, strides_cached_t, local_domain_t>(strides()));
+                assign_strides<BackendType, strides_cached_t, local_domain_t>{strides()});
         }
 
         GT_FUNCTION array_index_t const &index() const { return m_index; }

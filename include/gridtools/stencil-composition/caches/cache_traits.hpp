@@ -48,11 +48,6 @@ namespace gridtools {
      * @struct is_cache
      * metafunction determining if a type is a cache type
      */
-    template <typename T>
-    struct is_cache : boost::mpl::false_ {};
-
-    template <cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy>
-    struct is_cache<detail::cache_impl<cacheType, Arg, cacheIOPolicy>> : boost::mpl::true_ {};
 
     /**
      * @struct is_ij_cache

@@ -58,7 +58,7 @@ namespace gridtools {
      * @tparam StridesType strides cached type
      * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
-    template <typename StridesType, typename MaxExtent, typename IJCachesTuple>
+    template <typename StridesType, typename IJCachesTuple>
     class shared_iterate_domain {
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
@@ -74,7 +74,7 @@ namespace gridtools {
         typedef typename fusion_map_to_mpl_map<IJCachesTuple>::type ij_caches_map_t;
 
       public:
-        shared_iterate_domain() {}
+        shared_iterate_domain() = default;
 
         GT_FUNCTION StridesType const &strides() const { return m_strides; }
         GT_FUNCTION StridesType &strides() { return m_strides; }
