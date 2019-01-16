@@ -361,6 +361,18 @@ namespace gridtools {
 
         local_domains_t const &local_domains() const { return m_local_domains; }
 
+        template <class Placeholder, class ExtentMap = extent_map_t>
+        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_extent(Placeholder) {
+            static_assert(is_plh<Placeholder>::value, "");
+            using Extent = typename boost::mpl::at<typename extent_map_t::type, Placeholder>::type;
+            return {Extent()};
+        }
+
+        template <class Placeholder, class ExtentMap = extent_map_t>
+        enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_extent(Placeholder) {
+            throw std::runtime_error("cannot get extent for computations that use stages with extent");
+        }
+
       private:
         template <class Src>
         static auto make_view_infos(Src &&src)

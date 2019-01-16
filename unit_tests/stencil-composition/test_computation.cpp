@@ -77,6 +77,11 @@ namespace gridtools {
             }
             size_t get_count() const { return m_count; }
             double get_time() const { return 0.; /* unused */ }
+
+            template <typename Arg>
+            std::array<int_t, 6> get_extent(Arg) {
+                return {};
+            }
         };
 
         TEST(computation, default_ctor) {

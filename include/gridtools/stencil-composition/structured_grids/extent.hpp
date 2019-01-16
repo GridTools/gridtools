@@ -142,4 +142,26 @@ namespace gridtools {
             Extent1::kminus::value + Extent2::kminus::value,
             Extent1::kplus::value + Extent2::kplus::value>;
     };
+
+    struct rt_extent {
+        template <class Extent>
+        rt_extent(Extent)
+            : iminus(Extent::iminus::value), iplus(Extent::iplus::value), jminus(Extent::jminus::value),
+              jplus(Extent::jplus::value), kminus(Extent::kminus::value), kplus(Extent::kplus::value) {
+            GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+        }
+        inline rt_extent(int_t iminus, int_t iplus, int_t jminus, int_t jplus, int_t kminus, int_t kplus)
+            : iminus(iminus), iplus(iplus), jminus(jminus), jplus(jplus), kminus(kminus), kplus(kplus) {}
+        inline bool operator==(const rt_extent &rhs) const {
+            return iminus == rhs.iminus && iplus == rhs.iplus && jminus == rhs.jminus && jplus == rhs.jplus &&
+                   kminus == rhs.kminus && kplus == rhs.kplus;
+        }
+        int_t iminus;
+        int_t iplus;
+        int_t jminus;
+        int_t jplus;
+        int_t kminus;
+        int_t kplus;
+    };
+
 } // namespace gridtools
