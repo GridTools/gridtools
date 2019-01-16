@@ -43,6 +43,7 @@
 #include "../common/permute_to.hpp"
 #include "../meta/type_traits.hpp"
 #include "arg.hpp"
+#include "extent.hpp"
 
 namespace gridtools {
 

@@ -79,8 +79,8 @@ namespace gridtools {
             double get_time() const { return 0.; /* unused */ }
 
             template <typename Arg>
-            std::array<int_t, 6> get_extent(Arg) {
-                return {};
+            rt_extent get_extent(Arg) {
+                return {0, 0, 0, 0, 0, 0};
             }
         };
 
