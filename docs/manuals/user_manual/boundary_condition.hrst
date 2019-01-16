@@ -1,3 +1,5 @@
+.. _boundary-conditions:
+
 Boundary Conditions
 =========================
 
@@ -78,8 +80,8 @@ apart the direction (0,0,-1):
        data_field0(i, j, k) = value;
      }
 
-     template <gt::sign I, gt::sign J, typename DataField0, typename DataField1>
-     GT_FUNCTION void operator()(gt::direction<I, J, gt::minus_>,
+     template <sign I, sign J, typename DataField0, typename DataField1>
+     GT_FUNCTION void operator()(direction<I, J, minus_>,
                                  DataField0 &data_field0, DataField1 const &,
                                  unsigned i, unsigned j,  unsigned k) const
      {
@@ -122,7 +124,7 @@ fields the ``operator()`` overloads of the boundary class require.
 
 .. code-block:: gridtools
 
-  gt::boundary<direction_bc_input<uint_t>, backend_t::backend_id_t>(halos, direction_bc_input<uint_t>(42))
+  boundary<direction_bc_input<uint_t>, backend_t::backend_id_t>(halos, direction_bc_input<uint_t>(42))
         .apply(out_s, in_s);
 
 As can be noted, the ``backend`` is also needed to select the proper
