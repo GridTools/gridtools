@@ -62,18 +62,23 @@ namespace gridtools {
             template <typename Arg>
             struct iface_arg {
                 virtual ~iface_arg() = default;
-                virtual rt_extent get_extent(Arg) const = 0;
+                virtual rt_extent get_arg_extent(Arg) const = 0;
+                virtual enumtype::intent get_arg_intent(Arg) const = 0;
             };
             template <typename...>
             struct iface_iterate;
             template <typename Arg, typename Arg2, typename... ArgRest>
             struct iface_iterate<Arg, Arg2, ArgRest...> : virtual iface_arg<Arg>, iface_iterate<Arg2, ArgRest...> {
-                using iface_arg<Arg>::get_extent;
-                using iface_iterate<Arg2, ArgRest...>::get_extent;
+                using iface_arg<Arg>::get_arg_extent;
+                using iface_iterate<Arg2, ArgRest...>::get_arg_extent;
+
+                using iface_arg<Arg>::get_arg_intent;
+                using iface_iterate<Arg2, ArgRest...>::get_arg_intent;
             };
             template <typename Arg>
             struct iface_iterate<Arg> : virtual iface_arg<Arg> {
-                using iface_arg<Arg>::get_extent;
+                using iface_arg<Arg>::get_arg_extent;
+                using iface_arg<Arg>::get_arg_intent;
             };
             template <>
             struct iface_iterate<> {};
@@ -107,7 +112,8 @@ namespace gridtools {
             Obj &m_obj;
             impl_arg(Obj &obj) : m_obj(obj) {}
 
-            rt_extent get_extent(Arg) const override { return m_obj.get_extent(Arg()); }
+            rt_extent get_arg_extent(Arg) const override { return m_obj.get_arg_extent(Arg()); }
+            enumtype::intent get_arg_intent(Arg) const override { return m_obj.get_arg_intent(Arg()); }
         };
 
         template <class Obj>
@@ -157,8 +163,13 @@ namespace gridtools {
         void reset_meter() { m_impl->reset_meter(); }
 
         template <typename Arg>
-        rt_extent get_extent(Arg) {
-            return m_impl->get_extent(Arg());
+        rt_extent get_arg_extent(Arg) {
+            return m_impl->get_arg_extent(Arg());
+        }
+
+        template <typename Arg>
+        enumtype::intent get_arg_intent(Arg) {
+            return m_impl->get_arg_intent(Arg());
         }
     };
 

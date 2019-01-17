@@ -361,15 +361,25 @@ namespace gridtools {
 
         local_domains_t const &local_domains() const { return m_local_domains; }
 
+        template <class Placeholder>
+        enumtype::intent get_arg_intent(Placeholder) {
+            using rw_args_t = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t);
+
+            if (meta::st_contains<rw_args_t, Placeholder>::value)
+                return enumtype::intent::inout;
+            else
+                return enumtype::intent::in;
+        }
+
         template <class Placeholder, class ExtentMap = extent_map_t>
-        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_extent(Placeholder) {
+        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
             static_assert(is_plh<Placeholder>::value, "");
             using Extent = typename boost::mpl::at<typename ExtentMap::type, Placeholder>::type;
             return {Extent()};
         }
 
         template <class Placeholder, class ExtentMap = extent_map_t>
-        enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_extent(Placeholder) {
+        enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
             throw std::runtime_error("cannot get extent for computations that use stages with extent");
         }
 
@@ -386,7 +396,7 @@ namespace gridtools {
         template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
-    };
+    }; // namespace gridtools
 
     /**
      *  This metafunction exposes intermediate implementation specific details to a couple of unit tests.

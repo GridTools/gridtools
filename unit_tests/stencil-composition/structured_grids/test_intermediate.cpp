@@ -75,7 +75,7 @@ namespace {
     }
 } // namespace
 
-TEST(intermediate, test_get_extent) {
+TEST(intermediate, test_get_arg_functions) {
     using namespace test_intermediate;
     using backend_t = backend<target::x86, grid_type::structured, strategy::naive>;
 
@@ -98,12 +98,13 @@ TEST(intermediate, test_get_extent) {
             make_multistage(enumtype::execute<enumtype::forward>(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
         computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
 
-        using in1 = accessor<0, enumtype::in, extent<-1, 2, -3, 4, -5, 6>>;
-        using in2 = accessor<1, enumtype::in, extent<-3, 3, -2, 2, -1, 1>>;
-        using out = accessor<2, enumtype::inout, extent<>>;
-        EXPECT_EQ((rt_extent{-1, 2, -3, 4, -5, 6}), comp.get_extent(p_in1()));
-        EXPECT_EQ((rt_extent{-3, 3, -2, 2, -1, 1}), comp.get_extent(p_in2()));
-        EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_extent(p_out()));
+        EXPECT_EQ((rt_extent{-1, 2, -3, 4, -5, 6}), comp.get_arg_extent(p_in1()));
+        EXPECT_EQ((rt_extent{-3, 3, -2, 2, -1, 1}), comp.get_arg_extent(p_in2()));
+        EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
+
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
     }
 
     {
@@ -112,10 +113,15 @@ TEST(intermediate, test_get_extent) {
             make_stage<stage2>(p_in1(), p_tmp1(), p_out()));
         computation<p_in1, p_in2, p_tmp1, p_out> comp = make_computation<backend_t>(grid, mss_);
 
-        EXPECT_EQ((rt_extent{-6, 5, -5, 6, -8, 9}), comp.get_extent(p_in1()));
-        EXPECT_EQ((rt_extent{-4, 4, -4, 4, -4, 4}), comp.get_extent(p_in2()));
-        EXPECT_EQ((rt_extent{-1, 1, -2, 2, -3, 3}), comp.get_extent(p_tmp1()));
-        EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_extent(p_out()));
+        EXPECT_EQ((rt_extent{-6, 5, -5, 6, -8, 9}), comp.get_arg_extent(p_in1()));
+        EXPECT_EQ((rt_extent{-4, 4, -4, 4, -4, 4}), comp.get_arg_extent(p_in2()));
+        EXPECT_EQ((rt_extent{-1, 1, -2, 2, -3, 3}), comp.get_arg_extent(p_tmp1()));
+        EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
+
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp1()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
     }
 
     {
@@ -154,11 +160,18 @@ TEST(intermediate, test_get_extent) {
         //   p_in1:  {-10,10,-9, 9, -11,12}
         computation<p_in1, p_in2, p_tmp1, p_tmp2, p_tmp3, p_out> comp = make_computation<backend_t>(grid, mss_);
 
-        EXPECT_EQ((rt_extent{-10, 10, -9, 9, -11, 12}), comp.get_extent(p_in1()));
-        EXPECT_EQ((rt_extent{-12, 11, -8, 7, -7, 7}), comp.get_extent(p_in2()));
-        EXPECT_EQ((rt_extent{-9, 8, -6, 5, -6, 6}), comp.get_extent(p_tmp1()));
-        EXPECT_EQ((rt_extent{-6, 5, -4, 3, -2, 1}), comp.get_extent(p_tmp2()));
-        EXPECT_EQ((rt_extent{-1, 1, -2, 2, -3, 3}), comp.get_extent(p_tmp3()));
-        EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_extent(p_out()));
+        EXPECT_EQ((rt_extent{-10, 10, -9, 9, -11, 12}), comp.get_arg_extent(p_in1()));
+        EXPECT_EQ((rt_extent{-12, 11, -8, 7, -7, 7}), comp.get_arg_extent(p_in2()));
+        EXPECT_EQ((rt_extent{-9, 8, -6, 5, -6, 6}), comp.get_arg_extent(p_tmp1()));
+        EXPECT_EQ((rt_extent{-6, 5, -4, 3, -2, 1}), comp.get_arg_extent(p_tmp2()));
+        EXPECT_EQ((rt_extent{-1, 1, -2, 2, -3, 3}), comp.get_arg_extent(p_tmp3()));
+        EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
+
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp1()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp2()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp3()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
     }
 }
