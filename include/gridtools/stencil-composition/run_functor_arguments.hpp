@@ -64,14 +64,12 @@ namespace gridtools {
         typename Grid>
     struct iterate_domain_arguments {
 
-        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentSizes, is_extent>::value),
-            "There seems to be a stage in the computation which does not contain any output field. Check that at least "
-            "one accessor in each stage is defined as \'inout\'");
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentSizes, is_extent>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -99,10 +97,10 @@ namespace gridtools {
         typename ExecutionEngine   // the execution engine
         >
     struct run_functor_arguments {
-        GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
 

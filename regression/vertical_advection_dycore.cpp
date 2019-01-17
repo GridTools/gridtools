@@ -44,7 +44,7 @@
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
- */
+  */
 
 using namespace gridtools;
 

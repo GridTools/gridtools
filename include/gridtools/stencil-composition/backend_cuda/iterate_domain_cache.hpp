@@ -116,18 +116,15 @@ namespace gridtools {
      * @class iterate_domain_cache
      * class that provides all the caching functionality needed by the iterate domain.
      * It keeps in type information all the caches setup by the user and provides methods to access cache storage and
-     * perform
-     * all the caching operations, like filling, sliding or flushing.
+     * perform all the caching operations, like filling, sliding or flushing.
      */
     template <typename IterateDomainArguments>
     class iterate_domain_cache {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
-
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
+
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 
-      private:
         // checks if an arg is used by any of the esfs within a sequence
         template <typename EsfSequence, typename Arg>
         struct is_arg_used_in_esf_sequence {
@@ -139,21 +136,16 @@ namespace gridtools {
         using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
         using block_size_t = block_size<block_i_size(backend_ids_t{}), block_j_size(backend_ids_t{}), 1>;
 
-      public:
-        iterate_domain_cache() = default;
-
-        static constexpr bool has_ij_caches =
-            boost::mpl::count_if<cache_sequence_t, cache_is_type<IJ>>::type::value != 0;
-
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if<cache_sequence_t,
-            is_arg_used_in_esf_sequence<esf_sequence_t, cache_parameter<boost::mpl::_>>>::type caches_t;
+            is_arg_used_in_esf_sequence<esf_sequence_t, lazy::cache_parameter<boost::mpl::_>>>::type caches_t;
 
         // extract a sequence of extents for each ij cache
         typedef typename extract_ij_extents_for_caches<IterateDomainArguments>::type ij_cache_extents_map_t;
 
         // extract a sequence of extents for each k cache
         typedef typename extract_k_extents_for_caches<IterateDomainArguments>::type k_cache_extents_map_t;
+
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
         typedef typename get_cache_storage_tuple<IJ,
             caches_t,
@@ -168,18 +160,14 @@ namespace gridtools {
             block_size_t,
             typename IterateDomainArguments::local_domain_t>::type k_caches_vector_t;
 
-        // extract a fusion map from the fusion vector of pairs for ij caches
-        typedef typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type ij_caches_tuple_t;
-
         // extract a fusion map from the fusion vector of pairs for k caches
         typedef typename boost::fusion::result_of::as_map<k_caches_vector_t>::type k_caches_tuple_t;
 
-        // compute an mpl from the previous fusion vector, to be used for compile time meta operations
-        typedef typename fusion_map_to_mpl_map<ij_caches_tuple_t>::type ij_caches_map_t;
-
+      public:
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map<k_caches_tuple_t>::type k_caches_map_t;
 
+      private:
         // list of indexes of kcaches that require flushing operations
         typedef
             typename impl_::get_indexes_by_cache<k_caches_map_t, is_flushing_cache>::type k_flushing_caches_indexes_t;
@@ -187,8 +175,21 @@ namespace gridtools {
         // list of indexes of kcaches that require filling operations
         typedef typename impl_::get_indexes_by_cache<k_caches_map_t, is_filling_cache>::type k_filling_caches_indexes_t;
 
+        k_caches_tuple_t m_k_caches_tuple;
+
+      public:
+        static constexpr bool has_ij_caches =
+            boost::mpl::count_if<cache_sequence_t, cache_is_type<IJ>>::type::value != 0;
+
+        // extract a fusion map from the fusion vector of pairs for ij caches
+        typedef typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type ij_caches_tuple_t;
+
         // associative container with all caches
         typedef typename get_cache_set<caches_t, typename IterateDomainArguments::local_domain_t>::type all_caches_t;
+
+        iterate_domain_cache(iterate_domain_cache const &) = delete;
+        iterate_domain_cache &operator=(iterate_domain_cache const &) = delete;
+        iterate_domain_cache() = default;
 
         // returns a k cache from the tuple
         template <typename IndexType>
@@ -201,7 +202,7 @@ namespace gridtools {
         // slide all the k caches
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
             boost::fusion::for_each(m_k_caches_tuple, impl_::slide_cache_functor<IterationPolicy>());
         }
 
@@ -213,7 +214,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
             if (first_level) {
                 boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
@@ -238,7 +239,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
             boost::mpl::for_each<k_flushing_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
@@ -254,9 +255,5 @@ namespace gridtools {
                     cache_io_policy::flush>(it_domain, m_k_caches_tuple));
             }
         }
-
-      private:
-        k_caches_tuple_t m_k_caches_tuple;
     };
-
 } // namespace gridtools

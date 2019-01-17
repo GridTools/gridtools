@@ -34,6 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../meta/is_instantiation_of.hpp"
+#include "../meta/macros.hpp"
 #include "./linearize_mss_functions.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
@@ -53,7 +56,7 @@ namespace gridtools {
      */
     template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_mss_descriptor<MssDescriptor>::value, GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;

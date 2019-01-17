@@ -68,11 +68,6 @@ namespace gridtools {
      * to adapt it for a particular functor. This version does not provide grid
      * to the function operator
      *
-     * @tparam StoragePointers The mpl vector of the storage pointer types
-     * @tparam MetaData The mpl vector of the meta data pointer types sequence
-     * @tparam EsfArgs The mpl vector of the args (i.e. placeholders for the storages)
-                       for the current ESF
-     * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
      */
     template <class EsfArgs, class MaxExtentForTmp, bool IsStateful>
     struct local_domain {

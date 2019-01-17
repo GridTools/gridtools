@@ -60,20 +60,15 @@ namespace gridtools {
      */
     template <typename StridesType, typename IJCachesTuple>
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
-        DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
+        GRIDTOOLS_STATIC_ASSERT(is_strides_cached<StridesType>::value, GT_INTERNAL_ERROR);
         // TODO: protect IJCachesTuple
 
-      private:
         StridesType m_strides;
         void_if_empty_t<IJCachesTuple> m_ij_caches_tuple; // HACK: see void_if_empty_t
 
-        // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
-        // constructed with the result_of::as_map from a fusion vector.
-        // Therefore we construct here a mirror metadata mpl map type to be used for meta algorithms
-        typedef typename fusion_map_to_mpl_map<IJCachesTuple>::type ij_caches_map_t;
-
       public:
+        shared_iterate_domain(shared_iterate_domain const &) = delete;
+        shared_iterate_domain &operator=(shared_iterate_domain const &) = delete;
         shared_iterate_domain() = default;
 
         GT_FUNCTION StridesType const &strides() const { return m_strides; }

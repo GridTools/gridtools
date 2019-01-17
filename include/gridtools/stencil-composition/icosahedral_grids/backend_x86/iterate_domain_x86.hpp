@@ -57,7 +57,6 @@ namespace gridtools {
       public:
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::local_domain_t local_domain_t;
-        typedef boost::mpl::map0<> ij_caches_map_t;
 
         GT_FORCE_INLINE iterate_domain_x86(local_domain_t const &local_domain_) : super(local_domain_), m_strides(0) {}
 

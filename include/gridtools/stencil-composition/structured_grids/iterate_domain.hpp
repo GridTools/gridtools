@@ -36,10 +36,8 @@
 
 #pragma once
 
-#include <boost/fusion/include/invoke.hpp>
-
 #include "../../common/gt_assert.hpp"
-
+#include "../caches/cache_metafunctions.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../global_accessor.hpp"
 #include "../iterate_domain_aux.hpp"
@@ -57,37 +55,30 @@ namespace gridtools {
        the storage placeholders/metadatas and their offsets.
      */
     template <typename IterateDomainImpl, class IterateDomainArguments>
-    struct iterate_domain {
-        // *************** internal type definitions **************
-        typedef IterateDomainArguments iterate_domain_arguments_t;
-        typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
-        typedef backend_traits_from_id<typename iterate_domain_arguments_t::backend_ids_t::backend_id_t>
-            backend_traits_t;
-        typedef typename backend_traits_t::template select_iterate_domain_cache<iterate_domain_arguments_t>::type
-            iterate_domain_cache_t;
-        typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
+    class iterate_domain {
+      public:
+        using iterate_domain_arguments_t = IterateDomainArguments;
 
-        // **************** end of internal type definitions
-        //***************** types exposed in API
-        typedef typename local_domain_t::esf_args esf_args_t;
-        //*****************
+      private:
+        using local_domain_t = typename IterateDomainArguments::local_domain_t;
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
-        template <class Arg>
-        struct arg_is_cached
-            : index_is_cached<meta::st_position<typename local_domain_t::esf_args, Arg>::value, all_caches_t> {};
+        using caches_t = typename IterateDomainArguments::cache_sequence_t;
+        using ij_cache_args_t = GT_META_CALL(ij_cache_args, caches_t);
+        using k_cache_args_t = GT_META_CALL(k_cache_args, caches_t);
 
-        typedef typename local_domain_t::storage_info_ptr_fusion_list storage_info_ptrs_t;
-        typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
+        using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
+
         // the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
 
-      public:
-        typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
-        typedef array<int_t, N_META_STORAGES> array_index_t;
-        // *************** end of type definitions **************
-
       protected:
+        using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
+
+      public:
+        typedef array<int_t, N_META_STORAGES> array_index_t;
+
+      private:
         // ******************* members *******************
         local_domain_t const &local_domain;
         array_index_t m_index;
@@ -96,18 +87,15 @@ namespace gridtools {
         /**
            @brief returns the strides as const reference
         */
-        GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
+        GT_FUNCTION strides_cached_t const &strides() const {
             return static_cast<const IterateDomainImpl *>(this)->strides_impl();
         }
 
         /**
            @brief returns the strides
         */
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
+        GT_FUNCTION strides_cached_t &strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
 
-      private:
         template <uint_t Coordinate>
         GT_FUNCTION void increment(int_t step) {
             do_increment<Coordinate>(step, local_domain, strides(), m_index);
@@ -133,24 +121,10 @@ namespace gridtools {
             GT_AUTO_RETURN(container_(boost::fusion::at_c<Ids>(tuple_)...));
 
       public:
-        /**@brief constructor of the iterate_domain struct
+        static constexpr bool has_k_caches = false;
 
-           It assigns the storage pointers to the first elements of
-           the data fields (for all the data_fields present in the
-           current evaluation), and the indexes to access the data
-           fields (one index per storage instance, so that one index
-           might be shared among several data fields)
-        */
-        GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_), m_index{0} {}
+        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
 
-        /**
-           @brief recursively assignes all the strides
-
-           copies them from the
-           local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
-         */
         template <typename BackendType>
         GT_FUNCTION void assign_stride_pointers() {
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
@@ -185,7 +159,7 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         GT_FUNCTION void initialize(pos3<uint_t> begin, pos3<uint_t> block_no, pos3<int_t> pos_in_block) {
-            using backend_ids_t = typename iterate_domain_arguments_t::backend_ids_t;
+            using backend_ids_t = typename IterateDomainArguments::backend_ids_t;
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 initialize_index_f<strides_cached_t, local_domain_t, array_index_t, backend_ids_t>{
                     strides(), begin, block_no, pos_in_block, m_index});
@@ -237,10 +211,23 @@ namespace gridtools {
             enumtype::intent Intent,
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
-            enable_if_t<arg_is_cached<Arg>::value, int> = 0>
+            enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
         GT_FUNCTION Res deref(Accessor const &acc) const {
             return static_cast<IterateDomainImpl const *>(this)
-                ->template get_cache_value_impl<meta::st_position<typename local_domain_t::esf_args, Arg>::value, Res>(
+                ->template get_ij_cache_value<meta::st_position<typename local_domain_t::esf_args, Arg>::value, Res>(
+                    acc);
+        }
+
+        template <class Arg,
+            enumtype::intent Intent,
+            class Accessor,
+            class Res = typename deref_type<Arg, Intent>::type,
+            enable_if_t<meta::st_contains<k_cache_args_t, Arg>::value &&
+                            !meta::st_contains<ij_cache_args_t, Arg>::value,
+                int> = 0>
+        GT_FUNCTION Res deref(Accessor const &acc) const {
+            return static_cast<IterateDomainImpl const *>(this)
+                ->template get_k_cache_value<meta::st_position<typename local_domain_t::esf_args, Arg>::value, Res>(
                     acc);
         }
 
@@ -252,7 +239,8 @@ namespace gridtools {
             enumtype::intent Intent,
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
-            enable_if_t<!arg_is_cached<Arg>::value && is_accessor<Accessor>::value &&
+            enable_if_t<!meta::st_contains<ij_cache_args_t, Arg>::value &&
+                            !meta::st_contains<k_cache_args_t, Arg>::value && is_accessor<Accessor>::value &&
                             !is_global_accessor<Accessor>::value,
                 int> = 0>
         GT_FUNCTION Res deref(Accessor const &accessor) const {

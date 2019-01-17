@@ -68,13 +68,11 @@ namespace gridtools {
             typename backend_traits_from_id<typename backend_ids_t::backend_id_t>::template select_iterate_domain_cache<
                 iterate_domain_arguments_t>::type iterate_domain_cache_t;
 
-        typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
         typedef typename local_domain_t::storage_info_ptr_fusion_list storage_info_ptrs_t;
-        typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
 
         // the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;

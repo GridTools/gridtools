@@ -60,6 +60,9 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/void.hpp>
 
+#include "../../meta.hpp"
+#include "./cache_traits.hpp"
+
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 #include "../../meta/st_position.hpp"
 #include "../block_size.hpp"
@@ -67,9 +70,55 @@
 #include "../local_domain.hpp"
 #include "./cache.hpp"
 #include "./cache_storage.hpp"
-#include "cache_traits.hpp"
 
 namespace gridtools {
+
+    template <class Caches>
+    GT_META_DEFINE_ALIAS(ij_caches, meta::filter, (is_ij_cache, Caches));
+
+    template <class Caches>
+    GT_META_DEFINE_ALIAS(ij_cache_args, meta::transform, (cache_parameter, GT_META_CALL(ij_caches, Caches)));
+
+    template <class Caches>
+    GT_META_DEFINE_ALIAS(k_caches, meta::filter, (is_k_cache, Caches));
+
+    template <class Caches>
+    GT_META_DEFINE_ALIAS(k_cache_args, meta::transform, (cache_parameter, GT_META_CALL(k_caches, Caches)));
+
+    namespace cache_metafunctions_impl_ {
+        template <class Caches>
+        struct is_ij_cache_args_f {
+            using ij_cache_args_t = GT_META_CALL(ij_cache_args, Caches);
+            template <class Arg>
+            GT_META_DEFINE_ALIAS(apply, meta::st_contains, (ij_cache_args_t, Arg));
+        };
+    } // namespace cache_metafunctions_impl_
+
+    template <class Caches, class EsfArgs>
+    GT_META_DEFINE_ALIAS(ij_cache_esf_args, meta::filter, (cache_metafunctions_impl_::is_ij_cache_args_f, EsfArgs));
+
+    /*
+     * Input: Caches, EsfArgs ...
+     * Output: boost::fusion::map from Arg to ij_cache_storage
+     *
+     * or
+     *
+     * Input: Caches, EsfArgs
+     * Output: filtered ij_cache_args
+     *
+     * and
+     *
+     * Input: Args, ...
+     * Output: tuple<ij_cache_args>
+     *
+     *
+        typedef typename get_cache_storage_tuple<IJ,
+            caches_t,
+            typename extract_ij_extents_for_caches<IterateDomainArguments>::type,
+            block_size<block_i_size(backend_ids_t{}), block_j_size(backend_ids_t{}), 1>,
+            typename IterateDomainArguments::local_domain_t>::type ij_caches_vector_t;
+
+     */
 
     /**
      * @struct cache_to_index
@@ -82,7 +131,7 @@ namespace gridtools {
      */
     template <typename Cache, typename LocalDomain>
     struct cache_to_index
-        : static_uint<meta::st_position<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type>::value> {
+        : static_uint<meta::st_position<typename LocalDomain::esf_args, GT_META_CALL(cache_parameter, Cache)>::value> {
         GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
     };
@@ -100,7 +149,7 @@ namespace gridtools {
 
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if<CacheSequence,
-            is_there_in_sequence_if<EsfSequence, esf_has_parameter_h<cache_parameter<boost::mpl::_>>>>::type type;
+            is_there_in_sequence_if<EsfSequence, esf_has_parameter_h<lazy::cache_parameter<boost::mpl::_>>>>::type type;
     };
 
     /**

@@ -118,21 +118,20 @@ namespace gridtools {
             // the map if the cache is used by the esf with that Id.
             template <typename ExtentsMap_, typename EsfIdx>
             struct insert_extent_for_cache_esf {
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<extents_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<esf_sequence_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<extents_t>::value > EsfIdx::value, GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<esf_sequence_t>::value > EsfIdx::value, GT_INTERNAL_ERROR);
 
-                typedef typename cache_parameter<Cache>::type cache_arg_t;
+                using cache_arg_t = GT_META_CALL(cache_parameter, Cache);
                 typedef typename boost::mpl::at<esf_sequence_t, EsfIdx>::type esf_t;
 
                 // only extract the extent of the esf and push it into the cache if the arg of the cache is used in the
                 // extent (note non ij extents are nullified for the ij caches)
                 using extent_t = typename esf_extent_of_arg<EsfIdx, cache_arg_t>::type;
 
-                GRIDTOOLS_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
+                GRIDTOOLS_STATIC_ASSERT(extent_t::kminus::value == 0 && extent_t::kplus::value == 0,
                     "Error: IJ Caches can not have k extent values");
 
-                typedef typename boost::mpl::if_<
-                    boost::mpl::contains<typename esf_t::args_t, typename cache_parameter<Cache>::type>,
+                typedef typename boost::mpl::if_<boost::mpl::contains<typename esf_t::args_t, cache_arg_t>,
                     typename impl::update_extent_map<ExtentsMap_, extent_t, Cache>::type,
                     ExtentsMap_>::type type;
             };
@@ -166,9 +165,9 @@ namespace gridtools {
         // insert the extent associated to a Cache into the map of <cache, extent>
         template <typename ExtentsMap, typename Cache>
         struct insert_extent_for_cache {
-            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
 
-            typedef typename cache_parameter<Cache>::type cache_arg_t;
+            using cache_arg_t = GT_META_CALL(cache_parameter, Cache);
 
             // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
             // the map if the cache is used by the esf with that Id.

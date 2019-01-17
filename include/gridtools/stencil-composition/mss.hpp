@@ -34,11 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/logical.hpp>
-#include <boost/mpl/vector.hpp>
 
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../meta/is_instantiation_of.hpp"
+#include "../meta/logical.hpp"
+#include "../meta/macros.hpp"
 #include "caches/cache_traits.hpp"
 #include "esf.hpp"
 #include "execution_types.hpp"
@@ -48,23 +49,24 @@
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-
     /** @brief Descriptors for  Multi Stage Stencil (MSS) */
     template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = std::tuple<>>
     struct mss_descriptor {
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfDescrSequence>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
+
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), GT_INTERNAL_ERROR);
-        typedef ExecutionEngine execution_engine_t;
-        typedef EsfDescrSequence esf_sequence_t;
-        typedef CacheSequence cache_sequence_t;
+
+        GRIDTOOLS_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
+
+        using execution_engine_t = ExecutionEngine;
+        using esf_sequence_t = EsfDescrSequence;
+        using cache_sequence_t = CacheSequence;
     };
 
-    template <typename mss>
-    struct is_mss_descriptor : boost::mpl::false_ {};
-
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> : boost::mpl::true_ {};
+    template <typename Mss>
+    GT_META_DEFINE_ALIAS(is_mss_descriptor, meta::is_instantiation_of, (mss_descriptor, Mss));
 
     template <typename Mss>
     struct mss_descriptor_esf_sequence {};
@@ -75,19 +77,10 @@ namespace gridtools {
     };
 
     template <typename Mss>
-    struct mss_descriptor_cache_sequence {};
-
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct mss_descriptor_cache_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
-        typedef CacheSequence type;
-    };
-
-    template <typename Mss>
     struct mss_descriptor_execution_engine {};
 
     template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
     struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
         typedef ExecutionEngine type;
     };
-
 } // namespace gridtools

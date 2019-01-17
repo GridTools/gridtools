@@ -43,8 +43,5 @@ namespace gridtools {
      * @brief The empty_iterate_domain_cache struct
      * empty implementation of an iterate domain cache, as host backend does not use caches
      */
-    struct empty_iterate_domain_cache {
-        typedef boost::mpl::map0<> ij_caches_map_t;
-        typedef boost::mpl::set0<> all_caches_t;
-    };
+    struct empty_iterate_domain_cache {};
 } // namespace gridtools

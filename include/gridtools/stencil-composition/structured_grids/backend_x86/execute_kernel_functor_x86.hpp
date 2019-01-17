@@ -75,7 +75,7 @@ namespace gridtools {
                 typename RunFunctorArguments::esf_sequence_t,
                 typename RunFunctorArguments::extent_sizes_t,
                 typename RunFunctorArguments::max_extent_t,
-                typename RunFunctorArguments::cache_sequence_t,
+                std::tuple<>,
                 grid_t>;
             using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
             using iterate_domain_t = typename conditional_t<local_domain_is_stateful<local_domain_t>::value,
@@ -83,8 +83,6 @@ namespace gridtools {
                 meta::lazy::id<iterate_domain_x86_t>>::type;
 
             typedef backend_traits_from_id<target::x86> backend_traits_t;
-
-            typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
@@ -107,11 +105,8 @@ namespace gridtools {
                   m_block_no{block_no_i, block_no_j} {}
 
             void operator()() const {
-                strides_t strides;
-
                 iterate_domain_t it_domain(m_local_domain);
 
-                it_domain.set_strides_pointer(&strides);
                 it_domain.template assign_stride_pointers<backend_traits_t>();
 
                 it_domain.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), m_grid.k_min()},

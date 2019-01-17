@@ -89,7 +89,9 @@ namespace gridtools {
             ItDomain &m_domain;
             Grid const &m_grid;
 
-            template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value != 0, int> = 0>
+            template <class IterationPolicy,
+                class Stages,
+                enable_if_t<ItDomain::has_k_caches && meta::length<Stages>::value != 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last, bool is_first, bool is_last) const {
                 const bool in_domain =
                     m_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
@@ -106,6 +108,15 @@ namespace gridtools {
                         m_domain.template slide_caches<IterationPolicy>();
                     }
                 }
+            }
+
+            template <class IterationPolicy,
+                class Stages,
+                enable_if_t<!ItDomain::has_k_caches && meta::length<Stages>::value != 0, int> = 0>
+            GT_FUNCTION void k_loop(int_t first, int_t last, bool is_first, bool is_last) const {
+                for (int_t cur = first; IterationPolicy::condition(cur, last);
+                     IterationPolicy::increment(cur), IterationPolicy::increment(m_domain))
+                    RunEsfFunctor::template exec<Stages>(m_domain);
             }
 
             template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value == 0, int> = 0>

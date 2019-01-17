@@ -147,7 +147,6 @@ namespace gridtools {
         //*****************
 
         using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
-        using data_ptrs_map_t = typename local_domain_t::data_ptr_fusion_map;
 
         // the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;

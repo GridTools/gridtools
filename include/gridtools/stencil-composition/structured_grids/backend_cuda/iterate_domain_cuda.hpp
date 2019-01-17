@@ -46,6 +46,7 @@
 #include "../../../common/cuda_type_traits.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/host_device.hpp"
+#include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../iterate_domain_fwd.hpp"
 #include "../esf_metafunctions.hpp"
@@ -59,23 +60,19 @@ namespace gridtools {
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
         : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
-        iterate_domain_cuda(iterate_domain_cuda const &) = delete;
-        iterate_domain_cuda &operator=(iterate_domain_cuda const &) = delete;
-
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
-        typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;
-        typedef typename IterateDomainArguments::local_domain_t local_domain_t;
+        using base_t = iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments>;
 
         using readwrite_args_t = typename compute_readwrite_args<typename IterateDomainArguments::esf_sequence_t>::type;
 
         // array storing the (i,j) position of the current thread within the block
         array<int, 2> m_thread_pos;
 
-      public:
-        typedef typename super::strides_cached_t strides_cached_t;
+        using strides_cached_t = typename base_t::strides_cached_t;
 
-        typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
+      public:
+        using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
         typedef shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
@@ -83,11 +80,10 @@ namespace gridtools {
         static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
 
       private:
-        typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
 
-        using super::increment_i;
-        using super::increment_j;
+        using base_t::increment_i;
+        using base_t::increment_j;
 
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
@@ -95,9 +91,15 @@ namespace gridtools {
         iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
-        __forceinline__ __device__ iterate_domain_cuda(
-            local_domain_t const &local_domain, uint_t block_size_i, uint_t block_size_j)
-            : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+        static constexpr bool has_k_caches = true;
+
+        iterate_domain_cuda(iterate_domain_cuda const &) = delete;
+        iterate_domain_cuda &operator=(iterate_domain_cuda const &) = delete;
+
+        template <class LocalDomain>
+        GT_FUNCTION_DEVICE iterate_domain_cuda(LocalDomain &&local_domain, uint_t block_size_i, uint_t block_size_j)
+            : base_t(std::forward<LocalDomain>(local_domain)), m_block_size_i(block_size_i),
+              m_block_size_j(block_size_j) {}
 
         /**
          * @brief determines whether the current (i,j) position is within the block size
@@ -110,27 +112,22 @@ namespace gridtools {
                    m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value);
         }
 
-        __forceinline__ __device__ void set_block_pos(int_t ipos, int_t jpos) {
+        GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
         }
 
-        GT_FUNCTION void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
+        GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &RESTRICT strides_impl() const {
-            return m_pshared_iterate_domain->strides();
-        }
-        GT_FUNCTION strides_cached_t &RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
+        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->strides(); }
+        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->strides(); }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
          */
-        template <size_t Index,
-            class ReturnType,
-            class Accessor,
-            enable_if_t<index_is_cached<Index, ij_caches_map_t>::value, int> = 0>
-        GT_FUNCTION ReturnType get_cache_value_impl(Accessor const &acc) const {
+        template <size_t Index, class ReturnType, class Accessor>
+        GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
             return m_pshared_iterate_domain->template get_ij_cache<static_uint<Index>>().at<0>(m_thread_pos, acc);
@@ -138,13 +135,9 @@ namespace gridtools {
 
         /** @brief return a value that was cached
          * specialization where cache goes via kcache register set
-         *
          */
-        template <size_t Index,
-            class ReturnType,
-            class Accessor,
-            enable_if_t<!index_is_cached<Index, ij_caches_map_t>::value, int> = 0>
-        GT_FUNCTION ReturnType get_cache_value_impl(Accessor const &acc) const {
+        template <size_t Index, class ReturnType, class Accessor>
+        GT_FUNCTION ReturnType get_k_cache_value(Accessor const &acc) const {
             return m_iterate_domain_cache.template get_k_cache<static_uint<Index>>().at(acc);
         }
 
