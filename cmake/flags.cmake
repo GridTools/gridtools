@@ -32,8 +32,9 @@ set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
 option( GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 
 option( GT_INSTALL_EXAMPLES "Specify if source codes and binaries of examples should be installed somewhere" OFF )
+option( GT_COMPILE_EXAMPLES "Specify examples should be compiled" ON )
 set(GT_INSTALL_EXAMPLES_PATH STRING "Specifies where the source codes and binary of examples should be installed"
-    "GT_INSTALL_EXAMPLES" "${CMAKE_INSTALL_PREFIX}")
+    "${CMAKE_INSTALL_PREFIX}")
 
 if (DEFINED ENV{CUDA_ARCH})
     set(GT_CUDA_ARCH_INIT $ENV{CUDA_ARCH})
