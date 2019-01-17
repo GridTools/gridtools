@@ -362,7 +362,7 @@ namespace gridtools {
         local_domains_t const &local_domains() const { return m_local_domains; }
 
         template <class Placeholder>
-        enumtype::intent get_arg_intent(Placeholder) {
+        enumtype::intent get_arg_intent(Placeholder) const {
             using rw_args_t = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t);
 
             if (meta::st_contains<rw_args_t, Placeholder>::value)
@@ -372,14 +372,14 @@ namespace gridtools {
         }
 
         template <class Placeholder, class ExtentMap = extent_map_t>
-        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
+        enable_if_t<!boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) const {
             static_assert(is_plh<Placeholder>::value, "");
             using Extent = typename boost::mpl::at<typename ExtentMap::type, Placeholder>::type;
             return {Extent()};
         }
 
         template <class Placeholder, class ExtentMap = extent_map_t>
-        enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
+        enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) const {
             throw std::runtime_error("cannot get extent for computations that use stages with extent");
         }
 

@@ -65,23 +65,16 @@ namespace gridtools {
                 virtual rt_extent get_arg_extent(Arg) const = 0;
                 virtual enumtype::intent get_arg_intent(Arg) const = 0;
             };
-            template <typename...>
-            struct iface_iterate;
-            template <typename Arg, typename Arg2, typename... ArgRest>
-            struct iface_iterate<Arg, Arg2, ArgRest...> : virtual iface_arg<Arg>, iface_iterate<Arg2, ArgRest...> {
-                using iface_arg<Arg>::get_arg_extent;
-                using iface_iterate<Arg2, ArgRest...>::get_arg_extent;
 
-                using iface_arg<Arg>::get_arg_intent;
-                using iface_iterate<Arg2, ArgRest...>::get_arg_intent;
+            template <class T, class Arg>
+            struct impl_arg : virtual _impl::computation_detail::iface_arg<Arg> {
+                rt_extent get_arg_extent(Arg) const override {
+                    return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
+                }
+                enumtype::intent get_arg_intent(Arg) const override {
+                    return static_cast<const T *>(this)->m_obj.get_arg_intent(Arg());
+                }
             };
-            template <typename Arg>
-            struct iface_iterate<Arg> : virtual iface_arg<Arg> {
-                using iface_arg<Arg>::get_arg_extent;
-                using iface_arg<Arg>::get_arg_intent;
-            };
-            template <>
-            struct iface_iterate<> {};
         } // namespace computation_detail
     }     // namespace _impl
 
@@ -97,7 +90,7 @@ namespace gridtools {
 
         using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 
-        struct iface : _impl::computation_detail::iface_iterate<Args...> {
+        struct iface : virtual _impl::computation_detail::iface_arg<Args>... {
             virtual ~iface() = default;
             virtual void run(arg_storage_pair_crefs_t const &) = 0;
             virtual void sync_bound_data_stores() = 0;
@@ -107,20 +100,11 @@ namespace gridtools {
             virtual void reset_meter() = 0;
         };
 
-        template <class Obj, class Arg>
-        struct impl_arg : virtual _impl::computation_detail::iface_arg<Arg> {
-            Obj &m_obj;
-            impl_arg(Obj &obj) : m_obj(obj) {}
-
-            rt_extent get_arg_extent(Arg) const override { return m_obj.get_arg_extent(Arg()); }
-            enumtype::intent get_arg_intent(Arg) const override { return m_obj.get_arg_intent(Arg()); }
-        };
-
         template <class Obj>
-        struct impl : iface, impl_arg<Obj, Args>... {
+        struct impl : iface, _impl::computation_detail::impl_arg<impl<Obj>, Args>... {
             Obj m_obj;
 
-            impl(Obj &&obj) : m_obj{std::move(obj)}, impl_arg<Obj, Args>(m_obj)... {}
+            impl(Obj &&obj) : m_obj{std::move(obj)} {}
 
             void run(arg_storage_pair_crefs_t const &args) override {
                 tuple_util::apply(_impl::computation_detail::run_f<Obj>{m_obj}, args);
@@ -163,13 +147,13 @@ namespace gridtools {
         void reset_meter() { m_impl->reset_meter(); }
 
         template <typename Arg>
-        rt_extent get_arg_extent(Arg) {
-            return m_impl->get_arg_extent(Arg());
+        rt_extent get_arg_extent(Arg) const {
+            return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_extent(Arg());
         }
 
         template <typename Arg>
-        enumtype::intent get_arg_intent(Arg) {
-            return m_impl->get_arg_intent(Arg());
+        enumtype::intent get_arg_intent(Arg) const {
+            return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_intent(Arg());
         }
     };
 

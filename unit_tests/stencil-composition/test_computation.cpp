@@ -79,11 +79,11 @@ namespace gridtools {
             double get_time() const { return 0.; /* unused */ }
 
             template <typename Arg>
-            rt_extent get_arg_extent(Arg) {
+            rt_extent get_arg_extent(Arg) const {
                 return {0, 0, 0, 0, 0, 0};
             }
             template <typename Arg>
-            enumtype::intent get_arg_intent(Arg) {
+            enumtype::intent get_arg_intent(Arg) const {
                 return enumtype::intent::in;
             }
         };
