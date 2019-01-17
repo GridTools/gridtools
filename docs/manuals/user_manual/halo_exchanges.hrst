@@ -165,6 +165,7 @@ the name of arguments should be self-explanatory:
 
  halo_descriptor(uint_t minus, uint_t plus, uint_t begin, uint_t end, uint_t total_length)
 
+.. _gcl-communication-module:
 
 -------------------------
 GCL communication module
@@ -183,7 +184,7 @@ The template arguments are:
 2. the mapping between the data dimensions and processing grid, as described above (leave it as ``layout_map<0,1,2>`` if in doubt);
 3. the type of the values to be exchanged;
 4. the number of dimensions of the data/processing grid, and it has to be set to 3 (the GCL was designed to work with other dimensionalities, but the version in |GT| is a stripped down version waiting for the next more general interfaces);
-5. the place where the data leaves. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc``.
+5. the place where the data live. The options for this arguments are ``gcl_gpu``, ``gcl_cpu`` and ``gcl_mc``.
 
 The halo exchange object can be instantiated as:
 

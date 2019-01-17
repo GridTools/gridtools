@@ -133,6 +133,8 @@ implementation of the boundary application algorithm. ``out_s`` and
 that the first is the output and second is the input derives from the
 signature of the overloads of ``operator()``, and it is user defined.
 
+.. _provided_boundary_conditions:
+
 ------------------------------------------------------------
 Provided boundary conditions
 ------------------------------------------------------------
