@@ -210,12 +210,18 @@ namespace gridtools {
         using return_type = call<Functor, Region, ForcedReturnType, Offi, Offj, Offk>;
 
       private:
+        template <typename Eval, typename Arg, bool = is_accessor<Arg>::value>
+        struct decude_result_type : std::decay<decltype(std::declval<Eval &>()(std::declval<Arg const &>()))> {};
+
+        template <typename Eval, typename Arg>
+        struct decude_result_type<Eval, Arg, false> : meta::lazy::id<Arg> {};
+
         /**
          * @brief Use forced return type (if not void) or deduce the return type.
          */
         template <typename Eval, typename Arg, typename...>
         struct get_result_type : std::conditional<std::is_void<ReturnType>::value,
-                                     remove_const_t<decltype(std::declval<Eval &>()(std::declval<Arg const &>()))>,
+                                     typename decude_result_type<Eval, Arg>::type,
                                      ReturnType> {};
 
       public:

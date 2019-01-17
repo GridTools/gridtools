@@ -99,7 +99,7 @@ namespace gridtools {
         iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
-        __forceinline__ __device__ iterate_domain_cuda(
+        GT_FUNCTION_DEVICE iterate_domain_cuda(
             local_domain_t const &local_domain, uint_t block_size_i, uint_t block_size_j)
             : super(local_domain), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
@@ -114,12 +114,12 @@ namespace gridtools {
                    m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value);
         }
 
-        __forceinline__ __device__ void set_block_pos(int_t ipos, int_t jpos) {
+        GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {
             m_thread_pos[0] = ipos;
             m_thread_pos[1] = jpos;
         }
 
-        GT_FUNCTION void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
+        GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
         GT_FUNCTION strides_cached_t const &RESTRICT strides_impl() const {

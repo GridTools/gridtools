@@ -181,8 +181,9 @@ namespace gridtools {
                         StorageInfoIndex>::type;
                 using storage_info_t = typename std::remove_const<typename std::remove_pointer<
                     typename std::remove_reference<storage_info_ptrref_t>::type>::type>::type;
+                static constexpr bool is_ij_cached = false;
                 m_index_array[StorageInfoIndex::value] =
-                    m_it_domain.compute_offset<false, storage_info_t>(accessor_base<storage_info_t::ndims>());
+                    m_it_domain.compute_offset<is_ij_cached, storage_info_t>(accessor_base<storage_info_t::ndims>());
             }
 
           private:
