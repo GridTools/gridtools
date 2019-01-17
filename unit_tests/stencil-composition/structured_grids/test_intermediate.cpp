@@ -46,10 +46,9 @@ namespace test_intermediate {
     using namespace gridtools;
     using namespace enumtype;
 
-    // This is the definition of the special regions in the "vertical" direction
     struct stage1 {
-        using in1 = accessor<0, enumtype::in, extent<-1, 2, -3, 4, -5, 6>>;
-        using in2 = accessor<1, enumtype::in, extent<-3, 3, -2, 2, -1, 1>>;
+        using in1 = accessor<0, enumtype::in, extent<0, 1, -1, 0, 0, 1>>;
+        using in2 = accessor<1, enumtype::in, extent<0, 1, -1, 0, -1, 1>>;
         using out = accessor<2, enumtype::inout, extent<>>;
         using arg_list = boost::mpl::vector<in1, in2, out>;
 
@@ -58,8 +57,8 @@ namespace test_intermediate {
     };
 
     struct stage2 {
-        using in1 = accessor<0, enumtype::in, extent<-6, 5, -4, 3, -2, 1>>;
-        using in2 = accessor<1, enumtype::in, extent<-1, 1, -2, 2, -3, 3>>;
+        using in1 = accessor<0, enumtype::in, extent<-1, 0, 0, 1, -1, 0>>;
+        using in2 = accessor<1, enumtype::in, extent<-1, 1, -1, 0, -1, 1>>;
         using out = accessor<2, enumtype::inout, extent<>>;
         using arg_list = boost::mpl::vector<in1, in2, out>;
 
@@ -77,9 +76,8 @@ namespace {
 
 TEST(intermediate, test_get_arg_functions) {
     using namespace test_intermediate;
-    using backend_t = backend<target::x86, grid_type::structured, strategy::naive>;
 
-    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3>;
+    using storage_info_t = storage_traits<backend_t::backend_id_t>::storage_info_t<0, 1>;
     using data_store_t = storage_traits<backend_t::backend_id_t>::data_store_t<float_type, storage_info_t>;
 
     using p_in1 = arg<0, data_store_t>;
@@ -98,8 +96,8 @@ TEST(intermediate, test_get_arg_functions) {
             make_multistage(enumtype::execute<enumtype::forward>(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
         computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
 
-        EXPECT_EQ((rt_extent{-1, 2, -3, 4, -5, 6}), comp.get_arg_extent(p_in1()));
-        EXPECT_EQ((rt_extent{-3, 3, -2, 2, -1, 1}), comp.get_arg_extent(p_in2()));
+        EXPECT_EQ((rt_extent{0, 1, -1, 0, 0, 1}), comp.get_arg_extent(p_in1()));
+        EXPECT_EQ((rt_extent{0, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_in2()));
         EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
 
         EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
@@ -113,9 +111,9 @@ TEST(intermediate, test_get_arg_functions) {
             make_stage<stage2>(p_in1(), p_tmp1(), p_out()));
         computation<p_in1, p_in2, p_tmp1, p_out> comp = make_computation<backend_t>(grid, mss_);
 
-        EXPECT_EQ((rt_extent{-6, 5, -5, 6, -8, 9}), comp.get_arg_extent(p_in1()));
-        EXPECT_EQ((rt_extent{-4, 4, -4, 4, -4, 4}), comp.get_arg_extent(p_in2()));
-        EXPECT_EQ((rt_extent{-1, 1, -2, 2, -3, 3}), comp.get_arg_extent(p_tmp1()));
+        EXPECT_EQ((rt_extent{-1, 2, -2, 1, -1, 2}), comp.get_arg_extent(p_in1()));
+        EXPECT_EQ((rt_extent{-1, 2, -2, 0, -2, 2}), comp.get_arg_extent(p_in2()));
+        EXPECT_EQ((rt_extent{-1, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_tmp1()));
         EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
 
         EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
@@ -133,38 +131,38 @@ TEST(intermediate, test_get_arg_functions) {
 
         // after last stage:
         //   p_out:  {0, 0, 0, 0, 0, 0}
-        //   p_tmp3: {-1, 1, -2, 2, -3, 3}
-        //   p_tmp2: {-6, 5, -4, 3, -2, 1}
+        //   p_tmp3: {-1, 1, -1, 0, -1, 1}
+        //   p_tmp2: {-1, 0, 0, 1, -1, 0}
         //
         // after second independent stage:
         //   p_out:  {0, 0, 0, 0, 0, 0}
-        //   p_tmp3: {-1, 1, -2, 2, -3, 3}
-        //   p_tmp2: {-6, 5, -4, 3, -2, 1}
-        //   p_tmp1: {-2, 2, -4, 4, -6, 6}
-        //   p_in2:  {-7, 6, -5, 4, -3, 2}
+        //   p_tmp3: {-1, 1, -1, 0, -1, 1}
+        //   p_tmp2: {-1, 0, 0, 1, -1, 0}
+        //   p_tmp1: {-2, 2, -2, 0, -2, 2}
+        //   p_in2:  {-2, 1, -1, 1, -2, 1}
         //
         // after first independent stage:
         //   p_out:  {0, 0, 0, 0, 0, 0}
-        //   p_tmp3: {-1, 1, -2, 2, -3, 3}
-        //   p_tmp2: {-6, 5, -4, 3, -2, 1}
-        //   p_tmp1: {-9, 8, -6, 5, -6, 6}
-        //   p_in2:  {-7, 6, -5, 4, -3, 2}
-        //   p_in1:  {-7, 7, -7, 7, -7, 7}
+        //   p_tmp3: {-1, 1, -1, 0, -1, 1}
+        //   p_tmp2: {-1, 0, 0, 1, -1, 0}
+        //   p_tmp1: {-2, 2, -2, 1, -2, 2}
+        //   p_in2:  {-2, 1, -1, 1, -2, 1}
+        //   p_in1:  {-1, 1, -1, 1, -1, 1}
         //
         // after first stage
         //   p_out:  {0, 0, 0, 0, 0, 0}
-        //   p_tmp3: {-1, 1, -2, 2, -3, 3}
-        //   p_tmp2: {-6, 5, -4, 3, -2, 1}
-        //   p_tmp1: {-9, 8, -6, 5, -6, 6}
-        //   p_in2:  {-12,11,-8, 7, -7, 7}
-        //   p_in1:  {-10,10,-9, 9, -11,12}
+        //   p_tmp3: {-1, 1, -1, 0, -1, 1}
+        //   p_tmp2: {-1, 0, 0, 1, -1, 0}
+        //   p_tmp1: {-2, 2, -2, 1, -2, 2}
+        //   p_in2:  {-2, 3, -3, 1, -3, 3}
+        //   p_in1:  {-2, 3, -3, 1, -2, 3}
         computation<p_in1, p_in2, p_tmp1, p_tmp2, p_tmp3, p_out> comp = make_computation<backend_t>(grid, mss_);
 
-        EXPECT_EQ((rt_extent{-10, 10, -9, 9, -11, 12}), comp.get_arg_extent(p_in1()));
-        EXPECT_EQ((rt_extent{-12, 11, -8, 7, -7, 7}), comp.get_arg_extent(p_in2()));
-        EXPECT_EQ((rt_extent{-9, 8, -6, 5, -6, 6}), comp.get_arg_extent(p_tmp1()));
-        EXPECT_EQ((rt_extent{-6, 5, -4, 3, -2, 1}), comp.get_arg_extent(p_tmp2()));
-        EXPECT_EQ((rt_extent{-1, 1, -2, 2, -3, 3}), comp.get_arg_extent(p_tmp3()));
+        EXPECT_EQ((rt_extent{-2, 3, -3, 1, -2, 3}), comp.get_arg_extent(p_in1()));
+        EXPECT_EQ((rt_extent{-2, 3, -3, 1, -3, 3}), comp.get_arg_extent(p_in2()));
+        EXPECT_EQ((rt_extent{-2, 2, -2, 1, -2, 2}), comp.get_arg_extent(p_tmp1()));
+        EXPECT_EQ((rt_extent{-1, 0, 0, 1, -1, 0}), comp.get_arg_extent(p_tmp2()));
+        EXPECT_EQ((rt_extent{-1, 1, -1, 0, -1, 1}), comp.get_arg_extent(p_tmp3()));
         EXPECT_EQ((rt_extent{0, 0, 0, 0, 0, 0}), comp.get_arg_extent(p_out()));
 
         EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
