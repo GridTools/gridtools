@@ -64,18 +64,18 @@ However, some data fields used in boundary conditions may be read-only and shoul
 Distributed Boundaries
 -----------------------
 
-The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by gridtools, and ``communication_arch`` is one of the GCL communication module :ref:`GCL-communication-module` specifiers of where the data accessed by a halo exchange object reside.
+The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by gridtools, and ``communication_arch`` is one of the GCL communication module :ref:`gcl-communication-module` specifiers of where the data accessed by a halo exchange object reside.
 
 .. code-block:: gridtools
 
    using dbs_t = distributed_boundaries< comm_traits< storage_type, communication_arch > >;
 
-During construction more information is required about the halo structure. We use here the usual ``halo_descriptor`` described in :ref:`halo-descriptor``.
+During construction more information is required about the halo structure. We use here the usual ``halo_descriptor`` described in :ref:`halo-descriptor`.
 
 .. note:
   This choice is sub-optimal, in the sense that the five arguments in the halo descriptors are somewhat low-level, with respect to the level of the API. This will be fixed with the next versions of |GT|
 
-The user needs also to indicate which dimensions are periodic (again, refer to :ref:`GCL-communication-module` for more information), and this is dome using another |GT| facility which is the ``boollist``. Finally, to let the library compute the right amount of memory to allocate before hand, the maximum number of fields to be exchanged in one call have to be specified. The code showing an example of how to do it follows:
+The user needs also to indicate which dimensions are periodic (again, refer to :ref:`gcl-communication-module` for more information), and this is dome using another |GT| facility which is the ``boollist``. Finally, to let the library compute the right amount of memory to allocate before hand, the maximum number of fields to be exchanged in one call have to be specified. The code showing an example of how to do it follows:
 
 .. code-block:: gridtools
 
@@ -101,7 +101,7 @@ The ``distributed_boundary`` object allows the user to query the properties of t
    int PI, PJ, PK;
    cabc.proc_grid().dims(PI, PJ, PK); // Sizes of the current grid of processes
 
-When invoking the boundary application and halo-update operations the user calls the ``exchange`` member of ``distributed_boundaries``. The arguments of ``exchange`` are either data stores (:ref:`storage-module`) or ``bind_bc`` objects which associate a boundary condition class (:ref:`boundary-conditions-class`) to data stores. The data stores passed directly to the ``exchange`` methods have their halo updates according to the halo and periodicity information specified at ``distributed_boundaries`` object construction. The ``bibd_bc`` arguments are treated differently.
+When invoking the boundary application and halo-update operations the user calls the ``exchange`` member of ``distributed_boundaries``. The arguments of ``exchange`` are either data stores (:ref:`storage-module`) or ``bind_bc`` objects which associate a boundary condition class (:ref:`boundary-conditions-class`) to data stores. The data stores passed directly to the ``exchange`` methods have their halo updates according to the halo and periodicity information specified at ``distributed_boundaries`` object construction. The ``bind_bc`` arguments are treated differently.
 
 ``bind_bc`` accepts as first argument a boundary condition object and a list of fields that will be passed to it, for instance:
 
@@ -119,7 +119,7 @@ In the copy boundary, though, the second argument ``b`` is read-only, and most l
 
 In this case, the field ``b`` will not be passed to the communication module, but it will only be used by the ``copy_boundary`` object.
 
-The next example, shows two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b`` (refer to :ref:`:ref:`GCL-communication-module`). Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``. Three fields will have their halo updated inthis call.:
+The next example, shows two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b`` (refer to :ref:`gcl-communication-module`). Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``. Three fields will have their halo updated inthis call.:
 
 .. code-block:: gridtools
 
