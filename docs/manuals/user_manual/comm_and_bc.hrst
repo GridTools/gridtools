@@ -119,7 +119,7 @@ In the copy boundary, though, the second argument ``b`` is read-only, and most l
 
 In this case, the field ``b`` will not be passed to the communication module, but it will only be used by the ``copy_boundary`` object.
 
-The next example, shows two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b`` (refer to :ref:`gcl-communication-module`). Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``. Three fields will have their halo updated inthis call.:
+The next example, shows two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b`` (refer to :ref:`gcl-communication-module`). Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``. Three fields will have their halo updated by the next example, namely ``a``, ``b`` and ``d``:
 
 .. code-block:: gridtools
 
