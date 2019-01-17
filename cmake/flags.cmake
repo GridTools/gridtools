@@ -31,8 +31,11 @@ set_property(CACHE GT_CXX_STANDARD PROPERTY STRINGS "c++11;c++14;c++17")
 
 option( GT_ENABLE_EXPERIMENTAL_REPOSITORY "Enables downloading the gridtools_experimental repository" OFF )
 
-option( GT_INSTALL_EXAMPLES "Specify if source codes and binaries of examples should be installed somewhere" OFF )
+
 option( GT_COMPILE_EXAMPLES "Specify examples should be compiled" ON )
+
+CMAKE_DEPENDENT_OPTION(GT_INSTALL_EXAMPLES "Specify the path where to install sources and binaries of the examples" OFF "GT_COMPILE_EXAMPLES" OFF)
+
 set(GT_INSTALL_EXAMPLES_PATH STRING "Specifies where the source codes and binary of examples should be installed"
     "${CMAKE_INSTALL_PREFIX}")
 
