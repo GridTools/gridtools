@@ -427,12 +427,12 @@ namespace gridtools {
         void reset_meter() { m_meter.reset(); }
 
         template <class Placeholder>
-        rt_extent get_arg_extent(Placeholder) const {
-            return m_intermediate_remainder.get_arg_extent(_impl::expand_detail::convert_plh<0, Placeholder>{});
+        static constexpr rt_extent get_arg_extent(Placeholder) {
+            return converted_intermediate<1>::get_arg_extent(_impl::expand_detail::convert_plh<0, Placeholder>{});
         }
         template <class Placeholder>
-        enumtype::intent get_arg_intent(Placeholder) const {
-            return m_intermediate_remainder.get_arg_intent(_impl::expand_detail::convert_plh<0, Placeholder>{});
+        static constexpr enumtype::intent get_arg_intent(Placeholder) {
+            return converted_intermediate<1>::get_arg_intent(_impl::expand_detail::convert_plh<0, Placeholder>{});
         }
     };
 } // namespace gridtools

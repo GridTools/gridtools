@@ -67,7 +67,7 @@ namespace gridtools {
             };
 
             template <class T, class Arg>
-            struct impl_arg : virtual _impl::computation_detail::iface_arg<Arg> {
+            struct impl_arg : virtual iface_arg<Arg> {
                 rt_extent get_arg_extent(Arg) const override {
                     return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
                 }
