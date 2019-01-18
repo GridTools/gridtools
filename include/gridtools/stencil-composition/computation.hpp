@@ -143,13 +143,13 @@ namespace gridtools {
 
         void reset_meter() { m_impl->reset_meter(); }
 
-        template <typename Arg>
-        rt_extent get_arg_extent(Arg) const {
+        template <class Arg>
+        enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, rt_extent> get_arg_extent(Arg) const {
             return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_extent(Arg());
         }
 
-        template <typename Arg>
-        enumtype::intent get_arg_intent(Arg) const {
+        template <class Arg>
+        enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, enumtype::intent> get_arg_intent(Arg) const {
             return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_intent(Arg());
         }
     };

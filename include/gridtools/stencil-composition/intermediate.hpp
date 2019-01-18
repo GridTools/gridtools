@@ -361,11 +361,11 @@ namespace gridtools {
 
         local_domains_t const &local_domains() const { return m_local_domains; }
 
-        template <class Placeholder, class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t)>
-        static constexpr conditional_t<meta::st_contains<RwArgs, Placeholder>::value,
-            std::integral_constant<enumtype::intent, enumtype::intent::inout>,
-            std::integral_constant<enumtype::intent, enumtype::intent::in>>
-        get_arg_intent(Placeholder) {
+        template <class Placeholder,
+            class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
+            enumtype::intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? enumtype::intent::inout
+                                                                                    : enumtype::intent::in>
+        static constexpr std::integral_constant<enumtype::intent, Intent> get_arg_intent(Placeholder) {
             return {};
         }
 
