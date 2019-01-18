@@ -304,5 +304,4 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(all_r_args, meta::filter, (is_r_arg<RwArgs>::template apply, Args));
 
     } // namespace _impl
-
 } // namespace gridtools
