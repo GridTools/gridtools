@@ -369,10 +369,14 @@ namespace gridtools {
             return {};
         }
 
-        template <class Placeholder, class ExtentMap = extent_map_t>
-        static constexpr enable_if_t<!boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
+        // workaround because boost::mpl::at is not sfinae-friendly
+        template <class Placeholder,
+            class ExtentMap = extent_map_t,
+            class LazyResult = enable_if_t<!boost::mpl::is_void_<ExtentMap>::value,
+                boost::mpl::at<typename ExtentMap::type, Placeholder>>>
+        static constexpr typename LazyResult::type get_arg_extent(Placeholder) {
             GRIDTOOLS_STATIC_ASSERT(is_plh<Placeholder>::value, "");
-            return typename boost::mpl::at<typename ExtentMap::type, Placeholder>::type{};
+            return {};
         }
         template <class Placeholder, class ExtentMap = extent_map_t>
         static enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
