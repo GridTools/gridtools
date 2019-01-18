@@ -292,16 +292,5 @@ namespace gridtools {
             class RawRwArgs = GT_META_CALL(meta::flatten, RwArgsLists)>
         GT_META_DEFINE_ALIAS(all_rw_args, meta::dedup, RawRwArgs);
 
-        template <class RwArgs>
-        struct is_r_arg {
-            template <class Arg>
-            GT_META_DEFINE_ALIAS(apply, bool_constant, (!meta::st_contains<RwArgs, Arg>::value));
-        };
-
-        template <class Msses,
-            class Args = GT_META_CALL(extract_placeholders, Msses),
-            class RwArgs = GT_META_CALL(all_rw_args, Msses)>
-        GT_META_DEFINE_ALIAS(all_r_args, meta::filter, (is_r_arg<RwArgs>::template apply, Args));
-
     } // namespace _impl
 } // namespace gridtools
