@@ -380,8 +380,12 @@ namespace gridtools {
         }
         template <class Placeholder, class ExtentMap = extent_map_t>
         static enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
-            ASSERT_OR_THROW(!boost::mpl::is_void_<ExtentMap>::value, "");
+#ifdef __CUDA_ARCH__
+            assert(false);
             return {};
+#else
+            throw std::runtime_error("");
+#endif
         }
 
       private:
