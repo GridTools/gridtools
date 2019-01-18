@@ -68,12 +68,8 @@ namespace gridtools {
 
             template <class T, class Arg>
             struct impl_arg : virtual iface_arg<Arg> {
-                rt_extent get_arg_extent(Arg) const override {
-                    return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
-                }
-                enumtype::intent get_arg_intent(Arg) const override {
-                    return static_cast<const T *>(this)->m_obj.get_arg_intent(Arg());
-                }
+                rt_extent get_arg_extent(Arg) const override { return T::obj_t::get_arg_extent(Arg()); }
+                enumtype::intent get_arg_intent(Arg) const override { return T::obj_t::get_arg_intent(Arg()); }
             };
         } // namespace computation_detail
     }     // namespace _impl
@@ -102,6 +98,7 @@ namespace gridtools {
 
         template <class Obj>
         struct impl : iface, _impl::computation_detail::impl_arg<impl<Obj>, Args>... {
+            using obj_t = Obj;
             Obj m_obj;
 
             impl(Obj &&obj) : m_obj{std::move(obj)} {}
