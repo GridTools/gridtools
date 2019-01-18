@@ -374,6 +374,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_plh<Placeholder>::value, "");
             return typename boost::mpl::at<typename ExtentMap::type, Placeholder>::type{};
         }
+        template <class Placeholder, class ExtentMap = extent_map_t>
+        static enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
+            ASSERT_OR_THROW(false, "");
+        }
 
       private:
         template <class Src>
