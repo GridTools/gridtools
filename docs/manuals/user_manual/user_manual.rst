@@ -8,9 +8,10 @@
 .. _user-manual:
 
 =======================================
-User Manual
+|GT| User Manual
 =======================================
 
+.. include:: introduction.hrst
 .. include:: storages.hrst
 .. include:: DSL_introduction.hrst
 .. include:: stencil_operators.hrst
@@ -25,4 +26,3 @@ User Manual
 .. include:: interface.hrst
 .. include:: benchmarking.hrst
 .. include:: serialbox_and_porting.hrst
-
