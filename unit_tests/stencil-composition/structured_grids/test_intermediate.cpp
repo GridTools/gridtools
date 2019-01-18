@@ -172,4 +172,17 @@ TEST(intermediate, test_get_arg_functions) {
         EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_tmp3()));
         EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
     }
+    {
+        auto mss_ = make_multistage(enumtype::execute<enumtype::forward>(),
+            make_stage_with_extent<stage1, extent<>>(p_in1(), p_in2(), p_out()));
+        computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
+
+#ifndef __CUDACC__
+        EXPECT_ANY_THROW(comp.get_arg_extent(p_in1()));
+#endif
+
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in1()));
+        EXPECT_EQ(enumtype::in, comp.get_arg_intent(p_in2()));
+        EXPECT_EQ(enumtype::inout, comp.get_arg_intent(p_out()));
+    }
 }
