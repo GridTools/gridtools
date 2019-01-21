@@ -77,6 +77,15 @@ namespace gridtools {
             }
             size_t get_count() const { return m_count; }
             double get_time() const { return 0.; /* unused */ }
+
+            template <typename Arg>
+            static constexpr rt_extent get_arg_extent(Arg) {
+                return {0, 0, 0, 0, 0, 0};
+            }
+            template <typename Arg>
+            static constexpr std::integral_constant<enumtype::intent, enumtype::in> get_arg_intent(Arg) {
+                return {};
+            }
         };
 
         TEST(computation, default_ctor) {
