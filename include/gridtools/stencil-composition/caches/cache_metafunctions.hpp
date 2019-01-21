@@ -70,6 +70,7 @@
 #include "../local_domain.hpp"
 #include "./cache.hpp"
 #include "./cache_storage.hpp"
+#include "./extract_extent_caches.hpp"
 
 namespace gridtools {
 
@@ -163,6 +164,58 @@ namespace gridtools {
         struct apply : boost::integral_constant<bool, Cache::cacheType == cacheType> {
             GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         };
+    };
+
+    template <typename CacheSequence, typename Esfs, typename BlockSize, typename LocalDomain>
+    struct get_k_cache_storage_tuple {
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_block_size<BlockSize>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+
+        // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
+        // into a fusion vector.
+        // Note: building a fusion map using result_of::as_map<mpl_vector_of_pair> did not work due to a clash between
+        // fusion pair and mpl pairs (the algorithm as_map expect fusion pairs). That is the reason of the workaround
+        // here
+        // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
+
+        template <typename Cache, typename IndexT>
+        struct get_cache_storage {
+            GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
+            using arg_t = typename LocalDomain::template get_arg<IndexT>::type;
+            using type = cache_storage<Cache,
+                block_size<1, 1, 1>,
+                GT_META_CALL(extract_k_extent_for_cache, (arg_t, Esfs)),
+                arg_t>;
+        };
+
+        // first we build an mpl vector of pairs
+        typedef typename boost::mpl::fold<CacheSequence,
+            boost::mpl::vector0<>,
+            boost::mpl::eval_if<typename cache_is_type<K>::template apply<boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1,
+                    boost::mpl::pair<cache_to_index<boost::mpl::_2, LocalDomain>,
+                        get_cache_storage<boost::mpl::_2, cache_to_index<boost::mpl::_2, LocalDomain>>>>,
+                boost::mpl::identity<boost::mpl::_1>>>::type mpl_t;
+        typedef typename boost::mpl::fold<mpl_t,
+            boost::mpl::vector<>,
+            boost::mpl::if_<boost::mpl::is_void_<boost::mpl::_2>,
+                boost::mpl::_1,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>>>::type filtered_mpl_t;
+
+        // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
+        template <typename FusionSeq, typename Pair>
+        struct insert_pair_into_fusion_vector {
+            typedef typename boost::fusion::result_of::push_back<FusionSeq,
+                boost::fusion::pair<typename boost::mpl::first<Pair>::type,
+                    typename boost::mpl::second<Pair>::type>>::type type;
+        };
+
+        // then we transform the mpl vector into a fusion vector
+        typedef typename boost::mpl::fold<filtered_mpl_t,
+            boost::fusion::vector0<>,
+            insert_pair_into_fusion_vector<boost::mpl::_1, boost::mpl::_2>>::type type;
     };
 
     /**

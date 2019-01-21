@@ -143,9 +143,6 @@ namespace gridtools {
         // extract a sequence of extents for each ij cache
         typedef typename extract_ij_extents_for_caches<IterateDomainArguments>::type ij_cache_extents_map_t;
 
-        // extract a sequence of extents for each k cache
-        typedef typename extract_k_extents_for_caches<IterateDomainArguments>::type k_cache_extents_map_t;
-
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
         typedef typename get_cache_storage_tuple<IJ,
             caches_t,
@@ -154,9 +151,8 @@ namespace gridtools {
             typename IterateDomainArguments::local_domain_t>::type ij_caches_vector_t;
 
         // compute the fusion vector of pair<index_type, cache_storage> for k caches
-        typedef typename get_cache_storage_tuple<K,
-            caches_t,
-            k_cache_extents_map_t,
+        typedef typename get_k_cache_storage_tuple<caches_t,
+            copy_into_variadic<typename IterateDomainArguments::esf_sequence_t, meta::list<>>,
             block_size_t,
             typename IterateDomainArguments::local_domain_t>::type k_caches_vector_t;
 
@@ -187,10 +183,6 @@ namespace gridtools {
         // associative container with all caches
         typedef typename get_cache_set<caches_t, typename IterateDomainArguments::local_domain_t>::type all_caches_t;
 
-        iterate_domain_cache(iterate_domain_cache const &) = delete;
-        iterate_domain_cache &operator=(iterate_domain_cache const &) = delete;
-        iterate_domain_cache() = default;
-
         // returns a k cache from the tuple
         template <typename IndexType>
         GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &RESTRICT get_k_cache() const {
@@ -216,13 +208,12 @@ namespace gridtools {
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level) {
             GRIDTOOLS_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
 
-            if (first_level) {
+            if (first_level)
                 boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                     k_caches_map_t,
                     IterateDomain,
                     IterationPolicy,
                     cache_io_policy::fill>(it_domain, m_k_caches_tuple));
-            }
 
             boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,
@@ -247,13 +238,12 @@ namespace gridtools {
                 IterationPolicy,
                 cache_io_policy::flush>(it_domain, m_k_caches_tuple));
 
-            if (last_level) {
+            if (last_level)
                 boost::mpl::for_each<k_flushing_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
                     k_caches_map_t,
                     IterateDomain,
                     IterationPolicy,
                     cache_io_policy::flush>(it_domain, m_k_caches_tuple));
-            }
         }
     };
 } // namespace gridtools

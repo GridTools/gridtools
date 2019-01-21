@@ -67,29 +67,30 @@ namespace gridtools {
             typename IterateDomain,
             typename CacheStorage>
         struct io_operator {
-            GT_FUNCTION io_operator(IterateDomain const &it_domain, CacheStorage &cache_storage)
-                : m_it_domain(it_domain), m_cache_storage(cache_storage) {}
+            IterateDomain const &m_it_domain;
+            CacheStorage &m_cache_storage;
 
             template <typename Offset>
             GT_FUNCTION void operator()(Offset) const {
                 static constexpr int_t offset = BaseOffset + (int_t)Offset::value;
-
-                using acc_t = accessor<AccIndex::value, enumtype::inout, extent<0, 0, 0, 0, offset, offset>>;
-                static constexpr acc_t acc(0, 0, offset);
-
-                // perform an out-of-bounds check
-                if (auto mem_ptr =
-                        m_it_domain.template get_gmem_ptr_in_bounds<AccIndex, BaseOffset + (int_t)Offset::value>()) {
-                    // fill or flush cache
-                    if (CacheIOPolicy == cache_io_policy::fill)
-                        m_cache_storage.at(acc) = *mem_ptr;
-                    else
-                        *mem_ptr = m_cache_storage.at(acc);
-                }
+                static constexpr array<int_t, 3> acc = {0, 0, offset};
+                if (auto *ptr = m_it_domain.template get_gmem_ptr_in_bounds<AccIndex, offset>())
+                    *ptr = m_cache_storage.at(acc);
             }
+        };
 
+        template <typename AccIndex, int_t BaseOffset, typename IterateDomain, typename CacheStorage>
+        struct io_operator<cache_io_policy::fill, AccIndex, BaseOffset, IterateDomain, CacheStorage> {
             IterateDomain const &m_it_domain;
             CacheStorage &m_cache_storage;
+
+            template <typename Offset>
+            GT_FUNCTION void operator()(Offset) const {
+                static constexpr int_t offset = BaseOffset + (int_t)Offset::value;
+                static constexpr array<int_t, 3> acc = {0, 0, offset};
+                if (auto *ptr = m_it_domain.template get_gmem_ptr_in_bounds<AccIndex, offset>())
+                    m_cache_storage.at(acc) = *ptr;
+            }
         };
 
         template <cache_io_policy CacheIOPolicy,
@@ -117,8 +118,8 @@ namespace gridtools {
             cache_io_policy CacheIOPolicy>
         struct io_cache_functor_base {
           private:
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain<IterateDomain>::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_iteration_policy<IterationPolicy>::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<IterateDomain>::value, GT_INTERNAL_ERROR);
 
             IterateDomain const &m_it_domain;
             KCachesTuple &m_kcaches;
@@ -143,15 +144,13 @@ namespace gridtools {
             GT_FUNCTION void sync() const {
                 GRIDTOOLS_STATIC_ASSERT(forward || backward, "k-caches only support forward and backward iteration");
                 GRIDTOOLS_STATIC_ASSERT(fill || flush, "io policy must be either fill or flush");
-                static constexpr uint_t sync_size = (uint_t)(SyncEnd - SyncStart + 1);
-                using range = GT_META_CALL(meta::make_indices_c, sync_size);
+                using range = GT_META_CALL(meta::make_indices_c, SyncEnd - SyncStart + 1);
                 auto &cache_st = boost::fusion::at_key<Idx>(m_kcaches);
                 host_device::for_each<range>(make_io_operator<CacheIOPolicy, Idx, SyncStart>(m_it_domain, cache_st));
             }
 
           public:
-            GT_FUNCTION
-            io_cache_functor_base(IterateDomain const &it_domain, KCachesTuple &kcaches)
+            GT_FUNCTION io_cache_functor_base(IterateDomain const &it_domain, KCachesTuple &kcaches)
                 : m_it_domain(it_domain), m_kcaches(kcaches) {}
         };
 
@@ -171,8 +170,8 @@ namespace gridtools {
             cache_io_policy CacheIOPolicy>
         struct io_cache_functor
             : io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy> {
-            using base = io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy>;
-            using base::io_cache_functor_base;
+            using base_t = typename io_cache_functor::io_cache_functor_base;
+            using base_t::io_cache_functor_base;
 
             /**
              * @brief Syncs one level of the cache with main memory.
@@ -180,15 +179,7 @@ namespace gridtools {
             template <typename Idx>
             GT_FUNCTION void operator()(Idx) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
-
-                // lowest and highest index in cache storage
-                static constexpr int_t kminus = kcache_storage_t::kminus;
-                static constexpr int_t kplus = kcache_storage_t::kplus;
-
-                // cache index at which we need to sync (single element)
-                static constexpr int_t sync_point = base::tail ? kminus : kplus;
-
-                base::template sync<Idx, sync_point>();
+                base_t::template sync<Idx, base_t::tail ? kcache_storage_t::kminus : kcache_storage_t::kplus>();
             }
         };
 
@@ -208,8 +199,9 @@ namespace gridtools {
             cache_io_policy CacheIOPolicy>
         struct endpoint_io_cache_functor
             : io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy> {
-            using base = io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy>;
-            using base::io_cache_functor_base;
+            using base_t =
+                io_cache_functor_base<KCachesTuple, KCachesMap, IterateDomain, IterationPolicy, CacheIOPolicy>;
+            using base_t::io_cache_functor_base;
 
             /**
              * @brief Sync implementation for non-endpoint-only caches (i.e. fill, flush).
@@ -218,20 +210,16 @@ namespace gridtools {
             GT_FUNCTION void operator()(Idx) const {
                 using kcache_storage_t = typename boost::mpl::at<KCachesMap, Idx>::type;
 
-                // lowest and highest index in cache storage
-                static constexpr int_t kminus = kcache_storage_t::kminus;
-                static constexpr int_t kplus = kcache_storage_t::kplus;
-
                 // with fill or flush caches, we need to load/store one element less at the begin and endpoints as the
                 // non-endpoint fill or flush on the same k-level will handle this already
-                static constexpr int_t kminus_offset = base::tail ? 1 : 0;
-                static constexpr int_t kplus_offset = !base::tail ? -1 : 0;
+                static constexpr int_t kminus_offset = base_t::tail ? 1 : 0;
+                static constexpr int_t kplus_offset = !base_t::tail ? -1 : 0;
 
                 // choose lower and upper cache index for syncing
-                static constexpr int_t sync_start = kminus + kminus_offset;
-                static constexpr int_t sync_end = kplus + kplus_offset;
+                static constexpr int_t sync_start = kcache_storage_t::kminus + kminus_offset;
+                static constexpr int_t sync_end = kcache_storage_t::kplus + kplus_offset;
 
-                base::template sync<Idx, sync_start, sync_end>();
+                base_t::template sync<Idx, sync_start, sync_end>();
             }
         };
     } // namespace _impl

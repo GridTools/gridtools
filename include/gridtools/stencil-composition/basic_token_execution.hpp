@@ -73,9 +73,8 @@ namespace gridtools {
 
         /**
            @brief basic token of execution responsible of handling the discretization over the vertical dimension. This
-           may be done with a loop over k or by partitoning the k axis and executing in parallel, depending on the
-           execution_policy defined in the multi-stage stencil. The base class is then specialized using the CRTP
-           pattern for the different policies.
+           may be done with a loop over k or by partitioning the k axis and executing in parallel, depending on the
+           execution_policy defined in the multi-stage stencil.
         */
         /**
            @brief   Execution kernel containing the loop over k levels
@@ -113,7 +112,7 @@ namespace gridtools {
             template <class IterationPolicy,
                 class Stages,
                 enable_if_t<!ItDomain::has_k_caches && meta::length<Stages>::value != 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t first, int_t last, bool is_first, bool is_last) const {
+            GT_FUNCTION void k_loop(int_t first, int_t last, bool, bool) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain))
                     RunEsfFunctor::template exec<Stages>(m_domain);

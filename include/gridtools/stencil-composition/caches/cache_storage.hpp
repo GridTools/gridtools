@@ -73,11 +73,78 @@ namespace gridtools {
         }
     };
 
-    template <class T, int_t Size, int_t KZero>
+    template <class T, int_t Size, int_t ZeroOffset>
     class k_cache_storage {
         GRIDTOOLS_STATIC_ASSERT(Size > 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(ZeroOffset < Size, GT_INTERNAL_ERROR);
 
         mutable T m_values[Size];
+
+        struct slide_forward_f {
+            T *m_values;
+            GT_FUNCTION void operator()() const {
+                for (int_t k = 0; k < Size - 1; ++k)
+                    m_values[k] = std::move(m_values[k + 1]);
+            }
+        };
+
+        struct slide_backward_f {
+            T *m_values;
+            GT_FUNCTION void operator()() const {
+                for (int_t k = Size - 1; k > 0; --k)
+                    m_values[k] = std::move(m_values[k - 1]);
+            }
+        };
+
+        template <enumtype::execution, class Src>
+        struct fill_f;
+
+        template <class Src>
+        struct fill_f<enumtype::forward, Src> {
+            Src const &m_src;
+            T *m_dst;
+            bool m_first_level;
+            GT_FUNCTION void operator()() const {
+                for (int_t i = m_first_level ? ZeroOffset : Size - 1; i < Size; ++i)
+                    m_dst[i] = m_src(i - ZeroOffset);
+            }
+        };
+
+        template <class Src>
+        struct fill_f<enumtype::backward, Src> {
+            Src const &m_src;
+            T *m_dst;
+            bool m_first_level;
+            GT_FUNCTION void operator()() const {
+                for (int_t i = m_first_level ? ZeroOffset : 0; i >= 0; --i)
+                    m_dst[i] = m_src(i - ZeroOffset);
+            }
+        };
+
+        template <enumtype::execution, class Dst>
+        struct flush_f;
+
+        template <class Dst>
+        struct flush_f<enumtype::forward, Dst> {
+            T *m_src;
+            Dst &m_dst;
+            bool m_last_level;
+            GT_FUNCTION void operator()() const {
+                for (int_t i = m_last_level ? ZeroOffset : 0; i >= 0; --i)
+                    m_dst(i - ZeroOffset) = std::move(m_src[i]);
+            }
+        };
+
+        template <class Dst>
+        struct flush_f<enumtype::backward, Dst> {
+            T *m_src;
+            Dst &m_dst;
+            bool m_last_level;
+            GT_FUNCTION void operator()() const {
+                for (int_t i = m_last_level ? ZeroOffset : Size - 1; i < Size; ++i)
+                    m_src[i] = m_dst(i - ZeroOffset);
+            }
+        };
 
       public:
         /**
@@ -86,7 +153,7 @@ namespace gridtools {
          */
         template <class Accessor>
         GT_FUNCTION T &at(Accessor const &acc) const {
-            int_t offset = accessor_offset<2>(acc) - KZero;
+            int_t offset = accessor_offset<2>(acc) + ZeroOffset;
             assert(offset >= 0);
             assert(offset < Size);
             assert(accessor_offset<0>(acc) == 0);
@@ -98,20 +165,26 @@ namespace gridtools {
          * @brief slides the values of the ring buffer
          */
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::forward && Size != 1> slide() {
-            constexpr auto end = Size - 1;
-            for (int_t k = 0; k < end; ++k)
-                m_values[k] = m_values[k + 1];
+        GT_FUNCTION constexpr conditional_t<Policy == enumtype::forward, slide_forward_f, slide_backward_f>
+        slide() const {
+            return {m_values};
         }
 
-        template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::backward && Size != 1> slide() {
-            for (int_t k = Size - 1; k > 0; --k)
-                m_values[k] = m_values[k - 1];
+        template <enumtype::execution Policy, class Src>
+        GT_FUNCTION constexpr fill_f<Policy, Src> fill(bool first_level, Src const &src) const {
+            return {src, m_values, first_level};
         }
 
-        template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Size == 1 && (Policy == enumtype::forward || Policy == enumtype::backward)> slide() {}
+        template <enumtype::execution Policy, class Dst>
+        GT_FUNCTION constexpr flush_f<Policy, Dst> flush(bool last_level, Dst const &dst) const {
+            return {m_values, dst, last_level};
+        }
+
+        template <enumtype::execution Policy, class Dst>
+        GT_FUNCTION enable_if_t<Policy == enumtype::backward> flush(bool last_level, Dst const &dst) const {
+            for (int_t i = last_level ? ZeroOffset : Size - 1; i < Size; ++i)
+                m_values[i] = dst(i - ZeroOffset);
+        }
     };
 
 #else
@@ -246,21 +319,17 @@ namespace gridtools {
          * @brief slides the values of the ring buffer
          */
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::forward && total_length != 1> slide() {
+        GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() {
             constexpr auto end = total_length - 1;
             for (int_t k = 0; k < end; ++k)
                 m_values[k] = m_values[k + 1];
         }
 
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::backward && total_length != 1> slide() {
+        GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() {
             for (int_t k = total_length - 1; k > 0; --k)
                 m_values[k] = m_values[k - 1];
         }
-
-        template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<total_length == 1 && (Policy == enumtype::forward || Policy == enumtype::backward)>
-        slide() {}
 
       private:
         mutable value_type m_values[total_length];

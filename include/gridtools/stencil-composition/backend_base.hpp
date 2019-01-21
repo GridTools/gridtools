@@ -57,7 +57,6 @@
    @file
    @brief base class for all the backends. Current supported backend are \ref gridtools::target:x86 and \ref
    gridtools::enumtype::Cuda
-   It is templated on the derived type (CRTP pattern) in order to use static polymorphism.
 */
 
 namespace gridtools {

@@ -98,7 +98,7 @@ typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_notin(), p_out())) esf2k_t;
 
-typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
+// typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
 
 TEST(cache_metafunctions, cache_used_by_esfs) {
     typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
@@ -128,36 +128,10 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
-                                boost::mpl::map2<boost::mpl::pair<cache1_t, extent<-1, 2, -2, 1>>,
-                                    boost::mpl::pair<cache2_t, extent<-2, 2, -3, 2>>>>::value),
-        "ERROR");
-}
-
-TEST(cache_metafunctions, extract_k_extents_for_caches) {
-    typedef local_domain<std::tuple<>, extent<>, false> local_domain_t;
-
-    typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
-
-    typedef typename boost::mpl::
-        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
-
-    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
-        local_domain_t,
-        esfk_sequence_t,
-        extents_t,
-        max_extent_t,
-        caches_t,
-        gridtools::grid<axis>>
-        iterate_domain_arguments_t;
-
-    typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
-
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
-                                boost::mpl::map2<boost::mpl::pair<cache3_t, extent<0, 0, 0, 0, 0, 1>>,
-                                    boost::mpl::pair<cache4_t, extent<0, 0, 0, 0, -1, 1>>>>::value),
-        "ERROR");
+    static_assert(
+        std::is_same<typename boost::mpl::at<extents_map_t, cache1_t>::type, extent<-1, 2, -2, 1>>::value, "");
+    static_assert(
+        std::is_same<typename boost::mpl::at<extents_map_t, cache2_t>::type, extent<-2, 2, -3, 2>>::value, "");
 }
 
 TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
@@ -193,32 +167,24 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
         "ERROR");
 }
 
+using esfk_sequence_t = meta::list<esf1k_t, esf2k_t>;
+
+static_assert(
+    std::is_same<GT_META_CALL(extract_k_extent_for_cache, (p_out, esfk_sequence_t)), extent<0, 0, 0, 0, 0, 1>>(), "");
+
+static_assert(
+    std::is_same<GT_META_CALL(extract_k_extent_for_cache, (p_notin, esfk_sequence_t)), extent<0, 0, 0, 0, -1, 1>>(),
+    "");
+
 TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
-    typedef local_domain<std::tuple<p_in, p_buff, p_notin, p_out>, extent<>, false> local_domain_t;
+    using local_domain_t = local_domain<std::tuple<p_in, p_buff, p_notin, p_out>, extent<>, false>;
 
-    typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
-    typedef gridtools::interval<level_t<0, -2>, level_t<1, 1>> axis;
-
-    typedef typename boost::mpl::
-        fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
-
-    typedef iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
-        local_domain_t,
-        esfk_sequence_t,
-        extents_t,
-        max_extent_t,
-        caches_t,
-        gridtools::grid<axis>>
-        iterate_domain_arguments_t;
-
-    typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
-
-    typedef get_cache_storage_tuple<K, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
-        cache_storage_tuple_t;
+    using testee =
+        typename get_k_cache_storage_tuple<caches_t, esfk_sequence_t, block_size<32, 4, 1>, local_domain_t>::type;
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<cache_storage_tuple_t,
+        (boost::mpl::equal<testee,
             boost::fusion::map<boost::fusion::pair<static_uint<3>,
                                    cache_storage<cache3_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, 0, 1>, p_out>>,
                 boost::fusion::pair<static_uint<2>,
