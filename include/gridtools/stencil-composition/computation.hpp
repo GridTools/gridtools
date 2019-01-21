@@ -43,6 +43,7 @@
 #include "../common/permute_to.hpp"
 #include "../meta/type_traits.hpp"
 #include "arg.hpp"
+#include "extent.hpp"
 
 namespace gridtools {
 
@@ -55,6 +56,23 @@ namespace gridtools {
                 template <class... Args>
                 void operator()(Args &&... args) const {
                     m_obj.run(std::forward<Args>(args)...);
+                }
+            };
+
+            template <typename Arg>
+            struct iface_arg {
+                virtual ~iface_arg() = default;
+                virtual rt_extent get_arg_extent(Arg) const = 0;
+                virtual enumtype::intent get_arg_intent(Arg) const = 0;
+            };
+
+            template <class T, class Arg>
+            struct impl_arg : virtual iface_arg<Arg> {
+                rt_extent get_arg_extent(Arg) const override {
+                    return static_cast<const T *>(this)->m_obj.get_arg_extent(Arg());
+                }
+                enumtype::intent get_arg_intent(Arg) const override {
+                    return static_cast<const T *>(this)->m_obj.get_arg_intent(Arg());
                 }
             };
         } // namespace computation_detail
@@ -72,7 +90,7 @@ namespace gridtools {
 
         using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 
-        struct iface {
+        struct iface : virtual _impl::computation_detail::iface_arg<Args>... {
             virtual ~iface() = default;
             virtual void run(arg_storage_pair_crefs_t const &) = 0;
             virtual void sync_bound_data_stores() = 0;
@@ -83,7 +101,7 @@ namespace gridtools {
         };
 
         template <class Obj>
-        struct impl : iface {
+        struct impl : iface, _impl::computation_detail::impl_arg<impl<Obj>, Args>... {
             Obj m_obj;
 
             impl(Obj &&obj) : m_obj{std::move(obj)} {}
@@ -127,6 +145,16 @@ namespace gridtools {
         size_t get_count() const { return m_impl->get_count(); }
 
         void reset_meter() { m_impl->reset_meter(); }
+
+        template <class Arg>
+        enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, rt_extent> get_arg_extent(Arg) const {
+            return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_extent(Arg());
+        }
+
+        template <class Arg>
+        enable_if_t<meta::st_contains<meta::list<Args...>, Arg>::value, enumtype::intent> get_arg_intent(Arg) const {
+            return static_cast<_impl::computation_detail::iface_arg<Arg> const &>(*m_impl).get_arg_intent(Arg());
+        }
     };
 
 } // namespace gridtools

@@ -361,6 +361,33 @@ namespace gridtools {
 
         local_domains_t const &local_domains() const { return m_local_domains; }
 
+        template <class Placeholder,
+            class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
+            enumtype::intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? enumtype::intent::inout
+                                                                                    : enumtype::intent::in>
+        static constexpr std::integral_constant<enumtype::intent, Intent> get_arg_intent(Placeholder) {
+            return {};
+        }
+
+        // workaround because boost::mpl::at is not sfinae-friendly
+        template <class Placeholder,
+            class ExtentMap = extent_map_t,
+            class LazyResult = enable_if_t<!boost::mpl::is_void_<ExtentMap>::value,
+                boost::mpl::at<typename ExtentMap::type, Placeholder>>>
+        static constexpr typename LazyResult::type get_arg_extent(Placeholder) {
+            GRIDTOOLS_STATIC_ASSERT(is_plh<Placeholder>::value, "");
+            return {};
+        }
+        template <class Placeholder, class ExtentMap = extent_map_t>
+        static enable_if_t<boost::mpl::is_void_<ExtentMap>::value, rt_extent> get_arg_extent(Placeholder) {
+#ifdef __CUDA_ARCH__
+            assert(false);
+            return {};
+#else
+            throw std::runtime_error("");
+#endif
+        }
+
       private:
         template <class Src>
         static auto make_view_infos(Src &&src)
@@ -374,7 +401,7 @@ namespace gridtools {
         template <class Seq>
         auto dedup_storage_info(Seq const &seq) GT_AUTO_RETURN(
             tuple_util::transform(_impl::dedup_storage_info_f<storage_info_map_t>{m_storage_info_map}, seq));
-    };
+    }; // namespace gridtools
 
     /**
      *  This metafunction exposes intermediate implementation specific details to a couple of unit tests.
