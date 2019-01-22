@@ -54,7 +54,7 @@ constructible, and whose member functions should be decorated with the
 
 The boundary condition class provides overloads for the ``operator()``
 which take as first argument a ``direction`` object, a number of data
-views that are the inputs (refer to the :ref:`storage-module`
+stores that are the inputs (refer to the :ref:`storage-module`
 documentation), and three integer values that will contains the
 coordinate indices of the cell that is being iterated on.
 
