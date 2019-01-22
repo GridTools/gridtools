@@ -35,6 +35,11 @@
 */
 #pragma once
 
+namespace gridtools {
+    template <typename... list>
+    using make_arg_list = boost::mpl::vector<list...>;
+}
+
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/esf.hpp"
 #else

@@ -64,7 +64,7 @@ namespace copy_stencil {
     struct copy_functor {
         typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_arg_list<in, out> arg_list;
         /* static const auto expression=in(1,0,0)-out(); */
 
         template <typename Evaluation>
