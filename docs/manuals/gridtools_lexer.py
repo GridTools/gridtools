@@ -39,8 +39,10 @@ gridtools_keywords = ((
  'local',
  'parallel',
  'storage_traits',
- 'vector_accessor',
  'vertices',
+ 'if_',
+ 'switch_',
+ 'case_'
 ))
 
 gridtools_namespace = ((
@@ -57,6 +59,7 @@ gridtools_functions = ((
 	'make_host_view',
 	'make_multistage',
 	'make_stage',
+        'make_independent'
 ))
 
 gridtools_macros = ((

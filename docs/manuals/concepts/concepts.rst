@@ -100,11 +100,11 @@ Basic concepts
   `BoundOperator`
     The association of an `OperatorFunction` to placeholders.
 
-  `MutliStageComputation`
+  `MultiStageComputation`
     A multi-stage computation is a partial order (DAG) on `BoundOperator`s associated with an `ExecutionOrder`.
 
   `Computation`
-    A sequence of `MutliStageComputations` associated with a `DataFieldPack` and a `Grid`.
+    A sequence of `MutliStageComputations` associated with a `Grid`.
 
     .. note::
       The `Computation` deduces the `IterationSpace` from the `Grid` and the `ExecutionOrder` defined in the `MultiStageCompuptation`. 
