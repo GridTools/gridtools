@@ -52,7 +52,6 @@
 
 namespace gridtools {
     namespace {
-        using make_arg_list;
 
         template <int I>
         struct functor {
