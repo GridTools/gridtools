@@ -108,9 +108,7 @@ namespace gridtools {
         /*
          * @brief This method swaps the data of two storages.
          */
-        void swap(storage_interface &other) {
-            return static_cast<Derived *>(this)->swap_impl(static_cast<Derived &>(other));
-        }
+        void swap(storage_interface &other) { static_cast<Derived *>(this)->swap_impl(static_cast<Derived &>(other)); }
 
         /*
          * @brief This method retrieves all pointers that are contained in the storage (in case of host_storage

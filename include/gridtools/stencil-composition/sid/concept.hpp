@@ -40,11 +40,13 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../../common/integral_constant.hpp"
+#include "../../common/tuple.hpp"
 #include "../../common/tuple_util.hpp"
 #include "../../meta/defs.hpp"
 #include "../../meta/id.hpp"
 #include "../../meta/logical.hpp"
 #include "../../meta/macros.hpp"
+#include "../../meta/push_front.hpp"
 #include "../../meta/type_traits.hpp"
 
 /**
@@ -84,6 +86,8 @@
  *       available by ADL;
  *
  *   No constraints on `StridesKind`. It not even has to be complete. (Can be declared but not defined or can be `void`)
+ *
+ *   Additionally multidimensional C-arrays model `SID` out of the box. For C arrays the outermost dimension goes first.
  *
  *   Semantic part of the concept
  *   ----------------------------
@@ -236,6 +240,14 @@ namespace gridtools {
             constexpr auto get_origin(Sid &obj) GT_AUTO_RETURN(sid_get_origin(obj));
 
             /**
+             *  C-array specialization
+             */
+            template <class T, class Res = gridtools::add_pointer_t<gridtools::remove_all_extents_t<T>>>
+            constexpr gridtools::enable_if_t<std::is_array<T>::value, Res> get_origin(T &obj) {
+                return (Res)obj;
+            }
+
+            /**
              *  `Ptr` type is deduced from `get_origin`
              */
             template <class Sid>
@@ -275,14 +287,37 @@ namespace gridtools {
              *  `get_strides` delegates to `sid_get_strides`
              */
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr enable_if_t<!std::is_same<Res, not_provided>::value, Res> get_strides(Sid const &obj) {
+            constexpr enable_if_t<!std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, Res>
+            get_strides(Sid const &obj) {
                 return sid_get_strides(obj);
             }
 
             template <class Sid, class Res = decltype(sid_get_strides(std::declval<Sid const &>()))>
-            constexpr enable_if_t<std::is_same<Res, not_provided>::value, default_strides> get_strides(Sid const &obj) {
+            constexpr enable_if_t<std::is_same<Res, not_provided>::value && !std::is_array<Sid>::value, default_strides>
+            get_strides(Sid const &obj) {
                 return {};
             }
+
+            template <class T, size_t ElemSize = sizeof(remove_all_extents_t<T>)>
+            struct get_array_strides {
+                using type = tuple<>;
+            };
+
+            template <class Inner, size_t ElemSize>
+            struct get_array_strides<Inner[], ElemSize> {
+                using type = GT_META_CALL(meta::push_front,
+                    (typename get_array_strides<Inner, ElemSize>::type,
+                        integral_constant<ptrdiff_t, sizeof(Inner) / ElemSize>));
+            };
+
+            template <class Inner, size_t N, size_t ElemSize>
+            struct get_array_strides<Inner[N], ElemSize> : get_array_strides<Inner[], ElemSize> {};
+
+            template <class T>
+            constexpr enable_if_t<std::is_array<T>::value, typename get_array_strides<T>::type> get_strides(T const &) {
+                return {};
+            }
+
             /**
              *  `Strides` type is deduced from `get_strides`
              */
@@ -581,6 +616,8 @@ namespace gridtools {
          */
         template <class T, class = void>
         struct is_sid : std::false_type {};
+        template <class T>
+        struct is_sid<T, enable_if_t<std::is_array<T>::value>> : std::true_type {};
         template <class T>
         struct is_sid<T, enable_if_t<concept_impl_::is_sid<T>::value>> : std::true_type {};
 

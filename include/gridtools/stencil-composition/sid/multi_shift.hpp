@@ -35,10 +35,40 @@
 */
 #pragma once
 
-#include "../esf.hpp"
-#include "../make_stage.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/for_each.hpp"
+#include "../../common/host_device.hpp"
+#include "../../common/tuple_util.hpp"
+#include "../../meta/macros.hpp"
+#include "../../meta/make_indices.hpp"
+#include "concept.hpp"
 
-#include "make_reduction.hpp"
+namespace gridtools {
+    namespace sid {
+        namespace multi_shift_impl_ {
+            template <class Ptr, class Strides, class Offsets>
+            struct shift_f {
+                Ptr &RESTRICT m_ptr;
+                Strides const &RESTRICT m_strides;
+                Offsets const &RESTRICT m_offsets;
 
-#include "../../common/binops.hpp"
-#include "../make_computation.hpp"
+                template <class I>
+                GT_FUNCTION void operator()() const {
+                    shift(m_ptr, get_stride<I::value>(m_strides), tuple_util::host_device::get<I::value>(m_offsets));
+                }
+            };
+        } // namespace multi_shift_impl_
+
+        /**
+         *   A helper the invokes `sid::shift` in several dimensions.
+         *   `offsets` should be a tuple-like of individual offsets.
+         */
+        template <class Ptr, class Strides, class Offsets>
+        GT_FUNCTION void multi_shift(
+            Ptr &RESTRICT ptr, Strides const &RESTRICT strides, Offsets const &RESTRICT offsets) {
+            using indices_t = GT_META_CALL(meta::make_indices, tuple_util::size<Offsets>);
+            host_device::for_each_type<indices_t>(
+                multi_shift_impl_::shift_f<Ptr, Strides, Offsets>{ptr, strides, offsets});
+        }
+    } // namespace sid
+} // namespace gridtools

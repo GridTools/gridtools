@@ -220,10 +220,6 @@ namespace gridtools {
        https://gcc.gnu.org/bugzilla/show_bug.cgi?id=48052
     */
 
-    // define a gridtools notype for metafunctions that would return something like void
-    // but still to point to a real integral type so that it can be passed as argument to functions
-    typedef int notype;
-
     using int_t = int;
     using short_t = int;
     using uint_t = unsigned int;

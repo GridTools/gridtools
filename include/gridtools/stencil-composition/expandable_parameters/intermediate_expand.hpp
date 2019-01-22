@@ -382,7 +382,7 @@ namespace gridtools {
                   grid, split_args_tuple<_impl::expand_detail::is_expandable>(std::move(arg_storage_pairs)), msses) {}
 
         template <class... Args, class... DataStores>
-        notype run(arg_storage_pair<Args, DataStores> const &... args) {
+        void run(arg_storage_pair<Args, DataStores> const &... args) {
             m_meter.start();
             // split arguments to expandable and plain arg_storage_pairs
             auto arg_groups = split_args<_impl::expand_detail::is_expandable>(args...);
@@ -410,7 +410,6 @@ namespace gridtools {
                     m_intermediate_remainder, tuple_util::flatten(std::tie(plain_args, converted_args)));
             }
             m_meter.pause();
-            return {};
         }
 
         void sync_bound_data_stores() const {
@@ -426,5 +425,12 @@ namespace gridtools {
         size_t get_count() const { return m_meter.count(); }
 
         void reset_meter() { m_meter.reset(); }
+
+        template <class Placeholder>
+        static constexpr auto get_arg_extent(Placeholder) GT_AUTO_RETURN(converted_intermediate<1>::get_arg_extent(
+            GT_META_CALL(_impl::expand_detail::convert_plh, (0, Placeholder)){}));
+        template <class Placeholder>
+        static constexpr auto get_arg_intent(Placeholder) GT_AUTO_RETURN(converted_intermediate<1>::get_arg_intent(
+            GT_META_CALL(_impl::expand_detail::convert_plh, (0, Placeholder)){}));
     };
 } // namespace gridtools

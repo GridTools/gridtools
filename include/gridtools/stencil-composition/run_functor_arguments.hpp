@@ -52,7 +52,6 @@
 #include "./grid_traits_fwd.hpp"
 #include "./local_domain.hpp"
 #include "./loop_interval.hpp"
-#include "./reductions/reduction_data.hpp"
 
 namespace gridtools {
 
@@ -62,9 +61,7 @@ namespace gridtools {
         typename ExtentSizes,
         typename MaxExtent,
         typename CacheSequence,
-        typename Grid,
-        typename IsReduction = std::false_type,
-        typename FunctorReturnType = notype>
+        typename Grid>
     struct iterate_domain_arguments {
 
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -75,7 +72,6 @@ namespace gridtools {
             "There seems to be a stage in the computation which does not contain any output field. Check that at least "
             "one accessor in each stage is defined as \'inout\'");
         GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -84,9 +80,6 @@ namespace gridtools {
         typedef ExtentSizes extent_sizes_t;
         typedef MaxExtent max_extent_t;
         typedef Grid grid_t;
-        static const bool s_is_reduction = IsReduction::value;
-        typedef IsReduction is_reduction_t;
-        typedef FunctorReturnType functor_return_type_t;
     };
 
     template <class T>
@@ -103,10 +96,7 @@ namespace gridtools {
         typename LocalDomain,      // local domain type
         typename CacheSequence,    // sequence of user specified caches
         typename Grid,             // the grid
-        typename ExecutionEngine,  // the execution engine
-        typename IsReduction,      // boolean stating if the operation to be applied at mss is a reduction
-        typename ReductionData     // return type of functors of a mss: return type of reduction operations,
-                                   //        otherwise void
+        typename ExecutionEngine   // the execution engine
         >
     struct run_functor_arguments {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
@@ -115,9 +105,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_execution_engine<ExecutionEngine>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
-
-        GRIDTOOLS_STATIC_ASSERT((is_reduction_data<ReductionData>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef EsfSequence esf_sequence_t;
@@ -130,9 +117,6 @@ namespace gridtools {
         typedef Grid grid_t;
         typedef ExecutionEngine execution_type_t;
         using strategy_type = typename backend_ids_t::strategy_id_t;
-        static constexpr bool s_is_reduction = IsReduction::value;
-        typedef IsReduction is_reduction_t;
-        typedef ReductionData reduction_data_t;
     };
 
     template <class T>

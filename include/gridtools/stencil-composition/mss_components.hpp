@@ -35,13 +35,11 @@
 */
 #pragma once
 #include "./linearize_mss_functions.hpp"
-#include "computation_grammar.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "esf_metafunctions.hpp"
 #include "make_loop_intervals.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
-#include "reductions/reduction_descriptor.hpp"
 #include "stages_maker.hpp"
 
 namespace gridtools {
@@ -55,7 +53,7 @@ namespace gridtools {
      */
     template <typename MssDescriptor, typename ExtentMap, typename Axis>
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token<MssDescriptor>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor<MssDescriptor>::value), GT_INTERNAL_ERROR);
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine<MssDescriptor>::type execution_engine_t;

@@ -123,9 +123,7 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
         extents_t,
         max_extent_t,
         caches_t,
-        gridtools::grid<axis>,
-        boost::mpl::false_,
-        notype>
+        gridtools::grid<axis>>
         iterate_domain_arguments_t;
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
@@ -151,9 +149,7 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
         extents_t,
         max_extent_t,
         caches_t,
-        gridtools::grid<axis>,
-        boost::mpl::false_,
-        notype>
+        gridtools::grid<axis>>
         iterate_domain_arguments_t;
 
     typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
@@ -180,9 +176,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
         extents_t,
         max_extent_t,
         caches_t,
-        gridtools::grid<axis>,
-        boost::mpl::false_,
-        notype>
+        gridtools::grid<axis>>
         iterate_domain_arguments_t;
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
@@ -215,9 +209,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
         extents_t,
         max_extent_t,
         caches_t,
-        gridtools::grid<axis>,
-        boost::mpl::false_,
-        notype>
+        gridtools::grid<axis>>
         iterate_domain_arguments_t;
 
     typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;

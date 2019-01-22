@@ -116,9 +116,7 @@ namespace gridtools {
                     boost::mpl::vector1<extent<>>,
                     extent<>,
                     boost::mpl::vector0<>,
-                    gridtools::grid<gridtools::axis<1>::axis_interval_t>,
-                    boost::mpl::false_,
-                    notype>;
+                    gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef BACKEND_MC
             using it_domain_t = iterate_domain_mc<iterate_domain_arguments_t>;
@@ -128,7 +126,7 @@ namespace gridtools {
             using it_domain_t = iterate_domain_x86<iterate_domain_arguments_t>;
 #endif
 
-            it_domain_t it_domain(local_domain1, 0);
+            it_domain_t it_domain(local_domain1);
 
             GRIDTOOLS_STATIC_ASSERT(
                 it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
