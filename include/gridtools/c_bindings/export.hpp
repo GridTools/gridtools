@@ -137,8 +137,10 @@
         i,                                                          \
         (BOOST_PP_TUPLE_ELEM(4, 3, data) < BOOST_PP_REMOVE_PARENS(elem) >));
 
-#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                       \
-    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (, n, name, impl_template), template_params) \
+#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params) \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR,        \
+        (, n, name, impl_template),                                        \
+        GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(template_params))                   \
     static_assert(1, "")
 
 #define GT_EXPORT_GENERIC_BINDING_WRAPPED(n, name, impl_template, template_params) \
