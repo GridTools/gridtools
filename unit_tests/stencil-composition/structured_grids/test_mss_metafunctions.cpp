@@ -46,7 +46,7 @@ using namespace enumtype;
 struct functor1 {
     typedef accessor<0> in;
     typedef accessor<1> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}
@@ -72,12 +72,11 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
             esf1_t(), // esf_descriptor
             esf2_t()  // esf_descriptor
             )) mss_t;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<mss_t::esf_sequence_t, boost::mpl::vector2<esf1_t, esf2_t>>::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_arg_list<esf1_t, esf2_t>>::value), "ERROR");
 
 #ifndef __DISABLE_CACHING__
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,
-                                boost::mpl::vector2<detail::cache_impl<IJ, p_buff, cache_io_policy::local>,
+                                make_arg_list<detail::cache_impl<IJ, p_buff, cache_io_policy::local>,
                                     detail::cache_impl<IJ, p_out, cache_io_policy::local>>>::value),
         "ERROR\nLists do not match");
 #else

@@ -52,7 +52,7 @@ namespace rw_test {
         typedef accessor<6, in, extent<4>> i3;
         typedef accessor<7, inout> o3;
 
-        typedef boost::mpl::vector8<i0, o0, i1, o1, i2, o2, i3, o3> arg_list;
+        typedef make_arg_list<i0, o0, i1, o1, i2, o2, i3, o3> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {}
@@ -75,7 +75,7 @@ TEST(esf, read_write) {
     typedef arg<6, cell_storage_type> pi3;
     typedef arg<7, cell_storage_type> po3;
 
-    typedef boost::mpl::vector8<pi0, po0, pi1, po1, pi2, po2, pi3, po3> args;
+    typedef make_arg_list<pi0, po0, pi1, po1, pi2, po2, pi3, po3> args;
 
     typedef esf_descriptor<test_functor, args> esf_t;
 

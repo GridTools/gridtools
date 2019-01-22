@@ -72,7 +72,7 @@ struct functor1 {
     typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in4;
 
     typedef accessor<3, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in1, in3, in4, out> arg_list;
+    typedef make_arg_list<in1, in3, in4, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
@@ -88,7 +88,7 @@ struct functor2 {
     typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in4;
 
     typedef accessor<3, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in1, in2, in4, out> arg_list;
+    typedef make_arg_list<in1, in2, in4, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
@@ -103,7 +103,7 @@ using kall = axis_t::full_interval::modify<-1, 0>;
 typedef decltype(gridtools::make_stage<functor1>(p_in1(), p_in3(), p_in4(), p_out())) esf1k_t;
 typedef decltype(gridtools::make_stage<functor2>(p_in1(), p_in2(), p_in4(), p_out())) esf2k_t;
 
-typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
+typedef make_arg_list<esf1k_t, esf2k_t> esfk_sequence_t;
 
 TEST(iterate_domain_cache, flush) {
     typedef detail::cache_impl<K, p_in1, cache_io_policy::flush> cache1_t;
@@ -112,11 +112,11 @@ TEST(iterate_domain_cache, flush) {
     typedef detail::cache_impl<K, p_in4, cache_io_policy::local> cache4_t;
     typedef detail::cache_impl<K, p_out, cache_io_policy::flush> cache5_t;
 
-    typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
+    typedef make_arg_list<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
     typedef local_domain<std::tuple<p_in1, p_in2, p_in3, p_in4, p_out>, extent<>, false> local_domain_t;
 
-    typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
+    typedef make_arg_list<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
@@ -133,9 +133,8 @@ TEST(iterate_domain_cache, flush) {
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
 
     using k_flushing_caches_indexes_t = iterate_domain_cache_t::k_flushing_caches_indexes_t;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<k_flushing_caches_indexes_t,
-            boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<k_flushing_caches_indexes_t,
+                                make_arg_list<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
         "Error");
 }
 
@@ -146,13 +145,13 @@ TEST(iterate_domain_cache, fill) {
     typedef detail::cache_impl<K, p_in4, cache_io_policy::local> cache4_t;
     typedef detail::cache_impl<K, p_out, cache_io_policy::flush> cache5_t;
 
-    typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
+    typedef make_arg_list<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
     typedef std::tuple<p_in1, p_in2, p_in3, p_in4, p_out> esf_args_t;
 
     typedef local_domain<esf_args_t, extent<>, false> local_domain_t;
 
-    typedef boost::mpl::vector2<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
+    typedef make_arg_list<extent<-1, 2, -2, 1>, extent<-2, 1, -3, 2>> extents_t;
 
     typedef typename boost::mpl::
         fold<extents_t, extent<0, 0, 0, 0>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
@@ -170,6 +169,5 @@ TEST(iterate_domain_cache, fill) {
 
     using k_filling_caches_indexes_t = iterate_domain_cache_t::k_filling_caches_indexes_t;
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<k_filling_caches_indexes_t, boost::mpl::vector2<static_uint<0>, static_uint<2>>>::value),
-        "Error");
+        (boost::mpl::equal<k_filling_caches_indexes_t, make_arg_list<static_uint<0>, static_uint<2>>>::value), "Error");
 }

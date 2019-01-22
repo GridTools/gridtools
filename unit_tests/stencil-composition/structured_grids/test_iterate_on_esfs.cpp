@@ -52,7 +52,7 @@
 
 namespace gridtools {
     namespace {
-        using boost::mpl::vector;
+        using make_arg_list;
 
         template <int I>
         struct functor {

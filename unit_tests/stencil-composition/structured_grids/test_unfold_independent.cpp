@@ -40,7 +40,7 @@ struct functor {
     using a0 = gridtools::accessor<0, gridtools::enumtype::inout>;
     using a1 = gridtools::accessor<1, gridtools::enumtype::inout>;
 
-    typedef boost::mpl::vector<a0, a1> arg_list;
+    typedef make_arg_list<a0, a1> arg_list;
 };
 
 struct fake_storage_type {

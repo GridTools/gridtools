@@ -72,7 +72,7 @@ namespace test_iterate_domain {
         typedef accessor<4, enumtype::in, extent<-2, 1, -3, 4>> shared_mem_arg;
         typedef accessor<5, enumtype::inout, extent<0, 0, 0, 0, -1, 2>> kcache_arg;
 
-        typedef boost::mpl::vector<read_only_texture_arg,
+        typedef make_arg_list<read_only_texture_arg,
             out,
             read_only_bypass_arg,
             read_only_non_texture_type_arg,
@@ -144,8 +144,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
 
     typedef iterate_domain_cuda<iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         decay_t<decltype(std::get<0>(computation_.local_domains()))>,
-        boost::mpl::vector1<esf_t>,
-        boost::mpl::vector1<extent<0, 0, 0, 0>>,
+        make_arg_list<esf_t>,
+        make_arg_list<extent<0, 0, 0, 0>>,
         extent<1, -1, 1, -1>,
         caches_t,
         gridtools::grid<axis_t>>>

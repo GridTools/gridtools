@@ -84,7 +84,7 @@ namespace {
     struct triple_nesting_with_type_switching_third_stage {
         typedef inout_accessor<0> out;
         typedef in_accessor<1> local;
-        typedef boost::mpl::vector<out, local> arg_list;
+        typedef make_arg_list<out, local> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -99,7 +99,7 @@ namespace {
     struct triple_nesting_with_type_switching_second_stage {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -118,7 +118,7 @@ namespace {
     struct triple_nesting_with_type_switching_first_stage {
         typedef inout_accessor<0> out;
         typedef in_accessor<1> in;
-        typedef boost::mpl::vector<out, in> arg_list;
+        typedef make_arg_list<out, in> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

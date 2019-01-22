@@ -44,7 +44,7 @@ struct functor {
 
     typedef gridtools::accessor<0, gridtools::enumtype::inout> a0;
     typedef gridtools::accessor<1, gridtools::enumtype::in> a1;
-    typedef boost::mpl::vector2<a0, a1> arg_list;
+    typedef make_arg_list<a0, a1> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}
