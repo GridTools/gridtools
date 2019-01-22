@@ -35,12 +35,12 @@
 */
 
 #pragma once
+
 #include "../../common/defs.hpp"
 #include "../../common/dimension.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta.hpp"
-#include "../accessor_fwd.hpp"
-#include "../accessor_metafunctions.hpp"
+#include "../is_accessor.hpp"
 
 namespace gridtools {
 
@@ -127,13 +127,5 @@ the dimension is chosen
     };
 
     template <typename... Types>
-    struct is_accessor<accessor_mixed<Types...>> : boost::mpl::true_ {};
-
-    template <typename... Types>
-    struct is_grid_accessor<accessor_mixed<Types...>> : boost::mpl::true_ {};
-
-    template <typename Accessor, typename ArgsMap, typename... Pairs>
-    struct remap_accessor_type<accessor_mixed<Accessor, Pairs...>, ArgsMap> {
-        typedef accessor_mixed<typename remap_accessor_type<Accessor, ArgsMap>::type, Pairs...> type;
-    };
+    struct is_accessor<accessor_mixed<Types...>> : std::true_type {};
 } // namespace gridtools

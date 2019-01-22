@@ -36,9 +36,9 @@
 #include "gtest/gtest.h"
 
 #include <gridtools/common/defs.hpp>
+#include <gridtools/stencil-composition/accessor_metafunctions.hpp>
 #include <gridtools/stencil-composition/global_accessor.hpp>
 #include <gridtools/stencil-composition/icosahedral_grids/accessor.hpp>
-#include <gridtools/stencil-composition/icosahedral_grids/accessor_metafunctions.hpp>
 
 TEST(accessor, is_accessor) {
     using namespace gridtools;
@@ -55,16 +55,4 @@ TEST(accessor, is_accessor_readonly) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<global_accessor<0>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<inout_accessor<0, enumtype::cells>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<accessor<0, enumtype::inout, enumtype::cells>>::value), "");
-}
-
-TEST(accessor, is_grid_accessor) {
-    using namespace gridtools;
-    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor<accessor<0, enumtype::in, enumtype::cells>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_grid_accessor<global_accessor<0>>::value), "");
-}
-
-TEST(accessor, is_regular_accessor) {
-    using namespace gridtools;
-    GRIDTOOLS_STATIC_ASSERT((is_regular_accessor<accessor<0, enumtype::in, enumtype::cells>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor<global_accessor<0>>::value), "");
 }

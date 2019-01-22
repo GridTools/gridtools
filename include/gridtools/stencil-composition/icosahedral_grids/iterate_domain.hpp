@@ -38,14 +38,12 @@
 #include <type_traits>
 
 #include "../../common/array.hpp"
-#include "../../common/generic_metafunctions/gt_remove_qualifiers.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
 #include "../esf_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../iterate_domain_fwd.hpp"
 #include "../location_type.hpp"
-#include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 #include "position_offset_type.hpp"
 
@@ -61,7 +59,6 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
-        typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
@@ -81,48 +78,15 @@ namespace gridtools {
 
         // the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
-        // the number of storages  used in the current functor
-        static const uint_t N_STORAGES = boost::mpl::size<data_ptrs_map_t>::value;
 
         typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
 
         using array_index_t = array<int_t, N_META_STORAGES>;
 
-        /**
-         * metafunction that computes the return type of all operator() of an accessor
-         */
-        template <typename Accessor>
-        struct accessor_return_type : accessor_return_type_impl<Accessor, iterate_domain_arguments_t> {};
-
-        typedef
-            typename compute_readonly_args<typename iterate_domain_arguments_t::esf_sequence_t>::type readonly_args_t;
-
-        /**
-         * metafunction that determines if a given accessor is associated with an arg that is cached
-         */
-        template <typename Accessor>
-        struct cache_access_accessor {
-            typedef typename accessor_is_cached<Accessor, all_caches_t>::type type;
-        };
-
-        /**
-         * metafunction that determines if a given accessor is associated with an arg holding a
-         * standard field (i.e. not a data field)
-         * and the parameter refers to a storage in main memory (i.e. is not cached)
-         */
-        template <typename Accessor>
-        struct mem_access_with_standard_accessor {
-            typedef typename boost::mpl::and_<
-                typename boost::mpl::not_<typename accessor_is_cached<Accessor, all_caches_t>::type>::type,
-                typename is_accessor<Accessor>::type>::type type;
-        };
-
       protected:
         local_domain_t const &m_local_domain;
 
       private:
-        grid_topology_t const &m_grid_topology;
-        // TODOMEETING do we need m_index?
         array_index_t m_index;
 
       public:
@@ -134,9 +98,7 @@ namespace gridtools {
            fields (one index per storage instance, so that one index
            might be shared among several data fields)
         */
-        GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
-            : m_local_domain(local_domain_), m_grid_topology(grid_topology) {}
+        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
 
         /**
            @brief returns the strides as const reference
@@ -183,6 +145,10 @@ namespace gridtools {
             do_increment<Coordinate>(step, m_local_domain, strides(), m_index);
         }
 
+        template <class Arg>
+        struct arg_is_cached
+            : index_is_cached<meta::st_position<typename local_domain_t::esf_args, Arg>::value, all_caches_t> {};
+
       public:
         template <int_t Step = 1>
         GT_FUNCTION void increment_i() {
@@ -211,120 +177,45 @@ namespace gridtools {
 
         GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        /** @brief method returning the data pointer of an accessor
-            specialization for the accessor placeholders for standard storages
-
-            this method is enabled only if the current placeholder dimension does not exceed the number of space
-           dimensions of the storage class.
-            I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for
-           definitions)
-        */
-
-        template <uint_t Color, typename Accessor>
-        GT_FUNCTION typename boost::enable_if<typename cache_access_accessor<Accessor>::type,
-            typename accessor_return_type<Accessor>::type>::type
-        operator()(static_uint<Color>, Accessor const &accessor) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
+        template <class Arg,
+            enumtype::intent Intent,
+            uint_t Color,
+            class Accessor,
+            class Res = typename deref_type<Arg, Intent>::type,
+            enable_if_t<arg_is_cached<Arg>::value, int> = 0>
+        GT_FUNCTION Res deref(Accessor const &acc) const {
             return static_cast<IterateDomainImpl const *>(this)
-                ->template get_cache_value_impl<Color, typename accessor_return_type<Accessor>::type>(accessor);
+                ->template get_cache_value_impl<meta::st_position<typename local_domain_t::esf_args, Arg>::value,
+                    Color,
+                    Res>(acc);
         }
 
-        template <uint_t Color, typename Accessor>
-        GT_FUNCTION typename boost::disable_if<typename cache_access_accessor<Accessor>::type,
-            typename accessor_return_type<Accessor>::type>::type
-        operator()(static_uint<Color>, Accessor const &accessor_) const {
-            return get_value(accessor_, aux::get_data_pointer(m_local_domain, accessor_));
-        }
+        template <class Arg,
+            enumtype::intent Intent,
+            uint_t /*Color*/,
+            class Accessor,
+            class Res = typename deref_type<Arg, Intent>::type,
+            enable_if_t<!arg_is_cached<Arg>::value, int> = 0>
+        GT_FUNCTION Res deref(Accessor const &acc) const {
+            using storage_info_t = typename Arg::data_store_t::storage_info_t;
 
-        /**@brief returns the value of the memory at the given address, plus the offset specified by the arg
-           placeholder
-           \param accessor accessor proxying the storage ID and the offsets
-           \param storage_pointer pointer to the first element of the specific data field used
-        */
-        // TODO This should be merged with structured grids
-        template <typename Accessor, typename StoragePointer>
-        GT_FUNCTION typename accessor_return_type<Accessor>::type get_value(
-            Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
-            // getting information about the storage
-            typedef typename Accessor::index_t index_t;
-            typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
-            typedef typename arg_t::data_store_t::data_t data_t;
+            typedef typename Arg::data_store_t::storage_info_t storage_info_t;
+            typedef typename Arg::data_store_t::data_t data_t;
 
             // this index here describes the position of the storage info in the m_index array (can be different to the
             // storage info id)
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-
-            assert(storage_pointer);
-            data_t *RESTRICT real_storage_pointer = static_cast<data_t *>(storage_pointer);
-            assert(real_storage_pointer);
-
-            // control your instincts: changing the following
-            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-            const int_t pointer_offset =
-                m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), accessor);
+            int_t pointer_offset = m_index[storage_info_index] +
+                                   compute_offset<storage_info_t>(strides().template get<storage_info_index>(), acc);
 
             assert(pointer_oob_check<storage_info_t>(m_local_domain, pointer_offset));
 
-            return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
-                    real_storage_pointer, pointer_offset);
-        }
+            conditional_t<Intent == enumtype::in, data_t const, data_t> *ptr =
+                boost::fusion::at_key<Arg>(m_local_domain.m_local_data_ptrs) + pointer_offset;
 
-        template <typename Accessor, typename StorageType>
-        GT_FUNCTION typename accessor_return_type<Accessor>::type get_raw_value(
-            Accessor const &accessor, StorageType *RESTRICT storage_pointer, int_t offset) const {
-            // getting information about the storage
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Using EVAL is only allowed for an accessor type");
-
-            typedef typename Accessor::index_t index_t;
-            typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
-            typedef typename arg_t::data_store_t::data_t data_t;
-
-            data_t *RESTRICT real_storage_pointer =
-                static_cast<data_t *>(boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second);
-
-            assert(pointer_oob_check<storage_info_t>(m_local_domain, offset));
-
-            return static_cast<const IterateDomainImpl *>(this)
-                ->template get_value_impl<typename accessor_return_type<Accessor>::type, Accessor>(
-                    real_storage_pointer, offset);
-        }
-
-        /**
-         * It dereferences the value of an accessor given its 4d (i,c,j,k) position_offset
-         */
-        template <uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions>
-        GT_FUNCTION typename std::remove_reference<
-            typename accessor_return_type<accessor<ID, Intent, LocationType, Extent, FieldDimensions>>::type>::type
-        _evaluate(accessor<ID, Intent, LocationType, Extent, FieldDimensions>,
-            position_offset_type const &RESTRICT position_offset) const {
-            using accessor_t = accessor<ID, Intent, LocationType, Extent, FieldDimensions>;
-
-            // getting information about the storage
-            typedef typename accessor_t::index_t index_t;
-            typedef typename local_domain_t::template get_arg<index_t>::type arg_t;
-            typedef typename arg_t::data_store_t::storage_info_t storage_info_t;
-
-            // this index here describes the position of the storage info in the m_index array (can be different to the
-            // storage info id)
-            static constexpr auto storage_info_index =
-                meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
-
-            using location_type_t = typename accessor_t::location_type;
-            // control your instincts: changing the following
-            // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-            const int_t pointer_offset =
-                m_index[storage_info_index] +
-                compute_offset<storage_info_t>(strides().template get<storage_info_index>(), position_offset);
-
-            return get_raw_value(
-                accessor_t{}, boost::fusion::at<index_t>(m_local_domain.m_local_data_ptrs).second, pointer_offset);
+            return IterateDomainImpl::template deref_impl<Arg>(ptr);
         }
     };
 
