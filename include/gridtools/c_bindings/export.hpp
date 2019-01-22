@@ -41,6 +41,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/preprocessor.hpp>
 
+#include "../common/boost_pp_generic_macros.hpp"
 #include "function_wrapper.hpp"
 #include "generator.hpp"
 
@@ -140,9 +141,10 @@
     BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (, n, name, impl_template), template_params) \
     static_assert(1, "")
 
-#define GT_EXPORT_GENERIC_BINDING_WRAPPED(n, name, impl_template, template_params)                   \
-    BOOST_PP_SEQ_FOR_EACH_I(                                                                         \
-        GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (_WRAPPED, n, name, impl_template), template_params) \
+#define GT_EXPORT_GENERIC_BINDING_WRAPPED(n, name, impl_template, template_params) \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR,                \
+        (_WRAPPED, n, name, impl_template),                                        \
+        GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(template_params))                           \
     static_assert(1, "")
 
 /// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity

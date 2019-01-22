@@ -79,7 +79,7 @@ namespace {
             }
         }
     }
-    GT_EXPORT_GENERIC_BINDING_WRAPPED(2, my_assign, assign_impl, ((int, 2))((double, 2)));
+    GT_EXPORT_GENERIC_BINDING_WRAPPED(2, my_assign, assign_impl, (int, 2)(double, 2));
 
     struct c_bindings_compatible_type {
         c_bindings_compatible_type(const gt_fortran_array_descriptor &) {}
