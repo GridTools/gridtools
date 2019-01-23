@@ -15,6 +15,41 @@ Preparing arguments: storage placeholders
 Vertical regions and vertical boundary conditions
 ---------------------------------------------------
 
+As mentioned earlier the |GT| :ref:`execution model<execution-model>`
+allows to be sequential in the vertical dimension (``k``). Additionally, |GT|
+offers the possibility to split the vertical dimension into vertical regions
+with different operations. Typical applications of this pattern are models which define
+terrain-following coordinates close to the earth surface and flat-coordinates in upper
+levels of the atmosphere. Another use-case are vertical boundary-conditions which can
+be directly integrated into the stencil operation.
+
+^^^^^^^^^^^^^^^^^^^
+Default interval
+^^^^^^^^^^^^^^^^^^^
+
+In simple applications, where all vertical levels should be treated equally, |GT|
+will define a default interval. In this case the :ref:`stencil operator<stencil_operators>`
+should be defined without specifying an interval and the iteration space can be defined by
+
+.. code-block:: gridtools
+
+ auto my_grid = gridtools::make_grid(d1, d2, d3);
+
+where ``d1``, ``d2`` are the sizes of the iteration space in ``I`` and ``J`` direction (horizontal plane)
+and ``d3`` is the size of the vertical dimension.
+
+ 
+.. note::
+ TODO I think we are missing a section about how to define the iteration space.
+
+^^^^^^^^^^^^^^^^^^^
+Defining vertical intervals
+^^^^^^^^^^^^^^^^^^^
+
+^^^^^^^^^^^^^^^^^^^
+Advanced functionality for vertical intervals
+^^^^^^^^^^^^^^^^^^^
+
 -------------------
 Use of temporaries
 -------------------
