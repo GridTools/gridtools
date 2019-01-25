@@ -104,7 +104,7 @@ In this case the map between data and the processor grid is:
 
 .. code-block:: gridtools
 
- layout_map<0,1,2> // The 3rd dimension size is 1
+ layout_map<0, 1, 2> // The 3rd dimension size is 1
 
 On the other hand, having specified
 
