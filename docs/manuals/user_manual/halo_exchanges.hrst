@@ -72,7 +72,7 @@ The following layout specification
 would mean: The first dimension in data matches with the second
 dimension of the computing grid, the second dimension of the data to
 the first of the processing grid, and the third one to the third
-one. This is rarely different from ``layout_map<0,1,2>``, so it can be
+one. This is rarely different from ``layout_map<0, 1, 2>``, so it can
 generally be ignored, but we give an example to clarify its meaning.
 
 Suppose the processor grid (domain decomposition sizes) has size PIxPJx1. Now, we want
