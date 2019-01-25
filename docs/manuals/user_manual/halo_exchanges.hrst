@@ -145,7 +145,7 @@ close to index 0 and the last index of the dimension,
 respectively). The beginning of the inner region is marked by ``begin``
 and its ending by ``end``. The end is inclusive, meaning that the index
 specified by it, is part of the inner region. Another value is
-necessary, which has to be larger than ``end-begin+1+minus+plus``, and
+necessary, which has to be larger than ``end - begin + 1 + minus + plus``, and
 is the ``total_length``. This parameter is the equivalent of the
 "leading dimension" in BLAS. With these five numbers we can describe
 arbitrary dimensions, with paddings on the left and on the right, such
