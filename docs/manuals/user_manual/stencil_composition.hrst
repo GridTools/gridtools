@@ -184,7 +184,36 @@ To execute a given :term:`multi-stage computation<MultiStageComputation>`, the
 
  horizontal_diffusion.run(p_out() = out_data, p_in() = in_data);
 
+.. note::
+
+No data can be assigned to temporary fields (i.e., `tmp_arg`
+:ref:`placeholders<placeholders>`), storage for all temporary arguments is
+managed by |GT|.
+
+In case that the stencil is always run on the same data fields, you can also
+assign those fields to the respective placeholders directly in the
+`make_computation` call, i.e. at definition time instead of run time, e.g.:
+
+.. code-block:: gridtools
+
+ auto horizontal_diffusion = make_computation<backend_t>(
+     grid,
+     p_out() = out_data, // data assignment happens here
+     p_in() = in_data, // and here
+     make_multistage(
+         execute<forward>(),
+         make_stage<lap_operator>(p_lap(), p_in()),
+         make_independent(
+             make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
+             make_stage<fly_operator>(p_fly(), p_in(), p_lap())),
+         make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
+     )
+ );
+
+ horizontal_diffusion.run() // no data has to be specified here
+
+
 There are other details that pertain :ref:`placeholders<placeholders>`,
 :term:`grid<Grid>`, :term:`data field pack<DataFieldPack>` and also other |GT|
 constructs that can greatly improve performance of the computations, especially
-:ref:`software managed caches<caches>`
+:ref:`software managed caches<caches>`.
