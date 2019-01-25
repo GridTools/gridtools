@@ -53,7 +53,7 @@ For instance:
 
 .. code-block:: gridtools
 
-  layout_map<1,0,2>
+  layout_map<1, 0, 2>
 
 Indicates that the first dimension in the data (i) is the second in
 the increasing stride order, while the second (j) has the biggest
