@@ -41,7 +41,7 @@ direction can be accessed.
 The user can define their own baoundary condition classes and perform
 specific computation in each direction. For this reason |GT| provides
 a ``direction`` type which can take three direction values, that are
-indicated as `minus_`, `plus_` and `zero_`, which are values of an
+indicated as ``minus_``, ``plus_`` and ``zero_``, which are values of an
 ``enum`` called ``sign``.
 
 .. _boundary-conditions-class:
