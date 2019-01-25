@@ -64,7 +64,7 @@ All overloads must have the same number of arguments, especially the
 views. It is standard practice to let the view types be template
 arguments. For instance, here a class that applies a copy-boundary
 condition (copy the second view into the first one) for all direction
-apart the direction (0,0,-1):
+apart the direction :math:`(0, 0, -1)`:
 
 .. code-block:: gridtools
 
