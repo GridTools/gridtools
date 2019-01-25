@@ -15,9 +15,9 @@ Preparing arguments: storage placeholders
 Vertical regions and vertical boundary conditions
 ---------------------------------------------------
 
--------------------
-Use of temporaries
--------------------
+-----------------------
+Composition of Stencils
+-----------------------
 
 The main component of |GT| provide the capability of composing different
 `elementary stencils`. An `elementary stencil` is the application of a single
