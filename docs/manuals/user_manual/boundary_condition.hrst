@@ -50,7 +50,7 @@ Boundary condition class
 
 The boundary condition class is a regular class which need to be copy
 constructible, and whose member functions should be decorated with the
-``GT_FUNCTION`` keyword to enable accelerators.
+``GT_FUNCTION`` keyword to enable accelerators. It must not contain references to data that may be not available on the target device where the boundary conditions are applied.
 
 The boundary condition class provides overloads for the ``operator()``
 which take as first argument a ``direction`` object, a number of data
