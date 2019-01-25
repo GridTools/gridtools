@@ -100,7 +100,7 @@ Boundary condition application
 
 To apply the above boundary conditions class to the data fields we
 need to construct the boundary object, but also to specify the halo
-regions. The halo regions are specified using ``halo-descriptor``
+regions. The halo regions are specified using `halo-descriptors`
 which are described in :ref:`halo-descriptor`.
 
 To do this we need an array of halo descriptors initialized with the halo information of the data fields.
