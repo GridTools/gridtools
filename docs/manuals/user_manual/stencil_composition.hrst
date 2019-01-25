@@ -95,7 +95,7 @@ the iteration space, must be provided. The final example is:
 
 .. code-block:: gridtools
 
- auto horizontal_diffusion = make_computation<BACKEND>(
+ auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      make_multistage(
          execute<forward>(),
@@ -107,7 +107,7 @@ the iteration space, must be provided. The final example is:
  );
 
 
-where `BACKEND` specifies the backend that will execute the computation.
+where `backend_t` specifies the backend that will execute the computation.
 
 The execution of the stages are assumed to happen one after the other in the
 program order. This is quite important, since the data dependency analysis is
@@ -119,7 +119,7 @@ dependencies the user can specify that they are independent:
 
 .. code-block:: gridtools
 
- auto horizontal_diffusion = make_computation<BACKEND>(
+ auto horizontal_diffusion = make_computation<backend_t>(
      grid,
      make_multistage(
          execute<forward>(),
@@ -138,7 +138,7 @@ In general `make_computation` has the following signature:
 
 .. code-block:: gridtools
 
- make_computation<BACKEND>(grid, multi_stage0, other_multi_stages...);
+ make_computation<backend_t>(grid, multi_stage0, other_multi_stages...);
 
 A computation can then incorporate multiple multi-stage computations and they
 may have different execution policies. This is very useful for implementing
@@ -149,7 +149,7 @@ advenction example:
 
 .. code-block:: gridtools
 
- auto vertical_advection = make_computation<BACKEND>(
+ auto vertical_advection = make_computation<backend_t>(
      grid,
      make_multistage(
          execute<forward>(),
