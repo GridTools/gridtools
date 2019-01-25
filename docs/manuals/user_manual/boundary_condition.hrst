@@ -59,7 +59,7 @@ documentation), and three integer values that will contains the
 coordinate indices of the cell that is being iterated on.
 
 All overloads must have the same number of arguments: the first argument is the direction over which the overload will be applied to, then there is the list of data views that will be accessed by the boundary class, and finally three integers that contains the indices of the element being accessed in the call.
-views. It is standard practice to let the view types be template
+It is standard practice to let the view types be template
 arguments. For instance, here a class that applies a copy-boundary
 condition (copy the second view into the first one) for all direction
 apart the direction (0,0,-1):
