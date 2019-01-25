@@ -98,7 +98,7 @@ especially on the corners, where the faces intersects.
 Boundary condition application
 ---------------------------------
 
-To apply the above boundary conditions class to the data fields we
+To apply the above boundary conditions class to the data fields, we
 need to construct the boundary object, but also to specify the halo
 regions. The halo regions are specified using `halo-descriptors`
 which are described in :ref:`halo-descriptor`.
