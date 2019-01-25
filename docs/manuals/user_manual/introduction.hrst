@@ -52,7 +52,7 @@ When installing |GT| all the source codes of the components will be copied to th
 
 To have access to these variables ``INSTALL_ALL`` should be set to ``OFF``.
 
-Additionally, examples can be compiled if ``GT_COMPILE_EXAMPLES`` is ``ON``. The examples can be installed if ``GT_INSTALL_EXAMPLES`` is ``ON``. The path where to install the examples is specified be ``GT_INSTALL_EXAMPLES_PATH`` and it is set to ``CMAKE_INSTALL_PREFIX`` by default.
+Additionally, examples can be compiled if ``GT_COMPILE_EXAMPLES`` is ``ON``. The examples can be installed if ``GT_INSTALL_EXAMPLES`` is ``ON``. The path where to install the examples is specified by ``GT_INSTALL_EXAMPLES_PATH`` and it is set to ``CMAKE_INSTALL_PREFIX`` by default.
 
 ^^^^^^^^^^^^^^^^^^^^^
 Using |GT|
