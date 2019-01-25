@@ -77,7 +77,7 @@ generally be ignored, but we give an example to clarify its meaning.
 
 Suppose the processor grid (domain decomposition sizes) has size PIxPJx1. Now, we want
 to say that the first dimension on data 'extends' to the
-computing grid on (or that the first dimension in the data correspons
+computing grid on (or that the first dimension in the data corresponds
 to) the first dimension in the computing grid. Let's consider a 2x1
 proc grid, and the first dimension of the data being the rows (i)
 and the second the column (j). In this case we are thinking to a
