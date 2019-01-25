@@ -9,13 +9,42 @@ Stencil Composition
 Preparing arguments: storage placeholders
 ------------------------------------------
 
+.. _defining_iteration_space:
+
+---------------------------------------------------
+Defining the iteration space: the grid
+---------------------------------------------------
+
+The :ref:`stencil operators<stencil_operators>` describe operations on a single *point of evaluation*.
+The :term:`iteration space<iterationspace>` defines on which points the operator should be applied. In this section
+we cover how to define the iteration space with the ``grid`` object.
+
+|GT| offers a set of functions which ease the construction of the ``grid``:
+
+.. cpp:function:: grid make_grid(int size_i, int size_j, int size_k)
+
+   The simplest iteration space will iterate the cube defined by the intervals
+   ``[0, size_i-1]``, ``[0, size_j-1]``, ``[0, size_k-1]``
+
+.. cpp:function:: grid make_grid(halo_descriptor halo_i, halo_descriptor halo_j, int size_z)
+
+   For finer control of the iteration space a ``halo_descriptor`` can be passed for the horizontal directions (``I`` and ``J``).
+   The 3rd and 4th argument of the ``halo_descriptor`` define the start and the endpoint of the iteration space.
+
+.. todo::
+  link to halo_descriptor
+  
+.. note::
+   The vertical dimension cannot be defined with a ``halo_descriptor``, see :ref:`next section<vertical_regions>`.
+
+
 .. _vertical_regions:
 
 ---------------------------------------------------
 Vertical regions and vertical boundary conditions
 ---------------------------------------------------
 
-As mentioned earlier the |GT| :ref:`execution model<execution-model>`
+As mentioned earlier, the |GT| :ref:`execution model<execution-model>`
 allows to be sequential in the vertical dimension (``k``). Additionally, |GT|
 offers the possibility to split the vertical dimension into vertical regions
 with different operations. Typical applications of this pattern are models which define
@@ -23,32 +52,115 @@ terrain-following coordinates close to the earth surface and flat-coordinates in
 levels of the atmosphere. Another use-case are vertical boundary-conditions which can
 be directly integrated into the stencil operation.
 
+.. note::
+   In the following we will distinguish two concepts: *vertical regions* are non-overlapping
+   subsets of the vertical iteration space with run-time defined sizes, *vertical intervals* (or just *intervals*)
+   are compile-time defined descriptions from one vertical level (close to the boundaries of vertical regions) to another.
+ 
+
 ^^^^^^^^^^^^^^^^^^^
 Default interval
 ^^^^^^^^^^^^^^^^^^^
 
-In simple applications, where all vertical levels should be treated equally, |GT|
-will define a default interval. In this case the :ref:`stencil operator<stencil_operators>`
-should be defined without specifying an interval and the iteration space can be defined by
+In simple applications, where all vertical levels should be treated equally, |GT| allows to 
+use a default interval which covers the full vertical region. In this case the :ref:`stencil operator<stencil_operators>`
+should be defined without specifying an interval and the iteration space can be defined as explained
+in the :ref:`previous section<defining_iteration_space>`. 
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Defining vertical intervals
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+|GT| allows to split the full vertical iteration space into regions. The number of vertical regions needs to be specified at
+compile-time, while the size of each region can be passed at run-time.
+
+For defining a computation with more than a single vertical region we need to define an ``axis`` first.  
 
 .. code-block:: gridtools
 
- auto my_grid = gridtools::make_grid(d1, d2, d3);
+   using my_axis_t = axis<N>
 
-where ``d1``, ``d2`` are the sizes of the iteration space in ``I`` and ``J`` direction (horizontal plane)
-and ``d3`` is the size of the vertical dimension.
+where `N` describes the number of vertical regions.
 
- 
-.. note::
- TODO I think we are missing a section about how to define the iteration space.
+At runtime the axis is instantiated with the sizes of each region,
 
-^^^^^^^^^^^^^^^^^^^
-Defining vertical intervals
-^^^^^^^^^^^^^^^^^^^
+.. code-block:: gridtools
 
-^^^^^^^^^^^^^^^^^^^
+   my_axis_t my_axis{N0, N1, N2, ...};
+   
+where the ``Nx`` are the sizes of region ``x``. With our axis object we can now generate a grid with one of the following
+signatures
+
+.. code-block:: gridtools
+
+   grid make_grid(int size_i, int size_j, axis<N> my_axis)
+   grid make_grid(halo_descriptor halo_i, halo_descriptor halo_j, axis<N> my_axis)
+
+Each region already defines a vertical interval which can be queried from the axis by
+
+.. code-block:: gridtools
+
+   using first_interval = my_axis_t::get_interval<0>;
+   using second_interval = my_axis_t::get_interval<1>;
+   using full_interval = my_axis_t::full_interval;
+   ...
+   
+Note that the intervals are compile time object, i.e. C++ types. These intervals
+are used for defining which ``Do``-method of the stencil operator should be taken, see :ref:`Do-method<stencil_operators_do_method>`.
+
+Interval provides meta-functions which allow to define modified intervals
+
+- ``interval::first_level``
+   Interval (a C++ type) which describes the first level of the interval  
+- ``interval::last_level``
+   Interval which describes the last level of the interval
+- ``interval::modify<begin,end>``
+   Interval which is extended (``begin`` < 0) or shrunk (``begin`` > 0) at at the beginning of the interval,
+   and extended (``end`` > 0) or shrunk (``end`` < 0) at the end of the interval.
+- ``interval::shift<value>``
+   Interval which is shifted by ``value``, i.e. it is a shortcut for ``modify<value,value>``.
+
+Examples:
+
+.. code-block:: gridtools
+
+   using axis_t = axis<2>; // axis with 2 vertical regions
+   axis_t my_axis(5,10); // iteration space spans 5 + 10 levels
+   
+   using first_interval = axis_t::get_interval<0>;         // interval [0,4]
+   using second_interval = axis_t::get_interval1>;         // [5,14]
+   using full_interval = my_axis_t::full_interval;         // [0,14]
+   
+   using first_level = full_interval::first_level;         // [0]
+   using last_level = full_interval::last_level;           // [14]
+   using a_middle_level = second_interval::first_level;    // [5]
+   
+   using a_middle_interval = a_middle_level::modify<-1,0>; // [4,5]
+   using a_middle_interval2 = a_middle_interval::shift<1>; // [5,6]
+   
+.. note:
+
+   Only a fixed number (default: 2) of levels around a vertical region can be addressed in this way.
+   Additionally, by default, levels below and above `full_interval` cannot be addressed. See also
+   :ref:`advanced functionality<vertical_regions_advanced>`.
+
+.. _vertical_regions_advanced:
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Advanced functionality for vertical intervals
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``axis`` type has two additional template parameters to change defaults
+
+.. code-block:: gridtools
+
+   template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0, int_t LevelOffsetLimit = 2> class axis;
+
+- ``ExtraOffsetsAroundFullInterval``
+   The second argument allows to address additonally `ExtraOffsetsAroundFullInterval` levels below and above the `full_interval`.
+- ``LevelOffsetLimit``
+   The third argument defines how many levels around a vertical region can be addressed.
+    
 
 -------------------
 Use of temporaries
