@@ -176,7 +176,7 @@ Now we are ready to describe the halo exchange patterns objects. The first one i
 .. code-block:: gridtools
 
   using pattern_type = halo_exchange_dynamic_ut<layout_map<0,1,2>, layout_map<0,1,2>, value_type, 3,
-     gcl_cpu >;
+     gcl_cpu>;
 
 The template arguments are:
 
