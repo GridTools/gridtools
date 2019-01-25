@@ -41,16 +41,15 @@
 
 #pragma once
 
+#include <boost/fusion/include/at_key.hpp>
+
+#include "../../common/array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/for_each.hpp"
-#include "../../meta/macros.hpp"
-#include "../../meta/make_indices.hpp"
-#include "../accessor.hpp"
-#include "../caches/cache_definitions.hpp"
-#include "../grid.hpp"
+#include "../../common/host_device.hpp"
+#include "../execution_types.hpp"
 
 namespace gridtools {
-
     namespace _impl {
 
         template <enumtype::execution Policy, class Caches>

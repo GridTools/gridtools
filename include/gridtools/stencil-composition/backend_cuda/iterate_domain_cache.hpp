@@ -42,22 +42,16 @@
 
 #pragma once
 
-#include <boost/fusion/container/map/convert.hpp>
 #include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/include/pair.hpp>
-#include <boost/fusion/support/pair.hpp>
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/count_if.hpp>
-#include <boost/mpl/filter_view.hpp>
-#include <boost/mpl/for_each.hpp>
-#include <boost/mpl/transform_view.hpp>
+#include <boost/fusion/include/at_key.hpp>
 
 #include "../../common/defs.hpp"
-
+#include "../../meta.hpp"
 #include "../block.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
-#include "../iterate_domain_fwd.hpp"
+#include "../iteration_policy.hpp"
+#include "../run_functor_arguments.hpp"
 #include "./iterate_domain_cache_aux.hpp"
 
 namespace gridtools {
