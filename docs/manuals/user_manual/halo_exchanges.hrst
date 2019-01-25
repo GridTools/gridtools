@@ -13,7 +13,7 @@ types, and the descriptions of the halos, and perform the exchanges in
 a scalable way.
 
 It is "low-level" because the requirements from which it was initially
-designed required easy interoperability with C and Fortran, so the API
+designed, required easy interoperability with C and Fortran, so the API
 takes pointers and sizes. The sizes are specified by
 ``halo-descriptors``, which are lousily inspired by the BLAS description
 of dimensions of matrices. A new, more modern set of interfaces are
