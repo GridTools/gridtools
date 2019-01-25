@@ -186,9 +186,9 @@ To execute a given :term:`multi-stage computation<MultiStageComputation>`, the
 
 .. note::
 
-No data can be assigned to temporary fields (i.e., `tmp_arg`
-:ref:`placeholders<placeholders>`), storage for all temporary arguments is
-managed by |GT|.
+ No data can be assigned to temporary fields (i.e., `tmp_arg`
+ :ref:`placeholders<placeholders>`). Storage for all temporary arguments is
+ managed by |GT|.
 
 In case that the stencil is always run on the same data fields, you can also
 assign those fields to the respective placeholders directly in the
