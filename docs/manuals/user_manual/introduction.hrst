@@ -89,4 +89,4 @@ Some utilities are provided to the user, for instance ``backend_select.hpp``, wh
 Contributing
 -----------------------------
 
-Contributions to the GridTools set of libraries are welcome. Our policy is however, the we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
+Contributions to the GridTools set of libraries are welcome. Our policy is however, that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
