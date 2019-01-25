@@ -91,7 +91,7 @@ apart the direction (0,0,-1):
      }
   };
 
-User need to pay attention that the overloads are selected correctly
+The user needs to pay attention that the overloads are selected correctly
 especially on the corners, where the faces intersects.
 
 ---------------------------------
