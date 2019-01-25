@@ -7,7 +7,7 @@ What is |GT|
 
 The GridTools (GT) framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it adresses the challenges that arise from integration into production code, such as the expression of boundary conditions, or conditional execution. The framework is structured such that it can be called from different weather models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures. This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend) parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple stencils such a fusing and tiling. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran), to aid code development and a communication layer.
 
-For a list of supported compilers refer to the project Wiki on github.
+For a list of supported compilers refer to the `project Wiki on github <https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers>`_.
 
 -----------------------------
 Installation and use
