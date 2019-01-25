@@ -26,7 +26,7 @@ system the concept of "vector" can be defined to indicate
 distances and directions. Direction is the one thing we need
 here. Instead of using unitary vectors to indicate directions, as
 it is usually the case for euclidean spaces, we use vectors whose
-components are -1, 0, and 1.  For example, ``(1, 1, 1)`` is the
+components are -1, 0, and 1.  For example, :math:`(1, 1, 1)` is the
 dicretion indicated by the unit vector ``(1,1,1)/sqrt(3)``.
 If we take the center of a 3D grid, then we can define 26
 different directions ``{(i,j,k): i,j,k \in {-1,0,1}}\{ (0,0,0) }}``
