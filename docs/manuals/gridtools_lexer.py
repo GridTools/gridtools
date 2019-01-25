@@ -46,6 +46,7 @@ gridtools_keywords = ((
         'halo_descriptor',
         'direction',
         'sign',
+        'field_on_the_fly'
 ))
 
 gridtools_namespace = ((
