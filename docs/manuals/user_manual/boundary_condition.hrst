@@ -72,7 +72,7 @@ apart the direction (0,0,-1):
      double value;
 
      GT_FUNCTION
-     direction_bc_input(double v) : value(v) {}
+     example_bc(double v) : value(v) {}
 
      template <typename Direction, typename DataField0, typename DataField1>
      GT_FUNCTION void operator()(Direction,
