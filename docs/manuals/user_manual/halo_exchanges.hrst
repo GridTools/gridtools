@@ -20,7 +20,7 @@ of dimensions of matrices. A new, more modern set of interfaces are
 being implemented, to serve more general cases, such as higher
 dimensions and other grids.
 
-We first start with some preliminaries and the discuss the main
+We first start with some preliminaries and then discuss the main
 interfaces.
 
 
