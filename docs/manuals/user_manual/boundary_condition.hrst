@@ -79,7 +79,7 @@ apart the direction (0,0,-1):
                                  DataField0 &data_field0, DataField1 const &data_field1,
                                  unsigned i, unsigned j, unsigned k) const
      {
-       data_field0(i, j, k) = value;
+       data_field0(i, j, k) = data_field1(i, j, k);
      }
 
      template <sign I, sign J, typename DataField0, typename DataField1>
