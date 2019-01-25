@@ -233,17 +233,14 @@ namespace gridtools {
             boost::mpl::void_>::type;
 
       private:
-        template <typename MssDescs>
-        using convert_to_mss_components_array_t =
-            copy_into_variadic<typename build_mss_components_array<typename Backend::mss_fuse_esfs_strategy,
-                                   MssDescs,
-                                   extent_map_t,
-                                   typename Grid::axis_type>::type,
-                std::tuple<>>;
+        template <class MssDescs>
+        GT_META_DEFINE_ALIAS(convert_to_mss_components_array,
+            build_mss_components_array,
+            (Backend::mss_fuse_esfs_strategy::value, MssDescs, extent_map_t, typename Grid::axis_type));
 
-        using mss_components_array_t = convert_to_mss_components_array_t<all_mss_descriptors_t>;
+        using mss_components_array_t = GT_META_CALL(convert_to_mss_components_array, all_mss_descriptors_t);
 
-        using max_extent_for_tmp_t = typename _impl::get_max_extent_for_tmp<mss_components_array_t>::type;
+        using max_extent_for_tmp_t = GT_META_CALL(_impl::get_max_extent_for_tmp, mss_components_array_t);
 
       public:
         // creates a tuple of local domains
@@ -254,7 +251,7 @@ namespace gridtools {
             template <typename MssDescs>
             void operator()(
                 MssDescs const &mss_descriptors, Grid const &grid, local_domains_t const &local_domains) const {
-                Backend::template run<convert_to_mss_components_array_t<MssDescs>>(grid, local_domains);
+                Backend::template run<GT_META_CALL(convert_to_mss_components_array, MssDescs)>(grid, local_domains);
             }
         };
 

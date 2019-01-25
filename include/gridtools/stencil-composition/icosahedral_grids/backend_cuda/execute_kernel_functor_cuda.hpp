@@ -40,7 +40,6 @@
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/basic_token_execution_cuda.hpp"
 #include "../../backend_cuda/run_esf_functor_cuda.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../block.hpp"
 #include "../../iteration_policy.hpp"
@@ -63,22 +62,17 @@ namespace gridtools {
 
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
-            typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
-
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
 
             using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
                 typename RunFunctorArguments::local_domain_t,
                 typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::extent_sizes_t,
-                typename RunFunctorArguments::max_extent_t,
                 typename RunFunctorArguments::cache_sequence_t,
                 typename RunFunctorArguments::grid_t>;
 
             using iterate_domain_t = iterate_domain_cuda<iterate_domain_arguments_t>;
 
             typedef backend_traits_from_id<target::cuda> backend_traits_t;
-            typedef typename iterate_domain_t::strides_cached_t strides_t;
 
             const uint_t nx = (uint_t)(grid.i_high_bound() - grid.i_low_bound() + 1);
             const uint_t ny = (uint_t)(grid.j_high_bound() - grid.j_low_bound() + 1);
@@ -95,7 +89,7 @@ namespace gridtools {
             // Doing construction of the iterate domain and assignment of pointers and strides
             iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
-            it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+            it_domain.set_shared_iterate_domain_pointer(&shared_iterate_domain);
 
             it_domain.template assign_stride_pointers<backend_traits_t>();
 

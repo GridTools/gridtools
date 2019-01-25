@@ -36,69 +36,24 @@
 
 #pragma once
 
-#include <tuple>
-
-#include "../common/generic_metafunctions/copy_into_variadic.hpp"
-#include "../meta/dedup.hpp"
-#include "../meta/defs.hpp"
-#include "../meta/flatten.hpp"
-#include "../meta/macros.hpp"
-#include "../meta/transform.hpp"
-
-#include "independent_esf.hpp"
+#include "../meta.hpp"
+#include "esf_metafunctions.hpp"
 
 namespace gridtools {
     namespace _impl {
         template <class Trees, template <class...> class FlattenTree>
         GT_META_DEFINE_ALIAS(flatten_trees, meta::flatten, (GT_META_CALL(meta::transform, (FlattenTree, Trees))));
 
-//  Flatten an ESF tree formed by regular ESF's and independent_esf into an MPL sequence.
-//  The result contains only regular ESF's.
-#if GT_BROKEN_TEMPLATE_ALIASES
-        template <class T>
-        struct flatten_esfs;
-        template <class T>
-        struct flatten_esf {
-            using type = std::tuple<T>;
-        };
-        template <class EsfSeq>
-        struct flatten_esf<independent_esf<EsfSeq>> {
-            using type = typename flatten_esfs<EsfSeq>::type;
-        };
-        template <class T>
-        struct flatten_esfs : flatten_trees<T, flatten_esf> {};
-
         // Extract args from ESF.
         template <class Esf>
-        struct get_args : lazy_copy_into_variadic<typename Esf::args_t, std::tuple<>> {};
-
-#else
-        template <class>
-        struct lazy_flatten_esf;
-        template <class T>
-        using flatten_esf = typename lazy_flatten_esf<T>::type;
-        template <class T>
-        using flatten_esfs = flatten_trees<T, flatten_esf>;
-        template <class T>
-        struct lazy_flatten_esf {
-            using type = std::tuple<T>;
-        };
-        template <class EsfSeq>
-        struct lazy_flatten_esf<independent_esf<EsfSeq>> {
-            using type = flatten_esfs<EsfSeq>;
-        };
-
-        // Extract args from ESF.
-        template <class Esf>
-        using get_args = copy_into_variadic<typename Esf::args_t, std::tuple<>>;
-#endif
+        GT_META_DEFINE_ALIAS(get_args, meta::id, typename Esf::args_t);
 
         // Extract ESFs from an MSS.
         template <class Mss>
-        GT_META_DEFINE_ALIAS(get_esfs, flatten_esfs, (copy_into_variadic<typename Mss::esf_sequence_t, std::tuple<>>));
+        GT_META_DEFINE_ALIAS(get_esfs, unwrap_independent, typename Mss::esf_sequence_t);
     } // namespace _impl
 
-    /// Takes a typelist of MSS descriptions and returns deduplicated typelist of all placeholders
+    /// Takes a type list of MSS descriptions and returns deduplicated type list of all placeholders
     /// that are used in the given msses.
     template <class Msses>
     GT_META_DEFINE_ALIAS(extract_placeholders,

@@ -75,7 +75,7 @@ namespace gridtools {
     struct is_flushing_cache : std::false_type {};
 
     template <cache_type cacheType, typename Arg>
-    struct is_flushing_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::flush>> : std::false_type {};
+    struct is_flushing_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::flush>> : std::true_type {};
 
     template <cache_type cacheType, typename Arg>
     struct is_flushing_cache<detail::cache_impl<cacheType, Arg, cache_io_policy::fill_and_flush>> : std::true_type {};

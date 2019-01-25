@@ -112,10 +112,8 @@ namespace gridtools {
             using iterate_domain_arguments_t =
                 iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
                     decltype(local_domain1),
-                    boost::mpl::vector1<esf_t>,
-                    boost::mpl::vector1<extent<>>,
-                    extent<>,
-                    boost::mpl::vector0<>,
+                    std::tuple<esf_t>,
+                    std::tuple<>,
                     gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef BACKEND_MC
@@ -129,12 +127,8 @@ namespace gridtools {
             it_domain_t it_domain(local_domain1);
 
 #ifndef BACKEND_MC
-            typedef typename it_domain_t::strides_cached_t strides_t;
-            strides_t strides;
 
-            it_domain.set_strides_pointer(&strides);
-
-            it_domain.template assign_stride_pointers<backend_traits_t, strides_t>();
+            it_domain.assign_stride_pointers<backend_traits_t>();
 #endif
 
 // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
@@ -196,19 +190,6 @@ namespace gridtools {
             EXPECT_EQ(index[0] + mdi->stride<0>() + mdi->stride<1>() + mdi->stride<2>(), new_index[0]);
             EXPECT_EQ(index[1] + mdb->stride<0>() + mdb->stride<1>() + mdb->stride<2>(), new_index[1]);
             EXPECT_EQ(index[2] + mdo->stride<0>() + mdo->stride<1>(), new_index[2]);
-
-#ifndef BACKEND_MC
-            // check strides initialization
-            // the layout is <3,2,1,0>, so we don't care about the stride<0> (==1) but the rest is checked.
-            EXPECT_EQ(mdi->stride<3>(), strides.get<0>()[0]);
-            EXPECT_EQ(mdi->stride<2>(), strides.get<0>()[1]);
-            EXPECT_EQ(mdi->stride<1>(), strides.get<0>()[2]); // 4D storage
-
-            EXPECT_EQ(mdb->stride<0>(), strides.get<1>()[0]);
-            EXPECT_EQ(mdb->stride<1>(), strides.get<1>()[1]); // 3D storage
-
-            EXPECT_EQ(mdo->stride<0>(), strides.get<2>()[0]); // 2D storage
-#endif
         }
     } // namespace
 } // namespace gridtools

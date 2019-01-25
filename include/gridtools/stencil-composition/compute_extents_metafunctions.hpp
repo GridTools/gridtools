@@ -42,7 +42,6 @@
 
 #include "../common/gt_assert.hpp"
 #include "esf_metafunctions.hpp"
-#include "linearize_mss_functions.hpp"
 #include "mss.hpp"
 #include "mss_metafunctions.hpp"
 
@@ -308,9 +307,8 @@ namespace gridtools {
             // We need to obtain the proper linearization (unfolding
             // independents) of the list of stages and and then we
             // need to go from the outputs to the inputs (the reverse)
-            typedef typename boost::mpl::reverse<
-                typename unwrap_independent<typename mss_descriptor_esf_sequence<MssDescriptor>::type>::type>::type
-                ESFs;
+            using ESFs = GT_META_CALL(
+                meta::reverse, GT_META_CALL(unwrap_independent, typename MssDescriptor::esf_sequence_t));
 
             // The return of this metafunction is here. We need to
             // update the map of plcaholderss. A numerical value helps
@@ -399,18 +397,6 @@ namespace gridtools {
     template <typename Esf, typename ExtentMap>
     struct get_extent_for<Esf, ExtentMap, enable_if_t<is_esf_with_extent<Esf>::value>> : esf_extent<Esf> {};
 
-    /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
-        and gather the outputs (check that they have the same extents), and associate
-        to them the corresponding extent */
-    template <typename Mss, typename ExtentMap>
-    struct get_extent_sizes {
-        GRIDTOOLS_STATIC_ASSERT(is_mss_descriptor<Mss>::value, GT_INTERNAL_ERROR);
-
-        // Iterate over each ESF of the MSS to generate a vector of extens whose elements correspond to the elements of
-        // the esfs vector (this is to comply with the API for the backend)
-        using type = typename boost::mpl::transform<typename mss_descriptor_linear_esf_sequence<Mss>::type,
-            get_extent_for<boost::mpl::_, ExtentMap>>::type;
-    };
     /**
      * @}
      */

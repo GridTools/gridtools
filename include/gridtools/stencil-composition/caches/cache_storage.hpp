@@ -35,17 +35,16 @@
 */
 #pragma once
 
+#include <utility>
+
 #include "../../common/array.hpp"
-#include "../../common/generic_metafunctions/accumulate.hpp"
+#include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../common/gt_math.hpp"
+#include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
-#include "../../meta/utility.hpp"
-#include "../block_size.hpp"
-#include "../extent.hpp"
-#include "../iteration_policy.hpp"
+#include "../execution_types.hpp"
 #include "../offset_computation.hpp"
-#include "cache_traits.hpp"
-#include "meta_storage_cache.hpp"
 
 namespace gridtools {
 
@@ -73,120 +72,18 @@ namespace gridtools {
         }
     };
 
-    template <class T, int_t Size, int_t ZeroOffset>
-    class k_cache_storage {
-        GRIDTOOLS_STATIC_ASSERT(Size > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(ZeroOffset < Size, GT_INTERNAL_ERROR);
-
-        mutable T m_values[Size];
-
-        struct slide_forward_f {
-            T *m_values;
-            GT_FUNCTION void operator()() const {
-                for (int_t k = 0; k < Size - 1; ++k)
-                    m_values[k] = std::move(m_values[k + 1]);
-            }
-        };
-
-        struct slide_backward_f {
-            T *m_values;
-            GT_FUNCTION void operator()() const {
-                for (int_t k = Size - 1; k > 0; --k)
-                    m_values[k] = std::move(m_values[k - 1]);
-            }
-        };
-
-        template <enumtype::execution, class Src>
-        struct fill_f;
-
-        template <class Src>
-        struct fill_f<enumtype::forward, Src> {
-            Src const &m_src;
-            T *m_dst;
-            bool m_first_level;
-            GT_FUNCTION void operator()() const {
-                for (int_t i = m_first_level ? ZeroOffset : Size - 1; i < Size; ++i)
-                    m_dst[i] = m_src(i - ZeroOffset);
-            }
-        };
-
-        template <class Src>
-        struct fill_f<enumtype::backward, Src> {
-            Src const &m_src;
-            T *m_dst;
-            bool m_first_level;
-            GT_FUNCTION void operator()() const {
-                for (int_t i = m_first_level ? ZeroOffset : 0; i >= 0; --i)
-                    m_dst[i] = m_src(i - ZeroOffset);
-            }
-        };
-
-        template <enumtype::execution, class Dst>
-        struct flush_f;
-
-        template <class Dst>
-        struct flush_f<enumtype::forward, Dst> {
-            T *m_src;
-            Dst &m_dst;
-            bool m_last_level;
-            GT_FUNCTION void operator()() const {
-                for (int_t i = m_last_level ? ZeroOffset : 0; i >= 0; --i)
-                    m_dst(i - ZeroOffset) = std::move(m_src[i]);
-            }
-        };
-
-        template <class Dst>
-        struct flush_f<enumtype::backward, Dst> {
-            T *m_src;
-            Dst &m_dst;
-            bool m_last_level;
-            GT_FUNCTION void operator()() const {
-                for (int_t i = m_last_level ? ZeroOffset : Size - 1; i < Size; ++i)
-                    m_src[i] = m_dst(i - ZeroOffset);
-            }
-        };
-
-      public:
-        /**
-         * @brief retrieve value in a cache given an accessor for a k cache
-         * @param acc the accessor that contains the offsets being accessed
-         */
-        template <class Accessor>
-        GT_FUNCTION T &at(Accessor const &acc) const {
-            int_t offset = accessor_offset<2>(acc) + ZeroOffset;
-            assert(offset >= 0);
-            assert(offset < Size);
-            assert(accessor_offset<0>(acc) == 0);
-            assert(accessor_offset<1>(acc) == 0);
-            return m_values[offset];
-        }
-
-        /**
-         * @brief slides the values of the ring buffer
-         */
-        template <enumtype::execution Policy>
-        GT_FUNCTION constexpr conditional_t<Policy == enumtype::forward, slide_forward_f, slide_backward_f>
-        slide() const {
-            return {m_values};
-        }
-
-        template <enumtype::execution Policy, class Src>
-        GT_FUNCTION constexpr fill_f<Policy, Src> fill(bool first_level, Src const &src) const {
-            return {src, m_values, first_level};
-        }
-
-        template <enumtype::execution Policy, class Dst>
-        GT_FUNCTION constexpr flush_f<Policy, Dst> flush(bool last_level, Dst const &dst) const {
-            return {m_values, dst, last_level};
-        }
-
-        template <enumtype::execution Policy, class Dst>
-        GT_FUNCTION enable_if_t<Policy == enumtype::backward> flush(bool last_level, Dst const &dst) const {
-            for (int_t i = last_level ? ZeroOffset : Size - 1; i < Size; ++i)
-                m_values[i] = dst(i - ZeroOffset);
-        }
+    template <class Arg, int_t ITile, int_t JTile, class Extent>
+    struct make_ij_cache_storage {
+        GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value == 0, "Only KCaches can be accessed with a non null extent in K");
+        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value == 0, "Only KCaches can be accessed with a non null extent in K");
+        using type = ij_cache_storage<typename Arg::data_store_t::data_t,
+            ITile + Extent::iplus::value - Extent::iminus::value,
+            JTile + Extent::jplus::value - Extent::jminus::value,
+            -Extent::iminus::value,
+            -Extent::jminus::value>;
     };
-
 #else
     template <class T, int_t NumColors, int_t ISize, int_t JSize, int_t IZero, int_t JZero>
     class ij_cache_storage {
@@ -201,8 +98,6 @@ namespace gridtools {
 
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            GRIDTOOLS_STATIC_ASSERT(Color > 0, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(Color < NumColors, GT_INTERNAL_ERROR);
             i += accessor_offset<0>(acc) - IZero;
             int_t color = Color + accessor_offset<1>(acc);
             j += accessor_offset<2>(acc) - JZero;
@@ -216,122 +111,107 @@ namespace gridtools {
             return m_values[j][color][i];
         }
     };
-#endif
 
-    template <class Cache, class BlockSize, class Extent, class Arg>
-    struct cache_storage;
-
-    template <cache_io_policy CacheIoPolicy,
-        uint_t TileI,
-        uint_t TileJ,
-        int_t IMinus,
-        int_t IPlus,
-        int_t JMinus,
-        int JPlus,
-        int_t KMinus,
-        int_t KPlus,
-        class Arg>
-    struct cache_storage<detail::cache_impl<IJ, Arg, CacheIoPolicy>,
-        block_size<TileI, TileJ, 1>,
-        extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>,
-        Arg> {
-        GRIDTOOLS_STATIC_ASSERT(TileI > 0 && TileJ > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(KMinus == 0 && KPlus == 0, "Only KCaches can be accessed with a non null extent in K");
-
-        using value_type = typename Arg::data_store_t::data_t;
-
-// TODO ICO_STORAGE in irregular grids we have one more dim for color
-#ifndef STRUCTURED_GRIDS
-        static constexpr int extra_dims = 1;
-
-        using meta_t = meta_storage_cache<layout_map<3, 2, 1, 0>,
-            IPlus - IMinus + TileI,
+    template <class Arg, int_t ITile, int_t JTile, class Extent>
+    struct make_ij_cache_storage {
+        GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value == 0, "Only KCaches can be accessed with a non null extent in K");
+        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value == 0, "Only KCaches can be accessed with a non null extent in K");
+        using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             Arg::location_t::n_colors::value,
-            JPlus - JMinus + TileJ,
-            1>;
-
-        static constexpr uint_t total_length =
-            (IPlus - IMinus + TileI) * (JPlus - JMinus + TileJ) * Arg::location_t::n_colors::value;
-
-#else
-        static constexpr int extra_dims = 0;
-        using meta_t = meta_storage_cache<layout_map<2, 1, 0>, IPlus - IMinus + TileI, JPlus - JMinus + TileJ, 1>;
-        static constexpr uint_t total_length = (IPlus - IMinus + TileI) * (JPlus - JMinus + TileJ);
+            ITile + Extent::iplus::value - Extent::iminus::value,
+            JTile + Extent::jplus::value - Extent::jminus::value,
+            -Extent::iminus::value,
+            -Extent::jminus::value>;
+    };
 #endif
 
-        GT_FUNCTION cache_storage() {}
+    enum class sync_type { fill, flush };
 
-        template <uint_t Color, typename Accessor>
-        GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &acc) {
-            int_t offset = (thread_pos[0] - IMinus + accessor_offset<0>(acc)) * meta_t::template stride<0>() +
-                           (thread_pos[1] - JMinus + accessor_offset<1 + extra_dims>(acc)) *
-                               meta_t::template stride<1 + extra_dims>() +
-                           extra_dims * (Color + accessor_offset<1>(acc)) * meta_t::template stride<1>();
-            assert(accessor_offset<2 + extra_dims>(acc) == 0);
-            assert(offset < total_length);
-            return m_values[offset];
+    template <class T, int_t Minus, int_t Plus>
+    class k_cache_storage {
+
+        GRIDTOOLS_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(Plus >= 0, GT_INTERNAL_ERROR);
+
+        mutable T m_values[Plus - Minus + 1];
+
+        template <sync_type SyncType, class Data>
+        GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) const {
+            m_values[k - Minus] = data(k);
         }
 
-      private:
-        value_type m_values[total_length];
-    };
+        template <sync_type SyncType, class Data>
+        GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) const {
+            data(k) = std::move(m_values[k - Minus]);
+        }
 
-    template <cache_io_policy CacheIoPolicy,
-        int_t IMinus,
-        int_t IPlus,
-        int_t JMinus,
-        int JPlus,
-        int_t KMinus,
-        int_t KPlus,
-        class Arg>
-    struct cache_storage<detail::cache_impl<K, Arg, CacheIoPolicy>,
-        block_size<1, 1, 1>,
-        extent<IMinus, IPlus, JMinus, JPlus, KMinus, KPlus>,
-        Arg> {
-        using cache_t = detail::cache_impl<K, Arg, CacheIoPolicy>;
+        using range_t = array<int_t, 2>;
 
-        static constexpr int_t kminus = KMinus;
-        static constexpr int_t kplus = KPlus;
+        static constexpr GT_FUNCTION int_t sync_point(enumtype::execution Policy, sync_type SyncType) {
+            return (Policy == enumtype::forward && SyncType == sync_type::fill) ||
+                           (Policy == enumtype::backward && SyncType == sync_type::flush)
+                       ? Plus
+                       : Minus;
+        }
 
-        using value_type = typename Arg::data_store_t::data_t;
-
-        GRIDTOOLS_STATIC_ASSERT(IMinus == 0 && JMinus == 0 && IPlus == 0 && JPlus == 0,
-            "KCaches can not be use with a non null extent in the horizontal dimensions");
-
-        static constexpr int_t total_length = KPlus - KMinus + 1;
-        GRIDTOOLS_STATIC_ASSERT(total_length > 0, GT_INTERNAL_ERROR);
-
+      public:
         /**
          * @brief retrieve value in a cache given an accessor for a k cache
          * @param acc the accessor that contains the offsets being accessed
          */
         template <class Accessor>
-        GT_FUNCTION value_type &at(Accessor const &acc) const {
-            int_t offset = accessor_offset<2>(acc) - KMinus;
-            assert(offset >= 0);
-            assert(offset < total_length);
+        GT_FUNCTION T &at(Accessor const &acc) const {
+            int_t offset = accessor_offset<2>(acc);
+            assert(offset >= Minus);
+            assert(offset <= Plus);
             assert(accessor_offset<0>(acc) == 0);
             assert(accessor_offset<1>(acc) == 0);
-            return m_values[offset];
+            return m_values[offset - Minus];
         }
 
         /**
          * @brief slides the values of the ring buffer
          */
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() {
-            constexpr auto end = total_length - 1;
-            for (int_t k = 0; k < end; ++k)
-                m_values[k] = m_values[k + 1];
+        GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() const {
+            for (int_t k = 0; k < Plus - Minus; ++k)
+                m_values[k] = std::move(m_values[k + 1]);
         }
 
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() {
-            for (int_t k = total_length - 1; k > 0; --k)
-                m_values[k] = m_values[k - 1];
+        GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() const {
+            for (int_t k = Plus - Minus; k > 0; --k)
+                m_values[k] = std::move(m_values[k - 1]);
         }
 
-      private:
-        mutable value_type m_values[total_length];
+        template <enumtype::execution Policy,
+            sync_type SyncType,
+            class Data,
+            int_t SyncPoint = sync_point(Policy, SyncType)>
+        GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) const {
+            int_t first = math::max(sync_all ? Minus : SyncPoint, validity[0]);
+            int_t last = math::min(sync_all ? Plus : SyncPoint, validity[1]);
+            for (int_t k = first; k <= last; ++k)
+                sync_at<SyncType>(data, k);
+        }
+    };
+
+    template <class Arg, class Extent>
+    struct make_k_cache_storage {
+        GRIDTOOLS_STATIC_ASSERT(
+            Extent::iminus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
+        GRIDTOOLS_STATIC_ASSERT(
+            Extent::iplus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
+        GRIDTOOLS_STATIC_ASSERT(
+            Extent::jminus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
+        GRIDTOOLS_STATIC_ASSERT(
+            Extent::jplus::value == 0, "KCaches can not be use with a non zero extent in the horizontal dimensions");
+
+        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value <= 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value >= 0, GT_INTERNAL_ERROR);
+
+        using type = k_cache_storage<typename Arg::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;
     };
 } // namespace gridtools

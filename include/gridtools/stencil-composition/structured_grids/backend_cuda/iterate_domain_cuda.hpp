@@ -80,8 +80,6 @@ namespace gridtools {
         static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
 
       private:
-        typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
-
         using base_t::increment_i;
         using base_t::increment_j;
 
@@ -117,7 +115,7 @@ namespace gridtools {
             m_thread_pos[1] = jpos;
         }
 
-        GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
+        GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
         GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->strides(); }
@@ -126,19 +124,19 @@ namespace gridtools {
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
          */
-        template <size_t Index, class ReturnType, class Accessor>
+        template <class Arg, class ReturnType, class Accessor>
         GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache<static_uint<Index>>().at<0>(m_thread_pos, acc);
+            return m_pshared_iterate_domain->template get_ij_cache<Arg>().at(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         /** @brief return a value that was cached
          * specialization where cache goes via kcache register set
          */
-        template <size_t Index, class ReturnType, class Accessor>
+        template <class Arg, class ReturnType, class Accessor>
         GT_FUNCTION ReturnType get_k_cache_value(Accessor const &acc) const {
-            return m_iterate_domain_cache.template get_k_cache<static_uint<Index>>().at(acc);
+            return m_iterate_domain_cache.template get_k_cache<Arg>().at(acc);
         }
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
@@ -166,9 +164,9 @@ namespace gridtools {
          * \param grid a grid with loop bounds information
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void fill_caches(bool first_level) {
+        GT_FUNCTION void fill_caches(bool first_level, array<int_t, 2> validity) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, first_level);
+            m_iterate_domain_cache.template fill_caches<IterationPolicy>(*this, first_level, validity);
         }
 
         /**
@@ -178,9 +176,9 @@ namespace gridtools {
          * \param grid a grid with loop bounds information
          */
         template <typename IterationPolicy>
-        GT_FUNCTION void flush_caches(bool last_level) {
+        GT_FUNCTION void flush_caches(bool last_level, array<int_t, 2> validity) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
-            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, last_level);
+            m_iterate_domain_cache.template flush_caches<IterationPolicy>(*this, last_level, validity);
         }
     };
 

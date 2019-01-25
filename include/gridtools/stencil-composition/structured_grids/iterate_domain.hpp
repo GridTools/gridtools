@@ -36,15 +36,33 @@
 
 #pragma once
 
+#include <type_traits>
+
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/mpl/size.hpp>
+
+#include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../../common/host_device.hpp"
+#include "../../meta.hpp"
 #include "../caches/cache_metafunctions.hpp"
-#include "../esf_metafunctions.hpp"
 #include "../global_accessor.hpp"
 #include "../iterate_domain_aux.hpp"
-#include "../iterate_domain_fwd.hpp"
+#include "../local_domain.hpp"
 #include "../pos3.hpp"
 
 namespace gridtools {
+
+    namespace interate_domain_impl_ {
+        template <class T>
+        struct k_cache_deref_f {
+            T *m_ptr;
+            int_t m_stride;
+            GT_FUNCTION T &operator()(int_t offset) const { return m_ptr[m_stride * offset]; }
+        };
+    } // namespace interate_domain_impl_
 
     /**@brief class managing the memory accesses, indices increment
 
@@ -56,9 +74,6 @@ namespace gridtools {
      */
     template <typename IterateDomainImpl, class IterateDomainArguments>
     class iterate_domain {
-      public:
-        using iterate_domain_arguments_t = IterateDomainArguments;
-
       private:
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
         GRIDTOOLS_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
@@ -74,9 +89,10 @@ namespace gridtools {
 
       protected:
         using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
+        using iterate_domain_arguments_t = IterateDomainArguments;
+        using array_index_t = array<int_t, N_META_STORAGES>;
 
-      public:
-        typedef array<int_t, N_META_STORAGES> array_index_t;
+        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
 
       private:
         // ******************* members *******************
@@ -123,8 +139,6 @@ namespace gridtools {
       public:
         static constexpr bool has_k_caches = false;
 
-        GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
-
         template <typename BackendType>
         GT_FUNCTION void assign_stride_pointers() {
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
@@ -165,22 +179,16 @@ namespace gridtools {
                     strides(), begin, block_no, pos_in_block, m_index});
         }
 
-        template <class ArgIndex,
-            int_t KOffset,
-            class Arg = typename local_domain_t::template get_arg<ArgIndex>::type,
-            class DataStore = typename Arg::data_store_t,
-            class Data = typename DataStore::data_t>
-        GT_FUNCTION Data *get_gmem_ptr_in_bounds() const {
+        template <class Arg, class DataStore = typename Arg::data_store_t, class Data = typename DataStore::data_t>
+        GT_FUNCTION interate_domain_impl_::k_cache_deref_f<Data> k_cache_deref() const {
             using storage_info_t = typename DataStore::storage_info_t;
             static constexpr auto storage_info_index =
                 meta::st_position<typename local_domain_t::storage_info_ptr_list, storage_info_t const *>::value;
 
-            int_t offset = m_index[storage_info_index] +
-                           stride<storage_info_t, 2>(strides().template get<storage_info_index>()) * KOffset;
+            Data *ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_index[storage_info_index];
+            int_t stride_ = stride<storage_info_t, 2>(strides().template get<storage_info_index>());
 
-            return pointer_oob_check<typename DataStore::storage_info_t>(local_domain, offset)
-                       ? boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + offset
-                       : nullptr;
+            return {ptr, stride_};
         }
 
         /**
@@ -213,9 +221,7 @@ namespace gridtools {
             class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<meta::st_contains<ij_cache_args_t, Arg>::value, int> = 0>
         GT_FUNCTION Res deref(Accessor const &acc) const {
-            return static_cast<IterateDomainImpl const *>(this)
-                ->template get_ij_cache_value<meta::st_position<typename local_domain_t::esf_args, Arg>::value, Res>(
-                    acc);
+            return static_cast<IterateDomainImpl const *>(this)->template get_ij_cache_value<Arg, Res>(acc);
         }
 
         template <class Arg,
@@ -226,9 +232,7 @@ namespace gridtools {
                             !meta::st_contains<ij_cache_args_t, Arg>::value,
                 int> = 0>
         GT_FUNCTION Res deref(Accessor const &acc) const {
-            return static_cast<IterateDomainImpl const *>(this)
-                ->template get_k_cache_value<meta::st_position<typename local_domain_t::esf_args, Arg>::value, Res>(
-                    acc);
+            return static_cast<IterateDomainImpl const *>(this)->template get_k_cache_value<Arg, Res>(acc);
         }
 
         /**

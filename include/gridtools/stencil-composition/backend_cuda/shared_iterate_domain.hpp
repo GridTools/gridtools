@@ -38,15 +38,11 @@
    that will be allocated in shared memory
  */
 #pragma once
-#include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/has_key.hpp>
-#include <boost/mpl/map.hpp>
 
-#include "../../common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "../../common/generic_metafunctions/void_if_empty.hpp"
-#include "../accessor.hpp"
+#include <boost/fusion/include/at_key.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 #include "../iterate_domain_aux.hpp"
 
 namespace gridtools {
@@ -64,13 +60,9 @@ namespace gridtools {
         // TODO: protect IJCachesTuple
 
         StridesType m_strides;
-        void_if_empty_t<IJCachesTuple> m_ij_caches_tuple; // HACK: see void_if_empty_t
+        IJCachesTuple m_ij_caches_tuple;
 
       public:
-        shared_iterate_domain(shared_iterate_domain const &) = delete;
-        shared_iterate_domain &operator=(shared_iterate_domain const &) = delete;
-        shared_iterate_domain() = default;
-
         GT_FUNCTION StridesType const &strides() const { return m_strides; }
         GT_FUNCTION StridesType &strides() { return m_strides; }
 

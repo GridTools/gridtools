@@ -69,8 +69,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ArgSequence, is_plh>::value),
             "wrong types for the list of parameter placeholders\n"
             "check the make_stage syntax");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology<Grid>::value), "Error: wrong grid type");
-        GRIDTOOLS_STATIC_ASSERT((is_color_type<Color>::value), "Error: wrong color type");
+        GRIDTOOLS_STATIC_ASSERT(is_grid_topology<Grid>::value, "Error: wrong grid type");
+        GRIDTOOLS_STATIC_ASSERT(is_color_type<Color>::value, "Error: wrong color type");
 
         template <uint_t C>
         using esf_function = Functor<C>;

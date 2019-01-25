@@ -69,8 +69,6 @@ namespace gridtools {
             using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
                 typename RunFunctorArguments::local_domain_t,
                 typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::extent_sizes_t,
-                typename RunFunctorArguments::max_extent_t,
                 typename RunFunctorArguments::cache_sequence_t,
                 typename RunFunctorArguments::grid_t>;
             using iterate_domain_cuda_t = iterate_domain_cuda<iterate_domain_arguments_t>;
@@ -99,7 +97,7 @@ namespace gridtools {
             // Doing construction of the iterate domain and assignment of pointers and strides
             iterate_domain_t it_domain(l_domain, block_size_i, block_size_j);
 
-            it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+            it_domain.set_shared_iterate_domain_pointer(&shared_iterate_domain);
 
             it_domain.template assign_stride_pointers<backend_traits_t>();
 

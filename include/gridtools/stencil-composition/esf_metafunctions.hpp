@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <tuple>
+
 #include <boost/mpl/contains.hpp>
 
 #include "../common/defs.hpp"
@@ -42,6 +44,7 @@
 #include "../common/generic_metafunctions/binary_ops.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
+#include "../meta.hpp"
 #include "accessor_metafunctions.hpp"
 #include "esf.hpp"
 #include "independent_esf.hpp"
@@ -124,7 +127,7 @@ namespace gridtools {
 
     template <typename EsfF>
     struct esf_get_w_temps_per_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor<EsfF>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_esf_descriptor<EsfF>::value, GT_INTERNAL_ERROR);
         typedef boost::mpl::range_c<uint_t, 0, boost::mpl::size<typename EsfF::args_t>::type::value> iter_range;
         typedef typename boost::mpl::fold<iter_range,
             boost::mpl::vector0<>,
@@ -215,42 +218,22 @@ namespace gridtools {
         typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
 
-    /*
-      Given an array of pairs (placeholder, extent) checks if all
-      extents are the same and equal to the extent passed in
-     */
-    template <typename VectorOfPairs, typename Extent>
-    struct check_all_extents_are {
-        template <typename Pair>
-        struct _check {
-            typedef typename boost::is_same<typename Pair::second, Extent>::type type;
-        };
-
-        typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
-    };
-
+    namespace esf_metafunctions_impl_ {
+        GT_META_LAZY_NAMESPACE {
+            template <class Esf>
+            struct tuple_from_esf {
+                using type = std::tuple<Esf>;
+            };
+            template <class Esfs>
+            struct tuple_from_esf<independent_esf<Esfs>> {
+                using type = Esfs;
+            };
+        }
+        GT_META_DELEGATE_TO_LAZY(tuple_from_esf, class Esf, Esf);
+    } // namespace esf_metafunctions_impl_
     // Takes a list of esfs and independent_esf and produces a list of esfs, with the independent unwrapped
-    template <typename ESFList>
-    struct unwrap_independent {
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
-
-        template <typename CurrentList, typename CurrentElement>
-        struct populate {
-            typedef typename boost::mpl::push_back<CurrentList, CurrentElement>::type type;
-        };
-
-        template <typename CurrentList, typename IndependentList>
-        struct populate<CurrentList, independent_esf<IndependentList>> {
-            typedef
-                typename boost::mpl::fold<IndependentList, CurrentList, populate<boost::mpl::_1, boost::mpl::_2>>::type
-                    type;
-        };
-
-        typedef
-            typename boost::mpl::fold<ESFList, boost::mpl::vector0<>, populate<boost::mpl::_1, boost::mpl::_2>>::type
-                type;
-    }; // struct unwrap_independent
+    template <class Esfs,
+        class EsfLists = GT_META_CALL(meta::transform, (esf_metafunctions_impl_::tuple_from_esf, Esfs))>
+    GT_META_DEFINE_ALIAS(unwrap_independent, meta::flatten, EsfLists);
 
 } // namespace gridtools

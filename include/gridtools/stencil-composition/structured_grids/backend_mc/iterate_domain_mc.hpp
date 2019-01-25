@@ -115,10 +115,10 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     class iterate_domain_mc {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain_arguments<IterateDomainArguments>::value, GT_INTERNAL_ERROR);
 
         using local_domain_t = typename IterateDomainArguments::local_domain_t;
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain<local_domain_t>::value, GT_INTERNAL_ERROR);
 
         using backend_traits_t = backend_traits_from_id<target::mc>;
 
@@ -135,17 +135,9 @@ namespace gridtools {
         using storage_is_tmp =
             meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
 
-        /* ij-cache types and meta functions */
-        using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<IJ>>::type;
-        using ij_cache_indices_t =
-            typename boost::mpl::transform<ij_caches_t, cache_to_index<boost::mpl::_1, local_domain_t>>::type;
-        using ij_cache_indexset_t = typename boost::mpl::
-            fold<ij_cache_indices_t, boost::mpl::set0<>, boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>::type;
+        using ij_cache_args_t = GT_META_CALL(ij_cache_args, typename IterateDomainArguments::cache_sequence_t);
 
       public:
-        using esf_args_t = typename local_domain_t::esf_args;
-        //*****************
-
         using storage_info_ptrs_t = typename local_domain_t::storage_info_ptr_fusion_list;
 
         // the number of different storage metadatas used in the current functor
@@ -271,7 +263,7 @@ namespace gridtools {
             auto ptr = boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + m_data_ptr_offsets[arg_index];
 
             int_t pointer_offset =
-                compute_offset<index_is_cached<arg_index, ij_cache_indexset_t>::value, storage_info_t>(accessor);
+                compute_offset<meta::st_contains<ij_cache_args_t, Arg>::value, storage_info_t>(accessor);
 
 #ifdef __SSE__
             if (m_prefetch_distance != 0) {

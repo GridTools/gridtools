@@ -99,7 +99,6 @@ namespace gridtools {
             typedef run_functor_arguments<BackendIds,
                 typename mss_components_t::linear_esf_t,
                 typename mss_components_t::loop_intervals_t,
-                typename mss_components_t::extent_sizes_t,
                 decay_t<decltype(local_domain)>,
                 typename mss_components_t::cache_sequence_t,
                 Grid,

@@ -64,17 +64,9 @@ namespace gridtools {
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
-            // in the x86 backend there should be only one esf per mss
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::size<typename RunFunctorArguments::extent_sizes_t>::value == 1), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::back<typename RunFunctorArguments::extent_sizes_t>::type extent_t;
-            GRIDTOOLS_STATIC_ASSERT((is_extent<extent_t>::value), GT_INTERNAL_ERROR);
-
             using iterate_domain_arguments_t = iterate_domain_arguments<typename RunFunctorArguments::backend_ids_t,
                 local_domain_t,
                 typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::extent_sizes_t,
-                typename RunFunctorArguments::max_extent_t,
                 std::tuple<>,
                 grid_t>;
             using iterate_domain_x86_t = iterate_domain_x86<iterate_domain_arguments_t>;
@@ -83,6 +75,9 @@ namespace gridtools {
                 meta::lazy::id<iterate_domain_x86_t>>::type;
 
             typedef backend_traits_from_id<target::x86> backend_traits_t;
+
+            using extent_t = GT_META_CALL(
+                get_extent_from_loop_intervals, typename RunFunctorArguments::loop_intervals_t);
 
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);

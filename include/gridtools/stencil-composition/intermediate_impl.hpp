@@ -247,25 +247,10 @@ namespace gridtools {
             return tuple_util::generate<generators, Res>(grid);
         }
 
-        template <class Esf, class Extent>
-        struct extent_for_tmp
-            : std::conditional<boost::mpl::empty<typename esf_get_w_temps_per_functor<Esf>::type>::value,
-                  extent<>,
-                  Extent> {};
-
-        template <class Extents>
-        struct fold_extents : boost::mpl::fold<Extents, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>> {
-        };
-
-        template <class MssComponents>
-        struct get_max_extent_for_tmp_from_mss_components
-            : fold_extents<typename boost::mpl::transform<typename MssComponents::linear_esf_t,
-                  typename MssComponents::extent_sizes_t,
-                  extent_for_tmp<boost::mpl::_1, boost::mpl::_2>>::type> {};
-
-        template <class MssComponentsList>
-        struct get_max_extent_for_tmp : fold_extents<boost::mpl::transform_view<MssComponentsList,
-                                            get_max_extent_for_tmp_from_mss_components<boost::mpl::_>>> {};
+        template <class MssComponentsList,
+            class Extents = GT_META_CALL(
+                meta::transform, (get_max_extent_for_tmp_from_mss_components, MssComponentsList))>
+        GT_META_DEFINE_ALIAS(get_max_extent_for_tmp, meta::rename, (enclosing_extent, Extents));
 
         template <class MaxExtent, bool IsStateful>
         struct get_local_domain {
@@ -276,7 +261,7 @@ namespace gridtools {
 
         template <class MssComponentsList,
             bool IsStateful,
-            class MaxExtentForTmp = typename get_max_extent_for_tmp<MssComponentsList>::type,
+            class MaxExtentForTmp = GT_META_CALL(get_max_extent_for_tmp, MssComponentsList),
             class GetLocalDomain = _impl::get_local_domain<MaxExtentForTmp, IsStateful>>
         GT_META_DEFINE_ALIAS(get_local_domains, meta::transform, (GetLocalDomain::template apply, MssComponentsList));
 
@@ -284,7 +269,7 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(rw_args_from_mss,
             meta::id,
             (copy_into_variadic<
-                typename compute_readwrite_args<typename mss_descriptor_linear_esf_sequence<Mss>::type>::type,
+                typename compute_readwrite_args<GT_META_CALL(unwrap_independent, typename Mss::esf_sequence_t)>::type,
                 std::tuple<>>));
 
         template <class Msses,

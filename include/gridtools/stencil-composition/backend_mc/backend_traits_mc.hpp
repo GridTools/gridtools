@@ -39,8 +39,6 @@
 
 #include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "../empty_iterate_domain_cache.hpp"
-
 #include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
 #include "../structured_grids/backend_mc/strategy_mc.hpp"
 

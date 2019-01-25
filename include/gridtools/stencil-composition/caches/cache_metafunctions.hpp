@@ -40,36 +40,15 @@
 
 #pragma once
 
-#include <boost/fusion/algorithm/transformation/push_back.hpp>
-#include <boost/fusion/container/map/convert.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/container/vector/vector_fwd.hpp>
-#include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/pair.hpp>
-#include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/vector_fwd.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
-#include <boost/fusion/support/pair.hpp>
 #include <boost/mpl/at.hpp>
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/void.hpp>
 
+#include "../../common/defs.hpp"
 #include "../../meta.hpp"
-#include "./cache_traits.hpp"
-
-#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
-#include "../../meta/st_position.hpp"
-#include "../block_size.hpp"
-#include "../esf_metafunctions.hpp"
-#include "../local_domain.hpp"
+#include "../esf_fwd.hpp"
 #include "./cache.hpp"
 #include "./cache_storage.hpp"
+#include "./cache_traits.hpp"
 #include "./extract_extent_caches.hpp"
 
 namespace gridtools {
@@ -86,243 +65,29 @@ namespace gridtools {
     template <class Caches>
     GT_META_DEFINE_ALIAS(k_cache_args, meta::transform, (cache_parameter, GT_META_CALL(k_caches, Caches)));
 
-    namespace cache_metafunctions_impl_ {
-        template <class Caches>
-        struct is_ij_cache_args_f {
-            using ij_cache_args_t = GT_META_CALL(ij_cache_args, Caches);
-            template <class Arg>
-            GT_META_DEFINE_ALIAS(apply, meta::st_contains, (ij_cache_args_t, Arg));
-        };
-    } // namespace cache_metafunctions_impl_
-
-    template <class Caches, class EsfArgs>
-    GT_META_DEFINE_ALIAS(ij_cache_esf_args, meta::filter, (cache_metafunctions_impl_::is_ij_cache_args_f, EsfArgs));
-
-    /*
-     * Input: Caches, EsfArgs ...
-     * Output: boost::fusion::map from Arg to ij_cache_storage
-     *
-     * or
-     *
-     * Input: Caches, EsfArgs
-     * Output: filtered ij_cache_args
-     *
-     * and
-     *
-     * Input: Args, ...
-     * Output: tuple<ij_cache_args>
-     *
-     *
-        typedef typename get_cache_storage_tuple<IJ,
-            caches_t,
-            typename extract_ij_extents_for_caches<IterateDomainArguments>::type,
-            block_size<block_i_size(backend_ids_t{}), block_j_size(backend_ids_t{}), 1>,
-            typename IterateDomainArguments::local_domain_t>::type ij_caches_vector_t;
-
-     */
-
-    /**
-     * @struct cache_to_index
-     * metafunction that return the index type with the right position of the parameter being cached within the local
-     * domain.
-     * This is used as key to retrieve later the cache elements from the map.
-     * @tparam Cache cache being converted into an accessor
-     * @tparam LocalDomain local domain that contains a list of esf args which are used to determine the position of the
-     *        cache within the sequence
-     */
-    template <typename Cache, typename LocalDomain>
-    struct cache_to_index
-        : static_uint<meta::st_position<typename LocalDomain::esf_args, GT_META_CALL(cache_parameter, Cache)>::value> {
-        GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-    };
-
-    /**
-     * @struct caches_used_by_esfs
-     * metafunction that filter from a sequence of caches those that are used in a least one esf of the esf sequence
-     * @tparam EsfSequence sequence of esf
-     * @tparam CacheSequence original sequence of caches
-     */
-    template <typename EsfSequence, typename CacheSequence>
-    struct caches_used_by_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-
-        // remove caches which are not used by the stencil stages
-        typedef typename boost::mpl::copy_if<CacheSequence,
-            is_there_in_sequence_if<EsfSequence, esf_has_parameter_h<lazy::cache_parameter<boost::mpl::_>>>>::type type;
-    };
-
-    /**
-     * @struct cache_is_type
-     * high order metafunction that determines if a cache is of the same type as provided as argument
-     * @tparam cacheType type of cache that cache should equal
-     */
-    template <cache_type cacheType>
-    struct cache_is_type {
-        template <typename Cache>
-        struct apply : boost::integral_constant<bool, Cache::cacheType == cacheType> {
-            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
-        };
-    };
-
-    template <typename CacheSequence, typename Esfs, typename BlockSize, typename LocalDomain>
+    template <class Caches, class Esfs>
     struct get_k_cache_storage_tuple {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_block_size<BlockSize>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
 
-        // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
-        // into a fusion vector.
-        // Note: building a fusion map using result_of::as_map<mpl_vector_of_pair> did not work due to a clash between
-        // fusion pair and mpl pairs (the algorithm as_map expect fusion pairs). That is the reason of the workaround
-        // here
-        // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
+        template <class Cache,
+            class Arg = typename Cache::arg_t,
+            class Extent = GT_META_CALL(extract_k_extent_for_cache, (Arg, Esfs))>
+        GT_META_DEFINE_ALIAS(
+            make_item, meta::id, (boost::fusion::pair<Arg, typename make_k_cache_storage<Arg, Extent>::type>));
 
-        template <typename Cache, typename IndexT>
-        struct get_cache_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
-            using arg_t = typename LocalDomain::template get_arg<IndexT>::type;
-            using type = cache_storage<Cache,
-                block_size<1, 1, 1>,
-                GT_META_CALL(extract_k_extent_for_cache, (arg_t, Esfs)),
-                arg_t>;
-        };
-
-        // first we build an mpl vector of pairs
-        typedef typename boost::mpl::fold<CacheSequence,
-            boost::mpl::vector0<>,
-            boost::mpl::eval_if<typename cache_is_type<K>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<boost::mpl::_1,
-                    boost::mpl::pair<cache_to_index<boost::mpl::_2, LocalDomain>,
-                        get_cache_storage<boost::mpl::_2, cache_to_index<boost::mpl::_2, LocalDomain>>>>,
-                boost::mpl::identity<boost::mpl::_1>>>::type mpl_t;
-        typedef typename boost::mpl::fold<mpl_t,
-            boost::mpl::vector<>,
-            boost::mpl::if_<boost::mpl::is_void_<boost::mpl::_2>,
-                boost::mpl::_1,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>>>::type filtered_mpl_t;
-
-        // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
-        template <typename FusionSeq, typename Pair>
-        struct insert_pair_into_fusion_vector {
-            typedef typename boost::fusion::result_of::push_back<FusionSeq,
-                boost::fusion::pair<typename boost::mpl::first<Pair>::type,
-                    typename boost::mpl::second<Pair>::type>>::type type;
-        };
-
-        // then we transform the mpl vector into a fusion vector
-        typedef typename boost::mpl::fold<filtered_mpl_t,
-            boost::fusion::vector0<>,
-            insert_pair_into_fusion_vector<boost::mpl::_1, boost::mpl::_2>>::type type;
+        using type = GT_META_CALL(meta::transform, (make_item, GT_META_CALL(k_caches, Caches)));
     };
 
-    /**
-     * @struct get_cache_storage_tuple
-     * metafunction that computes a fusion vector of pairs of <static_uint<index>, cache_storage> for all the caches,
-     * where the index is the position of the parameter associated to the cache within the local domain
-     * This fusion tuple will be used by the iterate domain to directly retrieve the corresponding cache storage
-     * of a given accessor
-     * @tparam cacheType type of cache
-     * @tparam CacheSequence sequence of caches specified by the user
-     * @tparam CacheExtentsMap map of <cache, extent> determining the extent size of each cache
-     * @tparam BlockSize the physical domain block size
-     * @tparam LocalDomain the fused local domain
-     */
+    template <class Caches, class MaxExtent, int_t ITile, int_t JTile>
+    struct get_ij_cache_storage_tuple {
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
 
-    template <cache_type cacheType,
-        typename CacheSequence,
-        typename CacheExtentsMap,
-        typename BlockSize,
-        typename LocalDomain>
-    struct get_cache_storage_tuple {
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_block_size<BlockSize>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        template <class Cache, class Arg = typename Cache::arg_t>
+        GT_META_DEFINE_ALIAS(make_item,
+            meta::id,
+            (boost::fusion::pair<Arg, typename make_ij_cache_storage<Arg, ITile, JTile, MaxExtent>::type>));
 
-        // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
-        // into a fusion vector.
-        // Note: building a fusion map using result_of::as_map<mpl_vector_of_pair> did not work due to a clash between
-        // fusion pair and mpl pairs (the algorithm as_map expect fusion pairs). That is the reason of the workaround
-        // here
-        // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
-
-        template <typename Cache, typename IndexT>
-        struct get_cache_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
-            typedef typename LocalDomain::template get_arg<IndexT>::type arg_t;
-            using block_size_t = typename boost::mpl::if_<is_k_cache<Cache>, block_size<1, 1, 1>, BlockSize>::type;
-
-            typedef typename boost::mpl::if_<is_plh<arg_t>,
-                cache_storage<Cache, block_size_t, typename boost::mpl::at<CacheExtentsMap, Cache>::type, arg_t>,
-                boost::mpl::void_>::type type;
-        };
-
-        // first we build an mpl vector of pairs
-        typedef typename boost::mpl::fold<CacheSequence,
-            boost::mpl::vector0<>,
-            boost::mpl::eval_if<typename cache_is_type<cacheType>::template apply<boost::mpl::_2>,
-                boost::mpl::push_back<boost::mpl::_1,
-                    boost::mpl::pair<cache_to_index<boost::mpl::_2, LocalDomain>,
-                        get_cache_storage<boost::mpl::_2, cache_to_index<boost::mpl::_2, LocalDomain>>>>,
-                boost::mpl::identity<boost::mpl::_1>>>::type mpl_t;
-        typedef typename boost::mpl::fold<mpl_t,
-            boost::mpl::vector<>,
-            boost::mpl::if_<boost::mpl::is_void_<boost::mpl::_2>,
-                boost::mpl::_1,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>>>::type filtered_mpl_t;
-
-        // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
-        template <typename FusionSeq, typename Pair>
-        struct insert_pair_into_fusion_vector {
-            typedef typename boost::fusion::result_of::push_back<FusionSeq,
-                boost::fusion::pair<typename boost::mpl::first<Pair>::type,
-                    typename boost::mpl::second<Pair>::type>>::type type;
-        };
-
-        // then we transform the mpl vector into a fusion vector
-        typedef typename boost::mpl::fold<filtered_mpl_t,
-            boost::fusion::vector0<>,
-            insert_pair_into_fusion_vector<boost::mpl::_1, boost::mpl::_2>>::type type;
+        using type = GT_META_CALL(meta::transform, (make_item, GT_META_CALL(ij_caches, Caches)));
     };
-
-    /**
-     * @struct get_cache_set_for_type
-     * metafunction that computes a set of integers with position of each cache in the local domain,
-     * for all caches of a given type
-     * @tparam cacheType type of cache that is used to filter the sequence of caches
-     * @tparam CacheSequence sequence of caches used to extract the set of their positions
-     * @tparam LocalDomain local domain that contains all parameters
-     */
-    template <cache_type cacheType, typename CacheSequence, typename LocalDomain>
-    struct get_cache_set_for_type {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::fold<CacheSequence,
-            boost::mpl::set0<>,
-            boost::mpl::if_<typename cache_is_type<cacheType>::template apply<boost::mpl::_2>,
-                boost::mpl::insert<boost::mpl::_1, cache_to_index<boost::mpl::_2, LocalDomain>>,
-                boost::mpl::_1>>::type type;
-    };
-
-    /**
-     * @struct get_cache_set
-     * metafunction that computes a set of integers with position of each cache in the local domain
-     * @tparam CacheSequence sequence of caches used to extract the set of their positions
-     * @tparam LocalDomain local domain that contains all parameters
-     */
-    template <typename CacheSequence, typename LocalDomain>
-    struct get_cache_set {
-
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::fold<CacheSequence,
-            boost::mpl::set0<>,
-            boost::mpl::insert<boost::mpl::_1, cache_to_index<boost::mpl::_2, LocalDomain>>>::type type;
-    };
-
 } // namespace gridtools

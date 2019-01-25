@@ -67,20 +67,4 @@ namespace gridtools {
 
     template <typename Mss>
     GT_META_DEFINE_ALIAS(is_mss_descriptor, meta::is_instantiation_of, (mss_descriptor, Mss));
-
-    template <typename Mss>
-    struct mss_descriptor_esf_sequence {};
-
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
-        typedef EsfDescrSequence type;
-    };
-
-    template <typename Mss>
-    struct mss_descriptor_execution_engine {};
-
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence>> {
-        typedef ExecutionEngine type;
-    };
 } // namespace gridtools

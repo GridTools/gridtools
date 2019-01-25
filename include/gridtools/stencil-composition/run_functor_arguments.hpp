@@ -55,28 +55,20 @@
 
 namespace gridtools {
 
-    template <typename BackendIds,
-        typename LocalDomain,
-        typename EsfSequence,
-        typename ExtentSizes,
-        typename MaxExtent,
-        typename CacheSequence,
-        typename Grid>
+    template <typename BackendIds, typename LocalDomain, typename EsfSequence, typename CacheSequence, typename Grid>
     struct iterate_domain_arguments {
 
         GRIDTOOLS_STATIC_ASSERT(is_backend_ids<BackendIds>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<ExtentSizes, is_extent>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, CacheSequence>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
-        typedef ExtentSizes extent_sizes_t;
-        typedef MaxExtent max_extent_t;
+        typedef typename LocalDomain::max_extent_for_tmp_t max_extent_t;
         typedef Grid grid_t;
     };
 
@@ -90,7 +82,6 @@ namespace gridtools {
     template <typename BackendIds, // id of the different backends
         typename EsfSequence,      // sequence of ESF
         typename LoopIntervals,    // loop intervals
-        typename ExtentSizes,      // extents of each ESF
         typename LocalDomain,      // local domain type
         typename CacheSequence,    // sequence of user specified caches
         typename Grid,             // the grid
@@ -101,15 +92,13 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_execution_engine<ExecutionEngine>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, EsfSequence>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_loop_interval, LoopIntervals>::value), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef EsfSequence esf_sequence_t;
         typedef LoopIntervals loop_intervals_t;
-        typedef ExtentSizes extent_sizes_t;
-        typedef typename boost::mpl::
-            fold<extent_sizes_t, extent<>, enclosing_extent_2<boost::mpl::_1, boost::mpl::_2>>::type max_extent_t;
+        typedef typename LocalDomain::max_extent_for_tmp_t max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef Grid grid_t;
