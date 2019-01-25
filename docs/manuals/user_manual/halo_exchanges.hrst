@@ -214,7 +214,7 @@ running data exchange. The argument in the set up function is the
 maximum number of data arrays that the pattern will exchange in a
 single step. For instance we set that to 3 so that 4 data arrays can
 not be exchanged simultanously without triggering unpredictable
-results of, more likely, an access violation error. The code looks
+results or, more likely, an access violation error. The code looks
 like:
 
 .. code-block:: gridtools
