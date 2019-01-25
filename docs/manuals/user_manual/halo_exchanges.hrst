@@ -67,7 +67,7 @@ The following layout specification
 
 .. code-block:: gridtools
 
-  layout_map<1,0,2>
+  layout_map<1, 0, 2>
 
 would mean: The first dimension in data matches with the second
 dimension of the computing grid, the second dimension of the data to
