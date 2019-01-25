@@ -68,7 +68,7 @@ apart the direction (0,0,-1):
 
 .. code-block:: gridtools
 
-  struct direction_bc_input {
+  struct example_bc {
      double value;
 
      GT_FUNCTION
