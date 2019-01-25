@@ -13,7 +13,7 @@ For a list of supported compilers refer to the `project Wiki on github <https://
 Installation and use
 -----------------------------
 
-|GT| uses CMake as building system. The following variables control the back-ends that will be supported by the installation:
+|GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation:
 
 .. code-block:: shell
 
