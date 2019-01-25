@@ -199,7 +199,7 @@ computing grid.
 After the object has been instantiated, the halos of the fields (they
 should all have the same dimensions and halo information for this
 pattern to work) have to be registered with the object. To do so, the
-user "add" the halo for the corresponding dimension and the five
+user registers the halo for the corresponding dimension and the five
 numbers we decsribed above, for the three dimensions (0 is the first
 dimension).
 
