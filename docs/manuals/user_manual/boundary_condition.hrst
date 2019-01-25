@@ -137,7 +137,7 @@ signature of the overloads of ``operator()``, and it is user defined.
 Boundary predication
 ---------------------------------
 
-Predication is an additional feature to control the boundary application. The predicate type have to be specified as template argument of the boudary class, and the instantiated object of that type passed as third arguent of the bounadry class constructor, as in the following example:
+Predication is an additional feature to control the boundary application. The predicate type has to be specified as template argument of the boundary class, and the instantiated object of that type passed as third argument of the boundary class constructor, as in the following example:
 
 .. code-block:: gridtools
 
