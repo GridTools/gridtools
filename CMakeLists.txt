@@ -97,7 +97,7 @@ endif()
 # ===============
 # examples and tests
 # ===============
-if( GT_INSTALL_EXAMPLES )
+if( GT_COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
 endif()
 

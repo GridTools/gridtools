@@ -41,6 +41,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/preprocessor.hpp>
 
+#include "../common/boost_pp_generic_macros.hpp"
 #include "function_wrapper.hpp"
 #include "generator.hpp"
 
@@ -117,8 +118,10 @@
     GT_ADD_GENERATED_DECLARATION_WRAPPED(cppsignature, name)
 
 /// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
-#define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)
-#define GT_EXPORT_BINDING_WRAPPED(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED(n, name, decltype(impl), impl)
+#define GT_EXPORT_BINDING(n, name, impl) \
+    GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(BOOST_PP_REMOVE_PARENS(impl)), impl)
+#define GT_EXPORT_BINDING_WRAPPED(n, name, impl) \
+    GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED(n, name, decltype(BOOST_PP_REMOVE_PARENS(impl)), impl)
 
 #define GT_EXPORT_GENERIC_BINDING_IMPL_IMPL(generatorsuffix, n, generic_name, concrete_name, impl) \
     BOOST_PP_CAT(GT_EXPORT_BINDING, generatorsuffix)(n, concrete_name, impl);                      \
@@ -132,15 +135,18 @@
         BOOST_PP_TUPLE_ELEM(4, 1, data),                            \
         BOOST_PP_TUPLE_ELEM(4, 2, data),                            \
         i,                                                          \
-        BOOST_PP_TUPLE_ELEM(4, 3, data) < elem >);
+        (BOOST_PP_TUPLE_ELEM(4, 3, data) < BOOST_PP_REMOVE_PARENS(elem) >));
 
-#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params)                                       \
-    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (, n, name, impl_template), template_params) \
+#define GT_EXPORT_GENERIC_BINDING(n, name, impl_template, template_params) \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR,        \
+        (, n, name, impl_template),                                        \
+        BOOST_PP_VARIADIC_SEQ_TO_SEQ(template_params))                     \
     static_assert(1, "")
 
-#define GT_EXPORT_GENERIC_BINDING_WRAPPED(n, name, impl_template, template_params)                   \
-    BOOST_PP_SEQ_FOR_EACH_I(                                                                         \
-        GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR, (_WRAPPED, n, name, impl_template), template_params) \
+#define GT_EXPORT_GENERIC_BINDING_WRAPPED(n, name, impl_template, template_params) \
+    BOOST_PP_SEQ_FOR_EACH_I(GT_EXPORT_GENERIC_BINDING_IMPL_FUNCTOR,                \
+        (_WRAPPED, n, name, impl_template),                                        \
+        BOOST_PP_VARIADIC_SEQ_TO_SEQ(template_params))                             \
     static_assert(1, "")
 
 /// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity
