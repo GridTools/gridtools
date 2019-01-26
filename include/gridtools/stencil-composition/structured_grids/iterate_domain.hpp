@@ -90,9 +90,11 @@ namespace gridtools {
       protected:
         using strides_cached_t = strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t>;
         using iterate_domain_arguments_t = IterateDomainArguments;
-        using array_index_t = array<int_t, N_META_STORAGES>;
 
         GT_FUNCTION iterate_domain(local_domain_t const &local_domain_) : local_domain(local_domain_) {}
+
+      public:
+        using array_index_t = array<int_t, N_META_STORAGES>;
 
       private:
         // ******************* members *******************

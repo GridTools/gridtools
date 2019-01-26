@@ -75,8 +75,8 @@ typedef std::tuple<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
     using testee_t = get_ij_cache_storage_tuple<caches_t, extent<-2, 2, -3, 2>, 32, 4>::type;
 
-    using expected_t = std::tuple<boost::fusion::pair<p_in, ij_cache_storage<double, 36, 9, 2, 3>>,
-        boost::fusion::pair<p_buff, ij_cache_storage<double, 36, 9, 2, 3>>>;
+    using expected_t = std::tuple<boost::fusion::pair<p_in, ij_cache_storage<float_type, 36, 9, 2, 3>>,
+        boost::fusion::pair<p_buff, ij_cache_storage<float_type, 36, 9, 2, 3>>>;
 
     static_assert(std::is_same<testee_t, expected_t>::value, "");
 }
@@ -97,8 +97,8 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
     using testee_t = typename get_k_cache_storage_tuple<caches_t, esfk_sequence_t>::type;
 
-    using expected_t = std::tuple<boost::fusion::pair<p_out, k_cache_storage<double, 0, 1>>,
-        boost::fusion::pair<p_notin, k_cache_storage<double, -1, 1>>>;
+    using expected_t = std::tuple<boost::fusion::pair<p_out, k_cache_storage<float_type, 0, 1>>,
+        boost::fusion::pair<p_notin, k_cache_storage<float_type, -1, 1>>>;
 
     static_assert(std::is_same<testee_t, expected_t>::value, "");
 }

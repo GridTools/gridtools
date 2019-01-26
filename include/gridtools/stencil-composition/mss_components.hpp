@@ -100,9 +100,8 @@ namespace gridtools {
     template <typename T>
     GT_META_DEFINE_ALIAS(is_mss_components, meta::is_instantiation_of, (mss_components, T));
 
-    template <class MssComponents,
-        class Esfs = typename MssComponents::linear_esf_t,
-        class ExtentMap = typename MssComponents::extent_map_t>
-    GT_META_DEFINE_ALIAS(
-        get_max_extent_for_tmp_from_mss_components, mss_comonents_impl_::get_max_extent_for_tmp, (Esfs, ExtentMap));
+    template <class MssComponents>
+    GT_META_DEFINE_ALIAS(get_max_extent_for_tmp_from_mss_components,
+        mss_comonents_impl_::get_max_extent_for_tmp,
+        (typename MssComponents::linear_esf_t, typename MssComponents::extent_map_t));
 } // namespace gridtools
