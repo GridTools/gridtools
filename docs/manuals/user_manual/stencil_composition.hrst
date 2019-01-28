@@ -46,15 +46,15 @@ Vertical regions and vertical boundary conditions
 
 As mentioned earlier, the |GT| :ref:`execution model<execution-model>`
 allows to be sequential in the vertical dimension (``k``). Additionally, |GT|
-offers the possibility to split the vertical dimension into vertical regions
-with different operations. Typical applications of this pattern are models which define
+offers the possibility to split the vertical dimension into vertical regions,
+where stencils can perform different operations. Typical applications of this pattern are models which define
 terrain-following coordinates close to the earth surface and flat-coordinates in upper
 levels of the atmosphere. Another use-case are vertical boundary-conditions which can
 be directly integrated into the stencil operation.
 
 .. note::
-   In the following we will distinguish two concepts: *vertical regions* are non-overlapping
-   subsets of the vertical iteration space with run-time defined sizes, *vertical intervals* (or just *intervals*)
+   In the following we will distinguish two concepts: first *vertical regions* are non-overlapping
+   subsets of the vertical iteration space with run-time defined sizes; second *vertical intervals* (or just *intervals*)
    are compile-time defined descriptions from one vertical level (close to the boundaries of vertical regions) to another.
  
 
@@ -72,7 +72,7 @@ Defining vertical intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 |GT| allows to split the full vertical iteration space into regions. The number of vertical regions needs to be specified at
-compile-time, while the size of each region can be passed at run-time.
+compile-time, while the size of each region can be defined at run-time.
 
 For defining a computation with more than a single vertical region we need to define an ``axis`` first.  
 
@@ -106,7 +106,7 @@ Each region already defines a vertical interval which can be queried from the ax
    ...
    
 Note that the intervals are compile time object, i.e. C++ types. These intervals
-are used for defining which ``Do``-method of the stencil operator should be taken, see :ref:`Do-method<stencil_operators_do_method>`.
+are used for defining which ``Do``-method version of the stencil operator should be used during the iteration, see :ref:`Do-method<stencil_operators_do_method>`.
 
 Interval provides meta-functions which allow to define modified intervals
 
