@@ -26,7 +26,7 @@ we will identify them as `component dimension`
 and `snapshot dimension`, in line with their most intuitive use case,
 i.e. a vector representation of a time discretization.
 
-.. todo:: 
+.. todo::
  this needs reformulation
 
 We introduce the ``accessors``
@@ -88,7 +88,7 @@ accessor, and not on the accessor itself. So in the example
  dimension<3> k; dimension<4> c; dimension<5> t;
  acc(k-1, c+2, t+2)
 
- #ifdef 
+ #ifdef
  #define
 
 ``c+2`` may refer to an offset to the 4th dimension or the third components (the indices are
@@ -210,7 +210,7 @@ considering different elements in the vector.
  stage, the corresponding expandable parameters
  storage vectors must have the same length
 
-.. note:: 
+.. note::
 
  We can mix vector accessors with regular accessors.
  In that case the regular accessor will be the same for
@@ -247,7 +247,7 @@ in the do method
 
     auto ordinal_ = eval(global_boundary()).ordinal();
 
-.. note:: 
+.. note::
  All the member functions defined in the user-defined
  data structure must be labeled with GT_FUNCTION, in
  order for them to be callable from devices.
@@ -266,7 +266,6 @@ a small matrix as a global parameter:
 
 A useful example to understand this use case can be found in the extended4D example.
 
-.. todo:: 
- 
- add reference
+.. todo::
 
+ add reference
