@@ -61,8 +61,8 @@ namespace gridtools {
 
         template <class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += accessor_offset<0>(acc) - IZero;
-            j += accessor_offset<1>(acc) - JZero;
+            i += accessor_offset<0>(acc) + IZero;
+            j += accessor_offset<1>(acc) + JZero;
             assert(accessor_offset<2>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
@@ -98,9 +98,9 @@ namespace gridtools {
 
         template <int_t Color, class Accessor>
         GT_FUNCTION T &at(int_t i, int_t j, Accessor const &acc) {
-            i += accessor_offset<0>(acc) - IZero;
+            i += accessor_offset<0>(acc) + IZero;
             int_t color = Color + accessor_offset<1>(acc);
-            j += accessor_offset<2>(acc) - JZero;
+            j += accessor_offset<2>(acc) + JZero;
             assert(accessor_offset<3>(acc) == 0);
             assert(i >= 0);
             assert(i < ISize);
