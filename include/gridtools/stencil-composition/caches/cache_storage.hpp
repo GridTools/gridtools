@@ -149,12 +149,14 @@ namespace gridtools {
 
         using range_t = array<int_t, 2>;
 
-        static constexpr GT_FUNCTION int_t sync_point(enumtype::execution Policy, sync_type SyncType) {
-            return (Policy == enumtype::forward && SyncType == sync_type::fill) ||
-                           (Policy == enumtype::backward && SyncType == sync_type::flush)
-                       ? Plus
-                       : Minus;
-        }
+        template <enumtype::execution Policy, sync_type SyncType>
+        GT_META_DEFINE_ALIAS(sync_point,
+            std::integral_constant,
+            (int_t,
+                (Policy == enumtype::forward && SyncType == sync_type::fill) ||
+                        (Policy == enumtype::backward && SyncType == sync_type::flush)
+                    ? Plus
+                    : Minus));
 
       public:
         /**
@@ -189,7 +191,7 @@ namespace gridtools {
         template <enumtype::execution Policy,
             sync_type SyncType,
             class Data,
-            int_t SyncPoint = sync_point(Policy, SyncType)>
+            int_t SyncPoint = sync_point<Policy, SyncType>::value>
         GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) const {
             int_t first = math::max(sync_all ? Minus : SyncPoint, validity[0]);
             int_t last = math::min(sync_all ? Plus : SyncPoint, validity[1]);
