@@ -144,8 +144,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
 
     typedef iterate_domain_cuda<iterate_domain_arguments<backend_ids<target::cuda, grid_type_t, strategy::block>,
         decay_t<decltype(std::get<0>(computation_.local_domains()))>,
-        make_arg_list<esf_t>,
-        make_arg_list<extent<0, 0, 0, 0>>,
+        boost::mpl::vector1<esf_t>,
+        boost::mpl::vector1<extent<0, 0, 0, 0>>,
         extent<1, -1, 1, -1>,
         caches_t,
         gridtools::grid<axis_t>>>
