@@ -8,16 +8,17 @@ macro(generate_preprocessed_file preprocessed_file_out cpp_file)
         target_compile_options( ${cpp_file}_OBJECTS BEFORE PUBLIC -E ${GT_CXX_FLAGS})
         target_link_libraries( ${cpp_file}_OBJECTS common )
 
-        # now use the preprocessed file to generate a library (which we will never use) ...
-        add_library( dummy_${cpp_file} STATIC EXCLUDE_FROM_ALL $<TARGET_OBJECTS:${cpp_file}_OBJECTS>)
-        # ... but before linking we copy the preprocessed file to the given file "preprocessed_file_out"
-        # this trick is necessary because $<TARGET_OBJECTS:XXX> is only defined within add_library
-        add_custom_command( TARGET dummy_${cpp_file} PRE_LINK
-            COMMAND ${CMAKE_COMMAND} -E copy '$<TARGET_OBJECTS:${cpp_file}_OBJECTS>' ${preprocessed_file_out}
-        )
-
         # add a target for the generated file
-        add_custom_command( OUTPUT ${preprocessed_file_out} COMMAND "" DEPENDS dummy_${cpp_file})
+        add_custom_command( OUTPUT ${preprocessed_file_out}
+            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_OBJECTS:${cpp_file}_OBJECTS> ${preprocessed_file_out}
+            DEPENDS ${cpp_file}_OBJECTS $<TARGET_OBJECTS:${cpp_file}_OBJECTS>
+            COMMENT "Extract generated code"
+            )
+
+        get_filename_component(generated_target_name ${preprocessed_file_out} NAME_WE)
+        add_custom_target(${generated_target_name}
+            DEPENDS ${preprocessed_file_out}
+            )
     else()
         message( ERROR "In macro generate_preprocessed_file: ${cpp_file} is not a file" )
     endif()
@@ -29,22 +30,20 @@ if (GT_ENABLE_TARGET_X86)
     generate_preprocessed_file( ${GENERATED_REPOSITORY} plain_repository_generator.cpp )
 
     # clean the preprocessed file from comments and from everything before our class starts
-    add_custom_target( process_generated_repository
+    add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
       # remove all lines starting with '#'
       # remove everything before "class my_repository"
       COMMAND sed "/^#/d" ${GENERATED_REPOSITORY} | awk "/class my_repository/,0" > ${GENERATED_REPOSITORY}_tmp
       COMMAND cp ${GENERATED_REPOSITORY}_tmp ${GENERATED_REPOSITORY}
-      DEPENDS ${GENERATED_REPOSITORY}
+      APPEND
       )
 
     # format the generated file if we can
     if( CLANG_FORMAT_FOUND )
-      add_custom_target( format_generated_repository COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY}
-          DEPENDS process_generated_repository
+        add_custom_command(OUTPUT ${GENERATED_REPOSITORY}
+            COMMAND ${CLANG_FORMAT_BIN} -i ${GENERATED_REPOSITORY}
+            APPEND
       )
-    else()
-      #dummy target for dependency
-      add_custom_target( format_generated_repository COMMAND "" DEPENDS process_generated_repository)
     endif()
 
     # generate the driver
@@ -59,7 +58,7 @@ if (GT_ENABLE_TARGET_X86)
         LABELS unittest_x86 target_x86
         ENVIRONMENT ${TEST_HOST_ENVIRONMENT}
         )
-    add_dependencies( custom_test_generated_repository format_generated_repository )
+    add_dependencies(custom_test_generated_repository generated_repository)
 endif()
 
 # collect test cases
