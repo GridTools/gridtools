@@ -137,7 +137,7 @@ namespace gridtools {
          */
         template <class Arg, class ReturnType, class Accessor>
         GT_FUNCTION ReturnType get_k_cache_value(Accessor const &acc) const {
-            return m_iterate_domain_cache.template get_k_cache<Arg>().at(acc);
+            return m_iterate_domain_cache.template get_k_cache<Arg>(acc);
         }
 
 #if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350

@@ -135,15 +135,15 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(Plus >= 0, GT_INTERNAL_ERROR);
 
-        mutable T m_values[Plus - Minus + 1];
+        T m_values[Plus - Minus + 1];
 
         template <sync_type SyncType, class Data>
-        GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) const {
+        GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) {
             m_values[k - Minus] = data(k);
         }
 
         template <sync_type SyncType, class Data>
-        GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) const {
+        GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
             data(k) = std::move(m_values[k - Minus]);
         }
 
@@ -164,7 +164,7 @@ namespace gridtools {
          * @param acc the accessor that contains the offsets being accessed
          */
         template <class Accessor>
-        GT_FUNCTION T &at(Accessor const &acc) const {
+        GT_FUNCTION T &at(Accessor const &acc) {
             int_t offset = accessor_offset<2>(acc);
             assert(offset >= Minus);
             assert(offset <= Plus);
@@ -177,13 +177,13 @@ namespace gridtools {
          * @brief slides the values of the ring buffer
          */
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() const {
+        GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() {
             for (int_t k = 0; k < Plus - Minus; ++k)
                 m_values[k] = std::move(m_values[k + 1]);
         }
 
         template <enumtype::execution Policy>
-        GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() const {
+        GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() {
             for (int_t k = Plus - Minus; k > 0; --k)
                 m_values[k] = std::move(m_values[k - 1]);
         }
@@ -192,7 +192,7 @@ namespace gridtools {
             sync_type SyncType,
             class Data,
             int_t SyncPoint = sync_point<Policy, SyncType>::value>
-        GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) const {
+        GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) {
             int_t first = math::max(sync_all ? Minus : SyncPoint, validity[0]);
             int_t last = math::min(sync_all ? Plus : SyncPoint, validity[1]);
             for (int_t k = first; k <= last; ++k)

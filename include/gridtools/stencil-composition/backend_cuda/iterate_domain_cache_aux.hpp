@@ -54,7 +54,7 @@ namespace gridtools {
 
         template <enumtype::execution Policy, class Caches>
         struct slide_caches_f {
-            Caches const &m_caches;
+            Caches &m_caches;
 
             template <class Arg>
             GT_FUNCTION void operator()(Arg) const {
@@ -62,14 +62,14 @@ namespace gridtools {
             }
         };
         template <class Args, enumtype::execution Policy, class Caches>
-        GT_FUNCTION void slide_caches(Caches const &caches) {
+        GT_FUNCTION void slide_caches(Caches &caches) {
             host_device::for_each<Args>(slide_caches_f<Policy, Caches>{caches});
         }
 
         template <enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
         struct sync_caches_f {
             ItDomain const &m_it_domain;
-            Caches const &m_caches;
+            Caches &m_caches;
             bool m_sync_all;
             array<int_t, 2> m_validity;
 
@@ -81,7 +81,7 @@ namespace gridtools {
         };
         template <class Args, enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
         GT_FUNCTION void sync_caches(
-            ItDomain const &it_domain, Caches const &caches, bool sync_all, array<int_t, 2> validity) {
+            ItDomain const &it_domain, Caches &caches, bool sync_all, array<int_t, 2> validity) {
             host_device::for_each<Args>(
                 sync_caches_f<Policy, SyncType, ItDomain, Caches>{it_domain, caches, sync_all, validity});
         }
