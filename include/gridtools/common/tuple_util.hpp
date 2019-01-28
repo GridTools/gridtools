@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/** \ingroup common
+/** \addtogroup common
     @{
 */
-/** \defgroup tupleutils Utilities for Tuples
+/** \addtogroup tupleutils Utilities for Tuples
     @{
 */
 
@@ -47,55 +47,49 @@
  *  Here is a set of algorithms that are defined on "tuple like" structures
  *
  *  The formal definition of the "tuple like" concept:
- *  A type `T` satisfies the concept if:
+ *  A type `%T` satisfies the concept if:
  *    - it is move constructible;
  *
  *    - it can be constructed element wise using brace initializer syntax;
- *      [example: my_triple<T1, T2, T3> val = {elem0, elem1, elem2}; ]
+ *      [example: `my_triple<T1, T2, T3> val = {elem0, elem1, elem2};` ]
  *
  *    - a function `tuple_to_types(T)` can be found from the `::gridtools::tuple_util::traits` namespace [via ADL or
  *      directly in this namespace]. This function should return a type, which is instantiation of a template
  *      parameterized on types. The actual parameters of that instantiation is interpreted as a types of elements of the
  *      "tuple like". Simply speaking `tuple_to_types` returns a type list of the types of `T` elements.
  *      Note that this function (and for others in this concept definition as well) will be never called. It is enough
- *      to just declare it.
- *      [example:
- *        ```
- *          // for the simple "tuple_like"'s it is enough to return itself from tuple_to_types
- *          template <class T, class U, class Q>
- *          my_triple<T, U, Q> tuple_to_types(my_triple<T, U, Q>);
- *        ```
- *      ]
+ *      to just declare it. Example:
+ *      \code
+ *      // for the simple "tuple_like"'s it is enough to return itself from tuple_to_types
+ *      template <class T, class U, class Q>
+ *      my_triple<T, U, Q> tuple_to_types(my_triple<T, U, Q>);
+ *      \endcode
  *
  *    - a function `tuple_from_types(T)` can be found from the `::gridtools::tuple_util::traits` namespace [via ADL or
  *      directly in this namespace]. This function should return a type which is a meta class [in the terms of `meta`
  *      library]. This meta class should contain a meta function that takes types elements that we are going to pass to
- *      brace initializer and returns a type [satisfying the same concept] that can accept such a list.
- *      [example:
- *        ```
- *          struct my_triple_from_types {
- *             template <class T, class U, class Q>
- *             using apply = my_triple<T, U, Q>;
- *          };
+ *      brace initializer and returns a type [satisfying the same concept] that can accept such a list. Example:
+ *      \code
+ *      struct my_triple_from_types {
  *          template <class T, class U, class Q>
- *          my_triple_from_types tuple_from_types(my_triple<T, U, Q>);
- *        ```
- *      ]
+ *          using apply = my_triple<T, U, Q>;
+ *      };
+ *      template <class T, class U, class Q>
+ *      my_triple_from_types tuple_from_types(my_triple<T, U, Q>);
+ *      \endcode
  *
  *    - a function `tuple_getter(T)` can be found from the `::gridtools::tuple_util::traits` namespace [via ADL or
  *      directly in this namespace]. This function should return a type that has a static template (on size_t) member
- *      function called `get<N>` that accepts `T` by some reference and returns the Nth element of `T`.
- *      [example:
- *        ```
- *          struct my_triple_getter {
- *             template <size_t N, class T, class U, class Q, enable_if_t<N == 0, int> = 0>
- *             static T get(my_triple<T, U, Q> obj) { return obj.first; }
- *             ...
- *          };
- *          template <class T, class U, class Q>
- *          my_triple_getter tuple_getter(my_triple<T, U, Q>);
- *        ```
- *      ]
+ *      function called `get<N>` that accepts `T` by some reference and returns the Nth element of `T`. Example:
+ *      \code
+ *      struct my_triple_getter {
+ *          template <size_t N, class T, class U, class Q, enable_if_t<N == 0, int> = 0>
+ *          static T get(my_triple<T, U, Q> obj) { return obj.first; }
+ *          ...
+ *      };
+ *      template <class T, class U, class Q>
+ *      my_triple_getter tuple_getter(my_triple<T, U, Q>);
+ *      \endcode
  *
  *  If the opposite is not mentioned explicitly, the algorithms produce tuples of references. L-value or R-value
  *  depending on algorithm input.
@@ -105,14 +99,20 @@
  *    2) functions that return generic functors
  *
  *  For example you can do:
+ *  \code
  *    auto ints = transform([](int x) {return x;}, input);
- *  our you can:
+ *  \endcode
+ *  or you can:
+ *  \code
  *    auto convert_to_ints = transform([](int x) {return x;});
  *    auto ints = convert_to_ints(input);
+ *  \endcode
  *
  *  The second form is more composable. For example if the input is a tuple of tuples of whatever and you need a
  *  tuple of tuple of tuple of integers you can do it in one expression:
+ *  \code
  *  auto out = transform(transform([](int x) {return x;}), input);
+ *  \endcode
  *
  *
  *  TODO list

@@ -381,7 +381,7 @@ namespace gridtools {
             assert(false);
             return {};
 #else
-            throw std::runtime_error("");
+            throw std::runtime_error("not implemented");
 #endif
         }
 

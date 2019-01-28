@@ -66,10 +66,9 @@ namespace gridtools {
     } // namespace _impl
 
     /*!
-       \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
        \brief Function to create a Multistage Stencil that can then be executed
-       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs
-       created with make independent
+       \param esf{i}  i-th Elementary Stencil Function created with ::gridtools::make_stage or a list specified as
+       independent ESF created with ::gridtools::make_independent
 
        Use this function to create a multi-stage stencil computation
      */
@@ -90,7 +89,6 @@ namespace gridtools {
     }
 
     /*!
-       \fn independent_esf<...> make_independent(esf1, esf2, ...)
        \brief Function to create a list of independent Elementary Stencil Functions
 
        \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as

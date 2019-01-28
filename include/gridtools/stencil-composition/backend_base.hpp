@@ -55,8 +55,8 @@
 
 /**
    @file
-   @brief base class for all the backends. Current supported backend are \ref gridtools::target:x86 and \ref
-   gridtools::enumtype::Cuda
+   @brief base class for all the backends. Current supported backend are ::gridtools::target::x86 and
+   ::gridtools::target::cuda
 */
 
 namespace gridtools {

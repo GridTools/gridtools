@@ -107,6 +107,7 @@ namespace gridtools {
          * depends on the iteration policy
          * \tparam IterationPolicy forward: backward
          * \param it_domain an iterate domain
+         * \param first_level indicates that this function is called the first time in the k-loop
          */
         template <class IterationPolicy, class IterateDomain>
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level, array<int_t, 2> validity) {
@@ -124,6 +125,7 @@ namespace gridtools {
          * depends on the iteration policy
          * \tparam IterationPolicy forward: backward
          * \param it_domain an iterate domain
+         * \param last_level indicates that this function is called the last time in the k-loop
          */
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level, array<int_t, 2> validity) {
