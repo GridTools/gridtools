@@ -53,11 +53,12 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(
                 get_extent, meta::if_, (std::is_same<Arg, EsfArg>, typename Accessor::extent_t, extent<>));
 
-            template <class Esf,
-                class Args = typename Esf::args_t,
-                class Accessors = copy_into_variadic<typename esf_arg_list<Esf>::type, meta::list<>>,
-                class Extents = GT_META_CALL(meta::transform, (get_extent, Args, Accessors))>
-            GT_META_DEFINE_ALIAS(apply, meta::rename, (enclosing_extent, Extents));
+            template <class Esf, class Args = typename Esf::args_t>
+            GT_META_DEFINE_ALIAS(apply,
+                meta::rename,
+                (enclosing_extent,
+                    GT_META_CALL(meta::transform,
+                        (get_extent, Args, copy_into_variadic<typename esf_arg_list<Esf>::type, meta::list<>>))));
         };
     } // namespace extract_extent_caches_impl_
 

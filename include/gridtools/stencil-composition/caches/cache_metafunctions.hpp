@@ -70,11 +70,11 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_cache, Caches>::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_esf_descriptor, Esfs>::value), GT_INTERNAL_ERROR);
 
-        template <class Cache,
-            class Arg = typename Cache::arg_t,
-            class Extent = GT_META_CALL(extract_k_extent_for_cache, (Arg, Esfs))>
-        GT_META_DEFINE_ALIAS(
-            make_item, meta::id, (boost::fusion::pair<Arg, typename make_k_cache_storage<Arg, Extent>::type>));
+        template <class Cache, class Arg = typename Cache::arg_t>
+        GT_META_DEFINE_ALIAS(make_item,
+            meta::id,
+            (boost::fusion::pair<Arg,
+                typename make_k_cache_storage<Arg, GT_META_CALL(extract_k_extent_for_cache, (Arg, Esfs))>::type>));
 
         using type = GT_META_CALL(meta::transform, (make_item, GT_META_CALL(k_caches, Caches)));
     };

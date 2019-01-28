@@ -118,8 +118,8 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->strides(); }
-        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->strides(); }
+        GT_FUNCTION strides_cached_t const &strides_impl() const { return m_pshared_iterate_domain->m_strides; }
+        GT_FUNCTION strides_cached_t &strides_impl() { return m_pshared_iterate_domain->m_strides; }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory
@@ -128,7 +128,8 @@ namespace gridtools {
         GT_FUNCTION ReturnType get_ij_cache_value(Accessor const &acc) const {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache<Arg>().at(m_thread_pos[0], m_thread_pos[1], acc);
+            return boost::fusion::at_key<Arg>(m_pshared_iterate_domain->m_ij_caches)
+                .at(m_thread_pos[0], m_thread_pos[1], acc);
         }
 
         /** @brief return a value that was cached

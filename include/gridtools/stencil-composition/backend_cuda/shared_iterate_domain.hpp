@@ -33,41 +33,26 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/**@file
-   @brief file with classes to store the data members of the iterate domain
-   that will be allocated in shared memory
- */
 #pragma once
 
-#include <boost/fusion/include/at_key.hpp>
-
-#include "../../common/defs.hpp"
-#include "../../common/host_device.hpp"
-#include "../iterate_domain_aux.hpp"
+#include <boost/mpl/size.hpp>
 
 namespace gridtools {
 
     /**
-     * @class shared_iterate_domain
      * data structure that holds data members of the iterate domain that must be stored in shared memory.
-     * @tparam DataPointerArray array of data pointers
-     * @tparam StridesType strides cached type
-     * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
+     *
+     * @tparam Strides strides cached type
+     * @tparam IJCaches fusion map of <Arg, ij_cache_storage>
      */
-    template <typename StridesType, typename IJCachesTuple>
-    class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT(is_strides_cached<StridesType>::value, GT_INTERNAL_ERROR);
-        // TODO: protect IJCachesTuple
-
-        StridesType m_strides;
-        IJCachesTuple m_ij_caches_tuple;
-
-      public:
-        GT_FUNCTION StridesType const &strides() const { return m_strides; }
-        GT_FUNCTION StridesType &strides() { return m_strides; }
-
-        template <typename IndexType>
-        GT_FUNCTION auto get_ij_cache() GT_AUTO_RETURN(boost::fusion::at_key<IndexType>(m_ij_caches_tuple));
+    template <class Strides, class IJCaches, size_t = boost::mpl::size<IJCaches>::value>
+    struct shared_iterate_domain {
+        Strides m_strides;
+        IJCaches m_ij_caches;
     };
 
+    template <class Strides, class IJCaches>
+    struct shared_iterate_domain<Strides, IJCaches, 0> {
+        Strides m_strides;
+    };
 } // namespace gridtools

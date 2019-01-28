@@ -46,6 +46,7 @@
 #include "../caches/cache_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../local_domain.hpp"
+#include "../pos3.hpp"
 
 namespace gridtools {
     /**
