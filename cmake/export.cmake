@@ -13,7 +13,7 @@ configure_package_config_file(cmake/GridToolsConfig.cmake.in
   INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/install/GridToolsConfigVersion.cmake
-  COMPATIBILITY SameMajorVersion )
+  COMPATIBILITY SameMinorVersion )
 # for build tree
 set(GRIDTOOLS_MODULE_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake)
 set(GRIDTOOLS_SOURCES_PATH ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src)
@@ -24,7 +24,7 @@ configure_package_config_file(cmake/GridToolsConfig.cmake.in
   INSTALL_DESTINATION ${PROJECT_BINARY_DIR})
 write_basic_package_version_file(
   ${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake
-  COMPATIBILITY SameMajorVersion )
+  COMPATIBILITY SameMinorVersion )
 
 install(TARGETS gridtools EXPORT GridToolsTargets
   LIBRARY DESTINATION lib
@@ -87,8 +87,8 @@ if(COMPONENT_C_BINDINGS)
     install(FILES ${CMAKE_SOURCES} DESTINATION "lib/cmake")
     install(FILES ${CBINDINGS_SOURCES} DESTINATION "src/c_bindings")
 
-    install(FILES ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
-    install(FILES ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
+    file(COPY ${CMAKE_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/lib/cmake")
+    file(COPY ${CBINDINGS_SOURCES} DESTINATION "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/build-install/src/c_bindings")
 endif()
 
 if ( GT_INSTALL_EXAMPLES )
