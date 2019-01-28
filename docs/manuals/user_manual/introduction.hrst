@@ -13,7 +13,7 @@ For a list of supported compilers refer to the `project Wiki on github <https://
 Dependencies
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-|GT| depends on Boost (version 1.60 or newer). |GT| does not use any runtime library from Boost, but instead depends on the header only libraries ``boost::mpl`` and ``boost::fusion``.
+|GT| depends on Boost (version 1.60 or newer). |GT| does not use any runtime library from Boost, but instead depends on header only libraries such as ``boost::mpl`` and ``boost::fusion``.
 
 -----------------------------
 Installation and use
