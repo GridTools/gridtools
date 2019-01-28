@@ -29,10 +29,12 @@ we cover how to define the iteration space with the ``grid`` object.
 .. cpp:function:: grid make_grid(halo_descriptor halo_i, halo_descriptor halo_j, int size_z)
 
    For finer control of the iteration space a ``halo_descriptor`` can be passed for the horizontal directions (``I`` and ``J``).
-   The 3rd and 4th argument of the ``halo_descriptor`` define the start and the endpoint of the iteration space.
-
-.. todo::
-  link to halo_descriptor
+   The 3rd and 4th argument of the ``halo_descriptor`` define the start and the endpoint of the iteration space, see also :ref:`halo descriptor<halo-descriptor>`.
+  
+.. note::
+   Only the 3rd and the 4th argument in the halo descriptor is used the stencil-composition,
+   but we kept the same implementation we had in other parts of GridTools to avoid introducing too many concepts.
+   This will be improved in the future.
   
 .. note::
    The vertical dimension cannot be defined with a ``halo_descriptor``, see :ref:`next section<vertical_regions>`.
@@ -55,7 +57,7 @@ be directly integrated into the stencil operation.
 .. note::
    In the following we will distinguish two concepts: first *vertical regions* are non-overlapping
    subsets of the vertical iteration space with run-time defined sizes; second *vertical intervals* (or just *intervals*)
-   are compile-time defined descriptions from one vertical level (close to the boundaries of vertical regions) to another.
+   are compile-time defined descriptions from one vertical level (not every vertical level can be selected, see below) to another.
  
 
 ^^^^^^^^^^^^^^^^^^^
@@ -110,15 +112,10 @@ are used for defining which ``Do``-method version of the stencil operator should
 
 Interval provides meta-functions which allow to define modified intervals
 
-- ``interval::first_level``
-   Interval (a C++ type) which describes the first level of the interval  
-- ``interval::last_level``
-   Interval which describes the last level of the interval
-- ``interval::modify<begin,end>``
-   Interval which is extended (``begin`` < 0) or shrunk (``begin`` > 0) at at the beginning of the interval,
-   and extended (``end`` > 0) or shrunk (``end`` < 0) at the end of the interval.
-- ``interval::shift<value>``
-   Interval which is shifted by ``value``, i.e. it is a shortcut for ``modify<value,value>``.
+- ``interval::first_level``, which is the interval (a C++ type) describing the first level of the interval  
+- ``interval::last_level``, which is interval describing the last level of the interval
+- ``interval::modify<begin,end>``, which is an interval extended (``begin`` < 0) or shrunk (``begin`` > 0) at at the beginning of the interval, and extended (``end`` > 0) or shrunk (``end`` < 0) at the end of the interval.
+- ``interval::shift<value>``, which is the interval shifted by ``value``, i.e. it is a shortcut for ``modify<value,value>``.
 
 Examples:
 
@@ -140,8 +137,7 @@ Examples:
    
 .. note:
 
-   Only a fixed number (default: 2) of levels around a vertical region can be addressed in this way.
-   Additionally, by default, levels below and above `full_interval` cannot be addressed. See also
+   Only a fixed number (default: 2) of levels around a vertical region can be addressed in this way, see
    :ref:`advanced functionality<vertical_regions_advanced>`.
 
 .. _vertical_regions_advanced:
@@ -152,15 +148,14 @@ Advanced functionality for vertical intervals
 
 The ``axis`` type has two additional template parameters to change defaults
 
+.. todo:: the code block needs to be updated once ExtraOffsetsAroundFullInterval is removed
+
 .. code-block:: gridtools
 
    template <size_t NIntervals, int_t ExtraOffsetsAroundFullInterval = 0, int_t LevelOffsetLimit = 2> class axis;
 
-- ``ExtraOffsetsAroundFullInterval``
-   The second argument allows to address additonally `ExtraOffsetsAroundFullInterval` levels below and above the `full_interval`.
-- ``LevelOffsetLimit``
-   The third argument defines how many levels around a vertical region can be addressed.
-    
+- ``LevelOffsetLimit``, defines how many levels around a vertical region can be addressed. Increasing this value could have negative implications on compile-time. 
+
 
 -------------------
 Use of temporaries
@@ -337,3 +332,12 @@ especially :ref:`software managed caches<caches>`
 
 
 .. include:: irregular_grids.hrst 
+
+
+.. _backend-selection:
+
+---------------------
+Selecting the Backend
+---------------------
+
+.. todo:: Choose a proper location for this section

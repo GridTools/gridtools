@@ -129,7 +129,7 @@ fields the ``operator()`` overloads of the boundary class require.
         .apply(out_s, in_s);
 
 As can be noted, the ``backend`` is also needed to select the proper
-implementation of the boundary application algorithm (:ref:`backend-seletion`). ``out_s`` and
+implementation of the boundary application algorithm (:ref:`backend-selection`). ``out_s`` and
 ``in_s`` are the two data fields passed to the application. The fact
 that the first is the output and second is the input derives from the
 signature of the overloads of ``operator()``, and it is user defined.
