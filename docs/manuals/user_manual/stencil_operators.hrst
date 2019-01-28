@@ -145,6 +145,8 @@ specified before.
 .. note::  
  this is necessary since C++ cannot infer what types have been defined as accessors.
 
+.. _stencil_operators_do_method:
+
 ^^^^^^^^^^^^^^^^
  Do method 
 ^^^^^^^^^^^^^^^^
