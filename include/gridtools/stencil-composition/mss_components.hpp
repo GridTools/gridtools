@@ -47,7 +47,9 @@ namespace gridtools {
 
     namespace mss_comonents_impl_ {
         template <class Esf>
-        GT_META_DEFINE_ALIAS(esf_produce_temporary, boost::mpl::empty, typename esf_get_w_temps_per_functor<Esf>::type);
+        GT_META_DEFINE_ALIAS(esf_produce_temporary,
+            bool_constant,
+            !boost::mpl::empty<typename esf_get_w_temps_per_functor<Esf>::type>::value);
 
         template <class ExtentMap>
         struct get_extent_f {
