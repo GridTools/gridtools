@@ -54,6 +54,7 @@ between levels.
 #include "../common/host_device.hpp"
 #include "../meta/at.hpp"
 #include "../meta/first.hpp"
+#include "../meta/last.hpp"
 #include "../meta/length.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/second.hpp"
@@ -84,40 +85,50 @@ namespace gridtools {
         struct run_f_on_interval_with_k_caches {
             GRIDTOOLS_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArguments>::value, GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::execution_type_t execution_engine;
+            using execution_type_t = typename RunFunctorArguments::execution_type_t;
+            using loop_intervals_t = typename RunFunctorArguments::loop_intervals_t;
+            using first_t = GT_META_CALL(meta::first, loop_intervals_t);
+            using last_t = GT_META_CALL(meta::last, loop_intervals_t);
 
             ItDomain &m_domain;
             bool m_in_domain;
             Grid const &m_grid;
             array<int_t, 2> &m_validity;
 
-            template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value != 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t first, int_t last, bool is_first, bool is_last) const {
-                if (m_in_domain) {
+            template <class IterationPolicy,
+                class Stages,
+                bool IsFirst,
+                bool IsLast,
+                enable_if_t<meta::length<Stages>::value != 0, int> = 0>
+            GT_FUNCTION void k_loop(int_t first, int_t last) const {
+                if (m_in_domain)
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
                          IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
-                        m_domain.template fill_caches<IterationPolicy>(is_first && cur == first, m_validity);
+                        m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first, m_validity);
                         RunEsfFunctor::template exec<Stages>(m_domain);
-                        m_domain.template flush_caches<IterationPolicy>(is_last && cur == last, m_validity);
+                        m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last, m_validity);
                         m_domain.template slide_caches<IterationPolicy>();
                         IterationPolicy::decrement(m_validity[0]);
                         IterationPolicy::decrement(m_validity[1]);
                     }
-                } else {
+                else
+                    // the only purpose of this branch to do the same number of sync threads
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
+                         IterationPolicy::increment(cur), IterationPolicy::increment(m_domain))
                         RunEsfFunctor::template exec<Stages>(m_domain);
-                    }
-                }
             }
 
-            template <class IterationPolicy, class Stages, enable_if_t<meta::length<Stages>::value == 0, int> = 0>
-            GT_FUNCTION void k_loop(int_t first, int_t last, bool is_first, bool is_last) const {
+            template <class IterationPolicy,
+                class Stages,
+                bool IsFirst,
+                bool IsLast,
+                enable_if_t<meta::length<Stages>::value == 0, int> = 0>
+            GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 if (m_in_domain)
                     for (int_t cur = first; IterationPolicy::condition(cur, last);
                          IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
-                        m_domain.template fill_caches<IterationPolicy>(is_first && cur == first, m_validity);
-                        m_domain.template flush_caches<IterationPolicy>(is_last && cur == last, m_validity);
+                        m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first, m_validity);
+                        m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last, m_validity);
                         m_domain.template slide_caches<IterationPolicy>();
                         IterationPolicy::decrement(m_validity[0]);
                         IterationPolicy::decrement(m_validity[1]);
@@ -130,17 +141,12 @@ namespace gridtools {
                 using from_t = GT_META_CALL(meta::first, LoopInterval);
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
-                using iteration_policy_t = iteration_policy<from_t, to_t, execution_engine::iteration>;
-                using first_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
-                using last_t = GT_META_CALL(meta::at_c,
-                    (typename RunFunctorArguments::loop_intervals_t,
-                        meta::length<typename RunFunctorArguments::loop_intervals_t>::value - 1));
-                const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
-                    typename RunFunctorArguments::execution_type_t{},
-                    m_grid);
+                using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t::iteration>;
+                const auto k_interval = get_k_interval<from_t, to_t>(
+                    typename RunFunctorArguments::backend_ids_t{}, execution_type_t{}, m_grid);
                 constexpr auto is_first = std::is_same<LoopInterval, first_t>::value;
                 constexpr auto is_last = std::is_same<LoopInterval, last_t>::value;
-                k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second, is_first, is_last);
+                k_loop<iteration_policy_t, stage_groups_t, is_first, is_last>(k_interval.first, k_interval.second);
             }
         };
 
@@ -148,7 +154,7 @@ namespace gridtools {
         struct run_f_on_interval {
             GRIDTOOLS_STATIC_ASSERT(is_run_functor_arguments<RunFunctorArguments>::value, GT_INTERNAL_ERROR);
 
-            typedef typename RunFunctorArguments::execution_type_t execution_engine;
+            using execution_type_t = typename RunFunctorArguments::execution_type_t;
 
             ItDomain &m_domain;
             Grid const &m_grid;
@@ -180,10 +186,9 @@ namespace gridtools {
                 using from_t = GT_META_CALL(meta::first, LoopInterval);
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
-                using iteration_policy_t = iteration_policy<from_t, to_t, execution_engine::iteration>;
-                const auto k_interval = get_k_interval<from_t, to_t>(typename RunFunctorArguments::backend_ids_t{},
-                    typename RunFunctorArguments::execution_type_t{},
-                    m_grid);
+                using iteration_policy_t = iteration_policy<from_t, to_t, execution_type_t::iteration>;
+                const auto k_interval = get_k_interval<from_t, to_t>(
+                    typename RunFunctorArguments::backend_ids_t{}, execution_type_t{}, m_grid);
                 k_loop<iteration_policy_t, stage_groups_t>(k_interval.first, k_interval.second);
             }
         };
@@ -191,11 +196,18 @@ namespace gridtools {
 
     template <class RunFunctorArguments, class RunEsfFunctor, class ItDomain, class Grid>
     GT_FUNCTION enable_if_t<ItDomain::has_k_caches> run_functors_on_interval(ItDomain &it_domain, Grid const &grid) {
-        using first_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
+        using loop_intervals_t = typename RunFunctorArguments::loop_intervals_t;
+        using first_t = GT_META_CALL(meta::first, loop_intervals_t);
         int_t first_pos = grid.template value_at<GT_META_CALL(meta::first, first_t)>();
 
+        using last_t = GT_META_CALL(meta::last, loop_intervals_t);
+        int_t last_pos = grid.template value_at<GT_META_CALL(meta::second, last_t)>();
+
+        int_t steps = last_pos - first_pos;
+
+        array<int_t, 2> validity{math::min(0, steps), math::max(0, steps)};
+
         bool in_domain = it_domain.template is_thread_in_domain<typename RunFunctorArguments::max_extent_t>();
-        array<int_t, 2> validity{(int_t)grid.k_min() - first_pos, (int_t)grid.k_max() - first_pos};
         host_device::for_each_type<typename RunFunctorArguments::loop_intervals_t>(
             _impl::run_f_on_interval_with_k_caches<RunFunctorArguments, RunEsfFunctor, ItDomain, Grid>{
                 it_domain, in_domain, grid, validity});
