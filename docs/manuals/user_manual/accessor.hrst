@@ -190,54 +190,37 @@ useful for instance if we want to evaluate it multiple times
      }
  }
 
--------------------------
-Vector Accessors
--------------------------
-
-Vector accessors are used when dealing with
-:ref:`expandable_parameters`,
-which are sequences of storages on which we want to perform the same
-operations. They implement a "single stencil multiple storages" pattern,
-as if the same stencil was applied to all the elements of the vector concurrently.
-
-This `loop` or `vector operation` is completely abstracted away from the API of the
-user function. The user has to define a ``vector_accessor`` as if it was a regular
-accessor, and the corresponding stencil will be executed multiple times, each time
-considering different elements in the vector.
-
-.. note::
- If multiple vector accessors are used in the same
- stage, the corresponding expandable parameters
- storage vectors must have the same length
-
-.. note::
-
- We can mix vector accessors with regular accessors.
- In that case the regular accessor will be the same for
- all the stage invocations, while the vector accessor
- will iterate over its components.
-
-For an example of usage of the vector accessor see the Advection Pdbott example:
-
-.. todo::
- add reference
+.. _global-accessor:
 
 ------------------------------
 Global Accessors
 ------------------------------
 
 Global accessors are accessing read-only data which is independent of the current iteration point.
-For this reason [Intent](intents), [Extent](extents) and [Offset](offsets) cannot be specified for a global accessor.
+For this reason intent, extents and offsets cannot be specified for a global accessor.
 Here the term "global" means that the data is the same for the whole grid. An example can be
 a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
 various configuration options.
 
-The API allows the user to define an arbitrary object deriving from [Global Parameter](global parameter), and pass it
-to the computation. The accessor associated with this global parameter must be a global accessor
+The API allows the user to define an arbitrary object to act as a global parameter as long as it is trivially copyable.
+To create a global parameter from a user-defined object, we pass the object to ``make_global_paramter()``
+
+.. code-block:: gridtools
+   
+   auto my_global_parameter = BACKEND::make_global_parameter(my_object);
+   
+Note that the object is read-only only during the execution of a computation, but can be modified
+in between executions with
+
+.. code-block:: gridtools
+   
+   BACKEND::update_global_parameter(my_global_parameter, new_value);
+
+The accessor associated with a global parameter must be a global accessor
 
 .. code-block:: gridtools
 
-    using global_accessor< 0 > global_boundary;
+    using global_boundary = global_accessor<0>;
 
 Calling ``eval`` on the global accessor returns the user defined data structure. Supposing that
 this data structure contains a user function called ```ordinal``` returning an integer, we can write
@@ -254,14 +237,14 @@ in the do method
 
 There is a special case for which we have a dedicated API: i.e. when the user defined object
 (the global parameter)
-defines parenthesis operator ``operator()``, and we want to call that operator from the Do method.
+defines the parenthesis operator ``operator()``, and we want to call that operator from the Do method.
 In that case the accessor's parenthesis operator can be used and the arguments will be
 automatically forwarded to the global parameter. An example is the case in which we want to pass
 a small matrix as a global parameter:
 
 .. code-block:: gridtools
 
-    using global_accessor< 0 > matrix;
+    using matrix = global_accessor<0>;
     auto elem = eval(matrix(i,j));
 
 A useful example to understand this use case can be found in the extended4D example.
