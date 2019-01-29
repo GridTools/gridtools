@@ -74,7 +74,7 @@ exemplified in the following snippet
 .. code-block:: gridtools
 
  auto cond = [&p]() {
-     assert(p >= 0 && p < 5);
+     assert(p >= 0 && p < 3);
      return p;
  };
  auto comp_ = make_computation<BACKEND>(
