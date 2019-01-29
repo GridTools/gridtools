@@ -41,6 +41,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../accessor_base.hpp"
+#include "../is_accessor.hpp"
 #include "extent.hpp"
 /**
    @file
@@ -62,7 +63,7 @@ namespace gridtools {
     /**
        @brief the definition of accessor visible to the user
 
-       \tparam ID the integer unic ID of the field placeholder
+       \tparam ID the integer unique ID of the field placeholder
 
        \tparam Extent the extent of i/j indices spanned by the
                placeholder, in the form of <i_minus, i_plus, j_minus,
@@ -77,10 +78,7 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template <uint_t ID,
-        enumtype::intent Intent = enumtype::in,
-        typename Extent = extent<0, 0, 0, 0, 0, 0>,
-        ushort_t Number = 3>
+    template <uint_t ID, enumtype::intent Intent = enumtype::in, typename Extent = extent<>, ushort_t Number = 3>
     struct accessor : accessor_base<Number> {
         using index_t = static_uint<ID>;
         static constexpr enumtype::intent intent = Intent;
@@ -88,16 +86,15 @@ namespace gridtools {
 
         /**inheriting all constructors from accessor_base*/
         using accessor_base<Number>::accessor_base;
-
-        template <uint_t OtherID, typename std::enable_if<ID != OtherID, int>::type = 0>
-        GT_FUNCTION constexpr accessor(accessor<OtherID, Intent, Extent, Number> const &src)
-            : accessor_base<Number>(src) {}
     };
 
-    template <uint_t ID, typename Extent = extent<0, 0, 0, 0, 0, 0>, ushort_t Number = 3>
+    template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>
     using in_accessor = accessor<ID, enumtype::in, Extent, Number>;
 
-    template <uint_t ID, typename Extent = extent<0, 0, 0, 0, 0, 0>, ushort_t Number = 3>
+    template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>
     using inout_accessor = accessor<ID, enumtype::inout, Extent, Number>;
+
+    template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
+    struct is_accessor<accessor<ID, Intent, Extent, Number>> : std::true_type {};
 
 } // namespace gridtools

@@ -63,30 +63,36 @@ However, some data fields used in boundary conditions may be read-only and shoul
 -----------------------
 Distributed Boundaries
 -----------------------
-The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by gridtools.
+
+The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by gridtools, and ``communication_arch`` is one of the GCL communication module :ref:`gcl-communication-module` specifiers of where the data accessed by a halo exchange object reside.
 
 .. code-block:: gridtools
 
-   using db_t = distributed_boundaries< comm_traits< storage_type, gcl_cpu > >;
+   using dbs_t = distributed_boundaries< comm_traits< storage_type, communication_arch > >;
 
-During construction more information is required.
+During construction more information is required about the halo structure. We use here the usual ``halo_descriptor`` described in :ref:`halo-descriptor`.
+
+.. note:
+  This choice is sub-optimal, in the sense that the five arguments in the halo descriptors are somewhat low-level, with respect to the level of the API. This will be fixed with the next versions of |GT|
+
+The user needs also to indicate which dimensions are periodic (again, refer to :ref:`gcl-communication-module` for more information), and this is dome using another |GT| facility which is the ``boollist``. Finally, to let the library compute the right amount of memory to allocate before hand, the maximum number of fields to be exchanged in one call have to be specified. The code showing an example of how to do it follows:
 
 .. code-block:: gridtools
 
-   halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-   halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
-   halo_descriptor dk{0, 0, 0, d3 - 1, d3};
+   halo_descriptor di{halo_sx0, halo_dx0, begin0, end0, len0};
+   halo_descriptor dj{halo_sx1, halo_dx1, begin1, end1, len1};
+   halo_descriptor dk{halo_sx2, halo_dx2, begin2, end2, len2};
    array< halo_descriptor, 3 > halos{di, dj, dk};
 
    boollist<3> periodicity{b0, b1, b2}; // b0, b1, b2 are booleans. If true it will indicate that the corresponding dimension is periodic across the grid of processors.
 
    int max_ds = 4; // maximum number of data stores to be used in a halo_update operation
 
-   // MPI_COMMUNICATOR is the MPI communicator to use in the halo-update operation (usually ``GCL_WORLD``)
+   dbs_t dbs{halos, periodicity, max_ds, MPI_COMMUNICATOR};
 
-   db_t db{halos, periodicity, max_ds, MPI_COMMUNICATOR};
+Above here the halo are the local data stores sizes, which are usually the tiles of a domain decomposed `global domain`, which has `global boundaries`. The idea is to apply the boundary conditions to the global boundaries while performing halo updates for the halo regions between sub-domains of the domain decomposed global domain.
 
-The ``distributed_boundary`` object allows the user to query the properties of the grid of processes, for instance the coordinates of the current process and the size of the computing grid.
+The ``distributed_boundary`` object allows the user to query the properties of the grid of processes, for instance the coordinates of the current process and the size of the computing grid..
 
 .. code-block:: gridtools
 
@@ -95,8 +101,32 @@ The ``distributed_boundary`` object allows the user to query the properties of t
    int PI, PJ, PK;
    cabc.proc_grid().dims(PI, PJ, PK); // Sizes of the current grid of processes
 
-When invoking the boundary application and halo-update operations the user calls the ``exchange`` member of ``distributed_boundaries``, as in the next example, there are two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b``. Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``:
+When invoking the boundary application and halo-update operations the user calls the ``exchange`` member of ``distributed_boundaries``. The arguments of ``exchange`` are either data stores (:ref:`storage-module`) or ``bind_bc`` objects which associate a boundary condition class (:ref:`boundary-conditions-class`) to data stores. The data stores passed directly to the ``exchange`` methods have their halo updates according to the halo and periodicity information specified at ``distributed_boundaries`` object construction. The ``bind_bc`` arguments are treated differently.
+
+``bind_bc`` accepts as first argument a boundary condition object and a list of fields that will be passed to it, for instance:
 
 .. code-block:: gridtools
 
-   cabc.exchange(bind_bc(value_boundary< double >{3.14, a), bind_bc(copy_boundary{}, b, _1).associate(c),
+  bind_bc(copy_boundary{}, a, b);
+
+This line will tell the distributed boundary object to apply copy boundary conditions and so copy the boundary of ``b`` in the boundary of ``a``, according to the halo and periodicity specification. The boundaries that are not at the global boundary, though, will undergo halo-updates through the communication module.
+
+In the copy boundary, though, the second argument ``b`` is read-only, and most likely you would not need to update its halo. ``distributed_boundaries`` allows to explicitly skip some fields from being updated by using ``std::placeholders`` and the ``associate`` member function, as follow:
+
+.. code-block:: gridtools
+
+  bind_bc(copy_boundary{}, a, _1).associate(b);
+
+In this case, the field ``b`` will not be passed to the communication module, but it will only be used by the ``copy_boundary`` object.
+
+The next example, shows two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b`` (refer to :ref:`gcl-communication-module`). Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``. Three fields will have their halo updated by the next example, namely ``a``, ``b`` and ``d``:
+
+.. code-block:: gridtools
+
+   cabc.exchange(bind_bc(value_boundary< double >{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
+
+An additional facility provided is an alternative to the ``exchange`` method. This is used to skip the halo updates altogether, and it is called ``boundary_only``, and the code to use it is identical to the previous example, barring the function name:
+
+.. code-block:: gridtools
+
+   cabc.boundary_only(bind_bc(value_boundary< double >{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);

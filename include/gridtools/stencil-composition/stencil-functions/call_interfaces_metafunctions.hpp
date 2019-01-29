@@ -35,50 +35,17 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../structured_grids/accessor_metafunctions.hpp"
-#include "./call_interfaces_fwd.hpp"
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
 
+#include "../../common/defs.hpp"
+#include "../accessor_metafunctions.hpp"
+#include "./call_interfaces_fwd.hpp"
+
 namespace gridtools {
     namespace _impl {
-        template <typename T>
-        struct is_function_aggregator : boost::mpl::false_ {};
-
-        template <typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedAccessors,
-            typename ReturnType,
-            int OutArg>
-        struct is_function_aggregator<
-            function_aggregator<CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg>>
-            : boost::mpl::true_ {};
-
-        template <typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
-            typename PassedAccessors,
-            typename ReturnType,
-            int OutArg>
-        struct is_function_aggregator<
-            function_aggregator_offsets<CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg>>
-            : boost::mpl::true_ {};
-
-        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors>
-        struct is_function_aggregator<
-            function_aggregator_procedure<CallerAggregator, Offi, Offj, Offk, PassedAccessors>> : boost::mpl::true_ {};
-
-        template <typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors>
-        struct is_function_aggregator<
-            function_aggregator_procedure_offsets<CallerAggregator, Offi, Offj, Offk, PassedAccessors>>
-            : boost::mpl::true_ {};
-
         /** Metafunction to compute the index of the first accessor in the
             list of accessors to be written.
         */
@@ -212,9 +179,4 @@ namespace gridtools {
         }
 
     } // namespace _impl
-
-    template <typename Type, typename ArgsMap>
-    struct remap_accessor_type<_impl::wrap_reference<Type>, ArgsMap> {
-        using type = _impl::wrap_reference<Type>;
-    };
 } // namespace gridtools

@@ -36,7 +36,6 @@
 #pragma once
 
 #include "../../iterate_domain_fwd.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
 #include "../../iteration_policy.hpp"
 #include "../iterate_domain.hpp"
 
@@ -57,7 +56,6 @@ namespace gridtools {
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
 
       public:
-        using super::operator();
         typedef typename super::strides_cached_t strides_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
@@ -79,13 +77,8 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        iterate_domain_x86 const &get() const { return *this; }
-
-        template <typename ReturnType, typename Accessor, typename StorageType>
-        GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            return *(storage_pointer + pointer_offset);
-        }
+        template <class Arg, class Ptr>
+        static GT_FORCE_INLINE auto deref_impl(Ptr &&ptr) GT_AUTO_RETURN(*ptr);
 
         /**
          * caches are not currently used in x86 backend
@@ -121,5 +114,5 @@ namespace gridtools {
     };
 
     template <typename IterateDomainArguments>
-    struct is_iterate_domain<iterate_domain_x86<IterateDomainArguments>> : public boost::mpl::true_ {};
+    struct is_iterate_domain<iterate_domain_x86<IterateDomainArguments>> : std::true_type {};
 } // namespace gridtools

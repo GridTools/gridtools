@@ -37,14 +37,6 @@
 #include <gridtools/common/boost_pp_generic_macros.hpp>
 #include <gtest/gtest.h>
 
-TEST(double_parenthesis, check) {
-#define my_types (int, 2)(double, 3)
-#define my_types_double_parenthesis GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_types)
-    ASSERT_EQ(std::string("((int, 2)) ((double, 3))"), std::string(BOOST_PP_STRINGIZE(my_types_double_parenthesis)));
-#undef my_types
-#undef my_types_double_parenthesis
-}
-
 #define my_types ((int))((double))
 GRIDTOOLS_PP_MAKE_VARIANT(myvariant, my_types);
 #undef my_types

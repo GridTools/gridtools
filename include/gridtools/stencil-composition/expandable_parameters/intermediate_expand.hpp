@@ -425,5 +425,12 @@ namespace gridtools {
         size_t get_count() const { return m_meter.count(); }
 
         void reset_meter() { m_meter.reset(); }
+
+        template <class Placeholder>
+        static constexpr auto get_arg_extent(Placeholder) GT_AUTO_RETURN(converted_intermediate<1>::get_arg_extent(
+            GT_META_CALL(_impl::expand_detail::convert_plh, (0, Placeholder)){}));
+        template <class Placeholder>
+        static constexpr auto get_arg_intent(Placeholder) GT_AUTO_RETURN(converted_intermediate<1>::get_arg_intent(
+            GT_META_CALL(_impl::expand_detail::convert_plh, (0, Placeholder)){}));
     };
 } // namespace gridtools

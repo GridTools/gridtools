@@ -284,7 +284,7 @@
  */
 #define GRIDTOOLS_MAKE_REPOSITORY(name, data_store_types_seq, data_stores_seq) \
     GRIDTOOLS_MAKE_REPOSITORY_helper(                                          \
-        name, GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_store_types_seq), GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_stores_seq))
+        name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_store_types_seq), BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
 
 /*
  * @brief Creates the fortran bindings for the repository. Must be called from a cpp file.
@@ -301,4 +301,4 @@
  *     set_FRep_v(repo, arr) sets CRep.v()
  */
 #define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(name, fortran_name, data_stores_seq) \
-    GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_stores_seq))
+    GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))

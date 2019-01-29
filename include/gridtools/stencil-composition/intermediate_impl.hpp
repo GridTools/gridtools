@@ -279,5 +279,18 @@ namespace gridtools {
             class MaxExtentForTmp = typename get_max_extent_for_tmp<MssComponentsList>::type,
             class GetLocalDomain = _impl::get_local_domain<MaxExtentForTmp, IsStateful>>
         GT_META_DEFINE_ALIAS(get_local_domains, meta::transform, (GetLocalDomain::template apply, MssComponentsList));
+
+        template <class Mss>
+        GT_META_DEFINE_ALIAS(rw_args_from_mss,
+            meta::id,
+            (copy_into_variadic<
+                typename compute_readwrite_args<typename mss_descriptor_linear_esf_sequence<Mss>::type>::type,
+                std::tuple<>>));
+
+        template <class Msses,
+            class RwArgsLists = GT_META_CALL(meta::transform, (rw_args_from_mss, Msses)),
+            class RawRwArgs = GT_META_CALL(meta::flatten, RwArgsLists)>
+        GT_META_DEFINE_ALIAS(all_rw_args, meta::dedup, RawRwArgs);
+
     } // namespace _impl
 } // namespace gridtools

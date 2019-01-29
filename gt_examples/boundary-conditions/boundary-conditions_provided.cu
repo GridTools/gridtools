@@ -33,24 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "./structured_grids/accessor_fwd.hpp"
-#else
-#include "./icosahedral_grids/accessor_fwd.hpp"
-#endif
+// Refer to the included file for the details
 
-namespace gridtools {
-    template <typename T>
-    struct is_accessor;
-
-    template <typename T>
-    struct is_grid_accessor;
-
-    /**
-     * Struct to test if an argument is a temporary
-     */
-    template <typename T>
-    struct is_tmp_arg;
-} // namespace gridtools
+#include "./boundary-conditions_provided.cpp"

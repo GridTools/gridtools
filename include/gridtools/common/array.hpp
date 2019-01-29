@@ -52,7 +52,7 @@ namespace gridtools {
         @{
      */
 
-    /** \defgroup array Array
+    /** \addtogroup array Array
         @{
     */
 
