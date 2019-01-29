@@ -350,10 +350,11 @@ Currently we recommend one of the following two backends for optimal performance
 
    using backend_t = backend<target::cuda, grid_type::structured, strategy::block>;
    
-or 
+for GPUs or 
 
 .. code-block:: gridtools
 
    using backend_t = backend<target::mc, grid_type::structured, strategy::block>;
 
+for modern CPUs or Xeon Phis.
    
