@@ -336,7 +336,7 @@ especially :ref:`software managed caches<caches>`
 Selecting the Backend
 ---------------------
 
-One of the key concepts of GridTools is portability between different target architectures.
+One of the key concepts of |GT| is portability between different target architectures.
 Stencil operators are written and composed in an architecture-independent way and then instantiated
 for a given ``backend``. The ``backend`` is a tag type which is composed from the tripple
 
