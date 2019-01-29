@@ -273,7 +273,7 @@ dependencies the user can specify that they are independent:
      )
  );
 
-`make_independent` does not have impact on the data-dependency analysis but,
+``make_independent`` does not have impact on the data-dependency analysis but,
 potentially, only on the execution schedule.
 
 In general `make_computation` has the following signature:
