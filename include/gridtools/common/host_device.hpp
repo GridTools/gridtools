@@ -58,11 +58,23 @@
 #define GT_FORCE_INLINE inline
 #endif
 
-/* @def GT_FUNCTION Function attribute macro to be used for host-device functions. */
-/* @def GT_FUNCTION_HOST Function attribute macro to be used for host-only functions. */
-/* @def GT_FUNCTION_DEVICE Function attribute macro to be used for device-only functions. */
-/* @def GT_FUNCTION_WARNING Function attribute macro to be used for host-only functions that might call a host-device
- * function. This macro is only needed to supress NVCC warnings. */
+/**
+ * @def GT_FUNCTION
+ * Function attribute macro to be used for host-device functions.
+ */
+/**
+ * @def GT_FUNCTION_HOST
+ * Function attribute macro to be used for host-only functions.
+ */
+/**
+ * @def GT_FUNCTION_DEVICE
+ * Function attribute macro to be used for device-only functions.
+ */
+/**
+ * @def GT_FUNCTION_WARNING
+ * Function attribute macro to be used for host-only functions that might call a host-device
+ * function. This macro is only needed to supress NVCC warnings.
+ */
 
 #ifdef __CUDACC__
 #define GT_HOST_DEVICE __host__ __device__
@@ -93,13 +105,13 @@
 /**
  *   A helper to implement a family of functions which are different from each other only by target specifies.
  *
- *   It uses the same design pattern as BOOST_PP_ITERATE does.
- *   For example if one wants to define a function with any possible combination of __host__ and __device__ specifiers
- *   he needs to write the following code:
+ *   It uses the same design pattern as `BOOST_PP_ITERATE` does.
+ *   For example if one wants to define a function with any possible combination of `__host__` and `__device__`
+ *   specifiers he needs to write the following code:
  *
  *   foo.hpp:
  *
- *   ```
+ *   \code
  *   // here we query if this file is used in the context of iteration
  *   #ifndef GT_TARGET_ITERATING
  *
@@ -136,18 +148,18 @@
  *   }
  *
  *   #endif
- *   ```
+ *   \endcode
  *
  *   By including "file.hpp" file the following symbols would be available:
- *     my::foo
- *     my::host::foo
- *     my::device::foo
- *     my::host_device::foo
+ *   - `my::foo`
+ *   - `my::host::foo`
+ *   - `my::device::foo`
+ *   - `my::host_device::foo`
  *
  *   where:
  *
- *   `my::host::foo` has no specifiers.
- *   `my::foo` is resolved to `my::host::foo`
+ *   - `my::host::foo` has no specifiers.
+ *   - `my::foo` is resolved to `my::host::foo`
  *
  *   If compiling with CUDA, `my::device::foo` has `__device__` specifier, `my::host_device::foo` has
  *   `__host__ __device__` specifier.

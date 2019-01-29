@@ -119,7 +119,7 @@ namespace gridtools {
 
            copies them from the
            local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
+           gridtools::strides_cached class.
          */
         template <typename BackendType, typename Strides>
         GT_FUNCTION void assign_stride_pointers() {
