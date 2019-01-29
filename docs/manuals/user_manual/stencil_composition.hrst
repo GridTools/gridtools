@@ -24,18 +24,19 @@ For example
 defines two placeholders named `p_in` and `p_out`. Note that the identifier,
 that is, the first argument passed to `arg`, must be unique.
 
-.. note::
-
- If you define multiple placeholders with the same ID, they can not be
- distinguished by |GT| even if they have different names! So be careful when
- choosing your placeholder IDs.
-
 A second placeholder type for temporary data exists that can be defined in
 exactly the same way:
 
 .. code-block:: gridtools
 
  using p_tmp = tmp_arg<2, data_store_t>
+
+.. note::
+
+ If you define multiple placeholders with the same ID, they can not be
+ distinguished by |GT| even if they have different names or storage types!
+ Further, `arg` and `tmp_arg` arguments must not share their identifiers
+ either. So be careful when choosing your placeholder IDs.
 
 The placeholders can be used as arguments to certain |GT| functions. There are
 two use cases: first, they might define the argument types of a returned
@@ -53,7 +54,9 @@ case is binding run-time values to previously declared arguments, e.g.,
 
  computation.run(p_in() = input_data, p_out() = output_data);
 
-runs a computation on `input_data` and `output_data`.
+runs a computation on `input_data` and `output_data`. Storages must only be
+assigned to `arg` placeholders, all data for the `tmp_arg` arguments is managed
+by |GT|.
 
 .. _defining_iteration_space:
 
