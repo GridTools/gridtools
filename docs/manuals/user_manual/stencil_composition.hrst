@@ -9,6 +9,55 @@ Stencil Composition
 Preparing arguments: storage placeholders
 ------------------------------------------
 
+To allow naming arguments, that are passed to stencil computations, at compile
+time, |GT| uses `storage placeholders`. The storage placeholders are pairs of
+an integer identifier and a storage type (a |GT| :ref:`data store<data-store>`
+type).
+
+For example
+
+.. code-block:: gridtools
+
+ using p_in = arg<0, data_store_t>;
+ using p_out = arg<1, data_store_t>;
+
+defines two placeholders named `p_in` and `p_out`. Note that the identifier,
+that is, the first argument passed to `arg`, must be unique in the computation using it.
+
+A second placeholder type for temporary data exists that can be defined in
+exactly the same way:
+
+.. code-block:: gridtools
+
+ using p_tmp = tmp_arg<2, data_store_t>
+
+.. note::
+
+ If you define multiple placeholders with the same ID, they can not be
+ distinguished by |GT| even if they have different names or storage types!
+ Further, `arg` and `tmp_arg` arguments must not share their identifiers
+ either. So be careful when choosing your placeholder IDs.
+
+The placeholders can be used as arguments to certain |GT| functions. There are
+two use cases: first, they might define the argument types of a returned
+object, e.g., in
+
+.. code-block:: gridtools
+
+ auto stage = make_stage<some_stage>(p_in(), p_tmp(), p_out());
+
+they define the argument names and types that the returned stage accepts (see
+further below for documentation of the `make_stage` function). The second use
+case is binding run-time values to previously declared arguments, e.g.,
+
+.. code-block:: gridtools
+
+ computation.run(p_in() = input_data, p_out() = output_data);
+
+runs a computation on `input_data` and `output_data`. Storages must only be
+assigned to `arg` placeholders, all data for the `tmp_arg` arguments is managed
+by |GT|.
+
 .. _defining_iteration_space:
 
 ---------------------------------------------------
@@ -241,7 +290,7 @@ the iteration space, must be provided. The final example is:
 
 .. code-block:: gridtools
 
- horizontal_diffusion = make_computation< BACKEND >(
+ horizontal_diffusion = make_computation<backend_t>(
     aggregator, grid,
     make_multistage(
         execute< forward >(),
@@ -253,8 +302,8 @@ the iteration space, must be provided. The final example is:
  );
 
 
-where ``BACKEND`` specifies the backend that will execute the
-computation.
+where ``backend_t`` specifies the backend that will execute the
+computation, see :ref:`backend-selection`.
 
 The execution of the stages are assumed to happen one after the other
 in the program order. This is quite important, since the data
@@ -267,7 +316,7 @@ can specify that they are independent:
 
 .. code-block:: gridtools
 
- horizontal_diffusion = make_computation< BACKEND >(
+ horizontal_diffusion = make_computation<backend_t>(
     aggregator, grid,
     make_multistage(
         execute< forward >(),
@@ -286,7 +335,7 @@ In general ``make_computation`` has the following signature:
 
 .. code-block:: gridtools
  
- make_computation< BACKEND >(aggregator, grid, multi_stage0[, other_multi_stages]);
+ make_computation<backend_t>(aggregator, grid, multi_stage0[, other_multi_stages]);
 
 A computation can then incorporate multiple multi-stage computations
 and they may have different execution policies. This is very useful
@@ -297,7 +346,7 @@ example of the syntax in this vertical advenction example:
 
 .. code-block:: gridtools
 
- vertical_advection = make_computation< BACKEND >
+ vertical_advection = make_computation<backend_t>
     ( domain, grid,
       make_multistage( execute< forward >(),
                        make_stage< forward_op >(p_utens_stage(), p_wcon()),
@@ -330,14 +379,31 @@ There are other details that pertains :ref:`placeholders<placeholders>`,
 constructs that can greatly improve performance of the computations,
 especially :ref:`software managed caches<caches>`
 
-
-.. include:: irregular_grids.hrst 
-
-
 .. _backend-selection:
 
 ---------------------
 Selecting the Backend
 ---------------------
 
-.. todo:: Choose a proper location for this section
+One of the key concepts of |GT| is portability between different target architectures.
+Stencil operators are written and composed in an architecture-independent way and then instantiated
+for a given ``backend``. The ``backend`` is a tag type which is composed from the tripple
+
+- ``target``, the target architecture (``cuda``, a GPU-enabled backend; ``mc``, a backend for modern CPUs with long vector-length; ``x86``, a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future)
+- ``grid_type``, the grid type, should be set to ``structured`` for Cartesian grid (or ``icgrid`` for the experimental icosahedral grid) 
+- ``strategy``, the looping strategy (``block``, optimized block strategy; ``naive`` only supported with ``x86`` for debugging)
+
+Currently we recommend one of the following two backends for optimal performance
+
+.. code-block:: gridtools
+
+   using backend_t = backend<target::cuda, grid_type::structured, strategy::block>;
+   
+for GPUs or 
+
+.. code-block:: gridtools
+
+   using backend_t = backend<target::mc, grid_type::structured, strategy::block>;
+
+for modern CPUs or Xeon Phis.
+   
