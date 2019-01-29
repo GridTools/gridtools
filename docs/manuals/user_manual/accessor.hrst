@@ -192,38 +192,38 @@ useful for instance if we want to evaluate it multiple times
 
 .. _global-accessor:
 
-------------------------------
-Global Accessors
-------------------------------
+----------------------------------------------------
+Global Parameters and Accessors
+----------------------------------------------------
 
 Global accessors are accessing read-only data which is independent of the current iteration point.
-For this reason intent, extents and offsets cannot be specified for a global accessor.
-Here the term "global" means that the data is the same for the whole grid. An example can be
+For this reason, intent, extents and offsets cannot be specified for a global accessor.
+Here the term `global` means that the data is the same for the whole grid. An example can be
 a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
 various configuration options.
 
-The API allows the user to define an arbitrary object to act as a global parameter as long as it is trivially copyable.
+The API allows the user to define an arbitrary object to act as a `global parameter` as long as it is trivially copyable.
 To create a global parameter from a user-defined object, we pass the object to ``make_global_paramter()``
 
 .. code-block:: gridtools
    
-   auto my_global_parameter = BACKEND::make_global_parameter(my_object);
+   auto my_global_parameter = backend_t::make_global_parameter(my_object);
    
 Note that the object is read-only only during the execution of a computation, but can be modified
 in between executions with
 
 .. code-block:: gridtools
    
-   BACKEND::update_global_parameter(my_global_parameter, new_value);
+   backend_t::update_global_parameter(my_global_parameter, new_value);
 
-The accessor associated with a global parameter must be a global accessor
+The accessor associated with a global parameter must be a `global accessor`
 
 .. code-block:: gridtools
 
-    using global_boundary = global_accessor<0>;
+    using global_acc = global_accessor<0>;
 
 Calling ``eval`` on the global accessor returns the user defined data structure. Supposing that
-this data structure contains a user function called ```ordinal``` returning an integer, we can write
+ this data structure contains a user function called ``ordinal``, returning an integer, we can write
 in the do method
 
 .. code-block:: gridtools
