@@ -40,7 +40,6 @@
 #include "../../common/array.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/gt_assert.hpp"
-#include "../../common/gt_math.hpp"
 #include "../../common/host_device.hpp"
 #include "../../meta/type_traits.hpp"
 #include "../execution_types.hpp"
@@ -193,10 +192,10 @@ namespace gridtools {
             class Data,
             int_t SyncPoint = sync_point<Policy, SyncType>::value>
         GT_FUNCTION void sync(Data const &data, bool sync_all, range_t validity) {
-            int_t first = math::max(sync_all ? Minus : SyncPoint, validity[0]);
-            int_t last = math::min(sync_all ? Plus : SyncPoint, validity[1]);
-            for (int_t k = first; k <= last; ++k)
-                sync_at<SyncType>(data, k);
+            int_t last = sync_all ? Plus : SyncPoint;
+            for (int_t k = sync_all ? Minus : SyncPoint; k <= last; ++k)
+                if (k >= validity[0] && k <= validity[1])
+                    sync_at<SyncType>(data, k);
         }
     };
 
