@@ -60,6 +60,7 @@ gridtools_functions = ((
 	'make_computation',
 	'make_device_view',
 	'make_global_parameter',
+	'update_global_parameter',
 	'make_host_view',
 	'make_multistage',
 	'make_stage',
