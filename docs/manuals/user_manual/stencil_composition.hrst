@@ -249,7 +249,8 @@ the iteration space, must be provided. The final example is:
  );
 
 
-where ``backend_t`` specifies the backend that will execute the computation.
+where ``backend_t`` specifies the backend that will execute the computation,
+see :ref:`backend-selection`.
 
 The execution of the stages are assumed to happen one after the other in the
 program order. This is quite important, since the data dependency analysis is
@@ -334,7 +335,7 @@ To execute a given :term:`multi-stage computation<MultiStageComputation>`, the
 
 In case that the stencil is always run on the same data fields, you can also
 assign those fields to the respective placeholders directly in the
-`make_computation` call, i.e. at definition time instead of run time, e.g.:
+``make_computation`` call, i.e. at definition time instead of run time, e.g.:
 
 .. code-block:: gridtools
 
@@ -354,6 +355,11 @@ assign those fields to the respective placeholders directly in the
 
  horizontal_diffusion.run() // no data has to be specified here
 
+You can mix the two patterns, that is, assign data to some placeholders at
+definition time and to some at run time. But each placeholder needs exactly one
+data assignment, either inside ``make_computation`` or inside the ``run``
+method. It is therefore not possible to override definition-time assignments
+present in ``make_computation`` at run time in the ``run`` method.
 
 There are other details that pertain :ref:`placeholders<placeholders>`,
 :term:`grid<Grid>`, :term:`data field pack<DataFieldPack>` and also other |GT|
@@ -366,4 +372,25 @@ constructs that can greatly improve performance of the computations, especially
 Selecting the Backend
 ---------------------
 
-.. todo:: Choose a proper location for this section
+One of the key concepts of |GT| is portability between different target architectures.
+Stencil operators are written and composed in an architecture-independent way and then instantiated
+for a given ``backend``. The ``backend`` is a tag type which is composed from the tripple
+
+- ``target``, the target architecture (``cuda``, a GPU-enabled backend; ``mc``, a backend for modern CPUs with long vector-length; ``x86``, a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future)
+- ``grid_type``, the grid type, should be set to ``structured`` for Cartesian grid (or ``icgrid`` for the experimental icosahedral grid) 
+- ``strategy``, the looping strategy (``block``, optimized block strategy; ``naive`` only supported with ``x86`` for debugging)
+
+Currently we recommend one of the following two backends for optimal performance
+
+.. code-block:: gridtools
+
+   using backend_t = backend<target::cuda, grid_type::structured, strategy::block>;
+   
+for GPUs or 
+
+.. code-block:: gridtools
+
+   using backend_t = backend<target::mc, grid_type::structured, strategy::block>;
+
+for modern CPUs or Xeon Phis.
+   
