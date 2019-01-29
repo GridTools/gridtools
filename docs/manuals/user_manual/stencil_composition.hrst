@@ -167,7 +167,7 @@ The main component of |GT| provide the capability of composing different
 space<iterationspace>` . The ability to fuse multiple elementary stencils
 allows the |GT| library to improve the memory locality of the computation by
 taking advantage of the produce consumer relations. In |GT| terminology we use
-the term `stage` to refer to an elementary stencil i when it is composed with
+the term `stage` to refer to an elementary stencil when it is composed with
 other operations.
 
 The result of a composition is a :term:`multi-stage
