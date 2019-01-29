@@ -92,6 +92,8 @@ Please note that the size of the halo has to be added to the arguments that are 
 * ``constexpr int index(gridtools::array< int, ndims > const &offsets) const``: retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
 * ``static constexpr uint_t get_initial_offset()``: initial offset that is used in order to provide proper alignment.
 
+.. _data-store:
+
 ---------------
 Data store
 ---------------
