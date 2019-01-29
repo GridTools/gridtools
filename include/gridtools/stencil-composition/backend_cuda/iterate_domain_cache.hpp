@@ -82,8 +82,6 @@ namespace gridtools {
         k_caches_tuple_t m_k_caches_tuple;
 
       public:
-        static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
-
         // extract a fusion map from the fusion vector of pairs for ij caches
         using ij_caches_tuple_t = typename boost::fusion::result_of::as_map<ij_caches_vector_t>::type;
 

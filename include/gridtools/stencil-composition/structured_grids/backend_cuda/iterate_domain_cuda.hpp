@@ -71,13 +71,13 @@ namespace gridtools {
 
         using strides_cached_t = typename base_t::strides_cached_t;
 
+        using cache_sequence_t = typename IterateDomainArguments::cache_sequence_t;
+
       public:
         using iterate_domain_cache_t = iterate_domain_cache<IterateDomainArguments>;
 
         typedef shared_iterate_domain<strides_cached_t, typename iterate_domain_cache_t::ij_caches_tuple_t>
             shared_iterate_domain_t;
-
-        static constexpr bool has_ij_caches = iterate_domain_cache_t::has_ij_caches;
 
       private:
         using base_t::increment_i;
@@ -89,10 +89,8 @@ namespace gridtools {
         iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
-        static constexpr bool has_k_caches = true;
-
-        iterate_domain_cuda(iterate_domain_cuda const &) = delete;
-        iterate_domain_cuda &operator=(iterate_domain_cuda const &) = delete;
+        static constexpr bool has_ij_caches = !meta::is_empty<GT_META_CALL(ij_caches, cache_sequence_t)>::value;
+        static constexpr bool has_k_caches = !meta::is_empty<GT_META_CALL(k_caches, cache_sequence_t)>::value;
 
         template <class LocalDomain>
         GT_FUNCTION_DEVICE iterate_domain_cuda(LocalDomain &&local_domain, uint_t block_size_i, uint_t block_size_j)
@@ -105,9 +103,9 @@ namespace gridtools {
         template <typename Extent>
         GT_FUNCTION bool is_thread_in_domain() const {
             return m_thread_pos[0] >= Extent::iminus::value &&
-                   m_thread_pos[0] < ((int)m_block_size_i + Extent::iplus::value) &&
+                   m_thread_pos[0] < (int)m_block_size_i + Extent::iplus::value &&
                    m_thread_pos[1] >= Extent::jminus::value &&
-                   m_thread_pos[1] < ((int)m_block_size_j + Extent::jplus::value);
+                   m_thread_pos[1] < (int)m_block_size_j + Extent::jplus::value;
         }
 
         GT_FUNCTION_DEVICE void set_block_pos(int_t ipos, int_t jpos) {
