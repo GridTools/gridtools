@@ -22,7 +22,7 @@ For example
  using p_out = arg<1, data_store_t>;
 
 defines two placeholders named `p_in` and `p_out`. Note that the identifier,
-that is, the first argument passed to `arg`, must be unique.
+that is, the first argument passed to `arg`, must be unique in the computation using it.
 
 .. note::
 
