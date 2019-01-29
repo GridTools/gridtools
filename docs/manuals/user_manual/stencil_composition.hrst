@@ -311,7 +311,7 @@ Again the multi-stages in the same computation will be executed logically in
 program order. Two multi-stage computations can be concatenated if the outputs
 of the stages that are used as input of the following obey the following rule:
 Let `u` be the output of a stage `S0` that is input the stage `S1`. The extent
-at which `u` is accessed by `S1` must be the point-extent, that is the access
+at which `u` is accessed by `S1` must be the point-extent in the IJ plane, that is the access
 of `u` is point-wise, so no offsets of `u` can be accessed. This is because the
 parallel execution of the stages can produce non deterministic results
 otherwise. Certain backends do not fuse multiple multi-stage computations, so
