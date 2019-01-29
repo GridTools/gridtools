@@ -249,7 +249,7 @@ the iteration space, must be provided. The final example is:
  );
 
 
-where `backend_t` specifies the backend that will execute the computation.
+where ``backend_t`` specifies the backend that will execute the computation.
 
 The execution of the stages are assumed to happen one after the other in the
 program order. This is quite important, since the data dependency analysis is
