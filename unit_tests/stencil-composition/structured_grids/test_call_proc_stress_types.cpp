@@ -33,9 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include <gtest/gtest.h>
 
-#include <gridtools/common/generic_metafunctions/gt_remove_qualifiers.hpp>
+#include <gridtools/meta/type_traits.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/tools/backend_select.hpp>
@@ -88,10 +89,10 @@ namespace {
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_type = typename remove_qualifiers<decltype(eval(out{}))>::type;
+            using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using local_type = typename remove_qualifiers<decltype(eval(local{}))>::type;
+            using local_type = decay_t<decltype(eval(local{}))>;
             (void)ASSERT_TYPE_EQ<special_type<local_tag>, local_type>{};
         }
     };
@@ -103,10 +104,10 @@ namespace {
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_type = typename remove_qualifiers<decltype(eval(out{}))>::type;
+            using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using in_type = typename remove_qualifiers<decltype(eval(in{}))>::type;
+            using in_type = decay_t<decltype(eval(in{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in_tag>, in_type>{};
 
             special_type<local_tag> local{};
@@ -122,10 +123,10 @@ namespace {
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
-            using out_type = typename remove_qualifiers<decltype(eval(out{}))>::type;
+            using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
-            using in_type = typename remove_qualifiers<decltype(eval(in{}))>::type;
+            using in_type = decay_t<decltype(eval(in{}))>;
             (void)ASSERT_TYPE_EQ<special_type<in_tag>, in_type>{};
 
             call_proc<triple_nesting_with_type_switching_second_stage>::with(eval, in(), out());

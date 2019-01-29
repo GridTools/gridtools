@@ -209,13 +209,6 @@ namespace multi_types_test {
         }
     };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream &operator<<(std::ostream &s, function1 const) { return s << "function1"; }
-    std::ostream &operator<<(std::ostream &s, function2 const) { return s << "function2"; }
-    std::ostream &operator<<(std::ostream &s, function3 const) { return s << "function3"; }
-
     bool test(uint_t x, uint_t y, uint_t z) {
 
         uint_t d1 = x;

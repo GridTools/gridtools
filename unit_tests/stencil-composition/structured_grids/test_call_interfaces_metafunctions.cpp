@@ -45,23 +45,11 @@
 struct pretent_aggregator {
     using value_type = double;
 
-    template <typename Accessor>
-    struct accessor_return_type {
-        using type = double;
-    };
-
     template <gridtools::uint_t I, gridtools::enumtype::intent Intent, typename Range, gridtools::ushort_t N>
     constexpr value_type operator()(gridtools::accessor<I, Intent, Range, N>) const {
         return static_cast<value_type>(I + 1000);
     }
 };
-
-namespace gridtools {
-    template <>
-    struct is_iterate_domain<pretent_aggregator> {
-        static const bool value = true;
-    };
-} // namespace gridtools
 
 struct pretent_function {
     typedef gridtools::accessor<0, gridtools::enumtype::in> a0;

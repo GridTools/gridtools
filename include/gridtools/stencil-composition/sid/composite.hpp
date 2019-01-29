@@ -86,7 +86,7 @@ namespace gridtools {
 
             /**
              *  `maybe_equal(lhs, rhs)` is a functional equivalent of the following pseudo code:
-             *   `<no_equal_operator_exists> || lhs == rhs;
+             *   `<no_equal_operator_exists> || lhs == rhs;`
              *
              *   It is implemented as following:
              *   - the first overload can be chosen only if `lhs == rhs` defined [SFINAE: `decltype(lhs == rhs)` is a
