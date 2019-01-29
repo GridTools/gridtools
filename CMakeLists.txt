@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.4)
 
 cmake_policy(SET CMP0048 NEW)
-project(GridTools VERSION "0.1.8.2" LANGUAGES CXX)
+project(GridTools VERSION 0.20.0 LANGUAGES CXX)
 
 list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -97,7 +97,7 @@ endif()
 # ===============
 # examples and tests
 # ===============
-if( GT_INSTALL_EXAMPLES )
+if( GT_COMPILE_EXAMPLES )
   add_subdirectory(gt_examples)
 endif()
 

@@ -33,18 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-
-namespace gridtools {
-    template <typename GlobalAccessor, typename... Args>
-    struct global_accessor_with_arguments;
-
-    template <uint_t I>
-    struct global_accessor;
-
-    template <typename T>
-    struct is_global_accessor;
-
-    template <typename T>
-    struct is_global_accessor_with_arguments;
-} // namespace gridtools
+#include "test_intermediate.cpp"

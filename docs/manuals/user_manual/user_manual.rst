@@ -19,7 +19,8 @@ User Manual
 .. include:: stencil_composition.hrst
 .. include:: advanced_functionality.hrst
 .. include:: performance.hrst
-.. include:: halo_update.hrst
+.. include:: boundary_condition.hrst
+.. include:: halo_exchanges.hrst
 .. include:: comm_and_bc.hrst
 .. include:: data_management.hrst
 .. include:: interface.hrst

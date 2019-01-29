@@ -79,7 +79,7 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-     * This function computes the total accessor-induces pointer offset (sum) for all axes in the given cache storage
+     * This function computes the total accessor-indices pointer offset (sum) for all axes in the given cache storage
      * info.
      *
      * @tparam StorageInfo The storage info to be used.
@@ -169,9 +169,6 @@ namespace gridtools {
 
         template <uint_t Color, typename Accessor>
         GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor<Accessor>::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +

@@ -41,10 +41,6 @@
 #include "tuple_util.hpp"
 
 namespace gridtools {
-    /** \ingroup common
-        @{
-     */
-
     /** \ingroup array
         @{
     */
@@ -66,6 +62,5 @@ namespace gridtools {
     constexpr GT_FUNCTION auto make_array(Types &&... values)
         GT_AUTO_RETURN((tuple_util::host_device::make<array, ForceType>(const_expr::forward<Types>(values)...)));
 
-    /** @} */
     /** @} */
 } // namespace gridtools

@@ -131,11 +131,13 @@ namespace gridtools {
          *
          *  Usage:
          *
+         *  \code
          *  auto my_sid = synthetic()
          *      .set<property::origin>(origin)
          *      .set<property::strides>(strides)
          *      .set<property::ptr_diff, ptr_diff>()
          *      .set<property::strides_kind, strides_kind>();
+         *  \endcode
          *
          *  only `set<property::origin>` is required. Other `set`'s can be skipped.
          *  `set`'s can go in any order. `set` of the given property can participate at most once.

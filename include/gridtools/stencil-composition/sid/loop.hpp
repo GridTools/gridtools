@@ -601,8 +601,8 @@ namespace gridtools {
          *
          *   Overloads:
          *
-         *      `make_loop` goes with large number of overloads to benefit from the fact that some aspects of traversal
-         *      description are known in complie time.
+         *      `make_loop` goes with the large number of overloads to benefit from the fact that some aspects of
+         *      traversal description are known in compile time.
          */
         template <size_t I,
             class T1,
@@ -668,7 +668,7 @@ namespace gridtools {
          *   double data[3][4][5];
          *
          *   for(auto& ref : make_range(get_origin(data), get_strides(data),
-         *                              make_loop<0>(3_c), make_loop<0>(4_c), make_loop<0>(5_c))) {
+         *                              make_loop<0>(3_c), make_loop<1>(4_c), make_loop<2>(5_c))) {
          *     ref = 42;
          *   }
          */

@@ -157,7 +157,7 @@ namespace gridtools {
             void operator()() const {
                 strides_t strides;
 
-                iterate_domain_t it_domain(m_local_domain, m_grid.grid_topology());
+                iterate_domain_t it_domain(m_local_domain);
 
                 it_domain.set_strides_pointer_impl(&strides);
 

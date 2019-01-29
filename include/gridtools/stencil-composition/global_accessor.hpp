@@ -38,8 +38,10 @@
 #include <boost/fusion/include/vector.hpp>
 
 #include "../common/defs.hpp"
-#include "./accessor.hpp"
+#include "../common/host_device.hpp"
 #include "./extent.hpp"
+#include "./is_accessor.hpp"
+#include "./is_global_accessor.hpp"
 
 namespace gridtools {
 
@@ -63,12 +65,16 @@ namespace gridtools {
       public:
         typedef GlobalAccessor super;
         typedef typename super::index_t index_t;
+        static const constexpr enumtype::intent intent = enumtype::in;
 
         GT_FUNCTION
         global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward<Args>(args_)...) {}
         GT_FUNCTION
         boost::fusion::vector<Args...> const &get_arguments() const { return m_arguments; };
     };
+
+    template <typename Global, typename... Args>
+    struct is_global_accessor<global_accessor_with_arguments<Global, Args...>> : std::true_type {};
 
     /**
        @brief Object to be accessed regardless of the current iteration point. A global_accessor is always read-only.
@@ -102,4 +108,10 @@ namespace gridtools {
             return global_accessor_with_arguments<global_accessor, Args...>(std::forward<Args>(args_)...);
         }
     };
+
+    template <uint_t I>
+    struct is_accessor<global_accessor<I>> : std::true_type {};
+
+    template <uint_t I>
+    struct is_global_accessor<global_accessor<I>> : std::true_type {};
 } // namespace gridtools

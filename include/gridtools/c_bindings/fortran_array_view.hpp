@@ -158,7 +158,6 @@ namespace gridtools {
          *   types).
          * - T is fortran_array_convertible, if gt_fortran_array_descriptor is implicity convertible to T
          * - T is fortran_array_convertible, if there exists a function with the following signature:
-         *
          *   @code
          *   T gt_make_fortran_array_view(gt_fortran_array_descriptor*, T*)
          *   @endcode

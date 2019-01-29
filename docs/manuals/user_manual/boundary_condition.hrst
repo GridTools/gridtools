@@ -26,10 +26,10 @@ system the concept of "vector" can be defined to indicate
 distances and directions. Direction is the one thing we need
 here. Instead of using unitary vectors to indicate directions, as
 it is usually the case for euclidean spaces, we use vectors whose
-components are -1, 0, and 1.  For example, ``(1, 1, 1)`` is the
-dicretion indicated by the unit vector ``(1,1,1)/sqrt(3)``.
+components are -1, 0, and 1.  For example, :math:`(1, 1, 1)` is the
+dicretion indicated by the unit vector :math:`(1,1,1)/\sqrt3`.
 If we take the center of a 3D grid, then we can define 26
-different directions :math:`{(i,j,k): i,j,k in {-1,0,1}}\{ (0,0,0) }}`
+different directions :math:`\{(i,j,k): i,j,k \in \{-1,0,1\}\}\setminus\{(0,0,0)\}`
 that identify the different faces, edges and corners of the cube to
 which the grid is topologically analogous with.
 
@@ -41,8 +41,10 @@ directions.
 The user can define their own boundary condition classes and perform
 specific computation in each direction. For this reason |GT| provides
 a ``direction`` type which can take three direction values, that are
-indicated as `minus_`, `plus_` and `zero_`, which are values of an
+indicated as ``minus_``, ``plus_`` and ``zero_``, which are values of an
 ``enum`` called ``sign``.
+
+.. _boundary-conditions-class:
 
 ---------------------------------
 Boundary condition class
@@ -62,22 +64,22 @@ All overloads must have the same number of arguments: the first argument is the 
 It is standard practice to let the view types be template
 arguments. For instance, here a class that applies a copy-boundary
 condition (copy the second view into the first one) for all direction
-apart the direction (0,0,-1):
+apart all directions for which the third component is ``minus_``:
 
 .. code-block:: gridtools
 
-  struct bc_class {
+  struct example_bc {
      double value;
 
      GT_FUNCTION
-     direction_bc_input(double v) : value(v) {}
+     example_bc(double v) : value(v) {}
 
      template <typename Direction, typename DataField0, typename DataField1>
      GT_FUNCTION void operator()(Direction,
                                  DataField0 &data_field0, DataField1 const &data_field1,
                                  unsigned i, unsigned j, unsigned k) const
      {
-       data_field0(i, j, k) = data_field1(i,j,k);
+       data_field0(i, j, k) = data_field1(i, j, k);
      }
 
      template <sign I, sign J, typename DataField0, typename DataField1>
@@ -89,16 +91,15 @@ apart the direction (0,0,-1):
      }
   };
 
-
 `operator()` of the boundary class is called by the library, on the 26 directions, and got each value in the data that correspond to each direction. In the previous example, each direction in which the third component is ``minus`` will select the specialized overload, while all other directions select the first implementation.
 
 ---------------------------------
 Boundary condition application
 ---------------------------------
 
-To apply the above boundary conditions class to the data fields we
+To apply the above boundary conditions class to the data fields, we
 need to construct the boundary object, but also to specify the halo
-regions. The halo regions are specified using ``halo-descriptor``
+regions. The halo regions are specified using `halo-descriptors`
 which are described in :ref:`halo-descriptor`.
 
 To do this we need an array of halo descriptors initialized with the halo information of the data fields.
@@ -124,11 +125,11 @@ fields the ``operator()`` overloads of the boundary class require.
 
 .. code-block:: gridtools
 
-  boundary<direction_bc_input<uint_t>, backend_t::backend_id_t>(halos, direction_bc_input<uint_t>(42))
+  boundary<example_bc, backend_t::backend_id_t>(halos, example_bc(42))
         .apply(out_s, in_s);
 
 As can be noted, the ``backend`` is also needed to select the proper
-implementation of the boundary application algorithm (:ref:`backend-seletion`). ``out_s`` and
+implementation of the boundary application algorithm (:ref:`backend-selection`). ``out_s`` and
 ``in_s`` are the two data fields passed to the application. The fact
 that the first is the output and second is the input derives from the
 signature of the overloads of ``operator()``, and it is user defined.
@@ -145,8 +146,8 @@ the following example:
 
 .. code-block:: gridtools
 
-  boundary<direction_bc_input<uint_t>, backend_t::backend_id_t, predicate_t>(halos, direction_bc_input<uint_t>(42), predicate_t{})
-        .apply(out_s, in_s);
+  boundary<direction_bc_input<uint_t>, backend_t::backend_id_t, predicate_t>
+    (halos, direction_bc_input<uint_t>(42), predicate_t{}).apply(out_s, in_s);
 
 The predicate must obey a fixed interface, that is, it has to accept
 as argument a ``direction`` object, so that the user can, at runtime,
@@ -156,12 +157,14 @@ the global boundaries need to updated with the boundary conditions
 application and the rest should have their halos updated from
 neighbors.
 
+.. _provided_boundary_conditions:
+
 ------------------------------------------------------------
 Provided boundary conditions
 ------------------------------------------------------------
 
 |GT| provides few boundary application classes for some common cases. They are
 
-- ``copy_boundary`` to copy the last field of the argument list of``apply`` into the other ones;
-- ``template <class T> value_boundary`` to set the boundary to a value (similarly to the example above) for all the data fields provided;
+- ``copy_boundary`` to copy the last field of the argument list of `apply` into the other ones;
+- ``template <class T> value_boundary`` to set the boundary to a value for all the data fields provided;
 - ``zero_boundary`` to set the boundary to the default constructed value type of the data fields (usually a zero) for the input fields.
