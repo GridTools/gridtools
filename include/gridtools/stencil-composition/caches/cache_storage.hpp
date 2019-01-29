@@ -129,7 +129,7 @@ namespace gridtools {
 
     enum class sync_type { fill, flush };
 
-    template <class T, int_t Minus, int_t Plus>
+    template <class Arg, class T, int_t Minus, int_t Plus>
     class k_cache_storage {
 
         GRIDTOOLS_STATIC_ASSERT(Minus <= 0, GT_INTERNAL_ERROR);
@@ -139,12 +139,12 @@ namespace gridtools {
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::fill> sync_at(Data const &data, int_t k) {
-            m_values[k - Minus] = data(k);
+            m_values[k - Minus] = data.template deref_for_k_cache<Arg>(k);
         }
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
-            data(k) = m_values[k - Minus];
+            data.template deref_for_k_cache<Arg>(k) = m_values[k - Minus];
         }
 
         using range_t = array<int_t, 2>;
@@ -214,6 +214,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value <= 0, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value >= 0, GT_INTERNAL_ERROR);
 
-        using type = k_cache_storage<typename Arg::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;
+        using type =
+            k_cache_storage<Arg, typename Arg::data_store_t::data_t, Extent::kminus::value, Extent::kplus::value>;
     };
 } // namespace gridtools

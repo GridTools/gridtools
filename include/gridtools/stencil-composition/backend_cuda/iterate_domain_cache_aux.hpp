@@ -57,13 +57,13 @@ namespace gridtools {
             Caches &m_caches;
 
             template <class Arg>
-            GT_FUNCTION void operator()(Arg) const {
+            GT_FUNCTION void operator()() const {
                 boost::fusion::at_key<Arg>(m_caches).template slide<Policy>();
             }
         };
         template <class Args, enumtype::execution Policy, class Caches>
         GT_FUNCTION void slide_caches(Caches &caches) {
-            host_device::for_each<Args>(slide_caches_f<Policy, Caches>{caches});
+            host_device::for_each_type<Args>(slide_caches_f<Policy, Caches>{caches});
         }
 
         template <enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
@@ -74,15 +74,15 @@ namespace gridtools {
             array<int_t, 2> m_validity;
 
             template <class Arg>
-            GT_FUNCTION void operator()(Arg) const {
+            GT_FUNCTION void operator()() const {
                 boost::fusion::at_key<Arg>(m_caches).template sync<Policy, SyncType>(
-                    m_it_domain.template k_cache_deref<Arg>(), m_sync_all, m_validity);
+                    m_it_domain, m_sync_all, m_validity);
             }
         };
         template <class Args, enumtype::execution Policy, sync_type SyncType, class ItDomain, class Caches>
         GT_FUNCTION void sync_caches(
             ItDomain const &it_domain, Caches &caches, bool sync_all, array<int_t, 2> validity) {
-            host_device::for_each<Args>(
+            host_device::for_each_type<Args>(
                 sync_caches_f<Policy, SyncType, ItDomain, Caches>{it_domain, caches, sync_all, validity});
         }
 
