@@ -10,7 +10,7 @@ usually referred to as `I` and `J` dimensions identify the `IJ`
 plane. There is no prescription on how the stencil operators in
 different points of the `IJ` plane will be executed. Stencil operators
 in the third dimension of the iteration space, usually referred as `K`
-or vertical dimension, can have prescribe order of executions. There
+or vertical dimension, can have prescribed order of executions. There
 are three different ways of executing on the `K` dimension:
 
 - `forward`: The computation at index `k` in the vertical dimension is executed
