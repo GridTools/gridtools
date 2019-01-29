@@ -1,0 +1,28 @@
+data_store_t phi(info);
+data_store_t phi_new(info);
+data_store_t lap(info);
+data_store_t laplap(info);
+
+using arg_phi = arg<0, data_store_t>;
+using arg_phi_new = arg<1, data_store_t>;
+using arg_lap = arg<2, data_store_t>;
+using arg_laplap = arg<3, data_store_t>;
+
+int bs = 2; // boundary size
+halo_descriptor boundary_i(bs, bs, bs, Ni - bs - 1, Ni);
+halo_descriptor boundary_j(bs, bs, bs, Nj - bs - 1, Nj);
+auto my_grid = make_grid(boundary_i, boundary_j, axis_t{kmax, Nk - kmax});
+
+auto smoothing = make_computation<backend_t>(              //
+    my_grid,                                               //
+    make_multistage(                                       //
+        execute<forward>(),                                //
+        make_stage<lap_function>(arg_phi(), arg_lap()),    //
+        make_stage<lap_function>(arg_lap(), arg_laplap()), //
+        make_stage<smoothing_function_1>(                  //
+            arg_phi(),                                     //
+            arg_laplap(),                                  //
+            arg_phi_new())                                 //
+        ));                                                //
+
+smoothing.run(arg_phi{} = phi, arg_lap{} = lap, arg_laplap{} = laplap, arg_phi_new{} = phi_new);
