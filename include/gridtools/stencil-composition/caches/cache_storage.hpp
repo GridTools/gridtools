@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include <utility>
+#include <type_traits>
 
 #include "../../common/array.hpp"
 #include "../../common/defs.hpp"
@@ -144,7 +144,7 @@ namespace gridtools {
 
         template <sync_type SyncType, class Data>
         GT_FUNCTION enable_if_t<SyncType == sync_type::flush> sync_at(Data const &data, int_t k) {
-            data(k) = std::move(m_values[k - Minus]);
+            data(k) = m_values[k - Minus];
         }
 
         using range_t = array<int_t, 2>;
@@ -179,13 +179,13 @@ namespace gridtools {
         template <enumtype::execution Policy>
         GT_FUNCTION enable_if_t<Policy == enumtype::forward> slide() {
             for (int_t k = 0; k < Plus - Minus; ++k)
-                m_values[k] = std::move(m_values[k + 1]);
+                m_values[k] = m_values[k + 1];
         }
 
         template <enumtype::execution Policy>
         GT_FUNCTION enable_if_t<Policy == enumtype::backward> slide() {
             for (int_t k = Plus - Minus; k > 0; --k)
-                m_values[k] = std::move(m_values[k - 1]);
+                m_values[k] = m_values[k - 1];
         }
 
         template <enumtype::execution Policy,
