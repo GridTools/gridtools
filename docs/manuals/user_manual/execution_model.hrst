@@ -20,4 +20,4 @@ are three different ways of executing on the `K` dimension:
 - `parallel`: No order is specified and execution can happen concurrently.
 
 An execution strategy for a computation is idicated by ``execute<order>``,
-where `order` is one of the `K` dimension execution orders.
+where `order` is one of the `K` dimension execution orders: ``forward``, ``backward``, ``parallel``.
