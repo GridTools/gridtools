@@ -230,14 +230,9 @@ namespace gridtools {
                     return make_tmp_data_store<MaxExtent>(backend, arg, grid);
                 }
             };
+
             template <class T>
-#if GT_BROKEN_TEMPLATE_ALIASES
-            struct apply {
-                using type = generator<T>;
-            };
-#else
-            using apply = generator<T>;
-#endif
+            GT_META_DEFINE_ALIAS(apply, meta::id, generator<T>);
         };
 
         template <class MaxExtent, class Backend, class Res, class Grid>
@@ -254,9 +249,12 @@ namespace gridtools {
 
         template <class MaxExtent, bool IsStateful>
         struct get_local_domain {
-            template <class MssComponents, class Msses = std::tuple<typename MssComponents::mss_descriptor_t>>
-            GT_META_DEFINE_ALIAS(
-                apply, local_domain, (GT_META_CALL(extract_placeholders, Msses), MaxExtent, IsStateful));
+            template <class MssComponents>
+            GT_META_DEFINE_ALIAS(apply,
+                local_domain,
+                (GT_META_CALL(extract_placeholders_from_mss, typename MssComponents::mss_descriptor_t),
+                    MaxExtent,
+                    IsStateful));
         };
 
         template <class MssComponentsList,

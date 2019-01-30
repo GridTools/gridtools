@@ -178,8 +178,8 @@ namespace gridtools {
         Grid,
         std::tuple<arg_storage_pair<BoundPlaceholders, BoundDataStores>...>,
         std::tuple<MssDescriptors...>> {
-        GRIDTOOLS_STATIC_ASSERT((is_backend<Backend>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_backend<Backend>::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
 
         GRIDTOOLS_STATIC_ASSERT((conjunction<is_condition_tree_of<MssDescriptors, is_mss_descriptor>...>::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
@@ -189,24 +189,14 @@ namespace gridtools {
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
 
-        using placeholders_t = GT_META_CALL(extract_placeholders, all_mss_descriptors_t);
+        using placeholders_t = GT_META_CALL(extract_placeholders_from_msses, all_mss_descriptors_t);
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
         using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
 
-#if GT_BROKEN_TEMPLATE_ALIASES
         template <class Arg>
-        struct to_arg_storage_pair {
-            using type = arg_storage_pair<Arg, typename Arg::data_store_t>;
-        };
-        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::rename,
-            (meta::defer<std::tuple>::apply, GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t))));
-#else
-        template <class Arg>
-        using to_arg_storage_pair = arg_storage_pair<Arg, typename Arg::data_store_t>;
+        GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
 
-        using tmp_arg_storage_pair_tuple_t =
-            meta::rename<std::tuple, meta::transform<to_arg_storage_pair, tmp_placeholders_t>>;
-#endif
+        using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::transform, (to_arg_storage_pair, tmp_placeholders_t));
 
         GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
@@ -292,7 +282,6 @@ namespace gridtools {
               // a functor with a chosen condition branch
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
-              // that ensures, that only
               m_tmp_arg_storage_pair_tuple(dedup_storage_info(
                   _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(
                       grid))),
