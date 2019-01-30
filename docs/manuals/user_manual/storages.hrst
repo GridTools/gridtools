@@ -168,7 +168,7 @@ use managed data stores. The data store can be initialized with a value or lambd
 
 
 **Interface**:
-The ``data_store`` object provides methods for performing following things:
+The ``data_store`` object provides methods:
 
 .. cpp:function:: void data_store::allocate(StorageInfo const &info)
 
