@@ -76,17 +76,11 @@ namespace gridtools {
       public:
         shared_iterate_domain() {}
 
-        GT_FUNCTION
-        StridesType const &strides() const { return m_strides; }
-        GT_FUNCTION
-        StridesType &strides() { return m_strides; }
+        GT_FUNCTION StridesType const &strides() const { return m_strides; }
+        GT_FUNCTION StridesType &strides() { return m_strides; }
 
         template <typename IndexType>
-        GT_FUNCTION typename boost::mpl::at<ij_caches_map_t, IndexType>::type &RESTRICT get_ij_cache() {
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::has_key<ij_caches_map_t, IndexType>::value), "Accessing a non registered cached");
-            return boost::fusion::at_key<IndexType>(m_ij_caches_tuple);
-        }
+        GT_FUNCTION auto get_ij_cache() GT_AUTO_RETURN(boost::fusion::at_key<IndexType>(m_ij_caches_tuple));
     };
 
 } // namespace gridtools

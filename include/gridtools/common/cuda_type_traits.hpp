@@ -34,37 +34,39 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "defs.hpp"
-#include "generic_metafunctions/gt_remove_qualifiers.hpp"
-#include <boost/mpl/has_key.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/type_traits.hpp>
+
+#ifndef __CUDACC__
+#error This is CUDA only header
+#endif
+
+#include "../meta/dedup.hpp"
+#include "../meta/list.hpp"
+#include "../meta/macros.hpp"
+#include "../meta/st_contains.hpp"
+#include "../meta/type_traits.hpp"
 
 namespace gridtools {
-    namespace _impl {
-        typedef boost::mpl::set<char,
-            short,
-            int,
-            long long unsigned char,
-            unsigned short,
-            unsigned int,
-            unsigned long long,
-            int2,
-            int4,
-            uint2,
-            uint4,
-            float,
-            float2,
-            float4,
-            double,
-            double2>
-            texture_types;
-    } // namespace _impl
+    namespace impl_ {
+        using texture_types = GT_META_CALL(meta::dedup,
+            (meta::list<char,
+                short,
+                int,
+                long long unsigned char,
+                unsigned short,
+                unsigned int,
+                unsigned long long,
+                int2,
+                int4,
+                uint2,
+                uint4,
+                float,
+                float2,
+                float4,
+                double,
+                double2>));
+    } // namespace impl_
 
-    template <typename T>
-    struct is_texture_type : boost::mpl::has_key<_impl::texture_types, typename remove_qualifiers<T>::type> {};
-
-    template <typename T>
-    using is_texture_type_t = typename is_texture_type<T>::type;
+    template <class T>
+    GT_META_DEFINE_ALIAS(is_texture_type, meta::st_contains, (impl_::texture_types, T));
 
 } // namespace gridtools

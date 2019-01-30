@@ -35,10 +35,10 @@
 */
 #pragma once
 
-namespace gridtools {
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
 
+namespace gridtools {
     /** \ingroup Boundary-Conditions
      * @{
      */

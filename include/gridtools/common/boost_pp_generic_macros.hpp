@@ -53,20 +53,6 @@
 #include <boost/variant.hpp>
 
 /**
- * @def GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(seq)
- * @brief Adds extra parenthesis to a make a valid BOOST_PP sequence.
- * e.g. (int, 2)(double, 3) -> ((int, 2)) ((double, 3))
- */
-
-/** @cond */
-#define GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_0(...) ((__VA_ARGS__)) GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_1
-#define GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_1(...) ((__VA_ARGS__)) GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_0
-#define GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_0_END
-#define GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_1_END
-/** @endcond */
-#define GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(seq) BOOST_PP_CAT(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS_internal_0 seq, _END)
-
-/**
  * @def GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(tuple_elem_id, seq_of_tuples)
  * @brief Returns a comma separated list of the i-th tuple elements form a list of tuples.
  * Example: GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM( 1, ((double,3))((int,5)) ) -> 3,5
