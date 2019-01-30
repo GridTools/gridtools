@@ -86,7 +86,7 @@ value can be one of the following (where we indicate the basic mean of implement
 
 .. note::
 
-An error in the specification of the ``cache_type``, for example using ``IJ`` for a field that is accessed with k offsets will lead to compile time errors.
+ An error in the specification of the ``cache_type``, for example using ``IJ`` for a field that is accessed with k offsets will lead to compile time errors.
 
 ^^^^^^^^^^^^
 Cache policy
