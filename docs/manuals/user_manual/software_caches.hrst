@@ -111,9 +111,10 @@ The possible values are:
 #. ``local``: The scratch-pad data is not persistent and only available with the scope of a multi-stage.
 
  
- The following figure graphically depicts an example of all the ordered operations that are executed when a ``fill_and_flush``
+ :numref:`fig_kcache_ex` graphically depicts an example of all the ordered operations that are executed when a ``fill_and_flush``
   cache is used in a forward vertical loop. 
  
+.. _fig_kcache_ex:
 .. figure:: figures/kcache_ex.png
    :scale: 50 %
 
