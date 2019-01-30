@@ -42,14 +42,13 @@
 #include "../common/generic_metafunctions/binary_ops.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
+#include "accessor_metafunctions.hpp"
 #include "esf.hpp"
 #include "independent_esf.hpp"
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids/accessor_metafunctions.hpp"
 #include "structured_grids/esf_metafunctions.hpp"
 #else
-#include "icosahedral_grids/accessor_metafunctions.hpp"
 #include "icosahedral_grids/esf_metafunctions.hpp"
 #endif
 
@@ -199,30 +198,6 @@ namespace gridtools {
         typedef typename boost::mpl::fold<EsfSequence,
             boost::mpl::set0<>,
             copy_into_set<esf_get_w_per_functor<boost::mpl::_2>, boost::mpl::_1>>::type type;
-    };
-
-    /**
-       @brief It computes an associative sequence of all arg types specified by the user
-        that are readonly through all ESFs/MSSs
-     */
-    template <typename EsfSequence>
-    struct compute_readonly_args {
-        template <typename Acc, typename Esf, typename ReadWriteArgs>
-        struct extract_readonly_arg {
-            typedef typename boost::mpl::fold<typename Esf::args_t,
-                Acc,
-                boost::mpl::if_<
-                    boost::mpl::or_<boost::mpl::has_key<ReadWriteArgs, boost::mpl::_2>, is_tmp_arg<boost::mpl::_2>>,
-                    boost::mpl::_1,
-                    boost::mpl::insert<boost::mpl::_1, boost::mpl::_2>>>::type type;
-        };
-
-        // compute all the args which are written by at least one ESF
-        typedef typename compute_readwrite_args<EsfSequence>::type readwrite_args_t;
-
-        typedef typename boost::mpl::fold<EsfSequence,
-            boost::mpl::set0<>,
-            extract_readonly_arg<boost::mpl::_1, boost::mpl::_2, readwrite_args_t>>::type type;
     };
 
     /*

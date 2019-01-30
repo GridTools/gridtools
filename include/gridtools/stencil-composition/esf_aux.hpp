@@ -44,8 +44,8 @@
 #include <boost/mpl/size.hpp>
 
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "accessor_fwd.hpp"
 #include "arg.hpp"
+#include "is_accessor.hpp"
 
 namespace gridtools {
 

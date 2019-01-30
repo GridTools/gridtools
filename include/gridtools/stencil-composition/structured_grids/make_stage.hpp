@@ -48,35 +48,11 @@
 
 namespace gridtools {
 
-    /*!
-       \fn esf_descriptor<ESF, ...> make_esf(plc1, plc2, plc3, ...)
-       \brief Function to create a Elementary Stencil Function
-       \param plc{i} placeholder which represents the i-th argument to the functor ESF
-
-       Use this function to associate a stencil functor (stage) to
-       arguments (actually, placeholders to arguments)
+    /**
+     * @brief Function to create a descriptor for a stage (ij-pass over a grid)
+     *
+     * Extents are derived from the stage definitions.
      */
-
-    /*!
-       \fn mss_descriptor<...> make_esf(ExecutionEngine, esf1, esf2, ...)
-       \brief Function to create a Multistage Stencil that can then be executed
-       \param esf{i}  i-th Elementary Stencil Function created with make_esf or a list specified as independent ESFs
-       created with make independent
-
-       Use this function to create a multi-stage stencil computation
-     */
-
-    /*!
-       \fn independent_esf<...> make_independent(esf1, esf2, ...)
-       \brief Function to create a list of independent Elementary Styencil Functions
-
-       \param esf{i}  (must be i>=2) The max{i} Elementary Stencil Functions in the argument list will be treated as
-       independent
-
-       Function to create a list of independent Elementary Styencil Functions. This is used to let the library compute
-       tight bounds on blocks to be used by backends
-     */
-
     template <typename ESF, typename... Args>
     esf_descriptor<ESF, std::tuple<Args...>> make_stage(Args...) {
         GRIDTOOLS_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "Malformed make_stage");
@@ -87,6 +63,11 @@ namespace gridtools {
         return {};
     }
 
+    /**
+     * @brief Function to create a descriptor for a stage (ij-pass over a grid)
+     *
+     * Extents are given as a template argument.
+     */
     template <typename ESF, typename Extent, typename... Args>
     esf_descriptor_with_extent<ESF, Extent, std::tuple<Args...>> make_stage_with_extent(Args...) {
         GRIDTOOLS_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "Malformed make_stage");

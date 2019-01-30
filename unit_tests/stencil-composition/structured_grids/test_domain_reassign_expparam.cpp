@@ -42,6 +42,7 @@
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/stencil-composition/accessor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
 #include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
