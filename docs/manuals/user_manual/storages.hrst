@@ -63,6 +63,7 @@ halo I size of 1,
 halo J size of 0,
 and alignment 8 is created.
 Please note that the size of the halo has to be added to the arguments that are passed to the constructor.
+
 .. code-block:: gridtools
 
     typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
@@ -75,22 +76,53 @@ Please note that the size of the halo has to be added to the arguments that are 
 
 **Interface**: The ``storage_info`` object provides methods for querying following information:
 
-* ``template < int D > constexpr int dim() const``: get the aligned size of a dimension. (Deprecated.)
-* ``constexpr const array< uint_t, ndims > &dims() const``: return the array of (aligned) dims. (Deprecated.)
-* ``template < int D > constexpr int stride() const``: get aligned the stride of dimension.
-* ``constexpr const array< uint_t, ndims > &strides() const``: return the array of (aligned) strides.
-* ``template < int D > constexpr int unaligned_dim() const``: get the unaligned size of a dimension. (Deprecated.)
-* ``template < int D > constexpr int unaligned_stride() const``: get the unaligned stride of dimension. (Deprecated - Does not really make sense.)
-* ``template <uint_t D> constexpr uint_t begin() const``: retrieve the position of the first non halo point in dimension `D`.
-* ``template <uint_t D> constexpr uint_t end() const``: retrieve the position of the last non halo point in dimension `D`.
-* ``template <uint_t D> constexpr uint_t total_begin() const``: retrieve the position of the first point (can also be a halo point) in dimension `D`.
-* ``template <uint_t D> constexpr uint_t total_end() const``: retrieve the position of the last point (can also be a halo point) in dimension `D`.
-* ``template <uint_t D> constexpr uint_t length() const``: retrieve the total number of data points (excluding padding, halo, initial offset) in dimension `D` (`equivalent to end<D>()-begin<D>()+1`).
-* ``template <uint_t D> constexpr uint_t total_length() const``: retrieve the total number of data points (excluding padding, initial offset) in dimension `D` (`equivalent to total_end<D>()-total_begin<D>()+1`).
-* ``template <uint_t D> constexpr uint_t padded_total_length() const``: retrieve the total number of data points in dimension `D`, including eventual padding.
-* ``template < typename... Ints > constexpr int index(Ints... idx) const``: retrieve the array index of a given coordinate.
-* ``constexpr int index(gridtools::array< int, ndims > const &offsets) const``: retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
-* ``static constexpr uint_t get_initial_offset()``: initial offset that is used in order to provide proper alignment.
+.. cpp:function:: template < int D > constexpr int storage_info::stride() const
+
+   Get aligned the stride of dimension.
+
+.. cpp:function:: constexpr const array< uint_t, ndims > &storage_info::strides() const
+
+   Return the array of strides.
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::begin() const
+
+   Retrieve the position of the first non halo point in dimension ``D``.
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::end() const
+
+   Retrieve the position of the last non halo point in dimension ``D``.
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::total_begin() const
+
+   Retrieve the position of the first point (can also be a halo point) in dimension ``D``.
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::total_end() const
+
+   Retrieve the position of the last point (can also be a halo point) in dimension ``D``.
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::length() const
+
+   Retrieve the total number of data points (excluding padding, halo, initial offset) in dimension ``D`` (equivalent to ``end<D>() - begin<D>() + 1``).
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::total_length() const
+
+   Retrieve the total number of data points (excluding padding, initial offset) in dimension ``D`` (equivalent to ``total_end<D>() - total_begin<D>() + 1``).
+
+.. cpp:function:: template <uint_t D> constexpr uint_t storage_info::padded_total_length() const
+
+   Retrieve the total number of data points in dimension ``D``, including eventual padding.
+
+.. cpp:function:: template <typename... Ints> constexpr int storage_info::index(Ints... idx) const
+
+   Retrieve the array index of a given coordinate.
+
+.. cpp:function:: constexpr int storage_info::index(gridtools::array<int, ndims> const &offsets) const
+
+   Retrieve an offset (or index) when given an array of offsets in I, J, K, etc.
+
+.. cpp:function:: static constexpr uint_t storage_info::get_initial_offset()
+
+   Initial offset that is used in order to provide proper alignment.
 
 .. _data-store:
 
@@ -142,24 +174,73 @@ use managed data stores. The data store can be initialized with a value or lambd
 **Interface**:
 The ``data_store`` object provides methods for performing following things:
 
-* `void allocate(StorageInfo const &info)`: allocate the needed memory. this will instantiate a storage instance.
-* `void reset()`: reset the data_store. maybe deallocates memory.
-* `template < int D > int dim() const`: function to retrieve the (aligned) size of a dimension.
-* `template < int D > int unaligned_dim() const`: get the unaligned size of a dimension.
-* `int padded_total_length() const`: retrieve the total number of data points.
-* `int total_length() const`: retrieve the total number of data points (excluding padding, initial offset).
-* `int length() const`: retrieve the total number of data points (excluding padding, halo, initial offset).
-* `std::shared_ptr< storage_t > get_storage_ptr() const`: retrieve a pointer to the underlying storage instance.
-* `std::shared_ptr< storage_info_t const > get_storage_info_ptr() const`: retrieve a pointer to the underlying storage_info instance.
-* `bool valid() const`: check if underlying storage info and storage is valid.
-* `void clone_to_device() const`: clone underlying storage to device. This function can also be called with host only storages but of course no operation is triggered.
-* `void clone_from_device() const`: clone underlying storage from device. This function can also be called with host only storages but of course no operation is triggered.
-* `void sync() const`: synchronize underlying storage.
-* `void reactivate_device_write_views() const`: reactivate all device read write views to storage.
-* `void reactivate_host_write_views() const`: reactivate all host read write views to storage.
-* `std::string const &name() const`: retrieve the name of the storage.
-* `const array< uint_t, ndims > &dims() const`: return the array of (aligned) dims.
-* `const array< uint_t, ndims > &strides() const`: return the array of (aligned) strides.
+.. cpp:function:: void data_store::allocate(StorageInfo const &info)
+
+   Allocate the needed memory. this will instantiate a storage instance.
+
+.. cpp:function:: void data_store::reset()
+
+   Reset the data_store. maybe deallocates memory.
+
+.. cpp:function:: template <int D> int data_store::total_length() const
+
+   Function to retrieve the (aligned) size of a dimension.
+
+.. cpp:function:: int data_store::padded_total_length() const
+
+   Retrieve the total number of data points (including padding, halo, initial offset)
+
+.. cpp:function:: int data_store::total_length() const
+
+   Retrieve the total number of data points (excluding padding, initial offset).
+
+.. cpp:function:: int data_store::length() const
+
+   Retrieve the total number of data points (excluding padding, halo, initial offset).
+
+.. cpp:function:: std::shared_ptr<storage_t> data_store::get_storage_ptr() const
+
+   Retrieve a pointer to the underlying storage instance.
+
+.. cpp:function:: std::shared_ptr<storage_info_t const> data_store::get_storage_info_ptr() const
+
+   Retrieve a pointer to the underlying storage_info instance.
+
+.. cpp:function:: bool data_store::valid() const
+
+   Check if underlying storage info and storage is valid.
+
+.. cpp:function:: void data_store::clone_to_device() const
+
+   Clone underlying storage to device. This function can also be called with host only storages but of course no operation is triggered.
+
+.. cpp:function:: void data_store::clone_from_device() const
+
+   Clone underlying storage from device. This function can also be called with host only storages but of course no operation is triggered.
+
+.. cpp:function:: void data_store::sync() const
+
+   Synchronize underlying storage.
+
+.. cpp:function:: void data_store::reactivate_device_write_views() const
+
+   Reactivate all device read write views to storage.
+
+.. cpp:function:: void data_store::reactivate_host_write_views() const
+
+   Reactivate all host read write views to storage.
+
+.. cpp:function:: std::string const &data_store::name() const
+
+   Retrieve the name of the data store.
+
+.. cpp:function:: const array<uint_t, ndims> &data_store::total_lengths() const
+
+   Return the array of dimensions.
+
+.. cpp:function:: const array<uint_t, ndims> &data_store::strides() const
+
+   Return the array of strides.
 
 .. note::
 
