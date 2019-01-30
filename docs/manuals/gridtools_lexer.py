@@ -9,7 +9,6 @@ gridtools_keywords = ((
         'tmp_arg',
         'arglist',
         'backward',
-        'bypass',
         'cache',
         'cells',
         'data_store',
@@ -28,7 +27,6 @@ gridtools_keywords = ((
         'grid',
         'icosahedral_topology',
         'IJ',
-        'IJK',
         'in',
         'inout',
         'interval',
@@ -45,6 +43,9 @@ gridtools_keywords = ((
         'direction',
         'sign',
         'field_on_the_fly'
+        'if_',
+        'switch_',
+        'case_'
 ))
 
 gridtools_namespace = ((
@@ -62,6 +63,7 @@ gridtools_functions = ((
 	'make_host_view',
 	'make_multistage',
 	'make_stage',
+        'make_independent'
         'boundary',
         'halo_exchange_dynamic_ut',
         'halo_exchange_generic',
