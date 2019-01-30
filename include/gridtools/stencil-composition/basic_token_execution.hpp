@@ -122,11 +122,11 @@ namespace gridtools {
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
                 for (int_t cur = first; IterationPolicy::condition(cur, last);
                      IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
-                    if (m_in_domain)
+                    if (m_in_domain) {
                         m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first, m_validity);
-                    m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last, m_validity);
-                    if (m_in_domain)
-                        m_domain.template slide_caches<IterationPolicy>();
+                        m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last, m_validity);
+                    }
+                    m_domain.template slide_caches<IterationPolicy>();
                     IterationPolicy::decrement(m_validity[0]);
                     IterationPolicy::decrement(m_validity[1]);
                 }
