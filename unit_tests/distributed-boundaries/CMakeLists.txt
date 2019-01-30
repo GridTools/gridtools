@@ -2,7 +2,7 @@ add_custom_x86_test(TARGET test_bindbc_utilities SOURCES test_bindbc_utilities.c
 
 if( GT_USE_MPI )
 
-    if( GT_ENABLE_X86 )
+    if( GT_ENABLE_TARGET_X86 )
         add_custom_mpi_x86_test(
             TARGET distributed_boundaries
             NPROC 4
@@ -11,7 +11,7 @@ if( GT_USE_MPI )
         target_link_libraries(distributed_boundaries_x86 gcl)
     endif()
 
-    if( GT_ENABLE_GPU )
+    if( GT_ENABLE_TARGET_CUDA )
         add_custom_mpi_gpu_test(
             TARGET distributed_boundaries
             NPROC 4
@@ -22,7 +22,7 @@ if( GT_USE_MPI )
 
 else()
 
-    if( GT_ENABLE_X86 )
+    if( GT_ENABLE_TARGET_X86 )
         add_custom_x86_test(
             TARGET distributed_boundaries
             SOURCES test_distributed_boundaries.cpp
@@ -31,7 +31,7 @@ else()
         target_link_libraries(distributed_boundaries_x86 gcl)
     endif()
 
-    if( GT_ENABLE_GPU )
+    if( GT_ENABLE_TARGET_CUDA )
         add_custom_gpu_test(
             TARGET distributed_boundaries
             SOURCES test_distributed_boundaries.cu
