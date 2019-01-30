@@ -206,14 +206,14 @@ The API allows the user to define an arbitrary object to act as a `global parame
 To create a global parameter from a user-defined object, we pass the object to ``make_global_paramter()``
 
 .. code-block:: gridtools
-   
+
    auto my_global_parameter = backend_t::make_global_parameter(my_object);
-   
+
 Note that the object is read-only only during the execution of a computation, but can be modified
 in between executions with
 
 .. code-block:: gridtools
-   
+
    backend_t::update_global_parameter(my_global_parameter, new_value);
 
 The accessor associated with a global parameter must be a `global accessor`
@@ -223,7 +223,7 @@ The accessor associated with a global parameter must be a `global accessor`
     using global_acc = global_accessor<0>;
 
 Calling ``eval`` on the global accessor returns the user defined data structure. Supposing that
- this data structure contains a user function called ``ordinal``, returning an integer, we can write
+this data structure contains a user function called ``ordinal``, returning an integer, we can write
 in the do method
 
 .. code-block:: gridtools
