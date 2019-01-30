@@ -75,8 +75,6 @@ namespace gridtools {
     struct make_ij_cache_storage {
         GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value == 0, "Only KCaches can be accessed with a non null extent in K");
-        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value == 0, "Only KCaches can be accessed with a non null extent in K");
         using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             ITile + Extent::iplus::value - Extent::iminus::value,
             JTile + Extent::jplus::value - Extent::jminus::value,
@@ -115,8 +113,6 @@ namespace gridtools {
     struct make_ij_cache_storage {
         GRIDTOOLS_STATIC_ASSERT(ITile > 0, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(JTile > 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(Extent::kminus::value == 0, "Only KCaches can be accessed with a non null extent in K");
-        GRIDTOOLS_STATIC_ASSERT(Extent::kplus::value == 0, "Only KCaches can be accessed with a non null extent in K");
         using type = ij_cache_storage<typename Arg::data_store_t::data_t,
             Arg::location_t::n_colors::value,
             ITile + Extent::iplus::value - Extent::iminus::value,
