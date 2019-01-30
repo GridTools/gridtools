@@ -174,8 +174,8 @@ TEST_F(expandable_parameters, caches) {
     auto in = make_storage(42.);
 
     arg<0, storages_t> p_out;
-    arg<1, storage_type> p_in;
-    tmp_arg<1, storages_t> p_tmp;
+    arg<1> p_in;
+    tmp_arg<1> p_tmp;
     run_computation(p_in = in,
         p_out = out,
         make_multistage(execute<forward>(),
