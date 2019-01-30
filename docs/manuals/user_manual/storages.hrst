@@ -120,10 +120,6 @@ Please note that the size of the halo has to be added to the arguments that are 
 
    Retrieve an offset (or index) when given an array of offsets in I, J, K, etc.
 
-.. cpp:function:: static constexpr uint_t storage_info::get_initial_offset()
-
-   Initial offset that is used in order to provide proper alignment.
-
 .. _data-store:
 
 ---------------
