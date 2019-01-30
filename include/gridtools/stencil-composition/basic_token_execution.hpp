@@ -101,21 +101,17 @@ namespace gridtools {
                 bool IsLast,
                 enable_if_t<meta::length<Stages>::value != 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
-                if (m_in_domain)
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
+                for (int_t cur = first; IterationPolicy::condition(cur, last);
+                     IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
+                    if (m_in_domain)
                         m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first, m_validity);
-                        RunEsfFunctor::template exec<Stages>(m_domain);
+                    RunEsfFunctor::template exec<Stages>(m_domain);
+                    if (m_in_domain)
                         m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last, m_validity);
-                        m_domain.template slide_caches<IterationPolicy>();
-                        IterationPolicy::decrement(m_validity[0]);
-                        IterationPolicy::decrement(m_validity[1]);
-                    }
-                else
-                    // the only purpose of this branch to do the same number of sync threads
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), IterationPolicy::increment(m_domain))
-                        RunEsfFunctor::template exec<Stages>(m_domain);
+                    m_domain.template slide_caches<IterationPolicy>();
+                    IterationPolicy::decrement(m_validity[0]);
+                    IterationPolicy::decrement(m_validity[1]);
+                }
             }
 
             template <class IterationPolicy,
@@ -124,15 +120,16 @@ namespace gridtools {
                 bool IsLast,
                 enable_if_t<meta::length<Stages>::value == 0, int> = 0>
             GT_FUNCTION void k_loop(int_t first, int_t last) const {
-                if (m_in_domain)
-                    for (int_t cur = first; IterationPolicy::condition(cur, last);
-                         IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
+                for (int_t cur = first; IterationPolicy::condition(cur, last);
+                     IterationPolicy::increment(cur), IterationPolicy::increment(m_domain)) {
+                    if (m_in_domain) {
                         m_domain.template fill_caches<IterationPolicy>(IsFirst && cur == first, m_validity);
                         m_domain.template flush_caches<IterationPolicy>(IsLast && cur == last, m_validity);
-                        m_domain.template slide_caches<IterationPolicy>();
-                        IterationPolicy::decrement(m_validity[0]);
-                        IterationPolicy::decrement(m_validity[1]);
                     }
+                    m_domain.template slide_caches<IterationPolicy>();
+                    IterationPolicy::decrement(m_validity[0]);
+                    IterationPolicy::decrement(m_validity[1]);
+                }
             }
 
             template <class LoopInterval>
