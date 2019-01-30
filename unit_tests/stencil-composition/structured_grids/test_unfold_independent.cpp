@@ -34,13 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 struct functor {
     using a0 = gridtools::accessor<0, gridtools::enumtype::inout>;
     using a1 = gridtools::accessor<1, gridtools::enumtype::inout>;
 
-    typedef make_arg_list<a0, a1> arg_list;
+    typedef gridtools::make_arg_list<a0, a1> arg_list;
 };
 
 struct fake_storage_type {
