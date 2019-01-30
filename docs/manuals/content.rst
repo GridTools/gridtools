@@ -1,4 +1,7 @@
 
+.. figure:: logo.svg
+   :scale: 100%
+
 .. toctree::
    :maxdepth: 2
 
