@@ -239,17 +239,15 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(
             extract_non_cached_tmp_args_from_msses, meta::dedup, (GT_META_CALL(meta::flatten, ArgLists)));
 
-        template <class MaxExtent, class Backend, class NoCachedArgs>
+        template <class MaxExtent, class Backend>
         struct get_tmp_arg_storage_pair_generator {
             template <class ArgStoragePair>
             struct generator {
                 template <class Grid>
                 ArgStoragePair operator()(Grid const &grid) const {
                     static constexpr auto backend = Backend{};
-                    using arg_t = typename ArgStoragePair::arg_t;
-                    static constexpr auto arg = arg_t{};
-                    static constexpr bool is_cached = !meta::st_contains<NoCachedArgs, arg_t>::value;
-                    return make_tmp_data_store<MaxExtent, is_cached>(backend, arg, grid);
+                    static constexpr auto arg = typename ArgStoragePair::arg_t{};
+                    return make_tmp_data_store<MaxExtent>(backend, arg, grid);
                 }
             };
 
@@ -257,10 +255,10 @@ namespace gridtools {
             GT_META_DEFINE_ALIAS(apply, meta::id, generator<T>);
         };
 
-        template <class MaxExtent, class Backend, class Res, class NoCachedArgs, class Grid>
+        template <class MaxExtent, class Backend, class Res, class Grid>
         Res make_tmp_arg_storage_pairs(Grid const &grid) {
-            using generators = GT_META_CALL(meta::transform,
-                (get_tmp_arg_storage_pair_generator<MaxExtent, Backend, NoCachedArgs>::template apply, Res));
+            using generators = GT_META_CALL(
+                meta::transform, (get_tmp_arg_storage_pair_generator<MaxExtent, Backend>::template apply, Res));
             return tuple_util::generate<generators, Res>(grid);
         }
 

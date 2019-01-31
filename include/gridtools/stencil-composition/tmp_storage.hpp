@@ -69,15 +69,14 @@
 
 #include "../common/defs.hpp"
 #include "../common/host_device.hpp"
-
+#include "../meta.hpp"
 #include "./arg.hpp"
+#include "./backend_cuda/tmp_storage.hpp"
+#include "./backend_x86/tmp_storage.hpp"
 #include "./block.hpp"
 #include "./grid.hpp"
 #include "./location_type.hpp"
 #include "./pos3.hpp"
-
-#include "./backend_cuda/tmp_storage.hpp"
-#include "./backend_x86/tmp_storage.hpp"
 
 #ifdef STRUCTURED_GRIDS
 #include "./structured_grids/tmp_storage.hpp"
@@ -97,34 +96,24 @@ namespace gridtools {
         }
 
         template <class Backend>
-        constexpr bool needs_allocation(Backend const &, bool /*is_cached*/) {
-            return true;
+        constexpr std::true_type needs_allocate_cached_tmp(Backend const &) {
+            return {};
         }
     } // namespace tmp_storage
 
-    template <class MaxExtent,
-        bool IsCached,
-        class ArgTag,
-        class DataStore,
-        int_t I,
-        ushort_t NColors,
-        class Backend,
-        class Grid>
+    template <class MaxExtent, class ArgTag, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
     DataStore make_tmp_data_store(
         Backend const &, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;
         static constexpr auto backend = typename Backend::backend_ids_t{};
-        return needs_allocation(backend, IsCached)
-                   ? DataStore{make_storage_info<storage_info_t, NColors>(backend,
-                         get_i_size<storage_info_t, MaxExtent>(
-                             backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
-                         get_j_size<storage_info_t, MaxExtent>(
-                             backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
-                         get_k_size<storage_info_t, MaxExtent>(
-                             backend, block_k_size(backend, grid), grid.k_total_length()))}
-                   : DataStore{make_storage_info<storage_info_t, NColors>(backend, 1, 1, 1)};
+        return {make_storage_info<storage_info_t, NColors>(backend,
+            get_i_size<storage_info_t, MaxExtent>(
+                backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
+            get_j_size<storage_info_t, MaxExtent>(
+                backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
+            get_k_size<storage_info_t, MaxExtent>(backend, block_k_size(backend, grid), grid.k_total_length()))};
     }
 
     template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
@@ -142,5 +131,10 @@ namespace gridtools {
                stride.k *
                    (get_k_block_offset<StorageInfo, MaxExtent>(backend, block_size.k, block_no.k) + pos_in_block.k);
     };
+
+    template <class Backend>
+    GT_META_DEFINE_ALIAS(needs_allocate_cached_tmp,
+        meta::id,
+        decltype(::gridtools::tmp_storage::needs_allocate_cached_tmp(typename Backend::backend_ids_t{})));
 
 } // namespace gridtools

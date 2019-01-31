@@ -67,8 +67,9 @@ namespace gridtools {
         } // namespace _impl
 
         template <class GridType>
-        constexpr bool needs_allocation(backend_ids<target::cuda, GridType, strategy::block> const &, bool is_cached) {
-            return !is_cached;
+        constexpr std::false_type needs_allocate_cached_tmp(
+            backend_ids<target::cuda, GridType, strategy::block> const &) {
+            return {};
         }
 
         template <class StorageInfo, class MaxExtent, class GridType>
