@@ -7,7 +7,7 @@ Distributed Boundary Conditions
 Design principles:
 -------------------
 
-* When doing expandable parameters or data fields, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes data-stores instead of data store fields or other data structures.
+* When doing expandable parameters, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes single data-stores only.
 * The user may want to apply different BCs to the same data-store at different times during an executions, so the binding between BCs and data-stores should be done at member-function level, not at class level, in order to remove the need for instantiation of heavy objects like halo-updates.
 * The same holds for the data stores to be exchanged: we need to plug the data stores at the last minute before doing the packing/unpacking and boundary apply. The requirement given by the underlying communication layer is that the number of data fields to be exchanged must be less than or equal to the maximum number of data fields specified at construction time.
 * The halo exchange patterns are quite heavy objects so they have to be constructed and passed around as references. The ``setup`` needs to be executed only once to prevent memory leaks.

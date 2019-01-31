@@ -65,7 +65,7 @@ and alignment 8 is created.
 Please note that the size of the halo has to be added to the arguments that are passed to the constructor.
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>> storage_info_t;
+    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8> > storage_info_t;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
 .. figure::  figures/storage_info_example.png
@@ -119,7 +119,7 @@ use managed data stores. The data store can be initialized with a value or lambd
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>> storage_info_t;
+    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8> > storage_info_t;
     typedef data_store<host_storage<double>, storage_info_t> data_store_t;
     storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
@@ -166,78 +166,6 @@ The ``data_store`` object provides methods for performing following things:
  The data store cannot be used to modify or access the data.
  In order to do so we use the view concept.
 
-.. _data_store_field:
-
-------------------
-Data store field
-------------------
-
-Sometimes we do not want to keep just an amount of distinct ``data_store`` elements but instead we
-wan't to couple ``data_store`` elements together in an element. This can be done with a ``data_store_field``.
-A real world example for a ``data_store_field`` is for example wind speed. The wind speed consists of
-three ``data_store`` objects. For each direction u, v, and w there is a distinct ``data_store``.
-
-.. figure:: figures/data_store_field.png
-   :scale: 70 %
-
-   Data store field design
-
-A ``data_store_field`` can be seen as a collection of data stores. The collection is grouped into
-components and snapshots. A component is for instance wind speed in direction u, v, or w.
-A snapshot is used to express for instance component u at time step t+1. The operations that
-can be performed on a ``data_store_field`` are mostly the same as the ``data_store`` operations.
-The difference is that the operations are performed to all ``data_store`` objects contained in the
-field. E.g., calling sync on a ``data_store_field`` will forward the sync call to all ``data_store``
-elements.
-
-**Example**:
-
-Following example shows a ``data_store_field`` with 3 components and 3 snapshots per component.
-
-.. figure:: figures/data_store_field_example.png
-   :scale: 80 %
-
-   Data store field example
-
-Such a field can be instantiated and used in the following way:
-
-.. code-block:: gridtools
-
-    typedef host_storage_info<0, layout_map<1, 0>> storage_info_t;
-    typedef data_store<host_storage<double>, storage_info_t> data_store_t;
-    // variadic list (e.g., 3, 3, 3) is defining the number and size of components
-    typedef data_store_field<data_store_t, 3, 3, 3> data_store_field_t;
-    storage_info_t si(6, 3);
-    data_store_field_t dsf(si); // instantiate the data_store_field
-    // get a specific data_store
-    data_store_t ds02 = dsf.get<0, 2>(); // retrieve the second snapshot of component 1
-    // swap the component 0 snapshot 0 with component 0 snapshot 1
-    swap<0, 0>::with<0, 1>(dsf);
-
-**Interface**:
-The ``data_store_field`` object provides methods for performing following things:
-
-* `template <uint_t Dim, uint_t Snapshot> DataStore const &get() const`: method that is used to extract a data_store out of a data_store_field.
-* `DataStore const &get(uint_t Dim, uint_t Snapshot) const`: method that is used to extract a data_store out of a data_store_field.
-* `template <uint_t Dim, uint_t Snapshot> void set(DataStore const &store)`: method that is used replace a data_store in a data_store_field.
-* `void set(uint_t Dim, uint_t Snapshot, DataStore const &store)`: method that is used replace a data_store in a data_store_field.
-* `void allocate(storage_info_t const &info)`: explicit allocation of the needed space.
-* `void reset()`: reset the data_store_field.
-* `bool valid() const`: check if all elements of the data_store_field are valid.
-* `std::array<DataStore, num_of_storages> const &get_field() const`: get the content of the data_store_field.
-* `constexpr std::array<uint_t, sizeof...(N)> get_dim_sizes() const`: retrieve the sizes of the data_store_field components.
-* `void clone_to_device() const`: clone underlying storages to device. This function can also be called with host only storages but of course no operation is triggered.
-* `void clone_from_device() const`: clone underlying storages from device. This function can also be called with host only storages but of course no operation is triggered.
-* `void sync() const`: synchronize underlying storages.
-* `void reactivate_device_write_views() const`: reactivate all device read write views to storages.
-* `void reactivate_host_write_views() const`: reactivate all host read write views to storages.
-
-The storage module provides special operations that can be applied to a `data_store_field`.
-
-* ``swap<I, J>::with<M, N>(data_store_field)``: operation to swap the data store located at component I snapshot J with the data store located at component M snapshot N.
-* ``cycle<I>::by<N>(data_store_field)``: operation to cycle all snapshots of component I by N positions. Speficically, snaopshot ``i`` will be placed in position ``(i-N) mod S``, where ``S`` is the number of shapshots of component ``I``.
-* ``cycle_all::by<N>(data_store_field)``: operation to cycle all snapshots of all components by N positions. The rotation follows the same direction as above.
-
 --------------
 Data view
 --------------
@@ -265,8 +193,8 @@ In case of a ``host_storage`` there is no device view available.
         s(0, 0) = s(0, 10); // set (0, 0) to 3.1415
     }
     ...
-    // instantiate a data_store and a data_store_field
-    typedef cuda_storage_info<0, layout_map<1, 0>> storage_info_t;
+    // instantiate a data_store
+    typedef cuda_storage_info<0, layout_map<1, 0> > storage_info_t;
     typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
 
     storage_info_t si(20, 20);
@@ -365,41 +293,6 @@ The ``data_view`` object provides methods for performing following things:
 * `template <typename... Coords> data_t& operator()(Coords... c) const`: used to access elements. E.g., view(0, 0, 2) will return the third element.
 * `bool check_consistency(DataStore const&, DataView const&)`: perform a full check if the given view can be used to modify or access the data in a proper way.
 
-------------------
-Data field view
-------------------
-
-Normal views cannot be used to access data fields. So one option would be to extract ``data_store`` elements from the field and create the views
-manually. The second option is to create a ``data_field_view`` and call the ``get`` method that returns a ``data_view`` to the requested field.
-The consitency and validity checks can be performed also on ``data_field_view`` objects.
-
-**Example**:
-
-Following example is creating a field view in order to modify data.
-The second code block shows that the same thing can also be done with
-manually extracting the ``data_store`` from the ``data_store_field`` and
-creating the views afterwards.
-
-.. code-block:: gridtools
-
-    ...
-    // access the first storage of the first dimension and set the first value to 5
-    auto hv = make_field_host_view(f);
-    // use the get field view and provided get methods
-    hv.get<0, 0>()(0, 0, 0) = 5;
-    hv.get<0, 1>()(0, 0, 0) = -5;
-
-    // second option: manually get the view of the first storage element in the data view (equivalent to get<0, 0>...)
-    data_store<host_storage<double>, storage_info_t> partial_1 = f.get<0, 0>();
-    data_store<host_storage<double>, storage_info_t> partial_2 = f.get<0, 1>();
-    auto hv1 = make_host_view<access_mode::ReadOnly>(partial_1);
-    auto hv2 = make_host_view<access_mode::ReadOnly>(partial_2);
-    EXPECT_EQ(hv1(0, 0, 0), 5);
-    EXPECT_EQ(hv2(0, 0, 0), -5);
-    ...
-
-Rotation and swaps are available only through data stores. After rotation and swap operations the ``data_store_view`` is invalid, but the `get` member function only checks for the validity of the underlying data, not if the data have been swapped or rotated.
-
 -------------------------
 Storage facility
 -------------------------
@@ -420,8 +313,6 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
     typedef storage_traits<BACKEND>::storage_info_t<0, 3> storage_info_t;
     // get a data store suitable for CUDA
     typedef storage_traits<BACKEND>::data_store_t<double, storage_info_t> data_store_t;
-    // get a data store field suitable for CUDA
-    typedef storage_traits<BACKEND>::data_store_field_t<double, storage_info_t, 2, 2, 2> data_store_field_t;
 
     storage_info_t si(128, 128, 80);
     data_store_t ds(si);
@@ -436,4 +327,3 @@ Following type queries are available:
 * ``custom_layout_storage_info_t<Id, LayoutMap, Halo>``: Retrieve an storage info with a specific memory layout.
 * ``special_storage_info_t<Id, Selector, Halo>``: Retrieve an storage info with a masked dimensions. The selector defines which dimensions are masked (e.g., ``selector<1, 0, 1>`` I and K is not masked, J dimension is masked).
 * ``data_store_t <ValueType, StorageInfo>``: Get a data store type that contains a suitable storage type.
-* ``data_store_field_t <ValueType, StorageInfo, Dims...>``: Get a data store field type that contains a suitable storage type.
