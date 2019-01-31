@@ -253,8 +253,8 @@ namespace gridtools {
         double get_time_exchange() const { return m_meter_exchange.get_time(); }
         double get_time_boundary() const { return m_meter_bc.get_time(); }
 
-        // no get_count_pack() as it is equivalent to get_count_exchange()
         size_t get_count_exchange() const { return m_meter_exchange.get_count(); }
+        // no get_count_pack() as it is equivalent to get_count_exchange()
         size_t get_count_boundary() const { return m_meter_bc.get_count(); }
 
         void reset_meters() {
