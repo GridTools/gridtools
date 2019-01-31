@@ -202,7 +202,9 @@ namespace gridtools {
         using tmp_arg_storage_pair_tuple_t = GT_META_CALL(meta::transform,
             (to_arg_storage_pair,
                 GT_META_CALL(meta::if_,
-                    (needs_allocate_cached_tmp<Backend>, tmp_placeholders_t, non_cached_tmp_placeholders_t))));
+                    (GT_META_CALL(needs_allocate_cached_tmp, Backend),
+                        tmp_placeholders_t,
+                        non_cached_tmp_placeholders_t))));
 
         GRIDTOOLS_STATIC_ASSERT((conjunction<meta::st_contains<non_tmp_placeholders_t, BoundPlaceholders>...>::value),
             "some bound placeholders are not used in mss descriptors");
