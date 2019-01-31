@@ -17,13 +17,13 @@ The object must be created before storage can be allocated. The meta data or sto
 
 .. code-block:: gridtools
 
- host_storage_info< Id, Layout, Halo, Alignment >(Dims...)
+ host_storage_info<Id, Layout, Halo, Alignment>(Dims...)
 
 for host storage infos.
 
 .. code-block:: gridtools
 
- cuda_storage_info< Id, Layout, Halo, Alignment >(Dims...)
+ cuda_storage_info<Id, Layout, Halo, Alignment>(Dims...)
 
 for cuda storage infos.
 
@@ -48,11 +48,11 @@ Passed type information:
  but with different dimensionality you must use a different ID.
 
 
-* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permuation of the value from ``0`` to ``N-1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0,1,2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2,1,0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1,-1,0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N,1,L)``, when accessing an element ``(i,j,k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
+* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permuation of the value from ``0`` to ``N-1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
 
 * **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (``alignment<1>``) by default. The Cuda backend uses a default alignment of 32 data elements (``alignment<32>``).
 
-* **Halo:** The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the stride 1 dimension. The halo information is given as follows: ``halo< Sizes... >`` where sizes is the halo size at both ends of the corresponding dimension, in terms of element sizes. E.g., ``halo<2,4,0>`` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
+* **Halo:** The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the stride 1 dimension. The halo information is given as follows: ``halo<Sizes...>`` where sizes is the halo size at both ends of the corresponding dimension, in terms of element sizes. E.g., ``halo<2, 4, 0>`` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
 
 **Example**:
 In the following example a storage info object with
@@ -65,8 +65,8 @@ and alignment 8 is created.
 Please note that the size of the halo has to be added to the arguments that are passed to the constructor.
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
-    storage_info_t si(6,3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
+    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>> storage_info_t;
+    storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
 .. figure::  figures/storage_info_example.png
    :scale: 100 %
@@ -75,12 +75,12 @@ Please note that the size of the halo has to be added to the arguments that are 
 
 **Interface**: The ``storage_info`` object provides methods for querying following information:
 
-* ``template < int D > constexpr int dim() const``: get the aligned size of a dimension. (Deprecated.)
-* ``constexpr const array< uint_t, ndims > &dims() const``: return the array of (aligned) dims. (Deprecated.)
-* ``template < int D > constexpr int stride() const``: get aligned the stride of dimension.
-* ``constexpr const array< uint_t, ndims > &strides() const``: return the array of (aligned) strides.
-* ``template < int D > constexpr int unaligned_dim() const``: get the unaligned size of a dimension. (Deprecated.)
-* ``template < int D > constexpr int unaligned_stride() const``: get the unaligned stride of dimension. (Deprecated - Does not really make sense.)
+* ``template <int D> constexpr int dim() const``: get the aligned size of a dimension. (Deprecated.)
+* ``constexpr const array<uint_t, ndims> &dims() const``: return the array of (aligned) dims. (Deprecated.)
+* ``template <int D> constexpr int stride() const``: get aligned the stride of dimension.
+* ``constexpr const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
+* ``template <int D> constexpr int unaligned_dim() const``: get the unaligned size of a dimension. (Deprecated.)
+* ``template <int D> constexpr int unaligned_stride() const``: get the unaligned stride of dimension. (Deprecated - Does not really make sense.)
 * ``template <uint_t D> constexpr uint_t begin() const``: retrieve the position of the first non halo point in dimension `D`.
 * ``template <uint_t D> constexpr uint_t end() const``: retrieve the position of the last non halo point in dimension `D`.
 * ``template <uint_t D> constexpr uint_t total_begin() const``: retrieve the position of the first point (can also be a halo point) in dimension `D`.
@@ -88,8 +88,8 @@ Please note that the size of the halo has to be added to the arguments that are 
 * ``template <uint_t D> constexpr uint_t length() const``: retrieve the total number of data points (excluding padding, halo, initial offset) in dimension `D` (`equivalent to end<D>()-begin<D>()+1`).
 * ``template <uint_t D> constexpr uint_t total_length() const``: retrieve the total number of data points (excluding padding, initial offset) in dimension `D` (`equivalent to total_end<D>()-total_begin<D>()+1`).
 * ``template <uint_t D> constexpr uint_t padded_total_length() const``: retrieve the total number of data points in dimension `D`, including eventual padding.
-* ``template < typename... Ints > constexpr int index(Ints... idx) const``: retrieve the array index of a given coordinate.
-* ``constexpr int index(gridtools::array< int, ndims > const &offsets) const``: retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
+* ``template <typename... Ints> constexpr int index(Ints... idx) const``: retrieve the array index of a given coordinate.
+* ``constexpr int index(gridtools::array<int, ndims> const &offsets) const``: retrieve an offset (or index) when given an array of offsets in I, J, K, etc.
 * ``static constexpr uint_t get_initial_offset()``: initial offset that is used in order to provide proper alignment.
 
 .. _data-store:
@@ -108,7 +108,7 @@ Once the ``storage_info`` object is created a ``data_store`` can be created. A `
 .. note::
 
  The template parameters taken by the data store have to be compatible.
- E.g., `data_store< cuda_storage<double>, host_storage_info< 0, layout_map<1,0> > >`
+ E.g., `data_store<cuda_storage<double>, host_storage_info<0, layout_map<1, 0>>>`
  is invalid because a `cuda_storage` is not compatible with a `host_storage_info`.
 
 
@@ -119,9 +119,9 @@ use managed data stores. The data store can be initialized with a value or lambd
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
-    typedef data_store< host_storage<double>, storage_info_t > data_store_t;
-    storage_info_t si(6,3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
+    typedef host_storage_info<0, layout_map<1, 0>, halo<1, 0>, alignment<8>> storage_info_t;
+    typedef data_store<host_storage<double>, storage_info_t> data_store_t;
+    storage_info_t si(6, 3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
     // standard use cases
     data_store_t ds1(si); // create a data store without a name (will allocate memory internally)
@@ -144,13 +144,13 @@ The ``data_store`` object provides methods for performing following things:
 
 * `void allocate(StorageInfo const &info)`: allocate the needed memory. this will instantiate a storage instance.
 * `void reset()`: reset the data_store. maybe deallocates memory.
-* `template < int D > int dim() const`: function to retrieve the (aligned) size of a dimension.
-* `template < int D > int unaligned_dim() const`: get the unaligned size of a dimension.
+* `template <int D> int dim() const`: function to retrieve the (aligned) size of a dimension.
+* `template <int D> int unaligned_dim() const`: get the unaligned size of a dimension.
 * `int padded_total_length() const`: retrieve the total number of data points.
 * `int total_length() const`: retrieve the total number of data points (excluding padding, initial offset).
 * `int length() const`: retrieve the total number of data points (excluding padding, halo, initial offset).
-* `std::shared_ptr< storage_t > get_storage_ptr() const`: retrieve a pointer to the underlying storage instance.
-* `std::shared_ptr< storage_info_t const > get_storage_info_ptr() const`: retrieve a pointer to the underlying storage_info instance.
+* `std::shared_ptr<storage_t> get_storage_ptr() const`: retrieve a pointer to the underlying storage instance.
+* `std::shared_ptr<storage_info_t const> get_storage_info_ptr() const`: retrieve a pointer to the underlying storage_info instance.
 * `bool valid() const`: check if underlying storage info and storage is valid.
 * `void clone_to_device() const`: clone underlying storage to device. This function can also be called with host only storages but of course no operation is triggered.
 * `void clone_from_device() const`: clone underlying storage from device. This function can also be called with host only storages but of course no operation is triggered.
@@ -158,8 +158,8 @@ The ``data_store`` object provides methods for performing following things:
 * `void reactivate_device_write_views() const`: reactivate all device read write views to storage.
 * `void reactivate_host_write_views() const`: reactivate all host read write views to storage.
 * `std::string const &name() const`: retrieve the name of the storage.
-* `const array< uint_t, ndims > &dims() const`: return the array of (aligned) dims.
-* `const array< uint_t, ndims > &strides() const`: return the array of (aligned) strides.
+* `const array<uint_t, ndims> &dims() const`: return the array of (aligned) dims.
+* `const array<uint_t, ndims> &strides() const`: return the array of (aligned) strides.
 
 .. note::
 
@@ -203,29 +203,29 @@ Such a field can be instantiated and used in the following way:
 
 .. code-block:: gridtools
 
-    typedef host_storage_info<0, layout_map<1,0> > storage_info_t;
-    typedef data_store< host_storage<double>, storage_info_t > data_store_t;
-    // variadic list (e.g., 3,3,3) is defining the number and size of components
-    typedef data_store_field< data_store_t, 3, 3, 3 > data_store_field_t;
-    storage_info_t si(6,3);
+    typedef host_storage_info<0, layout_map<1, 0>> storage_info_t;
+    typedef data_store<host_storage<double>, storage_info_t> data_store_t;
+    // variadic list (e.g., 3, 3, 3) is defining the number and size of components
+    typedef data_store_field<data_store_t, 3, 3, 3> data_store_field_t;
+    storage_info_t si(6, 3);
     data_store_field_t dsf(si); // instantiate the data_store_field
     // get a specific data_store
-    data_store_t ds02 = dsf.get<0,2>(); // retrieve the second snapshot of component 1
+    data_store_t ds02 = dsf.get<0, 2>(); // retrieve the second snapshot of component 1
     // swap the component 0 snapshot 0 with component 0 snapshot 1
-    swap<0,0>::with<0,1>(dsf);
+    swap<0, 0>::with<0, 1>(dsf);
 
 **Interface**:
 The ``data_store_field`` object provides methods for performing following things:
 
-* `template < uint_t Dim, uint_t Snapshot > DataStore const &get() const`: method that is used to extract a data_store out of a data_store_field.
+* `template <uint_t Dim, uint_t Snapshot> DataStore const &get() const`: method that is used to extract a data_store out of a data_store_field.
 * `DataStore const &get(uint_t Dim, uint_t Snapshot) const`: method that is used to extract a data_store out of a data_store_field.
-* `template < uint_t Dim, uint_t Snapshot > void set(DataStore const &store)`: method that is used replace a data_store in a data_store_field.
+* `template <uint_t Dim, uint_t Snapshot> void set(DataStore const &store)`: method that is used replace a data_store in a data_store_field.
 * `void set(uint_t Dim, uint_t Snapshot, DataStore const &store)`: method that is used replace a data_store in a data_store_field.
 * `void allocate(storage_info_t const &info)`: explicit allocation of the needed space.
 * `void reset()`: reset the data_store_field.
 * `bool valid() const`: check if all elements of the data_store_field are valid.
-* `std::array< DataStore, num_of_storages > const &get_field() const`: get the content of the data_store_field.
-* `constexpr std::array< uint_t, sizeof...(N) > get_dim_sizes() const`: retrieve the sizes of the data_store_field components.
+* `std::array<DataStore, num_of_storages> const &get_field() const`: get the content of the data_store_field.
+* `constexpr std::array<uint_t, sizeof...(N)> get_dim_sizes() const`: retrieve the sizes of the data_store_field components.
 * `void clone_to_device() const`: clone underlying storages to device. This function can also be called with host only storages but of course no operation is triggered.
 * `void clone_from_device() const`: clone underlying storages from device. This function can also be called with host only storages but of course no operation is triggered.
 * `void sync() const`: synchronize underlying storages.
@@ -234,9 +234,9 @@ The ``data_store_field`` object provides methods for performing following things
 
 The storage module provides special operations that can be applied to a `data_store_field`.
 
-* ``swap< I, J >::with< M, N >(data_store_field)``: operation to swap the data store located at component I snapshot J with the data store located at component M snapshot N.
-* ``cycle< I >::by< N >(data_store_field)``: operation to cycle all snapshots of component I by N positions. Speficically, snaopshot ``i`` will be placed in position ``(i-N) mod S``, where ``S`` is the number of shapshots of component ``I``.
-* ``cycle_all::by< N >(data_store_field)``: operation to cycle all snapshots of all components by N positions. The rotation follows the same direction as above.
+* ``swap<I, J>::with<M, N>(data_store_field)``: operation to swap the data store located at component I snapshot J with the data store located at component M snapshot N.
+* ``cycle<I>::by<N>(data_store_field)``: operation to cycle all snapshots of component I by N positions. Speficically, snaopshot ``i`` will be placed in position ``(i-N) mod S``, where ``S`` is the number of shapshots of component ``I``.
+* ``cycle_all::by<N>(data_store_field)``: operation to cycle all snapshots of all components by N positions. The rotation follows the same direction as above.
 
 --------------
 Data view
@@ -260,33 +260,33 @@ In case of a ``host_storage`` there is no device view available.
 .. code-block:: gridtools
 
     ...
-    template < typename View >
+    template <typename View>
     __global__ void kernel(View s) {
-        s(0, 0) = s(0, 10); // set (0,0) to 3.1415
+        s(0, 0) = s(0, 10); // set (0, 0) to 3.1415
     }
     ...
     // instantiate a data_store and a data_store_field
-    typedef cuda_storage_info<0, layout_map<1,0> > storage_info_t;
-    typedef data_store< cuda_storage<double>, storage_info_t > data_store_t;
+    typedef cuda_storage_info<0, layout_map<1, 0>> storage_info_t;
+    typedef data_store<cuda_storage<double>, storage_info_t> data_store_t;
 
     storage_info_t si(20, 20);
     data_store_t ds(si);
 
     // create a view to ds (data_store)
     auto host_view_ds = make_host_view(ds); // read write view
-    // set (0,10) to 3.1415
+    // set (0, 10) to 3.1415
     host_view_ds(0, 10) = 3.1415;
     // synchronize the data store
     ds.sync();
     // create a device view
     auto device_view_ds = make_device_view(ds); // read write view
     // call kernel
-    kernel<<<1,1>>>(device_view_ds);
+    kernel<<<1, 1>>>(device_view_ds);
     // synchronize the data store
     ds.sync();
     // reactivate the host view
     ds.reactivate_host_write_views();
-    // expect (0,0) == (0,10)
+    // expect (0, 0) == (0, 10)
     EXPECT_EQ(host_view_ds(0, 10), host_view_ds(0, 0));
 
 
@@ -302,7 +302,7 @@ synchronization they have to be activated manually via a call to ``reactivate_ho
 
     ...
     auto host_view_ds = make_host_view(ds);
-    auto ro_host_view_ds = make_host_view< access_mode::ReadOnly >(ds);
+    auto ro_host_view_ds = make_host_view<access_mode::ReadOnly>(ds);
     // check if view is consistent
     assert(check_consistency(ds, ro_host_view_ds));
     assert(check_consistency(ds, host_view_ds));
@@ -347,11 +347,11 @@ Access is either ``access_mode::ReadOnly`` or ``access_mode::ReadWrite`` and the
 The ``data_view`` object provides methods for performing following things:
 
 * `bool valid() const`: Check if view contains valid pointers, and simple state machine checks. Be aware that this is not a full check. In order to check if a view is in a consistent state use check_consistency function.
-* ``template < int D > constexpr int dim() const``: get the aligned size of a dimension. (Deprecated.)
-* ``constexpr const array< uint_t, ndims > &dims() const``: return the array of (aligned) dims. (Deprecated.)
-* ``template < int D > constexpr int stride() const``: get aligned the stride of dimension.
-* ``constexpr const array< uint_t, ndims > &strides() const``: return the array of (aligned) strides.
-* ``template < int D > constexpr int unaligned_dim() const``: get the unaligned size of a dimension. (Deprecated.)
+* ``template <int D> constexpr int dim() const``: get the aligned size of a dimension. (Deprecated.)
+* ``constexpr const array<uint_t, ndims> &dims() const``: return the array of (aligned) dims. (Deprecated.)
+* ``template <int D> constexpr int stride() const``: get aligned the stride of dimension.
+* ``constexpr const array<uint_t, ndims> &strides() const``: return the array of (aligned) strides.
+* ``template <int D> constexpr int unaligned_dim() const``: get the unaligned size of a dimension. (Deprecated.)
 * ``template <uint_t D> constexpr uint_t begin() const``: retrieve the position of the first non halo point in dimension `D`.
 * ``template <uint_t D> constexpr uint_t end() const``: retrieve the position of the last non halo point in dimension `D`.
 * ``template <uint_t D> constexpr uint_t total_begin() const``: retrieve the position of the first point (can also be a halo point) in dimension `D`.
@@ -362,7 +362,7 @@ The ``data_view`` object provides methods for performing following things:
 * `constexpr int padded_total_length() const`: retrieve the total number of data points.
 * `constexpr int total_length() const`: retrieve the total number of data points (excluding padding, initial offset).
 * `constexpr int length() const`: retrieve the total number of data points (excluding padding, halo, initial offset).
-* `template < typename... Coords > data_t& operator()(Coords... c) const`: used to access elements. E.g., view(0,0,2) will return the third element.
+* `template <typename... Coords> data_t& operator()(Coords... c) const`: used to access elements. E.g., view(0, 0, 2) will return the third element.
 * `bool check_consistency(DataStore const&, DataView const&)`: perform a full check if the given view can be used to modify or access the data in a proper way.
 
 ------------------
@@ -386,14 +386,14 @@ creating the views afterwards.
     // access the first storage of the first dimension and set the first value to 5
     auto hv = make_field_host_view(f);
     // use the get field view and provided get methods
-    hv.get< 0, 0 >()(0, 0, 0) = 5;
-    hv.get< 0, 1 >()(0, 0, 0) = -5;
+    hv.get<0, 0>()(0, 0, 0) = 5;
+    hv.get<0, 1>()(0, 0, 0) = -5;
 
-    // second option: manually get the view of the first storage element in the data view (equivalent to get<0,0>...)
-    data_store< host_storage< double >, storage_info_t > partial_1 = f.get<0,0>();
-    data_store< host_storage< double >, storage_info_t > partial_2 = f.get<0,1>();
-    auto hv1 = make_host_view< access_mode::ReadOnly >(partial_1);
-    auto hv2 = make_host_view< access_mode::ReadOnly >(partial_2);
+    // second option: manually get the view of the first storage element in the data view (equivalent to get<0, 0>...)
+    data_store<host_storage<double>, storage_info_t> partial_1 = f.get<0, 0>();
+    data_store<host_storage<double>, storage_info_t> partial_2 = f.get<0, 1>();
+    auto hv1 = make_host_view<access_mode::ReadOnly>(partial_1);
+    auto hv2 = make_host_view<access_mode::ReadOnly>(partial_2);
     EXPECT_EQ(hv1(0, 0, 0), 5);
     EXPECT_EQ(hv2(0, 0, 0), -5);
     ...
@@ -417,13 +417,13 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 
     #define BACKEND platform::cuda
     // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3 > storage_info_t;
+    typedef storage_traits<BACKEND>::storage_info_t<0, 3> storage_info_t;
     // get a data store suitable for CUDA
-    typedef storage_traits< BACKEND >::data_store_t< double, storage_info_t > data_store_t;
+    typedef storage_traits<BACKEND>::data_store_t<double, storage_info_t> data_store_t;
     // get a data store field suitable for CUDA
-    typedef storage_traits< BACKEND >::data_store_field_t< double, storage_info_t, 2, 2, 2 > data_store_field_t;
+    typedef storage_traits<BACKEND>::data_store_field_t<double, storage_info_t, 2, 2, 2> data_store_field_t;
 
-    storage_info_t si(128,128,80);
+    storage_info_t si(128, 128, 80);
     data_store_t ds(si);
     ...
 
@@ -432,8 +432,8 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 
 Following type queries are available:
 
-* ``storage_info_t< Id, Dims, Halo >``: Retrieve an n-dimensional storage info with the correct layout and memory alignment.
-* ``custom_layout_storage_info_t< Id, LayoutMap, Halo >``: Retrieve an storage info with a specific memory layout.
-* ``special_storage_info_t< Id, Selector, Halo >``: Retrieve an storage info with a masked dimensions. The selector defines which dimensions are masked (e.g., ``selector<1,0,1>`` I and K is not masked, J dimension is masked).
-* ``data_store_t < ValueType, StorageInfo >``: Get a data store type that contains a suitable storage type.
-* ``data_store_field_t < ValueType, StorageInfo, Dims... >``: Get a data store field type that contains a suitable storage type.
+* ``storage_info_t<Id, Dims, Halo>``: Retrieve an n-dimensional storage info with the correct layout and memory alignment.
+* ``custom_layout_storage_info_t<Id, LayoutMap, Halo>``: Retrieve an storage info with a specific memory layout.
+* ``special_storage_info_t<Id, Selector, Halo>``: Retrieve an storage info with a masked dimensions. The selector defines which dimensions are masked (e.g., ``selector<1, 0, 1>`` I and K is not masked, J dimension is masked).
+* ``data_store_t <ValueType, StorageInfo>``: Get a data store type that contains a suitable storage type.
+* ``data_store_field_t <ValueType, StorageInfo, Dims...>``: Get a data store field type that contains a suitable storage type.

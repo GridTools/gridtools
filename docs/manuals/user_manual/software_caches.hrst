@@ -113,5 +113,5 @@ cache is used in a forward vertical loop.
    :scale: 50 %
 
    Representation of an implementation for a ``cache<K, cache_io_policy::fill_and_flush>`` that is used within a
-   stencil with extent ``<-2,1>`` in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations
+   stencil with extent ``<-2, 1>`` in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations
    are triggered automatically by the library for a `fill_and_flush` cache when the vertical loop transition from level 9 to level 10.
