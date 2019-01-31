@@ -97,8 +97,8 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
     using testee_t = typename get_k_cache_storage_tuple<caches_t, esfk_sequence_t>::type;
 
-    using expected_t = std::tuple<boost::fusion::pair<p_out, k_cache_storage<float_type, 0, 1>>,
-        boost::fusion::pair<p_notin, k_cache_storage<float_type, -1, 1>>>;
+    using expected_t = std::tuple<boost::fusion::pair<p_out, k_cache_storage<p_out, float_type, 0, 1>>,
+        boost::fusion::pair<p_notin, k_cache_storage<p_notin, float_type, -1, 1>>>;
 
     static_assert(std::is_same<testee_t, expected_t>::value, "");
 }
