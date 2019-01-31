@@ -193,6 +193,9 @@ namespace gridtools {
         using tmp_placeholders_t = GT_META_CALL(meta::filter, (is_tmp_arg, placeholders_t));
         using non_tmp_placeholders_t = GT_META_CALL(meta::filter, (meta::not_<is_tmp_arg>::apply, placeholders_t));
 
+        using non_cached_tmp_placeholders_t = GT_META_CALL(
+            _impl::extract_non_cached_tmp_args_from_msses, all_mss_descriptors_t);
+
         template <class Arg>
         GT_META_DEFINE_ALIAS(to_arg_storage_pair, meta::id, (arg_storage_pair<Arg, typename Arg::data_store_t>));
 
@@ -282,9 +285,10 @@ namespace gridtools {
               // a functor with a chosen condition branch
               m_branch_selector(std::move(msses)),
               // here we create temporary storages; note that they are passed through the `dedup_storage_info` method.
-              m_tmp_arg_storage_pair_tuple(dedup_storage_info(
-                  _impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t, Backend, tmp_arg_storage_pair_tuple_t>(
-                      grid))),
+              m_tmp_arg_storage_pair_tuple(dedup_storage_info(_impl::make_tmp_arg_storage_pairs<max_extent_for_tmp_t,
+                  Backend,
+                  tmp_arg_storage_pair_tuple_t,
+                  non_cached_tmp_placeholders_t>(grid))),
               // stash bound storages; sanitizing them through the `dedup_storage_info` as well.
               m_bound_arg_storage_pair_tuple(dedup_storage_info(std::move(arg_storage_pairs))) {
             if (timer_enabled)

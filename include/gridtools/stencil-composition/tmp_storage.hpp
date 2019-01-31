@@ -95,21 +95,36 @@ namespace gridtools {
         GT_FUNCTION int_t get_k_block_offset(Backend const &, uint_t /*block_size*/, uint_t /*block_no*/) {
             return 0;
         }
+
+        template <class Backend>
+        constexpr bool needs_allocation(Backend const &, bool /*is_cached*/) {
+            return true;
+        }
     } // namespace tmp_storage
 
-    template <class MaxExtent, class ArgTag, class DataStore, int_t I, ushort_t NColors, class Backend, class Grid>
+    template <class MaxExtent,
+        bool IsCached,
+        class ArgTag,
+        class DataStore,
+        int_t I,
+        ushort_t NColors,
+        class Backend,
+        class Grid>
     DataStore make_tmp_data_store(
         Backend const &, plh<ArgTag, DataStore, location_type<I, NColors>, true> const &, Grid const &grid) {
         GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         using namespace tmp_storage;
         using storage_info_t = typename DataStore::storage_info_t;
         static constexpr auto backend = typename Backend::backend_ids_t{};
-        return {make_storage_info<storage_info_t, NColors>(backend,
-            get_i_size<storage_info_t, MaxExtent>(
-                backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
-            get_j_size<storage_info_t, MaxExtent>(
-                backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
-            get_k_size<storage_info_t, MaxExtent>(backend, block_k_size(backend, grid), grid.k_total_length()))};
+        return needs_allocation(backend, IsCached)
+                   ? DataStore{make_storage_info<storage_info_t, NColors>(backend,
+                         get_i_size<storage_info_t, MaxExtent>(
+                             backend, block_i_size(backend, grid), grid.i_high_bound() - grid.i_low_bound() + 1),
+                         get_j_size<storage_info_t, MaxExtent>(
+                             backend, block_j_size(backend, grid), grid.j_high_bound() - grid.j_low_bound() + 1),
+                         get_k_size<storage_info_t, MaxExtent>(
+                             backend, block_k_size(backend, grid), grid.k_total_length()))}
+                   : DataStore{make_storage_info<storage_info_t, NColors>(backend, 1, 1, 1)};
     }
 
     template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
