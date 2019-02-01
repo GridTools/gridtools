@@ -61,7 +61,7 @@ namespace gridtools {
         using out_acc = inout_accessor<2, extent<>, 2>;
 
         struct dummy_functor {
-            using arg_list = boost::mpl::vector<in_acc, buff_acc, out_acc>;
+            using arg_list = make_arg_list<in_acc, buff_acc, out_acc>;
             template <typename Evaluation>
             GT_FUNCTION static void Do(Evaluation &eval);
         };
@@ -112,10 +112,10 @@ namespace gridtools {
             using iterate_domain_arguments_t =
                 iterate_domain_arguments<backend_ids<target::x86, grid_type_t, strategy::naive>,
                     decltype(local_domain1),
-                    boost::mpl::vector1<esf_t>,
-                    boost::mpl::vector1<extent<>>,
+                    make_arg_list<esf_t>,
+                    make_arg_list<extent<>>,
                     extent<>,
-                    boost::mpl::vector0<>,
+                    make_arg_list<>,
                     gridtools::grid<gridtools::axis<1>::axis_interval_t>>;
 
 #ifdef BACKEND_MC
