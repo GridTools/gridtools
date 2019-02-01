@@ -54,7 +54,7 @@ struct lap_functor {
     typedef in_accessor<3, enumtype::edges> edge_length_reciprocal;
     typedef inout_accessor<4, enumtype::edges> out_edges;
     using arg_list =
-        boost::mpl::vector<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
+        make_arg_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

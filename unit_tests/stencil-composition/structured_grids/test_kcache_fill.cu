@@ -47,7 +47,7 @@ struct shift_acc_forward_fill {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
@@ -68,7 +68,7 @@ struct shift_acc_forward_fill_shifted_bounds {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 2>> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimumm1) {
@@ -94,7 +94,7 @@ struct shift_acc_backward_fill {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
@@ -116,7 +116,7 @@ struct copy_fill {
     typedef accessor<0, enumtype::in> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {

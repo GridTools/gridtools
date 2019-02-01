@@ -55,7 +55,7 @@ struct lap_function {
     using out = gt::accessor<0, gt::enumtype::inout>;
     using in = gt::accessor<1, gt::enumtype::in, gt::extent<-1, 1, -1, 1>>;
 
-    using arg_list = boost::mpl::vector<out, in>;
+    using arg_list = gt::make_arg_list<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -70,7 +70,7 @@ struct flx_function {
     using in = gt::accessor<1, gt::enumtype::in, gt::extent<0, 1, 0, 0>>;
     using lap = gt::accessor<2, gt::enumtype::in, gt::extent<0, 1, 0, 0>>;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    using arg_list = gt::make_arg_list<out, in, lap>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -91,7 +91,7 @@ struct fly_function {
     using in = gt::accessor<1, gt::enumtype::in, gt::extent<0, 0, 0, 1>>;
     using lap = gt::accessor<2, gt::enumtype::in, gt::extent<0, 0, 0, 1>>;
 
-    using arg_list = boost::mpl::vector<out, in, lap>;
+    using arg_list = gt::make_arg_list<out, in, lap>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -114,7 +114,7 @@ struct out_function {
     using fly = gt::accessor<3, gt::enumtype::in, gt::extent<0, 0, -1, 0>>;
     using coeff = gt::accessor<4, gt::enumtype::in>;
 
-    using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
+    using arg_list = gt::make_arg_list<out, in, flx, fly, coeff>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

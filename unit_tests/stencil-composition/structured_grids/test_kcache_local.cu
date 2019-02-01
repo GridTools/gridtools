@@ -47,7 +47,7 @@ struct shif_acc_forward {
     typedef accessor<1, ::inout, extent<>> out;
     typedef accessor<2, ::inout, extent<0, 0, 0, 0, -1, 0>> buff;
 
-    typedef boost::mpl::vector<in, out, buff> arg_list;
+    typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
@@ -69,7 +69,7 @@ struct biside_large_kcache_forward {
     typedef accessor<1, ::inout, extent<>> out;
     typedef accessor<2, ::inout, extent<0, 0, 0, 0, -2, 1>> buff;
 
-    typedef boost::mpl::vector<in, out, buff> arg_list;
+    typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
@@ -102,7 +102,7 @@ struct biside_large_kcache_backward {
     typedef accessor<1, ::inout, extent<>> out;
     typedef accessor<2, ::inout, extent<0, 0, 0, 0, -1, 2>> buff;
 
-    typedef boost::mpl::vector<in, out, buff> arg_list;
+    typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
@@ -135,7 +135,7 @@ struct shif_acc_backward {
     typedef accessor<1, ::inout, extent<>> out;
     typedef accessor<2, ::inout, extent<0, 0, 0, 0, 0, 1>> buff;
 
-    typedef boost::mpl::vector<in, out, buff> arg_list;
+    typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {

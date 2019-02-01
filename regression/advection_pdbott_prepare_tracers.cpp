@@ -48,7 +48,7 @@ struct prepare_tracers {
     using data_nnow = in_accessor<1>;
     using rho = in_accessor<2>;
 
-    using arg_list = boost::mpl::vector<data, data_nnow, rho>;
+    using arg_list = make_arg_list<data, data_nnow, rho>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

@@ -152,7 +152,7 @@ namespace multi_types_test {
         typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
 
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
@@ -166,7 +166,7 @@ namespace multi_types_test {
         typedef accessor<0, enumtype::inout> out;
         typedef accessor<1, enumtype::in> in;
 
-        typedef boost::mpl::vector<out, in> arg_list;
+        typedef make_arg_list<out, in> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
@@ -187,7 +187,7 @@ namespace multi_types_test {
         typedef accessor<1, enumtype::in> in;
         typedef accessor<2, enumtype::in> temp;
 
-        typedef boost::mpl::vector<out, in, temp> arg_list;
+        typedef make_arg_list<out, in, temp> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
@@ -201,7 +201,7 @@ namespace multi_types_test {
         typedef accessor<1, enumtype::in> temp;
         typedef accessor<2, enumtype::in> in;
 
-        typedef boost::mpl::vector<out, temp, in> arg_list;
+        typedef make_arg_list<out, temp, in> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {

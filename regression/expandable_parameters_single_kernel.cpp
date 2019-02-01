@@ -62,7 +62,7 @@ struct functor_single_kernel {
     using parameters4_in = in_accessor<8>;
     using parameters5_in = in_accessor<9>;
 
-    using arg_list = boost::mpl::vector<parameters1_out,
+    using arg_list = make_arg_list<parameters1_out,
         parameters2_out,
         parameters3_out,
         parameters4_out,
