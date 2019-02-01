@@ -8,9 +8,8 @@ using arg_phi_new = arg<1, data_store_t>;
 using arg_lap = arg<2, data_store_t>;
 using arg_laplap = arg<3, data_store_t>;
 
-int bs = 2; // boundary size
-halo_descriptor boundary_i(bs, bs, bs, Ni - bs - 1, Ni);
-halo_descriptor boundary_j(bs, bs, bs, Nj - bs - 1, Nj);
+halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
+halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
 auto my_grid = make_grid(boundary_i, boundary_j, axis_t{kmax, Nk - kmax});
 
 auto smoothing = make_computation<backend_t>(              //

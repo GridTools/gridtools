@@ -3,9 +3,6 @@
 #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/storage/storage-facility.hpp>
 
-template <typename... Args> // TODO remove once gridtools has it
-using make_arg_list = boost::mpl::vector<Args...>;
-
 using namespace gridtools;
 using namespace gridtools::expressions;
 using namespace gridtools::enumtype; // TODO we need to fix this!
@@ -17,7 +14,9 @@ using target_t = target::mc;
 #endif
 using backend_t = backend<target_t, grid_type::structured, strategy::block>;
 
-using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
+static constexpr unsigned halo_size = 2;
+
+using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3, halo<halo_size, halo_size, 0>>;
 using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
 
 constexpr static gridtools::dimension<1> i;

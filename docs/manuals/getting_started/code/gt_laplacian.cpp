@@ -4,9 +4,6 @@
 
 #include <gridtools/stencil-composition/accessor.hpp>
 
-template <typename... Args> // TODO remove once gridtools has it
-using make_arg_list = boost::mpl::vector<Args...>;
-
 using namespace gridtools;
 using namespace gridtools::expressions;
 using namespace gridtools::enumtype; // TODO we need to fix this!
