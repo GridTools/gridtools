@@ -22,7 +22,7 @@ Currently there are two concrete implementations of the `GridTopology`:
 1. The `icosahedral_topology` provides connectvity information at compile time, for icosahedral/octahedral grid layouts where all 
 the connectivty information can be derived at compiled time from the parallelogram structures based on simple stride rules. 
 
-An example of such structured index layout of the icosahedral grid parallelograms is shown in the figure :numref:`fig_ico_indices`, 
+An example of such structured index layout of the icosahedral grid parallelograms is shown in :numref:`fig_ico_indices`,
 where the parallelogram can be indexed with three coordinates `i` and `j` and a color that identifies downward/upward triangles. 
 This particular data layout assumes an order in the dimensions like i-c-j (being `i` the stride-1 dimension). 
 As an example, the cell with index 14, can be accessed with `{i,c,j}` coordinates `{2,0,1}`.
@@ -56,12 +56,13 @@ These offsets rules can be extracted using the connectivity class API
  template < typename SrcLocation, typename DestLocation, uint_t Color >
  struct connectivity
 
-For the icosahedral grid, the connectivity tables give access to the following 9 type of queries, depending on the `from` and `to` location types
+For the icosahedral grid, the connectivity tables give access to the following 9 type of queries, depending on the `from` and `to` location types. See :numref:`fig_location_type_opr`.
 
+.. _fig_location_type_opr:
 .. figure:: figures/location_type_opr.png
    :scale: 60 %
   
-   All possible connectivity queries in an icosahedral grid
+   All possible connectivity queries in an icosahedral grid.
 
 
 .. note::

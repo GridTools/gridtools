@@ -56,7 +56,7 @@ namespace {
     struct parallel_functor {
         typedef accessor<0> in;
         typedef accessor<1, inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef gridtools::make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<0>) {
@@ -72,7 +72,7 @@ namespace {
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
         typedef accessor<1, inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef gridtools::make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {

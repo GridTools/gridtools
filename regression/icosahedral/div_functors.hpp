@@ -51,7 +51,7 @@ namespace ico_operators {
         using orientation_of_normal = in_accessor<2, cells, extent<>, 5>;
         using weights = inout_accessor<3, cells, 5>;
 
-        using arg_list = boost::mpl::vector<edge_length, cell_area_reciprocal, orientation_of_normal, weights>;
+        using arg_list = make_arg_list<edge_length, cell_area_reciprocal, orientation_of_normal, weights>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
@@ -72,7 +72,7 @@ namespace ico_operators {
         using weights = in_accessor<1, cells, extent<>, 5>;
         using out_cells = inout_accessor<2, cells>;
 
-        using arg_list = boost::mpl::vector<in_edges, weights, out_cells>;
+        using arg_list = make_arg_list<in_edges, weights, out_cells>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {
@@ -96,7 +96,7 @@ namespace ico_operators {
         using cell_area_reciprocal = in_accessor<2, cells>;
         using out_cells = inout_accessor<3, cells>;
 
-        using arg_list = boost::mpl::vector<in_edges, edge_length, cell_area_reciprocal, out_cells>;
+        using arg_list = make_arg_list<in_edges, edge_length, cell_area_reciprocal, out_cells>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation eval) {

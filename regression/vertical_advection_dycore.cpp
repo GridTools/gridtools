@@ -64,7 +64,7 @@ struct u_forward_function {
     using ccol = inout_accessor<8, extent<0, 0, 0, 0, -1, 0>>;
     using dcol = inout_accessor<9, extent<0, 0, 0, 0, -1, 0>>;
 
-    using arg_list = boost::mpl::vector<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
+    using arg_list = make_arg_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, -1> interval) {
@@ -144,13 +144,13 @@ struct u_forward_function {
 
 struct u_backward_function {
     using utens_stage = inout_accessor<0>;
-    using u_pos = inout_accessor<1>;
-    using dtr_stage = inout_accessor<2>;
-    using ccol = inout_accessor<3>;
-    using dcol = inout_accessor<4>;
+    using u_pos = in_accessor<1>;
+    using dtr_stage = in_accessor<2>;
+    using ccol = in_accessor<3>;
+    using dcol = in_accessor<4>;
     using data_col = inout_accessor<5, extent<0, 0, 0, 0, 0, 1>>;
 
-    using arg_list = boost::mpl::vector<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
+    using arg_list = make_arg_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, full_t::modify<0, -1> interval) {
