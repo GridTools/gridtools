@@ -22,7 +22,7 @@ The basic syntax for function calls is as follows
 
 .. code-block:: gridtools
 
-   call<stencil_operator, vertical_interval, return_value_type>::with(eval, accessors...);
+   auto x = call<stencil_operator, vertical_interval, return_value_type>::with(eval, accessors...);
 
 where ``stencil_operator`` is the operator to be called, ``vertical_interval`` the :ref:`vertical interval<vertical_regions>` where the operator
 will be applied and ``return_value_type`` the type of the return value for the function call. The ``return_value_type`` will be automatically deduced
@@ -47,7 +47,7 @@ on a different gridpoint, by specifying a relative location with ``at``:
 Procedure calls: call_proc<>
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Procedural calls work int he same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
+Procedural calls work in the same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
 
 .. code-block:: gridtools
 
