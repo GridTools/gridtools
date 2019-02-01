@@ -26,7 +26,6 @@ constexpr static gridtools::dimension<3> k;
 using axis_t = axis<2>;
 using lower_domain = axis_t::get_interval<0>;
 using upper_domain = axis_t::get_interval<1>;
-using full_domain = axis_t::full_interval;
 
 struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;

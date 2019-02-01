@@ -37,9 +37,6 @@ In the following we will walk through the following steps:
 -   Storages: how does |GT| manage the input and output fields.
 -   The first stencil: calculating :math:`L`, the second order Laplacian of :math:`\phi`.
 -   The final stencil: function calls, Do-method overloads and temporaries
--   MISSING: How to pass the :math:`\alpha`: Global accessors
--   MISSING: Distributing the work over multiple nodes: GCL
--   MISSING: Boundaries
 
 -----------------
 Coordinate System
@@ -296,58 +293,40 @@ information about the loop-logic, i.e. about the domain where we want to apply t
 since we need to specify it in a platform-independent syntax, a *domain specific embedded language*
 (DSEL), such that the backend can decide on the specific implementation.
 
-For our example looks as follows
+For our example this looks as follows
 
 .. literalinclude:: code/gt_laplacian.cpp
    :language: gridtools
    :start-after: int main() {
-   :end-before: }
+   :end-before: } // end marker
    :dedent: 4 
    :linenos:
 
+In line 10 and 11 we define placeholders for the fields.
 
-.. todo::
-
-   update line numbers and fix example
-
-In line 1 and 2 we define placeholders for the fields.
-
-In lines 4-9 we setup the physical dimension of the problem.
+In lines 13-16 we setup the physical dimension of the problem.
 First we define which points on the :math:`i` and the :math:`j`-axis belong
 to the computational domain and which points belong to the boundary (or
 a padding region). For now it is enough to know that these lines define
-an axis with a boundary of size 1 surrounding the :math:`ij`-plane. In the
+a region with a boundary of size 1 surrounding the :math:`ij`-plane. In the
 next lines the layers in :math:`k` are defined. In this case we have only one
 interval. We will discuss the details later.
 
-In lines 15-21 we create the stencil object.
-We pass the domain (the mapping between placeholders and storages), the
-grid (the information about the loop bounds) and a so-called ``multistage``. The ``multi_stage``
+In lines 18-23 we create the stencil object.
+We pass the grid (the information about the loop bounds) and a so-called ``multistage``. The ``multi_stage``
 contains a single ``stage``, our Laplacian functor.
 
 In more complex codes we can combine multiple :math:`k`-independent ``stage`` s in
 a ``multi_stage``. If we have a :math:`k`-dependency we have to split the computation
 in multiple ``multi_stage`` s.
 
-The statement ``execute<forward>`` defines that we want to iterate over :math:`k` in a
+The statement ``execute<parallel>`` defines that we want to iterate over :math:`k` in a
 forward manner, i.e. starting from the smallest :math:`k`-value to the
-largest. Other execution modes are ``backward`` and ``parallel``. For performance reason ``parallel`` should be used
+largest. Other execution modes are ``forward`` and ``backward``. For performance reason ``parallel`` should be used
 whenever possible.
 
-The next lines 23 and
-24 are mandatory: we allocate temporary
-storages (in our case we don't use any) and syncronize the fields to the
-device (if we use the CUDA backend).
-
-Line 26 is self-explanatory: the stencil is
-executed.
-
-In the last line we cleanup: we free temporary storages and copy modified fields
-back to the host.
-
-In a more realistic application the ``run()`` will be called multiple
-times without syncronizing to the host. If we want to inspect the fields between runs (i.e. before the
-``finalize()``) we have to sync ``data_store`` s manually.
+In the last line the stencil is
+executed. The datastores ``phi`` and ``lap`` are bound to its placeholders.
 
 ^^^^^^^^^^^^^^^^^^^
 Full |GT| Laplacian
@@ -393,7 +372,7 @@ we can specialize the computation in the :math:`k`-direction:
 .. literalinclude:: code/gt_smoothing_version1.hpp
    :language: gridtools
 
-We define two
+We use two different
 intervals, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
 ``Do``-method for each interval.
 
@@ -404,14 +383,8 @@ The intervals are defined as
    :start-after: constexpr static gridtools::dimension<3> k;
    :end-before: struct lap_function {
    
-Since we are working currently on a nicer API to define the intervals we
-don't want to describe the (non-trivial) details now. In short: the
-first entry in the ``level`` is a so-called ``splitter``, an abstraction to tell
-that we want to split the axis here. The second entry is an ``offset``
-relative to the splitter. At runtime we assign an index of the k-axis to
-the splitters. Then the ``level<X,-1>`` corresponds to the index in the ``value_list[X]``
-entry. Additionally we have to define an ``axis`` such that all intervals
-are a strict subset of the ``axis``.
+The first line defines an axis with 2 intervals. From this axis retrieve the intervals
+and give them a name.
 
 Then we can assemble the computation
 
@@ -426,7 +399,7 @@ In this version we needed to explicitly allocate the temporary fields
 |GT| temporaries
 ^^^^^^^^^^^^^^^^
 
-*|GT| temporary storages* are storages with the lifetime of the
+|GT| *temporary storages* are storages with the lifetime of the
 ``computation``, i.e. they can be used by different stages assembled in one
 ``make_computation`` call. This is exactly what we need for the ``lap`` and ``laplap``
 fields.
@@ -439,8 +412,7 @@ fields.
 
 To use temporary storages we don't need to change the functors or the
 ``make_computation``. We just have to replace the type the ``arg`` by a ``tmp_arg``. We don't need the explicit
-instantiations any more and we can leave out pointers to storages when
-we build the ``domain``. The new code looks as follows
+instantiations any more and don't have to bind the ``tmp_arg`` to storages. The new code looks as follows
 
 .. literalinclude:: code/gt_smoothing_version2_computation.hpp
    :language: gridtools
@@ -469,8 +441,7 @@ Functor calls
 
 The next feature we want to use is the *stencil function call*. In the first example we computed the Laplacian 
 and the Laplacian of the Laplacian explicitly and stored the intermediate values in the temporaries. Stencil function 
-calls will allow us do the computation on the fly and will allow us to get rid of the temporaries. With this feature 
-on each neighbor point of the primal stencil the stencil function is executed.
+calls will allow us do the computation on the fly and will allow us to get rid of the temporaries.
 
 .. note:: 
 
@@ -478,16 +449,16 @@ on each neighbor point of the primal stencil the stencil function is executed.
    not necessarily a performance optimization. It might well be that the version with temporaries is actually the 
    faster one.
 
-In a  first step we remove only one of the temporaries. Instead of calling the Laplacian twice from the 
-``make_computation`` we will move one of the calls into the smoothing functor. The new smoothing functor looks as 
+In the following we will remove only one of the temporaries. Instead of calling the Laplacian twice from the 
+``make_computation``, we will move one of the calls into the smoothing functor. The new smoothing functor looks as 
 follows
 
 .. literalinclude:: code/gt_smoothing_version3.hpp
    :language: gridtools
 
-In ``call`` we specify the functor and the ``Do``-method overload we want to apply.
+In ``call`` we specify the functorw which we want to apply.
 In ``with`` the 
-``eval`` is passed forward followed by all the input arguments for the functor. The functor in the call is required to 
+``eval`` is forwarded, followed by all the input arguments for the functor. The functor in the call is required to 
 have exactly one ``inout_accessor`` which will be the return value of the call.
 
 One of the ``make_stage<lap_function>`` was now moved inside of the functor, therefore the new call to ``make_computation`` is just
@@ -501,30 +472,3 @@ work than needed: we calculated the Laplacian of the Laplacian of phi
 :math:`k<k_\text{max}`. In this version we do a bit better: we still calculate
 the Laplacian (:math:`L = \Delta \phi`) for all levels but we only calculate
 :math:`\Delta L` for the levels where we need it.
-
-^^^^^^^^^^^^^^^^^
-Full code listing
-^^^^^^^^^^^^^^^^^
-
-The full compilable version of the code is given is here:
-
-.. todo::
-
-   getting_started/generated_files/full_gridtools_smoothing.cpp
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TODO: How to pass the :math:`\alpha`: Global accessors
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-TODO: Distributing the work: GCL
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-^^^^^^^^^^^^^^^^^^^^^^^^^
-TODO: Boundary conditions
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-
-.. include:: installation.hrst
-

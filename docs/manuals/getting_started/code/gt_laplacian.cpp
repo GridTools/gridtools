@@ -51,9 +51,9 @@ int main() {
     using arg_phi = arg<0, data_store_t>;
     using arg_lap = arg<1, data_store_t>;
 
-    int bs = 1; // boundary size
-    halo_descriptor boundary_i(bs, bs, bs, Ni - bs - 1, Ni);
-    halo_descriptor boundary_j(bs, bs, bs, Nj - bs - 1, Nj);
+    int halo_size = 1;
+    halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
+    halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
     auto my_grid = make_grid(boundary_i, boundary_j, Nk);
 
     auto laplacian = make_computation<backend_t>(          //
@@ -64,4 +64,4 @@ int main() {
             ));                                            //
 
     laplacian.run(arg_phi{} = phi, arg_lap{} = lap);
-}
+} // end marker
