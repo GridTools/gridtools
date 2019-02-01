@@ -27,10 +27,13 @@ for host storage infos.
 
 for cuda storage infos.
 
+:numref:`fig_storage_info` shows a depiction of the ``storage_info`` compile-time data.
+
+.. _fig_storage_info:
 .. figure:: figures/storage_info.png
    :scale: 60 %
 
-   Storage info
+   Storage info and associated compile-time data.
 
 Passed type information:
 
@@ -63,15 +66,19 @@ halo I size of 1,
 halo J size of 0,
 and alignment 8 is created.
 Please note that the size of the halo has to be added to the arguments that are passed to the constructor.
+
 .. code-block:: gridtools
 
     typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
     storage_info_t si(6,3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
 
+A visual representation of the storage info is given in :numref:`fig_storage_info_example`.
+
+.. _fig_storage_info_example:
 .. figure::  figures/storage_info_example.png
    :scale: 100 %
 
-   Example storage info
+   Example storage info.
 
 **Interface**: The ``storage_info`` object provides methods for querying following information:
 
@@ -98,12 +105,13 @@ Please note that the size of the halo has to be added to the arguments that are 
 Data store
 ---------------
 
-Once the ``storage_info`` object is created a ``data_store`` can be created. A ``data_store`` is keeping together the ``storage_info`` object and the actual memory allocation. The main purpose of the ``data_store`` is to provide means for synchronizing, keeping consistency, cleaning up memory, etc. A ``data_store`` can be copied and moved (shallow copy), but the underlying allocated storage in not copied (no deep-copy). When copying a ``data_store`` both instances will point to the same data. Basically it has the same behaviour as a shared pointer.
+Once the ``storage_info`` object is created a ``data_store`` can be created. A ``data_store`` is keeping together the ``storage_info`` object, a data type and the actual memory allocation (see also :numref:`fig_data_store`). The main purpose of the ``data_store`` is to provide means for synchronizing, keeping consistency, cleaning up memory, etc. A ``data_store`` can be copied and moved (shallow copy), but the underlying allocated storage in not copied (no deep-copy). When copying a ``data_store`` both instances will point to the same data. Basically it has the same behaviour as a shared pointer.
 
+.. _fig_data_store:
 .. figure:: figures/data_store.png
    :scale: 80 %
 
-   Data store
+   Data store and associated compile-time data.
 
 .. note::
 
