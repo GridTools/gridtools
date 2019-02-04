@@ -59,7 +59,7 @@ int main() {
     auto laplacian = make_computation<backend_t>(          //
         my_grid,                                           //
         make_multistage(                                   //
-            execute<forward>(),                            //
+            execute<parallel>(),                           //
             make_stage<lap_function>(arg_phi(), arg_lap()) //
             ));                                            //
 

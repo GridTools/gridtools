@@ -95,19 +95,19 @@ Since the storages (and other things later) depend on the architecture
 (e.g. CPU or GPU) our first step is to define the *target* type which
 typically looks like 
 
-.. literalinclude:: code/gt_storage.cpp
+.. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 8
 
 for the CUDA backed or
  
-.. literalinclude:: code/gt_storage.cpp
+.. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 10
 
 for the CPU backend and the backend
  
-.. literalinclude:: code/gt_storage.cpp
+.. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 12
 
@@ -129,7 +129,7 @@ store in the field, e.g. ``double``, and a ``storage_info`` type which will hold
 information about size, alignment, strides etc. When creating the ``storage_info`` via the storage
 traits we need to provide a unique index and the number of dimensions for the storage (typically 3).
 
-.. literalinclude:: code/gt_storage.cpp
+.. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 14-15
 
@@ -137,7 +137,7 @@ At run-time a ``storage_info`` is
 initialized with the sizes of the field. Then a field can be
 instantiated with the ``info`` object. 
 
-.. literalinclude:: code/gt_storage.cpp
+.. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 18-25
    :dedent: 4
@@ -161,7 +161,7 @@ We can now
 -   syncronize data between device and host (in CUDA mode).
 
 
-.. literalinclude:: code/gt_storage.cpp
+.. literalinclude:: code/test_gt_storage.cpp
    :language: gridtools
    :lines: 27-33
    :dedent: 4
@@ -192,8 +192,10 @@ itself and its four direct neighbors along the Cartesian axis.
 
 A naive C++ implementation of the 2D Laplacian stencil is provided in
 
-.. literalinclude:: code/naive_laplacian.hpp
-   :language: gridtools
+.. literalinclude:: code/test_naive_implementation.cpp
+   :language: cpp
+   :start-after: // lap-begin
+   :end-before: // lap-end
 
 Apart from the initialization the stencil implementation
 consists of 2 main components:
@@ -205,9 +207,9 @@ Special care had to be taken at the boundary of the domain. Since the
 Laplacian needs the neighboring points we cannot calculate the Laplacian
 on the boundary layer and have to exclude them from the loop.
 
-------------------
-First |GT| stencil
-------------------
+-----------------------
+First GridTools stencil
+-----------------------
 
 In |GT| the loop logic and the storage order is implemented
 (and optimized) by the library while the update function is implemented
@@ -215,9 +217,9 @@ by the user. The loop logic (for a given architecture) is combined with
 the user-defined update function at compile-time by template
 meta-programming.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Update-logic: |GT| 2D Laplacian
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Update-logic: GridTools 2D Laplacian
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The update-logic is implemented with state-less functors. A
 |GT| functor is a ``struct`` or ``class`` providing a *static* method
@@ -226,7 +228,7 @@ As the functors are state-less (no member variables, static methods
 only) they can be passed by type, i.e. at compile-time, and therefore
 allow for compile-time optimizations.
 
-.. literalinclude:: code/gt_laplacian.cpp
+.. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
    :start-after: using namespace gridtools;
    :end-before: int main() {
@@ -295,7 +297,7 @@ since we need to specify it in a platform-independent syntax, a *domain specific
 
 For our example this looks as follows
 
-.. literalinclude:: code/gt_laplacian.cpp
+.. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
    :start-after: int main() {
    :end-before: } // end marker
@@ -328,13 +330,13 @@ whenever possible.
 In the last line the stencil is
 executed. The datastores ``phi`` and ``lap`` are bound to its placeholders.
 
-^^^^^^^^^^^^^^^^^^^
-Full |GT| Laplacian
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
+Full GridTools Laplacian
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 The full working example looks as follows:
 
-.. literalinclude:: code/gt_laplacian.cpp
+.. literalinclude:: code/test_gt_laplacian.cpp
    :language: gridtools
    :linenos:
    
@@ -352,8 +354,11 @@ In the preceding section we saw how a first simple |GT| stencil
 is defined and executed. In this section we will use this stencil to
 compute our example PDE. A naive implementation could look as in
 
-.. literalinclude:: code/naive_smoothing.hpp
+.. literalinclude:: code/test_naive_implementation.cpp
    :language: gridtools
+   :start-after: // smoothing-begin
+   :end-before: // smoothing-end
+   
 
 For the |GT| implementation we will learn three things in this
 section: how to define special regions in the :math:`k`-direction; how to use
@@ -369,7 +374,7 @@ previous section and store the result in two extra fields. Then we will
 call a third functor to compute the final result. This functor shows how
 we can specialize the computation in the :math:`k`-direction:
 
-.. literalinclude:: code/gt_smoothing_version1.hpp
+.. literalinclude:: code/gt_smoothing_variant1_operator.hpp
    :language: gridtools
 
 We use two different
@@ -378,7 +383,7 @@ intervals, the ``lower_domain`` and the ``upper_domain``, and provide an overloa
 
 The intervals are defined as
 
-.. literalinclude:: code/gt_smoothing.cpp
+.. literalinclude:: code/gt_smoothing.hpp
    :language: gridtools
    :start-after: constexpr static gridtools::dimension<3> k;
    :end-before: struct lap_function {
@@ -388,7 +393,7 @@ and give them a name.
 
 Then we can assemble the computation
 
-.. literalinclude:: code/gt_smoothing_version1_computation.hpp
+.. literalinclude:: code/gt_smoothing_variant1_computation.hpp
    :language: gridtools
 
 In this version we needed to explicitly allocate the temporary fields
@@ -414,7 +419,7 @@ To use temporary storages we don't need to change the functors or the
 ``make_computation``. We just have to replace the type the ``arg`` by a ``tmp_arg``. We don't need the explicit
 instantiations any more and don't have to bind the ``tmp_arg`` to storages. The new code looks as follows
 
-.. literalinclude:: code/gt_smoothing_version2_computation.hpp
+.. literalinclude:: code/gt_smoothing_variant2_computation.hpp
    :language: gridtools
 
 The temporary
@@ -453,7 +458,7 @@ In the following we will remove only one of the temporaries. Instead of calling 
 ``make_computation``, we will move one of the calls into the smoothing functor. The new smoothing functor looks as 
 follows
 
-.. literalinclude:: code/gt_smoothing_version3.hpp
+.. literalinclude:: code/gt_smoothing_variant3_operator.hpp
    :language: gridtools
 
 In ``call`` we specify the functorw which we want to apply.
@@ -463,7 +468,7 @@ have exactly one ``inout_accessor`` which will be the return value of the call.
 
 One of the ``make_stage<lap_function>`` was now moved inside of the functor, therefore the new call to ``make_computation`` is just
 
-.. literalinclude:: code/gt_smoothing_version3_computation.hpp
+.. literalinclude:: code/gt_smoothing_variant3_computation.hpp
    :language: gridtools
 
 The attentive reader may have noticed that our first versions did more

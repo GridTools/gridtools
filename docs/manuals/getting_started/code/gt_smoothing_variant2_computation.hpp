@@ -13,7 +13,7 @@ auto my_grid = make_grid(boundary_i, boundary_j, axis_t{kmax, Nk - kmax});
 auto smoothing = make_computation<backend_t>(              //
     my_grid,                                               //
     make_multistage(                                       //
-        execute<forward>(),                                //
+        execute<parallel>(),                               //
         make_stage<lap_function>(arg_phi(), arg_lap()),    //
         make_stage<lap_function>(arg_lap(), arg_laplap()), //
         make_stage<smoothing_function_1>(                  //
