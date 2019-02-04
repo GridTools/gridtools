@@ -42,7 +42,7 @@
 #include "../boundary-conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
-#include "../stencil-composition/backend.hpp" // TODO resolve this dependency to stencil composition
+#include "../common/timer/timer_traits.hpp"
 #ifdef _GCL_MPI_
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
@@ -137,8 +137,7 @@ namespace gridtools {
             CTraits::version>;
 
       private:
-        using performance_meter_t =
-            typename backend_traits_from_id<typename CTraits::compute_arch>::performance_meter_t;
+        using performance_meter_t = typename timer_traits<typename CTraits::compute_arch>::type;
 
         array<halo_descriptor, 3> m_halos;
         array<int_t, 3> m_sizes;
