@@ -159,28 +159,6 @@ namespace gridtools {
         struct icosahedral {};
     } // namespace grid_type
 
-    /** \namespace enumtype
-       @brief enumeration types*/
-    namespace enumtype {
-        /**
-           @section enumtypes Gridtools enumeration types
-           @{
-         */
-
-        /*
-         * accessor I/O policy
-         */
-        enum intent { in, inout };
-
-#ifdef __CUDACC__
-        static const unsigned int vector_width = 32;
-#else
-        static const unsigned int vector_width = 4;
-#endif
-        static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
-
-    } // namespace enumtype
-
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 
 #define GT_INTERNAL_ERROR                                                                                       \
