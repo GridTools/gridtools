@@ -1,8 +1,7 @@
 #include <gridtools/stencil-composition/backend.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <gridtools/storage/storage-facility.hpp>
-
-#include <gridtools/stencil-composition/accessor.hpp>
 
 using namespace gridtools;
 using namespace gridtools::expressions;
@@ -15,12 +14,18 @@ using target_t = target::mc;
 #endif
 using backend_t = backend<target_t, grid_type::structured, strategy::block>;
 
-using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3>;
+static constexpr unsigned halo_size = 2;
+
+using storage_info_t = storage_traits<target_t>::storage_info_t<0, 3, halo<halo_size, halo_size, 0>>;
 using data_store_t = storage_traits<target_t>::data_store_t<double, storage_info_t>;
 
 constexpr static gridtools::dimension<1> i;
 constexpr static gridtools::dimension<2> j;
 constexpr static gridtools::dimension<3> k;
+
+using axis_t = axis<2>;
+using lower_domain = axis_t::get_interval<0>;
+using upper_domain = axis_t::get_interval<1>;
 
 struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;
@@ -29,7 +34,7 @@ struct lap_function {
     using arg_list = make_arg_list<in, lap>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation const &eval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(lap(i, j, k)) = -4. * eval(in(i, j, k)) //
                              + eval(in(i + 1, j, k)) //
                              + eval(in(i, j + 1, k)) //
@@ -38,30 +43,25 @@ struct lap_function {
     }
 };
 
+#if defined(VARIANT1) || defined(VARIANT2)
+#include "gt_smoothing_variant1_operator.hpp"
+#elif defined(VARIANT3)
+#include "gt_smoothing_variant3_operator.hpp"
+#endif
+
 int main() {
-    uint_t Ni = 10;
-    uint_t Nj = 12;
+    uint_t Ni = 50;
+    uint_t Nj = 50;
     uint_t Nk = 20;
+    uint_t kmax = 12;
 
     storage_info_t info(Ni, Nj, Nk);
 
-    data_store_t phi(info, -1., "phi");
-    data_store_t lap(info, -1., "lap");
-
-    using arg_phi = arg<0, data_store_t>;
-    using arg_lap = arg<1, data_store_t>;
-
-    int halo_size = 1;
-    halo_descriptor boundary_i(halo_size, halo_size, halo_size, Ni - halo_size - 1, Ni);
-    halo_descriptor boundary_j(halo_size, halo_size, halo_size, Nj - halo_size - 1, Nj);
-    auto my_grid = make_grid(boundary_i, boundary_j, Nk);
-
-    auto laplacian = make_computation<backend_t>(          //
-        my_grid,                                           //
-        make_multistage(                                   //
-            execute<forward>(),                            //
-            make_stage<lap_function>(arg_phi(), arg_lap()) //
-            ));                                            //
-
-    laplacian.run(arg_phi{} = phi, arg_lap{} = lap);
-} // end marker
+#if defined(VARIANT1)
+#include "gt_smoothing_variant1_computation.hpp"
+#elif defined(VARIANT2)
+#include "gt_smoothing_variant2_computation.hpp"
+#elif defined(VARIANT3)
+#include "gt_smoothing_variant3_computation.hpp"
+#endif
+}
