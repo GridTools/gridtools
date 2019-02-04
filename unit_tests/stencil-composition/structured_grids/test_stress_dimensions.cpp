@@ -43,7 +43,7 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 using namespace expressions;
 
 using layout_map_t = typename boost::conditional<std::is_same<backend_t::backend_id_t, target::x86>::value,

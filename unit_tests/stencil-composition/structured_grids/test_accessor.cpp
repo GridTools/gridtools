@@ -47,8 +47,8 @@ using namespace gridtools;
 using namespace expressions;
 
 TEST(accessor, is_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3, 4, 4, 5>>>::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2, enumtype::in>>::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, intent::inout, extent<3, 4, 4, 5>>>::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2, intent::in>>::value) == true, "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor<double &>::value) == false, "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor<double const &>::value) == false, "");
@@ -56,15 +56,15 @@ TEST(accessor, is_accessor) {
 
 TEST(accessor, is_accessor_readonly) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<in_accessor<0>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<accessor<0, enumtype::in>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<accessor<0, intent::in>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<global_accessor<0>>::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<inout_accessor<0>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<accessor<0, enumtype::inout>>::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<accessor<0, intent::inout>>::value), "");
     // TODO test accessor_mixed
 }
 
 TEST(accessor, trivial) {
-    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
+    accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(3, 2, -1);
 
     EXPECT_EQ(3, get<0>(first));
     EXPECT_EQ(2, get<1>(first));
@@ -72,7 +72,7 @@ TEST(accessor, trivial) {
 }
 
 TEST(accessor, array) {
-    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
+    constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
     GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
 
     EXPECT_EQ(3, get<0>(first));
@@ -84,7 +84,7 @@ TEST(accessor, array) {
  * @brief interface with out-of-order optional arguments
  */
 TEST(accessor, alternative1) {
-    accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
+    accessor<0, intent::inout, extent<0, 0, 0, 0>, 6> first(dimension<6>(-6), dimension<4>(12));
 
     EXPECT_EQ(0, get<0>(first));
     EXPECT_EQ(0, get<1>(first));
@@ -105,7 +105,7 @@ TEST(accessor, alternative2) {
     constexpr dimension<4> t;
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
-    constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
+    constexpr accessor<0, intent::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
     GRIDTOOLS_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
 
     EXPECT_EQ(-5, get<0>(first));
@@ -123,7 +123,7 @@ TEST(accessor, alternative2) {
 TEST(accessor, static_alias) {
     // mixing compile time and runtime values
     using t = dimension<15>;
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 15> arg_t;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>, 15> arg_t;
     using alias_t = alias<arg_t, t, dimension<1>, dimension<7>>::set<-3, 4, 2>;
 
     alias_t first(dimension<8>(23), dimension<3>(-5));

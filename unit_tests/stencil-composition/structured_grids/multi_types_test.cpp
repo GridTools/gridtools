@@ -65,7 +65,7 @@ namespace multi_types_test {
     using gridtools::level;
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace execution;
     using namespace expressions;
 
     using axis_t = axis<1>;
@@ -149,8 +149,8 @@ namespace multi_types_test {
     }
 
     struct function0 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
 
         typedef make_arg_list<in, out> arg_list;
 
@@ -163,8 +163,8 @@ namespace multi_types_test {
     };
 
     struct function1 {
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1, enumtype::in> in;
+        typedef accessor<0, intent::inout> out;
+        typedef accessor<1, intent::in> in;
 
         typedef make_arg_list<out, in> arg_list;
 
@@ -183,9 +183,9 @@ namespace multi_types_test {
 
     struct function2 {
 
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1, enumtype::in> in;
-        typedef accessor<2, enumtype::in> temp;
+        typedef accessor<0, intent::inout> out;
+        typedef accessor<1, intent::in> in;
+        typedef accessor<2, intent::in> temp;
 
         typedef make_arg_list<out, in, temp> arg_list;
 
@@ -197,9 +197,9 @@ namespace multi_types_test {
 
     struct function3 {
 
-        typedef accessor<0, enumtype::inout> out;
-        typedef accessor<1, enumtype::in> temp;
-        typedef accessor<2, enumtype::in> in;
+        typedef accessor<0, intent::inout> out;
+        typedef accessor<1, intent::in> temp;
+        typedef accessor<2, intent::in> in;
 
         typedef make_arg_list<out, temp, in> arg_list;
 

@@ -43,7 +43,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 using storage_traits_t = typename backend_t::storage_traits_t;
 using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
@@ -61,7 +61,7 @@ struct boundary {
 };
 
 struct functor1 {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_arg_list<sol, bd> arg_list;
@@ -73,8 +73,8 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0>> in;
     typedef global_accessor<2> bd;
 
     typedef make_arg_list<sol, in, bd> arg_list;
@@ -86,7 +86,7 @@ struct functor2 {
 };
 
 struct functor_with_procedure_call {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_arg_list<sol, bd> arg_list;
@@ -98,7 +98,7 @@ struct functor_with_procedure_call {
 };
 
 struct functor1_with_assignment {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_arg_list<sol, bd> arg_list;
@@ -110,7 +110,7 @@ struct functor1_with_assignment {
 };
 
 struct functor_with_function_call {
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0>> sol;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0>> sol;
     typedef global_accessor<1> bd;
 
     typedef make_arg_list<sol, bd> arg_list;

@@ -94,7 +94,7 @@ TEST_F(stencil_manual_fold, test) {
     auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = weight_edges,
         make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)));
+            execute<execution::forward>(), make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_out)));
 
     comp.run();
     verify(make_storage_4d<cells>(3, ref), weight_edges);

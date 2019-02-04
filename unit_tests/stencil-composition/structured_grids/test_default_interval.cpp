@@ -40,8 +40,8 @@
 
 using namespace gridtools;
 struct func {
-    using p1 = accessor<0, enumtype::in>;
-    using p2 = accessor<1, enumtype::inout>;
+    using p1 = accessor<0, intent::in>;
+    using p2 = accessor<1, intent::inout>;
     using arg_list = make_arg_list<p1, p2>;
 
     template <typename Evaluation>
@@ -49,8 +49,8 @@ struct func {
 };
 
 struct func_call {
-    using p1 = accessor<0, enumtype::in>;
-    using p2 = accessor<1, enumtype::inout>;
+    using p1 = accessor<0, intent::in>;
+    using p2 = accessor<1, intent::inout>;
     using arg_list = make_arg_list<p1, p2>;
 
     template <typename Evaluation>

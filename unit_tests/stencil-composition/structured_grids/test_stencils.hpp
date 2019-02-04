@@ -53,13 +53,13 @@ using gridtools::extent;
 using gridtools::level;
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 namespace copy_stencils_3D_2D_1D_0D {
     struct copy_functor {
         static const int n_args = 2;
         typedef accessor<0> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<1, intent::inout> out;
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>

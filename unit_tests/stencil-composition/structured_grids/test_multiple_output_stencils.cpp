@@ -39,7 +39,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 struct TensionShearFunction {
     using T_sqr_s = inout_accessor<0>;

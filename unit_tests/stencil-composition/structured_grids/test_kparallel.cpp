@@ -43,19 +43,21 @@
 
 using gridtools::accessor;
 using gridtools::arg;
+using gridtools::execute;
 using gridtools::extent;
+using gridtools::intent;
 using gridtools::level;
 using gridtools::tmp_arg;
 using gridtools::uint_t;
 
-using namespace gridtools::enumtype;
+using namespace gridtools::execution;
 
 namespace {
 
     template <typename Axis>
     struct parallel_functor {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
+        typedef accessor<1, intent::inout> out;
         typedef gridtools::make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
@@ -71,7 +73,7 @@ namespace {
     template <typename Axis>
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
-        typedef accessor<1, inout> out;
+        typedef accessor<1, intent::inout> out;
         typedef gridtools::make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>

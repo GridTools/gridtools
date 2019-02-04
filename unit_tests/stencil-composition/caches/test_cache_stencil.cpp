@@ -49,11 +49,11 @@ constexpr int halo_size = 1;
 namespace test_cache_stencil {
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace execution;
 
     struct functor1 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
@@ -63,8 +63,8 @@ namespace test_cache_stencil {
     };
 
     struct functor2 {
-        typedef accessor<0, enumtype::in, extent<-1, 1, -1, 1>> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in, extent<-1, 1, -1, 1>> in;
+        typedef accessor<1, intent::inout> out;
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
@@ -75,8 +75,8 @@ namespace test_cache_stencil {
     };
 
     struct functor3 {
-        typedef accessor<0, enumtype::in> in;
-        typedef accessor<1, enumtype::inout> out;
+        typedef accessor<0, intent::in> in;
+        typedef accessor<1, intent::inout> out;
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
@@ -96,7 +96,7 @@ namespace test_cache_stencil {
 } // namespace test_cache_stencil
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 using namespace test_cache_stencil;
 
 class cache_stencil : public ::testing::Test {

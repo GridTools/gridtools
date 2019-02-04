@@ -74,7 +74,7 @@ namespace gridtools {
             GT_FUNCTION void operator()(Offset) const {
                 static constexpr int_t offset = BaseOffset + (int_t)Offset::value;
 
-                using acc_t = accessor<AccIndex::value, enumtype::inout, extent<0, 0, 0, 0, offset, offset>>;
+                using acc_t = accessor<AccIndex::value, intent::inout, extent<0, 0, 0, 0, offset, offset>>;
                 static constexpr acc_t acc(0, 0, offset);
 
                 // perform an out-of-bounds check
@@ -124,8 +124,8 @@ namespace gridtools {
             KCachesTuple &m_kcaches;
 
             // shortcurts for forward backward iteration policy
-            static constexpr bool forward = IterationPolicy::value == enumtype::forward;
-            static constexpr bool backward = IterationPolicy::value == enumtype::backward;
+            static constexpr bool forward = IterationPolicy::value == execution::forward;
+            static constexpr bool backward = IterationPolicy::value == execution::backward;
 
             // shortcuts for fill and flush io policy
             static constexpr bool fill = CacheIOPolicy == cache_io_policy::fill;

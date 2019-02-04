@@ -71,7 +71,7 @@ TEST_F(stencil_on_cells, test) {
     auto comp = make_computation(p_in = make_storage<cells>(in),
         p_out = out,
         make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<test_on_cells_functor, topology_t, cells>(p_in, p_out)));
+            execute<execution::forward>(), make_stage<test_on_cells_functor, topology_t, cells>(p_in, p_out)));
     comp.run();
     verify(make_storage<cells>(ref), out);
     benchmark(comp);

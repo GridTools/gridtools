@@ -39,12 +39,12 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 struct shift_acc_forward_flush {
 
-    typedef accessor<0, enumtype::in, extent<>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
     typedef make_arg_list<in, out> arg_list;
 
@@ -61,8 +61,8 @@ struct shift_acc_forward_flush {
 
 struct shift_acc_backward_flush {
 
-    typedef accessor<0, enumtype::in, extent<>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<0, intent::in, extent<>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
 
     typedef make_arg_list<in, out> arg_list;
 

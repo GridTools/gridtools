@@ -39,13 +39,13 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 using namespace expressions;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill_and_flush {
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> in;
 
     typedef make_arg_list<in> arg_list;
 
@@ -61,7 +61,7 @@ struct shift_acc_forward_fill_and_flush {
 
 struct shift_acc_backward_fill_and_flush {
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, 0, 1>> in;
 
     typedef make_arg_list<in> arg_list;
 
@@ -77,7 +77,7 @@ struct shift_acc_backward_fill_and_flush {
 
 struct copy_fill {
 
-    typedef accessor<0, enumtype::inout> in;
+    typedef accessor<0, intent::inout> in;
 
     typedef make_arg_list<in> arg_list;
 
@@ -89,7 +89,7 @@ struct copy_fill {
 
 struct scale_fill {
 
-    typedef accessor<0, enumtype::inout> in;
+    typedef accessor<0, intent::inout> in;
 
     typedef make_arg_list<in> arg_list;
 
@@ -228,7 +228,7 @@ TEST_F(kcachef, fill_scale_forward) {
 
 struct do_nothing {
 
-    typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 1>> in;
+    typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 1>> in;
 
     typedef make_arg_list<in> arg_list;
 

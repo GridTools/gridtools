@@ -72,7 +72,7 @@ namespace gridtools {
         using an_independent = decltype(make_independent(Esfs{}...));
 
         template <class... Esfs>
-        using an_mss = decltype(make_multistage(enumtype::execute<enumtype::forward>(), std::declval<Esfs>()...));
+        using an_mss = decltype(make_multistage(execute<execution::forward>(), std::declval<Esfs>()...));
 
         template <typename StencilOp>
         struct is_even : std::integral_constant<int, !(StencilOp::esf_function::thevalue % 2)> {};

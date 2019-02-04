@@ -48,7 +48,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = axis<2>::with_extra_offsets<1>;
@@ -67,11 +67,11 @@ typedef arg<3, storage_type> p_in4;
 typedef arg<4, storage_type> p_out;
 
 struct functor1 {
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in1;
-    typedef accessor<1, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in3;
-    typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in4;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 0>> in1;
+    typedef accessor<1, intent::in, extent<0, 0, 0, 0, -1, 0>> in3;
+    typedef accessor<2, intent::in, extent<0, 0, 0, 0, -1, 0>> in4;
 
-    typedef accessor<3, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<3, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
     typedef make_arg_list<in1, in3, in4, out> arg_list;
 
     template <typename Evaluation>
@@ -83,11 +83,11 @@ struct functor1 {
 };
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in1;
-    typedef accessor<1, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in2;
-    typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in4;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 0>> in1;
+    typedef accessor<1, intent::in, extent<0, 0, 0, 0, -1, 0>> in2;
+    typedef accessor<2, intent::in, extent<0, 0, 0, 0, -1, 0>> in4;
 
-    typedef accessor<3, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<3, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
     typedef make_arg_list<in1, in2, in4, out> arg_list;
 
     template <typename Evaluation>

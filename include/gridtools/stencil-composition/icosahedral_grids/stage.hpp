@@ -94,7 +94,7 @@ namespace gridtools {
             template <class Accessor>
             GT_FUNCTION auto operator()(Accessor const &acc) const
                 GT_AUTO_RETURN((m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessor::index_t::value)),
-                                Accessor::intent,
+                                Accessor::intent_v,
                                 Color>(acc)));
 
             template <class ValueType, class LocationTypeT, class Reduction, class... Accessors>
@@ -103,9 +103,9 @@ namespace gridtools {
                 constexpr auto offsets = connectivity<LocationType, LocationTypeT, Color>::offsets();
                 for (auto &&offset : offsets)
                     onneighbors.m_value = onneighbors.m_function(
-                        m_it_domain.template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value)),
-                            enumtype::in,
-                            0>(offset)...,
+                        m_it_domain
+                            .template deref<GT_META_CALL(meta::at_c, (Args, Accessors::index_t::value)), intent::in, 0>(
+                                offset)...,
                         onneighbors.m_value);
                 return onneighbors.m_value;
             }

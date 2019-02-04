@@ -363,9 +363,8 @@ namespace gridtools {
 
         template <class Placeholder,
             class RwArgs = GT_META_CALL(_impl::all_rw_args, all_mss_descriptors_t),
-            enumtype::intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? enumtype::intent::inout
-                                                                                    : enumtype::intent::in>
-        static constexpr std::integral_constant<enumtype::intent, Intent> get_arg_intent(Placeholder) {
+            intent Intent = meta::st_contains<RwArgs, Placeholder>::value ? intent::inout : intent::in>
+        static constexpr std::integral_constant<intent, Intent> get_arg_intent(Placeholder) {
             return {};
         }
 

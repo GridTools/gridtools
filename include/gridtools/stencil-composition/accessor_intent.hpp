@@ -36,8 +36,8 @@
 #pragma once
 
 namespace gridtools {
-    namespace icgrid {
-        template <enumtype::target BackendId>
-        struct grid_traits_arch;
-    }
+    /**
+     * @brief accessor I/O policy
+     */
+    enum class intent { in, inout };
 } // namespace gridtools

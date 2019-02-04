@@ -42,13 +42,12 @@
 
 namespace test_conditional_switches {
     using namespace gridtools;
-    using namespace enumtype;
 
     template <uint_t Id>
     struct functor1 {
 
-        typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::inout> p_dummy_tmp;
+        typedef accessor<0, intent::inout> p_dummy;
+        typedef accessor<1, intent::inout> p_dummy_tmp;
 
         typedef make_arg_list<p_dummy, p_dummy_tmp> arg_list;
 
@@ -61,8 +60,8 @@ namespace test_conditional_switches {
     template <uint_t Id>
     struct functor2 {
 
-        typedef accessor<0, enumtype::inout> p_dummy;
-        typedef accessor<1, enumtype::in> p_dummy_tmp;
+        typedef accessor<0, intent::inout> p_dummy;
+        typedef accessor<1, intent::in> p_dummy_tmp;
 
         typedef make_arg_list<p_dummy, p_dummy_tmp> arg_list;
 
@@ -92,39 +91,39 @@ namespace test_conditional_switches {
 
         auto comp_ = make_computation<backend_t>(grid_,
             p_dummy{} = dummy,
-            make_multistage(enumtype::execute<enumtype::forward>(),
+            make_multistage(execute<execution::forward>(),
                 make_stage<functor1<0>>(p_dummy(), p_dummy_tmp()),
                 make_stage<functor2<0>>(p_dummy(), p_dummy_tmp())),
             switch_(cond_,
                 case_(0,
-                    make_multistage(enumtype::execute<enumtype::forward>(),
+                    make_multistage(execute<execution::forward>(),
                         make_stage<functor1<1>>(p_dummy(), p_dummy_tmp()),
                         make_stage<functor2<1>>(p_dummy(), p_dummy_tmp()))),
                 case_(5,
                     switch_(nested_cond_,
                         case_(1,
-                            make_multistage(enumtype::execute<enumtype::forward>(),
+                            make_multistage(execute<execution::forward>(),
                                 make_stage<functor1<2000>>(p_dummy(), p_dummy_tmp()),
                                 make_stage<functor2<2000>>(p_dummy(), p_dummy_tmp()))),
-                        default_(make_multistage(enumtype::execute<enumtype::forward>(),
+                        default_(make_multistage(execute<execution::forward>(),
                             make_stage<functor1<3000>>(p_dummy(), p_dummy_tmp()),
                             make_stage<functor2<3000>>(p_dummy(), p_dummy_tmp()))))),
-                default_(make_multistage(enumtype::execute<enumtype::forward>(),
+                default_(make_multistage(execute<execution::forward>(),
                     make_stage<functor1<7>>(p_dummy(), p_dummy_tmp()),
                     make_stage<functor2<7>>(p_dummy(), p_dummy_tmp())))),
             switch_(other_cond_,
                 case_(2,
-                    make_multistage(enumtype::execute<enumtype::forward>(),
+                    make_multistage(execute<execution::forward>(),
                         make_stage<functor1<10>>(p_dummy(), p_dummy_tmp()),
                         make_stage<functor2<10>>(p_dummy(), p_dummy_tmp()))),
                 case_(1,
-                    make_multistage(enumtype::execute<enumtype::forward>(),
+                    make_multistage(execute<execution::forward>(),
                         make_stage<functor1<20>>(p_dummy(), p_dummy_tmp()),
                         make_stage<functor2<20>>(p_dummy(), p_dummy_tmp()))),
-                default_(make_multistage(enumtype::execute<enumtype::forward>(),
+                default_(make_multistage(execute<execution::forward>(),
                     make_stage<functor1<30>>(p_dummy(), p_dummy_tmp()),
                     make_stage<functor2<30>>(p_dummy(), p_dummy_tmp())))),
-            make_multistage(enumtype::execute<enumtype::forward>(),
+            make_multistage(execute<execution::forward>(),
                 make_stage<functor1<400>>(p_dummy(), p_dummy_tmp()),
                 make_stage<functor2<400>>(p_dummy(), p_dummy_tmp())));
 

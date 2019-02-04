@@ -41,7 +41,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 struct functor1 {
     typedef accessor<0> in;

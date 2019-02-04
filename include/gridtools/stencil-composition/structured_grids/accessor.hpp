@@ -41,6 +41,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../accessor_base.hpp"
+#include "../accessor_intent.hpp"
 #include "../is_accessor.hpp"
 #include "extent.hpp"
 /**
@@ -78,10 +79,10 @@ namespace gridtools {
                field dimensions or space dimension will be decided at the
                moment of the storage instantiation (in the main function)
      */
-    template <uint_t ID, enumtype::intent Intent = enumtype::in, typename Extent = extent<>, ushort_t Number = 3>
+    template <uint_t ID, intent Intent = intent::in, typename Extent = extent<>, ushort_t Number = 3>
     struct accessor : accessor_base<Number> {
         using index_t = static_uint<ID>;
-        static constexpr enumtype::intent intent = Intent;
+        static constexpr intent intent_v = Intent;
         using extent_t = Extent;
 
         /**inheriting all constructors from accessor_base*/
@@ -89,12 +90,12 @@ namespace gridtools {
     };
 
     template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>
-    using in_accessor = accessor<ID, enumtype::in, Extent, Number>;
+    using in_accessor = accessor<ID, intent::in, Extent, Number>;
 
     template <uint_t ID, typename Extent = extent<>, ushort_t Number = 3>
-    using inout_accessor = accessor<ID, enumtype::inout, Extent, Number>;
+    using inout_accessor = accessor<ID, intent::inout, Extent, Number>;
 
-    template <uint_t ID, enumtype::intent Intent, typename Extent, ushort_t Number>
+    template <uint_t ID, intent Intent, typename Extent, ushort_t Number>
     struct is_accessor<accessor<ID, Intent, Extent, Number>> : std::true_type {};
 
 } // namespace gridtools

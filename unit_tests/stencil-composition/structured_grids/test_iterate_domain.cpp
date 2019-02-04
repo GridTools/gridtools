@@ -102,7 +102,7 @@ namespace gridtools {
             auto grid = make_grid(d1, d2, d3);
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
-                (enumtype::execute<enumtype::forward>(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
+                (execute<execution::forward>(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
             auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
                 grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());
@@ -144,19 +144,19 @@ namespace gridtools {
             auto inv = make_host_view(in);
             inv(0, 0, 0, 0) = 0.; // is accessor<0>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), enumtype::in>(in_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_in), intent::in>(in_acc())));
 
             // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
             auto buffv = make_host_view(buff);
             buffv(0, 0, 0) = 0.; // is accessor<1>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), enumtype::in>(buff_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_buff), intent::in>(buff_acc())));
 
             auto outv = make_host_view(out);
             outv(0, 0) = 0.; // is accessor<2>
 
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), enumtype::inout>(out_acc())));
-            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), enumtype::inout>(out_acc(0, 0))));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(out_acc())));
+            EXPECT_EQ(0, (it_domain.deref<decltype(p_out), intent::inout>(out_acc(0, 0))));
 
             // check index initialization and increment
 

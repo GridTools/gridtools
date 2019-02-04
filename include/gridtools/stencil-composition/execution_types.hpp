@@ -41,22 +41,20 @@
 #define GT_DEFAULT_VERTICAL_BLOCK_SIZE 20
 
 namespace gridtools {
-    namespace enumtype {
-
+    namespace execution {
         enum execution { forward, backward, parallel };
+    } // namespace execution
 
-        template <enumtype::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
-        struct execute {
-            static const enumtype::execution iteration = U;
-            static const uint_t block_size = BlockSize;
-        };
-
-    } // namespace enumtype
+    template <execution::execution U, uint_t BlockSize = GT_DEFAULT_VERTICAL_BLOCK_SIZE>
+    struct execute {
+        static const execution::execution iteration = U;
+        static const uint_t block_size = BlockSize;
+    };
 
     template <typename T>
     struct is_execution_engine : std::false_type {};
 
-    template <enumtype::execution U, uint_t BlockSize>
-    struct is_execution_engine<enumtype::execute<U, BlockSize>> : std::true_type {};
+    template <execution::execution U, uint_t BlockSize>
+    struct is_execution_engine<execute<U, BlockSize>> : std::true_type {};
 
 } // namespace gridtools

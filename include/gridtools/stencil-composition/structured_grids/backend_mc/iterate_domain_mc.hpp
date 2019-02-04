@@ -237,7 +237,7 @@ namespace gridtools {
          * @brief Method called in the Do methods of the functors.
          * Specialization for the global accessors placeholders.
          */
-        template <class Arg, enumtype::intent Intent, uint_t I>
+        template <class Arg, intent Intent, uint_t I>
         GT_FORCE_INLINE typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
             return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
         }
@@ -246,7 +246,7 @@ namespace gridtools {
          * @brief Method called in the Do methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
-        template <class Arg, enumtype::intent Intent, class Acc, class... Args>
+        template <class Arg, intent Intent, class Acc, class... Args>
         GT_FORCE_INLINE auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
             GT_AUTO_RETURN(boost::fusion::invoke(
                 std::cref(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs)), acc.get_arguments()));
@@ -256,7 +256,7 @@ namespace gridtools {
          * nor expression).
          */
         template <class Arg,
-            enumtype::intent Intent,
+            intent Intent,
             class Accessor,
             enable_if_t<is_accessor<Accessor>::value && !is_global_accessor<Accessor>::value, int> = 0>
         GT_FORCE_INLINE typename deref_type<Arg, Intent>::type deref(Accessor const &accessor) const {

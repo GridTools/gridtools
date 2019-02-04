@@ -95,7 +95,7 @@ TEST_F(stencil_fused, test) {
 
     make_computation(p_in = make_storage<edges>(in),
         p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(),
+        make_multistage(execute<execution::forward>(),
             make_stage<test_on_edges_functor, topology_t, cells>(p_in, p_tmp),
             make_stage<test_on_cells_functor, topology_t, cells>(p_tmp, p_out)))
         .run();

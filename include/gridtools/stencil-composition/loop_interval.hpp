@@ -83,7 +83,7 @@ namespace gridtools {
         struct order_loop_intervals : meta::lazy::id<LoopIntervals> {};
 
         template <uint_t BlockSize, class LoopIntervals>
-        struct order_loop_intervals<enumtype::execute<enumtype::backward, BlockSize>, LoopIntervals> {
+        struct order_loop_intervals<execute<execution::backward, BlockSize>, LoopIntervals> {
             using type = GT_META_CALL(
                 meta::reverse, (GT_META_CALL(meta::transform, (_impl::reverse_loop_interval, LoopIntervals))));
         };

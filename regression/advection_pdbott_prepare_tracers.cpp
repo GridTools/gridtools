@@ -77,7 +77,7 @@ TEST_F(advection_pdbott_prepare_tracers, test) {
         p_out = out,
         p_in = in,
         p_rho = make_storage(1.1),
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
+        make_multistage(execute<execution::forward>(), make_stage<prepare_tracers>(p_out, p_in, p_rho)));
 
     comp.run();
     for (size_t i = 0; i != out.size(); ++i)

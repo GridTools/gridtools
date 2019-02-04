@@ -105,6 +105,7 @@
 #ifndef META_STORAGE_INDEX_LIMIT
 #define META_STORAGE_INDEX_LIMIT 1000
 #endif
+static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
 
 #if defined(_OPENMP)
 #include <omp.h>

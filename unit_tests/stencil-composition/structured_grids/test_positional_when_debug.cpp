@@ -63,7 +63,7 @@ namespace positional_when_debug_test {
     using x_interval = axis_t::get_interval<0>;
 
     struct test_functor {
-        typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
+        typedef gridtools::accessor<0, gridtools::intent::inout> in;
         typedef gridtools::make_arg_list<in> arg_list;
 
         template <typename Evaluation>
@@ -78,7 +78,7 @@ namespace positional_when_debug_test {
 TEST(test_make_computation, positional_when_debug) {
 
     using namespace gridtools;
-    using namespace gridtools::enumtype;
+    using namespace gridtools::execution;
 
     typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
     typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;

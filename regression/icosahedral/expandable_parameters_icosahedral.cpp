@@ -74,8 +74,7 @@ TEST_F(expandable_parameters_icosahedral, test) {
         make_grid(),
         p_out = out,
         p_in = in,
-        make_multistage(
-            enumtype::execute<enumtype::forward>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
+        make_multistage(execute<execution::forward>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
         .run();
 
     for (size_t i = 0; i != in.size(); ++i)

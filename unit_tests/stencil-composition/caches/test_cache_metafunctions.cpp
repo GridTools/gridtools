@@ -49,7 +49,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 constexpr int level_offset_limit = 2;
 
@@ -59,8 +59,8 @@ using level_t = level<Splitter, Offset, level_offset_limit>;
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct functor1 {
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0>, 6> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>, 5> buff;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0>, 6> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0>, 5> buff;
     typedef make_arg_list<in, buff> arg_list;
 
     template <typename Evaluation>
@@ -79,8 +79,8 @@ typedef decltype(gridtools::make_stage<functor1>(p_in(), p_buff())) esf1_t;
 typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out())) esf2_t;
 
 struct functor2 {
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 0>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>

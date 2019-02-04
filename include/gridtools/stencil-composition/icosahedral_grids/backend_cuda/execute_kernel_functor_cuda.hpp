@@ -168,7 +168,7 @@ namespace gridtools {
             using interval_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
             using from_t = GT_META_CALL(meta::first, interval_t);
 
-            const int_t kblock = execution_type_t::iteration == enumtype::parallel
+            const int_t kblock = execution_type_t::iteration == execution::parallel
                                      ? blockIdx.z * execution_type_t::block_size - grid.k_min()
                                      : grid.template value_at<from_t>() - grid.k_min();
             it_domain.initialize({grid.i_low_bound(), grid.j_low_bound(), grid.k_min()},
@@ -253,7 +253,7 @@ namespace gridtools {
                 const uint_t nbx = (nx + ntx - 1) / ntx;
                 const uint_t nby = (ny + nty - 1) / nty;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
-                const uint_t nbz = execution_type_t::iteration == enumtype::parallel
+                const uint_t nbz = execution_type_t::iteration == execution::parallel
                                        ? (nz + execution_type_t::block_size - 1) / execution_type_t::block_size
                                        : 1;
 

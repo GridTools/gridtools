@@ -60,7 +60,7 @@
 
 // [namespaces]
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 using namespace expressions;
 // [namespaces]
 
@@ -111,15 +111,15 @@ namespace shallow_water {
 
         /** (input) is the solution at the cell center, computed at the previous time level */
         //! [accessor]
-        using h = accessor<3, enumtype::in, extent<0, -1, 0, 0>>;
+        using h = accessor<3, intent::in, extent<0, -1, 0, 0>>;
         //! [accessor]
-        using u = accessor<4, enumtype::in, extent<0, -1, 0, 0>>;
-        using v = accessor<5, enumtype::in, extent<0, -1, 0, 0>>;
+        using u = accessor<4, intent::in, extent<0, -1, 0, 0>>;
+        using v = accessor<5, intent::in, extent<0, -1, 0, 0>>;
 
         /** (output) is the flux computed on the left edge of the cell */
-        using hx = accessor<0, enumtype::inout>;
-        using ux = accessor<1, enumtype::inout>;
-        using vx = accessor<2, enumtype::inout>;
+        using hx = accessor<0, intent::inout>;
+        using ux = accessor<1, intent::inout>;
+        using vx = accessor<2, intent::inout>;
 
         using arg_list = make_arg_list<hx, ux, vx, h, u, v>;
 
@@ -148,14 +148,14 @@ namespace shallow_water {
     struct flux_y : public functor_traits {
 
         /** (output) is the flux at the bottom edge of the cell */
-        using hy = accessor<0, enumtype::inout>;
-        using uy = accessor<1, enumtype::inout>;
-        using vy = accessor<2, enumtype::inout>;
+        using hy = accessor<0, intent::inout>;
+        using uy = accessor<1, intent::inout>;
+        using vy = accessor<2, intent::inout>;
 
         /** (input) is the solution at the cell center, computed at the previous time level */
-        using h = accessor<3, enumtype::in, extent<0, 0, 0, -1>>;
-        using u = accessor<4, enumtype::in, extent<0, 0, 0, -1>>;
-        using v = accessor<5, enumtype::in, extent<0, 0, 0, -1>>;
+        using h = accessor<3, intent::in, extent<0, 0, 0, -1>>;
+        using u = accessor<4, intent::in, extent<0, 0, 0, -1>>;
+        using v = accessor<5, intent::in, extent<0, 0, 0, -1>>;
 
         using arg_list = make_arg_list<hy, uy, vy, h, u, v>;
 
@@ -182,19 +182,19 @@ namespace shallow_water {
     struct final_step : public functor_traits {
 
         /** (input) is the flux at the left edge of the cell */
-        using hx = accessor<0, enumtype::in, extent<0, 1, 0, 1>>;
-        using ux = accessor<1, enumtype::in, extent<0, 1, 0, 1>>;
-        using vx = accessor<2, enumtype::in, extent<0, 1, 0, 1>>;
+        using hx = accessor<0, intent::in, extent<0, 1, 0, 1>>;
+        using ux = accessor<1, intent::in, extent<0, 1, 0, 1>>;
+        using vx = accessor<2, intent::in, extent<0, 1, 0, 1>>;
 
         /** (input) is the flux at the bottom edge of the cell */
-        using hy = accessor<3, enumtype::in, extent<0, 1, 0, 1>>;
-        using uy = accessor<4, enumtype::in, extent<0, 1, 0, 1>>;
-        using vy = accessor<5, enumtype::in, extent<0, 1, 0, 1>>;
+        using hy = accessor<3, intent::in, extent<0, 1, 0, 1>>;
+        using uy = accessor<4, intent::in, extent<0, 1, 0, 1>>;
+        using vy = accessor<5, intent::in, extent<0, 1, 0, 1>>;
 
         /** (output) is the solution at the cell center, computed at the previous time level */
-        using h = accessor<6, enumtype::inout>;
-        using u = accessor<7, enumtype::inout>;
-        using v = accessor<8, enumtype::inout>;
+        using h = accessor<6, intent::inout>;
+        using u = accessor<7, intent::inout>;
+        using v = accessor<8, intent::inout>;
 
         using arg_list = make_arg_list<hx, ux, vx, hy, uy, vy, h, u, v>;
         static uint_t current_time;

@@ -45,7 +45,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 template <typename T>
 struct direction_bc_input {

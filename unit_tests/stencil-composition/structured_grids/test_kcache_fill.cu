@@ -39,13 +39,13 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill {
 
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
-    typedef accessor<1, enumtype::inout, extent<>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 1>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
 
     typedef make_arg_list<in, out> arg_list;
 
@@ -65,8 +65,8 @@ struct shift_acc_forward_fill {
 };
 
 struct shift_acc_forward_fill_shifted_bounds {
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 2>> in;
-    typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 2>> in;
+    typedef accessor<1, intent::inout, extent<0, 0, 0, 0, 0, 1>> out;
 
     typedef make_arg_list<in, out> arg_list;
 
@@ -91,8 +91,8 @@ struct shift_acc_forward_fill_shifted_bounds {
 
 struct shift_acc_backward_fill {
 
-    typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
-    typedef accessor<1, enumtype::inout, extent<>> out;
+    typedef accessor<0, intent::in, extent<0, 0, 0, 0, -1, 1>> in;
+    typedef accessor<1, intent::inout, extent<>> out;
 
     typedef make_arg_list<in, out> arg_list;
 
@@ -113,8 +113,8 @@ struct shift_acc_backward_fill {
 
 struct copy_fill {
 
-    typedef accessor<0, enumtype::in> in;
-    typedef accessor<1, enumtype::inout, extent<>> out;
+    typedef accessor<0, intent::in> in;
+    typedef accessor<1, intent::inout, extent<>> out;
 
     typedef make_arg_list<in, out> arg_list;
 

@@ -38,8 +38,8 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 struct functor {
-    using a0 = gridtools::accessor<0, gridtools::enumtype::inout>;
-    using a1 = gridtools::accessor<1, gridtools::enumtype::inout>;
+    using a0 = gridtools::accessor<0, gridtools::intent::inout>;
+    using a1 = gridtools::accessor<1, gridtools::intent::inout>;
 
     typedef gridtools::make_arg_list<a0, a1> arg_list;
 };
@@ -58,7 +58,7 @@ TEST(unfold_independent, test) {
 
     using esf_type = decltype(make_stage<functor>(p0(), p1()));
 
-    using mss_type = decltype(make_multistage(enumtype::execute<enumtype::forward>(),
+    using mss_type = decltype(make_multistage(execute<execution::forward>(),
         make_stage<functor>(p0(), p1()),
         make_stage<functor>(p0(), p1()),
         make_stage<functor>(p0(), p1()),

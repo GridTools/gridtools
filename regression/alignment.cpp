@@ -69,7 +69,7 @@ TEST_F(alignment_test, test) {
     make_positional_computation<backend_t>(make_grid(),
         p_0 = make_storage(),
         p_out = out,
-        make_multistage(enumtype::execute<enumtype::forward>(), make_stage<not_aligned>(p_0, p_out)))
+        make_multistage(execute<execution::forward>(), make_stage<not_aligned>(p_0, p_out)))
         .run();
     verify(make_storage<bool_storage>(false), out);
 }

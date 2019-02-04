@@ -48,15 +48,6 @@
 #include "../meta/utility.hpp"
 
 namespace gridtools {
-
-    namespace intent {
-        /**
-         * @brief accessor I/O policy
-         */
-        enum intent { in, inout };
-
-    } // namespace intent
-
 #ifdef __INTEL_COMPILER
     namespace _impl {
         /* Pseudo-array class, only used for the Intel compiler which has problems vectorizing the accessor_base

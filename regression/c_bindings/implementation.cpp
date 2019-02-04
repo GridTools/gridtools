@@ -47,12 +47,12 @@
 namespace {
 
     using namespace gridtools;
-    using namespace enumtype;
+    using namespace execution;
     namespace m = boost::mpl;
 
     struct copy_functor {
-        using in = accessor<0, enumtype::in, extent<>, 3>;
-        using out = accessor<1, enumtype::inout, extent<>, 3>;
+        using in = accessor<0, intent::in, extent<>, 3>;
+        using out = accessor<1, intent::inout, extent<>, 3>;
         using arg_list = m::vector<in, out>;
 
         template <typename Evaluation>

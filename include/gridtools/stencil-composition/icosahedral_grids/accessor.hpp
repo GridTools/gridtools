@@ -40,6 +40,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
 #include "../accessor_base.hpp"
+#include "../accessor_intent.hpp"
 #include "../extent.hpp"
 #include "../is_accessor.hpp"
 #include "../location_type.hpp"
@@ -48,15 +49,11 @@ namespace gridtools {
     /**
      * This is the type of the accessors accessed by a stencil functor.
      */
-    template <uint_t ID,
-        enumtype::intent Intent,
-        typename LocationType,
-        typename Extent = extent<>,
-        ushort_t FieldDimensions = 4>
+    template <uint_t ID, intent Intent, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
     struct accessor : accessor_base<FieldDimensions> {
         GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
         using index_t = static_uint<ID>;
-        static constexpr enumtype::intent intent = Intent;
+        static constexpr intent intent_v = Intent;
         using extent_t = Extent;
         using location_type = LocationType;
         static constexpr uint_t value = ID;
@@ -71,11 +68,11 @@ namespace gridtools {
     };
 
     template <uint_t ID, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
-    using in_accessor = accessor<ID, enumtype::in, LocationType, Extent, FieldDimensions>;
+    using in_accessor = accessor<ID, intent::in, LocationType, Extent, FieldDimensions>;
 
     template <uint_t ID, typename LocationType, ushort_t FieldDimensions = 4>
-    using inout_accessor = accessor<ID, enumtype::inout, LocationType, extent<>, FieldDimensions>;
+    using inout_accessor = accessor<ID, intent::inout, LocationType, extent<>, FieldDimensions>;
 
-    template <uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions>
+    template <uint_t ID, intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions>
     struct is_accessor<accessor<ID, Intent, LocationType, Extent, FieldDimensions>> : std::true_type {};
 } // namespace gridtools

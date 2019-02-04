@@ -47,7 +47,7 @@
  */
 
 using namespace gridtools;
-using namespace gridtools::enumtype;
+using namespace gridtools::execution;
 using namespace gridtools::expressions;
 
 namespace {

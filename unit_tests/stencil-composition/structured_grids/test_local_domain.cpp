@@ -61,11 +61,11 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct dummy_functor {
-    typedef accessor<0, inout> in;
+    typedef accessor<0, intent::inout> in;
     typedef accessor<1> out;
     typedef make_arg_list<in, out> arg_list;
 

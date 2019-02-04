@@ -41,7 +41,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace enumtype;
+using namespace execution;
 
 TEST(cache_storage, test_ij_multidim) {
     typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
@@ -53,7 +53,7 @@ TEST(cache_storage, test_ij_multidim) {
         extent<-1, 1, -2, 2, 0, 0, 0, 2, -1, 0>,
         arg<0, storage_t>>
         cache_storage_t;
-    typedef accessor<0, enumtype::in, extent<>, 6> acc_t;
+    typedef accessor<0, intent::in, extent<>, 6> acc_t;
 
     typedef typename cache_storage_t::meta_t m_t;
 
@@ -92,7 +92,7 @@ TEST(cache_storage, test_k_multidim) {
 
     typedef cache_storage<cache_t, block_size<1, 1, 1, 1, 1>, extent<0, 0, 0, 0, -3, 2, 0, 1, 0, 3>, arg<0, storage_t>>
         cache_storage_t;
-    typedef accessor<0, enumtype::in, extent<>, 6> acc_t;
+    typedef accessor<0, intent::in, extent<>, 6> acc_t;
 
     typedef typename cache_storage_t::meta_t m_t;
 

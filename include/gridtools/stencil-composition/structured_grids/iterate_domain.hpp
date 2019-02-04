@@ -214,7 +214,7 @@ namespace gridtools {
          * @brief Method called in the Do methods of the functors.
          * Specialization for the global accessors placeholders.
          */
-        template <class Arg, enumtype::intent Intent, uint_t I>
+        template <class Arg, intent Intent, uint_t I>
         GT_FUNCTION typename Arg::data_store_t::data_t deref(global_accessor<I> const &) const {
             return *boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs);
         }
@@ -223,7 +223,7 @@ namespace gridtools {
          * @brief method called in the Do methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
-        template <class Arg, enumtype::intent Intent, class Acc, class... Args>
+        template <class Arg, intent Intent, class Acc, class... Args>
         GT_FUNCTION auto deref(global_accessor_with_arguments<Acc, Args...> const &acc) const
             GT_AUTO_RETURN(tuple_to_container(*boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs),
                 acc.get_arguments(),
@@ -235,7 +235,7 @@ namespace gridtools {
          * data fields with the same dimension and memory layout)
          */
         template <class Arg,
-            enumtype::intent Intent,
+            intent Intent,
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<arg_is_cached<Arg>::value, int> = 0>
@@ -250,7 +250,7 @@ namespace gridtools {
          * nor expression) and is not cached (i.e. is accessing main memory)
          */
         template <class Arg,
-            enumtype::intent Intent,
+            intent Intent,
             class Accessor,
             class Res = typename deref_type<Arg, Intent>::type,
             enable_if_t<!arg_is_cached<Arg>::value && is_accessor<Accessor>::value &&
@@ -275,7 +275,7 @@ namespace gridtools {
 
             assert(pointer_oob_check<storage_info_t>(local_domain, pointer_offset));
 
-            conditional_t<Intent == enumtype::in, data_t const, data_t> *ptr =
+            conditional_t<Intent == intent::in, data_t const, data_t> *ptr =
                 boost::fusion::at_key<Arg>(local_domain.m_local_data_ptrs) + pointer_offset;
 
             return IterateDomainImpl::template deref_impl<Arg>(ptr);

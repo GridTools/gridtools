@@ -78,9 +78,8 @@ namespace gridtools {
      *   20 ---------          20 ---------      ---
      */
     template <class FromLevel, class ToLevel, class GridBackend, class Strategy, uint_t BlockSize, class Grid>
-    GT_FUNCTION pair<int, int> get_k_interval(backend_ids<target::cuda, GridBackend, Strategy>,
-        enumtype::execute<enumtype::parallel, BlockSize>,
-        Grid const &grid) {
+    GT_FUNCTION pair<int, int> get_k_interval(
+        backend_ids<target::cuda, GridBackend, Strategy>, execute<execution::parallel, BlockSize>, Grid const &grid) {
         return make_pair(math::max(blockIdx.z * BlockSize, grid.template value_at<FromLevel>()),
             math::min((blockIdx.z + 1) * BlockSize - 1, grid.template value_at<ToLevel>()));
     }
