@@ -98,7 +98,7 @@ where
   indicates the offset in the direction of *decreasing* indices (also
   called *minus direction*), while the second (>=0) indicates the
   offset in the direction of *increasing* indices (also called *plus
-  direction*). For example ``extent< -1,1, 0,2, -2,1 >`` specifies an
+  direction*). For example ``extent<-1, 1, 0, 2, -2, 1>`` specifies an
   access of one element in the direction of decreasing indices (-1)
   and one in the direction of increasing indices (+1) in the first
   dimension; two elements in the plus direction (+2) and no elements
@@ -132,7 +132,7 @@ The ``arg_list`` is a `using` statement like the following
 
 .. code-block:: gridtools
 
- using arg_list = accessor_list< _accessors_ >;
+ using arg_list = accessor_list<_accessors_>;
 
 
 where ``_accessors_`` is a comma separated list of all the accessors
@@ -181,13 +181,13 @@ arguments of the reduction operator).
 
     struct flx_function {
 
-        using out = accessor< 0, enumtype::inout >;
-        using in  = accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > >;
-        using lap = accessor< 2, enumtype::in, extent< 0, 1, 0, 0 > >;
+        using out = accessor<0, enumtype::inout>;
+        using in  = accessor<1, enumtype::in, extent<0, 1, 0, 0>>;
+        using lap = accessor<2, enumtype::in, extent<0, 1, 0, 0>>;
 
-        using arg_list = accessor_list< out, in, lap > arg_list;
+        using arg_list = accessor_list<out, in, lap> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
@@ -248,7 +248,7 @@ of the accessor a sequence of integer indices, as follows:
 
 .. code-block:: gridtools
 
- eval(accessor_name(1,0,-1))
+ eval(accessor_name(1, 0, -1))
 
 
 This means to access an element at an offset of 1 in the first
@@ -266,7 +266,7 @@ dimension and assign it to the output field:
 
 .. code-block:: gridtools
 
- eval(out()) = eval(in()) - eval(in(1,0,0));
+ eval(out()) = eval(in()) - eval(in(1, 0, 0));
 
 
 When using expressions, the previous example can be simplified to
@@ -274,7 +274,7 @@ read:
 
 .. code-block:: gridtools 
 
- eval(out()) = eval( in() -in(1,0,0) );
+ eval(out()) = eval(in() - in(1, 0, 0));
 
 
 To use expressions and other more advanced techniques to access data

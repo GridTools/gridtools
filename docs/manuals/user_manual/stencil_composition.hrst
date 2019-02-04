@@ -163,26 +163,26 @@ Interval provides meta-functions which allow to define modified intervals
 
 - ``interval::first_level``, which is the interval (a C++ type) describing the first level of the interval  
 - ``interval::last_level``, which is interval describing the last level of the interval
-- ``interval::modify<begin,end>``, which is an interval extended (``begin`` < 0) or shrunk (``begin`` > 0) at at the beginning of the interval, and extended (``end`` > 0) or shrunk (``end`` < 0) at the end of the interval.
-- ``interval::shift<value>``, which is the interval shifted by ``value``, i.e. it is a shortcut for ``modify<value,value>``.
+- ``interval::modify<begin, end>``, which is an interval extended (``begin`` < 0) or shrunk (``begin`` > 0) at at the beginning of the interval, and extended (``end`` > 0) or shrunk (``end`` < 0) at the end of the interval.
+- ``interval::shift<value>``, which is the interval shifted by ``value``, i.e. it is a shortcut for ``modify<value, value>``.
 
 Examples:
 
 .. code-block:: gridtools
 
    using axis_t = axis<2>; // axis with 2 vertical regions
-   axis_t my_axis(5,10); // iteration space spans 5 + 10 levels
+   axis_t my_axis(5, 10); // iteration space spans 5 + 10 levels
    
-   using first_interval = axis_t::get_interval<0>;         // interval [0,4]
-   using second_interval = axis_t::get_interval1>;         // [5,14]
-   using full_interval = my_axis_t::full_interval;         // [0,14]
+   using first_interval = axis_t::get_interval<0>;         // interval [0, 4]
+   using second_interval = axis_t::get_interval1>;         // [5, 14]
+   using full_interval = my_axis_t::full_interval;         // [0, 14]
    
    using first_level = full_interval::first_level;         // [0]
    using last_level = full_interval::last_level;           // [14]
    using a_middle_level = second_interval::first_level;    // [5]
    
-   using a_middle_interval = a_middle_level::modify<-1,0>; // [4,5]
-   using a_middle_interval2 = a_middle_interval::shift<1>; // [5,6]
+   using a_middle_interval = a_middle_level::modify<-1, 0>; // [4, 5]
+   using a_middle_interval2 = a_middle_interval::shift<1>; // [5, 6]
    
 .. note:
 
