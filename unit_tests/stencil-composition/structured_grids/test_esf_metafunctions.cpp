@@ -53,7 +53,7 @@ struct functor0 {
     typedef accessor<2, enumtype::in, extent<-3, 3, -1, 2, 0, 1>> in2;
     typedef accessor<3, enumtype::inout> out;
 
-    typedef make_arg_list<in0, in1, in2, out> arg_list;
+    typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -65,7 +65,7 @@ struct functor1 {
     typedef accessor<2, enumtype::in, extent<-3, 0, -3, 0, 0, 2>> in2;
     typedef accessor<3, enumtype::in, extent<0, 2, 0, 2, -2, 3>> in3;
 
-    typedef make_arg_list<in0, out, in2, in3> arg_list;
+    typedef make_param_list<in0, out, in2, in3> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -76,7 +76,7 @@ struct functor2 {
     typedef accessor<1, enumtype::in, extent<-3, 1, -2, 1, 0, 2>> in1;
     typedef accessor<2, enumtype::inout> out;
 
-    typedef make_arg_list<in0, in1, out> arg_list;
+    typedef make_param_list<in0, in1, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -88,7 +88,7 @@ struct functor3 {
     typedef accessor<2, enumtype::inout> out;
     typedef accessor<3, enumtype::in, extent<-1, 3, -3, 0, -3, 2>> in3;
 
-    typedef make_arg_list<in0, in1, out, in3> arg_list;
+    typedef make_param_list<in0, in1, out, in3> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -100,7 +100,7 @@ struct functor4 {
     typedef accessor<2, enumtype::in, extent<-1, 1, 0, 3, 0, 3>> in2;
     typedef accessor<3, enumtype::inout> out;
 
-    typedef make_arg_list<in0, in1, in2, out> arg_list;
+    typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -112,7 +112,7 @@ struct functor5 {
     typedef accessor<2, enumtype::in, extent<0, 2, 0, 3, -1, 2>> in2;
     typedef accessor<3, enumtype::inout> out;
 
-    typedef make_arg_list<in0, in1, in2, out> arg_list;
+    typedef make_param_list<in0, in1, in2, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -124,7 +124,7 @@ struct functor6 {
     typedef accessor<2, enumtype::in, extent<-3, 2, 0, 2, -1, 2>> in2;
     typedef accessor<3, enumtype::in, extent<-1, 0, -1, 0, -1, 3>> in3;
 
-    typedef make_arg_list<out, in1, in2, in3> arg_list;
+    typedef make_param_list<out, in1, in2, in3> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -168,7 +168,7 @@ int main() {
         functor4__(),
         functor5__(),
         functor6__())) mss_t;
-    typedef make_arg_list<o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3> placeholders;
+    typedef make_param_list<o0, o1, o2, o3, o4, o5, o6, in0, in1, in2, in3> placeholders;
 
     typedef compute_extents_of<init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type final_map;
 

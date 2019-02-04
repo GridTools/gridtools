@@ -42,7 +42,7 @@ using namespace gridtools;
 struct func {
     using p1 = accessor<0, enumtype::in>;
     using p2 = accessor<1, enumtype::inout>;
-    using arg_list = make_arg_list<p1, p2>;
+    using param_list = make_param_list<p1, p2>;
 
     template <typename Evaluation>
     void Do(Evaluation &eval) {}
@@ -51,7 +51,7 @@ struct func {
 struct func_call {
     using p1 = accessor<0, enumtype::in>;
     using p2 = accessor<1, enumtype::inout>;
-    using arg_list = make_arg_list<p1, p2>;
+    using param_list = make_param_list<p1, p2>;
 
     template <typename Evaluation>
     void Do(Evaluation &eval) {

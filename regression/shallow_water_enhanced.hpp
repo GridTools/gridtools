@@ -121,7 +121,7 @@ namespace shallow_water {
         using ux = accessor<1, enumtype::inout>;
         using vx = accessor<2, enumtype::inout>;
 
-        using arg_list = make_arg_list<hx, ux, vx, h, u, v>;
+        using param_list = make_param_list<hx, ux, vx, h, u, v>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -157,7 +157,7 @@ namespace shallow_water {
         using u = accessor<4, enumtype::in, extent<0, 0, 0, -1>>;
         using v = accessor<5, enumtype::in, extent<0, 0, 0, -1>>;
 
-        using arg_list = make_arg_list<hy, uy, vy, h, u, v>;
+        using param_list = make_param_list<hy, uy, vy, h, u, v>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -196,7 +196,7 @@ namespace shallow_water {
         using u = accessor<7, enumtype::inout>;
         using v = accessor<8, enumtype::inout>;
 
-        using arg_list = make_arg_list<hx, ux, vx, hy, uy, vy, h, u, v>;
+        using param_list = make_param_list<hx, ux, vx, hy, uy, vy, h, u, v>;
         static uint_t current_time;
 
         //########## FINAL STEP #############

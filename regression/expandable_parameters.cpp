@@ -46,7 +46,7 @@ struct copy_functor {
     using parameters_out = inout_accessor<0>;
     using parameters_in = accessor<1>;
 
-    using arg_list = make_arg_list<parameters_out, parameters_in>;
+    using param_list = make_param_list<parameters_out, parameters_in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {

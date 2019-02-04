@@ -54,7 +54,7 @@ namespace test_cache_stencil {
     struct functor1 {
         typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -65,7 +65,7 @@ namespace test_cache_stencil {
     struct functor2 {
         typedef accessor<0, enumtype::in, extent<-1, 1, -1, 1>> in;
         typedef accessor<1, enumtype::inout> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -77,7 +77,7 @@ namespace test_cache_stencil {
     struct functor3 {
         typedef accessor<0, enumtype::in> in;
         typedef accessor<1, enumtype::inout> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

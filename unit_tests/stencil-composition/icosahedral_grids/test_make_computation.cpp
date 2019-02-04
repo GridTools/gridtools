@@ -62,7 +62,7 @@ namespace make_computation_test {
 
     struct test_functor {
         using in = in_accessor<0, icosahedral_topology_t::cells, extent<1>>;
-        using arg_list = make_arg_list<in>;
+        using param_list = make_param_list<in>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, axis) {}

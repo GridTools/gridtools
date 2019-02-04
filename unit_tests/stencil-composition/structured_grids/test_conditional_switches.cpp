@@ -50,7 +50,7 @@ namespace test_conditional_switches {
         typedef accessor<0, enumtype::inout> p_dummy;
         typedef accessor<1, enumtype::inout> p_dummy_tmp;
 
-        typedef make_arg_list<p_dummy, p_dummy_tmp> arg_list;
+        typedef make_param_list<p_dummy, p_dummy_tmp> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -64,7 +64,7 @@ namespace test_conditional_switches {
         typedef accessor<0, enumtype::inout> p_dummy;
         typedef accessor<1, enumtype::in> p_dummy_tmp;
 
-        typedef make_arg_list<p_dummy, p_dummy_tmp> arg_list;
+        typedef make_param_list<p_dummy, p_dummy_tmp> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
