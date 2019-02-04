@@ -47,7 +47,6 @@
 
 namespace test_iterate_domain {
     using namespace gridtools;
-    using namespace execution;
 
     // This is the definition of the special regions in the "vertical" direction
     struct stage1 {
