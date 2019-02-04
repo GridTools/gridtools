@@ -34,63 +34,33 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
-#include <memory>
+#include "timer.hpp"
 #include <string>
-
-#include <cuda_runtime.h>
-
-#include "../../common/cuda_util.hpp"
-#include "../timer.hpp"
 
 namespace gridtools {
 
     /**
-     * @class timer_cuda
-     * CUDA implementation of the Timer interface
+     * @class TimerDummy
+     * Dummy timer implementation doing nothing in order to avoid runtime overhead
      */
-    class timer_cuda : public timer<timer_cuda> // CRTP
+    class timer_dummy : public timer<timer_dummy> // CRTP
     {
-        using event_holder =
-            std::unique_ptr<CUevent_st, std::integral_constant<decltype(&cudaEventDestroy), cudaEventDestroy>>;
-
-        static event_holder create_event() {
-            cudaEvent_t event;
-            GT_CUDA_CHECK(cudaEventCreate(&event));
-            return event_holder{event};
-        }
-
-        event_holder m_start = create_event();
-        event_holder m_stop = create_event();
-
       public:
-        timer_cuda(std::string name) : timer<timer_cuda>(name) {}
+        GT_FUNCTION_HOST timer_dummy(std::string name) : timer<timer_dummy>(name) {}
 
         /**
          * Reset counters
          */
-        void set_impl(double) {}
+        GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
 
         /**
          * Start the stop watch
          */
-        void start_impl() {
-            // insert a start event
-            GT_CUDA_CHECK(cudaEventRecord(m_start.get(), 0));
-        }
+        GT_FUNCTION_HOST void start_impl() {}
 
         /**
          * Pause the stop watch
          */
-        double pause_impl() {
-            // insert stop event and wait for it
-            GT_CUDA_CHECK(cudaEventRecord(m_stop.get(), 0));
-            GT_CUDA_CHECK(cudaEventSynchronize(m_stop.get()));
-
-            // compute the timing
-            float result;
-            GT_CUDA_CHECK(cudaEventElapsedTime(&result, m_start.get(), m_stop.get()));
-            return result * 0.001; // convert ms to s
-        }
+        GT_FUNCTION_HOST double pause_impl() { return -1.0; }
     };
 } // namespace gridtools

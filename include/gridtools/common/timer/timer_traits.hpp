@@ -34,33 +34,41 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "timer.hpp"
-#include <string>
+
+#include "../defs.hpp"
+
+#ifndef ENABLE_METERS
+#include "timer_dummy.hpp"
+#else
+#ifdef __CUDACC__
+#include "timer_cuda.hpp"
+#endif
+#include "timer_omp.hpp"
+#endif
 
 namespace gridtools {
+    template <typename T>
+    struct timer_traits;
 
-    /**
-     * @class TimerDummy
-     * Dummy timer implementation doing nothing in order to avoid runtime overhead
-     */
-    class timer_dummy : public timer<timer_dummy> // CRTP
-    {
-      public:
-        GT_FUNCTION_HOST timer_dummy(std::string name) : timer<timer_dummy>(name) {}
-
-        /**
-         * Reset counters
-         */
-        GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
-
-        /**
-         * Start the stop watch
-         */
-        GT_FUNCTION_HOST void start_impl() {}
-
-        /**
-         * Pause the stop watch
-         */
-        GT_FUNCTION_HOST double pause_impl() { return 0.0; }
+#ifndef ENABLE_METERS
+    template <typename T>
+    struct timer_traits {
+        using type = timer_dummy;
     };
+#else
+#ifdef __CUDACC__ // TODO think about ENABLE_CUDA instead
+    template <>
+    struct timer_traits<target::cuda> {
+        using type = timer_cuda;
+    };
+#endif
+    template <>
+    struct timer_traits<target::x86> {
+        using type = timer_omp;
+    };
+    template <>
+    struct timer_traits<target::mc> {
+        using type = timer_omp;
+    };
+#endif
 } // namespace gridtools

@@ -41,6 +41,7 @@
 #include <boost/mpl/quote.hpp>
 
 #include "../../common/defs.hpp"
+#include "../../common/timer/timer_traits.hpp"
 #include "../../storage/data_store.hpp"
 
 #include "../backend_traits_fwd.hpp"
@@ -48,12 +49,6 @@
 #include "execute_kernel_functor_cuda.hpp"
 #include "iterate_domain_cache.hpp"
 #include "strategy_cuda.hpp"
-
-#ifdef ENABLE_METERS
-#include "timer_cuda.hpp"
-#else
-#include "../timer_dummy.hpp"
-#endif
 
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
@@ -117,11 +112,7 @@ namespace gridtools {
             typedef iterate_domain_cache<IterateDomainArguments> type;
         };
 
-#ifdef ENABLE_METERS
-        typedef timer_cuda performance_meter_t;
-#else
-        typedef timer_dummy performance_meter_t;
-#endif
+        using performance_meter_t = typename timer_traits<target::cuda>::type;
     };
 
 } // namespace gridtools

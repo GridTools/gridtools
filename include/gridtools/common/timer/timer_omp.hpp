@@ -35,20 +35,21 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../timer.hpp"
+#include "../defs.hpp"
+#include "timer.hpp"
+#include <string>
 
 namespace gridtools {
 
     /**
-     * @class timer_x86
-     * host implementation of the Timer interface
+     * @class timer_omp
+     * omp timers implementation of the Timer interface
      */
-    class timer_x86 : public timer<timer_x86> // CRTP
+    class timer_omp : public timer<timer_omp> // CRTP
     {
       public:
-        timer_x86(std::string name) : timer<timer_x86>(name) { startTime_ = 0.0; }
-        ~timer_x86() {}
+        timer_omp(std::string name) : timer<timer_omp>(name) { startTime_ = 0.0; }
+        ~timer_omp() {}
 
         /**
          * Reset counters

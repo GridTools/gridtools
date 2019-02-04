@@ -35,47 +35,62 @@
 */
 #pragma once
 
-#include "../../common/defs.hpp"
-#include "../timer.hpp"
+#include <memory>
+#include <string>
+
+#include <cuda_runtime.h>
+
+#include "../cuda_util.hpp"
+#include "timer.hpp"
 
 namespace gridtools {
 
     /**
-     * @class timer_mc
-     * mc implementation of the Timer interface
+     * @class timer_cuda
+     * CUDA implementation of the Timer interface
      */
-    class timer_mc : public timer<timer_mc> // CRTP
+    class timer_cuda : public timer<timer_cuda> // CRTP
     {
+        using event_holder =
+            std::unique_ptr<CUevent_st, std::integral_constant<decltype(&cudaEventDestroy), cudaEventDestroy>>;
+
+        static event_holder create_event() {
+            cudaEvent_t event;
+            GT_CUDA_CHECK(cudaEventCreate(&event));
+            return event_holder{event};
+        }
+
+        event_holder m_start = create_event();
+        event_holder m_stop = create_event();
+
       public:
-        timer_mc(std::string name) : timer<timer_mc>(name) { startTime_ = 0.0; }
-        ~timer_mc() {}
+        timer_cuda(std::string name) : timer<timer_cuda>(name) {}
 
         /**
          * Reset counters
          */
-        void set_impl(double const &time_) { startTime_ = time_; }
+        void set_impl(double) {}
 
         /**
          * Start the stop watch
          */
         void start_impl() {
-#if defined(_OPENMP)
-            startTime_ = omp_get_wtime();
-#endif
+            // insert a start event
+            GT_CUDA_CHECK(cudaEventRecord(m_start.get(), 0));
         }
 
         /**
          * Pause the stop watch
          */
         double pause_impl() {
-#if defined(_OPENMP)
-            return omp_get_wtime() - startTime_;
-#else
-            return -100;
-#endif
-        }
+            // insert stop event and wait for it
+            GT_CUDA_CHECK(cudaEventRecord(m_stop.get(), 0));
+            GT_CUDA_CHECK(cudaEventSynchronize(m_stop.get()));
 
-      private:
-        double startTime_;
+            // compute the timing
+            float result;
+            GT_CUDA_CHECK(cudaEventElapsedTime(&result, m_start.get(), m_stop.get()));
+            return result * 0.001; // convert ms to s
+        }
     };
 } // namespace gridtools
