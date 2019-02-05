@@ -49,7 +49,7 @@ namespace test_conditionals {
     struct functor {
 
         typedef accessor<0, enumtype::inout> p_dummy;
-        typedef boost::mpl::vector1<p_dummy> arg_list;
+        typedef make_arg_list<p_dummy> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {

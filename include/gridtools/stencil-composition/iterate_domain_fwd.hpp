@@ -35,7 +35,9 @@
 */
 #pragma once
 
+#include <type_traits>
+
 namespace gridtools {
     template <class>
-    struct is_iterate_domain;
+    struct is_iterate_domain : std::false_type {};
 } // namespace gridtools

@@ -42,6 +42,7 @@
 
 #include <gridtools/common/defs.hpp>
 #include <gridtools/common/halo_descriptor.hpp>
+#include <gridtools/stencil-composition/accessor.hpp>
 #include <gridtools/stencil-composition/arg.hpp>
 #include <gridtools/stencil-composition/computation.hpp>
 #include <gridtools/stencil-composition/expandable_parameters/expand_factor.hpp>
@@ -56,7 +57,7 @@ namespace gridtools {
     struct test_functor {
         using in = accessor<0, enumtype::in, extent<>>;
         using out = accessor<1, enumtype::inout, extent<>>;
-        using arg_list = boost::mpl::vector<in, out>;
+        using arg_list = make_arg_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

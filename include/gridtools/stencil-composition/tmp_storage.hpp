@@ -36,7 +36,8 @@
 #pragma once
 
 /**
- *  @file API for the temporary storage allocation/offsets
+ *  @file
+ *  API for the temporary storage allocation/offsets
  *
  *  Facade API:
  *    1. DataStore make_tmp_data_store<MaxExtent>(Backend, Arg, Grid);

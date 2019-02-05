@@ -55,15 +55,11 @@ namespace gridtools {
         typedef iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> super;
 
       public:
-        typedef iterate_domain_x86 iterate_domain_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::local_domain_t local_domain_t;
-        typedef typename super::grid_topology_t grid_topology_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
-        GT_FUNCTION
-        explicit iterate_domain_x86(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
-            : super(local_domain_, grid_topology), m_strides(0) {}
+        GT_FORCE_INLINE iterate_domain_x86(local_domain_t const &local_domain_) : super(local_domain_), m_strides(0) {}
 
         strides_cached_t &RESTRICT strides_impl() {
             assert(m_strides);
@@ -80,11 +76,8 @@ namespace gridtools {
             m_strides = strides;
         }
 
-        template <typename ReturnType, typename Accessor, typename StorageType>
-        GT_FUNCTION ReturnType get_value_impl(StorageType *RESTRICT storage_pointer, int_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), GT_INTERNAL_ERROR);
-            return *(storage_pointer + pointer_offset);
-        }
+        template <class Arg, class T>
+        static GT_FUNCTION auto deref_impl(T &&ptr) GT_AUTO_RETURN(*ptr);
 
         /**
          * caches are not currently used in host backend
