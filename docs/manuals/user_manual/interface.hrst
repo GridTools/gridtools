@@ -216,6 +216,6 @@ taken to improve building in cross-build environments, because the process canno
 on generated binaries being executable on the host system. The output folder can be overwritten
 by setting ``FORTRAN_OUTPUT_DIR`` and ``C_OUTPUT_DIR``.
 
-The name of the generated Fortran module is by default equal to the name of the library. A different
-name can be set by setting ``FORTRAN_MODULE_NAME``.
+By default, the name of the generated Fortran module is set to the name of the library. A different
+name can be set with ``FORTRAN_MODULE_NAME``.
 
