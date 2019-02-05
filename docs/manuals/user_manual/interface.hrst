@@ -21,7 +21,7 @@ flavours of this macro are explained below. The macro generates a wrapper around
   GT_EXPORT_BINDING_2(add, add_impl);
 
 The user can generate a C header and a Fortran module that matches this header by
-adding a call to ``add_bindings_library`` in his cmake project:
+adding a call to ``add_bindings_library`` in his CMake project:
 
 .. code-block:: CMake
 
@@ -29,11 +29,12 @@ adding a call to ``add_bindings_library`` in his cmake project:
   list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
 
   include(gt_bindings)
-  add_bindings_library(add_lib SOURCES add.cpp FORTRAN_MODULE_NAME add_library)
+  add_bindings_library(add_lib SOURCES add.cpp)
 
 This will generate a library ``add_lib`` which contains the exported symbol ``add``,
 and it will generate a target ``add_lib_declarations`` that generates the files
-``add_lib.h`` and ``add_lib.f90`` containing the bindings usable from C and Fortran.
+``add_lib.h`` and ``add_lib.f90`` containing the bindings that can be used from C
+and Fortran.
 
 The C header contains the exported function (boilerplate code removed):
 
@@ -60,29 +61,33 @@ The generated Fortran module contains the corresponding declaration:
 Exporting functions with no array-type arguments
 ------------------------------------------------
 
-There exist various flavours of macros. Functions which are non-templated or fully-specialized
+There exist various flavours of these macros. Functions which are non-templated or fully-specialized
 can be exported with ``GT_EXPORT_BINDING``, for example:
 
 .. code-block:: gridtools
 
-  int add_impl(int, int);
+  int add_impl(int, int) { return 0; }
   GT_EXPORT_BINDING_2(add, add_impl);
 
   template <typename T>
-  T add_impl(T, T);
+  T add_impl(T, T) { return {}; }
   GT_EXPORT_BINDING(2, add_impl<int, int>);
 
-Note that ``GT_EXPORT_BINDING_X`` requires a function pointer as its second argument. I.e.,
-a lambda cannot be passed as second argument, because the type of the arguments cannot be
+All functions exist in two flavours: Either you can pass the number of arguments as part of the name
+of the macro (``GT_EXPORT_BINDING_2`` stands for two arguments), or you can pass it as a first argument
+to the generic ``GT_EXPORT_BINDING``. The first flavours exist for up to 9 arguments.
+
+Note that ``GT_EXPORT_BINDING_X`` requires a name and a function pointer as its arguments.
+A lambda cannot be passed as function pointer; thus, the type of the arguments cannot be
 deduced. In such cases, the functions can be exported with ``GT_EXPORT_BINDING_WITH_SIGNATURE_X``,
-which additionally takes the function type as its second argument:
+which additionally takes the function type as an argument:
 
 .. code-block:: gridtools
 
   GT_EXPORT_BINDING_WITH_SIGNATURE_2(add, int(int, int), [](int l, int r) { return l + r; });
 
 Templated functions can be exported for a given set of specializations using
-``GT_EXPORT_GENERIC_BINDING_X``. In addition to the two function names, it takes a list of
+``GT_EXPORT_GENERIC_BINDING_X``. In addition to the function name and the function pointer, it takes a list of
 overloads for which the bindings are generated:
 
 .. code-block:: gridtools
