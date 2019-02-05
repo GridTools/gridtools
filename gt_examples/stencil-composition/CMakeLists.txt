@@ -1,5 +1,5 @@
 if( GT_TESTS_STRUCTURED_GRID )
-    set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited)
+    set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
 
     if(GT_ENABLE_TARGET_X86)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
@@ -14,13 +14,13 @@ if( GT_TESTS_STRUCTURED_GRID )
         endforeach()
     endif(GT_ENABLE_TARGET_X86)
 
-    if(ENABLE_MC)
+    if(GT_ENABLE_TARGET_MC)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
             add_executable(${srcfile}_mc_ex   ${srcfile}.cpp)
             target_link_libraries(${srcfile}_mc_ex GridToolsTestMC )
             install_example(${srcfile}_mc_ex)
         endforeach()
-    endif(ENABLE_MC)
+    endif(GT_ENABLE_TARGET_MC)
 
     if(GT_ENABLE_TARGET_CUDA)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
