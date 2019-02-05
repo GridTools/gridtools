@@ -202,9 +202,27 @@ The bindings will take care that the rank matches and it will infer the size of 
 All additional macros behave as mentioned above, namely ``GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED``,
 and ``GT_EXPORT_BINDING_GENERIC_WRAPPED``.
 
-Note, that only C-arrays and GridTools storages are natively supported by the wrapped functions.
-Additional datatypes need to be `fortran_array_wrappable` in order to
-be compatible with these macros.
+Datatypes need to be `fortran_array_wrappable` in order to be compatible with these macros. Natively, only
+C arrays and ``fortran_array_adapter`` are `fortran_array_wrappable`. The latter is an adapter between
+Fortran arrays and gridtools storages, such that the user can pass a Fortran array to a C++ function,
+which then can be transformed into a gridtools storage.
+
+```
+#include <gridtools/interface/fortran_array_adapter.hpp>
+
+using storage_info_t = storage_info_interface<0, layout_map<0, 1, 2>>;
+using data_store_t = data_store<host_storage<double>, storage_info_t>;
+
+void modify_array_impl(fortran_array_adapter<data_store_t> inout) {
+    data_store_t data_store{storage_info_t{10, 10, 10}};
+    transform(data_store, inout);
+
+    // use data_store
+
+    transform(inout, data_store);
+}
+GT_EXPORT_BINDING_WRAPPED_1(modify_array, modify_array_impl)
+```
 
 -----------
 CMake usage
