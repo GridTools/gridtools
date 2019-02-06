@@ -5,7 +5,7 @@ Stencil Operators
 
 *Stencil operators* are the equivalent of `functors` in regular C++
  code, or they may be considered to be the `GridTools functions`. They
- are assumed to have no side-effects and no status (this is why they are marked as `static`). As fuctions they have an
+ are assumed to have no side-effects and no status (this is why they are marked as `static`). As functions they have an
  `interface` and an `implementation`. The interface informs both the caller,
  on the order and types of arguments that have to be passed to it, and
  the implementation, on the names and types of the symbols available
@@ -74,7 +74,7 @@ where
    difficult to manage.
 
 * ``I`` is an integer index. The indices of the accessors in a given
-  stencil operartors *must* be ranging from 0 to N-1, where N is the
+  stencil operators *must* be ranging from 0 to N - 1, where N is the
   number of accessors used by the stencil operator. No index can be
   replicated. If these rules are not followed the compilation
   fails. This is the last argument provided to global accessors.

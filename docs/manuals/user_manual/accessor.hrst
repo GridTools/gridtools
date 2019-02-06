@@ -21,7 +21,7 @@ In order to avoid ambiguities we called
 multidimensional array (or `snapshot`),
 and [Field Dimension](field dimensions) the dimensions identifying
 the position of the snapshot inside the
-vector (or matrix). Since the field dimensions are atmost two,
+vector (or matrix). Since the field dimensions are at most two,
 we will identify them as `component dimension`
 and `snapshot dimension`, in line with their most intuitive use case,
 i.e. a vector representation of a time discretization.
@@ -40,7 +40,7 @@ Space Dimensions
 Let's start with an arbitrary dimensional array
 (a single :term:`snapshot<snapshot>`). The API exposed is very intuitive.
 Suppose you have as first argument of the functor a
-5 (space) dimentional snapshot as an input with null extent called ``acc``.
+5 (space) dimensional snapshot as an input with null extent called ``acc``.
 Then the accessor to use is the following:
 
 .. code-block:: gridtools
@@ -69,7 +69,7 @@ In the latter API the order of the arguments is irrelevant
  dimension<3> k; dimension<4> c; dimension<5> t;
  acc(k-1, t+2, c+2) == acc(c+2, k-1, t+2)
 
-Note that the second notation may greatly improve the readibility of the
+Note that the second notation may greatly improve the readability of the
 user functor body by exposing a matlab-like API, especially when high
 dimensionality is used.
 
@@ -152,7 +152,7 @@ The Do method example provided in :ref:`stencil-operator-example` showed the bas
 
 
 We can notice that the ``eval`` keyword is repeated several times, which is somehow
-tedious, especially when the expression is complicated it becaomes quickly very hard to read.
+tedious, especially when the expression is complicated it becomes quickly very hard to read.
 It is possible to embed the expressions in a single eval, i.e.
 
 .. code-block:: gridtools
@@ -203,7 +203,7 @@ a constant scalar parameter that you want to pass to the functor, or a user defi
 various configuration options.
 
 The API allows the user to define an arbitrary object to act as a `global parameter` as long as it is trivially copyable.
-To create a global parameter from a user-defined object, we pass the object to ``make_global_paramter()``
+To create a global parameter from a user-defined object, we pass the object to ``make_global_parameter()``
 
 .. code-block:: gridtools
 
