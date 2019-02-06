@@ -63,6 +63,31 @@
 
 namespace gt = gridtools;
 
+// The following macros are defined by GridTools private compilation
+// flags for examples, regression and unit tests. Their are not
+// exported when GridTools is installed, so the user would not be
+// biased by GridTools conventions.
+#ifdef BACKEND_X86
+using target_t = gt::target::x86;
+#ifdef BACKEND_STRATEGY_NAIVE
+using strategy_t = gt::strategy::naive;
+#else
+using strategy_t = gt::strategy::block;
+#endif
+#elif defined(BACKEND_MC)
+using target_t = gt::target::mc;
+using strategy_t = gt::strategy::block;
+#elif defined(BACKEND_CUDA)
+using target_t = gt::target::cuda;
+using strategy_t = gt::strategy::block;
+#else
+#define NO_BACKEND
+#endif
+
+#ifndef NO_BACKEND
+using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+#endif
+
 int main(int argc, char **argv) {
     if (argc != 4) {
         std::cout << "Usage: " << argv[0]
