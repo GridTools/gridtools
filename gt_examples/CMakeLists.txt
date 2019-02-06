@@ -12,3 +12,7 @@ endif()
 if ( COMPONENT_BOUNDARY_CONDITIONS )
    add_subdirectory( boundary-conditions )
 endif()
+
+if ( COMPONENT_C_BINDINGS )
+   add_subdirectory( c_bindings )
+endif()
