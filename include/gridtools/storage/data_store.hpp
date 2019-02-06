@@ -140,8 +140,8 @@ namespace gridtools {
      */
     template <typename Storage, typename StorageInfo>
     struct data_store {
-        GRIDTOOLS_STATIC_ASSERT(is_storage<Storage>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(is_storage<Storage>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
+        GT_STATIC_ASSERT(
             is_storage_info<StorageInfo>::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage_info type"));
         typedef typename Storage::data_t data_t;
         typedef typename Storage::state_machine_t state_machine_t;

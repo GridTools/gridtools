@@ -86,7 +86,7 @@ namespace gridtools {
     }
     template <class Backend, class Grid>
     uint_t block_k_size(Backend const &, Grid const &grid) {
-        GRIDTOOLS_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_grid<Grid>::value, GT_INTERNAL_ERROR);
         return grid.k_total_length();
     }
 } // namespace gridtools

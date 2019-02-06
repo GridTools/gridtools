@@ -77,8 +77,8 @@ namespace gridtools {
                 static constexpr uint_t color = Color::value;
                 static constexpr uint_t n_colors = Esf::location_type::n_colors::value;
 
-                GRIDTOOLS_STATIC_ASSERT(n_colors > 0, GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT(color < n_colors, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(n_colors > 0, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(color < n_colors, GT_INTERNAL_ERROR);
 
                 using before_t = GT_META_CALL(meta::repeat_c, (color, void));
                 using after_t = GT_META_CALL(meta::repeat_c, (n_colors - color - 1, void));

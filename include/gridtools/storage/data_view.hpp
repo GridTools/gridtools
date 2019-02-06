@@ -72,7 +72,7 @@ namespace gridtools {
      */
     template <typename DataStore, access_mode AccessMode = access_mode::read_write>
     struct data_view {
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
@@ -149,7 +149,7 @@ namespace gridtools {
         template <typename... Coords>
         conditional_t<AccessMode == access_mode::read_only, data_t const &, data_t &> GT_FUNCTION operator()(
             Coords... c) const {
-            GRIDTOOLS_STATIC_ASSERT(conjunction<is_all_integral_or_enum<Coords...>>::value,
+            GT_STATIC_ASSERT(conjunction<is_all_integral_or_enum<Coords...>>::value,
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
             CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptr[m_storage_info->index(c...)];

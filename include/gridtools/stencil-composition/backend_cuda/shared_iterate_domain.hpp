@@ -60,7 +60,7 @@ namespace gridtools {
      */
     template <typename StridesType, typename MaxExtent, typename IJCachesTuple>
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_strides_cached<StridesType>::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 

@@ -194,7 +194,7 @@ namespace gridtools {
         int Offj = 0,
         int Offk = 0>
     struct call {
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
             "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
             "called stencil function");
 
@@ -234,7 +234,7 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type<Evaluator, Args...>::type with(
             Evaluator &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
+            GT_STATIC_ASSERT(_impl::can_be_a_function<Functor>::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type<Evaluator, Args...>::type result_type;
@@ -371,7 +371,7 @@ namespace gridtools {
     template <typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0>
     struct call_proc {
 
-        GRIDTOOLS_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
+        GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
             "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
             "called stencil function");
 

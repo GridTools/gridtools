@@ -55,11 +55,11 @@ namespace gridtools {
 
     template <class Esfs>
     struct independent_esf {
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (meta::all_of<is_esf_descriptor, Esfs>::value), "Error: independent_esf requires a sequence of esf's");
         // independent_esf always contains a flat list of esfs! No independent_esf inside.
         // This is ensured by make_independent design. That's why this assert is internal.
-        GRIDTOOLS_STATIC_ASSERT((!meta::any_of<is_independent, Esfs>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((!meta::any_of<is_independent, Esfs>::value), GT_INTERNAL_ERROR);
         using esf_list = Esfs;
     };
 

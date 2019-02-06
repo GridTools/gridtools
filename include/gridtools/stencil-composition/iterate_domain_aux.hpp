@@ -89,7 +89,7 @@ namespace gridtools {
     */
     template <ushort_t ID, typename StorageInfoList>
     struct strides_cached /** @cond */ : public strides_cached<ID - 1, StorageInfoList> /** @endcond */ {
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size<StorageInfoList>::value > ID,
+        GT_STATIC_ASSERT(boost::mpl::size<StorageInfoList>::value > ID,
             GT_INTERNAL_ERROR_MSG("strides index exceeds the number of storages"));
         typedef typename boost::mpl::at_c<StorageInfoList, ID>::type storage_info_ptr_t;
         typedef
@@ -214,8 +214,8 @@ namespace gridtools {
     */
     template <typename LocalDomain, uint_t Coordinate, typename StridesCached, typename ArrayIndex>
     struct increment_index_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
         const int_t m_increment;
         ArrayIndex &RESTRICT m_index_array;
@@ -231,7 +231,7 @@ namespace gridtools {
             typename Layout = typename StorageInfo::layout_t,
             enable_if_t<!_impl::is_dummy_coordinate<Coordinate, Layout>::value, int> = 0>
         GT_FUNCTION void operator()(const StorageInfo *) const {
-            GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
+            GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             m_index_array[I] += _impl::get_stride<Coordinate, Layout, I>(m_strides_cached) * m_increment;
         }
     };
@@ -290,8 +290,8 @@ namespace gridtools {
 
     template <class Strides, class LocalDomain, class ArrayIndex, class Backend>
     struct initialize_index_f {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
         Strides const &RESTRICT m_strides;
         pos3<uint_t> m_begin;
         pos3<uint_t> m_block_no;
@@ -300,7 +300,7 @@ namespace gridtools {
 
         template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
         GT_FUNCTION void operator()(const StorageInfo *) const {
-            GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
+            GT_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
             using max_extent_t = typename LocalDomain::max_extent_for_tmp_t;
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
@@ -330,7 +330,7 @@ namespace gridtools {
        */
     template <typename BackendType, typename StridesCached, typename LocalDomain>
     struct assign_strides {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_strides_cached<StridesCached>::value), GT_INTERNAL_ERROR);
 
         template <typename SInfo>
         struct assign {
@@ -349,12 +349,12 @@ namespace gridtools {
             operator()() const {
                 typedef typename SInfo::layout_t layout_map_t;
                 using index_t = meta::st_position<typename LocalDomain::storage_info_ptr_list, const SInfo *>;
-                GRIDTOOLS_STATIC_ASSERT(
+                GT_STATIC_ASSERT(
                     (boost::mpl::contains<typename LocalDomain::storage_info_ptr_list, const SInfo *>::value),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
                 constexpr int pos = SInfo::layout_t::template find<Coordinate::value>();
-                GRIDTOOLS_STATIC_ASSERT((pos < SInfo::layout_t::masked_length),
+                GT_STATIC_ASSERT((pos < SInfo::layout_t::masked_length),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
                 BackendType::template once_per_block<index_t::value>::assign(

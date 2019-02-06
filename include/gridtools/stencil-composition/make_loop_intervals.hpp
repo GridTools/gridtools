@@ -44,7 +44,7 @@ namespace gridtools {
     namespace _impl {
         template <class From>
         struct make_level_index {
-            GRIDTOOLS_STATIC_ASSERT(is_level_index<From>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_level_index<From>::value, GT_INTERNAL_ERROR);
             template <class N>
             GT_META_DEFINE_ALIAS(apply, level_index, (N::value + From::value, From::offset_limit));
         };
@@ -73,7 +73,7 @@ namespace gridtools {
     GT_META_LAZY_NAMESPACE {
         template <template <class...> class StagesMaker, class Interval>
         struct make_loop_intervals {
-            GRIDTOOLS_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_interval<Interval>::value, GT_INTERNAL_ERROR);
 
             // produce the list of all level_indices that the give interval has
             using from_index_t = GT_META_CALL(level_to_index, typename Interval::FromLevel);
@@ -86,7 +86,7 @@ namespace gridtools {
             using stages_t = GT_META_CALL(meta::transform, (StagesMaker, indices_t));
             using all_loop_levels_t = GT_META_CALL(meta::zip, (indices_t, stages_t));
 
-            GRIDTOOLS_STATIC_ASSERT(!meta::is_empty<all_loop_levels_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(!meta::is_empty<all_loop_levels_t>::value, GT_INTERNAL_ERROR);
 
             // merge the sequential levels that have the same stages together
             using first_of_all_loop_levels_t = GT_META_CALL(meta::first, all_loop_levels_t);
@@ -94,7 +94,7 @@ namespace gridtools {
             using loop_levels_t = GT_META_CALL(meta::lfold,
                 (_impl::loop_level_inserter, meta::list<first_of_all_loop_levels_t>, rest_of_all_loop_levels_t));
 
-            GRIDTOOLS_STATIC_ASSERT(!meta::is_empty<loop_levels_t>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(!meta::is_empty<loop_levels_t>::value, GT_INTERNAL_ERROR);
 
             // calculate the to_indices
             using rest_loop_levels_t = GT_META_CALL(meta::pop_front, loop_levels_t);

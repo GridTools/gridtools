@@ -103,7 +103,7 @@ typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
 TEST(cache_metafunctions, cache_used_by_esfs) {
     typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<caches_used_t, make_arg_list<cache1_t, cache2_t, cache3_t>>::value), "WRONG");
     ASSERT_TRUE(true);
 }
@@ -128,7 +128,7 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
+    GT_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
                                 boost::mpl::map2<boost::mpl::pair<cache1_t, extent<-1, 2, -2, 1>>,
                                     boost::mpl::pair<cache2_t, extent<-2, 2, -3, 2>>>>::value),
         "ERROR");
@@ -154,7 +154,7 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
 
     typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
+    GT_STATIC_ASSERT((boost::mpl::equal<extents_map_t,
                                 boost::mpl::map2<boost::mpl::pair<cache3_t, extent<0, 0, 0, 0, 0, 1>>,
                                     boost::mpl::pair<cache4_t, extent<0, 0, 0, 0, -1, 1>>>>::value),
         "ERROR");
@@ -184,7 +184,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
     typedef get_cache_storage_tuple<IJ, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
             boost::fusion::map<boost::fusion::pair<static_uint<0>,
                                    cache_storage<cache1_t, block_size<32, 4, 1>, extent<-1, 2, -2, 1>, p_in>>,
@@ -217,7 +217,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     typedef get_cache_storage_tuple<K, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<cache_storage_tuple_t,
             boost::fusion::map<boost::fusion::pair<static_uint<3>,
                                    cache_storage<cache3_t, block_size<1, 1, 1>, extent<0, 0, 0, 0, 0, 1>, p_out>>,

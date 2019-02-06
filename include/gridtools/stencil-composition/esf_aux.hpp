@@ -56,12 +56,12 @@ namespace gridtools {
         template <typename Placeholders, typename Accessors>
         struct make_arg_with_extent_map {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value),
+            GT_STATIC_ASSERT((is_sequence_of<Placeholders, is_plh>::value),
                 "The list of Placeholders seems to contain elements that are not placeholers (i.e., they are not of "
                 "type arg)");
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<Accessors, is_accessor>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_sequence_of<Accessors, is_accessor>::value), GT_INTERNAL_ERROR);
 #ifdef PEDANTIC // with global accessors this assertion fails (since they are not in the Accessors)
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<Placeholders>::value == boost::mpl::size<Accessors>::value),
+            GT_STATIC_ASSERT((boost::mpl::size<Placeholders>::value == boost::mpl::size<Accessors>::value),
                 "Size of placeholder arguments passed to esf \n"
                 "    make_stage<functor>(arg1(), arg2()) )\n"
                 "does not match the list of arguments defined within the ESF, like\n"

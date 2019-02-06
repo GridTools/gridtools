@@ -132,8 +132,8 @@ namespace gridtools {
      */
     template <typename Extent1, typename Extent2>
     struct sum_extent {
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent1>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent2>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_extent<Extent1>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_extent<Extent2>::value, GT_INTERNAL_ERROR);
 
         using type = extent<Extent1::iminus::value + Extent2::iminus::value,
             Extent1::iplus::value + Extent2::iplus::value,

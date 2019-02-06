@@ -138,7 +138,7 @@ namespace gridtools {
                     is_storage_info<typename DecayedDS::storage_info_t>::value && is_data_store<DecayedDS>::value,
         bool>
     check_consistency(DataStore const &d, DataView const &v) {
-        GRIDTOOLS_STATIC_ASSERT(is_data_view<DecayedDV>::value, "Passed type is no data_view type");
+        GT_STATIC_ASSERT(is_data_view<DecayedDV>::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;

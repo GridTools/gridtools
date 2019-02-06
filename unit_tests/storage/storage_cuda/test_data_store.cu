@@ -88,21 +88,21 @@ TEST(DataStoreTest, Simple) {
     constexpr storage_info_interface<2, layout_map<2, 1, 0>, halo<2, 1, 0>, alignment<16>> csiha(7, 5, 3);
 
     // check sizes, strides, and alignment
-    GRIDTOOLS_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.total_length<2>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csi.total_length<0>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csi.total_length<1>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csi.total_length<2>() == 3, "dimension check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csi.stride<0>() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.stride<1>() == 3, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csi.stride<2>() == 9, "stride check failed.");
+    GT_STATIC_ASSERT(csi.stride<0>() == 1, "stride check failed.");
+    GT_STATIC_ASSERT(csi.stride<1>() == 3, "stride check failed.");
+    GT_STATIC_ASSERT(csi.stride<2>() == 9, "stride check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csih.total_length<0>() == 7, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.total_length<1>() == 5, "dimension check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.total_length<2>() == 3, "dimension check failed.");
+    GT_STATIC_ASSERT(csih.total_length<0>() == 7, "dimension check failed.");
+    GT_STATIC_ASSERT(csih.total_length<1>() == 5, "dimension check failed.");
+    GT_STATIC_ASSERT(csih.total_length<2>() == 3, "dimension check failed.");
 
-    GRIDTOOLS_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
+    GT_STATIC_ASSERT(csih.stride<0>() == 1, "stride check failed.");
+    GT_STATIC_ASSERT(csih.stride<1>() == 7, "stride check failed.");
+    GT_STATIC_ASSERT(csih.stride<2>() == 35, "stride check failed.");
 
     EXPECT_EQ(csiha.total_length<0>(), 7);
     EXPECT_EQ(csiha.total_length<1>(), 5);

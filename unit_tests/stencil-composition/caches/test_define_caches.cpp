@@ -61,7 +61,7 @@ TEST(define_caches, test_sequence_caches) {
     typedef decltype(gridtools::define_caches(
         cache<IJ, cache_io_policy::fill>(arg0_t()), cache<K, cache_io_policy::local>(arg2_t()))) cache_sequence_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<cache_sequence_t,
+    GT_STATIC_ASSERT((boost::mpl::equal<cache_sequence_t,
                                 boost::mpl::vector2<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill>,
                                     detail::cache_impl<K, arg2_t, cache_io_policy::local>>>::value),
         "Failed TEST");
@@ -73,17 +73,17 @@ TEST(define_caches, test_sequence_caches) {
     typedef decltype(gridtools::cache<IJ, cache_io_policy::fill>(arg0_t(), arg1_t(), arg2_t())) caches_ret_sequence_3_t;
     typedef decltype(gridtools::cache<IJ, cache_io_policy::fill>(arg0_t())) caches_ret_sequence_1_t;
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_4_t,
+    GT_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_4_t,
                                 boost::mpl::vector2<detail::cache_impl<K, arg0_t, cache_io_policy::flush>,
                                     detail::cache_impl<K, arg1_t, cache_io_policy::flush>>>::value),
         "Failed TEST");
 
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_3_t,
+    GT_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_3_t,
                                 boost::mpl::vector3<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill>,
                                     detail::cache_impl<IJ, arg1_t, cache_io_policy::fill>,
                                     detail::cache_impl<IJ, arg2_t, cache_io_policy::fill>>>::value),
         "Failed TEST");
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_1_t,
+    GT_STATIC_ASSERT((boost::mpl::equal<caches_ret_sequence_1_t,
                                 boost::mpl::vector1<detail::cache_impl<IJ, arg0_t, cache_io_policy::fill>>>::value),
         "Failed TEST");
 }

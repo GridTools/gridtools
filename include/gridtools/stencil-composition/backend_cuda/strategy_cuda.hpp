@@ -75,12 +75,12 @@ namespace gridtools {
          */
         template <typename MssComponents, typename BackendIds>
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_sequence_of<MssComponents, is_mss_components>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_backend_ids<BackendIds>::value), GT_INTERNAL_ERROR);
 
             template <typename LocalDomainListArray, typename Grid>
             static void run(LocalDomainListArray const &local_domain_lists, const Grid &grid) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((is_grid<Grid>::value), GT_INTERNAL_ERROR);
 
                 host::for_each<GT_META_CALL(meta::make_indices, boost::mpl::size<MssComponents>)>(
                     mss_functor<MssComponents, Grid, LocalDomainListArray, BackendIds, execution_info_cuda>(

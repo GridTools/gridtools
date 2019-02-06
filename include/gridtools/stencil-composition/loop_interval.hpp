@@ -57,8 +57,8 @@ namespace gridtools {
      */
     template <class FromLevel, class ToLevel, class Payload>
     struct loop_interval {
-        GRIDTOOLS_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<FromLevel>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_level<ToLevel>::value, GT_INTERNAL_ERROR);
 
         using type = loop_interval;
     };

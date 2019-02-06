@@ -133,7 +133,7 @@ TEST(iterate_domain_cache, flush) {
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
 
     using k_flushing_caches_indexes_t = iterate_domain_cache_t::k_flushing_caches_indexes_t;
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<k_flushing_caches_indexes_t,
             boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
         "Error");
@@ -169,7 +169,7 @@ TEST(iterate_domain_cache, fill) {
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
 
     using k_filling_caches_indexes_t = iterate_domain_cache_t::k_filling_caches_indexes_t;
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<k_filling_caches_indexes_t, boost::mpl::vector2<static_uint<0>, static_uint<2>>>::value),
         "Error");
 }

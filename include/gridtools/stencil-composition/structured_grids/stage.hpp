@@ -73,8 +73,8 @@ namespace gridtools {
     namespace impl_ {
         template <class ItDomain, class Args>
         struct evaluator {
-            GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
 
             ItDomain const &m_it_domain;
 
@@ -98,15 +98,15 @@ namespace gridtools {
      */
     template <class Functor, class Extent, class Args>
     struct regular_stage {
-        GRIDTOOLS_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
         using extent_t = Extent;
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain const &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             impl_::evaluator<ItDomain, Args> eval{it_domain};
             Functor::Do(eval);
         }
@@ -116,13 +116,13 @@ namespace gridtools {
     struct compound_stage {
         using extent_t = typename Stage::extent_t;
 
-        GRIDTOOLS_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(
             (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain const &it_domain) {
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             Stage::exec(it_domain);
             (void)(int[]){((void)Stages::exec(it_domain), 0)...};
         }

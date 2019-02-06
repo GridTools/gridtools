@@ -111,7 +111,7 @@ the dimension is chosen
 
     template <typename AccessorType, ushort_t... Inxs>
     struct alias<AccessorType, dimension<Inxs>...> {
-        GRIDTOOLS_STATIC_ASSERT(is_accessor<AccessorType>::value,
+        GT_STATIC_ASSERT(is_accessor<AccessorType>::value,
             "wrong type. If you want to generalize the alias "
             "to something more generic than an offset_tuple "
             "remove this assert.");

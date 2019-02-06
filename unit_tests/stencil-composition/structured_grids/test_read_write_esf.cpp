@@ -79,29 +79,29 @@ TEST(esf, read_write) {
 
     typedef esf_descriptor<test_functor, args> esf_t;
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i0>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o0>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i0>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o0>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i1>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o1>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i1>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o1>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i2>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o2>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i2>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o2>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(is_accessor_readonly<test_functor::i3>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(!is_accessor_readonly<test_functor::o3>::type::value, "");
+    GT_STATIC_ASSERT(is_accessor_readonly<test_functor::i3>::type::value, "");
+    GT_STATIC_ASSERT(!is_accessor_readonly<test_functor::o3>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<0>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<1>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<0>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<1>>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<2>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<3>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<2>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<3>>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<4>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<5>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<4>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<5>>::type::value, "");
 
-    GRIDTOOLS_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<6>>::type::value, "");
-    GRIDTOOLS_STATIC_ASSERT(is_written<esf_t>::apply<static_int<7>>::type::value, "");
+    GT_STATIC_ASSERT(!is_written<esf_t>::apply<static_int<6>>::type::value, "");
+    GT_STATIC_ASSERT(is_written<esf_t>::apply<static_int<7>>::type::value, "");
 
     EXPECT_TRUE(true);
 }

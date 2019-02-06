@@ -87,14 +87,14 @@ namespace gridtools {
         /** @brief Total length of layout map, including masked dimensions. */
         static constexpr std::size_t masked_length = sizeof...(Args);
 
-        GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
-        GRIDTOOLS_STATIC_ASSERT((unmasked_arg_sum == (unmasked_length * (unmasked_length - 1)) / 2),
+        GT_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
+        GT_STATIC_ASSERT((unmasked_arg_sum == (unmasked_length * (unmasked_length - 1)) / 2),
             GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
 
         /** @brief Get the position of the element with value `I` in the layout map. */
         template <int I>
         GT_FUNCTION static constexpr std::size_t find() {
-            GRIDTOOLS_STATIC_ASSERT(
+            GT_STATIC_ASSERT(
                 (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
             // force compile-time evaluation
             return std::integral_constant<std::size_t, find(I)>::value;
@@ -106,7 +106,7 @@ namespace gridtools {
         /** @brief Get the value of the element at position `I` in the layout map. */
         template <std::size_t I>
         GT_FUNCTION static constexpr int at() {
-            GRIDTOOLS_STATIC_ASSERT(I < masked_length, GT_INTERNAL_ERROR_MSG("Out of bounds access"));
+            GT_STATIC_ASSERT(I < masked_length, GT_INTERNAL_ERROR_MSG("Out of bounds access"));
             // force compile-time evaluation
             return std::integral_constant<int, at(I)>::value;
         }

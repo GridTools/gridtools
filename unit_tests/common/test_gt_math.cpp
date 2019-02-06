@@ -56,13 +56,13 @@ struct test_exp {
 
 struct test_fabs {
     static bool GT_FUNCTION Do() {
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0f)), float>::value), "Should return float.");
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0)), double>::value), "Should return double.");
+        GT_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0f)), float>::value), "Should return float.");
+        GT_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0)), double>::value), "Should return double.");
 #ifndef __CUDA_ARCH__
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (std::is_same<decltype(math::fabs((long double)4)), long double>::value), "Should return long double.");
 #endif
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::fabs((int)4)), double>::value), "Should return double.");
+        GT_STATIC_ASSERT((std::is_same<decltype(math::fabs((int)4)), double>::value), "Should return double.");
 
         if (!expect_with_threshold(math::fabs(5.6), 5.6, 1e-14))
             return false;
@@ -84,17 +84,17 @@ struct test_fabs {
 struct test_abs {
     static GT_FUNCTION bool Do() {
         // float overloads
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0f)), float>::value), "Should return float.");
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0)), double>::value), "Should return double.");
+        GT_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0f)), float>::value), "Should return float.");
+        GT_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0)), double>::value), "Should return double.");
 #ifndef __CUDA_ARCH__
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (std::is_same<decltype(math::abs((long double)4)), long double>::value), "Should return long double.");
 #endif
 
         // int overloads
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs((int)4)), int>::value), "Should return int.");
-        GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(math::abs((long)4)), long>::value), "Should return long.");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT((std::is_same<decltype(math::abs((int)4)), int>::value), "Should return int.");
+        GT_STATIC_ASSERT((std::is_same<decltype(math::abs((long)4)), long>::value), "Should return long.");
+        GT_STATIC_ASSERT(
             (std::is_same<decltype(math::abs((long long)4)), long long>::value), "Should return long long.");
 
         if (math::abs(5.6) != 5.6)

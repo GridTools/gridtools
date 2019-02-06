@@ -74,7 +74,7 @@ namespace gridtools {
          */
         template <cache_type CacheType, class Arg, cache_io_policy cacheIOPolicy>
         struct cache_impl {
-            GRIDTOOLS_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_plh<Arg>::value, GT_INTERNAL_ERROR);
             using arg_t = Arg;
             static constexpr cache_type cacheType = CacheType;
             static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
@@ -90,12 +90,12 @@ namespace gridtools {
      */
     template <cache_type cacheType, cache_io_policy cacheIOPolicy, class... Args>
     std::tuple<detail::cache_impl<cacheType, Args, cacheIOPolicy>...> cache(Args...) {
-        GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
+        GT_STATIC_ASSERT(
             conjunction<is_plh<Args>...>::value, "argument passed to cache is not of the right arg<> type");
         // TODO ICO_STORAGE
 #ifndef GT_STRUCTURED_GRIDS
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (!disjunction<std::is_same<typename Args::location_t, enumtype::default_location_type>...>::value),
             "args in irregular grids require a location type");
 #endif

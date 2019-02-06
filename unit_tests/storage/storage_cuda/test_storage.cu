@@ -67,9 +67,9 @@ TEST(StorageHostTest, Simple) {
     gridtools::cuda_storage<int> s1(2);
     gridtools::cuda_storage<int> s2(2);
     // test the is_storage check
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         gridtools::is_storage<decltype(s1)>::type::value, "is_storage check is not working anymore");
-    GRIDTOOLS_STATIC_ASSERT(!gridtools::is_storage<int>::type::value, "is_storage check is not working anymore");
+    GT_STATIC_ASSERT(!gridtools::is_storage<int>::type::value, "is_storage check is not working anymore");
     // write some values
     s1.get_cpu_ptr()[0] = 10;
     s1.get_cpu_ptr()[1] = 20;

@@ -50,7 +50,7 @@ namespace gridtools {
         : public iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_x86);
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         typedef iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> super;
 
@@ -84,7 +84,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
@@ -92,7 +92,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void flush_caches(bool) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         /**
@@ -100,7 +100,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void fill_caches(bool) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "error");
         }
 
         template <typename Extent>

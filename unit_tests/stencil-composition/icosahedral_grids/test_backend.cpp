@@ -46,19 +46,19 @@ using namespace gridtools;
 
 TEST(bakend, select_layout) {
 #if defined(GT_BACKEND_X86) || defined(GT_BACKEND_MC)
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 1, 1, 1>>::type, layout_map<0, 1, 2, 3>>::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 0, 1, 1>>::type, layout_map<0, -1, 1, 2>>::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::is_same<backend_t::select_layout<selector<1, 1, 0, 1, 1>>::type, layout_map<1, 2, -1, 3, 0>>::value),
         "ERROR");
 #else
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 1, 1, 1>>::type, layout_map<3, 2, 1, 0>>::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 0, 1, 1>>::type, layout_map<2, -1, 1, 0>>::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 1, 0, 1, 1>>::type, layout_map<3, 2, -1, 1, 0>>::value),
         "ERROR");
 #endif

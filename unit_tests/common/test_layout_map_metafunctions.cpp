@@ -45,12 +45,12 @@ TEST(layout_map_metafunctions, filter_layout) {
     {
         using layout_map_t = layout_map<0, 1, 2, 3>;
         using filtered_layout_map_t = filter_layout<layout_map_t, selector<1, 1, 0, 1>>::type;
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same<filtered_layout_map_t, layout_map<0, 1, -1, 2>>::value), "Error");
+        GT_STATIC_ASSERT((boost::is_same<filtered_layout_map_t, layout_map<0, 1, -1, 2>>::value), "Error");
     }
     {
         using layout_map_t = layout_map<3, 1, 2, 0>;
         using filtered_layout_map_t = filter_layout<layout_map_t, selector<1, 0, 0, 1>>::type;
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same<filtered_layout_map_t, layout_map<1, -1, -1, 0>>::value), "Error");
+        GT_STATIC_ASSERT((boost::is_same<filtered_layout_map_t, layout_map<1, -1, -1, 0>>::value), "Error");
     }
 }
 
@@ -58,19 +58,19 @@ TEST(layout_map_metafunctions, extend_layout_map) {
     {
         using layout_map_t = layout_map<0, 1, 2, 3>;
         using extended_layout_map_t = extend_layout_map<layout_map_t, 3>::type;
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (boost::is_same<extended_layout_map_t, layout_map<3, 4, 5, 6, 0, 1, 2>>::value), "Error");
     }
     {
         using layout_map_t = layout_map<3, 2, 1, 0>;
         using extended_layout_map_t = extend_layout_map<layout_map_t, 3>::type;
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (boost::is_same<extended_layout_map_t, layout_map<6, 5, 4, 3, 0, 1, 2>>::value), "Error");
     }
     {
         using layout_map_t = layout_map<3, 1, 0, 2>;
         using extended_layout_map_t = extend_layout_map<layout_map_t, 3>::type;
-        GRIDTOOLS_STATIC_ASSERT(
+        GT_STATIC_ASSERT(
             (boost::is_same<extended_layout_map_t, layout_map<6, 4, 3, 5, 0, 1, 2>>::value), "Error");
     }
 }

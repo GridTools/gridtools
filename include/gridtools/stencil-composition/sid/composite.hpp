@@ -120,7 +120,7 @@ namespace gridtools {
 
                 template <class Args, class Res = GT_META_CALL(tuple_util::element, (PrimaryIndex::value, Args))>
                 Res const &operator()(Args const &args) const noexcept {
-                    GRIDTOOLS_STATIC_ASSERT(
+                    GT_STATIC_ASSERT(
                         (conjunction<std::is_same<GT_META_CALL(tuple_util::element, (SecondaryIndices::value, Args)),
                                 Res>...>::value),
                         GT_INTERNAL_ERROR);
@@ -148,7 +148,7 @@ namespace gridtools {
             GT_FUNCTION void composite_shift_impl(
                 ObjTup &RESTRICT obj_tup, StrideTup const &RESTRICT stride_tup, Offset const &RESTRICT offset) {
                 static constexpr size_t size = tuple_util::size<ObjTup>::value;
-                GRIDTOOLS_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
                 host_device::for_each_type<GT_META_CALL(meta::make_indices_c, size)>(
                     shift_t<ObjTup, StrideTup, Offset>{obj_tup, stride_tup, offset});
             }
@@ -297,7 +297,7 @@ namespace gridtools {
          */
         template <class... Sids>
         class composite {
-            GRIDTOOLS_STATIC_ASSERT(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(conjunction<is_sid<Sids>...>::value, GT_INTERNAL_ERROR);
 
             tuple<Sids...> m_sids;
 

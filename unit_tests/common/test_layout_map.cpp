@@ -52,78 +52,78 @@ TEST(LayoutMap, SimpleLayout) {
     typedef layout_map<0, 1, 2> layout1;
 
     // test length
-    GRIDTOOLS_STATIC_ASSERT(layout1::masked_length == 3, "layout_map length is wrong");
-    GRIDTOOLS_STATIC_ASSERT(layout1::unmasked_length == 3, "layout_map length is wrong");
+    GT_STATIC_ASSERT(layout1::masked_length == 3, "layout_map length is wrong");
+    GT_STATIC_ASSERT(layout1::unmasked_length == 3, "layout_map length is wrong");
 
     // test find method
-    GRIDTOOLS_STATIC_ASSERT(layout1::find<0>() == 0, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::find<1>() == 1, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::find<2>() == 2, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::find(0) == 0, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::find(1) == 1, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::find(2) == 2, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout1::find<0>() == 0, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout1::find<1>() == 1, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout1::find<2>() == 2, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout1::find(0) == 0, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout1::find(1) == 1, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout1::find(2) == 2, "wrong result in layout_map find method");
 
     // test at method
-    GRIDTOOLS_STATIC_ASSERT(layout1::at<0>() == 0, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::at<1>() == 1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::at<2>() == 2, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::at(0) == 0, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::at(1) == 1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout1::at(2) == 2, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout1::at<0>() == 0, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout1::at<1>() == 1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout1::at<2>() == 2, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout1::at(0) == 0, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout1::at(1) == 1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout1::at(2) == 2, "wrong result in layout_map at method");
 }
 
 TEST(LayoutMap, ExtendedLayout) {
     typedef layout_map<3, 2, 1, 0> layout2;
 
     // test length
-    GRIDTOOLS_STATIC_ASSERT(layout2::masked_length == 4, "layout_map length is wrong");
-    GRIDTOOLS_STATIC_ASSERT(layout2::unmasked_length == 4, "layout_map length is wrong");
+    GT_STATIC_ASSERT(layout2::masked_length == 4, "layout_map length is wrong");
+    GT_STATIC_ASSERT(layout2::unmasked_length == 4, "layout_map length is wrong");
 
     // test find method
-    GRIDTOOLS_STATIC_ASSERT(layout2::find<0>() == 3, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find<1>() == 2, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find<2>() == 1, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find<3>() == 0, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find(0) == 3, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find(1) == 2, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find(2) == 1, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::find(3) == 0, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find<0>() == 3, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find<1>() == 2, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find<2>() == 1, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find<3>() == 0, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find(0) == 3, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find(1) == 2, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find(2) == 1, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout2::find(3) == 0, "wrong result in layout_map find method");
 
     // test at method
-    GRIDTOOLS_STATIC_ASSERT(layout2::at<0>() == 3, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at<1>() == 2, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at<2>() == 1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at<3>() == 0, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at(0) == 3, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at(1) == 2, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at(2) == 1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout2::at(3) == 0, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at<0>() == 3, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at<1>() == 2, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at<2>() == 1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at<3>() == 0, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at(0) == 3, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at(1) == 2, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at(2) == 1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout2::at(3) == 0, "wrong result in layout_map at method");
 }
 
 TEST(LayoutMap, MaskedLayout) {
     typedef layout_map<2, -1, 1, 0> layout3;
 
     // test length
-    GRIDTOOLS_STATIC_ASSERT(layout3::masked_length == 4, "layout_map length is wrong");
-    GRIDTOOLS_STATIC_ASSERT(layout3::unmasked_length == 3, "layout_map length is wrong");
+    GT_STATIC_ASSERT(layout3::masked_length == 4, "layout_map length is wrong");
+    GT_STATIC_ASSERT(layout3::unmasked_length == 3, "layout_map length is wrong");
 
     // test find method
-    GRIDTOOLS_STATIC_ASSERT(layout3::find<0>() == 3, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::find<1>() == 2, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::find<2>() == 0, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::find(0) == 3, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::find(1) == 2, "wrong result in layout_map find method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::find(2) == 0, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout3::find<0>() == 3, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout3::find<1>() == 2, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout3::find<2>() == 0, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout3::find(0) == 3, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout3::find(1) == 2, "wrong result in layout_map find method");
+    GT_STATIC_ASSERT(layout3::find(2) == 0, "wrong result in layout_map find method");
 
     // test at method
-    GRIDTOOLS_STATIC_ASSERT(layout3::at<0>() == 2, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at<1>() == -1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at<2>() == 1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at<3>() == 0, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at(0) == 2, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at(1) == -1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at(2) == 1, "wrong result in layout_map at method");
-    GRIDTOOLS_STATIC_ASSERT(layout3::at(3) == 0, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at<0>() == 2, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at<1>() == -1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at<2>() == 1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at<3>() == 0, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at(0) == 2, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at(1) == -1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at(2) == 1, "wrong result in layout_map at method");
+    GT_STATIC_ASSERT(layout3::at(3) == 0, "wrong result in layout_map at method");
 }
 
 TEST(LayoutMap, DefaultLayout) {
@@ -173,16 +173,16 @@ TEST(LayoutMap, max_value) {
     {
         using layout_map_t = layout_map<0, 1, 2, 3>;
 
-        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 3, " ");
+        GT_STATIC_ASSERT(layout_map_t::max() == 3, " ");
     }
     {
         using layout_map_t = layout_map<0, 1, -1, 2>;
 
-        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 2, " ");
+        GT_STATIC_ASSERT(layout_map_t::max() == 2, " ");
     }
     {
         using layout_map_t = layout_map<0, 1, -1, -1>;
 
-        GRIDTOOLS_STATIC_ASSERT(layout_map_t::max() == 1, " ");
+        GT_STATIC_ASSERT(layout_map_t::max() == 1, " ");
     }
 }

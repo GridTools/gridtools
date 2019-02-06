@@ -54,7 +54,7 @@ namespace gridtools {
 
             template <size_t I, class T>
             struct generic_loop {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
                 T m_step;
@@ -131,7 +131,7 @@ namespace gridtools {
 
             template <size_t I, class T, ptrdiff_t Step>
             struct known_step_loop {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
 
@@ -205,7 +205,7 @@ namespace gridtools {
 
             template <size_t I, class T>
             struct known_step_loop<I, T, 0> {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 T m_num_steps;
 
@@ -268,7 +268,7 @@ namespace gridtools {
 
             template <size_t I, class T, T NumSteps>
             struct known_num_steps_loop {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 T m_step;
 
@@ -339,7 +339,7 @@ namespace gridtools {
 
             template <size_t I, class T, ptrdiff_t NumSteps, ptrdiff_t Step>
             struct all_known_loop {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 struct loop_f {
@@ -403,7 +403,7 @@ namespace gridtools {
 
             template <size_t I, class T, ptrdiff_t NumSteps>
             struct all_known_loop<I, T, NumSteps, 0> {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 struct loop_f {
@@ -458,7 +458,7 @@ namespace gridtools {
 
             template <size_t I, class T>
             struct all_known_loop<I, T, 1, 0> {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 constexpr GT_FUNCTION Fun operator()(Fun &&fun) const {
@@ -486,7 +486,7 @@ namespace gridtools {
 
             template <size_t I, class T>
             struct all_known_loop<I, T, 0, 0> {
-                GRIDTOOLS_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT(std::is_signed<T>::value, GT_INTERNAL_ERROR);
 
                 template <class Fun>
                 constexpr GT_FUNCTION host_device::noop operator()(Fun &&) const {

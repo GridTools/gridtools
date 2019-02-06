@@ -47,19 +47,19 @@ using namespace gridtools;
 using namespace expressions;
 
 TEST(accessor, is_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3, 4, 4, 5>>>::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2, enumtype::in>>::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double &>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const &>::value) == false, "");
+    GT_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3, 4, 4, 5>>>::value) == true, "");
+    GT_STATIC_ASSERT((is_accessor<accessor<2, enumtype::in>>::value) == true, "");
+    GT_STATIC_ASSERT((is_accessor<int>::value) == false, "");
+    GT_STATIC_ASSERT((is_accessor<double &>::value) == false, "");
+    GT_STATIC_ASSERT((is_accessor<double const &>::value) == false, "");
 }
 
 TEST(accessor, is_accessor_readonly) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<in_accessor<0>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<accessor<0, enumtype::in>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly<global_accessor<0>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<inout_accessor<0>>::value), "");
-    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly<accessor<0, enumtype::inout>>::value), "");
+    GT_STATIC_ASSERT((is_accessor_readonly<in_accessor<0>>::value), "");
+    GT_STATIC_ASSERT((is_accessor_readonly<accessor<0, enumtype::in>>::value), "");
+    GT_STATIC_ASSERT((is_accessor_readonly<global_accessor<0>>::value), "");
+    GT_STATIC_ASSERT((!is_accessor_readonly<inout_accessor<0>>::value), "");
+    GT_STATIC_ASSERT((!is_accessor_readonly<accessor<0, enumtype::inout>>::value), "");
     // TODO test accessor_mixed
 }
 
@@ -73,7 +73,7 @@ TEST(accessor, trivial) {
 
 TEST(accessor, array) {
     constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 3> first(array<int_t, 3>{3, 2, -1});
-    GRIDTOOLS_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
+    GT_STATIC_ASSERT((get<0>(first) == 3 && get<1>(first) == 2 && get<2>(first) == -1), "ERROR");
 
     EXPECT_EQ(3, get<0>(first));
     EXPECT_EQ(2, get<1>(first));
@@ -106,7 +106,7 @@ TEST(accessor, alternative2) {
 #if !defined(__INTEL_COMPILER) || __INTEL_COMPILER != 1800
     // ICC 18 shows some strange bug here
     constexpr accessor<0, enumtype::inout, extent<0, 0, 0, 0>, 4> first(i - 5, j, dimension<3>(8), t + 2);
-    GRIDTOOLS_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
+    GT_STATIC_ASSERT(get<0>(first) == -5, "ERROR");
 
     EXPECT_EQ(-5, get<0>(first));
     EXPECT_EQ(0, get<1>(first));

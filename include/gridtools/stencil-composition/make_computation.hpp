@@ -111,7 +111,7 @@ namespace gridtools {
             class... Args,
             enable_if_t<!is_grid<Arg>::value && !is_expand_factor<Arg>::value, int> = 0>
         void make_computation_dispatch(Arg const &, Args &&...) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) < 0, "The computation is malformed");
+            GT_STATIC_ASSERT(sizeof...(Args) < 0, "The computation is malformed");
         }
     } // namespace _impl
 

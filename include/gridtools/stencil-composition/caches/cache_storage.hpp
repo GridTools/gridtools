@@ -55,7 +55,7 @@ namespace gridtools {
     namespace _impl {
         template <uint_t TileI, uint_t TileJ, uint_t... Tiles>
         struct check_cache_tile_sizes {
-            GRIDTOOLS_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
             static constexpr bool value = (accumulate(multiplies(), Tiles...) == 1);
         };
 
@@ -117,8 +117,8 @@ namespace gridtools {
 
     template <typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Arg>
     struct cache_storage<Cache, block_size<Tiles...>, extent<ExtentBounds...>, Arg> {
-        GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes<Tiles...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((_impl::check_cache_tile_sizes<Tiles...>::value), GT_INTERNAL_ERROR);
 
       public:
         using cache_t = Cache;
@@ -128,7 +128,7 @@ namespace gridtools {
 
         static constexpr int tiles_block = accumulate(multiplies(), Tiles...);
 
-        GRIDTOOLS_STATIC_ASSERT(((tiles_block == 1) || !is_k_cache<cache_t>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(((tiles_block == 1) || !is_k_cache<cache_t>::value), GT_INTERNAL_ERROR);
 
         typedef typename Arg::data_store_t::data_t value_type;
 
@@ -149,11 +149,11 @@ namespace gridtools {
         using jplus_t = typename boost::mpl::at_c<typename plus_t::type, 1>::type;
         using kplus_t = typename boost::mpl::at_c<typename plus_t::type, 2>::type;
 
-        GRIDTOOLS_STATIC_ASSERT((Cache::cacheType != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
+        GT_STATIC_ASSERT((Cache::cacheType != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
                                                                iplus_t::value == 0 && jplus_t::value == 0),
             "KCaches can not be use with a non null extent in the horizontal dimensions");
 
-        GRIDTOOLS_STATIC_ASSERT((Cache::cacheType != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
+        GT_STATIC_ASSERT((Cache::cacheType != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
             "Only KCaches can be accessed with a non null extent in K");
 
         template <typename Accessor>
@@ -215,8 +215,8 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void slide() {
-            GRIDTOOLS_STATIC_ASSERT((Cache::cacheType == K), "Error: we can only slide KCaches");
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "Error");
+            GT_STATIC_ASSERT((Cache::cacheType == K), "Error: we can only slide KCaches");
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "Error");
 
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
             if (ksize > 1) {
@@ -244,7 +244,7 @@ namespace gridtools {
         template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
         GT_FUNCTION static void check_kcache_access(Accessor const &accessor) {
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor<Accessor>::value), "Error type is not accessor tuple");
+            GT_STATIC_ASSERT((is_accessor<Accessor>::value), "Error type is not accessor tuple");
 
             typedef static_int<meta_t::template stride<0>()> check_constexpr_1;
             typedef static_int<meta_t::template stride<1>()> check_constexpr_2;
