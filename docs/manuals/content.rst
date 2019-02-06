@@ -8,7 +8,6 @@
    concepts/concepts
    internal/internal
    faq/faq
-   coding_convention/coding_convention
 
 Indices and tables
 ==================

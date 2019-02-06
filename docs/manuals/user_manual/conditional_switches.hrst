@@ -21,7 +21,7 @@ The syntax we expose for `if_` statements is reported in the following example:
 
 .. code-block:: gridtools
 
- auto comp = make_computation<BACKEND>(
+ auto comp = make_computation<backend_t>(
      grid,
      if_([&flag] { return flag; },
          make_multistage(
@@ -47,7 +47,7 @@ The conditionals can also be nested:
 
  auto cond = ...;
  auto cond2 = ...;
- auto comp = make_computation<BACKEND>(
+ auto comp = make_computation<backend_t>(
      grid,
      if_(cond,
          make_multistage(
@@ -77,7 +77,7 @@ exemplified in the following snippet
      assert(p >= 0 && p < 3);
      return p;
  };
- auto comp_ = make_computation<BACKEND>(
+ auto comp_ = make_computation<backend_t>(
      grid,
      make_multistage(
          execute<parallel>(),
