@@ -58,8 +58,7 @@ namespace gridtools {
         struct pack_get_elem_null {
             template <typename... ElemTypes>
             GT_FUNCTION static constexpr int apply(ElemTypes... elems) {
-                GT_STATIC_ASSERT(
-                    (Idx < 0), "Error: trying to retrieve a element of a pack with a negative index");
+                GT_STATIC_ASSERT((Idx < 0), "Error: trying to retrieve a element of a pack with a negative index");
                 return 0;
             }
         };

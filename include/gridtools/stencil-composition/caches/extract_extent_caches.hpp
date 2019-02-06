@@ -184,7 +184,7 @@ namespace gridtools {
                     extent<>>::type extent_t;
 
                 GT_STATIC_ASSERT((extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
-                                            extent_t::jminus::value == 0 && extent_t::jplus::value == 0),
+                                     extent_t::jminus::value == 0 && extent_t::jplus::value == 0),
                     "Error: K Caches can not have ij extent values");
 
                 typedef typename boost::mpl::if_<boost::mpl::contains<typename esf_t::args_t, cache_arg_t>,

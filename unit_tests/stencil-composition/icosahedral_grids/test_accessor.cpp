@@ -42,8 +42,7 @@
 
 TEST(accessor, is_accessor) {
     using namespace gridtools;
-    GT_STATIC_ASSERT(
-        (is_accessor<accessor<6, enumtype::inout, enumtype::cells, extent<3, 4, 4, 5>>>::value), "");
+    GT_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, enumtype::cells, extent<3, 4, 4, 5>>>::value), "");
     GT_STATIC_ASSERT((is_accessor<accessor<2, enumtype::in, enumtype::cells>>::value), "");
     GT_STATIC_ASSERT((!is_accessor<int>::value), "");
 }

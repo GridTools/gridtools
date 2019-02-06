@@ -150,7 +150,7 @@ namespace gridtools {
         using kplus_t = typename boost::mpl::at_c<typename plus_t::type, 2>::type;
 
         GT_STATIC_ASSERT((Cache::cacheType != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
-                                                               iplus_t::value == 0 && jplus_t::value == 0),
+                                                        iplus_t::value == 0 && jplus_t::value == 0),
             "KCaches can not be use with a non null extent in the horizontal dimensions");
 
         GT_STATIC_ASSERT((Cache::cacheType != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),

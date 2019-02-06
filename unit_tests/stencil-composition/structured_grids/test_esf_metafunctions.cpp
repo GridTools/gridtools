@@ -172,17 +172,13 @@ int main() {
 
     typedef compute_extents_of<init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type final_map;
 
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o0>::type, extent<-5, 11, -10, 10, -5, 13>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o0>::type, extent<-5, 11, -10, 10, -5, 13>>::type::value),
         "o0 extent<-5, 11, -10, 10, -5, 13> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o1>::type, extent<-5, 9, -10, 8, -3, 10>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o1>::type, extent<-5, 9, -10, 8, -3, 10>>::type::value),
         "o1 extent<-5, 9, -10, 8, -3, 10> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o2>::type, extent<-2, 8, -8, 7, -3, 8>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o2>::type, extent<-2, 8, -8, 7, -3, 8>>::type::value),
         "o2 extent<-2, 8, -8, 7, -3, 8> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, o3>::type, extent<-1, 5, -5, 7, 0, 6>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o3>::type, extent<-1, 5, -5, 7, 0, 6>>::type::value),
         "o3 extent<-1, 5, -5, 7, 0, 6> ");
     GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o4>::type, extent<0, 4, -5, 4, 0, 3>>::type::value),
         "o4 extent<0, 4, -5, 4, 0, 3> ");
@@ -190,17 +186,13 @@ int main() {
         "o5 extent<0, 3, -3, 2, 0, 0> ");
     GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o6>::type, extent<0, 0, 0, 0, 0, 0>>::type::value),
         "o6 extent<0, 0, 0, 0, 0, 0> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in0>::type, extent<-8, 11, -13, 13, -7, 13>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in0>::type, extent<-8, 11, -13, 13, -7, 13>>::type::value),
         "in0 extent<-8, 11, -13, 13, -7, 13> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in1>::type, extent<-6, 12, -10, 12, -6, 15>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in1>::type, extent<-6, 12, -10, 12, -6, 15>>::type::value),
         "in1 extent<-6, 12, -10, 12, -6, 15> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in2>::type, extent<-8, 14, -11, 12, -5, 14>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in2>::type, extent<-8, 14, -11, 12, -5, 14>>::type::value),
         "in2 extent<-8, 14, -11, 12, -5, 14> ");
-    GT_STATIC_ASSERT(
-        (std::is_same<boost::mpl::at<final_map, in3>::type, extent<-5, 10, -11, 10, -3, 10>>::type::value),
+    GT_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, in3>::type, extent<-5, 10, -11, 10, -3, 10>>::type::value),
         "in3 extent<-5, 10, -11, 10, -3, 10> ");
     /* total placeholders (rounded to 10) _SIZE = 20*/
     return 0;

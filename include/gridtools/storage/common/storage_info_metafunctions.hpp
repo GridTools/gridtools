@@ -84,8 +84,7 @@ namespace gridtools {
      */
     template <typename Alignment, int_t MaxLayoutV, int LayoutArg, typename Int>
     GT_FUNCTION constexpr uint_t pad_dimensions(Int dimension) {
-        GT_STATIC_ASSERT(
-            is_alignment<Alignment>::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
+        GT_STATIC_ASSERT(is_alignment<Alignment>::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
         return ((Alignment::value > 1) && (LayoutArg == MaxLayoutV))
                    ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;

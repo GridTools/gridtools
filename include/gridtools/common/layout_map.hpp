@@ -94,8 +94,7 @@ namespace gridtools {
         /** @brief Get the position of the element with value `I` in the layout map. */
         template <int I>
         GT_FUNCTION static constexpr std::size_t find() {
-            GT_STATIC_ASSERT(
-                (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
+            GT_STATIC_ASSERT((I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
             // force compile-time evaluation
             return std::integral_constant<std::size_t, find(I)>::value;
         }

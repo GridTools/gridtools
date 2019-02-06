@@ -117,8 +117,7 @@ namespace gridtools {
         using extent_t = typename Stage::extent_t;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(
-            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
 
         template <class ItDomain>
         static GT_FUNCTION void exec(ItDomain const &it_domain) {

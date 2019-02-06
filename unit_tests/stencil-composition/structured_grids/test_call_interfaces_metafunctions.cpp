@@ -72,14 +72,14 @@ void complex_test(Args &... args) {
     using packtype = typename _impl::package_args<Args...>::type;
 
     GT_STATIC_ASSERT((std::is_same<typename std::tuple_element<0, std::tuple<Args...>>::type,
-                                typename boost::mpl::at_c<packtype, 0>::type>::value),
+                         typename boost::mpl::at_c<packtype, 0>::type>::value),
         "0");
     GT_STATIC_ASSERT(
         (std::is_same<typename _impl::wrap_reference<typename std::tuple_element<1, std::tuple<Args...>>::type>,
             typename boost::mpl::at_c<packtype, 1>::type>::value),
         "1");
     GT_STATIC_ASSERT((std::is_same<typename std::tuple_element<2, std::tuple<Args...>>::type,
-                                typename boost::mpl::at_c<packtype, 2>::type>::value),
+                         typename boost::mpl::at_c<packtype, 2>::type>::value),
         "2");
     GT_STATIC_ASSERT(
         (std::is_same<typename _impl::wrap_reference<typename std::tuple_element<3, std::tuple<Args...>>::type>,
@@ -114,11 +114,9 @@ TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
     using pack = _impl::package_args<decltype(a0), decltype(a1), decltype(a2), decltype(a3)>::type;
 
     GT_STATIC_ASSERT((std::is_same<decltype(a0), boost::mpl::at_c<pack, 0>::type>::value), "1");
-    GT_STATIC_ASSERT(
-        (std::is_same<_impl::wrap_reference<decltype(a1)>, boost::mpl::at_c<pack, 1>::type>::value), "2");
+    GT_STATIC_ASSERT((std::is_same<_impl::wrap_reference<decltype(a1)>, boost::mpl::at_c<pack, 1>::type>::value), "2");
     GT_STATIC_ASSERT((std::is_same<decltype(a2), boost::mpl::at_c<pack, 2>::type>::value), "3");
-    GT_STATIC_ASSERT(
-        (std::is_same<_impl::wrap_reference<decltype(a3)>, boost::mpl::at_c<pack, 3>::type>::value), "4");
+    GT_STATIC_ASSERT((std::is_same<_impl::wrap_reference<decltype(a3)>, boost::mpl::at_c<pack, 3>::type>::value), "4");
 }
 
 TEST(call_interfaces_metafunctions, call_pretent_procedure) {

@@ -110,8 +110,7 @@ computation->finalize();
         -> decltype(if_(make_case_adapter(cond_, first_.value()), first_.mss(), switch_(cond_, cases_...))) {
         GT_STATIC_ASSERT((std::is_convertible<Cond, std::function<int()>>::value),
             "switch_ argument should be a nullary integer functor");
-        GT_STATIC_ASSERT(
-            (is_case_type<First>::value), "the entries in a switch_ statement must be case_ statements");
+        GT_STATIC_ASSERT((is_case_type<First>::value), "the entries in a switch_ statement must be case_ statements");
         return if_(make_case_adapter(cond_, first_.value()), first_.mss(), switch_(cond_, cases_...));
     }
 } // namespace gridtools

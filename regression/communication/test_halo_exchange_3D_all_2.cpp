@@ -121,8 +121,7 @@ namespace halo_exchange_3D_all_2 {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        static const int version =
-            gridtools::version_manual;
+        static const int version = gridtools::version_manual;
 
         typedef gridtools::halo_exchange_dynamic_ut<layoutmap,
             gridtools::layout_map<0, 1, 2>,

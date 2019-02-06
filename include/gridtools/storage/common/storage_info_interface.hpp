@@ -108,8 +108,7 @@ namespace gridtools {
 
         GT_STATIC_ASSERT((sizeof...(Halos) == layout_t::masked_length),
             GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
-        GT_STATIC_ASSERT(
-            is_alignment<Align>::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type"));
+        GT_STATIC_ASSERT(is_alignment<Align>::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type"));
 
         static constexpr uint_t ndims = layout_t::masked_length;
 
@@ -340,8 +339,7 @@ namespace gridtools {
          */
         template <uint_t Dim>
         GT_FUNCTION constexpr uint_t stride() const {
-            GT_STATIC_ASSERT(
-                (Dim < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
+            GT_STATIC_ASSERT((Dim < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
             return get<Dim>(m_strides);
         }
 

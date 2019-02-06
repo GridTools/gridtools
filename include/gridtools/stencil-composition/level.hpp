@@ -62,8 +62,7 @@ namespace gridtools {
         // (note that non negative splitter values simplify the index computation)
         GT_STATIC_ASSERT(Splitter >= 0 && Offset != 0, "check offset and splitter value ranges \n\
          (note that non negative splitter values simplify the index computation)");
-        GT_STATIC_ASSERT(
-            -OffsetLimit <= Offset && Offset <= OffsetLimit, "check offset and splitter value ranges \n\
+        GT_STATIC_ASSERT(-OffsetLimit <= Offset && Offset <= OffsetLimit, "check offset and splitter value ranges \n\
          (note that non negative splitter values simplify the index computation)");
 
         // define splitter, level offset and offset limit

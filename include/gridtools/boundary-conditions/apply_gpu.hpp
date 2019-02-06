@@ -236,7 +236,7 @@ namespace gridtools {
     of the boundary portion may be transposed w.r.t. the kernel
     configuration.
  */
-#define GT_RUN_BC_ON(x, y, z)                                                                                         \
+#define GT_RUN_BC_ON(x, y, z)                                                                                      \
     if (predicate(direction<x, y, z>())) {                                                                         \
         auto const &shape = conf.shape(static_cast<int>(x) + 1, static_cast<int>(y) + 1, static_cast<int>(z) + 1); \
         if ((th[0] < shape.max()) && (th[1] < shape.median()) && (th[2] < shape.min())) {                          \

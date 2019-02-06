@@ -167,8 +167,7 @@ namespace gridtools {
         using extent_t = typename Stage::extent_t;
 
         GT_STATIC_ASSERT(sizeof...(Stages) != 0, GT_INTERNAL_ERROR);
-        GT_STATIC_ASSERT(
-            (conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((conjunction<std::is_same<typename Stages::extent_t, extent_t>...>::value), GT_INTERNAL_ERROR);
 
         template <uint_t Color>
         struct contains_color : disjunction<typename Stage::template contains_color<Color>,

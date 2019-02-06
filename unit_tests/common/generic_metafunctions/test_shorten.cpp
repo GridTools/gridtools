@@ -47,8 +47,7 @@ template <int_t... Vars>
 struct aex;
 
 TEST(shorten, 4) {
-    GT_STATIC_ASSERT(
-        (std::is_same<shorten<int_t, aex<3, 4, 5, 6, 8, 9>, 3>::type, aex<3, 4, 5>>::value), "ERROR");
+    GT_STATIC_ASSERT((std::is_same<shorten<int_t, aex<3, 4, 5, 6, 8, 9>, 3>::type, aex<3, 4, 5>>::value), "ERROR");
 
     GT_STATIC_ASSERT((std::is_same<shorten<int_t, aex<3, 4, 5, 6, 8, 9>, 1>::type, aex<3>>::value), "ERROR");
 

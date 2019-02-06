@@ -233,8 +233,7 @@ namespace gridtools {
     template <typename ESFList>
     struct unwrap_independent {
 
-        GT_STATIC_ASSERT(
-            (is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
+        GT_STATIC_ASSERT((is_sequence_of<ESFList, is_esf_descriptor>::value), "Error: ESFList must be a list of ESFs");
 
         template <typename CurrentList, typename CurrentElement>
         struct populate {

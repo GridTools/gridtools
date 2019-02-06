@@ -133,9 +133,8 @@ TEST(iterate_domain_cache, flush) {
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
 
     using k_flushing_caches_indexes_t = iterate_domain_cache_t::k_flushing_caches_indexes_t;
-    GT_STATIC_ASSERT(
-        (boost::mpl::equal<k_flushing_caches_indexes_t,
-            boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
+    GT_STATIC_ASSERT((boost::mpl::equal<k_flushing_caches_indexes_t,
+                         boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
         "Error");
 }
 

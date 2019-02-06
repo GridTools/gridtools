@@ -68,12 +68,10 @@ namespace gridtools {
         GT_STATIC_ASSERT(is_level<TToLevel>::value, "check the second template parameter is of type level");
 
         // check the from level is lower or equal to the to level
-        GT_STATIC_ASSERT(
-            (TFromLevel::splitter < TToLevel::splitter) ||
-                (TFromLevel::splitter == TToLevel::splitter && TFromLevel::offset <= TToLevel::offset),
+        GT_STATIC_ASSERT((TFromLevel::splitter < TToLevel::splitter) ||
+                             (TFromLevel::splitter == TToLevel::splitter && TFromLevel::offset <= TToLevel::offset),
             "check the from level is lower or equal to the to level");
-        GT_STATIC_ASSERT(
-            TFromLevel::offset_limit == TToLevel::offset_limit, "levels must have same offset limit");
+        GT_STATIC_ASSERT(TFromLevel::offset_limit == TToLevel::offset_limit, "levels must have same offset limit");
         static constexpr int_t offset_limit = TFromLevel::offset_limit;
 
         // define the from and to splitter indexes
@@ -92,7 +90,7 @@ namespace gridtools {
         template <int_t left, int_t right>
         struct modify_impl {
             GT_STATIC_ASSERT((_impl::add_offset(TFromLevel::offset, left) >= -TFromLevel::offset_limit &&
-                                        _impl::add_offset(TToLevel::offset, right) <= TFromLevel::offset_limit),
+                                 _impl::add_offset(TToLevel::offset, right) <= TFromLevel::offset_limit),
                 "You are trying to modify an interval to increase beyond its maximal offset.");
             GT_STATIC_ASSERT(
                 ((TFromLevel::splitter < TToLevel::splitter) ||

@@ -101,8 +101,7 @@ namespace gridtools {
             GT_STATIC_ASSERT(!meta::is_empty<extents_t>::value, GT_INTERNAL_ERROR);
             using stages_grouped_by_extent_t = GT_META_CALL(
                 meta::transform, (_impl::stages_with_the_given_extent<Stages>::template apply, extents_t));
-            GT_STATIC_ASSERT(
-                (!meta::any_of<meta::is_empty, stages_grouped_by_extent_t>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((!meta::any_of<meta::is_empty, stages_grouped_by_extent_t>::value), GT_INTERNAL_ERROR);
             using type = GT_META_CALL(meta::transform,
                 (_impl::fuse_stages_with_the_same_extent_f<CompoundStage>::template apply, stages_grouped_by_extent_t));
         };
