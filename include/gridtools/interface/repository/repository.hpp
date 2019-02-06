@@ -159,8 +159,8 @@
  * @brief makes the dims constructor only if a DimTuple is provided in the data_store_types sequence of tuples
  * (DataStoreType, DimTuple)
  */
-#define GTREPO_make_ctor_dims_if_has_dims(name, data_store_types_seq, data_stores_seq)           \
-    BOOST_PP_IF(GTREPO_has_dim(data_store_types_seq), GTREPO_make_ctor_dims, GRIDTOOLS_PP_EMPTY) \
+#define GTREPO_make_ctor_dims_if_has_dims(name, data_store_types_seq, data_stores_seq)    \
+    BOOST_PP_IF(GTREPO_has_dim(data_store_types_seq), GTREPO_make_ctor_dims, GT_PP_EMPTY) \
     (name, data_store_types_seq, data_stores_seq)
 
 /*
@@ -197,11 +197,11 @@
 #endif
 
 #ifdef GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
-#define GTREPO_make_variant(name, data_store_types_seq) GRIDTOOLS_PP_MAKE_VARIANT(name, data_store_types_seq)
+#define GTREPO_make_variant(name, data_store_types_seq) GT_PP_MAKE_VARIANT(name, data_store_types_seq)
 #else
 // use "normal" boost::variant on unsupported compilers
 #define GTREPO_make_variant(name, data_store_types_seq) \
-    using name = boost::variant<GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, data_store_types_seq)>;
+    using name = boost::variant<GT_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, data_store_types_seq)>;
 #endif
 #define GTREPO_get_binding_name(fortran_name, member_name) \
     BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(set_, fortran_name), _), member_name)
