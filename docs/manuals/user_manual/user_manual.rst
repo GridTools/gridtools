@@ -19,7 +19,6 @@
 .. include:: execution_model.hrst
 .. include:: stencil_composition.hrst
 .. include:: advanced_functionality.hrst
-.. include:: performance.hrst
 .. include:: boundary_condition.hrst
 .. include:: halo_exchanges.hrst
 .. include:: comm_and_bc.hrst
