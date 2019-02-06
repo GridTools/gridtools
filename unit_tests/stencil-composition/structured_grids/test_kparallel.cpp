@@ -172,7 +172,7 @@ TEST(structured_grid, kparallel) { //
 }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
-    run_test<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
+    run_test<gridtools::axis<2, 3, 5>>();
 }
 
 TEST(structured_grid, kparallel_with_temporary) { //
@@ -180,7 +180,7 @@ TEST(structured_grid, kparallel_with_temporary) { //
 }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary) {
-    run_test_with_temporary<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
+    run_test_with_temporary<gridtools::axis<2, 3, 5>>();
 }
 
 TEST(structured_grid, kparallel_with_unused_intervals) {

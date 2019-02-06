@@ -51,7 +51,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-using axis_t = axis<2>::with_extra_offsets<1>;
+using axis_t = axis<2, 1>;
 using kminimum = axis_t::full_interval::first_level::shift<-1>;
 using krange1 = axis_t::get_interval<0>;
 using krange2 = axis_t::get_interval<1>::modify<0, -1>;
