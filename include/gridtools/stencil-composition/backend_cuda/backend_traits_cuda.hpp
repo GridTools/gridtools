@@ -49,7 +49,7 @@
 #include "iterate_domain_cache.hpp"
 #include "strategy_cuda.hpp"
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
 #include "timer_cuda.hpp"
 #else
 #include "../timer_dummy.hpp"
@@ -117,7 +117,7 @@ namespace gridtools {
             typedef iterate_domain_cache<IterateDomainArguments> type;
         };
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
         typedef timer_cuda performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;

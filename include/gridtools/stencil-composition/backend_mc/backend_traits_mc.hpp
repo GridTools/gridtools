@@ -44,7 +44,7 @@
 #include "../structured_grids/backend_mc/execute_kernel_functor_mc.hpp"
 #include "../structured_grids/backend_mc/strategy_mc.hpp"
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
 #include "timer_mc.hpp"
 #else
 #include "../timer_dummy.hpp"
@@ -106,7 +106,7 @@ namespace gridtools {
             typedef strategy_from_id_mc<typename BackendIds::strategy_id_t> type;
         };
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
         typedef timer_mc performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;

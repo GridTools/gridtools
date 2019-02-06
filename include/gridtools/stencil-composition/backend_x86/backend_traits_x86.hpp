@@ -42,7 +42,7 @@
 #include "../empty_iterate_domain_cache.hpp"
 #include "strategy_x86.hpp"
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
 #include "timer_x86.hpp"
 #else
 #include "../timer_dummy.hpp"
@@ -111,7 +111,7 @@ namespace gridtools {
             typedef empty_iterate_domain_cache type;
         };
 
-#ifdef ENABLE_METERS
+#ifdef GT_ENABLE_METERS
         typedef timer_x86 performance_meter_t;
 #else
         typedef timer_dummy performance_meter_t;
