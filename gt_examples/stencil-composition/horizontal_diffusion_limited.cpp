@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
     auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
         gt::make_multistage(gt::enumtype::execute<gt::enumtype::parallel>{},
-            define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
+            define_caches(gt::cache<gt::cache_type::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
             gt::make_stage<lap_function>(p_lap{}, p_in{}),
             gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
                 gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),

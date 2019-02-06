@@ -149,11 +149,11 @@ namespace gridtools {
         using jplus_t = typename boost::mpl::at_c<typename plus_t::type, 1>::type;
         using kplus_t = typename boost::mpl::at_c<typename plus_t::type, 2>::type;
 
-        GT_STATIC_ASSERT((Cache::cacheType != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
-                                                        iplus_t::value == 0 && jplus_t::value == 0),
+        GT_STATIC_ASSERT((Cache::cacheType != cache_type::K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
+                                                                    iplus_t::value == 0 && jplus_t::value == 0),
             "KCaches can not be use with a non null extent in the horizontal dimensions");
 
-        GT_STATIC_ASSERT((Cache::cacheType != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
+        GT_STATIC_ASSERT((Cache::cacheType != cache_type::IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
             "Only KCaches can be accessed with a non null extent in K");
 
         template <typename Accessor>
@@ -215,7 +215,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy>
         GT_FUNCTION void slide() {
-            GT_STATIC_ASSERT((Cache::cacheType == K), "Error: we can only slide KCaches");
+            GT_STATIC_ASSERT((Cache::cacheType == cache_type::K), "Error: we can only slide KCaches");
             GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "Error");
 
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;

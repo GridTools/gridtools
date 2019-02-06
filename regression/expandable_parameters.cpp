@@ -70,7 +70,7 @@ TEST_F(expandable_parameters, test) {
         p_out = out,
         p_in = in,
         make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_tmp)),
+            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)))
         .run();

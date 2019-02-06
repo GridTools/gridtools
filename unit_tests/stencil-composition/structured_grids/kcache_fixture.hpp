@@ -40,7 +40,7 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 #include <gridtools/tools/backend_select.hpp>
 
-using axis_t = gridtools::axis<3>::with_extra_offsets<1>::with_offset_limit<3>;
+using axis_t = gridtools::axis<3, 1, 3>;
 using axis = axis_t::axis_interval_t;
 
 using kfull = axis_t::full_interval;
