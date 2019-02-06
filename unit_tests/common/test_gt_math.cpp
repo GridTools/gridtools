@@ -41,21 +41,23 @@ using namespace gridtools;
 
 template <typename Value>
 struct test_pow {
-    static bool GT_FUNCTION Do(Value val, Value result) { return expect_with_threshold(math::pow(val, val), result); }
+    static bool GT_FUNCTION apply(Value val, Value result) {
+        return expect_with_threshold(math::pow(val, val), result);
+    }
 };
 
 template <typename Value>
 struct test_log {
-    static bool GT_FUNCTION Do(Value val, Value result) { return expect_with_threshold(math::log(val), result); }
+    static bool GT_FUNCTION apply(Value val, Value result) { return expect_with_threshold(math::log(val), result); }
 };
 
 template <typename Value>
 struct test_exp {
-    static bool GT_FUNCTION Do(Value val, Value result) { return expect_with_threshold(math::exp(val), result); }
+    static bool GT_FUNCTION apply(Value val, Value result) { return expect_with_threshold(math::exp(val), result); }
 };
 
 struct test_fabs {
-    static bool GT_FUNCTION Do() {
+    static bool GT_FUNCTION apply() {
         GT_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0f)), float>::value), "Should return float.");
         GT_STATIC_ASSERT((std::is_same<decltype(math::fabs(4.0)), double>::value), "Should return double.");
 #ifndef __CUDA_ARCH__
@@ -82,7 +84,7 @@ struct test_fabs {
 };
 
 struct test_abs {
-    static GT_FUNCTION bool Do() {
+    static GT_FUNCTION bool apply() {
         // float overloads
         GT_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0f)), float>::value), "Should return float.");
         GT_STATIC_ASSERT((std::is_same<decltype(math::abs(4.0)), double>::value), "Should return double.");
@@ -155,23 +157,23 @@ TEST(math, test_max_ref) {
     ASSERT_EQ(max, 8);
 }
 
-TEST(math, test_fabs) { EXPECT_TRUE(test_fabs::Do()); }
+TEST(math, test_fabs) { EXPECT_TRUE(test_fabs::apply()); }
 
-TEST(math, test_abs) { EXPECT_TRUE(test_abs::Do()); }
+TEST(math, test_abs) { EXPECT_TRUE(test_abs::apply()); }
 
 TEST(math, test_log) {
-    EXPECT_TRUE(test_log<double>::Do(2.3, std::log(2.3)));
-    EXPECT_TRUE(test_log<float>::Do(2.3f, std::log(2.3f)));
+    EXPECT_TRUE(test_log<double>::apply(2.3, std::log(2.3)));
+    EXPECT_TRUE(test_log<float>::apply(2.3f, std::log(2.3f)));
 }
 
 TEST(math, test_exp) {
-    EXPECT_TRUE(test_exp<double>::Do(2.3, std::exp(2.3)));
-    EXPECT_TRUE(test_exp<float>::Do(2.3f, std::exp(2.3f)));
+    EXPECT_TRUE(test_exp<double>::apply(2.3, std::exp(2.3)));
+    EXPECT_TRUE(test_exp<float>::apply(2.3f, std::exp(2.3f)));
 }
 
 TEST(math, test_pow) {
-    EXPECT_TRUE(test_pow<double>::Do(2.3, std::pow(2.3, 2.3)));
-    EXPECT_TRUE(test_pow<float>::Do(2.3f, std::pow(2.3f, 2.3f)));
+    EXPECT_TRUE(test_pow<double>::apply(2.3, std::pow(2.3, 2.3)));
+    EXPECT_TRUE(test_pow<float>::apply(2.3f, std::pow(2.3f, 2.3f)));
 }
 
 TEST(math, test_fmod) {

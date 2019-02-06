@@ -45,7 +45,7 @@ struct functor {
     using arg_list = make_arg_list<out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval.i() + eval.j() + eval.k();
     }
 };

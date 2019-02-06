@@ -49,7 +49,7 @@ struct functor1 {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {}
+    GT_FUNCTION static void apply(Evaluation &eval) {}
 };
 
 typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;

@@ -165,13 +165,13 @@ namespace gridtools {
 
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<!std::is_void<Region>::value> call_functor(Eval &eval) {
-            Functor::template Do<Eval &>(eval, Region{});
+            Functor::template apply<Eval &>(eval, Region{});
         }
 
         // overload for the default interval (Functor with one argument)
         template <class Functor, class Region, class Eval>
         GT_FUNCTION enable_if_t<std::is_void<Region>::value> call_functor(Eval &eval) {
-            Functor::template Do<Eval &>(eval);
+            Functor::template apply<Eval &>(eval);
         }
     } // namespace _impl
 

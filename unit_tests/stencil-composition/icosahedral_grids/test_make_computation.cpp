@@ -65,7 +65,7 @@ namespace make_computation_test {
         using arg_list = make_arg_list<in>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, axis) {}
+        GT_FUNCTION static void apply(Evaluation &eval, axis) {}
     };
 } // namespace make_computation_test
 

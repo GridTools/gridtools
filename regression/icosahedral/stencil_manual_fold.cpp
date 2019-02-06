@@ -65,7 +65,7 @@ struct test_on_edges_functor {
     using arg_list = make_arg_list<cell_area, weight_edges>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         constexpr dimension<5> edge = {};
 
         // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).

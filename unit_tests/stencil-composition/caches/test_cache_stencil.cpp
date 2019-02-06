@@ -57,7 +57,7 @@ namespace test_cache_stencil {
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -68,7 +68,7 @@ namespace test_cache_stencil {
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) =
                 (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
         }
@@ -80,7 +80,7 @@ namespace test_cache_stencil {
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in()) + 1;
         }
     };

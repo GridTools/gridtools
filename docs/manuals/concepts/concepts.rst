@@ -90,7 +90,7 @@ Basic concepts
 
     .. note:: 
       The named accessors are not strictly necessary for the `OperatorFunction` to be well defined, they are useful shortcuts and they define mnemonics.
-      The OperatorFunction is executed by calling a `static void void Do(...)` method. This was necessary in pre-C++11 versions, but now we can depart 
+      The OperatorFunction is executed by calling a `static void void apply(...)` method. This was necessary in pre-C++11 versions, but now we can depart 
       from requiring `static` (even though it may be useful to enforce it to prevent stateful classes).
 
   `DataFieldPack` 

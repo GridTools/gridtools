@@ -52,7 +52,7 @@ struct copy_functor {
     typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(out{}) = eval(in{});
     }
 };
@@ -64,7 +64,7 @@ struct copy_functor_with_expression {
     typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         // use an expression which is equivalent to a copy to simplify the check
         eval(out{}) = eval(2. * in{} - in{});
     }
@@ -77,7 +77,7 @@ struct call_proc_copy_functor {
     typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         call_proc<copy_functor>::with(eval, out(), in());
     }
 };
@@ -89,7 +89,7 @@ struct call_copy_functor {
     typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(out()) = call<copy_functor>::with(eval, in());
     }
 };
@@ -100,7 +100,7 @@ struct shift_functor {
     typedef make_arg_list<out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(out()) = eval(out(gridtools::dimension<3>() - 1));
     }
 };
@@ -112,12 +112,12 @@ struct call_shift_functor {
     typedef make_arg_list<out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, typename AxisInterval::template modify<1, 0>) {
+    GT_FUNCTION static void apply(Evaluation &eval, typename AxisInterval::template modify<1, 0>) {
         call_proc<shift_functor>::with(eval, out());
         // eval(out()) = eval(out(gridtools::dimension<3>() - 1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, typename AxisInterval::first_level) {}
+    GT_FUNCTION static void apply(Evaluation &eval, typename AxisInterval::first_level) {}
 };
 
 class expandable_parameters : public testing::Test {

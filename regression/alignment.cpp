@@ -54,7 +54,7 @@ struct not_aligned {
     using arg_list = make_arg_list<acc, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         auto *ptr = &eval(acc{});
         constexpr auto alignment = sizeof(decltype(*ptr)) * alignment_test::storage_info_t::alignment_t::value;
         constexpr auto halo_size = alignment_test::halo_size;

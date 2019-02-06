@@ -51,7 +51,7 @@ struct prepare_tracers {
     using arg_list = make_arg_list<data, data_nnow, rho>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(data()) = eval(rho()) * eval(data_nnow());
     }
 };

@@ -54,7 +54,7 @@ namespace ico_operators {
         using arg_list = make_arg_list<dual_area_reciprocal, dual_edge_length, weights, edge_orientation>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr dimension<5> edge;
             constexpr auto neighbors_offsets = connectivity<vertices, edges, Color>::offsets();
             int_t e = 0;
@@ -75,7 +75,7 @@ namespace ico_operators {
         using arg_list = make_arg_list<in_edges, weights, out_vertices>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr dimension<5> edge;
             constexpr auto neighbors_offsets = connectivity<vertices, edges, Color>::offsets();
             float_type t = 0;
@@ -98,7 +98,7 @@ namespace ico_operators {
         using arg_list = make_arg_list<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation eval) {
+        GT_FUNCTION static void apply(Evaluation eval) {
             constexpr auto neighbor_offsets = connectivity<vertices, edges, Color>::offsets();
             eval(out_vertices()) = -eval(in_edges(neighbor_offsets[0])) * eval(dual_edge_length(neighbor_offsets[0])) +
                                    eval(in_edges(neighbor_offsets[1])) * eval(dual_edge_length(neighbor_offsets[1])) -

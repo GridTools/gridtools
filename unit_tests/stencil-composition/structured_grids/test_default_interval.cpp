@@ -45,7 +45,7 @@ struct func {
     using arg_list = make_arg_list<p1, p2>;
 
     template <typename Evaluation>
-    void Do(Evaluation &eval) {}
+    void apply(Evaluation &eval) {}
 };
 
 struct func_call {
@@ -54,7 +54,7 @@ struct func_call {
     using arg_list = make_arg_list<p1, p2>;
 
     template <typename Evaluation>
-    void Do(Evaluation &eval) {
+    void apply(Evaluation &eval) {
         call<func>::with(eval);
     }
 };

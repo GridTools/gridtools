@@ -88,7 +88,7 @@ namespace {
         typedef make_arg_list<out, local> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
@@ -103,7 +103,7 @@ namespace {
         typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 
@@ -122,7 +122,7 @@ namespace {
         typedef make_arg_list<out, in> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             using out_type = decay_t<decltype(eval(out{}))>;
             (void)ASSERT_TYPE_EQ<special_type<out_tag>, out_type>{};
 

@@ -74,7 +74,7 @@ struct functor_single_kernel {
         parameters5_in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(parameters1_out()) = eval(parameters1_in());
         eval(parameters2_out()) = eval(parameters2_in());
         eval(parameters3_out()) = eval(parameters3_in());

@@ -137,7 +137,7 @@ namespace gridtools {
             using eval_t = impl_::evaluator<ItDomain, Args, LocationType, Color>;
             using functor_t = GT_META_CALL(meta::at_c, (Functors, Color));
             eval_t eval{it_domain};
-            functor_t::Do(eval);
+            functor_t::apply(eval);
         }
 
         template <uint_t Color, class ItDomain, enable_if_t<!contains_color<Color>::value, int> = 0>

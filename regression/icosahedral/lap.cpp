@@ -57,7 +57,7 @@ struct lap_functor {
         make_arg_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         constexpr auto neighbors_offsets_cell = connectivity<enumtype::edges, enumtype::cells, Color>::offsets();
 
         float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *

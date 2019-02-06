@@ -49,12 +49,12 @@ struct shift_acc_forward_flush {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
         eval(out()) = eval(out(0, 0, -1)) + eval(in());
     }
 };
@@ -67,12 +67,12 @@ struct shift_acc_backward_flush {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(out()) = eval(out(0, 0, 1)) + eval(in());
     }
 };

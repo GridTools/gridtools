@@ -52,7 +52,7 @@ namespace test_conditionals {
         typedef make_arg_list<p_dummy> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval(p_dummy()) = +Id;
         }
     };

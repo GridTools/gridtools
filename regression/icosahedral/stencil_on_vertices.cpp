@@ -51,7 +51,7 @@ struct test_on_vertices_functor {
     using arg_list = make_arg_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out{}) = eval(on_vertices(binop::sum{}, float_type{}, in{}));
     }
 };

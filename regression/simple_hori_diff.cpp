@@ -57,7 +57,7 @@ struct wlap_function {
     using arg_list = make_arg_list<out, in, crlato, crlatu>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in(1, 0)) + eval(in(-1, 0)) - float_type{2} * eval(in()) +
                       eval(crlato()) * (eval(in(0, 1)) - eval(in())) + eval(crlatu()) * (eval(in(0, -1)) - eval(in()));
     }
@@ -73,7 +73,7 @@ struct divflux_function {
     using arg_list = make_arg_list<out, in, lap, crlato, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         auto fluxx = eval(lap(1, 0)) - eval(lap());
         auto fluxx_m = eval(lap()) - eval(lap(-1, 0));
 

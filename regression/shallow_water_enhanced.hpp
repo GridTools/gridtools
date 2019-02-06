@@ -124,7 +124,7 @@ namespace shallow_water {
         using arg_list = make_arg_list<hx, ux, vx, h, u, v>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
 
             const float_type &tl = 2.;
             dimension<1> i;
@@ -160,7 +160,7 @@ namespace shallow_water {
         using arg_list = make_arg_list<hy, uy, vy, h, u, v>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
 
             const float_type &tl = 2.;
             dimension<2> j;
@@ -205,7 +205,7 @@ namespace shallow_water {
         // Using a strategy to define some arguments beforehand
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             const float_type &tl = 2.;
             dimension<1> i;
             dimension<2> j;

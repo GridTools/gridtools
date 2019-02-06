@@ -64,7 +64,7 @@ struct functor1 {
     typedef make_arg_list<in, buff> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 typedef storage_traits<target::x86>::storage_info_t<0, 2> storage_info_ij_t;
@@ -84,7 +84,7 @@ struct functor2 {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;

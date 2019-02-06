@@ -50,13 +50,13 @@ struct shif_acc_forward {
     typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(buff()) = eval(in());
         eval(out()) = eval(buff());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
 
         eval(buff()) = eval(buff(0, 0, -1)) + eval(in());
         eval(out()) = eval(buff());
@@ -72,26 +72,26 @@ struct biside_large_kcache_forward {
     typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(buff()) = eval(in());
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimump1) {
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25;
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1m1) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_highp1m1) {
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25 + eval(buff(0, 0, -2)) * (float_type)0.12;
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25 + eval(buff(0, 0, -2)) * (float_type)0.12;
     }
 };
@@ -105,26 +105,26 @@ struct biside_large_kcache_backward {
     typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(buff()) = eval(in());
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximumm1) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25;
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_lowp1) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_lowp1) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25 + eval(buff(0, 0, 2)) * (float_type)0.12;
     }
 };
@@ -138,13 +138,13 @@ struct shif_acc_backward {
     typedef make_arg_list<in, out, buff> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(buff()) = eval(in());
         eval(out()) = eval(buff());
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(buff()) = eval(buff(0, 0, 1)) + eval(in());
         eval(out()) = eval(buff());
     }

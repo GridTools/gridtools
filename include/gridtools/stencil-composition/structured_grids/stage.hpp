@@ -108,7 +108,7 @@ namespace gridtools {
         static GT_FUNCTION void exec(ItDomain const &it_domain) {
             GT_STATIC_ASSERT(is_iterate_domain<ItDomain>::value, GT_INTERNAL_ERROR);
             impl_::evaluator<ItDomain, Args> eval{it_domain};
-            Functor::Do(eval);
+            Functor::apply(eval);
         }
     };
 

@@ -50,7 +50,7 @@ struct lap_function {
     using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = 4. * eval(in()) - (eval(in(-1, 0)) + eval(in(0, -1)) + eval(in(0, 1)) + eval(in(1, 0)));
     }
 };
@@ -160,7 +160,7 @@ struct flx_function {
     using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = lap<Variation, in>::do10(eval) - lap<Variation, in>::do00(eval);
         eval(out()) = eval(out()) * (eval(in(1, 0)) - eval(in(0, 0))) > 0 ? 0.0 : eval(out());
     }
@@ -174,7 +174,7 @@ struct fly_function {
     using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = lap<Variation, in>::do01(eval) - lap<Variation, in>::do00(eval);
         eval(out()) = eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0 ? 0.0 : eval(out());
     }
@@ -190,7 +190,7 @@ struct out_function {
     using arg_list = make_arg_list<out, in, flx, fly, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) = eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0)) + eval(fly()) - eval(fly(0, -1)));
     }
 };

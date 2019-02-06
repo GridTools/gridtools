@@ -67,7 +67,7 @@ struct u_forward_function {
     using arg_list = make_arg_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, -1> interval) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, -1> interval) {
         // TODO use Average function here
         float_type gav = -float_type{.25} * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
         float_type gcv = float_type{.25} * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
@@ -87,7 +87,7 @@ struct u_forward_function {
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::last_level interval) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::last_level interval) {
         float_type gav = -float_type{.25} * (eval(wcon(1, 0, 0)) + eval(wcon()));
         float_type as = gav * BET_M;
 
@@ -102,7 +102,7 @@ struct u_forward_function {
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::first_level interval) {
+    GT_FUNCTION static void apply(Evaluation eval, full_t::first_level interval) {
         float_type gcv = float_type{.25} * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
         float_type cs = gcv * BET_M;
 
@@ -153,12 +153,12 @@ struct u_backward_function {
     using arg_list = make_arg_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, full_t::modify<0, -1> interval) {
+    GT_FUNCTION static void apply(Evaluation &eval, full_t::modify<0, -1> interval) {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, full_t::last_level interval) {
+    GT_FUNCTION static void apply(Evaluation &eval, full_t::last_level interval) {
         eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
     }
 

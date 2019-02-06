@@ -56,7 +56,7 @@ struct functor0 {
     typedef make_arg_list<in0, in1, in2, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor1 {
@@ -68,7 +68,7 @@ struct functor1 {
     typedef make_arg_list<in0, out, in2, in3> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor2 {
@@ -79,7 +79,7 @@ struct functor2 {
     typedef make_arg_list<in0, in1, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor3 {
@@ -91,7 +91,7 @@ struct functor3 {
     typedef make_arg_list<in0, in1, out, in3> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor4 {
@@ -103,7 +103,7 @@ struct functor4 {
     typedef make_arg_list<in0, in1, in2, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor5 {
@@ -115,7 +115,7 @@ struct functor5 {
     typedef make_arg_list<in0, in1, in2, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 struct functor6 {
@@ -127,7 +127,7 @@ struct functor6 {
     typedef make_arg_list<out, in1, in2, in3> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void apply(Evaluation &eval, x_interval) {}
 };
 
 std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }

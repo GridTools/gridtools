@@ -188,7 +188,7 @@ arguments of the reduction operator).
         using arg_list = accessor_list<out, in, lap> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+        GT_FUNCTION static void apply(Evaluation const &eval, x_flx) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -220,7 +220,7 @@ Let us assume the ``Do`` methods has the following signature:
 
  template <typename Eval>
  GT_FUNCTION static
- void Do(Eval const& eval, region);
+ void apply(Eval const& eval, region);
 
 
 The way to access data corresponding to a certain data field passed to

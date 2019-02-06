@@ -75,11 +75,11 @@ struct functor1 {
     typedef make_arg_list<in1, in3, in4, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, krange1) {}
+    GT_FUNCTION static void apply(Evaluation &eval, krange1) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
+    GT_FUNCTION static void apply(Evaluation &eval, krange2) {}
 };
 
 struct functor2 {
@@ -91,9 +91,9 @@ struct functor2 {
     typedef make_arg_list<in1, in2, in4, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
+    GT_FUNCTION static void apply(Evaluation &eval, krange2) {}
 };
 
 using kmin_and_range1 = krange1::modify<-1, 0>;

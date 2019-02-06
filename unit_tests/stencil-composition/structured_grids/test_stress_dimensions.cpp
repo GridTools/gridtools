@@ -204,7 +204,7 @@ namespace assembly {
         typedef make_arg_list<phi, psi, jac, f, result> arg_list;
         using quad = dimension<7>;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             dimension<1> i;
             dimension<2> j;
             dimension<3> k;

@@ -50,16 +50,16 @@ struct shift_acc_forward_fill {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in()) + eval(in(0, 0, 1));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in()) + eval(in(0, 0, 1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in());
     }
 };
@@ -71,20 +71,20 @@ struct shift_acc_forward_fill_shifted_bounds {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimumm1) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimumm1) {
         eval(out(0, 0, 1)) = eval(in(0, 0, 1)) + eval(in(0, 0, 2));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in()) + eval(in(0, 0, 1));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in());
     }
 };
@@ -97,16 +97,16 @@ struct shift_acc_backward_fill {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in()) + eval(in(0, 0, -1));
     }
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0, 0, -1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(out()) = eval(in()) + eval(in(0, 0, 1));
     }
 };
@@ -119,7 +119,7 @@ struct copy_fill {
     typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(out()) = eval(in());
     }
 };

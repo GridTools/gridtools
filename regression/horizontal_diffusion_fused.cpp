@@ -53,7 +53,7 @@ struct lap_function {
     using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) =
             float_type{4} * eval(in()) - (eval(in(1, 0)) + eval(in(0, 1)) + eval(in(-1, 0)) + eval(in(0, -1)));
     }
@@ -66,7 +66,7 @@ struct flx_function {
     using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         auto lap_hi = call<lap_function>::with(eval, in(1, 0));
         auto lap_lo = call<lap_function>::with(eval, in(0, 0));
         auto flx = lap_hi - lap_lo;
@@ -81,7 +81,7 @@ struct fly_function {
     using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         auto lap_hi = call<lap_function>::with(eval, in(0, 1));
         auto lap_lo = call<lap_function>::with(eval, in(0, 0));
         auto fly = lap_hi - lap_lo;
@@ -97,7 +97,7 @@ struct out_function {
     using arg_list = make_arg_list<out, in, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         auto flx_hi = call<flx_function>::with(eval, in(0, 0));
         auto flx_lo = call<flx_function>::with(eval, in(-1, 0));
 

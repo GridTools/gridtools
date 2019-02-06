@@ -55,7 +55,7 @@ namespace rw_test {
         typedef make_arg_list<i0, o0, i1, o1, i2, o2, i3, o3> arg_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 } // namespace rw_test
 

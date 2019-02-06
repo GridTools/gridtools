@@ -63,7 +63,7 @@ namespace gridtools {
         struct dummy_functor {
             using arg_list = make_arg_list<in_acc, buff_acc, out_acc>;
             template <typename Evaluation>
-            GT_FUNCTION static void Do(Evaluation &eval);
+            GT_FUNCTION static void apply(Evaluation &eval);
         };
 
         using layout_ijkp_t = layout_map<3, 2, 1, 0>;

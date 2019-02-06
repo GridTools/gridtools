@@ -49,7 +49,7 @@ struct copy_functor {
     using arg_list = make_arg_list<parameters_out, parameters_in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval) {
+    GT_FUNCTION static void apply(Evaluation &eval) {
         eval(parameters_out{}) = eval(parameters_in{});
     }
 };

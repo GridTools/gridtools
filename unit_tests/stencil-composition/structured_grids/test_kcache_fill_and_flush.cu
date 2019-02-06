@@ -50,11 +50,11 @@ struct shift_acc_forward_fill_and_flush {
     typedef make_arg_list<in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_high) {
         eval(in()) = eval(in()) + eval(in(0, 0, -1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
         eval(in()) = eval(in());
     }
 };
@@ -66,11 +66,11 @@ struct shift_acc_backward_fill_and_flush {
     typedef make_arg_list<in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
+    GT_FUNCTION static void apply(Evaluation &eval, kbody_low) {
         eval(in()) = eval(in()) + eval(in(0, 0, 1));
     }
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {
         eval(in()) = eval(in());
     }
 };
@@ -82,7 +82,7 @@ struct copy_fill {
     typedef make_arg_list<in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(in()) = eval(in());
     }
 };
@@ -94,7 +94,7 @@ struct scale_fill {
     typedef make_arg_list<in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+    GT_FUNCTION static void apply(Evaluation &eval, kfull) {
         eval(in()) = 2 * eval(in());
     }
 };
@@ -233,11 +233,11 @@ struct do_nothing {
     typedef make_arg_list<in> arg_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kbody) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kbody) {}
 };
 
 TEST_F(kcachef, fill_copy_forward_with_extent) {
