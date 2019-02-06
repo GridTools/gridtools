@@ -190,7 +190,7 @@ useful for instance if we want to evaluate it multiple times
 .. _global-accessor:
 
 ----------------------------------------------------
-Global Parameters And Accessors
+Global Parameters and Accessors
 ----------------------------------------------------
 
 Global accessors are accessing read-only data which is independent of the current iteration point.

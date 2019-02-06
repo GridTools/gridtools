@@ -199,7 +199,7 @@ how other operators can be called from
 within the `Do`'s body to perform a computation.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using `eval` For Regular Grids
+Using `eval` for Regular Grids
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let us assume the ``Do`` methods has the following signature:

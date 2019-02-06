@@ -61,7 +61,7 @@ by |GT|.
 .. _defining_iteration_space:
 
 ---------------------------------------------------
-Defining The Iteration Space: The Grid
+Defining the Iteration Space: the Grid
 ---------------------------------------------------
 
 The :ref:`stencil operators<stencil_operators>` describe operations on a single *point of evaluation*.
@@ -92,7 +92,7 @@ we cover how to define the iteration space with the ``grid`` object.
 .. _vertical_regions:
 
 ---------------------------------------------------
-Vertical Regions And Vertical Boundary Conditions
+Vertical Regions and Vertical Boundary Conditions
 ---------------------------------------------------
 
 As mentioned earlier, the |GT| :ref:`execution model<execution-model>`
@@ -192,7 +192,7 @@ Examples:
 .. _vertical_regions_advanced:
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Advanced Functionality For Vertical Intervals
+Advanced Functionality for Vertical Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``axis`` type has two additional template parameters to change defaults
@@ -207,7 +207,7 @@ The ``axis`` type has two additional template parameters to change defaults
 
 
 -----------------------
-Composition Of Stencils
+Composition of Stencils
 -----------------------
 
 The main component of |GT| provide the capability of composing different
@@ -418,7 +418,7 @@ constructs that can greatly improve performance of the computations, especially
 .. _backend-selection:
 
 ---------------------
-Selecting The Backend
+Selecting the Backend
 ---------------------
 
 One of the key concepts of |GT| is portability between different target architectures.

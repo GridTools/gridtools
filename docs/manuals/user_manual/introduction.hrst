@@ -16,7 +16,7 @@ Dependencies
 |GT| depends on Boost (version 1.60 or newer). |GT| does not use any runtime library from Boost, but instead depends on header only libraries such as ``boost::mpl`` and ``boost::fusion``.
 
 -----------------------------
-Installation And Use
+Installation and Use
 -----------------------------
 
 |GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation:

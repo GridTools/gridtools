@@ -85,7 +85,7 @@ There is no difference in resource consumption when using the changed base point
 convenience and in order to smoothly integrate the aligned temporary block improvement.
 
 ---------------------------------------------------
-Multiple Temporaries With Different Halo
+Multiple Temporaries with Different Halo
 ---------------------------------------------------
 
 Formerly |GT| used one ``storage_info`` per temporary storage. This is convenient but consumes more resources than needed.
@@ -99,7 +99,7 @@ the missing offset is added when setting the base pointer. The information that 
 the used halo of each ``storage`` and also the maximum halo in the alinged direction. A value of $max\_halo - used\_halo$ is added to each base pointer.
 
 ---------------------------------------------------
-Passing Huge Types Down To The Offset Computation
+Passing Huge Types Down to the Offset Computation
 ---------------------------------------------------
 
 In order to fix the alignment when using different halos we have to pass a lot of type information from the ``intermediate`` down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
