@@ -121,7 +121,7 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -153,7 +153,7 @@ TEST_F(kcachef, fill_and_flush_backward) {
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -184,7 +184,7 @@ TEST_F(kcachef, fill_copy_forward) {
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -215,7 +215,7 @@ TEST_F(kcachef, fill_scale_forward) {
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -262,7 +262,7 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
 
     kcache_stencil.run();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

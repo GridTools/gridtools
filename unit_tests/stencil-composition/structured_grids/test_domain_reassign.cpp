@@ -92,7 +92,7 @@ namespace gridtools {
         bool verify(storage_t const &lhs, storage_t const &rhs) {
             lhs.sync();
             rhs.sync();
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
             const double precision = 1e-6;
 #else
             const double precision = 1e-10;

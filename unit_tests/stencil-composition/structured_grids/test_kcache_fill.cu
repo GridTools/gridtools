@@ -154,7 +154,7 @@ TEST_F(kcachef, fill_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -194,7 +194,7 @@ TEST_F(kcachef, fill_forward_shifted_bounds) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -234,7 +234,7 @@ TEST_F(kcachef, fill_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);
@@ -272,7 +272,7 @@ TEST_F(kcachef, fill_copy_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-10);

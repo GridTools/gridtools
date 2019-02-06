@@ -83,7 +83,7 @@ class test_expressions : public testing::Test {
 
     test_expressions()
         : storage_info_(d1, d2, d3), grid(make_grid(d1, d2, d3)),
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),

@@ -44,9 +44,9 @@ using grid_type_t = gridtools::grid_type::structured;
 using grid_type_t = gridtools::grid_type::icosahedral;
 #endif
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
 using float_type = float;
-#elif FLOAT_PRECISION == 8
+#elif GT_FLOAT_PRECISION == 8
 using float_type = double;
 #else
 #error float precision not properly set (4 or 8 bytes supported)

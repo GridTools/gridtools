@@ -331,7 +331,7 @@ class call_interface : public testing::Test {
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
           grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),
@@ -775,7 +775,7 @@ class call_proc_interface : public testing::Test {
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
           grid(make_grid(di, dj, call_proc_interface_functors::axis_t(d3))),
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),

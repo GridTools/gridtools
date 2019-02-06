@@ -143,10 +143,10 @@ endif(GT_ENABLE_PERFORMANCE_METERS)
 
 ## precision ##
 if(GT_SINGLE_PRECISION)
-  target_compile_definitions(GridToolsTest INTERFACE FLOAT_PRECISION=4)
+  target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=4)
   message(STATUS "Compile tests in single precision")
 else()
-  target_compile_definitions(GridToolsTest INTERFACE FLOAT_PRECISION=8)
+  target_compile_definitions(GridToolsTest INTERFACE GT_FLOAT_PRECISION=8)
   message(STATUS "Compile tests in double precision")
 endif()
 

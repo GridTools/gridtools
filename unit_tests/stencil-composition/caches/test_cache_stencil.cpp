@@ -144,7 +144,7 @@ TEST_F(cache_stencil, ij_cache) {
 
     stencil.sync_bound_data_stores();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -182,7 +182,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
     stencil.sync_bound_data_stores();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
