@@ -56,7 +56,7 @@ namespace gridtools {
      * @param ds data store
      * @return a host view to the given data store.
      */
-    template <access_mode AccessMode = access_mode::ReadWrite,
+    template <access_mode AccessMode = access_mode::read_write,
         typename DataStore,
         typename DecayedDS = decay_t<DataStore>>
     enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&
@@ -76,7 +76,7 @@ namespace gridtools {
      * @param ds data store
      * @return a host view to the given data store.
      */
-    template <access_mode AccessMode = access_mode::ReadWrite,
+    template <access_mode AccessMode = access_mode::read_write,
         typename DataStore,
         typename DecayedDS = decay_t<DataStore>>
     enable_if_t<is_host_storage<typename DecayedDS::storage_t>::value &&

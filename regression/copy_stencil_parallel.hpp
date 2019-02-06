@@ -235,7 +235,7 @@ namespace copy_stencil {
         MPI_Barrier(GCL_WORLD);
 
         out.sync();
-        auto v_out_h = make_host_view<access_mode::ReadOnly>(out);
+        auto v_out_h = make_host_view<access_mode::read_only>(out);
 
         for (uint_t i = halo[0]; i < d1 - halo[0]; ++i)
             for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)

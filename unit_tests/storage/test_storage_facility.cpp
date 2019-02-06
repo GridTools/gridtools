@@ -214,7 +214,7 @@ TEST(StorageFacility, ViewTests) {
     ds.sync();
 
     // create a read only data view
-    auto hrv = make_host_view<access_mode::ReadOnly>(ds);
+    auto hrv = make_host_view<access_mode::read_only>(ds);
 
     // validate
     uint_t z = 0;

@@ -103,7 +103,7 @@ TEST(DataViewTest, Simple) {
 
     ASSERT_TRUE(si.index(1, 0, 1) == 16);
     // create a ro view
-    data_view<data_store_t, access_mode::ReadOnly> dvro = make_host_view<access_mode::ReadOnly>(ds);
+    data_view<data_store_t, access_mode::read_only> dvro = make_host_view<access_mode::read_only>(ds);
     // check if data is the same
     EXPECT_EQ(50, dvro(0, 0, 0));
     EXPECT_EQ(dvro(0, 0, 1), 60);
@@ -115,7 +115,7 @@ TEST(DataViewTest, Simple) {
     data_store_t ds_tmp;
     ds_tmp.allocate(si);
     // again create a view
-    data_view<data_store_t> dv_tmp = make_host_view<access_mode::ReadWrite>(ds_tmp);
+    data_view<data_store_t> dv_tmp = make_host_view<access_mode::read_write>(ds_tmp);
     // the combination ds_tmp <--> dv/dvro is not a valid view
     EXPECT_FALSE(check_consistency(ds, dv_tmp));
     EXPECT_FALSE(check_consistency(ds_tmp, dv));
@@ -134,7 +134,7 @@ TEST(DataViewTest, ZeroSize) {
     typedef data_store<host_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
     data_store_t ds;
-    data_view<data_store_t, access_mode::ReadOnly> dvro = make_host_view<access_mode::ReadOnly>(ds);
+    data_view<data_store_t, access_mode::read_only> dvro = make_host_view<access_mode::read_only>(ds);
 }
 
 TEST(DataViewTest, ArrayAPI) {
@@ -144,7 +144,7 @@ TEST(DataViewTest, ArrayAPI) {
     typedef data_store<host_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
     data_store_t ds(si);
-    auto dvro = make_host_view<access_mode::ReadWrite>(ds);
+    auto dvro = make_host_view<access_mode::read_write>(ds);
 
     dvro({1, 1, 1}) = 2.0;
     EXPECT_TRUE((dvro(array<int, 3>{(int)1, (int)1, (int)1}) == 2.0));
@@ -157,7 +157,7 @@ TEST(DataViewTest, Looping) {
     typedef data_store<host_storage<triplet>, storage_info_t> data_store_t;
 
     data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
-    auto view = make_host_view<access_mode::ReadWrite>(ds);
+    auto view = make_host_view<access_mode::read_write>(ds);
 
     for (int i = view.begin<0>(); i <= view.end<0>(); ++i) {
         for (int j = view.begin<1>(); j <= view.end<1>(); ++j) {
