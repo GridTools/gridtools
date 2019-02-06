@@ -48,7 +48,6 @@
 */
 namespace gt = gridtools;
 
-namespace gt = gridtools;
 
 #ifdef __CUDACC__
 using target_t = gt::target::cuda;
