@@ -4,7 +4,7 @@ Distributed Boundary Conditions
 ===============================
 
 -------------------
-Design principles:
+Design Principles:
 -------------------
 
 * When doing expandable parameters, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes single data-stores only.
@@ -36,7 +36,7 @@ Communication traits helps the distributed boundary condition interface to custo
 
 
 -------------------------------------
-Bindind Boundaries and Communication
+Bindind Boundaries And Communication
 -------------------------------------
 
 |GT| provides a facility for applying boundary conditions. The distributed boudaries interfaces uses this facility underneath. The boundary application in |GT| accept specific boundary classes that specify how to deal with boundaries in different directions and predicated to deal with periodicity and domain decomposition. The latter will be dealt by the distributed boundary interfaces (refer to the boundary condition interfaces for more details).

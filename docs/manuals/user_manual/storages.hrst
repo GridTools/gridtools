@@ -1,6 +1,6 @@
 .. _storage-module:
 
-Storage module
+Storage Module
 ================================
 
 The storage module is one of the main modules in |GT|. Main target of this module is to provide proper means to access, view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what storage is needed, and this is indicated by the name of the storage class.
@@ -9,7 +9,7 @@ Different backends are available for different kinds of storages (e.g., ``Cuda``
 The storage has the notion of ``halo``. This in turns allows the user of the storage to distinguish between the ``inner_region`` and the ``outer_region``, where the latter includes the halos. The halo is symmetric in the storage class, that is, the number of halo points at the two ends of a dimension is the same. Different dimensions may have different numbers of halo points. The main reason for including halos in the storage is to enforce the alignment of the storage in the inner region to improve the performance of stencil operations.
 
 ------------------
-Storage info
+Storage Info
 ------------------
 
 The storage info element can be seen as a meta data object that keep information about a storage. This information is alignment, data layout in memory, halo areas, dimensionality, size of the storage, etc.
@@ -102,7 +102,7 @@ A visual representation of the storage info is given in :numref:`fig_storage_inf
 .. _data-store:
 
 ---------------
-Data store
+Data Store
 ---------------
 
 Once the ``storage_info`` object is created a ``data_store`` can be created. A ``data_store`` is keeping together the ``storage_info`` object, a data type and the actual memory allocation (see also :numref:`fig_data_store`). The main purpose of the ``data_store`` is to provide means for synchronizing, keeping consistency, cleaning up memory, etc. A ``data_store`` can be copied and moved (shallow copy), but the underlying allocated storage in not copied (no deep-copy). When copying a ``data_store`` both instances will point to the same data. Basically it has the same behaviour as a shared pointer.
@@ -175,7 +175,7 @@ The ``data_store`` object provides methods for performing following things:
  In order to do so we use the view concept.
 
 --------------
-Data view
+Data View
 --------------
 
 The view provides means to modify the data stored in a ``data_store``.
@@ -302,7 +302,7 @@ The ``data_view`` object provides methods for performing following things:
 * `bool check_consistency(DataStore const&, DataView const&)`: perform a full check if the given view can be used to modify or access the data in a proper way.
 
 -------------------------
-Storage facility
+Storage Facility
 -------------------------
 
 Writing the types all the time is cumbersome and unneeded. To get rid of this effort the storage module provides

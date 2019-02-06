@@ -39,7 +39,7 @@ Stencil Operator Interface
 ---------------------------------
 
 ^^^^^^^^^^^^^^^^^^^
-Accessor type
+Accessor Type
 ^^^^^^^^^^^^^^^^^^^
 
 There are three kinds of accessor:
@@ -126,7 +126,7 @@ where
 
 
 ^^^^^^^^^^^^^^^^^^^^^
- arg_list
+ `arg_list`
 ^^^^^^^^^^^^^^^^^^^^^
 The ``arg_list`` is a `using` statement like the following
 
@@ -144,7 +144,7 @@ specified before.
 .. _stencil_operators_do_method:
 
 ^^^^^^^^^^^^^^^^
- Do method 
+ `Do`-Method 
 ^^^^^^^^^^^^^^^^
 
 The ``Do`` methods takes at most two(2) arguments, the
@@ -211,7 +211,7 @@ how other operators can be called from
 within the `Do`'s body to perform a computation.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using eval For Regular Grids
+Using `eval` For Regular Grids
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let us assume the ``Do`` methods has the following signature:
@@ -281,11 +281,11 @@ To use expressions and other more advanced techniques to access data
 and specifying offsets refer to [Advanced Access Specification].
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using eval For Irregular Grids
+Using `eval` For Irregular Grids
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Calling other operators
+Calling Other Operators
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _advanced_data_access:

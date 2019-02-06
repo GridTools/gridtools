@@ -15,7 +15,7 @@ needs to be included.
 Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (accessors).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
-Function calls: call<>
+Function Calls: `call<>`
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 The basic syntax for function calls is as follows
@@ -44,7 +44,7 @@ on a different gridpoint, by specifying a relative location with ``at``:
 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Procedure calls: call_proc<>
+Procedure Calls: `call_proc<>`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Procedural calls work in the same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
