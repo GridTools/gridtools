@@ -155,8 +155,8 @@ TEST(repository_with_dims, constructor) {
     ASSERT_EQ(Nk, repo.ikfield().total_length<2>());
 }
 
-#undef GTREPO_GETTER_PREFIX
-#define GTREPO_GETTER_PREFIX get_
+#undef GT_REPO_GETTER_PREFIX
+#define GT_REPO_GETTER_PREFIX get_
 #define MY_FIELDTYPES (IJKDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
 GRIDTOOLS_MAKE_REPOSITORY(my_repository4, MY_FIELDTYPES, MY_FIELDS)
