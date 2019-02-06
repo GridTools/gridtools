@@ -1,7 +1,7 @@
 Interfacing to other programming languages
 ============================================
 
-GridTools provides an easy macro interface to generate bindings to C and Fortran.
+|GT| provides an easy macro interface to generate bindings to C and Fortran.
 
 Suppose, the user wants to export the function ``add_impl``.
 
@@ -122,7 +122,7 @@ Complex types
 Only a limited set of types can be passed from Fortran / C through the C bindings interface to C++,
 namely integral and floating point types, booleans and pointers to those types.
 
-Array references, Gridtools Storages, and any type that is `fortran_array_bindable`
+Array references, |GT| storages, and any type that is `fortran_array_bindable`
 appear as ``gt_fortran_array_descriptor`` in the C bindings. This structure allows
 the user to describe the data that needs to be passed to C++.
 
@@ -202,10 +202,10 @@ The bindings will take care that the rank matches and it will infer the size of 
 All additional macros behave as mentioned above, namely ``GT_EXPORT_BINDING_WITH_SIGNATURE_WRAPPED``,
 and ``GT_EXPORT_BINDING_GENERIC_WRAPPED``.
 
-Datatypes need to be `fortran_array_wrappable` in order to be compatible with these macros. Natively, only
+Data types need to be `fortran_array_wrappable` in order to be compatible with these macros. Natively, only
 C arrays and ``fortran_array_adapter`` are `fortran_array_wrappable`. The latter is an adapter between
-Fortran arrays and gridtools storages, such that the user can pass a Fortran array to a C++ function,
-which then can be transformed into a gridtools storage.
+Fortran arrays and |GT| storages, such that the user can pass a Fortran array to a C++ function,
+which then can be transformed into a |GT| storage.
 
 .. code-block:: gridtools
 
@@ -229,7 +229,7 @@ CMake usage
 -----------
 
 A call to ``add_bindings_library`` generates the libraries and the headers. By default,
-the C header file and the fortran file is written directly into the source tree. This choice was
+the C header file and the Fortran file is written directly into the source tree. This choice was
 taken to improve building in cross-build environments, because the process cannot rely
 on generated binaries being executable on the host system. The output folder can be overwritten
 by setting ``FORTRAN_OUTPUT_DIR`` and ``C_OUTPUT_DIR``.
