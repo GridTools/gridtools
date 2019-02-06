@@ -48,7 +48,7 @@ namespace gridtools {
     class iterate_domain_x86
         : public iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> // CRTP
     {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_x86);
+        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_x86);
         GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         typedef iterate_domain<iterate_domain_x86<IterateDomainArguments>, IterateDomainArguments> super;

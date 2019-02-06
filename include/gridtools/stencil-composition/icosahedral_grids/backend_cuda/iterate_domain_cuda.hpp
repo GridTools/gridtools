@@ -52,7 +52,7 @@ namespace gridtools {
     template <typename IterateDomainArguments>
     class iterate_domain_cuda
         : public iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
+        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
         GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
 
         typedef iterate_domain<iterate_domain_cuda<IterateDomainArguments>, IterateDomainArguments> super;

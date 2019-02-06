@@ -118,8 +118,8 @@ namespace gridtools {
 #endif
 
 // macro defining empty copy constructors and assignment operators
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-    TypeName(const TypeName &);            \
+#define GT_DISALLOW_COPY_AND_ASSIGN(TypeName) \
+    TypeName(const TypeName &);               \
     TypeName &operator=(const TypeName &)
 
 // check boost::optional workaround for CUDA9.2

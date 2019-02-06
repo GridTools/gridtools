@@ -177,7 +177,7 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     class iterate_domain_cache {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
+        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
 
         GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
