@@ -46,13 +46,13 @@
 #include "common/definitions.hpp"
 #include "data_store.hpp"
 
-#ifndef CHECK_MEMORY_SPACE
+#ifndef GT_CHECK_MEMORY_SPACE
 
 #ifdef __CUDA_ARCH__
-#define CHECK_MEMORY_SPACE(device_view) \
+#define GT_CHECK_MEMORY_SPACE(device_view) \
     GT_ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
 #else
-#define CHECK_MEMORY_SPACE(device_view) \
+#define GT_CHECK_MEMORY_SPACE(device_view) \
     GT_ASSERT_OR_THROW(!device_view, "can not access a device view from a host function")
 #endif
 
@@ -110,7 +110,7 @@ namespace gridtools {
         }
 
         storage_info_t const &storage_info() const {
-            CHECK_MEMORY_SPACE(m_device_view);
+            GT_CHECK_MEMORY_SPACE(m_device_view);
             return *m_storage_info;
         }
 
@@ -150,7 +150,7 @@ namespace gridtools {
             Coords... c) const {
             GT_STATIC_ASSERT(conjunction<is_all_integral_or_enum<Coords...>>::value,
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
-            CHECK_MEMORY_SPACE(m_device_view);
+            GT_CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptr[m_storage_info->index(c...)];
         }
 
@@ -161,7 +161,7 @@ namespace gridtools {
          */
         conditional_t<AccessMode == access_mode::read_only, data_t const &, data_t &> GT_FUNCTION operator()(
             gridtools::array<int, storage_info_t::ndims> const &arr) const {
-            CHECK_MEMORY_SPACE(m_device_view);
+            GT_CHECK_MEMORY_SPACE(m_device_view);
             return m_raw_ptr[m_storage_info->index(arr)];
         }
 
@@ -283,4 +283,4 @@ namespace gridtools {
      */
 } // namespace gridtools
 
-#undef CHECK_MEMORY_SPACE
+#undef GT_CHECK_MEMORY_SPACE
