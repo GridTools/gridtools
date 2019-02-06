@@ -116,18 +116,18 @@ namespace gridtools {
     } // namespace _impl
 
 #ifndef NDEBUG
-#define POSITIONAL_WHEN_DEBUGGING true
+#define GT_POSITIONAL_WHEN_DEBUGGING true
 #else
-#define POSITIONAL_WHEN_DEBUGGING false
+#define GT_POSITIONAL_WHEN_DEBUGGING false
 #endif
 
     /// generator for intermediate/intermediate_expand
     ///
     template <class Backend, class Arg, class... Args>
     auto make_computation(Arg const &arg, Args &&... args) GT_AUTO_RETURN(
-        (_impl::make_computation_dispatch<POSITIONAL_WHEN_DEBUGGING, Backend>(arg, std::forward<Args>(args)...)));
+        (_impl::make_computation_dispatch<GT_POSITIONAL_WHEN_DEBUGGING, Backend>(arg, std::forward<Args>(args)...)));
 
-#undef POSITIONAL_WHEN_DEBUGGING
+#undef GT_POSITIONAL_WHEN_DEBUGGING
 
     template <class Backend, class Arg, class... Args>
     auto make_positional_computation(Arg const &arg, Args &&... args)
