@@ -66,9 +66,9 @@ using strategy_t = gridtools::strategy::block;
 using target_t = gridtools::target::cuda;
 using strategy_t = gridtools::strategy::block;
 #else
-#define NO_BACKEND
+#define GT_NO_BACKEND
 #endif
 
-#ifndef NO_BACKEND
+#ifndef GT_NO_BACKEND
 using backend_t = gridtools::backend<target_t, grid_type_t, strategy_t>;
 #endif
