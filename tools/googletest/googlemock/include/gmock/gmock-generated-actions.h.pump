@@ -243,10 +243,10 @@ $var As = [[$for j, [[A$j]]]]
 $var as = [[$for j, [[get<$j>(args)]]]]
 $range k 1..n-i
 $var eas = [[$for k, [[ExcessiveArg()]]]]
-$var param_list = [[$if (i==0) | (i==n) [[$as$eas]] $else [[$as, $eas]]]]
+$var arg_list = [[$if (i==0) | (i==n) [[$as$eas]] $else [[$as, $eas]]]]
 $template
   static Result Perform(Impl* impl, const ::testing::tuple<$As>& args) {
-    return impl->template gmock_PerformImpl<$As>(args, $param_list);
+    return impl->template gmock_PerformImpl<$As>(args, $arg_list);
   }
 
 ]]
