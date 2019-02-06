@@ -236,7 +236,7 @@ namespace gridtools {
     of the boundary portion may be transposed w.r.t. the kernel
     configuration.
  */
-#define RUN_BC_ON(x, y, z)                                                                                         \
+#define GT_RUN_BC_ON(x, y, z)                                                                                         \
     if (predicate(direction<x, y, z>())) {                                                                         \
         auto const &shape = conf.shape(static_cast<int>(x) + 1, static_cast<int>(y) + 1, static_cast<int>(z) + 1); \
         if ((th[0] < shape.max()) && (th[1] < shape.median()) && (th[2] < shape.min())) {                          \
@@ -262,42 +262,44 @@ namespace gridtools {
             blockIdx.y * blockDim.y + threadIdx.y,
             blockIdx.z * blockDim.z + threadIdx.z};
 
-        RUN_BC_ON(minus_, minus_, minus_);
-        RUN_BC_ON(minus_, minus_, zero_);
-        RUN_BC_ON(minus_, minus_, plus_);
+        GT_RUN_BC_ON(minus_, minus_, minus_);
+        GT_RUN_BC_ON(minus_, minus_, zero_);
+        GT_RUN_BC_ON(minus_, minus_, plus_);
 
-        RUN_BC_ON(minus_, zero_, minus_);
-        RUN_BC_ON(minus_, zero_, zero_);
-        RUN_BC_ON(minus_, zero_, plus_);
+        GT_RUN_BC_ON(minus_, zero_, minus_);
+        GT_RUN_BC_ON(minus_, zero_, zero_);
+        GT_RUN_BC_ON(minus_, zero_, plus_);
 
-        RUN_BC_ON(minus_, plus_, minus_);
-        RUN_BC_ON(minus_, plus_, zero_);
-        RUN_BC_ON(minus_, plus_, plus_);
+        GT_RUN_BC_ON(minus_, plus_, minus_);
+        GT_RUN_BC_ON(minus_, plus_, zero_);
+        GT_RUN_BC_ON(minus_, plus_, plus_);
 
-        RUN_BC_ON(zero_, minus_, minus_);
-        RUN_BC_ON(zero_, minus_, zero_);
-        RUN_BC_ON(zero_, minus_, plus_);
+        GT_RUN_BC_ON(zero_, minus_, minus_);
+        GT_RUN_BC_ON(zero_, minus_, zero_);
+        GT_RUN_BC_ON(zero_, minus_, plus_);
 
-        RUN_BC_ON(zero_, zero_, minus_);
+        GT_RUN_BC_ON(zero_, zero_, minus_);
 
-        RUN_BC_ON(zero_, zero_, plus_);
+        GT_RUN_BC_ON(zero_, zero_, plus_);
 
-        RUN_BC_ON(zero_, plus_, minus_);
-        RUN_BC_ON(zero_, plus_, zero_);
-        RUN_BC_ON(zero_, plus_, plus_);
+        GT_RUN_BC_ON(zero_, plus_, minus_);
+        GT_RUN_BC_ON(zero_, plus_, zero_);
+        GT_RUN_BC_ON(zero_, plus_, plus_);
 
-        RUN_BC_ON(plus_, minus_, minus_);
-        RUN_BC_ON(plus_, minus_, zero_);
-        RUN_BC_ON(plus_, minus_, plus_);
+        GT_RUN_BC_ON(plus_, minus_, minus_);
+        GT_RUN_BC_ON(plus_, minus_, zero_);
+        GT_RUN_BC_ON(plus_, minus_, plus_);
 
-        RUN_BC_ON(plus_, zero_, minus_);
-        RUN_BC_ON(plus_, zero_, zero_);
-        RUN_BC_ON(plus_, zero_, plus_);
+        GT_RUN_BC_ON(plus_, zero_, minus_);
+        GT_RUN_BC_ON(plus_, zero_, zero_);
+        GT_RUN_BC_ON(plus_, zero_, plus_);
 
-        RUN_BC_ON(plus_, plus_, minus_);
-        RUN_BC_ON(plus_, plus_, zero_);
-        RUN_BC_ON(plus_, plus_, plus_);
+        GT_RUN_BC_ON(plus_, plus_, minus_);
+        GT_RUN_BC_ON(plus_, plus_, zero_);
+        GT_RUN_BC_ON(plus_, plus_, plus_);
     }
+
+#undef GT_RUN_BC_ON
 
     /**
        @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument
