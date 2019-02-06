@@ -25,4 +25,3 @@
 .. include:: data_management.hrst
 .. include:: interface.hrst
 .. include:: benchmarking.hrst
-.. include:: serialbox_and_porting.hrst
