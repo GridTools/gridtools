@@ -1,19 +1,6 @@
 if( GT_TESTS_STRUCTURED_GRID )
     set( EXAMPLES_SRCFILES copy_stencil horizontal_diffusion_limited tridiagonal_solver)
 
-    if(GT_ENABLE_TARGET_X86)
-        foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
-            add_executable(${srcfile}_x86_naive_ex   ${srcfile}.cpp)
-            target_link_libraries(${srcfile}_x86_naive_ex GridToolsTestX86)
-            target_compile_definitions(${srcfile}_x86_naive_ex PRIVATE BACKEND_STRATEGY_NAIVE)
-            install_example(${srcfile}_x86_naive_ex)
-
-            add_executable(${srcfile}_x86_block_ex   ${srcfile}.cpp)
-            target_link_libraries(${srcfile}_x86_block_ex GridToolsTestX86)
-            install_example(${srcfile}_x86_block_ex)
-        endforeach()
-    endif(GT_ENABLE_TARGET_X86)
-
     if(GT_ENABLE_TARGET_MC)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
             add_executable(${srcfile}_mc_ex   ${srcfile}.cpp)
