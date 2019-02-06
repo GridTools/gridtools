@@ -88,9 +88,6 @@ accessor, and not on the accessor itself. So in the example
  dimension<3> k; dimension<4> c; dimension<5> t;
  acc(k-1, c+2, t+2)
 
- #ifdef
- #define
-
 ``c+2`` may refer to an offset to the 4th dimension or the third components (the indices are
 zero based) of a vector field, while ``t+2`` may refer to the third snapshot of that component.
 Alternatively, if the storage passed in had 4 space dimensions, the ``t+2`` would have
