@@ -85,7 +85,7 @@ struct integration {
     using f = in_accessor<3, extent<>, 6>;
     using result = inout_accessor<4, extent<>, 6>;
 
-    using arg_list = boost::mpl::vector<phi_t, psi_t, jac, f, result>;
+    using arg_list = make_arg_list<phi_t, psi_t, jac, f, result>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

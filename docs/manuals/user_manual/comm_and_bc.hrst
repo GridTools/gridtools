@@ -7,7 +7,7 @@ Distributed Boundary Conditions
 Design principles:
 -------------------
 
-* When doing expandable parameters or data fields, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes data-stores instead of data store fields or other data structures.
+* When doing expandable parameters, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes single data-stores only.
 * The user may want to apply different BCs to the same data-store at different times during an executions, so the binding between BCs and data-stores should be done at member-function level, not at class level, in order to remove the need for instantiation of heavy objects like halo-updates.
 * The same holds for the data stores to be exchanged: we need to plug the data stores at the last minute before doing the packing/unpacking and boundary apply. The requirement given by the underlying communication layer is that the number of data fields to be exchanged must be less than or equal to the maximum number of data fields specified at construction time.
 * The halo exchange patterns are quite heavy objects so they have to be constructed and passed around as references. The ``setup`` needs to be executed only once to prevent memory leaks.
@@ -23,7 +23,7 @@ Communication traits helps the distributed boundary condition interface to custo
 
 .. code-block:: gridtools
 
-  template < typename StorageType, typename Arch >
+  template <typename StorageType, typename Arch>
   struct comm_traits {
     using proc_layout = ... // Lauyout of the processing grid to relate the data layout to the distribution of data
     using proc_grid_type = ... // Type of the computing grid
@@ -47,7 +47,7 @@ The way of specifying this is through the function ``bind_bc`` which has the fol
 
 .. code-block:: gridtools
 
-   unspecified_type x = bind_bc(boundary_class, data_stores,...);
+   unspecified_type x = bind_bc(boundary_class, data_stores, ...);
 
 The number of data stores is dictated by the ``boundary_class::operator()``, that is user defined (or provided by |GT|).
 
@@ -68,7 +68,7 @@ The distributed boundaries class takes as template argument the communication tr
 
 .. code-block:: gridtools
 
-   using dbs_t = distributed_boundaries< comm_traits< storage_type, communication_arch > >;
+   using dbs_t = distributed_boundaries<comm_traits<storage_type, communication_arch>>;
 
 During construction more information is required about the halo structure. We use here the usual ``halo_descriptor`` described in :ref:`halo-descriptor`.
 
@@ -82,7 +82,7 @@ The user needs also to indicate which dimensions are periodic (again, refer to :
    halo_descriptor di{halo_sx0, halo_dx0, begin0, end0, len0};
    halo_descriptor dj{halo_sx1, halo_dx1, begin1, end1, len1};
    halo_descriptor dk{halo_sx2, halo_dx2, begin2, end2, len2};
-   array< halo_descriptor, 3 > halos{di, dj, dk};
+   array<halo_descriptor, 3> halos{di, dj, dk};
 
    boollist<3> periodicity{b0, b1, b2}; // b0, b1, b2 are booleans. If true it will indicate that the corresponding dimension is periodic across the grid of processors.
 
@@ -123,10 +123,10 @@ The next example, shows two boundary applications using a fixed value on data st
 
 .. code-block:: gridtools
 
-   cabc.exchange(bind_bc(value_boundary< double >{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
+   cabc.exchange(bind_bc(value_boundary<double>{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
 
 An additional facility provided is an alternative to the ``exchange`` method. This is used to skip the halo updates altogether, and it is called ``boundary_only``, and the code to use it is identical to the previous example, barring the function name:
 
 .. code-block:: gridtools
 
-   cabc.boundary_only(bind_bc(value_boundary< double >{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
+   cabc.boundary_only(bind_bc(value_boundary<double>{3.14}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);

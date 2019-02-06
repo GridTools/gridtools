@@ -61,7 +61,7 @@ typedef gridtools::interval<level_t<0, -1>, level_t<1, -1>> x_interval;
 struct functor1 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0>, 6> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0>, 5> buff;
-    typedef boost::mpl::vector<in, buff> arg_list;
+    typedef make_arg_list<in, buff> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -81,7 +81,7 @@ typedef decltype(gridtools::make_stage<functor1>(p_buff(), p_out())) esf2_t;
 struct functor2 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
@@ -104,7 +104,7 @@ TEST(cache_metafunctions, cache_used_by_esfs) {
     typedef caches_used_by_esfs<esf_sequence_t, caches_t>::type caches_used_t;
 
     GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<caches_used_t, boost::mpl::vector3<cache1_t, cache2_t, cache3_t>>::value), "WRONG");
+        (boost::mpl::equal<caches_used_t, make_arg_list<cache1_t, cache2_t, cache3_t>>::value), "WRONG");
     ASSERT_TRUE(true);
 }
 

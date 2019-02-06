@@ -51,7 +51,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-using axis_t = axis<2>::with_extra_offsets<1>;
+using axis_t = axis<2, 1>;
 using kminimum = axis_t::full_interval::first_level::shift<-1>;
 using krange1 = axis_t::get_interval<0>;
 using krange2 = axis_t::get_interval<1>::modify<0, -1>;
@@ -72,7 +72,7 @@ struct functor1 {
     typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in4;
 
     typedef accessor<3, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in1, in3, in4, out> arg_list;
+    typedef make_arg_list<in1, in3, in4, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
@@ -88,7 +88,7 @@ struct functor2 {
     typedef accessor<2, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in4;
 
     typedef accessor<3, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in1, in2, in4, out> arg_list;
+    typedef make_arg_list<in1, in2, in4, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}

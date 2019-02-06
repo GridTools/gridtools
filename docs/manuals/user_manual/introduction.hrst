@@ -84,7 +84,7 @@ Using |GT| follows standard CMake practices. To indicate where the |GT| root is,
 
 .. code-block:: cmake
 
- find_package( GridTools 0.1.8.2 REQUIRED )
+ find_package(GridTools 0.1.8.2 REQUIRED)
  list(APPEND CMAKE_MODULE_PATH "${GridTools_MODULE_PATH}")
 
 .. note:
@@ -105,7 +105,7 @@ Some utilities are provided to the user, for instance ``backend_select.hpp``, wh
 
 .. code-block:: cmake
 
- target_compile_definitions(${srcfile}_host_block_ex PUBLIC BACKEND_X86 FLOAT_PRECISION=8 )
+ target_compile_definitions(${srcfile}_host_block_ex PUBLIC BACKEND_X86 FLOAT_PRECISION=8)
 
 .. note:
 
