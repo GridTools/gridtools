@@ -96,7 +96,7 @@ TEST_F(kcachef, flush_forward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::flush>(p_out())),
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
             make_stage<shift_acc_forward_flush>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -137,7 +137,7 @@ TEST_F(kcachef, flush_backward) {
         p_in() = m_in,
         make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<cache_type::K, cache_io_policy::flush>(p_out())),
+            define_caches(cache<cache_type::k, cache_io_policy::flush>(p_out())),
             make_stage<shift_acc_backward_flush>(p_in() // esf_descriptor
                 ,
                 p_out())));

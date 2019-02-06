@@ -203,7 +203,7 @@ namespace gridtools {
         ~iterate_domain_cache() {}
 
         static constexpr bool has_ij_caches =
-            boost::mpl::count_if<cache_sequence_t, cache_is_type<cache_type::IJ>>::type::value != 0;
+            boost::mpl::count_if<cache_sequence_t, cache_is_type<cache_type::ij>>::type::value != 0;
 
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if<cache_sequence_t,
@@ -215,14 +215,14 @@ namespace gridtools {
         // extract a sequence of extents for each k cache
         typedef typename extract_k_extents_for_caches<IterateDomainArguments>::type k_cache_extents_map_t;
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
-        typedef typename get_cache_storage_tuple<cache_type::IJ,
+        typedef typename get_cache_storage_tuple<cache_type::ij,
             caches_t,
             ij_cache_extents_map_t,
             block_size_t,
             typename IterateDomainArguments::local_domain_t>::type ij_caches_vector_t;
 
         // compute the fusion vector of pair<index_type, cache_storage> for k caches
-        typedef typename get_cache_storage_tuple<cache_type::K,
+        typedef typename get_cache_storage_tuple<cache_type::k,
             caches_t,
             k_cache_extents_map_t,
             block_size_t,

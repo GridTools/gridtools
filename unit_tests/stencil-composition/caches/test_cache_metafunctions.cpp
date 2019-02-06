@@ -89,10 +89,10 @@ struct functor2 {
 
 typedef boost::mpl::vector2<esf1_t, esf2_t> esf_sequence_t;
 
-typedef detail::cache_impl<cache_type::IJ, p_in, cache_io_policy::fill> cache1_t;
-typedef detail::cache_impl<cache_type::IJ, p_buff, cache_io_policy::fill> cache2_t;
-typedef detail::cache_impl<cache_type::K, p_out, cache_io_policy::local> cache3_t;
-typedef detail::cache_impl<cache_type::K, p_notin, cache_io_policy::local> cache4_t;
+typedef detail::cache_impl<cache_type::ij, p_in, cache_io_policy::fill> cache1_t;
+typedef detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::fill> cache2_t;
+typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::local> cache3_t;
+typedef detail::cache_impl<cache_type::k, p_notin, cache_io_policy::local> cache4_t;
 typedef boost::mpl::vector4<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 typedef decltype(gridtools::make_stage<functor2>(p_in(), p_notin())) esf1k_t;
@@ -180,7 +180,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
 
     typedef extract_ij_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    typedef get_cache_storage_tuple<cache_type::IJ, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
+    typedef get_cache_storage_tuple<cache_type::ij, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
     GT_STATIC_ASSERT(
@@ -213,7 +213,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
 
     typedef extract_k_extents_for_caches<iterate_domain_arguments_t>::type extents_map_t;
 
-    typedef get_cache_storage_tuple<cache_type::K, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
+    typedef get_cache_storage_tuple<cache_type::k, caches_t, extents_map_t, block_size<32, 4, 1>, local_domain_t>::type
         cache_storage_tuple_t;
 
     GT_STATIC_ASSERT(

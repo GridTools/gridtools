@@ -136,7 +136,7 @@ namespace gridtools {
             meta::st_contains<typename local_domain_t::tmp_storage_info_ptr_list, StorageInfo const *>;
 
         /* ij-cache types and meta functions */
-        using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<cache_type::IJ>>::type;
+        using ij_caches_t = typename boost::mpl::copy_if<cache_sequence_t, cache_is_type<cache_type::ij>>::type;
         using ij_cache_indices_t =
             typename boost::mpl::transform<ij_caches_t, cache_to_index<boost::mpl::_1, local_domain_t>>::type;
         using ij_cache_indexset_t = typename boost::mpl::

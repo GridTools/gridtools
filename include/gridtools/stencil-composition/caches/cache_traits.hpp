@@ -62,7 +62,7 @@ namespace gridtools {
     struct is_ij_cache : boost::mpl::false_ {};
 
     template <typename Arg, cache_io_policy cacheIOPolicy>
-    struct is_ij_cache<detail::cache_impl<cache_type::IJ, Arg, cacheIOPolicy>> : boost::mpl::true_ {};
+    struct is_ij_cache<detail::cache_impl<cache_type::ij, Arg, cacheIOPolicy>> : boost::mpl::true_ {};
 
     /**
      * @struct is_k_cache
@@ -72,7 +72,7 @@ namespace gridtools {
     struct is_k_cache : boost::mpl::false_ {};
 
     template <typename Arg, cache_io_policy cacheIOPolicy>
-    struct is_k_cache<detail::cache_impl<cache_type::K, Arg, cacheIOPolicy>> : boost::mpl::true_ {};
+    struct is_k_cache<detail::cache_impl<cache_type::k, Arg, cacheIOPolicy>> : boost::mpl::true_ {};
 
     /**
      * @struct is_flushing_cache
