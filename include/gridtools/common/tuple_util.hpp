@@ -124,8 +124,8 @@
 
 #ifndef GT_TARGET_ITERATING
 //// DON'T USE #pragma once HERE!!!
-#ifndef GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
-#define GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
+#ifndef GT_COMMON_TUPLE_UTIL_HPP_
+#define GT_COMMON_TUPLE_UTIL_HPP_
 
 #include <array>
 #include <tuple>
@@ -385,7 +385,7 @@ namespace gridtools {
 #include GT_ITERATE_ON_TARGETS()
 #undef GT_FILENAME
 
-#endif // GRIDTOOLS_COMMON_TUPLE_UTIL_HPP_
+#endif // GT_COMMON_TUPLE_UTIL_HPP_
 #else  // GT_TARGET_ITERATING
 
 namespace gridtools {

@@ -43,7 +43,7 @@
 
 #define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
-GRIDTOOLS_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
+GT_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
@@ -65,7 +65,7 @@ TEST_F(simple_repository, assign_to_auto_from_map) {
     ASSERT_EQ(10, u.total_length<0>());
 }
 
-#ifdef GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
+#ifdef GT_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 TEST_F(simple_repository, assign_to_type_from_map) {
     // no cast needed
     IJKDataStore u = repo.data_stores()["u"];
@@ -95,7 +95,7 @@ TEST_F(simple_repository, iterate_map_with_visitor) {
 
 #define MY_FIELDTYPES (IJKDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
-GRIDTOOLS_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
+GT_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
@@ -128,7 +128,7 @@ using IKDataStore = typename gridtools::storage_traits<gridtools::target::x86>::
 #define MY_FIELDTYPES \
     (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1, 2))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
 #define MY_FIELDS (IJKDataStore, u)(IJDataStore, crlat)(IJKWDataStore, w)(IKDataStore, ikfield)
-GRIDTOOLS_MAKE_REPOSITORY(my_repository3, MY_FIELDTYPES, MY_FIELDS)
+GT_MAKE_REPOSITORY(my_repository3, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
@@ -159,7 +159,7 @@ TEST(repository_with_dims, constructor) {
 #define GT_REPO_GETTER_PREFIX get_
 #define MY_FIELDTYPES (IJKDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
-GRIDTOOLS_MAKE_REPOSITORY(my_repository4, MY_FIELDTYPES, MY_FIELDS)
+GT_MAKE_REPOSITORY(my_repository4, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 

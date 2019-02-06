@@ -194,10 +194,10 @@
         (__clang_major__ == 3 && __clang_minor__ >= 9 || __clang_major__ > 4) || \
     defined(__clang__) && defined(__APPLE_CC__) && __APPLE_CC__ > 8000
 // this choice of host compilers implies CUDA >= 8
-#define GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
+#define GT_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 #endif
 
-#ifdef GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
+#ifdef GT_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 #define GT_REPO_make_variant(name, data_store_types_seq) GT_PP_MAKE_VARIANT(name, data_store_types_seq)
 #else
 // use "normal" boost::variant on unsupported compilers
@@ -222,9 +222,9 @@
 
 /*
  * @brief main macro to generate a repository
- * @see GRIDTOOLS_MAKE_REPOSITORY
+ * @see GT_MAKE_REPOSITORY
  */
-#define GRIDTOOLS_MAKE_REPOSITORY_helper(name, data_store_types_seq, data_stores_seq)                                 \
+#define GT_MAKE_REPOSITORY_helper(name, data_store_types_seq, data_stores_seq)                                        \
     class name {                                                                                                      \
       private:                                                                                                        \
         GT_REPO_make_variant(                                                                                         \
@@ -258,9 +258,9 @@
 
 /*
  * @brief main macro to generate the fortran bindings for a repository
- * @see GRIDTOOLS_MAKE_REPOSITORY
+ * @see GT_MAKE_REPOSITORY
  */
-#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, data_stores_seq) \
+#define GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, data_stores_seq) \
     BOOST_PP_SEQ_FOR_EACH(GT_REPO_make_binding, (name, fortran_name), data_stores_seq)
 
 /*
@@ -279,11 +279,11 @@
  *      IJKDataStore::storage_info_t(dim0,dim1,dim2) and
  *      IKDataStore::storage_info_t(dim0,dim2)
  *
- * Main macro is GRIDTOOLS_MAKE_REPOSITORY_helper. Here we just add extra parenthesis to the input to make user-code
+ * Main macro is GT_MAKE_REPOSITORY_helper. Here we just add extra parenthesis to the input to make user-code
  * look nicer (no double parenthesis)
  */
-#define GRIDTOOLS_MAKE_REPOSITORY(name, data_store_types_seq, data_stores_seq) \
-    GRIDTOOLS_MAKE_REPOSITORY_helper(                                          \
+#define GT_MAKE_REPOSITORY(name, data_store_types_seq, data_stores_seq) \
+    GT_MAKE_REPOSITORY_helper(                                          \
         name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_store_types_seq), BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
 
 /*
@@ -292,7 +292,7 @@
  * @param fortran_name name that will be used to identify the repository in the fortran binding
  * @param data_stores_seq BOOST_PP sequence of tuples of the form (DataStoreType, VariableName)
  *
- * Main macro is GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
+ * Main macro is GT_MAKE_REPOSITORY_BINDINGS_helper. Here we just add extra parenthesis to the input to make
  * user-code look nicer (no double parenthesis)
  *
  * Suppose you have a repository with name = "CRep", fortran_name = "FRep" and datastores named "u" and "v". This will
@@ -300,5 +300,5 @@
  *     set_FRep_u(repo, arr) sets CRep.u()
  *     set_FRep_v(repo, arr) sets CRep.v()
  */
-#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(name, fortran_name, data_stores_seq) \
-    GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
+#define GT_MAKE_REPOSITORY_BINDINGS(name, fortran_name, data_stores_seq) \
+    GT_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
