@@ -48,7 +48,6 @@
 */
 namespace gt = gridtools;
 
-namespace gt = gridtools;
 
 // The following macros are defined by GridTools private compilation
 // flags for examples, regression and unit tests. Their are not
