@@ -584,22 +584,22 @@ namespace gridtools {
         // Meta functions
 
 #if GT_BROKEN_TEMPLATE_ALIASES
-#define SID_DELEGATE_FROM_IMPL(name) \
-    template <class Sid>             \
+#define GT_SID_DELEGATE_FROM_IMPL(name) \
+    template <class Sid>                \
     struct name : meta::id<concept_impl_::name<Sid>> {}
 #else
-#define SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
+#define GT_SID_DELEGATE_FROM_IMPL(name) using concept_impl_::name
 #endif
 
-        SID_DELEGATE_FROM_IMPL(ptr_type);
-        SID_DELEGATE_FROM_IMPL(ptr_diff_type);
-        SID_DELEGATE_FROM_IMPL(reference_type);
-        SID_DELEGATE_FROM_IMPL(strides_type);
-        SID_DELEGATE_FROM_IMPL(strides_kind);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_type);
+        GT_SID_DELEGATE_FROM_IMPL(ptr_diff_type);
+        GT_SID_DELEGATE_FROM_IMPL(reference_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_type);
+        GT_SID_DELEGATE_FROM_IMPL(strides_kind);
 
-        SID_DELEGATE_FROM_IMPL(default_ptr_diff);
+        GT_SID_DELEGATE_FROM_IMPL(default_ptr_diff);
 
-#undef SID_DELEGATE_FROM_IMPL
+#undef GT_SID_DELEGATE_FROM_IMPL
 
         // Runtime functions
         using concept_impl_::get_origin;
