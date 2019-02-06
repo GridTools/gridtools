@@ -50,10 +50,10 @@
 
 #ifdef __CUDA_ARCH__
 #define CHECK_MEMORY_SPACE(device_view) \
-    ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
+    GT_ASSERT_OR_THROW(device_view, "can not access a host view from within a GPU kernel")
 #else
 #define CHECK_MEMORY_SPACE(device_view) \
-    ASSERT_OR_THROW(!device_view, "can not access a device view from a host function")
+    GT_ASSERT_OR_THROW(!device_view, "can not access a device view from a host function")
 #endif
 
 #endif
@@ -72,8 +72,7 @@ namespace gridtools {
      */
     template <typename DataStore, access_mode AccessMode = access_mode::read_write>
     struct data_view {
-        GT_STATIC_ASSERT(
-            is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+        GT_STATIC_ASSERT(is_data_store<DataStore>::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
@@ -106,8 +105,8 @@ namespace gridtools {
             data_t *data_ptr, storage_info_t const *info_ptr, state_machine_t *state_ptr, bool device_view)
             : m_raw_ptr(data_ptr), m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
               m_device_view(device_view) {
-            ASSERT_OR_THROW(data_ptr, "Cannot create data_view with invalid data pointer");
-            ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
+            GT_ASSERT_OR_THROW(data_ptr, "Cannot create data_view with invalid data pointer");
+            GT_ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
         storage_info_t const &storage_info() const {

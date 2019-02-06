@@ -67,7 +67,7 @@ namespace gridtools {
             return data_view<DecayedCDS, AccessMode>();
 
         if (AccessMode != access_mode::read_only) {
-            ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu,
+            GT_ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu,
                 "There is already an active read-write "
                 "device view. Synchronization is needed "
                 "before constructing the view.");
@@ -96,7 +96,7 @@ namespace gridtools {
             return data_view<DecayedCDS, AccessMode>();
 
         if (AccessMode != access_mode::read_only) {
-            ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu,
+            GT_ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu,
                 "There is already an active read-write "
                 "host view. Synchronization is needed "
                 "before constructing the view.");
