@@ -45,7 +45,7 @@ Accessor type
 
 There are three kinds of accessor:
 
-* `regular accessors`, or simply *accessors*, indicate an access to a regular :ref:`data_store` of a grid.
+* `regular accessors`, or simply *accessors*, indicate an access to a regular :ref:`data-store` of a grid.
 * `global accessors` indicates that the data to be referred does not participate in the iteration and always point to a same *read only* datum to be used in the operator, see :ref:`global accessors<global-accessor>`. 
 
 An *accessor type* is a `using` statement with this form
@@ -117,7 +117,7 @@ where
    runtime error, while extents bigger that the one actually accessed
    by the implementation will result in performance loss.
 
-* ``N`` identifies the number of dimensions of the :ref:`data_store`.
+* ``N`` identifies the number of dimensions of the :ref:`data-store`.
   By default this value is set to 3. 
 
   .. note:: 
