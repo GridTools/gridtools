@@ -40,7 +40,6 @@
 #include <boost/mpl/vector.hpp>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
 
 /**
    @file This file shows an implementation of the "horizontal
@@ -49,6 +48,33 @@
 */
 
 namespace gt = gridtools;
+
+namespace gt = gridtools;
+
+// The followinf macros are defined by GridTools private compilation
+// flags for examples, regression and unit tests. Their are not
+// exported when GridTools is installed, so the user would not be
+// biased by GridTools conventions.
+#ifdef BACKEND_X86
+using target_t = gt::target::x86;
+#ifdef BACKEND_STRATEGY_NAIVE
+using strategy_t = gt::strategy::naive;
+#else
+using strategy_t = gt::strategy::block;
+#endif
+#elif defined(BACKEND_MC)
+using target_t = gt::target::mc;
+using strategy_t = gt::strategy::block;
+#elif defined(BACKEND_CUDA)
+using target_t = gt::target::cuda;
+using strategy_t = gt::strategy::block;
+#else
+#define NO_BACKEND
+#endif
+
+#ifndef NO_BACKEND
+using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+#endif
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
@@ -139,7 +165,7 @@ int main(int argc, char **argv) {
 
     using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
-    using storage_type = storage_tr::data_store_t<float_type, storage_info_ijk_t>;
+    using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 
     // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     storage_info_ijk_t sinfo{d1, d2, d3};

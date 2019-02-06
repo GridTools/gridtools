@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include <iostream>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
 
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
@@ -51,7 +51,33 @@
   the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
  */
 
+
 namespace gt = gridtools;
+
+// The followinf macros are defined by GridTools private compilation
+// flags for examples, regression and unit tests. Their are not
+// exported when GridTools is installed, so the user would not be
+// biased by GridTools conventions.
+#ifdef BACKEND_X86
+using target_t = gt::target::x86;
+#ifdef BACKEND_STRATEGY_NAIVE
+using strategy_t = gt::strategy::naive;
+#else
+using strategy_t = gt::strategy::block;
+#endif
+#elif defined(BACKEND_MC)
+using target_t = gt::target::mc;
+using strategy_t = gt::strategy::block;
+#elif defined(BACKEND_CUDA)
+using target_t = gt::target::cuda;
+using strategy_t = gt::strategy::block;
+#else
+#define NO_BACKEND
+#endif
+
+#ifndef NO_BACKEND
+using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+#endif
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = gt::axis<1>;
@@ -60,10 +86,10 @@ using full_t = axis_t::full_interval;
 struct forward_thomas {
     // four vectors: output, and the 3 diagonals
     using out = gt::inout_accessor<0>;
-    using inf = gt::in_accessor<1>;    // a
-    using diag = gt::in_accessor<2>;   // b
-    using sup = gt::inout_accessor<3>; // c
-    using rhs = gt::inout_accessor<4>; // d
+    using inf = gt::in_accessor<1>;
+    using diag = gt::in_accessor<2>;
+    using sup = gt::inout_accessor<3>;
+    using rhs = gt::inout_accessor<4>;
     using arg_list = gt::make_arg_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
@@ -82,10 +108,10 @@ struct forward_thomas {
 
 struct backward_thomas {
     using out = gt::inout_accessor<0>;
-    using inf = gt::in_accessor<1>;    // a
-    using diag = gt::in_accessor<2>;   // b
-    using sup = gt::inout_accessor<3>; // c
-    using rhs = gt::inout_accessor<4>; // d
+    using inf = gt::in_accessor<1>;
+    using diag = gt::in_accessor<2>;
+    using sup = gt::inout_accessor<3>;
+    using rhs = gt::inout_accessor<4>;
     using arg_list = gt::make_arg_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
@@ -106,25 +132,50 @@ int main() {
 
     using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
 
+    // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     using storage_info_t = storage_tr::storage_info_t<0, 3>;
 
-    using storage_type = storage_tr::data_store_t<float_type, storage_info_t>;
+    using storage_type = storage_tr::data_store_t<double, storage_info_t>;
 
+    // Definition of the actual data fields that are used for input/output, instantiated using the storage_info
     auto out = storage_type{storage_info_t{d1, d2, d3}};
     auto sup = storage_type{storage_info_t{d1, d2, d3}, 1.};
     auto rhs = storage_type{storage_info_t{d1, d2, d3}, [](int, int, int k) { return k == 0 ? 4. : k == 5 ? 2. : 3.; }};
 
-    gt::arg<0, storage_type> p_inf;  // a
-    gt::arg<1, storage_type> p_diag; // b
-    gt::arg<2, storage_type> p_sup;  // c
-    gt::arg<3, storage_type> p_rhs;  // d
+    // Definition of placeholders. The order does not have any semantics
+    gt::arg<0, storage_type> p_inf;
+    gt::arg<1, storage_type> p_diag;
+    gt::arg<2, storage_type> p_sup;
+    gt::arg<3, storage_type> p_rhs;
     gt::arg<4, storage_type> p_out;
 
+    // Now we describe the itaration space. The frist two dimensions
+    // are described with a tuple of values (minus, plus, begin, end,
+    // length) begin and end, for each dimension represent the space
+    // where the output data will be located in the data_stores, while
+    // minus and plus indicate the number of halo points in the
+    // indices before begin and after end, respectively. The length,
+    // is not needed, and will be removed in future versions, but we
+    // keep it for now since the data structure used is the same used
+    // in the communication library and there the length is used.  In
+    // this example there are not halo points needed, but distributed
+    // memory applications usually have halos defined on all data
+    // fields, so the halos are not only prescribed buy the stencils,
+    // but also by other requirements of the applications.
     gt::halo_descriptor di{0, 0, 0, d1 - 1, d1};
     gt::halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
+    // The grid represent the iteration space. The third dimension is
+    // indicated here as a size and the iteration space is deduced by
+    // the fact that there is not an axis definition. More ocmplex
+    // third dimensions are possible but not described in this
+    // example.
     auto grid = gt::make_grid(di, dj, d3);
 
+    // Here we make the computation, specifying the backend, the gird
+    // (iteration space), binding of the placeholders to the fields
+    // that will not be modified during the computation, and then the
+    // stencil structure
     auto trid_solve = gt::make_computation<backend_t>(grid,
         p_inf = storage_type{storage_info_t{d1, d2, d3}, -1.},
         p_diag = storage_type{storage_info_t{d1, d2, d3}, 3.},
@@ -136,7 +187,25 @@ int main() {
         gt::make_multistage(gt::enumtype::execute<gt::enumtype::backward>(),
             gt::make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
 
+    // The execution happens here. Here we bind the placeholders to
+    // the data. This binding can change at every `run` invokation
     trid_solve.run();
 
-    //    verify(make_storage(1.), out);
+    // In this simple example the solution is known and we can easily
+    // check it.
+    bool correct = true;
+    for (int i = 0; i < d1; ++i) {
+        for (int j = 0; j < d2; ++j) {
+            for (int k = 0; k < d3; ++k) {
+                correct = gt::make_host_view(out)(i,j,k) == 1.;
+            }
+        }
+    }
+
+    if (correct) {
+        std::cout << "Passed\n";
+    } else {
+        std::cout << "Failed\n";
+    }
+
 }
