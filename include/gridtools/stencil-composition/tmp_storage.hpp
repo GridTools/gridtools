@@ -79,7 +79,7 @@
 #include "./backend_cuda/tmp_storage.hpp"
 #include "./backend_x86/tmp_storage.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/tmp_storage.hpp"
 #else
 #include "./icosahedral_grids/tmp_storage.hpp"

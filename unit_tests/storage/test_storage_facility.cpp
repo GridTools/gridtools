@@ -96,7 +96,7 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
     typedef storage_traits_t::storage_info_t<0, 3, halo<1, 2, 3>> storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info<storage_info_ty>::type::value), "is_storage_info metafunction is not working anymore");
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same<storage_info_ty,
             storage_info_interface<0, layout_map<2, 0, 1>, halo<1, 2, 3>, alignment<8>>>::type::value),
@@ -110,7 +110,7 @@ struct static_type_tests<backend<target::mc, GridBackend, Strategy>> {
 
     // special layout
     typedef storage_traits_t::special_storage_info_t<0, selector<1, 1, 0>, halo<1, 2, 3>> special_storage_info_ty;
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same<special_storage_info_ty,
             storage_info_interface<0, layout_map<1, 0, -1>, halo<1, 2, 3>, alignment<8>>>::type::value),
@@ -525,7 +525,7 @@ struct static_layout_tests<backend<target::cuda, GridBackend, Strategy>>
     : static_layout_tests_decreasing<target::cuda> {};
 #endif
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 template <class GridBackend, class Strategy>
 struct static_layout_tests<backend<target::mc, GridBackend, Strategy>>
     : static_layout_tests_decreasing_swappedxy<target::mc> {};

@@ -66,7 +66,7 @@
 #include "./backend_cuda/block.hpp"
 #include "./backend_x86/block.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "./structured_grids/block.hpp"
 #endif
 

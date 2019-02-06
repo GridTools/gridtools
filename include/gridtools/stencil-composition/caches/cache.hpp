@@ -94,7 +94,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             conjunction<is_plh<Args>...>::value, "argument passed to cache is not of the right arg<> type");
         // TODO ICO_STORAGE
-#ifndef STRUCTURED_GRIDS
+#ifndef GT_STRUCTURED_GRIDS
         GRIDTOOLS_STATIC_ASSERT(
             (!disjunction<std::is_same<typename Args::location_t, enumtype::default_location_type>...>::value),
             "args in irregular grids require a location type");

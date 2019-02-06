@@ -133,7 +133,7 @@ namespace gridtools {
         typedef typename Arg::data_store_t::data_t value_type;
 
 // TODO ICO_STORAGE in irregular grids we have one more dim for color
-#ifndef STRUCTURED_GRIDS
+#ifndef GT_STRUCTURED_GRIDS
         static constexpr int extra_dims = 1;
 #else
         static constexpr int extra_dims = 0;

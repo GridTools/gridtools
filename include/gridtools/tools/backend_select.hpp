@@ -38,7 +38,7 @@
 #include "../common/defs.hpp"
 #include "../stencil-composition/backend.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 using grid_type_t = gridtools::grid_type::structured;
 #else
 using grid_type_t = gridtools::grid_type::icosahedral;

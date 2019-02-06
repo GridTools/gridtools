@@ -23,7 +23,7 @@ if(${CMAKE_CUDA_COMPILER_LOADED})
     endif()
 endif()
 
-target_compile_definitions(GridTools::gridtools INTERFACE STRUCTURED_GRIDS)
+target_compile_definitions(GridTools::gridtools INTERFACE GT_STRUCTURED_GRIDS)
 
 if (GRIDTOOLS_ENABLE_PERFORMANCE_METERS)
     target_compile_definitions(GridTools::gridtools INTERFACE ENABLE_METERS)

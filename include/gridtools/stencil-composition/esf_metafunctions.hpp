@@ -46,7 +46,7 @@
 #include "esf.hpp"
 #include "independent_esf.hpp"
 
-#ifdef STRUCTURED_GRIDS
+#ifdef GT_STRUCTURED_GRIDS
 #include "structured_grids/esf_metafunctions.hpp"
 #else
 #include "icosahedral_grids/esf_metafunctions.hpp"
