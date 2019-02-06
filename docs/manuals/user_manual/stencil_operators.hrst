@@ -28,7 +28,8 @@ public properties:
 - A set of *static template member functions* named `Do`, also
   referred to as `Do methods`. To run on GPUs the function should
   also be a GT_FUNCTION 
-  .. todo::
+
+.. todo::
     
    Add reference to GT_FUNCTION
 
