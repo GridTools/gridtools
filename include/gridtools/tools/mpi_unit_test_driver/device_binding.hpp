@@ -36,7 +36,7 @@
 
 #pragma once
 
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
 
 #include <cstdlib>
 

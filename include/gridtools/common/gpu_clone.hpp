@@ -48,7 +48,7 @@ namespace gridtools {
         @{
     */
 
-#if defined(_USE_GPU_) || defined(__CUDACC__)
+#if defined(GT_USE_GPU) || defined(__CUDACC__)
 
     /**
        @brief this struct is necessary because otherwise the object would be copied to a temporary storage on the GPU

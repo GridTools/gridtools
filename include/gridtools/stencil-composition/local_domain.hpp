@@ -120,7 +120,7 @@ namespace gridtools {
     struct local_domain_esf_args;
 } // namespace gridtools
 
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
 #include "../common/cuda_util.hpp"
 
 namespace gridtools {
