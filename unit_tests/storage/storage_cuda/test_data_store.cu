@@ -253,7 +253,7 @@ TEST(DataStoreTest, ExternalPointer) {
     storage_info_t si(10, 10, 10);
     double *external_ptr = new double[si.padded_total_length()];
     // create a data_store with externally managed storage
-    data_store<cuda_storage<double>, storage_info_t> ds(si, external_ptr, ownership::ExternalCPU);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, external_ptr, ownership::external_cpu);
     ds.sync();
     // create a copy (double free checks)
     data_store<cuda_storage<double>, storage_info_t> ds_cpy = ds;
@@ -297,7 +297,7 @@ TEST(DataStoreTest, ExternalGPUPointer) {
         cudaMemcpyHostToDevice);
     ASSERT_TRUE((err == cudaSuccess));
     // create a data_store with externally managed storage
-    data_store<cuda_storage<double>, storage_info_t> ds(si, external_gpu_ptr, ownership::ExternalGPU);
+    data_store<cuda_storage<double>, storage_info_t> ds(si, external_gpu_ptr, ownership::external_gpu);
     ds.sync();
     // create some copies
     data_store<cuda_storage<double>, storage_info_t> ds_cpy_1(ds);

@@ -104,12 +104,12 @@ namespace gridtools {
          * @param own ownership information (external CPU pointer, or external GPU pointer)
          */
         explicit cuda_storage(uint_t size, DataType *external_ptr, ownership own)
-            : m_gpu_ptr_holder(own != ownership::ExternalGPU ? cuda_util::cuda_malloc<DataType>(size)
+            : m_gpu_ptr_holder(own != ownership::external_gpu ? cuda_util::cuda_malloc<DataType>(size)
                                                              : cuda_util::unique_cuda_ptr<DataType>()),
-              m_cpu_ptr_holder(own == ownership::ExternalCPU ? nullptr : new DataType[size]),
-              m_gpu_ptr(own == ownership::ExternalGPU ? external_ptr : m_gpu_ptr_holder.get()),
-              m_cpu_ptr(own == ownership::ExternalCPU ? external_ptr : m_cpu_ptr_holder.get()),
-              m_state{own != ownership::ExternalCPU, own != ownership::ExternalGPU}, m_size{size} {
+              m_cpu_ptr_holder(own == ownership::external_cpu ? nullptr : new DataType[size]),
+              m_gpu_ptr(own == ownership::external_gpu ? external_ptr : m_gpu_ptr_holder.get()),
+              m_cpu_ptr(own == ownership::external_cpu ? external_ptr : m_cpu_ptr_holder.get()),
+              m_state{own != ownership::external_cpu, own != ownership::external_gpu}, m_size{size} {
             assert(external_ptr);
         }
 

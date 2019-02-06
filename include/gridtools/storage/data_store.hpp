@@ -233,7 +233,7 @@ namespace gridtools {
                 0>
         explicit constexpr data_store(StorageInfo const &info,
             T external_ptr,
-            ownership own = ownership::ExternalCPU,
+            ownership own = ownership::external_cpu,
             std::string const &name = "")
             : m_shared_storage(
                   (info.length() == 0) ? nullptr : (new storage_t(info.padded_total_length(), external_ptr, own))),

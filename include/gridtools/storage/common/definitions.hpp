@@ -44,7 +44,7 @@ namespace gridtools {
      * @{
      */
 
-    enum class ownership { ExternalGPU, ExternalCPU };
+    enum class ownership { external_gpu, external_cpu };
     enum class access_mode { read_write = 0, read_only = 1 };
 
     /**
