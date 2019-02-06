@@ -45,7 +45,7 @@
 using namespace gridtools;
 
 TEST(bakend, select_layout) {
-#if defined(BACKEND_X86) || defined(BACKEND_MC)
+#if defined(GT_BACKEND_X86) || defined(GT_BACKEND_MC)
     GRIDTOOLS_STATIC_ASSERT(
         (std::is_same<backend_t::select_layout<selector<1, 1, 1, 1>>::type, layout_map<0, 1, 2, 3>>::value), "ERROR");
     GRIDTOOLS_STATIC_ASSERT(

@@ -5,7 +5,7 @@ if( GT_TESTS_STRUCTURED_GRID )
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
             add_executable(${srcfile}_x86_naive_ex   ${srcfile}.cpp)
             target_link_libraries(${srcfile}_x86_naive_ex GridToolsTestX86)
-            target_compile_definitions(${srcfile}_x86_naive_ex PRIVATE BACKEND_STRATEGY_NAIVE)
+            target_compile_definitions(${srcfile}_x86_naive_ex PRIVATE GT_BACKEND_STRATEGY_NAIVE)
             install_example(${srcfile}_x86_naive_ex)
 
             add_executable(${srcfile}_x86_block_ex   ${srcfile}.cpp)

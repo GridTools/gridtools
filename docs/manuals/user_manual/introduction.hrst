@@ -101,11 +101,11 @@ Targets that need |GT| should indicate ``GridTools::gridtools`` as target link l
 
  target_link_libraries(${target_name} GridTools::gridtools)
 
-Some utilities are provided to the user, for instance ``backend_select.hpp``, which helps in the selection of the back-end to be used. To use these tools, some compilation flags should be specified. One is ``GT_FLOAT_PRECISION`` (which can be 8 or 4 for ``double`` or ``float`` respectively), the others are ``BACKEND_X86``, ``BACKEND_MC`` or ``BACKEND_CUDA`` to select the back-end. The following example show how to use them:
+Some utilities are provided to the user, for instance ``backend_select.hpp``, which helps in the selection of the back-end to be used. To use these tools, some compilation flags should be specified. One is ``GT_FLOAT_PRECISION`` (which can be 8 or 4 for ``double`` or ``float`` respectively), the others are ``GT_BACKEND_X86``, ``GT_BACKEND_MC`` or ``GT_BACKEND_CUDA`` to select the back-end. The following example show how to use them:
 
 .. code-block:: cmake
 
- target_compile_definitions(${srcfile}_host_block_ex PUBLIC BACKEND_X86 GT_FLOAT_PRECISION=8)
+ target_compile_definitions(${srcfile}_host_block_ex PUBLIC GT_BACKEND_X86 GT_FLOAT_PRECISION=8)
 
 .. note:
 

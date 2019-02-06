@@ -82,14 +82,14 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
         // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
         ASSERT_EQ(ameta.padded_length<2>(), 6);
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
-#ifdef BACKEND_CUDA
+#ifdef GT_BACKEND_CUDA
         // 3rd dimension is padded for CUDA
         ASSERT_EQ(ameta.padded_length<0>(), 4);
         ASSERT_EQ(ameta.padded_length<1>(), 3);
@@ -108,11 +108,11 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_EQ(ameta.total_length<1>(), 3);
         ASSERT_EQ(ameta.total_length<2>(), 6);
         ASSERT_EQ(ameta.total_length<3>(), 7);
-#ifdef BACKEND_MC
+#ifdef GT_BACKEND_MC
         // 3rd dimension is padded for MC
         ASSERT_EQ(ameta.padded_length<3>(), 8);
 #endif
-#ifdef BACKEND_CUDA
+#ifdef GT_BACKEND_CUDA
         ASSERT_EQ(ameta.padded_length<3>(), 32);
 #endif
         ASSERT_EQ(ameta.total_length<4>(), 8);
