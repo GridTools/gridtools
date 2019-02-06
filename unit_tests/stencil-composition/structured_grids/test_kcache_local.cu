@@ -176,7 +176,7 @@ TEST_F(kcachef, local_forward) {
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<shif_acc_forward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
@@ -214,7 +214,7 @@ TEST_F(kcachef, local_backward) {
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<shif_acc_backward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
@@ -263,7 +263,7 @@ TEST_F(kcachef, biside_forward) {
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<biside_large_kcache_forward>(p_in() // esf_descriptor
                 ,
                 p_out(),
@@ -316,7 +316,7 @@ TEST_F(kcachef, biside_backward) {
         p_out() = m_out,
         gridtools::make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<biside_large_kcache_backward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
