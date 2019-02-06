@@ -85,12 +85,6 @@ where
   #. ``enumtype::in`` to specify *read-only* access
   #. ``enumtyoe::inout`` to specify *read-write* access. The ``extent``   for ``inout`` must be made of all zeros (see next points)
 
-* ``location_type`` indicate in which location the accessor is assumed
-  to access data. This is only needed when using *irregular grids* and
-  cannot be specified for regular grids. Reference to
-  [Irregular Grids](irregular grids documentation) for further
-  details.
-
 * ``extent`` defines the maximum offsets at which the implementation
   will access data around the point of evaluation. Extents are
   templates that takes a list of pairs of integer numbers. Every pair
@@ -275,22 +269,3 @@ read:
 .. code-block:: gridtools 
 
  eval(out()) = eval(in() - in(1, 0, 0));
-
-
-To use expressions and other more advanced techniques to access data
-and specifying offsets refer to [Advanced Access Specification].
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using eval For Irregular Grids
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Calling other operators
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. _advanced_data_access:
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Advanced Data Accesses
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
