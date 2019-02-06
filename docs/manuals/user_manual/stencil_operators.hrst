@@ -113,12 +113,6 @@ where
 * ``N`` identifies the number of dimensions of the :ref:`data-store`.
   By default this value is set to 3. 
 
-  .. note:: 
-   
-   See :ref:`advanced_data_access` for more techniques to access data
-   into a data field, especially of there are more that 3 dimensions.
-
-
 ^^^^^^^^^^^^^^^^^^^^^
  arg_list
 ^^^^^^^^^^^^^^^^^^^^^
