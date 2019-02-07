@@ -45,10 +45,12 @@ namespace {
     using axis_t = gt::axis<1>::axis_interval_t;
     using grid_t = gt::grid<axis_t>;
 
-    using backend_t = gt::target::mc;
-    using backend_id_t = gt::backend<backend_t, gt::grid_type::structured, gt::strategy::block>;
-    using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0, 3>;
-    using data_store_t = gt::storage_traits<backend_t>::data_store_t<float, storage_info_t>;
+    using target_t = gt::target::mc;
+    using strategy_t = gt::strategy::block;
+    using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+    using storage_traits_t = gt::storage_traits<backend_t::backend_id_t>;
+    using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
+    using data_store_t = storage_traits_t::data_store_t<float, storage_info_t>;
 
     struct copy_functor {
         using in = gt::accessor<0, gt::enumtype::in>;
@@ -79,7 +81,7 @@ namespace {
     }
 
     gt::computation<p_in, p_out> make_copy_stencil_impl(const wrapper &wrapper) {
-        return gt::make_computation<backend_id_t>(wrapper.grid,
+        return gt::make_computation<backend_t>(wrapper.grid,
             gt::make_multistage(
                 gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
     }
