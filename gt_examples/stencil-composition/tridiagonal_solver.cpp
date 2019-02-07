@@ -136,7 +136,7 @@ int main() {
 
     // Now we describe the itaration space. The first two dimensions
     // are described with a tuple of values (minus, plus, begin, end,
-    // length) begin and end, for each dimension represent the space
+    // length). Begin and end, for each dimension represent the space
     // where the output data will be located in the data_stores, while
     // minus and plus indicate the number of halo points in the
     // indices before begin and after end, respectively. The length,
