@@ -145,7 +145,7 @@ int main() {
     // in the communication library and there the length is used.  In
     // this example there are no halo points needed, but distributed
     // memory applications usually have halos defined on all data
-    // fields, so the halos are not only prescribed buy the stencils,
+    // fields, so the halos are not only prescribed by the stencils,
     // but also by other requirements of the applications.
     gt::halo_descriptor di{0, 0, 0, d1 - 1, d1};
     gt::halo_descriptor dj{0, 0, 0, d2 - 1, d2};
