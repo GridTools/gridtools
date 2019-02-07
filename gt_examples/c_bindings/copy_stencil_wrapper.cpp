@@ -34,14 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <functional>
-#include <iostream>
-#include <typeinfo>
-
-#include <boost/mpl/vector.hpp>
-
-#include <gridtools/stencil-composition/backend_mc/backend_mc.hpp>
-
 #include <gridtools/c_bindings/export.hpp>
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
