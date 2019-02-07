@@ -41,18 +41,22 @@ program main
     real(c_float), dimension(i, j, k) :: in_array, out_array
     type(c_ptr) wrapper_handle, computation_handle
 
+    ! fill some input values
     in_array = initial()
     out_array(:, :, :) = 0
 
     wrapper_handle = make_wrapper(i, j, k)
     computation_handle = make_copy_stencil(wrapper_handle)
 
+    ! the arrays can be passed to the generated function; the wrapper will extract
+    ! information that is needed to pass the array to C++
     call run_stencil(wrapper_handle, computation_handle, in_array, out_array)
-    !call sync_data_store(out_handle)
 
+    ! check output
     if (any(in_array /= initial())) stop 1
     if (any(out_array /= initial())) stop 1
 
+    ! gt_handles need to be released explicitly
     call gt_release(wrapper_handle)
     call gt_release(computation_handle)
 

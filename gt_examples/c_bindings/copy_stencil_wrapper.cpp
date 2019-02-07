@@ -51,6 +51,14 @@ namespace {
     using namespace gridtools;
     using namespace enumtype;
 
+    using axis_t = axis<1>::axis_interval_t;
+    using grid_t = grid<axis_t>;
+
+    using backend_t = target::mc;
+    using backend_id_t = gridtools::backend<backend_t, grid_type::structured, strategy::block>;
+    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
+    using data_store_t = storage_traits<backend_t>::data_store_t<float, storage_info_t>;
+
     struct copy_functor {
         using in = accessor<0, enumtype::in>;
         using out = accessor<1, enumtype::inout>;
@@ -61,14 +69,6 @@ namespace {
             eval(out{}) = eval(in{});
         }
     };
-
-    using axis_t = axis<1>::axis_interval_t;
-    using grid_t = grid<axis_t>;
-
-    using backend_t = target::mc;
-    using backend_id_t = gridtools::backend<backend_t, grid_type::structured, strategy::block>;
-    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
-    using data_store_t = storage_traits<backend_t>::data_store_t<float, storage_info_t>;
 
 } // namespace
 
