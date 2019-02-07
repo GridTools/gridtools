@@ -46,23 +46,22 @@
 #include <gridtools/interface/fortran_array_adapter.hpp>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
+namespace gt = gridtools;
+
 namespace {
 
-    using namespace gridtools;
-    using namespace enumtype;
+    using axis_t = gt::axis<1>::axis_interval_t;
+    using grid_t = gt::grid<axis_t>;
 
-    using axis_t = axis<1>::axis_interval_t;
-    using grid_t = grid<axis_t>;
-
-    using backend_t = target::mc;
-    using backend_id_t = gridtools::backend<backend_t, grid_type::structured, strategy::block>;
-    using storage_info_t = storage_traits<backend_t>::storage_info_t<0, 3>;
-    using data_store_t = storage_traits<backend_t>::data_store_t<float, storage_info_t>;
+    using backend_t = gt::target::mc;
+    using backend_id_t = gt::backend<backend_t, gt::grid_type::structured, gt::strategy::block>;
+    using storage_info_t = gt::storage_traits<backend_t>::storage_info_t<0, 3>;
+    using data_store_t = gt::storage_traits<backend_t>::data_store_t<float, storage_info_t>;
 
     struct copy_functor {
-        using in = accessor<0, enumtype::in>;
-        using out = accessor<1, enumtype::inout>;
-        using arg_list = make_arg_list<in, out>;
+        using in = gt::accessor<0, gt::enumtype::in>;
+        using out = gt::accessor<1, gt::enumtype::inout>;
+        using arg_list = gt::make_arg_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -73,8 +72,8 @@ namespace {
 } // namespace
 
 namespace {
-    using p_in = arg<0, data_store_t>;
-    using p_out = arg<1, data_store_t>;
+    using p_in = gt::arg<0, data_store_t>;
+    using p_out = gt::arg<1, data_store_t>;
 
     struct wrapper {
         data_store_t in;
@@ -84,24 +83,24 @@ namespace {
 
     wrapper make_wrapper_impl(int nx, int ny, int nz) {
         auto si = storage_info_t{nx, ny, nz};
-        return {{si, "in_field"}, {si, "out_field"}, gridtools::make_grid(nx, ny, nz)};
+        return {{si, "in_field"}, {si, "out_field"}, gt::make_grid(nx, ny, nz)};
     }
 
-    gridtools::computation<p_in, p_out> make_copy_stencil_impl(const wrapper &wrapper) {
-        return make_computation<backend_id_t>(
-            wrapper.grid, make_multistage(execute<forward>(), make_stage<copy_functor>(p_in{}, p_out{})));
+    gt::computation<p_in, p_out> make_copy_stencil_impl(const wrapper &wrapper) {
+        return gt::make_computation<backend_id_t>(wrapper.grid,
+            gt::make_multistage(
+                gt::enumtype::execute<gt::enumtype::parallel>(), gt::make_stage<copy_functor>(p_in{}, p_out{})));
     }
 
     // Note that fortran_array_adapters are "fortran array wrappable".
-    static_assert(
-        gridtools::c_bindings::is_fortran_array_wrappable<gridtools::fortran_array_adapter<data_store_t>>::value, "");
+    static_assert(gt::c_bindings::is_fortran_array_wrappable<gt::fortran_array_adapter<data_store_t>>::value, "");
 
     // That means that in the generated Fortran code, a wrapper is created that takes a Fortran array, and converts
     // it into the fortran array wrappable type.
     void run_stencil_impl(wrapper &wrapper,
-        gridtools::computation<p_in, p_out> &computation,
-        gridtools::fortran_array_adapter<data_store_t> in_f,
-        gridtools::fortran_array_adapter<data_store_t> out_f) {
+        gt::computation<p_in, p_out> &computation,
+        gt::fortran_array_adapter<data_store_t> in_f,
+        gt::fortran_array_adapter<data_store_t> out_f) {
 
         transform(wrapper.in, in_f);
 
