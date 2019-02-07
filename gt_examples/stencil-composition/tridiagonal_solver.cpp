@@ -48,7 +48,7 @@
   rank(sup)=N-1      [xxxxxxxxxxxxxxxxxxxxxxx0]
   rank(rhs)=N        [xxxxxxxxxxxxxxxxxxxxxxxx]
   where x denotes any number and 0 denotes the padding, a dummy value which is not used in
-  the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
+  the algorithm. This choice corresponds to having the same vector index for each row of the matrix.
  */
 
 
