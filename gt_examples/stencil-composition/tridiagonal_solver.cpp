@@ -134,7 +134,7 @@ int main() {
     gt::arg<3, storage_type> p_rhs;
     gt::arg<4, storage_type> p_out;
 
-    // Now we describe the itaration space. The frist two dimensions
+    // Now we describe the itaration space. The first two dimensions
     // are described with a tuple of values (minus, plus, begin, end,
     // length) begin and end, for each dimension represent the space
     // where the output data will be located in the data_stores, while
