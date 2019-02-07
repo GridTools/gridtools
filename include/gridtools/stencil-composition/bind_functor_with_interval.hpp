@@ -41,7 +41,7 @@
 #include "../common/host_device.hpp"
 #include "../meta/macros.hpp"
 #include "../meta/type_traits.hpp"
-#include "./hasdo.hpp"
+#include "./has_apply.hpp"
 #include "./interval.hpp"
 #include "./level.hpp"
 
