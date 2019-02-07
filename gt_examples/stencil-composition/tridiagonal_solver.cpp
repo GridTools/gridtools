@@ -141,7 +141,7 @@ int main() {
     // minus and plus indicate the number of halo points in the
     // indices before begin and after end, respectively. The length,
     // is not needed, and will be removed in future versions, but we
-    // keep it for now since the data structure used is the same used
+    // keep it for now since the data structure is the same used
     // in the communication library and there the length is used.  In
     // this example there are not halo points needed, but distributed
     // memory applications usually have halos defined on all data
