@@ -157,7 +157,7 @@ int main() {
     // example.
     auto grid = gt::make_grid(di, dj, d3);
 
-    // Here we make the computation, specifying the backend, the gird
+    // Here we make the computation, specifying the backend, the grid
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
