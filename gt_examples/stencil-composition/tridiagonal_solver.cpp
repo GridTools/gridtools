@@ -152,7 +152,7 @@ int main() {
 
     // The grid represents the iteration space. The third dimension is
     // indicated here as a size and the iteration space is deduced by
-    // the fact that there is not an axis definition. More ocmplex
+    // the fact that there is not an axis definition. More complex
     // third dimensions are possible but not described in this
     // example.
     auto grid = gt::make_grid(di, dj, d3);
