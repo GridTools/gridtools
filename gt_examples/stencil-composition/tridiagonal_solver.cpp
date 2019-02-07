@@ -150,7 +150,7 @@ int main() {
     gt::halo_descriptor di{0, 0, 0, d1 - 1, d1};
     gt::halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
-    // The grid represent the iteration space. The third dimension is
+    // The grid represents the iteration space. The third dimension is
     // indicated here as a size and the iteration space is deduced by
     // the fact that there is not an axis definition. More ocmplex
     // third dimensions are possible but not described in this
