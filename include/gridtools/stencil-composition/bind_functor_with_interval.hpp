@@ -47,7 +47,9 @@
 
 namespace gridtools {
     namespace _impl {
-        template <class Functor, class Index, bool HasDo = has_do<Functor, GT_META_CALL(index_to_level, Index)>::value>
+        template <class Functor,
+            class Index,
+            bool HasDo = has_apply<Functor, GT_META_CALL(index_to_level, Index)>::value>
         struct find_from_index {
             using type = typename find_from_index<Functor, typename Index::prior>::type;
         };
@@ -63,7 +65,7 @@ namespace gridtools {
         template <class Functor,
             class FromIndex,
             class ToIndex = FromIndex,
-            bool HasDo = has_do<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
+            bool HasDo = has_apply<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
         struct find_to_index {
             using type = typename find_to_index<Functor, FromIndex, typename ToIndex::next>::type;
         };
@@ -77,7 +79,7 @@ namespace gridtools {
             class FromIndex,
             class ToIndex = FromIndex,
             class Interval = GT_META_CALL(make_interval, (FromIndex, ToIndex)),
-            bool HasDo = has_do<Functor, Interval>::value>
+            bool HasDo = has_apply<Functor, Interval>::value>
         struct find_interval_impl {
             using type = typename find_interval_impl<Functor, FromIndex, typename ToIndex::next>::type;
         };
@@ -139,7 +141,7 @@ namespace gridtools {
         template <class Functor, class Index>
         struct bind_functor_with_interval<Functor,
             Index,
-            enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value && has_do<Functor>::value>> {
+            enable_if_t<!_impl::is_interval_overload_defined<Functor, Index>::value && has_apply<Functor>::value>> {
             GT_STATIC_ASSERT(is_level_index<Index>::value, GT_INTERNAL_ERROR);
             using type = Functor;
         };

@@ -82,7 +82,7 @@ namespace gridtools {
 
     namespace impl_ {
         template <class T>
-        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_do<T>::value || std::is_void<T>::value);
+        GT_META_DEFINE_ALIAS(functor_or_void, bool_constant, has_apply<T>::value || std::is_void<T>::value);
 
         template <class ItDomain, class Args, class LocationType, uint_t Color>
         struct evaluator {

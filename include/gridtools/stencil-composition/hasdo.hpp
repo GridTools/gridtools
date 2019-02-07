@@ -43,19 +43,19 @@
 namespace gridtools {
     namespace _impl {
         template <class T, class ExtraArgs, class = void>
-        struct has_do_impl : std::false_type {};
+        struct has_apply_impl : std::false_type {};
 
         template <class T, class... ExtraArgs>
-        struct has_do_impl<T,
+        struct has_apply_impl<T,
             std::tuple<ExtraArgs...>,
             void_t<decltype(T::apply(std::declval<int &>(), std::declval<ExtraArgs>()...))>> : std::true_type {};
     } // namespace _impl
 
     /**
-     * @struct has_do
+     * @struct has_apply
      * Meta function testing if a functor has a specific apply method
      * (note that the meta function does consider overload resolution as well)
      */
     template <class T, class... ExtraArgs>
-    struct has_do : _impl::has_do_impl<T, std::tuple<ExtraArgs...>> {};
+    struct has_apply : _impl::has_apply_impl<T, std::tuple<ExtraArgs...>> {};
 } // namespace gridtools

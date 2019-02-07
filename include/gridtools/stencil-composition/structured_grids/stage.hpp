@@ -98,7 +98,7 @@ namespace gridtools {
      */
     template <class Functor, class Extent, class Args>
     struct regular_stage {
-        GT_STATIC_ASSERT(has_do<Functor>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(has_apply<Functor>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT(is_extent<Extent>::value, GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((meta::all_of<is_plh, Args>::value), GT_INTERNAL_ERROR);
 
