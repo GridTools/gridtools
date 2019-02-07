@@ -40,7 +40,7 @@ endif()
 
 target_compile_definitions(gridtools INTERFACE BOOST_PP_VARIADICS=1)
 if( GT_ENABLE_TARGET_CUDA )
-  target_compile_definitions(gridtools INTERFACE _USE_GPU_)
+  target_compile_definitions(gridtools INTERFACE GT_USE_GPU)
   if( ${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS 8.0 )
       message(FATAL_ERROR "CUDA 7.X or lower is not supported")
   endif()

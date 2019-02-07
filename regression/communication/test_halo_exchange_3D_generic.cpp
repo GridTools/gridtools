@@ -697,7 +697,7 @@ namespace halo_exchange_3D_generic {
 
 #ifdef STANDALONE
 int main(int argc, char **argv) {
-#ifdef _USE_GPU_
+#ifdef GT_USE_GPU
     device_binding();
 #endif
 
