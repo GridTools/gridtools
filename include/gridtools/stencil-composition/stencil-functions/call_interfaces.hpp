@@ -181,7 +181,7 @@ namespace gridtools {
 
         \tparam Functos The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not
-       called and will result in compilation error. The user is responsible for calling the proper Do overload)
+       called and will result in compilation error. The user is responsible for calling the proper apply overload)
         \tparam ReturnType Can be set or will be deduced from the first input argument
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
@@ -195,8 +195,8 @@ namespace gridtools {
         int Offk = 0>
     struct call {
         GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
-            "called stencil function");
+            "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
+            "the called stencil function");
 
         /** This alias is used to move the computation at a certain offset
          */
@@ -363,7 +363,7 @@ namespace gridtools {
         \tparam Functor The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is
        not
-       called and will result in compilation error. The user is responsible for calling the proper Do overload)
+       called and will result in compilation error. The user is responsible for calling the proper apply overload)
         \tparam Offi Offset along the i-direction (usually modified using at<...>)
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
@@ -372,8 +372,8 @@ namespace gridtools {
     struct call_proc {
 
         GT_STATIC_ASSERT((is_interval<Region>::value or std::is_void<Region>::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
-            "called stencil function");
+            "Region should be a valid interval tag or void (default interval) to select the apply specialization in "
+            "the called stencil function");
 
         /** This alias is used to move the computation at a certain offset
          */

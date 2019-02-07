@@ -25,8 +25,8 @@ public properties:
   [Data Field](data field)s the stencil operator will access in its
   implementation.
 - An `arg_list` listing all the accessors types defined above
-- A set of *static template member functions* named `Do`, also
-  referred to as `Do methods`. To run on GPUs the function should
+- A set of *static template member functions* named `apply`, also
+  referred to as `apply methods`. To run on GPUs the function should
   also be a GT_FUNCTION 
   .. todo::
     
@@ -141,16 +141,16 @@ specified before.
 .. note::  
  this is necessary since C++ cannot infer what types have been defined as accessors.
 
-.. _stencil_operators_do_method:
+.. _stencil_operators_apply_method:
 
 ^^^^^^^^^^^^^^^^
- Do method 
+ apply method
 ^^^^^^^^^^^^^^^^
 
-The ``Do`` methods takes at most two(2) arguments, the
+The ``apply`` methods takes at most two(2) arguments, the
 type of the first one is the template type and it is usually called
-``Eval``. The second argument of the ``Do`` is a *vertical region*,
-discussed in :ref:`vertical_regions`. Multiple versions of the ``Do`` can
+``Eval``. The second argument of the ``apply`` is a *vertical region*,
+discussed in :ref:`vertical_regions`. Multiple versions of the ``apply`` can
 be defined in the same stencil operator with different vertical
 region. 
   
@@ -161,13 +161,13 @@ region.
   region, which is in the middle of other regions used, then it must
   be defined anyway and left empty.
 
-A ``Do`` method can be defined with a single template argument, so to
+A ``apply`` method can be defined with a single template argument, so to
 skip the vertical region. In this case there could be *only one*
-``Do`` method implementation in the stencil operator that will be
+``apply`` method implementation in the stencil operator that will be
 called for each point of the iteration space.
 
-The return statement of the ``Do`` method is usually ``void``. In case
-of reduction a ``Do`` method should return a value that can be used in
+The return statement of the ``apply`` method is usually ``void``. In case
+of reduction a ``apply`` method should return a value that can be used in
 the reduction (i.e., the value returned should be convertible to the
 arguments of the reduction operator).
 
@@ -201,20 +201,20 @@ arguments of the reduction operator).
  Implementation
 --------------------
 
-The implementation is specified in the body of the ``Do`` methods. The
+The implementation is specified in the body of the ``apply`` methods. The
 stencil operators can have other member functions that can be called
-from the ``Do``
-methods. The interface of the ``Do`` method has been
+from the ``apply``
+methods. The interface of the ``apply`` method has been
 already discussed in the previous section. In this Section we
 describe how data can be accessed and
 how other operators can be called from
-within the `Do`'s body to perform a computation.
+within the `apply`'s body to perform a computation.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Using eval For Regular Grids
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Let us assume the ``Do`` methods has the following signature:
+Let us assume the ``apply`` methods has the following signature:
 
 .. code-block:: gridtools
 

@@ -211,7 +211,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders.
          */
         template <class Arg, enumtype::intent Intent, uint_t I>
@@ -220,7 +220,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief method called in the Do methods of the functors.
+         * @brief method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
         template <class Arg, enumtype::intent Intent, class Acc, class... Args>
@@ -229,7 +229,7 @@ namespace gridtools {
                 acc.get_arguments(),
                 meta::index_sequence_for<Args...>()));
 
-        /** @brief method called in the Do methods of the functors.
+        /** @brief method called in the apply methods of the functors.
          *
          * Specialization for the offset_tuple placeholder (i.e. for extended storages, containing multiple snapshots of
          * data fields with the same dimension and memory layout)

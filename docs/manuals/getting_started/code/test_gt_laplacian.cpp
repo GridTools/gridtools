@@ -29,7 +29,7 @@ struct lap_function {
     using arg_list = make_arg_list<in, lap>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation const &eval) {
+    GT_FUNCTION static void apply(Evaluation const &eval) {
         eval(lap(i, j, k)) = -4. * eval(in(i, j, k)) //
                              + eval(in(i + 1, j, k)) //
                              + eval(in(i, j + 1, k)) //

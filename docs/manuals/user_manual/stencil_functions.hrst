@@ -33,7 +33,7 @@ The operator needs to have exactly one ``inout``-accessor which will be the retu
 
 .. note::
 
-   The vertical interval needs to be one which appears in a ``Do``-method overload of the called operator.
+   The vertical interval needs to be one which appears in a ``apply``-method overload of the called operator.
 
 The accessors which are passed in the function call can have offsets in the usual way. Additionally the whole operator can be shifted to be executed
 on a different gridpoint, by specifying a relative location with ``at``:

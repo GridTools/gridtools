@@ -147,7 +147,7 @@ namespace gridtools {
     /**
      *   Takes an elementary functor (Functor) and the level index (Index) as an input; deduces the interval that should
      *   be used for the range from Index to Index::next and produces the functor where the deduced interval is bound.
-     *   I.e. the new functor has the Do method with a single argument and delegates to the original one.
+     *   I.e. the new functor has the apply method with a single argument and delegates to the original one.
      *
      *   Corner cases:
      *     - if `void` is passed as a Functor the return will be also `void`

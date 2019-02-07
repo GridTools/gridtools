@@ -234,7 +234,7 @@ namespace gridtools {
         GT_FUNCTION void enable_ij_caches() { m_enable_ij_caches = true; }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders.
          */
         template <class Arg, enumtype::intent Intent, uint_t I>
@@ -243,7 +243,7 @@ namespace gridtools {
         }
 
         /**
-         * @brief Method called in the Do methods of the functors.
+         * @brief Method called in the apply methods of the functors.
          * Specialization for the global accessors placeholders with arguments.
          */
         template <class Arg, enumtype::intent Intent, class Acc, class... Args>

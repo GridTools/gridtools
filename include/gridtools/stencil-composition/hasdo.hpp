@@ -53,7 +53,7 @@ namespace gridtools {
 
     /**
      * @struct has_do
-     * Meta function testing if a functor has a specific Do method
+     * Meta function testing if a functor has a specific apply method
      * (note that the meta function does consider overload resolution as well)
      */
     template <class T, class... ExtraArgs>

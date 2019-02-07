@@ -157,7 +157,7 @@ Each region already defines a vertical interval which can be queried from the ax
    ...
    
 Note that the intervals are compile time object, i.e. C++ types. These intervals
-are used for defining which ``Do``-method version of the stencil operator should be used during the iteration, see :ref:`Do-method<stencil_operators_do_method>`.
+are used for defining which ``apply``-method version of the stencil operator should be used during the iteration, see :ref:`apply-method<stencil_operators_apply_method>`.
 
 Interval provides meta-functions which allow to define modified intervals
 
