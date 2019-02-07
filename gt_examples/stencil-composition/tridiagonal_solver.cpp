@@ -143,7 +143,7 @@ int main() {
     // is not needed, and will be removed in future versions, but we
     // keep it for now since the data structure is the same used
     // in the communication library and there the length is used.  In
-    // this example there are not halo points needed, but distributed
+    // this example there are no halo points needed, but distributed
     // memory applications usually have halos defined on all data
     // fields, so the halos are not only prescribed buy the stencils,
     // but also by other requirements of the applications.
