@@ -69,7 +69,7 @@ using axis_t = gt::axis<1>;
 using full_t = axis_t::full_interval;
 
 struct forward_thomas {
-    // four vectors: output, and the 3 diagonals
+    // five vectors: output, the 3 diagonals, and the right hand side
     using out = gt::inout_accessor<0>;
     using inf = gt::in_accessor<1>;
     using diag = gt::in_accessor<2>;
