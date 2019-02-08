@@ -98,7 +98,7 @@ struct backward_thomas {
     using arg_list = gt::make_arg_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, 1>) {
+    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, -1>) {
         eval(out{}) = eval(rhs{}) - eval(sup{}) * eval(out{0, 0, 1});
     }
 
@@ -115,7 +115,7 @@ int main() {
 
     using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
 
-    // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
+    // storage_info contains the information about sizes and layout of the storages to which it will be passed
     using storage_info_t = storage_tr::storage_info_t<0, 3>;
 
     using storage_type = storage_tr::data_store_t<double, storage_info_t>;
@@ -176,7 +176,7 @@ int main() {
     for (int i = 0; i < d1; ++i) {
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3; ++k) {
-                correct = gt::make_host_view(out)(i,j,k) == 1.;
+                correct &= gt::make_host_view(out)(i,j,k) == 1.;
             }
         }
     }
