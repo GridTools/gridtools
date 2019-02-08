@@ -100,7 +100,7 @@ struct backward_thomas {
     using arg_list = gt::make_arg_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, 1>) {
+    GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, -1>) {
         eval(out{}) = eval(rhs{}) - eval(sup{}) * eval(out{0, 0, 1});
     }
 
