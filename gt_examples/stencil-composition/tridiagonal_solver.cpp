@@ -48,7 +48,7 @@
   rank(sup)=N-1      [xxxxxxxxxxxxxxxxxxxxxxx0]
   rank(rhs)=N        [xxxxxxxxxxxxxxxxxxxxxxxx]
   where x denotes any number and 0 denotes the padding, a dummy value which is not used in
-  the algorithm. This choice coresponds to having the same vector index for each row of the matrix.
+  the algorithm. This choice corresponds to having the same vector index for each row of the matrix.
  */
 
 
@@ -69,7 +69,7 @@ using axis_t = gt::axis<1>;
 using full_t = axis_t::full_interval;
 
 struct forward_thomas {
-    // four vectors: output, and the 3 diagonals
+    // five vectors: output, the 3 diagonals, and the right hand side
     using out = gt::inout_accessor<0>;
     using inf = gt::in_accessor<1>;
     using diag = gt::in_accessor<2>;
@@ -134,30 +134,30 @@ int main() {
     gt::arg<3, storage_type> p_rhs;
     gt::arg<4, storage_type> p_out;
 
-    // Now we describe the itaration space. The frist two dimensions
+    // Now we describe the itaration space. The first two dimensions
     // are described with a tuple of values (minus, plus, begin, end,
-    // length) begin and end, for each dimension represent the space
+    // length). Begin and end, for each dimension represent the space
     // where the output data will be located in the data_stores, while
     // minus and plus indicate the number of halo points in the
     // indices before begin and after end, respectively. The length,
     // is not needed, and will be removed in future versions, but we
-    // keep it for now since the data structure used is the same used
+    // keep it for now since the data structure is the same used
     // in the communication library and there the length is used.  In
-    // this example there are not halo points needed, but distributed
+    // this example there are no halo points needed, but distributed
     // memory applications usually have halos defined on all data
-    // fields, so the halos are not only prescribed buy the stencils,
+    // fields, so the halos are not only prescribed by the stencils,
     // but also by other requirements of the applications.
     gt::halo_descriptor di{0, 0, 0, d1 - 1, d1};
     gt::halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
-    // The grid represent the iteration space. The third dimension is
+    // The grid represents the iteration space. The third dimension is
     // indicated here as a size and the iteration space is deduced by
-    // the fact that there is not an axis definition. More ocmplex
+    // the fact that there is not an axis definition. More complex
     // third dimensions are possible but not described in this
     // example.
     auto grid = gt::make_grid(di, dj, d3);
 
-    // Here we make the computation, specifying the backend, the gird
+    // Here we make the computation, specifying the backend, the grid
     // (iteration space), binding of the placeholders to the fields
     // that will not be modified during the computation, and then the
     // stencil structure
