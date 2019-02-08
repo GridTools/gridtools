@@ -65,13 +65,11 @@ namespace gt = gridtools;
 
 #ifdef __CUDACC__
 using target_t = gt::target::cuda;
-using strategy_t = gt::strategy::block;
 #else
 using target_t = gt::target::mc;
-using strategy_t = gt::strategy::block;
 #endif
 
-using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
 
 int main(int argc, char **argv) {
     if (argc != 4) {

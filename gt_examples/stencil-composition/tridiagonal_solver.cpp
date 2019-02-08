@@ -56,13 +56,11 @@ namespace gt = gridtools;
 
 #ifdef __CUDACC__
 using target_t = gt::target::cuda;
-using strategy_t = gt::strategy::block;
 #else
 using target_t = gt::target::mc;
-using strategy_t = gt::strategy::block;
 #endif
 
-using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
+using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = gt::axis<1>;
@@ -139,14 +137,11 @@ int main() {
     // length). Begin and end, for each dimension represent the space
     // where the output data will be located in the data_stores, while
     // minus and plus indicate the number of halo points in the
-    // indices before begin and after end, respectively. The length,
-    // is not needed, and will be removed in future versions, but we
-    // keep it for now since the data structure is the same used
-    // in the communication library and there the length is used.  In
-    // this example there are no halo points needed, but distributed
-    // memory applications usually have halos defined on all data
-    // fields, so the halos are not only prescribed by the stencils,
-    // but also by other requirements of the applications.
+    // indices before begin and after end, respectively.  In this
+    // example there are no halo points needed, but distributed memory
+    // applications usually have halos defined on all data fields, so
+    // the halos are not only prescribed by the stencils, but also by
+    // other requirements of the applications.
     gt::halo_descriptor di{0, 0, 0, d1 - 1, d1};
     gt::halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
@@ -172,8 +167,7 @@ int main() {
         gt::make_multistage(gt::enumtype::execute<gt::enumtype::backward>(),
             gt::make_stage<backward_thomas>(p_out, p_inf, p_diag, p_sup, p_rhs)));
 
-    // The execution happens here. Here we bind the placeholders to
-    // the data. This binding can change at every `run` invokation
+    // Executing the computation
     trid_solve.run();
 
     // In this simple example the solution is known and we can easily
