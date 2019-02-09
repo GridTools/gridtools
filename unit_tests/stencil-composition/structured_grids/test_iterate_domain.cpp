@@ -61,7 +61,7 @@ namespace gridtools {
         using out_acc = inout_accessor<2, extent<>, 2>;
 
         struct dummy_functor {
-            using arg_list = boost::mpl::vector<in_acc, buff_acc, out_acc>;
+            using arg_list = make_arg_list<in_acc, buff_acc, out_acc>;
             template <typename Evaluation>
             GT_FUNCTION static void Do(Evaluation &eval);
         };

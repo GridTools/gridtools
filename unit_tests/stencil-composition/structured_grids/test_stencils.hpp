@@ -60,7 +60,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         static const int n_args = 2;
         typedef accessor<0> in;
         typedef accessor<1, enumtype::inout> out;
-        typedef boost::mpl::vector<in, out> arg_list;
+        typedef make_arg_list<in, out> arg_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

@@ -1,3 +1,58 @@
-------------------
+.. _stencil_functions:
+
+-----------------
 Stencil Functions
-------------------
+-----------------
+
+Stencil functions offer the possibility to call :ref:`stencil_operators` from other :ref:`stencil_operators`.
+To use stencil functions the header
+
+.. code-block:: gridtools
+
+   #include <gridtools/stencil-composition/stencil-functions/stencil-functions.hpp>
+
+needs to be included.
+Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (accessors).
+
+^^^^^^^^^^^^^^^^^^^^^^^^
+Function calls: call<>
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The basic syntax for function calls is as follows
+
+.. code-block:: gridtools
+
+   auto x = call<stencil_operator, vertical_interval, return_value_type>::with(eval, accessors...);
+
+where ``stencil_operator`` is the operator to be called, ``vertical_interval`` the :ref:`vertical interval<vertical_regions>` where the operator
+will be applied and ``return_value_type`` the type of the return value for the function call. The ``return_value_type`` will be automatically deduced
+from the first ``accessor`` if not specified explicitly. The context object ``eval`` has to be passed as the first argument to ``with``, followed by
+the accessors which are arguments of the operator.
+
+The operator needs to have exactly one ``inout``-accessor which will be the return value of the function call.
+
+.. note::
+
+   The vertical interval needs to be one which appears in a ``Do``-method overload of the called operator.
+
+The accessors which are passed in the function call can have offsets in the usual way. Additionally the whole operator can be shifted to be executed
+on a different gridpoint, by specifying a relative location with ``at``:
+
+.. code-block:: gridtools
+
+   call<...>::at<offset_i, offset_j, offset_k>::with(...);
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Procedure calls: call_proc<>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Procedural calls work in the same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
+
+.. code-block:: gridtools
+
+   call_proc<stencil_operator, vertical_interval>::at<...>::with(eval, accessors...);
+
+Also offsets and ``at`` work in the same way as for function calls.
+
+An example for using stencil functions can be found in the regression test `horizontal_diffusion_functions.cpp`.

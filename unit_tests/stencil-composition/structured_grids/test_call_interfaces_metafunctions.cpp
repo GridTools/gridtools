@@ -37,6 +37,7 @@
 
 #include "gtest/gtest.h"
 
+#include <gridtools/stencil-composition/esf.hpp>
 #include <gridtools/stencil-composition/stencil-functions/call_interfaces.hpp>
 #include <gridtools/stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
 #include <tuple>
@@ -139,21 +140,21 @@ struct actual_function {
     typedef gridtools::accessor<1, gridtools::enumtype::inout> a1;
     typedef gridtools::accessor<2, gridtools::enumtype::in> a2;
 
-    typedef boost::mpl::vector<a0, a1, a2> arg_list;
+    typedef gridtools::make_arg_list<a0, a1, a2> arg_list;
 };
 
 struct another_function {
     typedef gridtools::accessor<0, gridtools::enumtype::inout> out;
     typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<-1, 1, -1, 1>> in;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef gridtools::make_arg_list<out, in> arg_list;
 };
 
 struct non_function_swap {
     typedef gridtools::accessor<1, gridtools::enumtype::inout> out;
     typedef gridtools::accessor<0, gridtools::enumtype::inout> in;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef gridtools::make_arg_list<in, out> arg_list;
 };
 
 struct another_non_function {
@@ -162,7 +163,7 @@ struct another_non_function {
     typedef gridtools::accessor<1, gridtools::enumtype::in, gridtools::extent<0, 1, 0, 0>> in;
     typedef gridtools::accessor<2, gridtools::enumtype::inout> lap;
 
-    typedef boost::mpl::vector<out, in, lap> arg_list;
+    typedef gridtools::make_arg_list<out, in, lap> arg_list;
 };
 
 TEST(call_interfaces_metafunctions, check_if_function) {

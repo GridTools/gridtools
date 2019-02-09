@@ -47,7 +47,7 @@ struct lap_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 1>>;
 
-    using arg_list = boost::mpl::vector<out, in>;
+    using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -61,7 +61,7 @@ struct flx_function {
     using in = in_accessor<1, extent<0, 1, 0, 0>>;
     using lap = in_accessor<2, extent<0, 1, 0, 0>>;
 
-    using arg_list = boost::mpl::vector<out, in, lap>;
+    using arg_list = make_arg_list<out, in, lap>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -77,7 +77,7 @@ struct fly_function {
     using in = in_accessor<1, extent<0, 0, 0, 1>>;
     using lap = in_accessor<2, extent<0, 0, 0, 1>>;
 
-    using arg_list = boost::mpl::vector<out, in, lap>;
+    using arg_list = make_arg_list<out, in, lap>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -94,7 +94,7 @@ struct out_function {
     using fly = in_accessor<3, extent<0, 0, -1, 0>>;
     using coeff = in_accessor<4>;
 
-    using arg_list = boost::mpl::vector<out, in, flx, fly, coeff>;
+    using arg_list = make_arg_list<out, in, flx, fly, coeff>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -120,7 +120,7 @@ TEST_F(horizontal_diffusion, test) {
         p_out = out,
         p_coeff = make_storage(repo.coeff),
         make_multistage(enumtype::execute<enumtype::parallel>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_lap, p_flx, p_fly)),
+            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_lap, p_flx, p_fly)),
             make_stage<lap_function>(p_lap, p_in),
             make_independent(
                 make_stage<flx_function>(p_flx, p_in, p_lap), make_stage<fly_function>(p_fly, p_in, p_lap)),

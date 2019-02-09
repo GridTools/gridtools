@@ -80,7 +80,7 @@ struct copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -94,7 +94,7 @@ struct copy_functor_with_expression {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -109,7 +109,7 @@ struct call_proc_copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -123,7 +123,7 @@ struct call_copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef boost::mpl::vector<out, in> arg_list;
+    typedef make_arg_list<out, in> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -136,7 +136,7 @@ TEST_F(expandable_parameters_copy, call_copy) { run_computation<call_copy_functo
 struct shift_functor {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef boost::mpl::vector<out> arg_list;
+    typedef make_arg_list<out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -147,7 +147,7 @@ struct shift_functor {
 struct call_shift_functor {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef boost::mpl::vector<out> arg_list;
+    typedef make_arg_list<out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, axis<1>::full_interval::modify<1, 0>) {

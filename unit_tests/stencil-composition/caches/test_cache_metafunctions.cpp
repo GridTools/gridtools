@@ -60,16 +60,16 @@ typedef arg<3, storage_type> p_notin;
 struct functor2 {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 0>> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval);
 };
 
-typedef detail::cache_impl<IJ, p_in, cache_io_policy::fill> cache1_t;
-typedef detail::cache_impl<IJ, p_buff, cache_io_policy::fill> cache2_t;
-typedef detail::cache_impl<K, p_out, cache_io_policy::local> cache3_t;
-typedef detail::cache_impl<K, p_notin, cache_io_policy::local> cache4_t;
+typedef detail::cache_impl<cache_type::IJ, p_in, cache_io_policy::fill> cache1_t;
+typedef detail::cache_impl<cache_type::IJ, p_buff, cache_io_policy::fill> cache2_t;
+typedef detail::cache_impl<cache_type::K, p_out, cache_io_policy::local> cache3_t;
+typedef detail::cache_impl<cache_type::K, p_notin, cache_io_policy::local> cache4_t;
 typedef std::tuple<cache1_t, cache2_t, cache3_t, cache4_t> caches_t;
 
 TEST(cache_metafunctions, get_ij_cache_storage_tuple) {

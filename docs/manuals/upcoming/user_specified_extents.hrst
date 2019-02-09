@@ -14,11 +14,11 @@ A typical example of user code for making a `multi_stage` stencil is
 .. code-block:: c++
 
  auto multi_stage = make_multistage(
-    execute< forward >(),
-    make_stage< lap_operator >(p_lap(), p_in()),
-    make_stage< flx_operator >(p_flx(), p_in(), p_lap()),
-    make_stage< fly_operator >(p_fly(), p_in(), p_lap()),
-    make_stage< out_operator >(p_out(), p_in(), p_flx(), p_fly())
+    execute<forward>(),
+    make_stage<lap_operator>(p_lap(), p_in()),
+    make_stage<flx_operator>(p_flx(), p_in(), p_lap()),
+    make_stage<fly_operator>(p_fly(), p_in(), p_lap()),
+    make_stage<out_operator>(p_out(), p_in(), p_flx(), p_fly())
  );
 
 
@@ -37,11 +37,11 @@ syntax for the previous example would be:
 .. code-block:: c++
 
  auto multi_stage = make_multistage(
-    execute< forward >(),
-    make_stage_with_extent< lap_operator, extent<-1,1,-1,1> >(p_lap(), p_in()),
-    make_stage_with_extent< flx_operator, extent<0,1,0,0> >(p_flx(), p_in(), p_lap()),
-    make_stage_with_extent< fly_operator, extent<0,0,0,1> >(p_fly(), p_in(), p_lap()),
-    make_stage_with_extent< out_operator, empty_extent>(p_out(), p_in(), p_flx(), p_fly())
+    execute<forward>(),
+    make_stage_with_extent<lap_operator, extent<-1, 1, -1, 1>>(p_lap(), p_in()),
+    make_stage_with_extent<flx_operator, extent<0, 1, 0, 0>>(p_flx(), p_in(), p_lap()),
+    make_stage_with_extent<fly_operator, extent<0, 0, 0, 1>>(p_fly(), p_in(), p_lap()),
+    make_stage_with_extent<out_operator, empty_extent>(p_out(), p_in(), p_flx(), p_fly())
  );
 
 

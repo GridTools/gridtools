@@ -44,7 +44,7 @@ Accessor type
 
 There are three kinds of accessor:
 
-* `regular accessors`, or simply *accessors*, indicate an access to a regular :ref:`data_store_field` of a grid. 
+* `regular accessors`, or simply *accessors*, indicate an access to a regular :ref:`data-store` of a grid.
 * `global accessors` indicates that the data to be referred does not participate in the iteration and always point to a same *read only* datum to be used in the operator, see :ref:`global accessors<global-accessor>`. 
 
 An *accessor type* is a `using` statement with this form
@@ -85,12 +85,6 @@ where
   #. ``enumtype::in`` to specify *read-only* access
   #. ``enumtyoe::inout`` to specify *read-write* access. The ``extent``   for ``inout`` must be made of all zeros (see next points)
 
-* ``location_type`` indicate in which location the accessor is assumed
-  to access data. This is only needed when using *irregular grids* and
-  cannot be specified for regular grids. Reference to
-  [Irregular Grids](irregular grids documentation) for further
-  details.
-
 * ``extent`` defines the maximum offsets at which the implementation
   will access data around the point of evaluation. Extents are
   templates that takes a list of pairs of integer numbers. Every pair
@@ -98,7 +92,7 @@ where
   indicates the offset in the direction of *decreasing* indices (also
   called *minus direction*), while the second (>=0) indicates the
   offset in the direction of *increasing* indices (also called *plus
-  direction*). For example ``extent< -1,1, 0,2, -2,1 >`` specifies an
+  direction*). For example ``extent<-1, 1, 0, 2, -2, 1>`` specifies an
   access of one element in the direction of decreasing indices (-1)
   and one in the direction of increasing indices (+1) in the first
   dimension; two elements in the plus direction (+2) and no elements
@@ -116,14 +110,8 @@ where
    runtime error, while extents bigger that the one actually accessed
    by the implementation will result in performance loss.
 
-* ``N`` identifies the number of dimensions of the :ref:`data_store_field`. 
+* ``N`` identifies the number of dimensions of the :ref:`data-store`.
   By default this value is set to 3. 
-
-  .. note:: 
-   
-   See :ref:`advanced_data_access` for more techniques to access data
-   into a data field, especially of there are more that 3 dimensions.
-
 
 ^^^^^^^^^^^^^^^^^^^^^
  arg_list
@@ -132,7 +120,7 @@ The ``arg_list`` is a `using` statement like the following
 
 .. code-block:: gridtools
 
- using arg_list = accessor_list< _accessors_ >;
+ using arg_list = accessor_list<_accessors_>;
 
 
 where ``_accessors_`` is a comma separated list of all the accessors
@@ -181,13 +169,13 @@ arguments of the reduction operator).
 
     struct flx_function {
 
-        using out = accessor< 0, enumtype::inout >;
-        using in  = accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > >;
-        using lap = accessor< 2, enumtype::in, extent< 0, 1, 0, 0 > >;
+        using out = accessor<0, enumtype::inout>;
+        using in  = accessor<1, enumtype::in, extent<0, 1, 0, 0>>;
+        using lap = accessor<2, enumtype::in, extent<0, 1, 0, 0>>;
 
-        using arg_list = accessor_list< out, in, lap > arg_list;
+        using arg_list = accessor_list<out, in, lap> arg_list;
 
-        template < typename Evaluation >
+        template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
@@ -248,7 +236,7 @@ of the accessor a sequence of integer indices, as follows:
 
 .. code-block:: gridtools
 
- eval(accessor_name(1,0,-1))
+ eval(accessor_name(1, 0, -1))
 
 
 This means to access an element at an offset of 1 in the first
@@ -266,7 +254,7 @@ dimension and assign it to the output field:
 
 .. code-block:: gridtools
 
- eval(out()) = eval(in()) - eval(in(1,0,0));
+ eval(out()) = eval(in()) - eval(in(1, 0, 0));
 
 
 When using expressions, the previous example can be simplified to
@@ -274,23 +262,4 @@ read:
 
 .. code-block:: gridtools 
 
- eval(out()) = eval( in() -in(1,0,0) );
-
-
-To use expressions and other more advanced techniques to access data
-and specifying offsets refer to [Advanced Access Specification].
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using eval For Irregular Grids
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Calling other operators
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. _advanced_data_access:
-
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Advanced Data Accesses
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+ eval(out()) = eval(in() - in(1, 0, 0));

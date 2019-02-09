@@ -43,7 +43,7 @@ using namespace gridtools;
 struct lap {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 1>>;
-    using arg_list = boost::mpl::vector<out, in>;
+    using arg_list = make_arg_list<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
