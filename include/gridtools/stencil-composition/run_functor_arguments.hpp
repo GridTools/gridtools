@@ -68,7 +68,7 @@ namespace gridtools {
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef EsfSequence esf_sequence_t;
-        typedef typename LocalDomain::max_extent_for_tmp_t max_extent_t;
+        typedef typename LocalDomain::max_extent_for_tmp_t max_extent_for_tmp_t;
         typedef Grid grid_t;
     };
 
@@ -98,7 +98,20 @@ namespace gridtools {
         typedef BackendIds backend_ids_t;
         typedef EsfSequence esf_sequence_t;
         typedef LoopIntervals loop_intervals_t;
-        typedef typename LocalDomain::max_extent_for_tmp_t max_extent_t;
+
+      private:
+        using all_stage_groups_t = GT_META_CALL(
+            meta::flatten, (GT_META_CALL(meta::transform, (meta::third, loop_intervals_t))));
+        using all_stages_t = GT_META_CALL(meta::flatten, all_stage_groups_t);
+
+        template <class Stage>
+        GT_META_DEFINE_ALIAS(get_stage_extent, meta::id, typename Stage::extent_t);
+
+        using all_extents_t = GT_META_CALL(meta::transform, (get_stage_extent, all_stages_t));
+
+      public:
+        using max_extent_t = GT_META_CALL(meta::rename, (enclosing_extent, all_extents_t));
+
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
         typedef Grid grid_t;
