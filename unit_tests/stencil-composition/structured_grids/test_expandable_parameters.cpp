@@ -179,7 +179,7 @@ TEST_F(expandable_parameters, caches) {
     run_computation(p_in = in,
         p_out = out,
         make_multistage(execute<forward>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_tmp)),
+            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)));
     verify({in, in, in, in, in}, out);
