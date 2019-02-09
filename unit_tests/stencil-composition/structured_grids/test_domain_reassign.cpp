@@ -53,7 +53,7 @@ namespace gridtools {
     struct test_functor {
         using in = accessor<0, enumtype::in, extent<>, 3>;
         using out = accessor<1, enumtype::inout, extent<>, 3>;
-        using arg_list = boost::mpl::vector<in, out>;
+        using arg_list = make_arg_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

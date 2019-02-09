@@ -84,11 +84,14 @@ computing grid on (or that the first dimension in the data corresponds
 to) the first dimension in the computing grid. Let's consider a 2x1
 proc grid, and the first dimension of the data being the rows (i)
 and the second the column (j). In this case we are assuming a
-distribution like this:
+distribution like in :numref:`fig_dist1`.
 
 
+.. _fig_dist1:
 .. figure:: figures/dist1.png
    :scale: 40%
+
+   Example data distribution among two processes.
    
 In this case the map between data and the processor grid is:
 
@@ -102,11 +105,13 @@ On the other hand, having specified
 
   layout_map<1, 0, 2>
 
-for this map, would imply a layout/distribution like the following:
+for this map, would imply a layout/distribution like the following :numref:`fig_dist2`.
 
+.. _fig_dist2:
 .. figure:: figures/dist2.png
    :scale: 40%
 
+   Example data distribution among two processes.
 
 Where the second dimension in the data correspond to the fist
 dimension in the processor grid. Again, the data coordinates
@@ -133,10 +138,13 @@ necessary, which has to be larger than ``end - begin + 1 + minus + plus``, and
 is the ``total_length``. This parameter is the equivalent of the
 "leading dimension" in BLAS. With these five numbers we can describe
 arbitrary dimensions, with paddings on the left and on the right, such
-as the following example. with 1 halo point on the left and two to the right:
+as the example in :numref:`fig_halo_descriptor`.
 
+.. _fig_halo_descriptor:
 .. figure:: figures/halo_descriptor.png
    :scale: 50%
+
+   Example halo descriptor with one halo point on the left and two on the right.
 
 The interface for specifying a halo descriptor is fairly simple, where
 the name of arguments should be self-explanatory:

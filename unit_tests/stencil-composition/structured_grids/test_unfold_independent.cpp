@@ -46,7 +46,7 @@ namespace gridtools {
             using a0 = accessor<0, enumtype::inout>;
             using a1 = accessor<1, enumtype::inout>;
 
-            using arg_list = boost::mpl::vector<a0, a1>;
+            using arg_list = make_arg_list<a0, a1>;
         };
 
         struct fake_storage_type {

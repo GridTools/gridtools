@@ -47,7 +47,7 @@ struct shift_acc_forward_fill {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
@@ -69,7 +69,7 @@ struct shift_acc_backward_fill {
     typedef accessor<0, enumtype::in, extent<0, 0, 0, 0, -1, 1>> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
@@ -91,7 +91,7 @@ struct copy_fill {
     typedef accessor<0, enumtype::in> in;
     typedef accessor<1, enumtype::inout, extent<>> out;
 
-    typedef boost::mpl::vector<in, out> arg_list;
+    typedef make_arg_list<in, out> arg_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {
@@ -119,7 +119,7 @@ TEST_F(kcachef, fill_forward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -159,7 +159,7 @@ TEST_F(kcachef, fill_backward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<backward>(),
-            define_caches(cache<K, cache_io_policy::fill>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -197,7 +197,7 @@ TEST_F(kcachef, fill_copy_forward) {
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
         (execute<forward>(),
-            define_caches(cache<K, cache_io_policy::fill>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<copy_fill>(p_in() // esf_descriptor
                 ,
                 p_out())));

@@ -71,7 +71,7 @@ namespace gridtools {
 
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
         typedef typename get_ij_cache_storage_tuple<cache_sequence_t,
-            typename IterateDomainArguments::max_extent_t,
+            typename IterateDomainArguments::max_extent_for_tmp_t,
             block_i_size(backend_ids_t{}),
             block_j_size(backend_ids_t{})>::type ij_caches_vector_t;
 

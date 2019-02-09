@@ -42,7 +42,7 @@ using namespace gridtools;
 
 struct functor {
     using out = inout_accessor<0>;
-    using arg_list = boost::mpl::vector<out>;
+    using arg_list = make_arg_list<out>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

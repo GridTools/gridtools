@@ -304,18 +304,18 @@ namespace gridtools {
             if (!ptr)
                 return;
             GRIDTOOLS_STATIC_ASSERT(I < ArrayIndex::size(), "Accessing an index out of bound in fusion tuple");
-            using max_extent_t = typename LocalDomain::max_extent_for_tmp_t;
             using layout_t = typename StorageInfo::layout_t;
             static constexpr auto backend = Backend{};
             static constexpr auto is_tmp =
                 meta::st_contains<typename LocalDomain::tmp_storage_info_ptr_list, StorageInfo const *>::value;
-            m_index_array[I] = get_index_offset_f<StorageInfo, max_extent_t, is_tmp>{}(backend,
-                make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
-                    _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
-                    _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
-                m_begin,
-                m_block_no,
-                m_pos_in_block);
+            m_index_array[I] =
+                get_index_offset_f<StorageInfo, typename LocalDomain::max_extent_for_tmp_t, is_tmp>{}(backend,
+                    make_pos3(_impl::get_stride<coord_i<Backend>::value, layout_t, I>(m_strides),
+                        _impl::get_stride<coord_j<Backend>::value, layout_t, I>(m_strides),
+                        _impl::get_stride<coord_k<Backend>::value, layout_t, I>(m_strides)),
+                    m_begin,
+                    m_block_no,
+                    m_pos_in_block);
         }
     };
 

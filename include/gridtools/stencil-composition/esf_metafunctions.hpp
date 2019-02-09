@@ -40,7 +40,6 @@
 #include <boost/mpl/contains.hpp>
 
 #include "../common/defs.hpp"
-#include "../common/generic_metafunctions/accumulate_tparams_until.hpp"
 #include "../common/generic_metafunctions/binary_ops.hpp"
 #include "../common/generic_metafunctions/copy_into_set.hpp"
 #include "../common/generic_metafunctions/is_predicate.hpp"
@@ -207,13 +206,11 @@ namespace gridtools {
       Given an array of pairs (placeholder, extent) checks if all
       extents are the same and equal to the extent passed in
      */
-    template <typename VectorOfPairs, typename Extent, ushort_t Limit>
-    struct check_all_extents_are_same_upto {
+    template <typename VectorOfPairs>
+    struct check_all_horizotal_extents_are_zero {
         template <typename Pair>
-        struct _check {
-            using type =
-                static_bool<accumulate_tparams_until<equal, logical_and, typename Pair::second, Extent, Limit>::value>;
-        };
+        struct _check : bool_constant<Pair::second::iminus::value == 0 && Pair::second::iplus::value == 0 &&
+                                      Pair::second::jminus::value == 0 && Pair::second::jplus::value == 0> {};
 
         typedef typename is_sequence_of<VectorOfPairs, _check>::type type;
     };
