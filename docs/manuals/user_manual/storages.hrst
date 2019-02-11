@@ -25,7 +25,7 @@ for host storage infos.
 
  cuda_storage_info<Id, Layout, Halo, Alignment>(Dims...)
 
-for cuda storage infos.
+for CUDA storage infos.
 
 :numref:`fig_storage_info` shows a depiction of the ``storage_info`` compile-time data.
 
@@ -51,9 +51,9 @@ Passed type information:
  but with different dimensionality you must use a different ID.
 
 
-* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permuation of the value from ``0`` to ``N-1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
+* **Layout map:** Information about the memory layout. The ``layout_map`` template takes a permutation of the value from ``0`` to ``N - 1``, where ``N`` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array ``X[i][j][k]`` layout would be equivalent to ``layout_map<0, 1, 2>``. The dimension with stride 1 has the highest index. A Fortran style array ``X[i][j][k]`` layout would be equivalent to ``layout_map<2, 1, 0>``. There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored. For instance a ``storage_info`` with ``layout_map<1, -1, 0>`` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are ``(N, 1, L)``, when accessing an element ``(i, j, k)``, the ``j`` index is ignored. There are not bound checks for masked dimensions. The reason is that this use case is designed to allow implementing planes with an orientation to be used in stencils.
 
-* **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (``alignment<1>``) by default. The Cuda backend uses a default alignment of 32 data elements (``alignment<32>``).
+* **Alignment:** Information about the alignment in terms of number of bytes. There is the possibility to provide information about how the data points should be aligned in memory. The alignment is enforced to the first elements in the inner region of the dimension with stride one. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (``alignment<1>``) by default. The CUDA backend uses a default alignment of 32 data elements (``alignment<32>``).
 
 * **Halo:** The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the stride 1 dimension. The halo information is given as follows: ``halo<Sizes...>`` where sizes is the halo size at both ends of the corresponding dimension, in terms of element sizes. E.g., ``halo<2, 4, 0>`` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
 
@@ -179,11 +179,11 @@ Data view
 --------------
 
 The view provides means to modify the data stored in a ``data_store``.
-Views can be generated (at the moment) for both Host (cpu) and Device (gpu).
+Views can be generated (at the moment) for both Host (CPU) and Device (GPU).
 Internally the view is a very simple struct that contains a pointer to the
 data and provides an ``operator()(...)`` in order to access and modify the data
 at a given coordinate. The view can be created in a read only mode or read-write. The read-only views
-can be benefitial because read only views do not trigger synchronizations with the devices.
+can be beneficial because read only views do not trigger synchronizations with the devices.
 
 **Example**:
 

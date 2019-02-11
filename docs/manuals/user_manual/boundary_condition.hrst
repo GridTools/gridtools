@@ -27,7 +27,7 @@ distances and directions. Direction is the one thing we need
 here. Instead of using unitary vectors to indicate directions, as
 it is usually the case for euclidean spaces, we use vectors whose
 components are -1, 0, and 1.  For example, :math:`(1, 1, 1)` is the
-dicretion indicated by the unit vector :math:`(1, 1, 1)/\sqrt3`.
+direction indicated by the unit vector :math:`(1, 1, 1)/\sqrt3`.
 If we take the center of a 3D grid, then we can define 26
 different directions :math:`\{(i, j, k): i, j, k \in \{-1, 0, 1\}\}\setminus\{(0, 0, 0)\}`
 that identify the different faces, edges and corners of the cube to
@@ -140,8 +140,8 @@ Boundary predication
 
 Predication is an additional feature to control the boundary
 application.  The predicate type have to be specified as template
-argument of the boudary class, and the instantiated object of that
-type passed as third arguent of the bounadry class constructor, as in
+argument of the boundary class, and the instantiated object of that
+type passed as third argument of the boundary class constructor, as in
 the following example:
 
 .. code-block:: gridtools

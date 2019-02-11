@@ -49,7 +49,7 @@ Issues regarding temporaries
 Temporary storages share the same ``storage_info`` because they all have the same size. The problem with temporaries is that
 computations in the halo region have to be redundant because we don't know when the data will be available. To solve the 
 problem with redundant computations the temporary storages, that are allocated in the ``intermediate``, are extended by a certain 
-number of elements. The size of the cuda block is known beforehand and also the size of the halo and the number of blocks/threads 
+number of elements. The size of the CUDA block is known beforehand and also the size of the halo and the number of blocks/threads 
 is known. With this information an extended temporary storage can be instantiated. For performance reasons we want the first 
 non-halo data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between 
 the blocks. :numref:`fig_temporary` compares the non-aligned versus the aligned storages. The green dots

@@ -1,14 +1,6 @@
 if( GT_TESTS_STRUCTURED_GRID )
     set( EXAMPLES_SRCFILES boundary-conditions  boundary-conditions_provided )
 
-    if(GT_ENABLE_TARGET_X86)
-        foreach(srcfile IN LISTS EXAMPLES_SRCFILES )
-            add_executable(${srcfile}_x86_ex   ${srcfile}.cpp)
-            target_link_libraries(${srcfile}_x86_ex GridToolsTestX86)
-            install_example(${srcfile}_x86_ex)
-        endforeach()
-    endif(GT_ENABLE_TARGET_X86)
-
     if(GT_ENABLE_TARGET_MC)
         foreach(srcfile IN LISTS EXAMPLES_SRCFILES)
             add_executable(${srcfile}_mc_ex   ${srcfile}.cpp)
