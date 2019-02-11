@@ -258,7 +258,7 @@ library.)
 
 The first template argument is an index defining the order of the
 parameters, i.e. the order in which the fields are passed to the
-functor. The ``arg_list`` is a |GT| keyword which has to be defined for each stencil.
+functor. The ``param_list`` is a |GT| keyword which has to be defined for each stencil.
 
 A ``Do``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on

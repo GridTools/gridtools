@@ -52,11 +52,11 @@ namespace gridtools {
         template <typename Functor>
         struct _get_index_of_first_non_const {
 
-            typedef typename boost::mpl::find_if<typename Functor::arg_list,
+            typedef typename boost::mpl::find_if<typename Functor::param_list,
                 is_accessor_written<typename boost::mpl::_>>::type iter;
 
             typedef typename boost::mpl::if_<
-                typename boost::is_same<iter, typename boost::mpl::end<typename Functor::arg_list>::type>::type,
+                typename boost::is_same<iter, typename boost::mpl::end<typename Functor::param_list>::type>::type,
                 boost::mpl::int_<-1>,
                 typename iter::pos>::type result;
 
@@ -72,8 +72,9 @@ namespace gridtools {
         */
         template <typename Functor>
         struct can_be_a_function {
-            typedef typename boost::mpl::count_if<typename Functor::arg_list, is_accessor_written<boost::mpl::_>>::type
-                type;
+            typedef
+                typename boost::mpl::count_if<typename Functor::param_list, is_accessor_written<boost::mpl::_>>::type
+                    type;
 
             static const bool value = type::value == 1;
         };

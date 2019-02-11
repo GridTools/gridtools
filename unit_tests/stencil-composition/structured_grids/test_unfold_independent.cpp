@@ -41,7 +41,7 @@ struct functor {
     using a0 = gridtools::accessor<0, gridtools::enumtype::inout>;
     using a1 = gridtools::accessor<1, gridtools::enumtype::inout>;
 
-    typedef gridtools::make_arg_list<a0, a1> arg_list;
+    typedef gridtools::make_param_list<a0, a1> param_list;
 };
 
 struct fake_storage_type {

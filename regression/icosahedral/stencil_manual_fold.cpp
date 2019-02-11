@@ -62,7 +62,7 @@ template <uint_t Color>
 struct test_on_edges_functor {
     using cell_area = in_accessor<0, enumtype::cells, extent<1>>;
     using weight_edges = inout_accessor<1, enumtype::cells, 5>;
-    using arg_list = make_arg_list<cell_area, weight_edges>;
+    using param_list = make_param_list<cell_area, weight_edges>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
