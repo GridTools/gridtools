@@ -74,7 +74,6 @@ Below a sample of the commands needed to enable the multicore and CUDA backends 
  cd build
  cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
  make install
- 
 
 ^^^^^^^^^^^^^^^^^^^^^
 Using |GT|
@@ -100,16 +99,6 @@ Targets that need |GT| should indicate ``GridTools::gridtools`` as target link l
 .. code-block:: cmake
 
  target_link_libraries(${target_name} GridTools::gridtools)
-
-Some utilities are provided to the user, for instance ``backend_select.hpp``, which helps in the selection of the back-end to be used. To use these tools, some compilation flags should be specified. One is ``FLOAT_PRECISION`` (which can be 8 or 4 for ``double`` or ``float`` respectively), the others are ``BACKEND_X86``, ``BACKEND_MC`` or ``BACKEND_CUDA`` to select the back-end. The following example show how to use them:
-
-.. code-block:: cmake
-
- target_compile_definitions(${srcfile}_host_block_ex PUBLIC BACKEND_X86 FLOAT_PRECISION=8)
-
-.. note:
-
- The floating point precision will define ``float_type`` with a corresponding type. The user can then define their storage objects to use this type and then select the precision at compile time.
 
 -----------------------------
 Contributing

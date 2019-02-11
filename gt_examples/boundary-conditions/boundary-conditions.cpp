@@ -67,6 +67,14 @@
 
 namespace gt = gridtools;
 
+#ifdef __CUDACC__
+using target_t = gt::target::cuda;
+#else
+using target_t = gt::target::mc;
+#endif
+
+using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
+
 using uint_t = unsigned;
 
 /**
