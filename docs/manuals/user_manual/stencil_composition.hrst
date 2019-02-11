@@ -305,7 +305,7 @@ The execution of the stages are assumed to happen one after the other in the
 program order. This is quite important, since the data dependency analysis is
 performed with this assumption. Some architectures provide different types of
 synchronization, and a user may gain a little more performance if they are more
-specific in the expression of the dependencies. For instance, we can assume the
+specific in the expression of the dependencies. For instance, we can assume
 the `flx_operator` and `fly_operator` do not have producer-consumer
 dependencies the user can specify that they are independent:
 
@@ -337,7 +337,7 @@ may have different execution policies. This is very useful for implementing
 computations that require two vertical swipes, one ascending and one
 descending, but has to be used with care. Before explaining the rules for using
 this feature, we provide a simple example of the syntax in the vertical
-advenction example:
+advection example:
 
 .. code-block:: gridtools
 
@@ -423,7 +423,7 @@ Selecting the Backend
 
 One of the key concepts of |GT| is portability between different target architectures.
 Stencil operators are written and composed in an architecture-independent way and then instantiated
-for a given ``backend``. The ``backend`` is a tag type which is composed from the tripple
+for a given ``backend``. The ``backend`` is a tag type which is composed from the triple
 
 - ``target``, the target architecture (``cuda``, a GPU-enabled backend; ``mc``, a backend for modern CPUs with long vector-length; ``x86``, a legacy CPU-backend with focus on caching of vertical stencils, likely to be removed in the future)
 - ``grid_type``, the grid type, should be set to ``structured`` for Cartesian grid (or ``icgrid`` for the experimental icosahedral grid) 

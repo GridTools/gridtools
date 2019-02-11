@@ -93,7 +93,7 @@ Cache policy
 ^^^^^^^^^^^^
 
 The ``cache_policy`` specifies a synchronization policy between the data in the cache and the data in main memory. A scratch-pad can be used
-in order to allocate temporary computations that do not require data persistency accross multiple stencils. However often the data that is
+in order to allocate temporary computations that do not require data persistency across multiple stencils. However often the data that is
 being cached is already present in main memory fields. In this case, the software managed caches of |GT| gives the possibility
 to specify a cache policy that allows to synchronize the main memory with the cached field.
 The possible values are:
