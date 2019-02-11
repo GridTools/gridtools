@@ -174,7 +174,7 @@ arguments of the reduction operator).
         using in  = accessor<1, enumtype::in, extent<0, 1, 0, 0>>;
         using lap = accessor<2, enumtype::in, extent<0, 1, 0, 0>>;
 
-        using param_list = accessor_list<out, in, lap> param_list;
+        using param_list = accessor_list<out, in, lap>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
