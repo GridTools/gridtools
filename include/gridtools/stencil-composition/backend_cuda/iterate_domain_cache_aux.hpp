@@ -47,6 +47,7 @@
 #include "../../meta/make_indices.hpp"
 #include "../accessor.hpp"
 #include "../caches/cache_definitions.hpp"
+#include "../execution_types.hpp"
 #include "../grid.hpp"
 
 namespace gridtools {
@@ -124,10 +125,8 @@ namespace gridtools {
             KCachesTuple &m_kcaches;
 
             // shortcurts for forward backward iteration policy
-            static constexpr bool forward =
-                std::is_same<typename IterationPolicy::execution_type, execute::forward>::value;
-            static constexpr bool backward =
-                std::is_same<typename IterationPolicy::execution_type, execute::backward>::value;
+            static constexpr bool forward = execute::is_forward<typename IterationPolicy::execution_type>::value;
+            static constexpr bool backward = execute::is_backward<typename IterationPolicy::execution_type>::value;
 
             // shortcuts for fill and flush io policy
             static constexpr bool fill = CacheIOPolicy == cache_io_policy::fill;
