@@ -56,6 +56,17 @@ namespace gridtools {
         template <uint_t BlockSize>
         struct is_parallel<parallel_block<BlockSize>> : std::true_type {};
 
+        template <typename T>
+        struct is_forward : std::false_type {};
+
+        template <uint_t BlockSize>
+        struct is_forward<forward> : std::true_type {};
+
+        template <typename T>
+        struct is_backward : std::false_type {};
+
+        template <uint_t BlockSize>
+        struct is_backward<backward> : std::true_type {};
     } // namespace execute
 
     template <typename T>
