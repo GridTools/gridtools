@@ -4,7 +4,7 @@ Distributed Boundary Conditions
 ===============================
 
 -------------------
-Design principles:
+Design Principles:
 -------------------
 
 * When doing expandable parameters, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes single data-stores only.
