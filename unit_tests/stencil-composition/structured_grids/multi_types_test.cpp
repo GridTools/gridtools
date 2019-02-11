@@ -247,11 +247,11 @@ namespace multi_types_test {
             p_field2() = field2,
             p_field3() = field3,
             gridtools::make_multistage // mss_descriptor
-            (execute<forward>(),
+            (execute::forward(),
                 gridtools::make_stage<function1>(p_temp(), p_field1()),
                 gridtools::make_stage<function2>(p_field2(), p_field1(), p_temp())),
             gridtools::make_multistage // mss_descriptor
-            (execute<backward>(),
+            (execute::backward(),
                 gridtools::make_stage<function1>(p_temp(), p_field1()),
                 gridtools::make_stage<function3>(p_field3(), p_temp(), p_field1())));
 

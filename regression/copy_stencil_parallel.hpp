@@ -172,7 +172,7 @@ namespace copy_stencil {
             p_in{} = in,
             p_out{} = out,
             gridtools::make_multistage // mss_descriptor
-            (execute<forward>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
+            (execute::forward(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
 #ifdef VERBOSE
         printf("computation instantiated\n");
 #endif

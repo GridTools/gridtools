@@ -105,7 +105,7 @@ TEST(multiple_outputs, compute_extents) {
     auto grid_ = make_grid(di, dj, 10);
 
     make_computation<backend_t>(grid_,
-        make_multistage(execute<forward>(),
+        make_multistage(execute::forward(),
             make_stage<TensionShearFunction>(T_sqr_s(), S_sqr_uv(), u_in(), v_in()),
             make_stage<SmagCoeffFunction>(smag_u(), smag_v(), T_sqr_s(), S_sqr_uv()),
             make_stage<SmagUpdateFunction>(u_out(), v_out(), u_in(), v_in(), smag_u(), smag_v())));

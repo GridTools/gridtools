@@ -359,7 +359,7 @@ namespace shallow_water {
             p_u = u,
             p_v = v,
             make_multistage // mss_descriptor
-            (execute<forward>(),
+            (execute::forward(),
                 make_independent(make_stage<flux_x>(p_hx, p_ux, p_vx, p_h, p_u, p_v),
                     make_stage<flux_y>(p_hy, p_uy, p_vy, p_h, p_u, p_v)),
                 make_stage<final_step>(p_hx, p_ux, p_vx, p_hy, p_uy, p_vy, p_h, p_u, p_v)));

@@ -128,7 +128,7 @@ namespace gridtools {
                 using from_t = GT_META_CALL(meta::first, LoopInterval);
                 using to_t = GT_META_CALL(meta::second, LoopInterval);
                 using stage_groups_t = GT_META_CALL(meta::at_c, (LoopInterval, 2));
-                using iteration_policy_t = iteration_policy<from_t, to_t, execution_engine::iteration>;
+                using iteration_policy_t = iteration_policy<from_t, to_t, execution_engine>;
                 using first_t = GT_META_CALL(meta::first, typename RunFunctorArguments::loop_intervals_t);
                 using last_t = GT_META_CALL(meta::at_c,
                     (typename RunFunctorArguments::loop_intervals_t,

@@ -149,7 +149,7 @@ TEST_F(global_accessor_single_stage, boundary_conditions) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor1>(p_sol(), p_bd())));
+        make_multistage(execute::forward(), make_stage<functor1>(p_sol(), p_bd())));
 
     bc_eval.run();
     // fetch data and check
@@ -210,7 +210,7 @@ TEST_F(global_accessor_single_stage, with_procedure_call) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
+        make_multistage(execute::forward(), make_stage<functor_with_procedure_call>(p_sol(), p_bd())));
 
     bc_eval.run();
 
@@ -234,7 +234,7 @@ TEST_F(global_accessor_single_stage, with_function_call) {
     auto bc_eval = make_computation<backend_t>(coords_bc,
         p_sol() = sol_,
         p_bd() = bd_,
-        make_multistage(execute<forward>(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
+        make_multistage(execute::forward(), make_stage<functor_with_function_call>(p_sol(), p_bd())));
 
     bc_eval.run();
 
@@ -280,7 +280,7 @@ TEST(test_global_accessor, multiple_stages) {
         p_tmp() = tmp_,
         p_bd() = bd_,
         make_multistage(
-            execute<forward>(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
+            execute::forward(), make_stage<functor1>(p_tmp(), p_bd()), make_stage<functor2>(p_sol(), p_tmp(), p_bd())));
 
     bc_eval.run();
     // fetch data and check

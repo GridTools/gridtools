@@ -87,7 +87,7 @@ TEST(test_make_computation, positional_when_debug) {
 
     make_computation<backend_t>(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage // mss_descriptor
-        (execute<forward>(), make_stage<positional_when_debug_test::test_functor>(p_in())));
+        (execute::forward(), make_stage<positional_when_debug_test::test_functor>(p_in())));
 }
 
 #ifdef __WAS_DEBUG

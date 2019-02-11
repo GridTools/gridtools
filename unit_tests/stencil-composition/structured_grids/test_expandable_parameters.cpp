@@ -194,7 +194,7 @@ class expandable_parameters : public testing::Test {
 TEST_F(expandable_parameters, copy) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
-        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_out(), p_in())));
+        gridtools::make_multistage(execute::forward(), gridtools::make_stage<copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -210,7 +210,7 @@ TEST_F(expandable_parameters, copy_with_expression) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<copy_functor_with_expression>(p_out(), p_in())));
+            execute::forward(), gridtools::make_stage<copy_functor_with_expression>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -224,7 +224,7 @@ TEST_F(expandable_parameters, copy_with_expression) {
 TEST_F(expandable_parameters, call_proc_copy) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
-        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_proc_copy_functor>(p_out(), p_in())));
+        gridtools::make_multistage(execute::forward(), gridtools::make_stage<call_proc_copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -238,7 +238,7 @@ TEST_F(expandable_parameters, call_proc_copy) {
 TEST_F(expandable_parameters, call_copy) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
-        gridtools::make_multistage(execute<forward>(), gridtools::make_stage<call_copy_functor>(p_out(), p_in())));
+        gridtools::make_multistage(execute::forward(), gridtools::make_stage<call_copy_functor>(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -253,7 +253,7 @@ TEST_F(expandable_parameters, call_shift) {
     auto comp = gridtools::make_computation<backend_t>(expand_factor<2>(),
         grid,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<call_shift_functor<gridtools::axis<1>::full_interval>>(p_out())));
+            execute::forward(), gridtools::make_stage<call_shift_functor<gridtools::axis<1>::full_interval>>(p_out())));
 
     auto set_everything = [](data_store_t &ds, float_type value) {
         auto v = make_host_view(ds);

@@ -90,7 +90,7 @@ typedef intermediate<false,
     grid<axis<1>::axis_interval_t>,
     std::tuple<>,
     std::tuple<decltype(make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             make_stage<dummy_functor>(p_in(), p_buff()),
             make_stage<dummy_functor>(p_buff(), p_out())))>>
     intermediate_t;

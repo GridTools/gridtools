@@ -105,7 +105,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         auto copy = gridtools::make_computation<backend_t>(grid_,
             p_in() = in,
             p_out() = out,
-            gridtools::make_multistage(execute<forward>(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
+            gridtools::make_multistage(execute::forward(), gridtools::make_stage<copy_functor>(p_in(), p_out())));
 
         copy.run();
 

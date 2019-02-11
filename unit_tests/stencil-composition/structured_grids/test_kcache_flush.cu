@@ -39,7 +39,6 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace execution;
 
 struct shift_acc_forward_flush {
 
@@ -95,7 +94,7 @@ TEST_F(kcachef, flush_forward) {
         p_out() = m_out,
         p_in() = m_in,
         make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             define_caches(cache<K, cache_io_policy::flush>(p_out())),
             make_stage<shift_acc_forward_flush>(p_in() // esf_descriptor
                 ,
@@ -136,7 +135,7 @@ TEST_F(kcachef, flush_backward) {
         p_out() = m_out,
         p_in() = m_in,
         make_multistage // mss_descriptor
-        (execute<backward>(),
+        (execute::backward(),
             define_caches(cache<K, cache_io_policy::flush>(p_out())),
             make_stage<shift_acc_backward_flush>(p_in() // esf_descriptor
                 ,

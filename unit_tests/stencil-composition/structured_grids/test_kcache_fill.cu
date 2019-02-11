@@ -39,7 +39,6 @@
 #include <gridtools/tools/verifier.hpp>
 
 using namespace gridtools;
-using namespace execution;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward_fill {
@@ -143,7 +142,7 @@ TEST_F(kcachef, fill_forward) {
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill>(p_in() // esf_descriptor
                 ,
@@ -183,7 +182,7 @@ TEST_F(kcachef, fill_forward_shifted_bounds) {
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill_shifted_bounds>(p_in() // esf_descriptor
                 ,
@@ -223,7 +222,7 @@ TEST_F(kcachef, fill_backward) {
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
-        (execute<backward>(),
+        (execute::backward(),
             define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill>(p_in() // esf_descriptor
                 ,
@@ -261,7 +260,7 @@ TEST_F(kcachef, fill_copy_forward) {
         p_out() = m_out,
         p_in() = m_in,
         gridtools::make_multistage // mss_descriptor
-        (execute<forward>(),
+        (execute::forward(),
             define_caches(cache<K, cache_io_policy::fill>(p_in())),
             gridtools::make_stage<copy_fill>(p_in() // esf_descriptor
                 ,

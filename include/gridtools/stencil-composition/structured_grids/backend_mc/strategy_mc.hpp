@@ -65,8 +65,7 @@ namespace gridtools {
         struct is_mss_kparallel {
             template <typename Mss>
             struct apply {
-                using type =
-                    static_bool<std::is_same<typename Mss::execution_engine_t::iteration, execute::parallel>::value>;
+                using type = execute::is_parallel<typename Mss::execution_engine_t>;
             };
         };
 

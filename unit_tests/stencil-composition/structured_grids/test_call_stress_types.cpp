@@ -124,7 +124,7 @@ TEST_F(call_stress_types, simple_force_return_type) {
         p_in1{} = in1,
         p_out{} = out,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
+            execute::forward(), gridtools::make_stage<simple_caller_with_forced_return_type>(p_in1(), p_out())));
     comp.run();
 }
 
@@ -164,7 +164,7 @@ TEST_F(call_stress_types, simple_deduced_return_type) {
         p_in1{} = in1,
         p_out{} = out,
         gridtools::make_multistage(
-            execute<forward>(), gridtools::make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
+            execute::forward(), gridtools::make_stage<simple_caller_with_deduced_return_type>(p_in1(), p_out())));
     comp.run();
 }
 
@@ -250,7 +250,7 @@ TEST_F(call_stress_types, triple_nesting_with_type_switching) {
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<triple_nesting_with_type_switching_first_stage>(p_in1(), p_out(), p_in2())));
     comp.run();
 }
@@ -310,7 +310,7 @@ TEST_F(call_stress_types, triple_nesting_with_type_switching_and_call_proc) {
         p_in1{} = in1,
         p_in2{} = in2,
         p_out{} = out,
-        gridtools::make_multistage(execute<forward>(),
+        gridtools::make_multistage(execute::forward(),
             gridtools::make_stage<triple_nesting_with_type_switching_and_call_proc_first_stage>(
                 p_in1(), p_out(), p_in2())));
     comp.run();

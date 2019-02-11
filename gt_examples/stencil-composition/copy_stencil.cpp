@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
     auto copy = gt::make_computation<backend_t>(grid,
         p_in{} = in,
         p_out{} = out,
-        gt::make_multistage(gt::execute<gt::execute::parallel>{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
+        gt::make_multistage(gt::execute::parallel{}, gt::make_stage<copy_functor>(p_in{}, p_out{})));
 
     copy.run();
 

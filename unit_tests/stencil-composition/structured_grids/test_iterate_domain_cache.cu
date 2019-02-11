@@ -48,7 +48,6 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
 
 // This is the definition of the special regions in the "vertical" direction
 using axis_t = axis<2>::with_extra_offsets<1>;
