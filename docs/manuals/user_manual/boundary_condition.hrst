@@ -47,7 +47,7 @@ indicated as ``minus_``, ``plus_`` and ``zero_``, which are values of an
 .. _boundary-conditions-class:
 
 ---------------------------------
-Boundary condition class
+Boundary Condition Class
 ---------------------------------
 
 The boundary condition class is a regular class which need to be copy
@@ -94,7 +94,7 @@ apart all directions for which the third component is ``minus_``:
 `operator()` of the boundary class is called by the library, on the 26 directions, and got each value in the data that correspond to each direction. In the previous example, each direction in which the third component is ``minus`` will select the specialized overload, while all other directions select the first implementation.
 
 ---------------------------------
-Boundary condition application
+Boundary Condition Application
 ---------------------------------
 
 To apply the above boundary conditions class to the data fields, we
@@ -135,7 +135,7 @@ that the first is the output and second is the input derives from the
 signature of the overloads of ``operator()``, and it is user defined.
 
 ---------------------------------
-Boundary predication
+Boundary Predication
 ---------------------------------
 
 Predication is an additional feature to control the boundary
@@ -161,7 +161,7 @@ neighbors.
 .. _provided_boundary_conditions:
 
 ------------------------------------------------------------
-Provided boundary conditions
+Provided Boundary Conditions
 ------------------------------------------------------------
 
 |GT| provides few boundary application classes for some common cases. They are

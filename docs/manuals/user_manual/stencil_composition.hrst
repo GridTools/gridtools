@@ -6,7 +6,7 @@ Stencil Composition
 .. _placeholders:
 
 ------------------------------------------
-Preparing arguments: storage placeholders
+Preparing Arguments: Storage Placeholders
 ------------------------------------------
 
 To allow naming arguments, that are passed to stencil computations, at compile
@@ -61,7 +61,7 @@ by |GT|.
 .. _defining_iteration_space:
 
 ---------------------------------------------------
-Defining the iteration space: the grid
+Defining the Iteration Space: the Grid
 ---------------------------------------------------
 
 The :ref:`stencil operators<stencil_operators>` describe operations on a single *point of evaluation*.
@@ -92,7 +92,7 @@ we cover how to define the iteration space with the ``grid`` object.
 .. _vertical_regions:
 
 ---------------------------------------------------
-Vertical regions and vertical boundary conditions
+Vertical Regions and Vertical Boundary Conditions
 ---------------------------------------------------
 
 As mentioned earlier, the |GT| :ref:`execution model<execution-model>`
@@ -110,7 +110,7 @@ be directly integrated into the stencil operation.
  
 
 ^^^^^^^^^^^^^^^^^^^
-Default interval
+Default Interval
 ^^^^^^^^^^^^^^^^^^^
 
 In simple applications, where all vertical levels should be treated equally, |GT| allows to 
@@ -119,7 +119,7 @@ should be defined without specifying an interval and the iteration space can be 
 in the :ref:`previous section<defining_iteration_space>`. 
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Defining vertical intervals
+Defining Vertical Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 |GT| allows to split the full vertical iteration space into regions. The number of vertical regions needs to be specified at
@@ -192,7 +192,7 @@ Examples:
 .. _vertical_regions_advanced:
 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Advanced functionality for vertical intervals
+Advanced Functionality for Vertical Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ``axis`` type has two additional template parameters to change defaults

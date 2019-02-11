@@ -89,7 +89,7 @@ value can be one of the following (where we indicate the basic mean of implement
  An error in the specification of the ``cache_type``, for example using ``IJ`` for a field that is accessed with k offsets will lead to compile time errors.
 
 ^^^^^^^^^^^^
-Cache policy
+Cache Policy
 ^^^^^^^^^^^^
 
 The ``cache_policy`` specifies a synchronization policy between the data in the cache and the data in main memory. A scratch-pad can be used

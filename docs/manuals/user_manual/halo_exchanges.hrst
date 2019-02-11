@@ -1,6 +1,6 @@
 .. _halo-exchanges:
 
-Halo exchanges
+Halo Exchanges
 ========================
 
 ----------------
@@ -29,7 +29,7 @@ Preliminaries
 ----------------
 
 ^^^^^^^^^^^^^^^^
-Processor grid
+Processor Grid
 ^^^^^^^^^^^^^^^^
 
 The processor grid is a concept that describe a 3D lattice of
@@ -38,7 +38,7 @@ identifiers of them are tuples of indices. This naturally maps to a 3D
 decomposition of a data field.
 
 ^^^^^^^^^^^^^^^^
-Layout map
+Layout Map
 ^^^^^^^^^^^^^^^^
 
 Layout maps are described in the storage Section of the documentation,
@@ -121,7 +121,7 @@ application, not the increasing stride order.
 .. _halo-descriptor:
 
 ^^^^^^^^^^^^^^^^
-Halo descriptor
+Halo Descriptor
 ^^^^^^^^^^^^^^^^
 
 Given  a  dimension of  the  data  (array), the  communication  module
@@ -156,7 +156,7 @@ the name of arguments should be self-explanatory:
 .. _gcl-communication-module:
 
 -------------------------
-GCL communication module
+GCL Communication Module
 -------------------------
 
 Now we are ready to describe the halo exchange patterns objects. The first one is ``halo_exchange_dynamic_ut``. The ``ut`` suffix stands for ``uniform types``, meaning that the data fields that this object will manage must all store the same value types, that are declared at instantiation time. The type of the object is defined as in this example:
