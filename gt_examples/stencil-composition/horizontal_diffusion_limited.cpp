@@ -40,7 +40,6 @@
 #include <boost/mpl/vector.hpp>
 
 #include <gridtools/stencil-composition/stencil-composition.hpp>
-#include <gridtools/tools/backend_select.hpp>
 
 /**
    @file This file shows an implementation of the "horizontal
@@ -49,6 +48,16 @@
 */
 
 namespace gt = gridtools;
+
+namespace gt = gridtools;
+
+#ifdef __CUDACC__
+using target_t = gt::target::cuda;
+#else
+using target_t = gt::target::mc;
+#endif
+
+using backend_t = gt::backend<target_t, gt::grid_type::structured, gt::strategy::block>;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct lap_function {
@@ -139,7 +148,7 @@ int main(int argc, char **argv) {
 
     using storage_tr = gt::storage_traits<backend_t::backend_id_t>;
     using storage_info_ijk_t = storage_tr::storage_info_t<0, 3, gt::halo<halo_size, halo_size, 0>>;
-    using storage_type = storage_tr::data_store_t<float_type, storage_info_ijk_t>;
+    using storage_type = storage_tr::data_store_t<double, storage_info_ijk_t>;
 
     // storage_info contains the information aboud sizes and layout of the storages to which it will be passed
     storage_info_ijk_t sinfo{d1, d2, d3};
@@ -188,7 +197,7 @@ int main(int argc, char **argv) {
     auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
         gt::make_multistage(gt::enumtype::execute<gt::enumtype::parallel>{},
-            define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
+            define_caches(gt::cache<gt::cache_type::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
             gt::make_stage<lap_function>(p_lap{}, p_in{}),
             gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
                 gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),

@@ -19,12 +19,12 @@ the concrete implementation of that `GridTopology` requires runtime connectivity
 
 Currently there are two concrete implementations of the `GridTopology`:
 
-1. The `icosahedral_topology` provides connectvity information at compile time, for icosahedral/octahedral grid layouts where all 
-the connectivty information can be derived at compiled time from the parallelogram structures based on simple stride rules. 
+1. The `icosahedral_topology` provides connectivity information at compile time, for icosahedral/octahedral grid layouts where all 
+the connectivity information can be derived at compiled time from the parallelogram structures based on simple stride rules. 
 
 An example of such structured index layout of the icosahedral grid parallelograms is shown in :numref:`fig_ico_indices`,
 where the parallelogram can be indexed with three coordinates `i` and `j` and a color that identifies downward/upward triangles. 
-This particular data layout assumes an order in the dimensions like i-c-j (being `i` the stride-1 dimension). 
+This particular data layout assumes an order in the dimensions like i-c-j (being `i` the stride - 1 dimension). 
 As an example, the cell with index 14, can be accessed with `{i, c, j}` coordinates `{2, 0, 1}`.
 A similar scheme of indexing for `edges`, and `vertices` is developed. 
 All neighbour indexes of any cell/edge/vertex as well as connectivity to different `LocationType` can be express with simple 
@@ -75,7 +75,7 @@ For the icosahedral grid, the connectivity tables give access to the following 9
 need to be used in order to define connectivities between the different `LocationTypes`.
 
 Since the connectivity information is stored as lookup tables, the `unstructured_mesh` needs to accept in the ctr an Atlas mesh object, 
-that contains all the neccesary lookup tables. 
+that contains all the necessary lookup tables. 
 All 9 lookup tables are then stored in two type of (atlas data structure) tables: MultiBlockConnectivity and IrregularConnectivity.
 The main difference is that the connectivity described with a MultiBlockConnectivity shows a uniform number of neighbours for each entry in the table, 
 while in the IrregularConnectivity, each entry can have a different number of neighbours.
