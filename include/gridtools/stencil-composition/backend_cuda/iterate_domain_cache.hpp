@@ -110,9 +110,10 @@ namespace gridtools {
                 using cache_interval_t = typename CacheStorage::cache_t::interval_t;
                 static constexpr auto from_index = interval_from_index<cache_interval_t>::type::value;
                 static constexpr auto to_index = interval_to_index<cache_interval_t>::type::value;
-                static constexpr bool value = (IterationPolicy::value == execution::forward)
-                                                  ? to_index == iteration_to_index
-                                                  : from_index == iteration_to_index;
+                static constexpr bool value =
+                    (std::is_same<typename IterationPolicy::execution_type, execute::forward>::value)
+                        ? to_index == iteration_to_index
+                        : from_index == iteration_to_index;
             };
         };
 
@@ -129,9 +130,10 @@ namespace gridtools {
                 using cache_interval_t = typename CacheStorage::cache_t::interval_t;
                 static constexpr auto from_index = interval_from_index<cache_interval_t>::type::value;
                 static constexpr auto to_index = interval_to_index<cache_interval_t>::type::value;
-                static constexpr bool value = (IterationPolicy::value == execution::forward)
-                                                  ? from_index == iteration_from_index
-                                                  : to_index == iteration_from_index;
+                static constexpr bool value =
+                    (std::is_same<typename IterationPolicy::execution_type, execute::forward>::value)
+                        ? from_index == iteration_from_index
+                        : to_index == iteration_from_index;
             };
         };
 

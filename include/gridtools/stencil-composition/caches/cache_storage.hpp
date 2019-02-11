@@ -213,7 +213,8 @@ namespace gridtools {
         /**
          * @brief slides the values of the ring buffer
          */
-        template <typename IterationPolicy>
+        template <typename IterationPolicy,
+            bool is_forward = std::is_same<typename IterationPolicy::execution_type, execute::forward>::value>
         GT_FUNCTION void slide() {
             GRIDTOOLS_STATIC_ASSERT((Cache::cacheType == K), "Error: we can only slide KCaches");
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), "Error");
@@ -221,11 +222,11 @@ namespace gridtools {
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
             if (ksize > 1) {
 
-                constexpr int_t kbegin = (IterationPolicy::value == execution::forward) ? 0 : (int_t)ksize - 1;
-                constexpr int_t kend = (IterationPolicy::value == execution::forward) ? (int_t)ksize - 2 : 1;
+                constexpr int_t kbegin = is_forward ? 0 : (int_t)ksize - 1;
+                constexpr int_t kend = is_forward ? (int_t)ksize - 2 : 1;
 
                 for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
-                    m_values[k] = (IterationPolicy::value == execution::forward) ? m_values[k + 1] : m_values[k - 1];
+                    m_values[k] = is_forward ? m_values[k + 1] : m_values[k - 1];
                 }
             }
         }

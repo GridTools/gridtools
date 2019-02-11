@@ -62,7 +62,7 @@ TEST_F(copy_stencil_icosahedral, test) {
     auto out = make_storage<cells>();
     make_computation(p_out = out,
         p_in = in,
-        make_multistage(execute<execution::parallel>(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
+        make_multistage(execute::parallel(), make_stage<functor_copy, topology_t, cells>(p_out, p_in)))
         .run();
     verify(in, out);
 }

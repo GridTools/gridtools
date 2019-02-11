@@ -187,7 +187,7 @@ int main(int argc, char **argv) {
     // stencil structure
     auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
-        gt::make_multistage(gt::execute<gt::execution::parallel>{},
+        gt::make_multistage(gt::execute<gt::execute::parallel>{},
             define_caches(gt::cache<gt::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
             gt::make_stage<lap_function>(p_lap{}, p_in{}),
             gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),

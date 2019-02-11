@@ -103,7 +103,7 @@ TEST_F(simple_hori_diff, test) {
         p_out = out,
         p_crlato = make_storage<j_storage_type>(repo.crlato),
         p_crlatu = make_storage<j_storage_type>(repo.crlatu),
-        make_multistage(execute<execution::forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<IJ, cache_io_policy::local>(p_lap)),
             make_stage<wlap_function>(p_lap, p_in, p_crlato, p_crlatu),
             make_stage<divflux_function>(p_out, p_in, p_lap, p_crlato, p_coeff)));

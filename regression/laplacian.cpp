@@ -60,8 +60,7 @@ TEST_F(laplacian, test) {
     };
     auto out = make_storage(-7.3);
 
-    make_computation(
-        p_0 = out, p_1 = make_storage(in), make_multistage(execute<execution::forward>(), make_stage<lap>(p_0, p_1)))
+    make_computation(p_0 = out, p_1 = make_storage(in), make_multistage(execute::forward(), make_stage<lap>(p_0, p_1)))
         .run();
 
     verify(make_storage(ref), out);

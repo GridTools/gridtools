@@ -49,7 +49,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 constexpr int level_offset_limit = 2;
 

@@ -41,7 +41,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 TEST(cache_storage, test_ij_multidim) {
     typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;

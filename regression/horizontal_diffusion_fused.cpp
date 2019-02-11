@@ -122,7 +122,7 @@ TEST_F(horizontal_diffusion_fused, test) {
     auto comp = make_computation(p_in = make_storage(repo.in),
         p_out = out,
         p_coeff = make_storage(repo.coeff),
-        make_multistage(execute<execution::parallel>(), make_stage<out_function>(p_out, p_in, p_coeff)));
+        make_multistage(execute::parallel(), make_stage<out_function>(p_out, p_in, p_coeff)));
 
     comp.run();
     verify(make_storage(repo.out), out);

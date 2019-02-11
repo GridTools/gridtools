@@ -47,7 +47,7 @@
 namespace {
 
     using namespace gridtools;
-    using namespace execution;
+    using namespace execute;
     namespace m = boost::mpl;
 
     struct copy_functor {

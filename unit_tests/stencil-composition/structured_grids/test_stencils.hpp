@@ -53,7 +53,7 @@ using gridtools::extent;
 using gridtools::level;
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 namespace copy_stencils_3D_2D_1D_0D {
     struct copy_functor {

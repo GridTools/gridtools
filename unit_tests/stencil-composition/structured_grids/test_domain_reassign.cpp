@@ -79,7 +79,7 @@ namespace gridtools {
 
         fixture()
             : m_computation{make_computation<backend_t>(m_grid,
-                  make_multistage(execute<execution::forward>(),
+                  make_multistage(execute::forward(),
                       make_stage<test_functor>(p_in{}, p_tmp{}),
                       make_stage<test_functor>(p_tmp{}, p_out{})))} {}
 

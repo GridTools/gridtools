@@ -74,10 +74,10 @@ namespace test_conditionals {
         auto comp_ = make_computation<backend_t>(grid_,
             p_dummy() = dummy,
             if_(cond,
-                make_multistage(execute<execution::forward>(), make_stage<functor<0>>(p_dummy())),
+                make_multistage(execute::forward(), make_stage<functor<0>>(p_dummy())),
                 if_(cond2,
-                    make_multistage(execute<execution::forward>(), make_stage<functor<1>>(p_dummy())),
-                    make_multistage(execute<execution::forward>(), make_stage<functor<2>>(p_dummy())))));
+                    make_multistage(execute::forward(), make_stage<functor<1>>(p_dummy())),
+                    make_multistage(execute::forward(), make_stage<functor<2>>(p_dummy())))));
 
         comp_.run();
         comp_.sync_bound_data_stores();

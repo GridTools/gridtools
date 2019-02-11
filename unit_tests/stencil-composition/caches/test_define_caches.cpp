@@ -48,7 +48,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 TEST(define_caches, test_sequence_caches) {
     typedef backend_t::storage_traits_t::storage_info_t<0, 3> storage_info_t;

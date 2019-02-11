@@ -102,7 +102,7 @@ namespace gridtools {
             auto grid = make_grid(d1, d2, d3);
 
             auto mss_ = gridtools::make_multistage // mss_descriptor
-                (execute<execution::forward>(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
+                (execute::forward(), gridtools::make_stage<dummy_functor>(p_in, p_buff, p_out));
             auto computation_ = make_computation<gridtools::backend<target::x86, grid_type_t, strategy::naive>>(
                 grid, p_in = in, p_buff = buff, p_out = out, mss_);
             auto local_domain1 = std::get<0>(computation_.local_domains());

@@ -69,7 +69,7 @@ TEST_F(expandable_parameters, test) {
         make_grid(),
         p_out = out,
         p_in = in,
-        make_multistage(execute<execution::forward>(),
+        make_multistage(execute::forward(),
             define_caches(cache<IJ, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)))

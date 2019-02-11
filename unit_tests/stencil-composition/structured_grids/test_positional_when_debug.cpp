@@ -78,7 +78,7 @@ namespace positional_when_debug_test {
 TEST(test_make_computation, positional_when_debug) {
 
     using namespace gridtools;
-    using namespace gridtools::execution;
+    using namespace gridtools::execute;
 
     typedef backend_t::storage_traits_t::storage_info_t<0, 3> meta_data_t;
     typedef backend_t::storage_traits_t::data_store_t<float_type, meta_data_t> storage_t;

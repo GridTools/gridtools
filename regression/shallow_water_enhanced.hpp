@@ -60,7 +60,7 @@
 
 // [namespaces]
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 using namespace expressions;
 // [namespaces]
 

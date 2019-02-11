@@ -49,7 +49,7 @@ constexpr int halo_size = 1;
 namespace test_cache_stencil {
 
     using namespace gridtools;
-    using namespace execution;
+    using namespace execute;
 
     struct functor1 {
         typedef accessor<0, intent::in> in;
@@ -96,7 +96,7 @@ namespace test_cache_stencil {
 } // namespace test_cache_stencil
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 using namespace test_cache_stencil;
 
 class cache_stencil : public ::testing::Test {

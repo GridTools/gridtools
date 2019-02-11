@@ -50,7 +50,7 @@ using gridtools::level;
 using gridtools::tmp_arg;
 using gridtools::uint_t;
 
-using namespace gridtools::execution;
+using namespace gridtools::execute;
 
 namespace {
 

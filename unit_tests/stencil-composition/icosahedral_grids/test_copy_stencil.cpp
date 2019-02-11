@@ -104,7 +104,7 @@ TEST(test_copy_stencil, run) {
         p_in_cells() = in_cells,
         p_out_cells() = out_cells,
         gridtools::make_multistage // mss_descriptor
-        (execute<execution::forward>(),
+        (execute::forward(),
             gridtools::make_stage<test_functor, icosahedral_topology_t, icosahedral_topology_t::cells>(
                 p_in_cells(), p_out_cells())));
     copy.run();

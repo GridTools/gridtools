@@ -104,6 +104,7 @@ namespace gridtools {
              */
             template <template <class...> class L, class Stage, class Index>
             GT_FUNCTION void operator()(L<Stage, Index>) const {
+                typename RunFunctorArguments::execution_type_t::bla tmp;
                 using execution_type_t = typename RunFunctorArguments::execution_type_t;
                 using iteration_policy_t = iteration_policy<From, To, execution_type_t::iteration>;
 

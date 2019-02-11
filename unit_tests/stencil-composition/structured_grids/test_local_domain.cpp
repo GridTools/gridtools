@@ -61,7 +61,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct dummy_functor {

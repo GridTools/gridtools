@@ -65,7 +65,7 @@ namespace multi_types_test {
     using gridtools::level;
 
     using namespace gridtools;
-    using namespace execution;
+    using namespace execute;
     using namespace expressions;
 
     using axis_t = axis<1>;

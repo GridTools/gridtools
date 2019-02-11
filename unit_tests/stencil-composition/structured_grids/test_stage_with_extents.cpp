@@ -83,8 +83,8 @@ TEST(testdomain, iterate_domain_with_extents) {
 
     auto grid = gridtools::make_grid(di, dj, 3);
     {
-        auto mss_ = make_multistage(
-            execute<execution::forward>(), make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
+        auto mss_ =
+            make_multistage(execute::forward(), make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()));
         auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss_);
 
         typedef decltype(computation_) intermediate_t;
@@ -92,7 +92,7 @@ TEST(testdomain, iterate_domain_with_extents) {
             std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss_ = make_multistage(execute<execution::forward>(),
+        auto mss_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
         auto computation_ = make_computation<backend<target::x86, grid_type_t, strategy::naive>>(grid, mss_);
@@ -102,11 +102,11 @@ TEST(testdomain, iterate_domain_with_extents) {
             std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss1_ = make_multistage(execute<execution::forward>(),
+        auto mss1_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in()));
 
-        auto mss2_ = make_multistage(execute<execution::forward>(),
+        auto mss2_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 
@@ -117,11 +117,11 @@ TEST(testdomain, iterate_domain_with_extents) {
             std::is_same<intermediate_t::extent_map_t, boost::mpl::void_>::value, "extent computation happened");
     }
     {
-        auto mss1_ = make_multistage(execute<execution::forward>(),
+        auto mss1_ = make_multistage(execute::forward(),
             make_independent(make_stage_with_extent<stage1, extent<0, 1, 0, 0>>(p_in(), p_out()),
                 make_stage_with_extent<stage2, extent<0, 1, -1, 2>>(p_out(), p_in())));
 
-        auto mss2_ = make_multistage(execute<execution::forward>(),
+        auto mss2_ = make_multistage(execute::forward(),
             make_stage_with_extent<stage1, extent<-2, 1, 0, 0>>(p_in(), p_out()),
             make_stage_with_extent<stage2, extent<-2, 1, -1, 2>>(p_out(), p_in()));
 

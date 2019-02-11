@@ -124,8 +124,10 @@ namespace gridtools {
             KCachesTuple &m_kcaches;
 
             // shortcurts for forward backward iteration policy
-            static constexpr bool forward = IterationPolicy::value == execution::forward;
-            static constexpr bool backward = IterationPolicy::value == execution::backward;
+            static constexpr bool forward =
+                std::is_same<typename IterationPolicy::execution_type, execute::forward>::value;
+            static constexpr bool backward =
+                std::is_same<typename IterationPolicy::execution_type, execute::backward>::value;
 
             // shortcuts for fill and flush io policy
             static constexpr bool fill = CacheIOPolicy == cache_io_policy::fill;

@@ -58,7 +58,7 @@ TEST(unfold_independent, test) {
 
     using esf_type = decltype(make_stage<functor>(p0(), p1()));
 
-    using mss_type = decltype(make_multistage(execute<execution::forward>(),
+    using mss_type = decltype(make_multistage(execute::forward(),
         make_stage<functor>(p0(), p1()),
         make_stage<functor>(p0(), p1()),
         make_stage<functor>(p0(), p1()),

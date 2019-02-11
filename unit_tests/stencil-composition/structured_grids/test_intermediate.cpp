@@ -91,7 +91,7 @@ TEST(intermediate, test_get_arg_functions) {
 
     auto grid = gridtools::make_grid(di, dj, 3);
     {
-        auto mss_ = make_multistage(execute<execution::forward>(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
+        auto mss_ = make_multistage(execute::forward(), make_stage<stage1>(p_in1(), p_in2(), p_out()));
         computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
 
         EXPECT_EQ((rt_extent{0, 1, -1, 0, 0, 1}), comp.get_arg_extent(p_in1()));
@@ -104,7 +104,7 @@ TEST(intermediate, test_get_arg_functions) {
     }
 
     {
-        auto mss_ = make_multistage(execute<execution::forward>(),
+        auto mss_ = make_multistage(execute::forward(),
             make_stage<stage1>(p_in1(), p_in2(), p_tmp1()),
             make_stage<stage2>(p_in1(), p_tmp1(), p_out()));
         computation<p_in1, p_in2, p_tmp1, p_out> comp = make_computation<backend_t>(grid, mss_);
@@ -121,7 +121,7 @@ TEST(intermediate, test_get_arg_functions) {
     }
 
     {
-        auto mss_ = make_multistage(execute<execution::forward>(),
+        auto mss_ = make_multistage(execute::forward(),
             make_stage<stage1>(p_in1(), p_in2(), p_tmp1()),
             make_independent(
                 make_stage<stage1>(p_in1(), p_tmp1(), p_tmp2()), make_stage<stage2>(p_in2(), p_tmp1(), p_tmp3())),
@@ -171,8 +171,8 @@ TEST(intermediate, test_get_arg_functions) {
         EXPECT_EQ(intent::inout, comp.get_arg_intent(p_out()));
     }
     {
-        auto mss_ = make_multistage(
-            execute<execution::forward>(), make_stage_with_extent<stage1, extent<>>(p_in1(), p_in2(), p_out()));
+        auto mss_ =
+            make_multistage(execute::forward(), make_stage_with_extent<stage1, extent<>>(p_in1(), p_in2(), p_out()));
         computation<p_in1, p_in2, p_out> comp = make_computation<backend_t>(grid, mss_);
 
 #ifndef __CUDACC__

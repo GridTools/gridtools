@@ -46,7 +46,7 @@
 namespace gridtools {
 
     /**\brief policy defining the behaviour on the vertical direction*/
-    template <class From, class To, execution::execution ExecutionType>
+    template <class From, class To, class ExecutionType>
     struct iteration_policy {
         GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
@@ -55,7 +55,7 @@ namespace gridtools {
         using from = From;
         using to = To;
 
-        static constexpr execution::execution value = ExecutionType;
+        using execution_type = ExecutionType;
 
         GT_FUNCTION static int_t increment(int_t &k) { return ++k; }
 
@@ -76,7 +76,7 @@ namespace gridtools {
 
     /**\brief specialization for the backward iteration loop over k*/
     template <class From, class To>
-    struct iteration_policy<From, To, execution::backward> {
+    struct iteration_policy<From, To, execute::backward> {
         GRIDTOOLS_STATIC_ASSERT(is_level<From>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_level<To>::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(level_to_index<From>::value >= level_to_index<From>::value, GT_INTERNAL_ERROR);
@@ -84,7 +84,7 @@ namespace gridtools {
         using from = From;
         using to = To;
 
-        static constexpr execution::execution value = execution::backward;
+        using execution_type = execute::backward;
 
         GT_FUNCTION
         static int_t increment(int_t &k) { return --k; }
@@ -107,7 +107,7 @@ namespace gridtools {
     template <typename T>
     struct is_iteration_policy : std::false_type {};
 
-    template <typename From, typename To, execution::execution ExecutionType>
+    template <typename From, typename To, typename ExecutionType>
     struct is_iteration_policy<iteration_policy<From, To, ExecutionType>> : std::true_type {};
 
 } // namespace gridtools

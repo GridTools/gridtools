@@ -57,7 +57,7 @@ using gridtools::extent;
 using gridtools::level;
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 namespace copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test

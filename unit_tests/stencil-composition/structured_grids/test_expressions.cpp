@@ -38,7 +38,7 @@
 #include <gridtools/stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
-using namespace gridtools::execution;
+using namespace gridtools::execute;
 using namespace gridtools::expressions;
 
 /*

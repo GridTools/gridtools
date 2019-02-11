@@ -39,7 +39,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 namespace rw_test {
     struct test_functor {

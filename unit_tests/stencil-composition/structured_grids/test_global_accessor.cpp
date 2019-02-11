@@ -43,7 +43,7 @@
 #include <gridtools/tools/backend_select.hpp>
 
 using namespace gridtools;
-using namespace execution;
+using namespace execute;
 
 using storage_traits_t = typename backend_t::storage_traits_t;
 using storage_info_t = storage_traits_t::storage_info_t<0, 3>;
