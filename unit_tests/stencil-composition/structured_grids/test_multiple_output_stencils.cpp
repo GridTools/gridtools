@@ -48,7 +48,7 @@ struct TensionShearFunction {
     using u_in = in_accessor<2, extent<-1, 0, 0, 1>>;
     using v_in = in_accessor<3, extent<0, 1, -1, 0>>;
 
-    using arg_list = make_arg_list<T_sqr_s, S_sqr_uv, u_in, v_in>;
+    using param_list = make_param_list<T_sqr_s, S_sqr_uv, u_in, v_in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}
@@ -61,7 +61,7 @@ struct SmagCoeffFunction {
     using T_sqr_s = in_accessor<2, extent<0, 1, 0, 1>>;
     using S_sqr_uv = in_accessor<3, extent<-1, 0, -1, 0>>;
 
-    using arg_list = make_arg_list<smag_u, smag_v, T_sqr_s, S_sqr_uv>;
+    using param_list = make_param_list<smag_u, smag_v, T_sqr_s, S_sqr_uv>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}
@@ -76,7 +76,7 @@ struct SmagUpdateFunction {
     using smag_u = in_accessor<4>;
     using smag_v = in_accessor<5>;
 
-    using arg_list = make_arg_list<u_out, v_out, u_in, v_in, smag_u, smag_v>;
+    using param_list = make_param_list<u_out, v_out, u_in, v_in, smag_u, smag_v>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}

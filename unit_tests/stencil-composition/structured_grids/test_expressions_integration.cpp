@@ -114,7 +114,7 @@ namespace {
         typedef in_accessor<0, extent<>, 3> val2;
         typedef in_accessor<1, extent<>, 3> val3;
         typedef inout_accessor<2, extent<>, 3> out;
-        typedef make_arg_list<val2, val3, out> arg_list;
+        typedef make_param_list<val2, val3, out> param_list;
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
             constexpr gridtools::dimension<1> i{};

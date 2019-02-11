@@ -46,7 +46,7 @@ struct shift_acc_forward_fill_and_flush {
 
     typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 0>> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
@@ -62,7 +62,7 @@ struct shift_acc_backward_fill_and_flush {
 
     typedef accessor<0, intent::inout, extent<0, 0, 0, 0, 0, 1>> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
@@ -78,7 +78,7 @@ struct copy_fill {
 
     typedef accessor<0, intent::inout> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {
@@ -90,7 +90,7 @@ struct scale_fill {
 
     typedef accessor<0, intent::inout> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kfull) {
@@ -113,9 +113,8 @@ TEST_F(kcachef, fill_and_flush_forward) {
 
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
-        gridtools::make_multistage // mss_descriptor
-        (execute::forward(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<shift_acc_forward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
@@ -147,7 +146,7 @@ TEST_F(kcachef, fill_and_flush_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::backward(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<shift_acc_backward_fill_and_flush>(p_in())));
 
     kcache_stencil.run();
@@ -178,7 +177,7 @@ TEST_F(kcachef, fill_copy_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<copy_fill>(p_in())));
 
     kcache_stencil.run();
@@ -209,7 +208,7 @@ TEST_F(kcachef, fill_scale_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<scale_fill>(p_in())));
 
     kcache_stencil.run();
@@ -229,7 +228,7 @@ struct do_nothing {
 
     typedef accessor<0, intent::inout, extent<0, 0, 0, 0, -1, 1>> in;
 
-    typedef make_arg_list<in> arg_list;
+    typedef make_param_list<in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
@@ -256,7 +255,7 @@ TEST_F(kcachef, fill_copy_forward_with_extent) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in{} = m_in,
         gridtools::make_multistage(execute::forward(),
-            define_caches(cache<K, cache_io_policy::fill_and_flush>(p_in())),
+            define_caches(cache<cache_type::K, cache_io_policy::fill_and_flush>(p_in())),
             gridtools::make_stage<do_nothing>(p_in())));
 
     kcache_stencil.run();

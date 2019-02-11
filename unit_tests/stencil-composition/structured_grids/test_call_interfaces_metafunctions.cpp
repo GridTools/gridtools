@@ -140,21 +140,21 @@ struct actual_function {
     typedef gridtools::accessor<1, gridtools::intent::inout> a1;
     typedef gridtools::accessor<2, gridtools::intent::in> a2;
 
-    typedef gridtools::make_arg_list<a0, a1, a2> arg_list;
+    typedef gridtools::make_param_list<a0, a1, a2> param_list;
 };
 
 struct another_function {
     typedef gridtools::accessor<0, gridtools::intent::inout> out;
     typedef gridtools::accessor<1, gridtools::intent::in, gridtools::extent<-1, 1, -1, 1>> in;
 
-    typedef gridtools::make_arg_list<out, in> arg_list;
+    typedef gridtools::make_param_list<out, in> param_list;
 };
 
 struct non_function_swap {
     typedef gridtools::accessor<1, gridtools::intent::inout> out;
     typedef gridtools::accessor<0, gridtools::intent::inout> in;
 
-    typedef gridtools::make_arg_list<in, out> arg_list;
+    typedef gridtools::make_param_list<in, out> param_list;
 };
 
 struct another_non_function {
@@ -163,7 +163,7 @@ struct another_non_function {
     typedef gridtools::accessor<1, gridtools::intent::in, gridtools::extent<0, 1, 0, 0>> in;
     typedef gridtools::accessor<2, gridtools::intent::inout> lap;
 
-    typedef gridtools::make_arg_list<out, in, lap> arg_list;
+    typedef gridtools::make_param_list<out, in, lap> param_list;
 };
 
 TEST(call_interfaces_metafunctions, check_if_function) {

@@ -62,7 +62,7 @@ struct functor_single_kernel {
     using parameters4_in = in_accessor<8>;
     using parameters5_in = in_accessor<9>;
 
-    using arg_list = make_arg_list<parameters1_out,
+    using param_list = make_param_list<parameters1_out,
         parameters2_out,
         parameters3_out,
         parameters4_out,
@@ -102,7 +102,7 @@ TEST_F(expandable_parameters_single_kernel, test) {
         p_8 = in[3],
         p_9 = in[4],
         make_multistage(execute::forward(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
+            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)),
             make_stage<functor_single_kernel>(p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4, p_5, p_6, p_7, p_8, p_9),
             make_stage<functor_single_kernel>(p_0, p_1, p_2, p_3, p_4, p_tmp_0, p_tmp_1, p_tmp_2, p_tmp_3, p_tmp_4)))
         .run();

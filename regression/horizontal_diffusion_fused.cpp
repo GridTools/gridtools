@@ -50,7 +50,7 @@ struct lap_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 1>>;
 
-    using arg_list = make_arg_list<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -63,7 +63,7 @@ struct flx_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 2, -1, 1>>;
 
-    using arg_list = make_arg_list<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -78,7 +78,7 @@ struct fly_function {
     using out = inout_accessor<0>;
     using in = in_accessor<1, extent<-1, 1, -1, 2>>;
 
-    using arg_list = make_arg_list<out, in>;
+    using param_list = make_param_list<out, in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
@@ -94,7 +94,7 @@ struct out_function {
     using in = in_accessor<1, extent<-2, 2, -2, 2>>;
     using coeff = in_accessor<2>;
 
-    using arg_list = make_arg_list<out, in, coeff>;
+    using param_list = make_param_list<out, in, coeff>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

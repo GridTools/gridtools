@@ -64,7 +64,7 @@ namespace positional_when_debug_test {
 
     struct test_functor {
         typedef gridtools::accessor<0, gridtools::intent::inout> in;
-        typedef gridtools::make_arg_list<in> arg_list;
+        typedef gridtools::make_param_list<in> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
@@ -86,8 +86,7 @@ TEST(test_make_computation, positional_when_debug) {
     typedef arg<0, storage_t> p_in;
 
     make_computation<backend_t>(positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
-        make_multistage // mss_descriptor
-        (execute::forward(), make_stage<positional_when_debug_test::test_functor>(p_in())));
+        make_multistage(execute::forward(), make_stage<positional_when_debug_test::test_functor>(p_in())));
 }
 
 #ifdef __WAS_DEBUG

@@ -45,7 +45,7 @@ struct functor {
 
     typedef gridtools::accessor<0, gridtools::intent::inout> a0;
     typedef gridtools::accessor<1, gridtools::intent::in> a1;
-    typedef gridtools::make_arg_list<a0, a1> arg_list;
+    typedef gridtools::make_param_list<a0, a1> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {}

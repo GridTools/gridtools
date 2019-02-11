@@ -83,12 +83,6 @@ namespace gridtools {
 
         static constexpr int_t level_offset_limit = LevelOffsetLimit;
 
-        template <int_t NewExtraOffsetsAroundFullInterval>
-        using with_extra_offsets = axis<NIntervals, NewExtraOffsetsAroundFullInterval, LevelOffsetLimit>;
-
-        template <int_t NewLevelOffsetLimit>
-        using with_offset_limit = axis<NIntervals, ExtraOffsetsAroundFullInterval, NewLevelOffsetLimit>;
-
       private:
         array<uint_t, NIntervals> interval_sizes_;
     };

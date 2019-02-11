@@ -152,7 +152,7 @@ namespace multi_types_test {
         typedef accessor<0, intent::in> in;
         typedef accessor<1, intent::inout> out;
 
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
@@ -166,7 +166,7 @@ namespace multi_types_test {
         typedef accessor<0, intent::inout> out;
         typedef accessor<1, intent::in> in;
 
-        typedef make_arg_list<out, in> arg_list;
+        typedef make_param_list<out, in> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
@@ -187,7 +187,7 @@ namespace multi_types_test {
         typedef accessor<1, intent::in> in;
         typedef accessor<2, intent::in> temp;
 
-        typedef make_arg_list<out, in, temp> arg_list;
+        typedef make_param_list<out, in, temp> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {
@@ -201,7 +201,7 @@ namespace multi_types_test {
         typedef accessor<1, intent::in> temp;
         typedef accessor<2, intent::in> in;
 
-        typedef make_arg_list<out, temp, in> arg_list;
+        typedef make_param_list<out, temp, in> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, region) {

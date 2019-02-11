@@ -64,8 +64,7 @@ namespace copy_stencil {
     struct copy_functor {
         typedef accessor<0, intent::in> in;
         typedef accessor<1, intent::inout> out;
-        typedef make_arg_list<in, out> arg_list;
-        /* static const auto expression=in(1,0,0)-out(); */
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

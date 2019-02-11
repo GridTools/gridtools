@@ -53,7 +53,7 @@ namespace gridtools {
     struct test_functor {
         using in = accessor<0, intent::in, extent<>, 3>;
         using out = accessor<1, intent::inout, extent<>, 3>;
-        using arg_list = make_arg_list<in, out>;
+        using param_list = make_param_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

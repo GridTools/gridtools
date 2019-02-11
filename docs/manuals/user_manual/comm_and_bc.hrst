@@ -4,14 +4,14 @@ Distributed Boundary Conditions
 ===============================
 
 -------------------
-Design principles:
+Design Principles:
 -------------------
 
 * When doing expandable parameters, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes single data-stores only.
 * The user may want to apply different BCs to the same data-store at different times during an executions, so the binding between BCs and data-stores should be done at member-function level, not at class level, in order to remove the need for instantiation of heavy objects like halo-updates.
 * The same holds for the data stores to be exchanged: we need to plug the data stores at the last minute before doing the packing/unpacking and boundary apply. The requirement given by the underlying communication layer is that the number of data fields to be exchanged must be less than or equal to the maximum number of data fields specified at construction time.
 * The halo exchange patterns are quite heavy objects so they have to be constructed and passed around as references. The ``setup`` needs to be executed only once to prevent memory leaks.
-* The halo information for communication could be derived by a ``storage_info`` class, but there may be cases in which a separate halo information can be provided, and different ``storage_info`` s (with different incides, for instance) may have the same communication requirements (for instance in cases of implicit staggering). For this reason the `halo_descriptor` is passed explicitly to the distributed boundary construction interface.
+* The halo information for communication could be derived by a ``storage_info`` class, but there may be cases in which a separate halo information can be provided, and different ``storage_info`` s (with different indices, for instance) may have the same communication requirements (for instance in cases of implicit staggering). For this reason the `halo_descriptor` is passed explicitly to the distributed boundary construction interface.
 * The ``value_type`` should be passed as an additional template parameter to the distributed boundaries interfaces. The ``value_type`` is used to compute the sizes of the buffers and the data movement operations needed by communication.
 
 
@@ -39,7 +39,7 @@ Communication traits helps the distributed boundary condition interface to custo
 Bindind Boundaries and Communication
 -------------------------------------
 
-|GT| provides a facility for applying boundary conditions. The distributed boudaries interfaces uses this facility underneath. The boundary application in |GT| accept specific boundary classes that specify how to deal with boundaries in different directions and predicated to deal with periodicity and domain decomposition. The latter will be dealt by the distributed boundary interfaces (refer to the boundary condition interfaces for more details).
+|GT| provides a facility for applying boundary conditions. The distributed boundaries interfaces uses this facility underneath. The boundary application in |GT| accept specific boundary classes that specify how to deal with boundaries in different directions and predicated to deal with periodicity and domain decomposition. The latter will be dealt by the distributed boundary interfaces (refer to the boundary condition interfaces for more details).
 
 The distributed boundaries interface require a user to specify which data stores required communication and which require also boundary conditions, and in the latter case what boundary functions to use.
 

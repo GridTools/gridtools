@@ -52,7 +52,7 @@ namespace test_iterate_domain {
     struct stage1 {
         typedef accessor<0, intent::in, extent<42, 42, 42, 42>, 6> in;
         typedef accessor<1, intent::inout, extent<>, 4> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {}
@@ -61,7 +61,7 @@ namespace test_iterate_domain {
     struct stage2 {
         typedef accessor<0, intent::in, extent<42, 42, 42, 42>, 6> in;
         typedef accessor<1, intent::inout, extent<>, 4> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {}

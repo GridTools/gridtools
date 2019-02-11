@@ -91,7 +91,7 @@ namespace {
     struct simple_callee_with_forced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -106,7 +106,7 @@ namespace {
     struct simple_caller_with_forced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -132,7 +132,7 @@ namespace {
     struct simple_callee_with_deduced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -147,7 +147,7 @@ namespace {
     struct simple_caller_with_deduced_return_type {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -176,7 +176,7 @@ namespace {
         typedef in_accessor<1> local;
         typedef inout_accessor<2> out;
         typedef in_accessor<3> in1;
-        typedef make_arg_list<in2, local, out, in1> arg_list;
+        typedef make_param_list<in2, local, out, in1> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -199,7 +199,7 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -225,7 +225,7 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -260,7 +260,7 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
@@ -287,7 +287,7 @@ namespace {
         typedef in_accessor<0> in1;
         typedef inout_accessor<1> out;
         typedef in_accessor<2> in2;
-        typedef make_arg_list<in1, out, in2> arg_list;
+        typedef make_param_list<in1, out, in2> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {

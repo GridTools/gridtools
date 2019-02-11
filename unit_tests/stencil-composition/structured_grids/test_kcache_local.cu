@@ -46,7 +46,7 @@ struct shif_acc_forward {
     typedef accessor<1, intent::inout, extent<>> out;
     typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -1, 0>> buff;
 
-    typedef make_arg_list<in, out, buff> arg_list;
+    typedef make_param_list<in, out, buff> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
@@ -68,7 +68,7 @@ struct biside_large_kcache_forward {
     typedef accessor<1, intent::inout, extent<>> out;
     typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -2, 1>> buff;
 
-    typedef make_arg_list<in, out, buff> arg_list;
+    typedef make_param_list<in, out, buff> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
@@ -101,7 +101,7 @@ struct biside_large_kcache_backward {
     typedef accessor<1, intent::inout, extent<>> out;
     typedef accessor<2, intent::inout, extent<0, 0, 0, 0, -1, 2>> buff;
 
-    typedef make_arg_list<in, out, buff> arg_list;
+    typedef make_param_list<in, out, buff> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
@@ -134,7 +134,7 @@ struct shif_acc_backward {
     typedef accessor<1, intent::inout, extent<>> out;
     typedef accessor<2, intent::inout, extent<0, 0, 0, 0, 0, 1>> buff;
 
-    typedef make_arg_list<in, out, buff> arg_list;
+    typedef make_param_list<in, out, buff> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
@@ -173,9 +173,8 @@ TEST_F(kcachef, local_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute::forward(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<shif_acc_forward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
@@ -211,9 +210,8 @@ TEST_F(kcachef, local_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute::backward(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+        gridtools::make_multistage(execute::backward(),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<shif_acc_backward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
@@ -260,13 +258,9 @@ TEST_F(kcachef, biside_forward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute::forward(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
-            gridtools::make_stage<biside_large_kcache_forward>(p_in() // esf_descriptor
-                ,
-                p_out(),
-                p_buff())));
+        gridtools::make_multistage(execute::forward(),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
+            gridtools::make_stage<biside_large_kcache_forward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();
 
@@ -313,9 +307,8 @@ TEST_F(kcachef, biside_backward) {
     auto kcache_stencil = gridtools::make_computation<backend_t>(m_grid,
         p_in() = m_in,
         p_out() = m_out,
-        gridtools::make_multistage // mss_descriptor
-        (execute::backward(),
-            define_caches(cache<K, cache_io_policy::local>(p_buff())),
+        gridtools::make_multistage(execute::backward(),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_buff())),
             gridtools::make_stage<biside_large_kcache_backward>(p_in(), p_out(), p_buff())));
 
     kcache_stencil.run();

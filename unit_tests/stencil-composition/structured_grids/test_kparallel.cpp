@@ -55,7 +55,7 @@ namespace {
     struct parallel_functor {
         typedef accessor<0> in;
         typedef accessor<1, intent::inout> out;
-        typedef gridtools::make_arg_list<in, out> arg_list;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<0>) {
@@ -71,7 +71,7 @@ namespace {
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
         typedef accessor<1, intent::inout> out;
-        typedef gridtools::make_arg_list<in, out> arg_list;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
@@ -170,16 +170,14 @@ TEST(structured_grid, kparallel) { //
     run_test<gridtools::axis<2>>();
 }
 
-TEST(structured_grid, kparallel_with_extentoffsets_around_interval) {
-    run_test<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
-}
+TEST(structured_grid, kparallel_with_extentoffsets_around_interval) { run_test<gridtools::axis<2, 3, 5>>(); }
 
 TEST(structured_grid, kparallel_with_temporary) { //
     run_test_with_temporary<gridtools::axis<2>>();
 }
 
 TEST(structured_grid, kparallel_with_extentoffsets_around_interval_and_temporary) {
-    run_test_with_temporary<gridtools::axis<2>::with_offset_limit<5>::with_extra_offsets<3>>();
+    run_test_with_temporary<gridtools::axis<2, 3, 5>>();
 }
 
 TEST(structured_grid, kparallel_with_unused_intervals) {

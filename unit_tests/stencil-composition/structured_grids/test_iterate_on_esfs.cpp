@@ -56,7 +56,7 @@ namespace gridtools {
         template <int I>
         struct functor {
             static const int thevalue = I;
-            using arg_list = boost::mpl::vector<in_accessor<0>, inout_accessor<1>>;
+            using param_list = boost::mpl::vector<in_accessor<0>, inout_accessor<1>>;
         };
 
         typedef storage_traits<backend_t::backend_id_t>::storage_info_t<0, 3> storage_info_t;
