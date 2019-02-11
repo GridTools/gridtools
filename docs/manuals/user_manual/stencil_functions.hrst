@@ -43,9 +43,9 @@ on a different gridpoint, by specifying a relative location with ``at``:
    call<...>::at<offset_i, offset_j, offset_k>::with(...);
 
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Procedure Calls: `call_proc<>`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Procedural calls work in the same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
 

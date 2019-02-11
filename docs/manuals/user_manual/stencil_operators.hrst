@@ -1,7 +1,7 @@
 .. _stencil_operators:
 
 Stencil Operators
-========================
+=================
 
 *Stencil operators* are the equivalent of `functors` in regular C++
  code, or they may be considered to be the `GridTools functions`. They
@@ -34,13 +34,13 @@ public properties:
 
 See the :ref:`stencil-operator-example` for a concrete usage of the syntax of the stencil operators.
 
----------------------------------
+--------------------------
 Stencil Operator Interface
----------------------------------
+--------------------------
 
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 Accessor Type
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
 There are three kinds of accessor:
 
@@ -198,9 +198,9 @@ describe how data can be accessed and
 how other operators can be called from
 within the `Do`'s body to perform a computation.
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Using `eval` for Regular Grids
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Let us assume the ``Do`` methods has the following signature:
 
