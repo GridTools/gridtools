@@ -49,7 +49,7 @@ namespace gridtools {
     namespace _impl {
         template <class Functor,
             class Index,
-            bool HasDo = has_apply<Functor, GT_META_CALL(index_to_level, Index)>::value>
+            bool HasApply = has_apply<Functor, GT_META_CALL(index_to_level, Index)>::value>
         struct find_from_index {
             using type = typename find_from_index<Functor, typename Index::prior>::type;
         };
@@ -65,7 +65,7 @@ namespace gridtools {
         template <class Functor,
             class FromIndex,
             class ToIndex = FromIndex,
-            bool HasDo = has_apply<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
+            bool HasApply = has_apply<Functor, GT_META_CALL(make_interval, (FromIndex, ToIndex))>::value>
         struct find_to_index {
             using type = typename find_to_index<Functor, FromIndex, typename ToIndex::next>::type;
         };
@@ -79,7 +79,7 @@ namespace gridtools {
             class FromIndex,
             class ToIndex = FromIndex,
             class Interval = GT_META_CALL(make_interval, (FromIndex, ToIndex)),
-            bool HasDo = has_apply<Functor, Interval>::value>
+            bool HasApply = has_apply<Functor, Interval>::value>
         struct find_interval_impl {
             using type = typename find_interval_impl<Functor, FromIndex, typename ToIndex::next>::type;
         };
