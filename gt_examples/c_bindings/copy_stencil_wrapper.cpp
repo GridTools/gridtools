@@ -59,7 +59,7 @@ namespace {
     struct copy_functor {
         using in = gt::accessor<0, gt::enumtype::in>;
         using out = gt::accessor<1, gt::enumtype::inout>;
-        using arg_list = gt::make_arg_list<in, out>;
+        using param_list = gt::make_param_list<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void Do(Evaluation &eval) {
