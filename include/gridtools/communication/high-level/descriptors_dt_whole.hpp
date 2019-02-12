@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTORS_DT_WHOLE_H_
-#define _DESCRIPTORS_DT_WHOLE_H_
+#pragma once
 
 #include "../../common/array.hpp"
 #include "../../common/gt_assert.hpp"
@@ -283,5 +282,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif

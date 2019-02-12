@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _GCL_H_
-#define _GCL_H_
+#pragma once
 
 #include <iostream>
 #ifdef _GCL_MPI_
@@ -111,5 +110,3 @@ namespace gridtools {
     void GCL_Finalize();
 
 } // namespace gridtools
-
-#endif

@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _PROC_GRIDS_3D_H_
-#define _PROC_GRIDS_3D_H_
+#pragma once
 
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
@@ -277,5 +276,3 @@ namespace gridtools {
 #endif
 
 } // namespace gridtools
-
-#endif

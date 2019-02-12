@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef HALO_EXCHANGE_3D_H_
-#define HALO_EXCHANGE_3D_H_
+#pragma once
 
 #ifdef GT_VERBOSE
 #include <iostream>
@@ -1144,5 +1143,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif

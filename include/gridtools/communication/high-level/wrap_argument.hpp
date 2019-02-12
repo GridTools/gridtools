@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _WRAP_ARGUMENT_H_
-#define _WRAP_ARGUMENT_H_
+#pragma once
 
 struct wrap_argument {
     int data[27];
@@ -48,5 +47,3 @@ struct wrap_argument {
 
     GT_FUNCTION int const &operator[](int i) const { return data[i]; }
 };
-
-#endif

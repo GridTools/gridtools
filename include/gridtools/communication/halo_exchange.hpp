@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HALO_EXCHANGE_H_
-#define _HALO_EXCHANGE_H_
+#pragma once
 
 #include "../common/boollist.hpp"
 #include "low-level/Halo_Exchange_3D.hpp"
@@ -827,5 +826,3 @@ namespace gridtools {
         explicit halo_exchange_generic(grid_type const &g) : base_type(g) {}
     };
 } // namespace gridtools
-
-#endif

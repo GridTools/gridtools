@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _EMPTY_FIELD_BASE_H_
-#define _EMPTY_FIELD_BASE_H_
+#pragma once
 
 #include "../../common/boollist.hpp"
 #include "../../common/halo_descriptor.hpp"
@@ -217,4 +216,3 @@ namespace gridtools {
         }
     };
 } // namespace gridtools
-#endif

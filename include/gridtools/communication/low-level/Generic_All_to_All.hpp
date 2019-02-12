@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _GENERIC_ALL_TO_ALL_H_
-#define _GENERIC_ALL_TO_ALL_H_
+#pragma once
 
 #include "../GCL.hpp"
 #include <mpi.h>
@@ -237,4 +236,3 @@ namespace gridtools {
         }
     };
 } // namespace gridtools
-#endif

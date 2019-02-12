@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HALO_EXCHANGE_H_
-#define _HALO_EXCHANGE_H_
+#pragma once
 
 // #include <boost/preprocessor/repetition/enum.hpp>
 // #include <boost/preprocessor/arithmetic/inc.hpp>
@@ -89,5 +88,3 @@ namespace gridtools {
     template <typename PROC_GRID, int ALIGN_SIZE = 1>
     struct Halo_Exchange_3D {};
 } // namespace gridtools
-
-#endif

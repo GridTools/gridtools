@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
-#define _DESCRIPTOR_GENERIC_MANUAL_H_
+#pragma once
 
 #include "../../common/numerics.hpp"
 #include "./descriptor_base.hpp"
@@ -884,5 +883,3 @@ namespace gridtools {
     };
 #endif // cudacc
 } // namespace gridtools
-
-#endif

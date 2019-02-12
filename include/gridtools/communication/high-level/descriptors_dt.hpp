@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTORS_DT_H_
-#define _DESCRIPTORS_DT_H_
+#pragma once
 
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
@@ -907,4 +906,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-#endif

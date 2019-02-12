@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HELPERS_IMPL_H_
-#define _HELPERS_IMPL_H_
+#pragma once
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "descriptors_fwd.hpp"
 
@@ -202,4 +201,3 @@ namespace gridtools {
 
     } // namespace _impl
 } // namespace gridtools
-#endif
