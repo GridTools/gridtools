@@ -54,29 +54,29 @@
 #include "./m_unpackZL_generic.hpp"
 #include "./m_unpackZU_generic.hpp"
 
-#define KERNEL_TYPE ZL
+#define GCL_KERNEL_TYPE ZL
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE ZU
+#define GCL_KERNEL_TYPE ZU
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE YL
+#define GCL_KERNEL_TYPE YL
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE YU
+#define GCL_KERNEL_TYPE YU
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE XL
+#define GCL_KERNEL_TYPE XL
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE XU
+#define GCL_KERNEL_TYPE XU
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 #endif
 #include "../../common/make_array.hpp"
 #include "./helpers_impl.hpp"

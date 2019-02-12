@@ -60,13 +60,13 @@
 #define GCL_print_FIELDS(m) BOOST_PP_REPEAT(m, _GCL_print_FIELDS, nil)
 
 template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FOTF_T)>
-void GCL_PACK_F_NAME(KERNEL_TYPE)(
+void GCL_PACK_F_NAME(GCL_KERNEL_TYPE)(
     BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FOTF_T, const &field), void **d_msgbufTab, const int *d_msgsize) {
     // GCL_print_FIELDS(GCL_NOI);
 
 #define GCL_QUOTE(x) #x
 #define _GCL_QUOTE(x) GCL_QUOTE(x)
-#include _GCL_QUOTE(GCL_PACK_FILE_NAME(KERNEL_TYPE))
+#include _GCL_QUOTE(GCL_PACK_FILE_NAME(GCL_KERNEL_TYPE))
 #undef GCL_QUOTE
 #undef _GCL_QUOTE
 }
@@ -78,12 +78,12 @@ void GCL_PACK_F_NAME(KERNEL_TYPE)(
 #define GCL_UNPACK_FILE_NAME(x) _GCL_UNPACK_FILE_NAME(x)
 
 template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FOTF_T)>
-void GCL_UNPACK_F_NAME(KERNEL_TYPE)(
+void GCL_UNPACK_F_NAME(GCL_KERNEL_TYPE)(
     BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FOTF_T, const &field), void **d_msgbufTab_r, int *d_msgsize_r) {
 
 #define GCL_QUOTE(x) #x
 #define _GCL_QUOTE(x) GCL_QUOTE(x)
-#include _GCL_QUOTE(GCL_UNPACK_FILE_NAME(KERNEL_TYPE))
+#include _GCL_QUOTE(GCL_UNPACK_FILE_NAME(GCL_KERNEL_TYPE))
 #undef GCL_QUOTE
 #undef _GCL_QUOTE
 }
