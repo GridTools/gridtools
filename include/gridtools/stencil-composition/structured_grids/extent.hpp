@@ -94,26 +94,26 @@ namespace gridtools {
             using type = extent<Is...>;
         };
 
-        template <int_t L_I_Minus,
-            int_t L_I_Plus,
-            int_t L_J_Minus,
-            int_t L_J_Plus,
-            int_t L_K_Minus,
-            int_t L_K_Plus,
-            int_t R_I_Minus,
-            int_t R_I_Plus,
-            int_t R_J_Minus,
-            int_t R_J_Plus,
-            int_t R_K_Minus,
-            int_t R_K_Plus>
-        struct enclosing_extent<extent<L_I_Minus, L_I_Plus, L_J_Minus, L_J_Plus, L_K_Minus, L_K_Plus>,
-            extent<R_I_Minus, R_I_Plus, R_J_Minus, R_J_Plus, R_K_Minus, R_K_Plus>> {
-            using type = extent<(L_I_Minus < R_I_Minus) ? L_I_Minus : R_I_Minus,
-                (L_I_Plus < R_I_Plus) ? R_I_Plus : L_I_Plus,
-                (L_J_Minus < R_J_Minus) ? L_J_Minus : R_J_Minus,
-                (L_J_Plus < R_J_Plus) ? R_J_Plus : L_J_Plus,
-                (L_K_Minus < R_K_Minus) ? L_K_Minus : R_K_Minus,
-                (L_K_Plus < R_K_Plus) ? R_K_Plus : L_K_Plus>;
+        template <int_t IMinus1,
+            int_t IPlus1,
+            int_t JMinus1,
+            int_t JPlus1,
+            int_t KMinus1,
+            int_t KPlus1,
+            int_t IMinus2,
+            int_t IPlus2,
+            int_t JMinus2,
+            int_t JPlus2,
+            int_t KMinus2,
+            int_t KPlus2>
+        struct enclosing_extent<extent<IMinus1, IPlus1, JMinus1, JPlus1, KMinus1, KPlus1>,
+            extent<IMinus2, IPlus2, JMinus2, JPlus2, KMinus2, KPlus2>> {
+            using type = extent<(IMinus1 < IMinus2) ? IMinus1 : IMinus2,
+                (IPlus1 < IPlus2) ? IPlus2 : IPlus1,
+                (JMinus1 < JMinus2) ? JMinus1 : JMinus2,
+                (JPlus1 < JPlus2) ? JPlus2 : JPlus1,
+                (KMinus1 < KMinus2) ? KMinus1 : KMinus2,
+                (KPlus1 < KPlus2) ? KPlus2 : KPlus1>;
         };
 
         template <class... Extents>
