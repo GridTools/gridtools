@@ -26,7 +26,7 @@ struct lap_function {
     using in = in_accessor<0, extent<-1, 1, -1, 1>>;
     using lap = inout_accessor<1>;
 
-    using arg_list = make_arg_list<in, lap>;
+    using param_list = make_param_list<in, lap>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation const &eval) {

@@ -64,7 +64,7 @@ struct u_forward_function {
     using ccol = inout_accessor<8, extent<0, 0, 0, 0, -1, 0>>;
     using dcol = inout_accessor<9, extent<0, 0, 0, 0, -1, 0>>;
 
-    using arg_list = make_arg_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
+    using param_list = make_param_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, -1> interval) {
@@ -150,7 +150,7 @@ struct u_backward_function {
     using dcol = in_accessor<4>;
     using data_col = inout_accessor<5, extent<0, 0, 0, 0, 0, 1>>;
 
-    using arg_list = make_arg_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
+    using param_list = make_param_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval, full_t::modify<0, -1> interval) {
@@ -206,15 +206,15 @@ TEST_F(vertical_advection_dycore, test) {
         p_utens = make_storage(repo.utens),
         p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
         make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_acol),
-                cache<K, cache_io_policy::local>(p_bcol),
-                cache<K, cache_io_policy::flush>(p_ccol),
-                cache<K, cache_io_policy::flush>(p_dcol),
-                cache<K, cache_io_policy::fill>(p_u_stage)),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_acol),
+                cache<cache_type::K, cache_io_policy::local>(p_bcol),
+                cache<cache_type::K, cache_io_policy::flush>(p_ccol),
+                cache<cache_type::K, cache_io_policy::flush>(p_dcol),
+                cache<cache_type::K, cache_io_policy::fill>(p_u_stage)),
             make_stage<u_forward_function>(
                 p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
         make_multistage(enumtype::execute<enumtype::backward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_data_col)),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_data_col)),
             make_stage<u_backward_function>(p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)));
     comp.run();
     verify_utens_stage();
@@ -229,15 +229,15 @@ TEST_F(vertical_advection_dycore, with_extents) {
         p_utens = make_storage(repo.utens),
         p_dtr_stage = make_storage<scalar_storage_type>(repo.dtr_stage),
         make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_acol),
-                cache<K, cache_io_policy::local>(p_bcol),
-                cache<K, cache_io_policy::flush>(p_ccol),
-                cache<K, cache_io_policy::flush>(p_dcol),
-                cache<K, cache_io_policy::fill>(p_u_stage)),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_acol),
+                cache<cache_type::K, cache_io_policy::local>(p_bcol),
+                cache<cache_type::K, cache_io_policy::flush>(p_ccol),
+                cache<cache_type::K, cache_io_policy::flush>(p_dcol),
+                cache<cache_type::K, cache_io_policy::fill>(p_u_stage)),
             make_stage_with_extent<u_forward_function, extent<>>(
                 p_utens_stage, p_wcon, p_u_stage, p_u_pos, p_utens, p_dtr_stage, p_acol, p_bcol, p_ccol, p_dcol)),
         make_multistage(enumtype::execute<enumtype::backward>(),
-            define_caches(cache<K, cache_io_policy::local>(p_data_col)),
+            define_caches(cache<cache_type::K, cache_io_policy::local>(p_data_col)),
             make_stage_with_extent<u_backward_function, extent<>>(
                 p_utens_stage, p_u_pos, p_dtr_stage, p_ccol, p_dcol, p_data_col)))
         .run();

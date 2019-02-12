@@ -48,7 +48,7 @@ template <uint_t>
 struct test_on_edges_functor {
     using in = in_accessor<0, enumtype::edges, extent<-1, 1, -1, 1>>;
     using out = inout_accessor<1, enumtype::edges>;
-    using arg_list = make_arg_list<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {

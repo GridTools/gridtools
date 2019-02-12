@@ -85,7 +85,7 @@ following capabilities:
 
 -   access an element with :math:`(i,j,k)` syntax
 
--   syncronization between CPU memory and a device (e.g. a CUDA capable GPU)
+-   synchronization between CPU memory and a device (e.g. a CUDA capable GPU)
 
 ^^^^^^^
 Backend
@@ -121,7 +121,7 @@ See :ref:`backend-selection` for details.
 The storage type
 ^^^^^^^^^^^^^^^^
 
-For efficient memory access the index ordering might depend on the target architecure, therefore the
+For efficient memory access the index ordering might depend on the target architecture, therefore the
 memory layout will implicitly decided by target via the storage traits as follows.
 
 For each storage type we need to define the type of the data we want to
@@ -158,7 +158,7 @@ We can now
 
 -   retrieve the name of the field,
 -   create a view and read and write values in the field using the parenthesis syntax,
--   syncronize data between device and host (in CUDA mode).
+-   synchronize data between device and host (in CUDA mode).
 
 
 .. literalinclude:: code/test_gt_storage.cpp
@@ -258,7 +258,7 @@ library.)
 
 The first template argument is an index defining the order of the
 parameters, i.e. the order in which the fields are passed to the
-functor. The ``arg_list`` is a |GT| keyword which has to be defined for each stencil.
+functor. The ``param_list`` is a |GT| keyword which has to be defined for each stencil.
 
 A ``Do``-method needs as first parameter a context
 object, usually called ``eval``, which is created and passed to the method by the library on
@@ -328,7 +328,7 @@ largest. Other execution modes are ``forward`` and ``backward``. For performance
 whenever possible.
 
 In the last line the stencil is
-executed. The datastores ``phi`` and ``lap`` are bound to its placeholders.
+executed. The data stores ``phi`` and ``lap`` are bound to its placeholders.
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
 Full GridTools Laplacian
@@ -461,7 +461,7 @@ follows
 .. literalinclude:: code/gt_smoothing_variant3_operator.hpp
    :language: gridtools
 
-In ``call`` we specify the functorw which we want to apply.
+In ``call`` we specify the functor which we want to apply.
 In ``with`` the 
 ``eval`` is forwarded, followed by all the input arguments for the functor. The functor in the call is required to 
 have exactly one ``inout_accessor`` which will be the return value of the call.

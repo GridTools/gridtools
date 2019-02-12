@@ -46,7 +46,7 @@ struct copy_functor {
     using parameters_out = inout_accessor<0>;
     using parameters_in = accessor<1>;
 
-    using arg_list = make_arg_list<parameters_out, parameters_in>;
+    using param_list = make_param_list<parameters_out, parameters_in>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval) {
@@ -70,7 +70,7 @@ TEST_F(expandable_parameters, test) {
         p_out = out,
         p_in = in,
         make_multistage(enumtype::execute<enumtype::forward>(),
-            define_caches(cache<IJ, cache_io_policy::local>(p_tmp)),
+            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_tmp)),
             make_stage<copy_functor>(p_tmp, p_in),
             make_stage<copy_functor>(p_out, p_tmp)))
         .run();
