@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define MACRO_IMPL(z, n, _)                                                                              \
+#define GCL_MACRO_IMPL(z, n, _)                                                                          \
     {                                                                                                    \
         const int ntx = 1;                                                                               \
         const int nty = 32;                                                                              \
@@ -60,5 +60,5 @@
         }                                                                                                \
     }
 
-BOOST_PP_REPEAT(noi, MACRO_IMPL, all)
-#undef MACRO_IMPL
+BOOST_PP_REPEAT(noi, GCL_MACRO_IMPL, all)
+#undef GCL_MACRO_IMPL
