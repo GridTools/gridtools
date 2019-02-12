@@ -34,6 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#ifdef GT_VERBOSE
+#include <iostream>
+#endif
+
 #include "../../../common/cuda_util.hpp"
 #include "../../../common/defs.hpp"
 #include "../../../common/gt_assert.hpp"
@@ -201,7 +206,7 @@ namespace gridtools {
                 : m_local_domain(local_domain), m_grid(grid) {}
 
             void operator()() {
-#ifdef VERBOSE
+#ifdef GT_VERBOSE
                 short_t count;
                 GT_CUDA_CHECK(cudaGetDeviceCount(&count));
 
@@ -258,10 +263,10 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-#ifdef VERBOSE
-                printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
-                printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
-                printf("nx = %d, ny = %d, nz = %d\n", nx, ny, nz);
+#ifdef GT_VERBOSE
+                std::cout << "ntx = " << ntx << ", nty = " << nty << ", ntz = " << ntz << std::endl;
+                std::cout << "nbx = " << nbx << ", nby = " << nby << ", nbz = " << nbz << std::endl;
+                std::cout << "nx = " << nx << ", ny = " << ny << ", nz = " << nz << std::endl;
 #endif
                 _impl_strcuda::do_it_on_gpu<RunFunctorArguments, ntx *(nty + halo_processing_warps)>
                     <<<blocks, threads>>>(m_local_domain, m_grid);
