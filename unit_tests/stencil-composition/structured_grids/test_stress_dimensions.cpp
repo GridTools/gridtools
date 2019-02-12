@@ -201,7 +201,7 @@ namespace assembly {
         typedef in_accessor<2, extent<>, 4> jac;
         typedef in_accessor<3, extent<>, 6> f;
         typedef inout_accessor<4, extent<>, 6> result;
-        typedef make_arg_list<phi, psi, jac, f, result> arg_list;
+        typedef make_param_list<phi, psi, jac, f, result> param_list;
         using quad = dimension<7>;
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

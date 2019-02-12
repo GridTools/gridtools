@@ -85,7 +85,7 @@ struct integration {
     using f = in_accessor<3, extent<>, 6>;
     using result = inout_accessor<4, extent<>, 6>;
 
-    using arg_list = make_arg_list<phi_t, psi_t, jac, f, result>;
+    using param_list = make_param_list<phi_t, psi_t, jac, f, result>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

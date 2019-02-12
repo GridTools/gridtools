@@ -110,7 +110,7 @@ namespace gridtools {
 
         template <class Functor, class Interval>
         struct bound_functor {
-            using arg_list = typename Functor::arg_list;
+            using param_list = typename Functor::param_list;
 
             template <class Eval>
             static GT_FUNCTION auto apply(Eval &eval) GT_AUTO_RETURN(Functor::template apply<Eval &>(eval, Interval{}));

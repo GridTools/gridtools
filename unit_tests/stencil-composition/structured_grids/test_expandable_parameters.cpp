@@ -49,7 +49,7 @@ struct copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -61,7 +61,7 @@ struct copy_functor_with_expression {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -74,7 +74,7 @@ struct call_proc_copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -86,7 +86,7 @@ struct call_copy_functor {
     typedef accessor<0, enumtype::inout> out;
     typedef accessor<1, enumtype::in> in;
 
-    typedef make_arg_list<out, in> arg_list;
+    typedef make_param_list<out, in> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -97,7 +97,7 @@ struct call_copy_functor {
 struct shift_functor {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef make_arg_list<out> arg_list;
+    typedef make_param_list<out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {
@@ -109,7 +109,7 @@ template <class AxisInterval>
 struct call_shift_functor {
     typedef accessor<0, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef make_arg_list<out> arg_list;
+    typedef make_param_list<out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, typename AxisInterval::template modify<1, 0>) {

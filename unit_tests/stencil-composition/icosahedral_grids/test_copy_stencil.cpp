@@ -52,7 +52,7 @@ namespace cs_test {
     struct test_functor {
         typedef in_accessor<0, icosahedral_topology_t::cells, extent<1>> in;
         typedef inout_accessor<1, icosahedral_topology_t::cells> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, x_interval) {

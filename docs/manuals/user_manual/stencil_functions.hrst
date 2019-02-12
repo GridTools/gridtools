@@ -15,7 +15,7 @@ needs to be included.
 Two variants are available: functional calls which return a value and procedural calls with side-effect on the given arguments (accessors).
 
 ^^^^^^^^^^^^^^^^^^^^^^^^
-Function calls: call<>
+Function Calls: `call<>`
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 The basic syntax for function calls is as follows
@@ -36,16 +36,16 @@ The operator needs to have exactly one ``inout``-accessor which will be the retu
    The vertical interval needs to be one which appears in a ``apply``-method overload of the called operator.
 
 The accessors which are passed in the function call can have offsets in the usual way. Additionally the whole operator can be shifted to be executed
-on a different gridpoint, by specifying a relative location with ``at``:
+on a different grid point, by specifying a relative location with ``at``:
 
 .. code-block:: gridtools
 
    call<...>::at<offset_i, offset_j, offset_k>::with(...);
 
 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Procedure calls: call_proc<>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Procedure Calls: `call_proc<>`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Procedural calls work in the same way as function calls, but all accessor, which are ``inout`` in the operator, can be modified.
 

@@ -51,7 +51,7 @@ namespace ico_operators {
         using weights = inout_accessor<2, vertices, 5>;
         using edge_orientation = in_accessor<3, vertices, extent<>, 5>;
 
-        using arg_list = make_arg_list<dual_area_reciprocal, dual_edge_length, weights, edge_orientation>;
+        using param_list = make_param_list<dual_area_reciprocal, dual_edge_length, weights, edge_orientation>;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
@@ -72,7 +72,7 @@ namespace ico_operators {
         using weights = in_accessor<1, vertices, extent<>, 5>;
         using out_vertices = inout_accessor<2, vertices>;
 
-        using arg_list = make_arg_list<in_edges, weights, out_vertices>;
+        using param_list = make_param_list<in_edges, weights, out_vertices>;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {
@@ -95,7 +95,7 @@ namespace ico_operators {
         using dual_edge_length = in_accessor<2, edges, extent<-1, 0, -1, 0>>;
         using out_vertices = inout_accessor<3, vertices>;
 
-        using arg_list = make_arg_list<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;
+        using param_list = make_param_list<in_edges, dual_area_reciprocal, dual_edge_length, out_vertices>;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation eval) {

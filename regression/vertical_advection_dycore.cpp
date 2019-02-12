@@ -64,7 +64,7 @@ struct u_forward_function {
     using ccol = inout_accessor<8, extent<0, 0, 0, 0, -1, 0>>;
     using dcol = inout_accessor<9, extent<0, 0, 0, 0, -1, 0>>;
 
-    using arg_list = make_arg_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
+    using param_list = make_param_list<utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval, full_t::modify<1, -1> interval) {
@@ -150,7 +150,7 @@ struct u_backward_function {
     using dcol = in_accessor<4>;
     using data_col = inout_accessor<5, extent<0, 0, 0, 0, 0, 1>>;
 
-    using arg_list = make_arg_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
+    using param_list = make_param_list<utens_stage, u_pos, dtr_stage, ccol, dcol, data_col>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, full_t::modify<0, -1> interval) {

@@ -54,7 +54,7 @@ struct wlap_function {
     using crlato = in_accessor<2>;
     using crlatu = in_accessor<3>;
 
-    using arg_list = make_arg_list<out, in, crlato, crlatu>;
+    using param_list = make_param_list<out, in, crlato, crlatu>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
@@ -70,7 +70,7 @@ struct divflux_function {
     using crlato = in_accessor<3>;
     using coeff = in_accessor<4>;
 
-    using arg_list = make_arg_list<out, in, lap, crlato, coeff>;
+    using param_list = make_param_list<out, in, lap, crlato, coeff>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {

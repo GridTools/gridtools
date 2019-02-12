@@ -254,6 +254,8 @@ namespace gridtools {
             return (m_minus == rhs.m_minus) && (m_plus == rhs.m_plus) && (m_begin == rhs.m_begin) &&
                    (m_end == rhs.m_end) && (m_total_length == rhs.m_total_length);
         }
+
+        GT_FUNCTION bool operator!=(const halo_descriptor &rhs) const { return !(*this == rhs); }
     };
 
     /** @} */

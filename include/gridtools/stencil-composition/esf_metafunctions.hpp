@@ -97,9 +97,9 @@ namespace gridtools {
     template <typename Esf, typename Index>
     struct is_written_temp {
         GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), "Wrong Type");
-        typedef typename esf_arg_list<Esf>::type arg_list_t;
+        typedef typename esf_param_list<Esf>::type param_list_t;
         typedef typename boost::mpl::if_<is_tmp_arg<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
-            typename boost::mpl::if_<is_accessor_readonly<typename boost::mpl::at<arg_list_t, Index>::type>,
+            typename boost::mpl::if_<is_accessor_readonly<typename boost::mpl::at<param_list_t, Index>::type>,
                 boost::false_type,
                 boost::true_type>::type,
             boost::false_type>::type type;
@@ -115,7 +115,7 @@ namespace gridtools {
         struct apply {
             typedef typename boost::mpl::if_<is_plh<typename boost::mpl::at<typename Esf::args_t, Index>::type>,
                 typename boost::mpl::if_<typename is_accessor_readonly<typename boost::mpl::
-                                                 at<typename esf_arg_list<Esf>::type, Index>::type>::type,
+                                                 at<typename esf_param_list<Esf>::type, Index>::type>::type,
                     boost::false_type,
                     boost::true_type>::type,
                 boost::false_type>::type type;

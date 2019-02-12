@@ -53,7 +53,7 @@ namespace {
     struct copy_functor {
         using in = accessor<0, enumtype::in, extent<>, 3>;
         using out = accessor<1, enumtype::inout, extent<>, 3>;
-        using arg_list = m::vector<in, out>;
+        using param_list = m::vector<in, out>;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

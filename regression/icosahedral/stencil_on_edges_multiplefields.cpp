@@ -55,7 +55,7 @@ struct test_on_edges_functor {
     using in1 = in_accessor<0, enumtype::edges, extent<1, -1, 1, -1>>;
     using in2 = in_accessor<1, enumtype::edges, extent<1, -1, 1, -1>>;
     using out = inout_accessor<2, enumtype::edges>;
-    using arg_list = make_arg_list<in1, in2, out>;
+    using param_list = make_param_list<in1, in2, out>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {

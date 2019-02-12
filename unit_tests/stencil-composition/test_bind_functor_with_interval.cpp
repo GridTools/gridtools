@@ -77,7 +77,7 @@ namespace gridtools {
         GT_META_DEFINE_ALIAS(idx, level_to_index, (lev<Splitter, Offset>));
 
         struct simple_functor {
-            using arg_list = std::tuple<>;
+            using param_list = std::tuple<>;
 
             template <class Eval>
             static GT_FUNCTION void apply(Eval &eval) {
@@ -91,7 +91,7 @@ namespace gridtools {
         TEST(bind_functor_with_interval, simple) { EXPECT_EQ("simple", (run<simple_functor, 0, 1>())); }
 
         struct one_interval_functor {
-            using arg_list = std::tuple<>;
+            using param_list = std::tuple<>;
 
             template <class Eval>
             static GT_FUNCTION void apply(Eval &eval, interval<lev<0, 1>, lev<1, 1>>) {
@@ -112,7 +112,7 @@ namespace gridtools {
         }
 
         struct overloaded_functor {
-            using arg_list = std::tuple<>;
+            using param_list = std::tuple<>;
 
             template <class Eval>
             static GT_FUNCTION void apply(Eval &eval, interval<lev<0, 1>, lev<1, -1>>) {
@@ -136,7 +136,7 @@ namespace gridtools {
         }
 
         struct with_default_functor {
-            using arg_list = std::tuple<>;
+            using param_list = std::tuple<>;
 
             template <class Eval>
             static GT_FUNCTION void apply(Eval &eval) {
@@ -158,7 +158,7 @@ namespace gridtools {
         }
 
         struct int_functor {
-            using arg_list = std::tuple<>;
+            using param_list = std::tuple<>;
             template <class Eval>
             static GT_FUNCTION int apply(Eval &, interval<lev<0, 1>, lev<1, 1>>) {
                 return 42;

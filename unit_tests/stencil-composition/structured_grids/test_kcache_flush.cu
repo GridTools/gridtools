@@ -46,7 +46,7 @@ struct shift_acc_forward_flush {
     typedef accessor<0, enumtype::in, extent<>> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, -1, 0>> out;
 
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kminimum) {
@@ -64,7 +64,7 @@ struct shift_acc_backward_flush {
     typedef accessor<0, enumtype::in, extent<>> in;
     typedef accessor<1, enumtype::inout, extent<0, 0, 0, 0, 0, 1>> out;
 
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {

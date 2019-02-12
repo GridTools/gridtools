@@ -2,10 +2,10 @@ Introduction
 =====================
 
 -----------------------------
-What is |GT|
+What Is GridTools
 -----------------------------
 
-The GridTools (GT) framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it adresses the challenges that arise from integration into production code, such as the expression of boundary conditions, or conditional execution. The framework is structured such that it can be called from different weather models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures. This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend) parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple stencils. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran), to aid code development and a communication layer.
+The |GT| (GT) framework is a set of libraries and utilities to develop performance portable applications in which stencil operations on grids are central. The focus of the project is on regular and block-structured grids as are commonly found in the weather and climate application field. In this context, GT provides a useful level of abstraction to enhance productivity and obtain excellent performance on a wide range of computer architectures. Additionally, it addresses the challenges that arise from integration into production code, such as the expression of boundary conditions, or conditional execution. The framework is structured such that it can be called from different weather models (numerical weather and climate codes) or programming interfaces, and can target various computer architectures. This is achieved by separating the GT core library in a user facing part (frontend) and architecture specific (backend) parts. The core library also abstracts various possible data layouts and applies optimizations on stages with multiple stencils. The core library is complemented by facilities to interoperate with other languages (such as C and Fortran), to aid code development and a communication layer.
 
 For a list of supported compilers refer to the `project Wiki on github <https://github.com/eth-cscs/gridtools/wiki/Supported-Compilers>`_.
 
@@ -16,7 +16,7 @@ Dependencies
 |GT| depends on Boost (version 1.60 or newer). |GT| does not use any runtime library from Boost, but instead depends on header only libraries such as ``boost::mpl`` and ``boost::fusion``.
 
 -----------------------------
-Installation and use
+Installation and Use
 -----------------------------
 
 |GT| uses CMake as building system. The installation can be configured using `ccmake`. The following variables control the back-ends that will be supported by the runtime components of the installation:
@@ -61,7 +61,7 @@ To have access to these variables ``INSTALL_ALL`` should be set to ``OFF``.
 Additionally, examples can be compiled if ``GT_COMPILE_EXAMPLES`` is ``ON``. The examples can be installed if ``GT_INSTALL_EXAMPLES`` is ``ON``. The path where to install the examples is specified by ``GT_INSTALL_EXAMPLES_PATH`` and it is set to ``CMAKE_INSTALL_PREFIX`` by default.
 
 ^^^^^^^^^^^^^^^^^^^^
-Simple script
+Simple Script
 ^^^^^^^^^^^^^^^^^^^^
 
 Below a sample of the commands needed to enable the multicore and CUDA backends and install them in ``/usr/local``.
@@ -74,13 +74,12 @@ Below a sample of the commands needed to enable the multicore and CUDA backends 
  cd build
  cmake -DGT_ENABLE_TARGET_MC=ON -DGT_ENABLE_TARGET_CUDA=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
  make install
- 
 
 ^^^^^^^^^^^^^^^^^^^^^
-Using |GT|
+Using GridTools
 ^^^^^^^^^^^^^^^^^^^^^
 
-Using |GT| follows standard CMake practices. To indicate where the |GT| root is, cmake should be provided with the variable ``gridtools_DIR``, e.g. by calling cmake with `-Dgridtools_DIR=</path/to/gridtools/lib/cmake>`. The ``CMakeLists.txt`` file should then contain the following lines:
+Using |GT| follows standard CMake practices. To indicate where the |GT| root is, CMake should be provided with the variable ``gridtools_DIR``, e.g. by calling CMake with `-Dgridtools_DIR=</path/to/gridtools/lib/cmake>`. The ``CMakeLists.txt`` file should then contain the following lines:
 
 .. code-block:: cmake
 
@@ -101,18 +100,8 @@ Targets that need |GT| should indicate ``GridTools::gridtools`` as target link l
 
  target_link_libraries(${target_name} GridTools::gridtools)
 
-Some utilities are provided to the user, for instance ``backend_select.hpp``, which helps in the selection of the back-end to be used. To use these tools, some compilation flags should be specified. One is ``GT_FLOAT_PRECISION`` (which can be 8 or 4 for ``double`` or ``float`` respectively), the others are ``GT_BACKEND_X86``, ``GT_BACKEND_MC`` or ``GT_BACKEND_CUDA`` to select the back-end. The following example show how to use them:
-
-.. code-block:: cmake
-
- target_compile_definitions(${srcfile}_host_block_ex PUBLIC GT_BACKEND_X86 GT_FLOAT_PRECISION=8)
-
-.. note:
-
- The floating point precision will define ``float_type`` with a corresponding type. The user can then define their storage objects to use this type and then select the precision at compile time.
-
 -----------------------------
 Contributing
 -----------------------------
 
-Contributions to the GridTools set of libraries are welcome. Our policy is however, that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.
+Contributions to the |GT| set of libraries are welcome. Our policy is however, that we will be the official maintainers and providers of the GridTools code. We believe that this will provide our users with a clear reference point for support and guarantees on timely interactions. For this reason, we require that external contributions to |GT| will be accepted after their authors provide to us a signed copy of a copyright release form to ETH Zurich.

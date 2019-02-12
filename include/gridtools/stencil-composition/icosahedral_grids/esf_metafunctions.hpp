@@ -94,11 +94,11 @@ namespace gridtools {
     };
 
     template <typename Esf>
-    struct esf_arg_list {
+    struct esf_param_list {
         template <typename Set, typename Item>
         struct insert_arglist {
-            typedef
-                typename boost::mpl::insert<Set, typename Esf::template esf_function<Item::value>::arg_list>::type type;
+            typedef typename boost::mpl::insert<Set, typename Esf::template esf_function<Item::value>::param_list>::type
+                type;
         };
 
         GT_STATIC_ASSERT((is_esf_descriptor<Esf>::value), GT_INTERNAL_ERROR);
@@ -109,7 +109,7 @@ namespace gridtools {
         GT_STATIC_ASSERT((boost::mpl::size<checkset>::value == 1),
             "Multiple Color specializations of the same ESF must contain the same arg list");
 
-        typedef typename Esf::template esf_function<0>::arg_list type;
+        typedef typename Esf::template esf_function<0>::param_list type;
     };
 
     /** Retrieve the extent in esf_descriptor_with_extents

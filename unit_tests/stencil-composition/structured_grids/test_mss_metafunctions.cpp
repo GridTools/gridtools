@@ -46,7 +46,7 @@ using namespace enumtype;
 struct functor1 {
     typedef accessor<0> in;
     typedef accessor<1> out;
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation &eval) {}
@@ -72,7 +72,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
             esf1_t(), // esf_descriptor
             esf2_t()  // esf_descriptor
             )) mss_t;
-    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_arg_list<esf1_t, esf2_t>>::value), "ERROR");
+    GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_param_list<esf1_t, esf2_t>>::value), "ERROR");
 
 #ifndef __DISABLE_CACHING__
     GT_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,

@@ -37,8 +37,8 @@ The implementation requires the user to specify an integer ```expand_factor``` w
         make_multistage(enumtype::execute<enumtype::forward>(), make_stage<functor>(p())));
 
 The vector of
-storages is then partitioned into chuncks of ``expand_factor`` size (with a remainder). Each
-chunck is unrolled whithin a computation, and for each chunck a different computation is
+storages is then partitioned into chunks of ``expand_factor`` size (with a remainder). Each
+chunk is unrolled within a computation, and for each chunk a different computation is
 instantiated. The remainder elements are then processed one by one.
 More information on how to access the expandable parameter storages inside a computation is
 given in the [Vector Accessors](Vector Accessors) session (where also some of the constraints
@@ -46,10 +46,10 @@ are reported).
 
 Summing up, the only differences with respect to the case without expandable parameters are:
 
-* an ``expand_factor`` has to be passed to the make_computation, defining the size of the chuncks of expandable parameters we want to unroll in each computation.
+* an ``expand_factor`` has to be passed to the make_computation, defining the size of the chunks of expandable parameters we want to unroll in each computation.
 * a [Vector Accessor](vector accessor) has to be used instead of a regular one in the `apply`-method
 * a ``std::vector`` of storage pointers has to be used instead of a single storage.
 
 All the rest is managed by |GT|, so that the user is not exposed to the complexity of the
 unrolling, he can reuse the code when the expand factor changes, and he can resize dynamically the expandable
-paramenters vector, for instance by adding or removing elements.
+parameters vector, for instance by adding or removing elements.

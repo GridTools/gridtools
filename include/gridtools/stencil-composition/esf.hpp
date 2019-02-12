@@ -48,7 +48,7 @@ namespace gridtools {
        \tparam list List of accessors that are the arguments of the stancil operator
      */
     template <typename... list>
-    using make_arg_list = boost::mpl::vector<list...>;
+    using make_param_list = boost::mpl::vector<list...>;
 } // namespace gridtools
 
 #ifdef GT_STRUCTURED_GRIDS

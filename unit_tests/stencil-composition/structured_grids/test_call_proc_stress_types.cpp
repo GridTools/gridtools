@@ -85,7 +85,7 @@ namespace {
     struct triple_nesting_with_type_switching_third_stage {
         typedef inout_accessor<0> out;
         typedef in_accessor<1> local;
-        typedef make_arg_list<out, local> arg_list;
+        typedef make_param_list<out, local> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -100,7 +100,7 @@ namespace {
     struct triple_nesting_with_type_switching_second_stage {
         typedef in_accessor<0> in;
         typedef inout_accessor<1> out;
-        typedef make_arg_list<in, out> arg_list;
+        typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {
@@ -119,7 +119,7 @@ namespace {
     struct triple_nesting_with_type_switching_first_stage {
         typedef inout_accessor<0> out;
         typedef in_accessor<1> in;
-        typedef make_arg_list<out, in> arg_list;
+        typedef make_param_list<out, in> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval) {

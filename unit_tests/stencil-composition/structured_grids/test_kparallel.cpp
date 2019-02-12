@@ -56,7 +56,7 @@ namespace {
     struct parallel_functor {
         typedef accessor<0> in;
         typedef accessor<1, inout> out;
-        typedef gridtools::make_arg_list<in, out> arg_list;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
@@ -72,7 +72,7 @@ namespace {
     struct parallel_functor_on_upper_interval {
         typedef accessor<0> in;
         typedef accessor<1, inout> out;
-        typedef gridtools::make_arg_list<in, out> arg_list;
+        typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
         GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {

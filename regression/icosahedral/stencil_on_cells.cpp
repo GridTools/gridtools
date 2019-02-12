@@ -47,7 +47,7 @@ template <uint_t>
 struct test_on_cells_functor {
     using in = in_accessor<0, enumtype::cells, extent<-1, 1, -1, 1>>;
     using out = inout_accessor<1, enumtype::cells>;
-    using arg_list = make_arg_list<in, out>;
+    using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
     GT_FUNCTION static void apply(Evaluation eval) {
