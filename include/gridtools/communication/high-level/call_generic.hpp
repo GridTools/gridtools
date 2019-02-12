@@ -55,14 +55,14 @@
 #define _GCL_PACK_FILE_NAME(x) invoke_kernels_##x##_PP.hpp
 #define GCL_PACK_FILE_NAME(x) _GCL_PACK_FILE_NAME(x)
 
-#define _GCL_print_FIELDS(z, m, s) \
+#define _GCL_PRINT_FIELDS(z, m, s) \
     (*filep) << "fieldx " << field##m << "\n" << sizeof(typename FOTF_T##m::value_type) << std::endl;
-#define GCL_print_FIELDS(m) BOOST_PP_REPEAT(m, _GCL_print_FIELDS, nil)
+#define GCL_PRINT_FIELDS(m) BOOST_PP_REPEAT(m, _GCL_PRINT_FIELDS, nil)
 
 template <BOOST_PP_ENUM_PARAMS(GCL_NOI, typename FOTF_T)>
 void GCL_PACK_F_NAME(GCL_KERNEL_TYPE)(
     BOOST_PP_ENUM_BINARY_PARAMS(GCL_NOI, FOTF_T, const &field), void **d_msgbufTab, const int *d_msgsize) {
-    // GCL_print_FIELDS(GCL_NOI);
+    // GCL_PRINT_FIELDS(GCL_NOI);
 
 #define GCL_QUOTE(x) #x
 #define _GCL_QUOTE(x) GCL_QUOTE(x)
@@ -96,8 +96,8 @@ void GCL_UNPACK_F_NAME(GCL_KERNEL_TYPE)(
 #undef _GCL_UNPACK_F_NAME
 #undef GCL_UNPACK_FILE_NAME
 #undef _GCL_UNPACK_FILE_NAME
-#undef GCL_print_FIELDS
-#undef _GCL_print_FIELDS
+#undef GCL_PRINT_FIELDS
+#undef _GCL_PRINT_FIELDS
 #undef GCL_NOI
 
 #endif
