@@ -35,6 +35,9 @@
 */
 #if !BOOST_PP_IS_ITERATING
 
+#ifndef GCL_NON_VECT_INTERFACE_H_
+#define GCL_NON_VECT_INTERFACE_H_
+
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
