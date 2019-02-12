@@ -42,7 +42,7 @@
 #include "../boundary-conditions/predicate.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
 #include "../communication/GCL.hpp"
 #include "../communication/halo_exchange.hpp"
 #include "../communication/low-level/proc_grids_3D.hpp"
@@ -55,7 +55,7 @@
 
 namespace gridtools {
 
-#ifndef _GCL_MPI_
+#ifndef GCL_MPI
     // This provides an processing grid that works on a single process
     // to be used without periodic boundary conditions, this enables
     // the grid predicate to work

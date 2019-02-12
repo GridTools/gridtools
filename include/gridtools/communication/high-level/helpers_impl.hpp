@@ -60,7 +60,7 @@ namespace gridtools {
             }
         };
 
-#ifdef _GCL_GPU_
+#ifdef GCL_GPU
         template <typename T>
         struct gcl_alloc<T, gcl_gpu> {
 

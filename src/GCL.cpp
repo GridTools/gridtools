@@ -35,7 +35,7 @@
 */
 #include <gridtools/communication/GCL.hpp>
 
-#ifdef _GCL_GPU_
+#ifdef GCL_GPU
 #ifdef GCL_MULTI_STREAMS
 #ifdef GCL_USE_3
 cudaStream_t ZL_stream;
@@ -56,7 +56,7 @@ cudaStream_t XU_stream;
 #endif
 
 namespace gridtools {
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
     MPI_Comm GCL_WORLD;
     int PID;
     int PROCS;

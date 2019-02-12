@@ -35,11 +35,11 @@
 */
 #pragma once
 #ifdef __CUDACC__
-#ifndef _GCL_GPU_
-#define _GCL_GPU_
+#ifndef GCL_GPU
+#define GCL_GPU
 #endif
 #else
-#ifdef _GCL_GPU_
-#undef _GCL_GPU_
+#ifdef GCL_GPU
+#undef GCL_GPU
 #endif
 #endif

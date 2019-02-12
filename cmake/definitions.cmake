@@ -62,9 +62,9 @@ endif()
 target_compile_options(gridtools INTERFACE $<$<AND:$<CXX_COMPILER_ID:Cray>,$<COMPILE_LANGUAGE:Fortran>>:-eF>)
 
 if( GT_USE_MPI )
-    target_compile_definitions(gridtools INTERFACE _GCL_MPI_)
+    target_compile_definitions(gridtools INTERFACE GCL_MPI)
     if( GT_ENABLE_TARGET_CUDA )
-      target_compile_definitions(gridtools INTERFACE _GCL_GPU_)
+      target_compile_definitions(gridtools INTERFACE GCL_GPU)
     endif()
 endif()
 

@@ -48,7 +48,7 @@
 
 namespace gridtools {
 
-#ifdef _GCL_MPI_
+#ifdef GCL_MPI
     /** \class MPI_3D_process_grid_t
      * Class that provides a representation of a 3D process grid given an MPI CART
      * It requires the MPI CART to be defined before the grid is created
