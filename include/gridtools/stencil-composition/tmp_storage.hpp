@@ -114,9 +114,9 @@ namespace gridtools {
 
     template <class StorageInfo, class MaxExtent, class Backend, class Stride, class BlockNo, class PosInBlock>
     GT_FUNCTION int_t get_tmp_storage_offset(Backend const &backend,
-        Stride const &RESTRICT stride,
-        BlockNo const &RESTRICT block_no,
-        PosInBlock const &RESTRICT pos_in_block) {
+        Stride const &GT_RESTRICT stride,
+        BlockNo const &GT_RESTRICT block_no,
+        PosInBlock const &GT_RESTRICT pos_in_block) {
         using namespace tmp_storage;
         static constexpr auto block_size =
             make_pos3(block_i_size(Backend{}), block_j_size(Backend{}), block_k_size(Backend{}));

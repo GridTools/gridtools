@@ -132,9 +132,9 @@ namespace gridtools {
 
             template <class ObjTup, class StrideTup, class Offset>
             struct shift_t {
-                ObjTup &RESTRICT m_obj_tup;
-                StrideTup const &RESTRICT m_stride_tup;
-                Offset const &RESTRICT m_offset;
+                ObjTup &GT_RESTRICT m_obj_tup;
+                StrideTup const &GT_RESTRICT m_stride_tup;
+                Offset const &GT_RESTRICT m_offset;
 
                 template <class I>
                 GT_FUNCTION void operator()() const {
@@ -145,8 +145,9 @@ namespace gridtools {
             };
 
             template <class ObjTup, class StrideTup, class Offset>
-            GT_FUNCTION void composite_shift_impl(
-                ObjTup &RESTRICT obj_tup, StrideTup const &RESTRICT stride_tup, Offset const &RESTRICT offset) {
+            GT_FUNCTION void composite_shift_impl(ObjTup &GT_RESTRICT obj_tup,
+                StrideTup const &GT_RESTRICT stride_tup,
+                Offset const &GT_RESTRICT offset) {
                 static constexpr size_t size = tuple_util::size<ObjTup>::value;
                 GT_STATIC_ASSERT(tuple_util::size<StrideTup>::value == size, GT_INTERNAL_ERROR);
                 host_device::for_each_type<GT_META_CALL(meta::make_indices_c, size)>(
@@ -223,15 +224,15 @@ namespace gridtools {
 
                     template <class... Ptrs, class Offset>
                     friend GT_FUNCTION void sid_shift(
-                        composite_ptr<Ptrs...> &ptr, composite const &stride, Offset const &RESTRICT offset) {
+                        composite_ptr<Ptrs...> &ptr, composite const &stride, Offset const &GT_RESTRICT offset) {
                         composite_shift_impl(ptr.m_vals, stride, offset);
                     }
                 };
 
                 template <class... PtrDiffs, class... Strides, class Offset>
-                friend GT_FUNCTION void sid_shift(composite<PtrDiffs...> &RESTRICT ptr_diff,
-                    composite<Strides...> const &RESTRICT stride,
-                    Offset const &RESTRICT offset) {
+                friend GT_FUNCTION void sid_shift(composite<PtrDiffs...> &GT_RESTRICT ptr_diff,
+                    composite<Strides...> const &GT_RESTRICT stride,
+                    Offset const &GT_RESTRICT offset) {
                     composite_shift_impl(ptr_diff.m_vals, stride.m_vals, offset);
                 }
 

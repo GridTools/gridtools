@@ -61,17 +61,17 @@ namespace gridtools {
 
         GT_FORCE_INLINE iterate_domain_x86(local_domain_t const &local_domain_) : super(local_domain_), m_strides(0) {}
 
-        strides_cached_t &RESTRICT strides_impl() {
+        strides_cached_t &GT_RESTRICT strides_impl() {
             assert(m_strides);
             return *m_strides;
         }
 
-        strides_cached_t const &RESTRICT strides_impl() const {
+        strides_cached_t const &GT_RESTRICT strides_impl() const {
             assert(m_strides);
             return *m_strides;
         }
 
-        void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
+        void set_strides_pointer_impl(strides_cached_t *GT_RESTRICT strides) {
             assert(strides);
             m_strides = strides;
         }
@@ -109,7 +109,7 @@ namespace gridtools {
         }
 
       private:
-        strides_cached_t *RESTRICT m_strides;
+        strides_cached_t *GT_RESTRICT m_strides;
     };
 
     template <typename IterateDomainArguments>

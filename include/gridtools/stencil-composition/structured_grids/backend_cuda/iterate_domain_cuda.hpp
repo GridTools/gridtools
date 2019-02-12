@@ -95,7 +95,7 @@ namespace gridtools {
 
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
-        shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
@@ -122,10 +122,10 @@ namespace gridtools {
         GT_FUNCTION_DEVICE void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) {
             m_pshared_iterate_domain = ptr;
         }
-        GT_FUNCTION strides_cached_t const &RESTRICT strides_impl() const {
+        GT_FUNCTION strides_cached_t const &GT_RESTRICT strides_impl() const {
             return m_pshared_iterate_domain->strides();
         }
-        GT_FUNCTION strides_cached_t &RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
+        GT_FUNCTION strides_cached_t &GT_RESTRICT strides_impl() { return m_pshared_iterate_domain->strides(); }
 
         /** @brief return a value that was cached
          * specialization where cache goes via shared memory

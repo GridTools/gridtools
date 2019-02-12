@@ -66,7 +66,7 @@ namespace gridtools {
                     T m_step;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) const {
+                    void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -92,7 +92,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -118,7 +118,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
                         shift(ptr, get_stride<I>(strides), m_step);
                     }
@@ -141,7 +141,7 @@ namespace gridtools {
                     T m_num_steps;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) const {
+                    void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -167,7 +167,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -192,7 +192,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
                         shift(ptr, get_stride<I>(strides), integral_constant<T, Step>{});
                     }
@@ -215,7 +215,7 @@ namespace gridtools {
                     T m_num_steps;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &RESTRICT ptr, const Strides &RESTRICT strides) const {
+                    void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, const Strides &GT_RESTRICT strides) const {
                         assert(m_num_steps >= 0);
                         for (T i = 0; i < m_num_steps; ++i)
                             m_fun(ptr, strides);
@@ -234,7 +234,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         assert(m_num_steps >= 0);
                         if (m_num_steps <= 0)
                             return;
@@ -256,7 +256,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
                     }
 
@@ -278,7 +278,7 @@ namespace gridtools {
                     T m_step;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &RESTRICT ptr, const Strides &RESTRICT strides) const {
+                    void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, const Strides &GT_RESTRICT strides) const {
                         auto &&stride = get_stride<I>(strides);
                         // TODO(anstaf): to figure out if for_each<make_indices_c<NumSteps>>(...) produces better code.
                         for (T i = 0; i < NumSteps; ++i) {
@@ -302,7 +302,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         if (++m_pos == NumSteps) {
                             constexpr T num_steps_back = 1 - NumSteps;
                             shift(ptr, get_stride<I>(strides), m_step * num_steps_back);
@@ -326,7 +326,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
                         shift(ptr, get_stride<I>(strides), m_step);
                     }
@@ -346,7 +346,7 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &RESTRICT ptr, const Strides &RESTRICT strides) const {
+                    void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, const Strides &GT_RESTRICT strides) const {
                         auto &&stride = get_stride<I>(strides);
                         for (T i = 0; i < (T)NumSteps; ++i) {
                             m_fun(ptr, strides);
@@ -367,7 +367,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         if (++m_pos == NumSteps) {
                             constexpr T offset_back = Step * (1 - NumSteps);
                             shift(ptr, get_stride<I>(strides), offset_back);
@@ -390,7 +390,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         --m_pos;
                         shift(ptr, get_stride<I>(strides), Step);
                     }
@@ -410,7 +410,7 @@ namespace gridtools {
                     Fun m_fun;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION operator()(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) const {
+                    void GT_FUNCTION operator()(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) const {
                         for (T i = 0; i < (T)NumSteps; ++i)
                             m_fun(ptr, strides);
                     }
@@ -427,7 +427,7 @@ namespace gridtools {
                     T m_pos;
 
                     template <class Ptr, class Strides>
-                    void GT_FUNCTION next(Ptr &RESTRICT ptr, Strides const &RESTRICT strides) {
+                    void GT_FUNCTION next(Ptr &GT_RESTRICT ptr, Strides const &GT_RESTRICT strides) {
                         if (++m_pos == NumSteps) {
                             m_pos = 0;
                             m_outer.next(ptr, strides);

@@ -104,7 +104,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
+        strides_cached_t const &GT_RESTRICT strides() const {
             return static_cast<IterateDomainImpl const *>(this)->strides_impl();
         }
 
@@ -112,7 +112,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
+        strides_cached_t &GT_RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
 
         /**
            @brief recursively assignes all the strides

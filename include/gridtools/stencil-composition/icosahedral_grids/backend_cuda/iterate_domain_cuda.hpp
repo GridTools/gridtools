@@ -73,7 +73,7 @@ namespace gridtools {
             shared_iterate_domain_t;
 
       private:
-        shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        shared_iterate_domain_t *GT_RESTRICT m_pshared_iterate_domain;
         uint_t m_block_size_i;
         uint_t m_block_size_j;
         // array storing the (i,j) position of the current thread within the block
@@ -107,12 +107,12 @@ namespace gridtools {
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
 
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides_impl() const {
+        strides_cached_t const &GT_RESTRICT strides_impl() const {
             //        assert((m_pshared_iterate_domain);
             return m_pshared_iterate_domain->strides();
         }
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides_impl() {
+        strides_cached_t &GT_RESTRICT strides_impl() {
             //        assert((m_pshared_iterate_domain));
             return m_pshared_iterate_domain->strides();
         }

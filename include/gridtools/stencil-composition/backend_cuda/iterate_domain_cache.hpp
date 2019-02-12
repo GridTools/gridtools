@@ -252,7 +252,7 @@ namespace gridtools {
 
         // returns a k cache from the tuple
         template <typename IndexType>
-        GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &RESTRICT get_k_cache() const {
+        GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &GT_RESTRICT get_k_cache() const {
             GT_STATIC_ASSERT(
                 (boost::mpl::has_key<k_caches_map_t, IndexType>::value), "Accessing a non registered cached");
             return boost::fusion::at_key<IndexType>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple));

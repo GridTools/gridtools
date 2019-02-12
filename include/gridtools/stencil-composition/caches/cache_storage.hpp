@@ -72,7 +72,7 @@ namespace gridtools {
          */
         template <typename StorageInfo, typename Accessor, std::size_t... Coordinates>
         GT_FUNCTION constexpr int_t compute_offset_cache(
-            Accessor const &RESTRICT accessor, meta::index_sequence<Coordinates...>) {
+            Accessor const &GT_RESTRICT accessor, meta::index_sequence<Coordinates...>) {
             return accumulate(plus_functor(),
                 (StorageInfo::template stride<Coordinates>() * accessor_offset<Coordinates>(accessor))...);
         }
@@ -168,7 +168,7 @@ namespace gridtools {
         static constexpr uint_t padded_total_length() { return meta_t::padded_total_length(); }
 
         template <uint_t Color, typename Accessor>
-        GT_FUNCTION value_type &RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
+        GT_FUNCTION value_type &GT_RESTRICT at(array<int, 2> const &thread_pos, Accessor const &accessor_) {
 
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride<0>() +
@@ -184,7 +184,7 @@ namespace gridtools {
          * @param accessor_ the accessor that contains the offsets being accessed
          */
         template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
-        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
+        GT_FUNCTION value_type &GT_RESTRICT at(Accessor const &accessor_) {
             check_kcache_access(accessor_);
 
             const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;
@@ -199,7 +199,7 @@ namespace gridtools {
          * @param accessor_ the accessor that contains the offsets being accessed
          */
         template <typename Accessor, enable_if_t<is_acc_k_cache<Accessor>::value, int> = 0>
-        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
+        GT_FUNCTION value_type const &GT_RESTRICT at(Accessor const &accessor_) const {
             check_kcache_access(accessor_);
 
             const int_t index_ = compute_offset_cache<meta_t>(accessor_) - kminus_t::value;

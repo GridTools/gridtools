@@ -82,7 +82,7 @@ namespace gridtools {
         struct function_aggregator_offsets {
             typedef typename boost::fusion::result_of::as_vector<PassedArguments>::type accessors_list_t;
             CallerAggregator &m_caller_aggregator;
-            ReturnType *RESTRICT m_result;
+            ReturnType *GT_RESTRICT m_result;
             accessors_list_t const m_accessors_list;
 
             template <typename Accessor>

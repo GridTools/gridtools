@@ -106,12 +106,12 @@ namespace gridtools {
         strides_cached() : super() {}
 
         template <short_t Idx>
-        GT_FUNCTION return_t<Idx> const &RESTRICT get() const {
+        GT_FUNCTION return_t<Idx> const &GT_RESTRICT get() const {
             return static_if<(Idx == ID)>::apply(m_data, super::template get<Idx>());
         }
 
         template <short_t Idx>
-        GT_FUNCTION return_t<Idx> &RESTRICT get() {
+        GT_FUNCTION return_t<Idx> &GT_RESTRICT get() {
             return static_if<(Idx == ID)>::apply(m_data, super::template get<Idx>());
         }
 
@@ -136,12 +136,12 @@ namespace gridtools {
         using return_t = data_array_t;
 
         template <short_t Idx>
-        GT_FUNCTION data_array_t &RESTRICT get() { // stop recursion
+        GT_FUNCTION data_array_t &GT_RESTRICT get() { // stop recursion
             return m_data;
         }
 
         template <short_t Idx>
-        GT_FUNCTION data_array_t const &RESTRICT get() const { // stop recursion
+        GT_FUNCTION data_array_t const &GT_RESTRICT get() const { // stop recursion
             return m_data;
         }
 
@@ -197,7 +197,7 @@ namespace gridtools {
             // work-arround for gcc7 (force compile-time evaluation)
             int Max = std::integral_constant<int, LayoutMap::max()>::value,
             enable_if_t<Cur >= 0 && Cur != Max, int> = 0>
-        GT_FUNCTION int_t get_stride(Strides const &RESTRICT strides) {
+        GT_FUNCTION int_t get_stride(Strides const &GT_RESTRICT strides) {
             return strides.template get<I>()[Cur];
         }
     } // namespace _impl
@@ -218,8 +218,8 @@ namespace gridtools {
         GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
 
         const int_t m_increment;
-        ArrayIndex &RESTRICT m_index_array;
-        StridesCached const &RESTRICT m_strides_cached;
+        ArrayIndex &GT_RESTRICT m_index_array;
+        StridesCached const &GT_RESTRICT m_strides_cached;
 
         template <typename StorageInfo,
             typename Layout = typename StorageInfo::layout_t,
@@ -238,13 +238,14 @@ namespace gridtools {
 
     template <uint_t Coordinate, class LocalDomain, class Strides, class ArrayIndex>
     GT_FUNCTION void do_increment(
-        int_t step, LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
+        int_t step, LocalDomain const &local_domain, Strides const &GT_RESTRICT strides, ArrayIndex &index) {
         boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{step, index, strides});
     }
 
     template <uint_t Coordinate, ptrdiff_t Step, class LocalDomain, class Strides, class ArrayIndex>
-    GT_FUNCTION void do_increment(LocalDomain const &local_domain, Strides const &RESTRICT strides, ArrayIndex &index) {
+    GT_FUNCTION void do_increment(
+        LocalDomain const &local_domain, Strides const &GT_RESTRICT strides, ArrayIndex &index) {
         boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
             increment_index_functor<LocalDomain, Coordinate, Strides, ArrayIndex>{Step, index, strides});
     }
@@ -264,10 +265,10 @@ namespace gridtools {
     struct get_index_offset_f<StorageInfo, MaxExtent, false> {
         template <class Backend, class Stride, class Begin, class BlockNo, class PosInBlock>
         GT_FUNCTION int_t operator()(Backend const &,
-            Stride const &RESTRICT stride,
-            Begin const &RESTRICT begin,
-            BlockNo const &RESTRICT block_no,
-            PosInBlock const &RESTRICT pos_in_block) const {
+            Stride const &GT_RESTRICT stride,
+            Begin const &GT_RESTRICT begin,
+            BlockNo const &GT_RESTRICT block_no,
+            PosInBlock const &GT_RESTRICT pos_in_block) const {
             static constexpr auto block_size =
                 make_pos3(block_i_size(Backend{}), block_j_size(Backend{}), block_k_size(Backend{}));
             return stride.i * (begin.i + block_no.i * block_size.i + pos_in_block.i) +
@@ -280,10 +281,10 @@ namespace gridtools {
     struct get_index_offset_f<StorageInfo, MaxExtent, true> {
         template <class Backend, class Stride, class Begin, class BlockNo, class PosInBlock>
         GT_FUNCTION int_t operator()(Backend const &backend,
-            Stride const &RESTRICT stride,
-            Begin const &RESTRICT /*begin*/,
-            BlockNo const &RESTRICT block_no,
-            PosInBlock const &RESTRICT pos_in_block) const {
+            Stride const &GT_RESTRICT stride,
+            Begin const &GT_RESTRICT /*begin*/,
+            BlockNo const &GT_RESTRICT block_no,
+            PosInBlock const &GT_RESTRICT pos_in_block) const {
             return get_tmp_storage_offset<StorageInfo, MaxExtent>(backend, stride, block_no, pos_in_block);
         }
     };
@@ -292,11 +293,11 @@ namespace gridtools {
     struct initialize_index_f {
         GT_STATIC_ASSERT((is_strides_cached<Strides>::value), GT_INTERNAL_ERROR);
         GT_STATIC_ASSERT((is_array_of<ArrayIndex, int>::value), GT_INTERNAL_ERROR);
-        Strides const &RESTRICT m_strides;
+        Strides const &GT_RESTRICT m_strides;
         pos3<uint_t> m_begin;
         pos3<uint_t> m_block_no;
         pos3<int_t> m_pos_in_block;
-        ArrayIndex &RESTRICT m_index_array;
+        ArrayIndex &GT_RESTRICT m_index_array;
 
         template <typename StorageInfo, size_t I = _impl::get_index<StorageInfo, LocalDomain>::value>
         GT_FUNCTION void operator()(const StorageInfo *) const {
@@ -335,9 +336,9 @@ namespace gridtools {
         template <typename SInfo>
         struct assign {
             const SInfo *m_storage_info;
-            StridesCached &RESTRICT m_strides_cached;
+            StridesCached &GT_RESTRICT m_strides_cached;
 
-            GT_FUNCTION assign(const SInfo *storage_info, StridesCached &RESTRICT strides_cached)
+            GT_FUNCTION assign(const SInfo *storage_info, StridesCached &GT_RESTRICT strides_cached)
                 : m_storage_info(storage_info), m_strides_cached(strides_cached) {}
 
             template <typename Coordinate>
@@ -363,9 +364,9 @@ namespace gridtools {
             }
         };
 
-        StridesCached &RESTRICT m_strides_cached;
+        StridesCached &GT_RESTRICT m_strides_cached;
 
-        GT_FUNCTION assign_strides(StridesCached &RESTRICT strides_cached) : m_strides_cached(strides_cached) {}
+        GT_FUNCTION assign_strides(StridesCached &GT_RESTRICT strides_cached) : m_strides_cached(strides_cached) {}
 
         template <typename StorageInfo>
         GT_FUNCTION typename boost::enable_if_c<StorageInfo::layout_t::unmasked_length == 0, void>::type operator()(
