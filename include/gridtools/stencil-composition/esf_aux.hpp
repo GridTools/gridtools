@@ -60,7 +60,7 @@ namespace gridtools {
                 "The list of Placeholders seems to contain elements that are not placeholers (i.e., they are not of "
                 "type arg)");
             GT_STATIC_ASSERT((is_sequence_of<Accessors, is_accessor>::value), GT_INTERNAL_ERROR);
-#ifdef PEDANTIC // with global accessors this assertion fails (since they are not in the Accessors)
+#ifdef GT_PEDANTIC // with global accessors this assertion fails (since they are not in the Accessors)
             GT_STATIC_ASSERT((boost::mpl::size<Placeholders>::value == boost::mpl::size<Accessors>::value),
                 "Size of placeholder arguments passed to esf \n"
                 "    make_stage<functor>(arg1(), arg2()) )\n"

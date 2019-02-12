@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED // too stringent for this test
+#define GT_PEDANTIC_DISABLED // too stringent for this test
 
 #include <iostream>
 

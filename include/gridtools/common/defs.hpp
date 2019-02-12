@@ -77,8 +77,8 @@
 
 /** Macro to enable additional checks that may catch some errors in user code
  */
-#ifndef PEDANTIC_DISABLED
-#define PEDANTIC
+#ifndef GT_PEDANTIC_DISABLED
+#define GT_PEDANTIC
 #endif
 
 #define RESTRICT __restrict__

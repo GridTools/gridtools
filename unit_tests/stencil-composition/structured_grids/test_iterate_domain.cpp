@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define PEDANTIC_DISABLED // too stringent for this test
+#define GT_PEDANTIC_DISABLED // too stringent for this test
 
 #ifdef GT_BACKEND_X86
 #include <gridtools/stencil-composition/structured_grids/backend_x86/iterate_domain_x86.hpp>
