@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _NDLOOPS_H_
-#define _NDLOOPS_H_
+#pragma once
 
 #include "defs.hpp"
 #include <stdlib.h>
@@ -182,5 +181,3 @@ namespace gridtools {
     /** @} */
     /** @} */
 } // namespace gridtools
-
-#endif
