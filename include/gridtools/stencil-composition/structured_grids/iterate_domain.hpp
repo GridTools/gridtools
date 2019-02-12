@@ -80,11 +80,11 @@ namespace gridtools {
         typedef typename local_domain_t::storage_info_ptr_fusion_list storage_info_ptrs_t;
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
       public:
-        typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
-        typedef array<int_t, N_META_STORAGES> array_index_t;
+        typedef strides_cached<n_meta_storages - 1, storage_info_ptrs_t> strides_cached_t;
+        typedef array<int_t, n_meta_storages> array_index_t;
         // *************** end of type definitions **************
 
       protected:
