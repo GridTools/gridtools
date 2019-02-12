@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HALO_EXCHANGE_2D_DT_H
-#define _HALO_EXCHANGE_2D_DT_H
+#pragma once
 
 #include "../GCL.hpp"
 #include "translate.hpp"
@@ -587,5 +586,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif
