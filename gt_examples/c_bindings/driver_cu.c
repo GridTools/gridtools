@@ -36,7 +36,7 @@
 
 #include <stdio.h>
 
-#include "copy_stencil.h"
+#include "copy_stencil_lib_cu.h"
 #include "cuda_runtime.h"
 
 int main() {

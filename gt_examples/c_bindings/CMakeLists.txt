@@ -1,13 +1,14 @@
 add_library(GridToolsExample INTERFACE)
 target_compile_definitions(GridToolsExample INTERFACE STRUCTURED_GRIDS)
-
-add_bindings_library(copy_stencil SOURCES copy_stencil_wrapper.cpp)
-target_link_libraries(copy_stencil PUBLIC GridToolsExample)
+target_compile_options(GridToolsExample INTERFACE $<$<COMPILE_LANGUAGE:CUDA>:-arch=${GT_CUDA_ARCH}>)
 
 if(GT_ENABLE_TARGET_MC)
+    add_bindings_library(copy_stencil_lib_mc SOURCES copy_stencil_wrapper.cpp)
+    target_link_libraries(copy_stencil_lib_mc PUBLIC GridToolsExample)
+
     if (CMAKE_C_COMPILER_LOADED)
         add_executable(example_driver_mc_c driver_mc.c)
-        target_link_libraries(example_driver_mc_c copy_stencil_c)
+        target_link_libraries(example_driver_mc_c copy_stencil_lib_mc_c)
 
         install_example(example_driver_mc_c)
     endif()
@@ -16,7 +17,7 @@ if(GT_ENABLE_TARGET_MC)
         include(fortran_helpers)
 
         add_executable(example_driver_fortran driver.f90)
-        target_link_libraries(example_driver_fortran copy_stencil_fortran)
+        target_link_libraries(example_driver_fortran copy_stencil_lib_mc_fortran)
         set_target_properties(example_driver_fortran PROPERTIES LINKER_LANGUAGE Fortran)
         enable_fortran_preprocessing_on_target(example_driver_fortran)
 
@@ -25,9 +26,12 @@ if(GT_ENABLE_TARGET_MC)
 endif(GT_ENABLE_TARGET_MC)
 
 if(GT_ENABLE_TARGET_CUDA)
+    add_bindings_library(copy_stencil_lib_cu SOURCES copy_stencil_wrapper.cu)
+    target_link_libraries(copy_stencil_lib_cu PUBLIC GridToolsExample)
+
     if (CMAKE_C_COMPILER_LOADED)
         add_executable(example_driver_cu_c driver_cu.c)
-        target_link_libraries(example_driver_cu_c copy_stencil_c)
+        target_link_libraries(example_driver_cu_c copy_stencil_lib_cu_c)
 
         install_example(example_driver_cu_c)
     endif()

@@ -1,5 +1,5 @@
 ! This file is generated!
-module copy_stencil
+module copy_stencil_lib_mc
 implicit none
   interface
 

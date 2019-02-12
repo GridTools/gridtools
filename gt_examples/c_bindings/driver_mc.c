@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "copy_stencil.h"
+#include "copy_stencil_lib_mc.h"
 
 int main() {
     gt_handle *wrapper_handle = make_wrapper(9, 10, 11);

@@ -35,7 +35,7 @@
 program main
     use iso_c_binding
     use gt_handle
-    use copy_stencil
+    use copy_stencil_lib_mc
     implicit none
     integer, parameter :: i = 9, j = 10, k = 11
     real(c_float), dimension(i, j, k) :: in_array, out_array

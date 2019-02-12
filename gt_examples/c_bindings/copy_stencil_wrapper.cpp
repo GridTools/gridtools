@@ -45,7 +45,11 @@ namespace {
     using axis_t = gt::axis<1>::axis_interval_t;
     using grid_t = gt::grid<axis_t>;
 
+#ifdef __CUDACC__
+    using target_t = gt::target::cuda;
+#else
     using target_t = gt::target::mc;
+#endif
     using strategy_t = gt::strategy::block;
     using backend_t = gt::backend<target_t, gt::grid_type::structured, strategy_t>;
     using storage_traits_t = gt::storage_traits<backend_t::backend_id_t>;
@@ -101,6 +105,10 @@ namespace {
         computation.run(p_in() = wrapper.in, p_out() = wrapper.out);
 
         transform(out_f, wrapper.out);
+
+#ifdef __CUDACC__
+        cudaDeviceSynchronize();
+#endif
     }
 
     GT_EXPORT_BINDING_3(make_wrapper, make_wrapper_impl);
