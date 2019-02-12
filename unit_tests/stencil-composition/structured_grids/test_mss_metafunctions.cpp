@@ -74,7 +74,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
             )) mss_t;
     GT_STATIC_ASSERT((boost::mpl::equal<mss_t::esf_sequence_t, make_param_list<esf1_t, esf2_t>>::value), "ERROR");
 
-#ifndef __DISABLE_CACHING__
+#ifndef GT_DISABLE_CACHING
     GT_STATIC_ASSERT((boost::mpl::equal<mss_t::cache_sequence_t,
                          boost::mpl::vector2<detail::cache_impl<cache_type::ij, p_buff, cache_io_policy::local>,
                              detail::cache_impl<cache_type::ij, p_out, cache_io_policy::local>>>::value),

@@ -73,7 +73,7 @@ namespace gridtools {
      */
     template <typename... MssParameters>
     struct extract_mss_caches {
-#ifdef __DISABLE_CACHING__
+#ifdef GT_DISABLE_CACHING
         typedef std::tuple<> type;
 #else
         using tuple_of_caches = GT_META_CALL(

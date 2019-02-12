@@ -153,7 +153,7 @@ endif()
 ## caching ##
 if( NOT GT_TESTS_ENABLE_CACHING )
     # TODO this should be exposed to find_package (GT_ENABLE_CACHING)
-    target_compile_definitions(GridToolsTest __DISABLE_CACHING__)
+    target_compile_definitions(GridToolsTest GT_DISABLE_CACHING)
 endif()
 
 # add a target to generate API documentation with Doxygen
