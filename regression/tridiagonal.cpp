@@ -66,7 +66,7 @@ struct forward_thomas {
     using diag = in_accessor<2>;   // b
     using sup = inout_accessor<3>; // c
     using rhs = inout_accessor<4>; // d
-    using arg_list = make_arg_list<out, inf, diag, sup, rhs>;
+    using param_list = make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, 0>) {
@@ -87,7 +87,7 @@ struct backward_thomas {
     using diag = in_accessor<2>;   // b
     using sup = inout_accessor<3>; // c
     using rhs = inout_accessor<4>; // d
-    using arg_list = make_arg_list<out, inf, diag, sup, rhs>;
+    using param_list = make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, -1>) {

@@ -7,7 +7,7 @@ gridtools_keywords = ((
         'aggregator_type',
         'arg',
         'tmp_arg',
-        'arglist',
+        'param_list',
         'backward',
         'cache',
         'cells',

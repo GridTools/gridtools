@@ -67,7 +67,7 @@ using namespace enumtype;
 struct dummy_functor {
     typedef accessor<0, inout> in;
     typedef accessor<1> out;
-    typedef make_arg_list<in, out> arg_list;
+    typedef make_param_list<in, out> param_list;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation &eval);

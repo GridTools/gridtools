@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <iostream>
 #include <gridtools/stencil-composition/stencil-composition.hpp>
+#include <iostream>
 
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
@@ -50,7 +50,6 @@
   where x denotes any number and 0 denotes the padding, a dummy value which is not used in
   the algorithm. This choice corresponds to having the same vector index for each row of the matrix.
  */
-
 
 namespace gt = gridtools;
 
@@ -73,7 +72,7 @@ struct forward_thomas {
     using diag = gt::in_accessor<2>;
     using sup = gt::inout_accessor<3>;
     using rhs = gt::inout_accessor<4>;
-    using arg_list = gt::make_arg_list<out, inf, diag, sup, rhs>;
+    using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval, full_t::modify<1, 0>) {
@@ -95,7 +94,7 @@ struct backward_thomas {
     using diag = gt::in_accessor<2>;
     using sup = gt::inout_accessor<3>;
     using rhs = gt::inout_accessor<4>;
-    using arg_list = gt::make_arg_list<out, inf, diag, sup, rhs>;
+    using param_list = gt::make_param_list<out, inf, diag, sup, rhs>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval, full_t::modify<0, -1>) {
@@ -176,7 +175,7 @@ int main() {
     for (int i = 0; i < d1; ++i) {
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3; ++k) {
-                correct &= gt::make_host_view(out)(i,j,k) == 1.;
+                correct &= gt::make_host_view(out)(i, j, k) == 1.;
             }
         }
     }
@@ -186,5 +185,4 @@ int main() {
     } else {
         std::cout << "Failed\n";
     }
-
 }

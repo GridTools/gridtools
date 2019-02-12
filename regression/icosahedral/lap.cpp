@@ -53,8 +53,8 @@ struct lap_functor {
     typedef in_accessor<2, enumtype::vertices, extent<0, 1, 0, 1>> in_vertices;
     typedef in_accessor<3, enumtype::edges> edge_length_reciprocal;
     typedef inout_accessor<4, enumtype::edges> out_edges;
-    using arg_list =
-        make_arg_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
+    using param_list =
+        make_param_list<in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges>;
 
     template <typename Evaluation>
     GT_FUNCTION static void Do(Evaluation eval) {
