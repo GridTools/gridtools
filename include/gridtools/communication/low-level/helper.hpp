@@ -36,7 +36,7 @@
 #pragma once
 #include "../GCL.hpp"
 
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
 namespace gridtools {
     namespace _impl {
         enum alloc_type { host_normal, host_page_locked };

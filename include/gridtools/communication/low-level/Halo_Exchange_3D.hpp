@@ -271,7 +271,7 @@ namespace gridtools {
 
         sr_buffers m_send_buffers;
         sr_buffers m_recv_buffers;
-#if defined(HOSTWORKAROUND)
+#if defined(GCL_HOSTWORKAROUND)
         sr_buffers m_host_send_buffers;
         sr_buffers m_host_recv_buffers;
 #endif
@@ -295,7 +295,7 @@ namespace gridtools {
                 double begin_time = MPI_Wtime();
 #endif
 
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
                 // using host workaround on gpu
                 // post receive to the page-locked buffer on the host
                 MPI_Irecv(static_cast<char *>(m_host_recv_buffers.buffer(I, J, K)),
@@ -342,7 +342,7 @@ namespace gridtools {
                 double begin_time = MPI_Wtime();
 #endif
 
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
                 // using host workaround on gpu
                 // copy data from device to host
                 cudaMemcpy(static_cast<void *>(m_host_send_buffers.buffer(I, J, K)),
@@ -421,7 +421,7 @@ namespace gridtools {
 
                 MPI_Status status;
                 MPI_Wait(&request(-I, -J, -K), &status);
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
                 // copy from host buffers to device
                 // only need to do this if receiving from another PID
                 cudaMemcpy(static_cast<void *>(m_recv_buffers.buffer(I, J, K)),
@@ -512,7 +512,7 @@ namespace gridtools {
 
             m_send_buffers.buffer(I, J, K) = reinterpret_cast<char *>(p);
             m_send_buffers.size(I, J, K) = s;
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
             // allocate a buffer on the host with page-locked memory
             m_host_send_buffers.buffer(I, J, K) = _impl::helper_alloc<char, _impl::host_page_locked>::alloc(s);
             m_host_send_buffers.size(I, J, K) = s;
@@ -580,7 +580,7 @@ namespace gridtools {
 
             m_recv_buffers.buffer(I, J, K) = reinterpret_cast<char *>(p);
             m_recv_buffers.size(I, J, K) = s;
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
             // allocate a buffer on the host with page-locked memory
             m_host_recv_buffers.buffer(I, J, K) = _impl::helper_alloc<char, _impl::host_page_locked>::alloc(s);
             m_host_recv_buffers.size(I, J, K) = s;
@@ -638,7 +638,7 @@ namespace gridtools {
             assert((K >= -1 && K <= 1));
 
             m_send_buffers.size(I, J, K) = s;
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
             // throw an assertion because the page-locked buffer allocated in the workaround
             // has fixed size (if this is a problem we can free, then reallocate memory)
             assert(false);
@@ -693,7 +693,7 @@ namespace gridtools {
             assert((K >= -1 && K <= 1));
 
             m_send_buffers.size(I, J, K) = s;
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
             // throw an assertion because the page-locked buffer allocated in the workaround
             // has fixed size (if this is a problem we can free, then reallocate memory)
             assert(false);
@@ -725,7 +725,7 @@ namespace gridtools {
             BOOST_MPL_ASSERT_RELATION(K, <=, 1);
 
             set_receive_from_size(s, I, J, K);
-#ifdef HOSTWORKAROUND
+#ifdef GCL_HOSTWORKAROUND
             // throw an assertion because the page-locked buffer allocated in the workaround
             // has fixed size (if this is a problem we can free, then reallocate memory)
             assert(false);

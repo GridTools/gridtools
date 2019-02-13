@@ -51,7 +51,7 @@
 #ifdef GCL_GPU
 
 // workaround that uses host buffering to avoid bad sends for messages larger than 512 kB on Cray systems
-//#define HOSTWORKAROUND
+//#define GCL_HOSTWORKAROUND
 
 inline bool checkCudaStatus(cudaError_t status) {
     if (status != cudaSuccess) {
