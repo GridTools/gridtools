@@ -33,8 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
-#define _DESCRIPTOR_GENERIC_MANUAL_H_
+#pragma once
 
 #include "../../common/numerics.hpp"
 #include "./descriptor_base.hpp"
@@ -55,29 +54,29 @@
 #include "./m_unpackZL_generic.hpp"
 #include "./m_unpackZU_generic.hpp"
 
-#define KERNEL_TYPE ZL
+#define GCL_KERNEL_TYPE ZL
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE ZU
+#define GCL_KERNEL_TYPE ZU
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE YL
+#define GCL_KERNEL_TYPE YL
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE YU
+#define GCL_KERNEL_TYPE YU
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE XL
+#define GCL_KERNEL_TYPE XL
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 
-#define KERNEL_TYPE XU
+#define GCL_KERNEL_TYPE XU
 #include "./call_generic.hpp"
-#undef KERNEL_TYPE
+#undef GCL_KERNEL_TYPE
 #endif
 #include "../../common/make_array.hpp"
 #include "./helpers_impl.hpp"
@@ -114,7 +113,7 @@ namespace gridtools {
         hndlr_generic(grid_type const &g) : base_type(g) {}
 
         ~hndlr_generic() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
@@ -446,7 +445,7 @@ namespace gridtools {
         hndlr_generic(grid_type const &g) : base_type(g) {}
 
         ~hndlr_generic() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
@@ -536,18 +535,18 @@ namespace gridtools {
 
                             } else {
                                 send_size[translate()(ii, jj, kk)] = 0;
-                                send_buffer[translate()(ii, jj, kk)] = NULL;
+                                send_buffer[translate()(ii, jj, kk)] = nullptr;
 
-                                base_type::m_haloexch.register_send_to_buffer(NULL, 0, ii_P, jj_P, kk_P);
+                                base_type::m_haloexch.register_send_to_buffer(nullptr, 0, ii_P, jj_P, kk_P);
 
                                 recv_size[translate()(ii, jj, kk)] = 0;
 
-                                recv_buffer[translate()(ii, jj, kk)] = NULL;
+                                recv_buffer[translate()(ii, jj, kk)] = nullptr;
 
                                 //(*filep) << "Size-of-buffer %d %d %d -> send %d -> recv %d" << ii << jj << kk <<
                                 // send_size[translate()(ii,jj,kk)]*max_fields_n*typesize <<
                                 // recv_size[translate()(ii,jj,kk)]*max_fields_n*typesize << std::endl;
-                                base_type::m_haloexch.register_receive_from_buffer(NULL, 0, ii_P, jj_P, kk_P);
+                                base_type::m_haloexch.register_receive_from_buffer(nullptr, 0, ii_P, jj_P, kk_P);
                             }
                         }
 
@@ -884,5 +883,3 @@ namespace gridtools {
     };
 #endif // cudacc
 } // namespace gridtools
-
-#endif

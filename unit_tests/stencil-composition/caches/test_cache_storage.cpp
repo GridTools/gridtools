@@ -46,7 +46,7 @@ using namespace execute;
 TEST(cache_storage, test_ij_multidim) {
     typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
     typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
-    typedef detail::cache_impl<cache_type::IJ, arg<0, storage_t>, cache_io_policy::local> cache_t;
+    typedef detail::cache_impl<cache_type::ij, arg<0, storage_t>, cache_io_policy::local> cache_t;
 
     typedef cache_storage<cache_t,
         block_size<8, 3, 1, 1, 1>,
@@ -88,7 +88,7 @@ TEST(cache_storage, test_ij_multidim) {
 TEST(cache_storage, test_k_multidim) {
     typedef backend_t::storage_traits_t::storage_info_t<0, 6> storage_info_t;
     typedef backend_t::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
-    typedef detail::cache_impl<cache_type::K, arg<0, storage_t>, cache_io_policy::local> cache_t;
+    typedef detail::cache_impl<cache_type::k, arg<0, storage_t>, cache_io_policy::local> cache_t;
 
     typedef cache_storage<cache_t, block_size<1, 1, 1, 1, 1>, extent<0, 0, 0, 0, -3, 2, 0, 1, 0, 3>, arg<0, storage_t>>
         cache_storage_t;

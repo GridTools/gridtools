@@ -58,11 +58,11 @@ namespace {
         typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<0>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<0>) {
             eval(out()) = eval(in());
         }
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
             eval(out()) = 2 * eval(in());
         }
     };
@@ -74,7 +74,7 @@ namespace {
         typedef gridtools::make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, typename Axis::template get_interval<1>) {
+        GT_FUNCTION static void apply(Evaluation &eval, typename Axis::template get_interval<1>) {
             eval(out()) = eval(in());
         }
     };

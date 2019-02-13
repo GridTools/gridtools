@@ -143,7 +143,7 @@ namespace gridtools {
                 auto next_it = it + max_line_length - line_divider.size() - current_prefix.size();
                 while (*(next_it - 1) != ',') {
                     --next_it;
-                    ASSERT_OR_THROW(next_it != line.begin() + 1, "Too long line cannot be wrapped");
+                    GT_ASSERT_OR_THROW(next_it != line.begin() + 1, "Too long line cannot be wrapped");
                 }
 
                 ret.append(current_prefix);

@@ -78,7 +78,7 @@ namespace gridtools {
         template <class StageGroups, class ItDomain>
         GT_FUNCTION static void exec(ItDomain &it_domain) {
 
-            GRIDTOOLS_STATIC_ASSERT(!meta::is_empty<StageGroups>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(!meta::is_empty<StageGroups>::value, GT_INTERNAL_ERROR);
             using first_t = GT_META_CALL(meta::first, StageGroups);
             using rest_t = GT_META_CALL(meta::pop_front, StageGroups);
 

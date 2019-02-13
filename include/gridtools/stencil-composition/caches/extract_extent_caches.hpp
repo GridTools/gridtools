@@ -61,8 +61,8 @@ namespace gridtools {
         // insert the extent into a new entry of the map of <cache, extent>
         template <typename ExtentsMap_, typename Extent, typename Cache>
         struct update_extent_map {
-            GRIDTOOLS_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_extent<Extent>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::if_<boost::mpl::has_key<ExtentsMap_, Cache>,
                 typename boost::mpl::at<ExtentsMap_, Cache>::type,
                 extent<>>::type default_extent_t;
@@ -112,14 +112,14 @@ namespace gridtools {
         // insert the extent associated to a Cache into the map of <cache, extent>
         template <typename ExtentsMap, typename Cache>
         struct insert_extent_for_cache {
-            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
 
             // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
             // the map if the cache is used by the esf with that Id.
             template <typename ExtentsMap_, typename EsfIdx>
             struct insert_extent_for_cache_esf {
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<extents_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<esf_sequence_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((boost::mpl::size<extents_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((boost::mpl::size<esf_sequence_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
 
                 typedef typename cache_parameter<Cache>::type cache_arg_t;
                 typedef typename boost::mpl::at<esf_sequence_t, EsfIdx>::type esf_t;
@@ -128,7 +128,7 @@ namespace gridtools {
                 // extent (note non ij extents are nullified for the ij caches)
                 using extent_t = typename esf_extent_of_arg<EsfIdx, cache_arg_t>::type;
 
-                GRIDTOOLS_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
+                GT_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
                     "Error: IJ Caches can not have k extent values");
 
                 typedef typename boost::mpl::if_<
@@ -166,7 +166,7 @@ namespace gridtools {
         // insert the extent associated to a Cache into the map of <cache, extent>
         template <typename ExtentsMap, typename Cache>
         struct insert_extent_for_cache {
-            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
 
             typedef typename cache_parameter<Cache>::type cache_arg_t;
 
@@ -174,8 +174,8 @@ namespace gridtools {
             // the map if the cache is used by the esf with that Id.
             template <typename ExtentsMap_, typename EsfIdx>
             struct insert_extent_for_cache_esf {
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<extents_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<esf_sequence_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((boost::mpl::size<extents_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GT_STATIC_ASSERT((boost::mpl::size<esf_sequence_t>::value > EsfIdx::value), GT_INTERNAL_ERROR);
 
                 typedef typename boost::mpl::at<esf_sequence_t, EsfIdx>::type esf_t;
 
@@ -183,8 +183,8 @@ namespace gridtools {
                     typename boost::mpl::at<typename esf_t::args_with_extents, cache_arg_t>::type,
                     extent<>>::type extent_t;
 
-                GRIDTOOLS_STATIC_ASSERT((extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
-                                            extent_t::jminus::value == 0 && extent_t::jplus::value == 0),
+                GT_STATIC_ASSERT((extent_t::iminus::value == 0 && extent_t::iplus::value == 0 &&
+                                     extent_t::jminus::value == 0 && extent_t::jplus::value == 0),
                     "Error: K Caches can not have ij extent values");
 
                 typedef typename boost::mpl::if_<boost::mpl::contains<typename esf_t::args_t, cache_arg_t>,

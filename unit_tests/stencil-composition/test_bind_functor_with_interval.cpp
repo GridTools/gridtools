@@ -55,7 +55,7 @@ namespace gridtools {
         template <class BoundFunctor>
         char const *run_bound_functor() {
             char const *res;
-            BoundFunctor::Do(res);
+            BoundFunctor::apply(res);
             return res;
         }
 
@@ -80,7 +80,7 @@ namespace gridtools {
             using param_list = std::tuple<>;
 
             template <class Eval>
-            static GT_FUNCTION void Do(Eval &eval) {
+            static GT_FUNCTION void apply(Eval &eval) {
                 eval = "simple";
             }
         };
@@ -94,7 +94,7 @@ namespace gridtools {
             using param_list = std::tuple<>;
 
             template <class Eval>
-            static GT_FUNCTION void Do(Eval &eval, interval<lev<0, 1>, lev<1, 1>>) {
+            static GT_FUNCTION void apply(Eval &eval, interval<lev<0, 1>, lev<1, 1>>) {
                 eval = "one interval";
             }
         };
@@ -115,11 +115,11 @@ namespace gridtools {
             using param_list = std::tuple<>;
 
             template <class Eval>
-            static GT_FUNCTION void Do(Eval &eval, interval<lev<0, 1>, lev<1, -1>>) {
+            static GT_FUNCTION void apply(Eval &eval, interval<lev<0, 1>, lev<1, -1>>) {
                 eval = "overload 1";
             }
             template <class Eval>
-            static GT_FUNCTION void Do(Eval &eval, interval<lev<1, 1>, lev<2, -1>>) {
+            static GT_FUNCTION void apply(Eval &eval, interval<lev<1, 1>, lev<2, -1>>) {
                 eval = "overload 2";
             }
         };
@@ -139,11 +139,11 @@ namespace gridtools {
             using param_list = std::tuple<>;
 
             template <class Eval>
-            static GT_FUNCTION void Do(Eval &eval) {
+            static GT_FUNCTION void apply(Eval &eval) {
                 eval = "default";
             }
             template <class Eval>
-            static GT_FUNCTION void Do(Eval &eval, interval<lev<0, 1>, lev<1, 1>>) {
+            static GT_FUNCTION void apply(Eval &eval, interval<lev<0, 1>, lev<1, 1>>) {
                 eval = "interval";
             }
         };
@@ -160,14 +160,14 @@ namespace gridtools {
         struct int_functor {
             using param_list = std::tuple<>;
             template <class Eval>
-            static GT_FUNCTION int Do(Eval &, interval<lev<0, 1>, lev<1, 1>>) {
+            static GT_FUNCTION int apply(Eval &, interval<lev<0, 1>, lev<1, 1>>) {
                 return 42;
             }
         };
 
         TEST(bind_functor_with_interval, return_value) {
             int dummy;
-            EXPECT_EQ(42, (testee<int_functor, 0, 1>::Do(dummy)));
+            EXPECT_EQ(42, (testee<int_functor, 0, 1>::apply(dummy)));
         }
     } // namespace
 } // namespace gridtools

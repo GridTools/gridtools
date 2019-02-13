@@ -51,7 +51,7 @@ namespace gridtools {
      */
     template <uint_t ID, intent Intent, typename LocationType, typename Extent = extent<>, ushort_t FieldDimensions = 4>
     struct accessor : accessor_base<FieldDimensions> {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
+        GT_STATIC_ASSERT((is_location_type<LocationType>::value), "Error: wrong type");
         using index_t = static_uint<ID>;
         static constexpr intent intent_v = Intent;
         using extent_t = Extent;

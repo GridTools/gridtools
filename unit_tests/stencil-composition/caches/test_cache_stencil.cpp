@@ -57,7 +57,7 @@ namespace test_cache_stencil {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -68,7 +68,7 @@ namespace test_cache_stencil {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) =
                 (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
         }
@@ -80,7 +80,7 @@ namespace test_cache_stencil {
         typedef make_param_list<in, out> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(out()) = eval(in()) + 1;
         }
     };
@@ -136,7 +136,7 @@ TEST_F(cache_stencil, ij_cache) {
         p_out() = m_out,
         make_multistage // mss_descriptor
         (execute::parallel(),
-            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_buff())),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff())),
             make_stage<functor1>(p_in(), p_buff()),
             make_stage<functor1>(p_buff(), p_out())));
 
@@ -144,7 +144,7 @@ TEST_F(cache_stencil, ij_cache) {
 
     stencil.sync_bound_data_stores();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -182,7 +182,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
     stencil.sync_bound_data_stores();
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -214,8 +214,8 @@ TEST_F(cache_stencil, multi_cache) {
             // test if define_caches works properly with multiple vectors of caches.
             // in this toy example two vectors are passed (IJ cache vector for p_buff
             // and p_buff_2, IJ cache vector for p_buff_3)
-            define_caches(cache<cache_type::IJ, cache_io_policy::local>(p_buff(), p_buff_2()),
-                cache<cache_type::IJ, cache_io_policy::local>(p_buff_3())),
+            define_caches(cache<cache_type::ij, cache_io_policy::local>(p_buff(), p_buff_2()),
+                cache<cache_type::ij, cache_io_policy::local>(p_buff_3())),
             make_stage<functor3>(p_in(), p_buff()),       // esf_descriptor
             make_stage<functor3>(p_buff(), p_buff_2()),   // esf_descriptor
             make_stage<functor3>(p_buff_2(), p_buff_3()), // esf_descriptor

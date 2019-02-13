@@ -54,7 +54,7 @@
    computations, and it will be bound later on with a specific
    instantiation of a storage class.
 
-   An accessor can be instantiated directly in the Do
+   An accessor can be instantiated directly in the apply
    method, or it might be a constant expression instantiated outside
    the functor scope and with static duration.
 */

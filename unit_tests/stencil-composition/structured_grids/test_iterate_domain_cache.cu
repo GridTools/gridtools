@@ -74,11 +74,11 @@ struct functor1 {
     typedef make_param_list<in1, in3, in4, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kminimum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, krange1) {}
+    GT_FUNCTION static void apply(Evaluation &eval, krange1) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
+    GT_FUNCTION static void apply(Evaluation &eval, krange2) {}
 };
 
 struct functor2 {
@@ -89,9 +89,9 @@ struct functor2 {
     typedef make_param_list<in1, in2, in4, out> param_list;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
+    GT_FUNCTION static void apply(Evaluation &eval, kmaximum) {}
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
+    GT_FUNCTION static void apply(Evaluation &eval, krange2) {}
 };
 
 using kmin_and_range1 = krange1::modify<-1, 0>;
@@ -104,11 +104,11 @@ typedef decltype(gridtools::make_stage<functor2>(p_in1(), p_in2(), p_in4(), p_ou
 typedef boost::mpl::vector2<esf1k_t, esf2k_t> esfk_sequence_t;
 
 TEST(iterate_domain_cache, flush) {
-    typedef detail::cache_impl<cache_type::K, p_in1, cache_io_policy::flush> cache1_t;
-    typedef detail::cache_impl<cache_type::K, p_in2, cache_io_policy::flush> cache2_t;
-    typedef detail::cache_impl<cache_type::K, p_in3, cache_io_policy::flush> cache3_t;
-    typedef detail::cache_impl<cache_type::K, p_in4, cache_io_policy::local> cache4_t;
-    typedef detail::cache_impl<cache_type::K, p_out, cache_io_policy::flush> cache5_t;
+    typedef detail::cache_impl<cache_type::k, p_in1, cache_io_policy::flush> cache1_t;
+    typedef detail::cache_impl<cache_type::k, p_in2, cache_io_policy::flush> cache2_t;
+    typedef detail::cache_impl<cache_type::k, p_in3, cache_io_policy::flush> cache3_t;
+    typedef detail::cache_impl<cache_type::k, p_in4, cache_io_policy::local> cache4_t;
+    typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::flush> cache5_t;
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
@@ -131,18 +131,17 @@ TEST(iterate_domain_cache, flush) {
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
 
     using k_flushing_caches_indexes_t = iterate_domain_cache_t::k_flushing_caches_indexes_t;
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<k_flushing_caches_indexes_t,
-            boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
+    GT_STATIC_ASSERT((boost::mpl::equal<k_flushing_caches_indexes_t,
+                         boost::mpl::vector4<static_uint<0>, static_uint<1>, static_uint<2>, static_uint<4>>>::value),
         "Error");
 }
 
 TEST(iterate_domain_cache, fill) {
-    typedef detail::cache_impl<cache_type::K, p_in1, cache_io_policy::fill> cache1_t;
-    typedef detail::cache_impl<cache_type::K, p_in2, cache_io_policy::flush> cache2_t;
-    typedef detail::cache_impl<cache_type::K, p_in3, cache_io_policy::fill> cache3_t;
-    typedef detail::cache_impl<cache_type::K, p_in4, cache_io_policy::local> cache4_t;
-    typedef detail::cache_impl<cache_type::K, p_out, cache_io_policy::flush> cache5_t;
+    typedef detail::cache_impl<cache_type::k, p_in1, cache_io_policy::fill> cache1_t;
+    typedef detail::cache_impl<cache_type::k, p_in2, cache_io_policy::flush> cache2_t;
+    typedef detail::cache_impl<cache_type::k, p_in3, cache_io_policy::fill> cache3_t;
+    typedef detail::cache_impl<cache_type::k, p_in4, cache_io_policy::local> cache4_t;
+    typedef detail::cache_impl<cache_type::k, p_out, cache_io_policy::flush> cache5_t;
 
     typedef boost::mpl::vector5<cache1_t, cache2_t, cache3_t, cache4_t, cache5_t> caches_t;
 
@@ -167,7 +166,7 @@ TEST(iterate_domain_cache, fill) {
     using iterate_domain_cache_t = iterate_domain_cache<iterate_domain_arguments_t>;
 
     using k_filling_caches_indexes_t = iterate_domain_cache_t::k_filling_caches_indexes_t;
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (boost::mpl::equal<k_filling_caches_indexes_t, boost::mpl::vector2<static_uint<0>, static_uint<2>>>::value),
         "Error");
 }

@@ -178,9 +178,9 @@ namespace gridtools {
      */
     template <typename IterateDomainArguments>
     class iterate_domain_cache {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
+        GT_DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
 
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_iterate_domain_arguments<IterateDomainArguments>::value), GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 
@@ -204,7 +204,7 @@ namespace gridtools {
         ~iterate_domain_cache() {}
 
         static constexpr bool has_ij_caches =
-            boost::mpl::count_if<cache_sequence_t, cache_is_type<cache_type::IJ>>::type::value != 0;
+            boost::mpl::count_if<cache_sequence_t, cache_is_type<cache_type::ij>>::type::value != 0;
 
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if<cache_sequence_t,
@@ -216,14 +216,14 @@ namespace gridtools {
         // extract a sequence of extents for each k cache
         typedef typename extract_k_extents_for_caches<IterateDomainArguments>::type k_cache_extents_map_t;
         // compute the fusion vector of pair<index_type, cache_storage> for ij caches
-        typedef typename get_cache_storage_tuple<cache_type::IJ,
+        typedef typename get_cache_storage_tuple<cache_type::ij,
             caches_t,
             ij_cache_extents_map_t,
             block_size_t,
             typename IterateDomainArguments::local_domain_t>::type ij_caches_vector_t;
 
         // compute the fusion vector of pair<index_type, cache_storage> for k caches
-        typedef typename get_cache_storage_tuple<cache_type::K,
+        typedef typename get_cache_storage_tuple<cache_type::k,
             caches_t,
             k_cache_extents_map_t,
             block_size_t,
@@ -253,8 +253,8 @@ namespace gridtools {
 
         // returns a k cache from the tuple
         template <typename IndexType>
-        GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &RESTRICT get_k_cache() const {
-            GRIDTOOLS_STATIC_ASSERT(
+        GT_FUNCTION typename boost::mpl::at<k_caches_map_t, IndexType>::type &GT_RESTRICT get_k_cache() const {
+            GT_STATIC_ASSERT(
                 (boost::mpl::has_key<k_caches_map_t, IndexType>::value), "Accessing a non registered cached");
             return boost::fusion::at_key<IndexType>(const_cast<k_caches_tuple_t &>(m_k_caches_tuple));
         }
@@ -262,7 +262,7 @@ namespace gridtools {
         // slide all the k caches
         template <typename IterationPolicy>
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
             boost::fusion::for_each(m_k_caches_tuple, impl_::slide_cache_functor<IterationPolicy>());
         }
 
@@ -275,7 +275,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, bool first_level) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
 
             if (first_level) {
                 boost::mpl::for_each<k_filling_caches_indexes_t>(_impl::endpoint_io_cache_functor<k_caches_tuple_t,
@@ -301,7 +301,7 @@ namespace gridtools {
          */
         template <typename IterationPolicy, typename IterateDomain>
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, bool last_level) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_iteration_policy<IterationPolicy>::value), GT_INTERNAL_ERROR);
 
             boost::mpl::for_each<k_flushing_caches_indexes_t>(_impl::io_cache_functor<k_caches_tuple_t,
                 k_caches_map_t,

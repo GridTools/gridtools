@@ -183,7 +183,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                             }
                         }
 
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
@@ -204,7 +204,7 @@ namespace assembly {
         typedef make_param_list<phi, psi, jac, f, result> param_list;
         using quad = dimension<7>;
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             dimension<1> i;
             dimension<2> j;
             dimension<3> k;

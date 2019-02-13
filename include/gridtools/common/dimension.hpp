@@ -54,7 +54,7 @@ namespace gridtools {
     */
     template <ushort_t Coordinate>
     struct dimension {
-        GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
+        GT_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
 
         GT_FUNCTION constexpr dimension() : value(0) {}
 

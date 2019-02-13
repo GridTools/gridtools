@@ -67,7 +67,7 @@ struct lap_function {
     using param_list = gt::make_param_list<out, in>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) =
             4. * eval(in()) - (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
     }
@@ -82,7 +82,7 @@ struct flx_function {
     using param_list = gt::make_param_list<out, in, lap>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         // Instead of using a temporary variable we writedirectly to
         // eval(out()) twice. This will eliminate a possible thread
         // divergenge on GPUs since we can avoid to put the `else`
@@ -103,7 +103,7 @@ struct fly_function {
     using param_list = gt::make_param_list<out, in, lap>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         // Instead of using a temporary variable we writedirectly to
         // eval(out()) twice. This will eliminate a possible thread
         // divergenge on GPUs since we can avoid to put the `else`
@@ -126,7 +126,7 @@ struct out_function {
     using param_list = gt::make_param_list<out, in, flx, fly, coeff>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out()) =
             eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
     }
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     auto horizontal_diffusion = gt::make_computation<backend_t>(grid,
         p_coeff{} = coeff, // Binding data_stores that will not change during the application
         gt::make_multistage(gt::execute::parallel{},
-            define_caches(gt::cache<gt::cache_type::IJ, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
+            define_caches(gt::cache<gt::cache_type::ij, gt::cache_io_policy::local>(p_lap{}, p_flx{}, p_fly{})),
             gt::make_stage<lap_function>(p_lap{}, p_in{}),
             gt::make_independent(gt::make_stage<flx_function>(p_flx{}, p_in{}, p_lap{}),
                 gt::make_stage<fly_function>(p_fly{}, p_in{}, p_lap{})),

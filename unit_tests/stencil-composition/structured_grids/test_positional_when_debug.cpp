@@ -67,7 +67,7 @@ namespace positional_when_debug_test {
         typedef gridtools::make_param_list<in> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void apply(Evaluation &eval, x_interval) {
             eval.i();
             eval.j();
             eval.k();

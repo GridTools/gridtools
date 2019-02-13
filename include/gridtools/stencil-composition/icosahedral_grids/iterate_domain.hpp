@@ -71,17 +71,17 @@ namespace gridtools {
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_local_domain<local_domain_t>::value), GT_INTERNAL_ERROR);
 
         typedef typename local_domain_t::storage_info_ptr_fusion_list storage_info_ptrs_t;
         typedef typename local_domain_t::data_ptr_fusion_map data_ptrs_map_t;
 
         // the number of different storage metadatas used in the current functor
-        static const uint_t N_META_STORAGES = boost::mpl::size<storage_info_ptrs_t>::value;
+        static const uint_t n_meta_storages = boost::mpl::size<storage_info_ptrs_t>::value;
 
-        typedef strides_cached<N_META_STORAGES - 1, storage_info_ptrs_t> strides_cached_t;
+        typedef strides_cached<n_meta_storages - 1, storage_info_ptrs_t> strides_cached_t;
 
-        using array_index_t = array<int_t, N_META_STORAGES>;
+        using array_index_t = array<int_t, n_meta_storages>;
 
       protected:
         local_domain_t const &m_local_domain;
@@ -104,7 +104,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
+        strides_cached_t const &GT_RESTRICT strides() const {
             return static_cast<IterateDomainImpl const *>(this)->strides_impl();
         }
 
@@ -112,7 +112,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
+        strides_cached_t &GT_RESTRICT strides() { return static_cast<IterateDomainImpl *>(this)->strides_impl(); }
 
         /**
            @brief recursively assignes all the strides

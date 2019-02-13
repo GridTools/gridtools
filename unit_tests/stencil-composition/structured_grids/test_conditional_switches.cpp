@@ -52,7 +52,7 @@ namespace test_conditional_switches {
         typedef make_param_list<p_dummy, p_dummy_tmp> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -66,7 +66,7 @@ namespace test_conditional_switches {
         typedef make_param_list<p_dummy, p_dummy_tmp> param_list;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void apply(Evaluation &eval) {
             eval(p_dummy()) += Id;
         }
     };

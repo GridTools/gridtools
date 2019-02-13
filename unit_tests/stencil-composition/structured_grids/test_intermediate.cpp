@@ -52,7 +52,7 @@ namespace test_intermediate {
         using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 
     struct stage2 {
@@ -62,7 +62,7 @@ namespace test_intermediate {
         using param_list = make_param_list<in1, in2, out>;
 
         template <typename Evaluation>
-        GT_FUNCTION static void Do(Evaluation &eval) {}
+        GT_FUNCTION static void apply(Evaluation &eval) {}
     };
 } // namespace test_intermediate
 

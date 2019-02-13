@@ -83,8 +83,8 @@ namespace gridtools {
     template <typename Cache, typename LocalDomain>
     struct cache_to_index
         : static_uint<meta::st_position<typename LocalDomain::esf_args, typename cache_parameter<Cache>::type>::value> {
-        GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
     };
 
     /**
@@ -95,8 +95,8 @@ namespace gridtools {
      */
     template <typename EsfSequence, typename CacheSequence>
     struct caches_used_by_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<EsfSequence, is_esf_descriptor>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
 
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if<CacheSequence,
@@ -112,7 +112,7 @@ namespace gridtools {
     struct cache_is_type {
         template <typename Cache>
         struct apply : boost::integral_constant<bool, Cache::cacheType == cacheType> {
-            GRIDTOOLS_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT((is_cache<Cache>::value), GT_INTERNAL_ERROR);
         };
     };
 
@@ -135,9 +135,9 @@ namespace gridtools {
         typename BlockSize,
         typename LocalDomain>
     struct get_cache_storage_tuple {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_block_size<BlockSize>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_block_size<BlockSize>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
 
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
         // into a fusion vector.
@@ -148,7 +148,7 @@ namespace gridtools {
 
         template <typename Cache, typename IndexT>
         struct get_cache_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
+            GT_STATIC_ASSERT(is_cache<Cache>::value, GT_INTERNAL_ERROR);
             typedef typename LocalDomain::template get_arg<IndexT>::type arg_t;
             using block_size_t = typename boost::mpl::if_<is_k_cache<Cache>, block_size<1, 1, 1>, BlockSize>::type;
 
@@ -195,8 +195,8 @@ namespace gridtools {
      */
     template <cache_type cacheType, typename CacheSequence, typename LocalDomain>
     struct get_cache_set_for_type {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_local_domain<LocalDomain>::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold<CacheSequence,
             boost::mpl::set0<>,
@@ -214,8 +214,8 @@ namespace gridtools {
     template <typename CacheSequence, typename LocalDomain>
     struct get_cache_set {
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value), GT_INTERNAL_ERROR);
+        GT_STATIC_ASSERT(is_local_domain<LocalDomain>::value, GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold<CacheSequence,
             boost::mpl::set0<>,

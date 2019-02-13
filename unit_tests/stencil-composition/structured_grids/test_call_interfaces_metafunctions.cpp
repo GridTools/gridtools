@@ -59,7 +59,7 @@ struct pretent_function {
     typedef gridtools::accessor<3, gridtools::intent::inout> a3;
 
     template <typename Eval>
-    static void Do(Eval &eval) {
+    static void apply(Eval &eval) {
         eval(a1()) += eval(a0());
         eval(a3()) += eval(a2());
     }
@@ -71,17 +71,17 @@ void complex_test(Args &... args) {
 
     using packtype = typename _impl::package_args<Args...>::type;
 
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<typename std::tuple_element<0, std::tuple<Args...>>::type,
-                                typename boost::mpl::at_c<packtype, 0>::type>::value),
+    GT_STATIC_ASSERT((std::is_same<typename std::tuple_element<0, std::tuple<Args...>>::type,
+                         typename boost::mpl::at_c<packtype, 0>::type>::value),
         "0");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<typename _impl::wrap_reference<typename std::tuple_element<1, std::tuple<Args...>>::type>,
             typename boost::mpl::at_c<packtype, 1>::type>::value),
         "1");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<typename std::tuple_element<2, std::tuple<Args...>>::type,
-                                typename boost::mpl::at_c<packtype, 2>::type>::value),
+    GT_STATIC_ASSERT((std::is_same<typename std::tuple_element<2, std::tuple<Args...>>::type,
+                         typename boost::mpl::at_c<packtype, 2>::type>::value),
         "2");
-    GRIDTOOLS_STATIC_ASSERT(
+    GT_STATIC_ASSERT(
         (std::is_same<typename _impl::wrap_reference<typename std::tuple_element<3, std::tuple<Args...>>::type>,
             typename boost::mpl::at_c<packtype, 3>::type>::value),
         "3");
@@ -92,7 +92,7 @@ void complex_test(Args &... args) {
 
     pretent_aggregator pa;
     f_aggregator_t fa(pa, y);
-    pretent_function::Do(fa);
+    pretent_function::apply(fa);
 }
 
 TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
@@ -101,7 +101,7 @@ TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
     unsigned int v = 666;
     auto x = _impl::make_wrap(v);
 
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(x), _impl::wrap_reference<unsigned int>>::value), "");
+    GT_STATIC_ASSERT((std::is_same<decltype(x), _impl::wrap_reference<unsigned int>>::value), "");
 
     x.value() = 999;
     EXPECT_TRUE(x.value() == 999);
@@ -113,12 +113,10 @@ TEST(call_interfaces_metafunctions, compile_time_basic_tests) {
 
     using pack = _impl::package_args<decltype(a0), decltype(a1), decltype(a2), decltype(a3)>::type;
 
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(a0), boost::mpl::at_c<pack, 0>::type>::value), "1");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<_impl::wrap_reference<decltype(a1)>, boost::mpl::at_c<pack, 1>::type>::value), "2");
-    GRIDTOOLS_STATIC_ASSERT((std::is_same<decltype(a2), boost::mpl::at_c<pack, 2>::type>::value), "3");
-    GRIDTOOLS_STATIC_ASSERT(
-        (std::is_same<_impl::wrap_reference<decltype(a3)>, boost::mpl::at_c<pack, 3>::type>::value), "4");
+    GT_STATIC_ASSERT((std::is_same<decltype(a0), boost::mpl::at_c<pack, 0>::type>::value), "1");
+    GT_STATIC_ASSERT((std::is_same<_impl::wrap_reference<decltype(a1)>, boost::mpl::at_c<pack, 1>::type>::value), "2");
+    GT_STATIC_ASSERT((std::is_same<decltype(a2), boost::mpl::at_c<pack, 2>::type>::value), "3");
+    GT_STATIC_ASSERT((std::is_same<_impl::wrap_reference<decltype(a3)>, boost::mpl::at_c<pack, 3>::type>::value), "4");
 }
 
 TEST(call_interfaces_metafunctions, call_pretent_procedure) {
@@ -167,15 +165,15 @@ struct another_non_function {
 };
 
 TEST(call_interfaces_metafunctions, check_if_function) {
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<actual_function>::value == true), "");
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<actual_function>::value == 1), "");
+    GT_STATIC_ASSERT((gridtools::_impl::can_be_a_function<actual_function>::value == true), "");
+    GT_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<actual_function>::value == 1), "");
 
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_function>::value == true), "");
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_function>::value == 0), "");
+    GT_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_function>::value == true), "");
+    GT_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_function>::value == 0), "");
 
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<non_function_swap>::value == false), "");
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<non_function_swap>::value == 0), "");
+    GT_STATIC_ASSERT((gridtools::_impl::can_be_a_function<non_function_swap>::value == false), "");
+    GT_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<non_function_swap>::value == 0), "");
 
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_non_function>::value == false), "");
-    GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_non_function>::value == 0), "");
+    GT_STATIC_ASSERT((gridtools::_impl::can_be_a_function<another_non_function>::value == false), "");
+    GT_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const<another_non_function>::value == 0), "");
 }

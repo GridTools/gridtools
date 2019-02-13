@@ -1955,7 +1955,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = CXX11_ENABLED:=1 _GCL_MPI_:=1 __CUDACC__:=1 GT_DOXYGEN_SHOULD_EXCLUDE_THIS
+PREDEFINED             = CXX11_ENABLED:=1 GCL_MPI:=1 __CUDACC__:=1 GT_DOXYGEN_SHOULD_EXCLUDE_THIS
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

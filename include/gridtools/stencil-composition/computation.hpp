@@ -87,7 +87,7 @@ namespace gridtools {
      */
     template <class... Args>
     class computation {
-        GRIDTOOLS_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
+        GT_STATIC_ASSERT(conjunction<is_plh<Args>...>::value, "template parameters should be args");
 
         using arg_storage_pair_crefs_t = std::tuple<arg_storage_pair<Args, typename Args::data_store_t> const &...>;
 
@@ -124,7 +124,7 @@ namespace gridtools {
 
         template <class Obj>
         computation(Obj obj) : m_impl(new impl<Obj>{std::move(obj)}) {
-            GRIDTOOLS_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
+            GT_STATIC_ASSERT((!std::is_same<typename std::decay<Obj>::type, computation>::value),
                 GT_INTERNAL_ERROR_MSG("computation move ctor got shadowed"));
             // TODO(anstaf): Check that Obj satisfies computation concept here.
         }

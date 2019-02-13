@@ -250,7 +250,7 @@ namespace gridtools {
          * condition class
          */
         stores_type const &stores() const {
-            GRIDTOOLS_STATIC_ASSERT(not _impl::contains_placeholders<stores_type>::value,
+            GT_STATIC_ASSERT(not _impl::contains_placeholders<stores_type>::value,
                 "Some inputs to boundary conditions are placeholders. Remeber to use .associate(...) member function "
                 "to substitute tham");
             return m_stores;
@@ -317,7 +317,7 @@ namespace gridtools {
 
         // Concept checking on BCApply is not ready yet.
         // Check that the stores... are either data stores or placeholders
-        GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders<typename std::decay<DataStores>::type...>(),
+        GT_STATIC_ASSERT(_impl::data_stores_or_placeholders<typename std::decay<DataStores>::type...>(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
         return {bc_apply, std::forward_as_tuple(stores...)};
     }

@@ -50,7 +50,7 @@ struct test_on_edges_functor {
     using param_list = make_param_list<in, out>;
 
     template <typename Evaluation>
-    GT_FUNCTION static void Do(Evaluation eval) {
+    GT_FUNCTION static void apply(Evaluation eval) {
         eval(out{}) = eval(on_edges(binop::sum{}, float_type{}, in{}));
     }
 };

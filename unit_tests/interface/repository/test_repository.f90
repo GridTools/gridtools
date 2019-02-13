@@ -4,7 +4,7 @@ subroutine call_repository() bind (c, name="call_repository")
     use repository
 
     type(c_ptr) :: repository_handle
-#if FLOAT_PRECISION == 4
+#if GT_FLOAT_PRECISION == 4
     integer, parameter :: wp = c_float
 #else
     integer, parameter :: wp = c_double
