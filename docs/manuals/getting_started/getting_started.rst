@@ -266,7 +266,7 @@ invocation. This object contains, among other things, the index of the
 active grid point (:term:`Iteration Point`) and the mapping of data-pointers to the ``accessor`` s. The
 second argument is optional and specifies the interval on the :math:`k`-axis where this implementation
 of the ``Do``-method should be executed. This allows to apply a different update-logic on
-intervals by overloading the ``Do``-method. We will define intervals
+:term`Vertical Intervals<Vertical Interval>` by overloading the ``Do``-method. We will define :term:`Vertical Intervals<Vertical Interval>`
 later. If the second parameter is not specified, a default interval is assumed.
 
 The body of the ``Do``-method looks quite similar to the one in the
@@ -378,17 +378,17 @@ we can specialize the computation in the :math:`k`-direction:
    :language: gridtools
 
 We use two different
-intervals, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
+:term:`Vertical Intervals<Vertical Interval>`, the ``lower_domain`` and the ``upper_domain``, and provide an overload of the
 ``Do``-method for each interval.
 
-The intervals are defined as
+The :term:`Intervals<Interval>` are defined as
 
 .. literalinclude:: code/gt_smoothing.hpp
    :language: gridtools
    :start-after: constexpr static gridtools::dimension<3> k;
    :end-before: struct lap_function {
    
-The first line defines an axis with 2 intervals. From this axis retrieve the intervals
+The first line defines an axis with 2 :term:`Intervals<Interval>`. From this axis retrieve the :term:`Intervals<Interval>`
 and give them a name.
 
 Then we can assemble the computation
