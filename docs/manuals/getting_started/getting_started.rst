@@ -118,7 +118,7 @@ Cartesian-like grid. The last argument defines that blocking should be used.
 See :ref:`backend-selection` for details.
 
 ^^^^^^^^^^^^^^^^
-The storage type
+The Storage Type
 ^^^^^^^^^^^^^^^^
 
 For efficient memory access the index ordering might depend on the target architecture, therefore the
@@ -208,7 +208,7 @@ Laplacian needs the neighboring points we cannot calculate the Laplacian
 on the boundary layer and have to exclude them from the loop.
 
 -----------------------
-First GridTools stencil
+First GridTools Stencil
 -----------------------
 
 In |GT| the loop logic and the storage order is implemented
@@ -276,7 +276,7 @@ This is necessary to map the compile-time parameter, the ``accessor``, to
 the run-time data in the ``data_store``.
 
 ^^^^^^^^^^^^^^^^^^^
-Calling the stencil
+Calling the Stencil
 ^^^^^^^^^^^^^^^^^^^
 
 In the naive implementation, the call to the
@@ -347,7 +347,7 @@ we won't discuss them now in detail. In brief:
 - A common pattern is to use the preprocessor flag ``__CUDACC__`` to distinguish between CPU and GPU code. We use this to set the :term:`Backend`.
 
 -------------------------------------
-Assembling stencils: smoothing filter
+Assembling Stencils: Smoothing Filter
 -------------------------------------
 
 In the preceding section we saw how a first simple |GT| stencil
@@ -441,7 +441,7 @@ have a fixed size, temporaries can have block-private :term:`Halos<Halo>` which 
    This change from normal storages to temporaries did not require any code changes to the functor.
 
 ^^^^^^^^^^^^^
-Functor calls
+Functor Calls
 ^^^^^^^^^^^^^
 
 The next feature we want to use is the *stencil function call*. In the first example we computed the Laplacian 
