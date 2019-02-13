@@ -112,11 +112,27 @@ Glossary
     :ref:`stencil_operators_do_method`.
 
   Elementary Stencil
-    Application of a single :term:`Stencil Operator` on an :term:`Iteration Space`.
+    Application of a single :term:`Stencil Operator` on an :term:`Iteration
+    Space`.
 
-  Software-Managed Caches
-    User-defined caching of fields during a :term:`Multi-Stage Computation`. See
-    section :ref:`caches`.
+  Software-Managed Cache
+    User-defined caching of fields during a :term:`Multi-Stage Computation`.
+    See section :ref:`caches`.
+
+  Cache
+    See :term:`Software-Managed Caches`.
+
+  Cache Type
+    The kind of a :term:`Software-Managed Cache`. See section
+    :ref:`cache-type`.
+
+  Cache Policy
+    The synchronization policy of a :term:`Software-Managed Cache`. See section
+    :ref:`cache-policy`.
+
+  Alignment
+    Alignment of the first elements along the contiguous data axis in a :term:`Data
+    Store`. See section :ref:`storage-info`.
 
   GCL
     The |GT| Communication Module. See section :ref:`halo-exchanges`.
