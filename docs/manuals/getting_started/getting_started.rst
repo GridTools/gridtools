@@ -223,7 +223,7 @@ Update-logic: GridTools 2D Laplacian
 
 The update-logic is implemented with state-less functors. A
 |GT| functor is a ``struct`` or ``class`` providing a *static* method
-called ``apply``. The update-logic is implemented in these :term:`Apply-Methods<Apply Method>`.
+called ``apply``. The update-logic is implemented in these :term:`Apply-Methods<Apply-Method>`.
 As the functors are state-less (no member variables, static methods
 only) they can be passed by type, i.e. at compile-time, and therefore
 allow for compile-time optimizations.
@@ -364,9 +364,9 @@ For the |GT| implementation we will learn three things in this
 section: how to define special regions in the :math:`k`-direction; how to use
 |GT| temporaries and how to call functors from functors.
 
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 `Apply`-Method Overload
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Our first |GT| implementation will be very close to the naive
 implementation: we will call two times the Laplacian functor from the

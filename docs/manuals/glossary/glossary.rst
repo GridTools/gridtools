@@ -54,9 +54,9 @@ Glossary
     :term:`Data Store` through tuple of indices. See section
     :ref:`data-view`.
 
-  Do-Method
+  Apply-Method
     Main method of a :term:`Stencil Operator`. See section
-    :ref:`stencil_operators_do_method`.
+    :ref:`stencil_operators_apply_method`.
 
   Elementary Stencil
     Application of a single :term:`Stencil Operator` on an :term:`Iteration

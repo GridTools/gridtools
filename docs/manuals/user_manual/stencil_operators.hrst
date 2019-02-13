@@ -25,7 +25,7 @@ public properties:
   implementation.
 - A `param_list` listing all the :term:`Accessor` types defined above
 - A set of *static template member functions* named `apply`, also
-  referred to as :term:`Apply-Methods<Apply Method>`. To run on GPUs the function should
+  referred to as :term:`Apply-Methods<Apply-Method>`. To run on GPUs the function should
   also be a GT_FUNCTION 
 
 .. todo::
