@@ -325,8 +325,8 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
     data_store_t ds(si);
     ...
 
-where ``backend_t`` specifies the backend that will execute the computation,
-see :ref:`backend-selection`.
+``backend_t`` specifies the backend that will execute the computation, see
+:ref:`backend-selection`.
 
 **Interface**:
 
