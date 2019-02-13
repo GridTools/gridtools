@@ -204,19 +204,20 @@
 #define GTREPO_make_variant(name, data_store_types_seq) \
     using name = boost::variant<GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, data_store_types_seq)>;
 #endif
-#define GTREPO_get_binding_name(fortran_name, member_name) \
-    BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(set_, fortran_name), _), member_name)
-#define GTREPO_make_binding_helper(repo_name, fortran_name, member_name, type)      \
-    void BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl)(   \
+#define GTREPO_get_binding_name(fortran_name, prefix, member_name) \
+    BOOST_PP_CAT(BOOST_PP_CAT(BOOST_PP_CAT(prefix, BOOST_PP_CAT(set_, fortran_name)), _), member_name)
+#define GTREPO_make_binding_helper(repo_name, fortran_name, prefix, member_name, type)      \
+    void BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, , member_name), _impl)(   \
         repo_name & repo, gridtools::fortran_array_adapter<type> view) {            \
         transform(repo.BOOST_PP_CAT(GTREPO_GETTER_PREFIX, member_name)(), view);    \
     }                                                                               \
-    GT_EXPORT_BINDING_WRAPPED_2(GTREPO_get_binding_name(fortran_name, member_name), \
-        BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, member_name), _impl));
+    GT_EXPORT_BINDING_WRAPPED_2(GTREPO_get_binding_name(fortran_name, prefix, member_name), \
+        BOOST_PP_CAT(GTREPO_get_binding_name(fortran_name, , member_name), _impl));
 
 #define GTREPO_make_binding(r, data, tuple)                     \
-    GTREPO_make_binding_helper(BOOST_PP_TUPLE_ELEM(2, 0, data), \
-        BOOST_PP_TUPLE_ELEM(2, 1, data),                        \
+    GTREPO_make_binding_helper(BOOST_PP_TUPLE_ELEM(3, 0, data), \
+        BOOST_PP_TUPLE_ELEM(3, 1, data),                        \
+        BOOST_PP_TUPLE_ELEM(3, 2, data),                        \
         GTREPO_data_stores_get_member_name(tuple),              \
         GTREPO_data_store_types_get_typename(tuple))
 
@@ -260,8 +261,8 @@
  * @brief main macro to generate the fortran bindings for a repository
  * @see GRIDTOOLS_MAKE_REPOSITORY
  */
-#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, data_stores_seq) \
-    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_binding, (name, fortran_name), data_stores_seq)
+#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, prefix, data_stores_seq) \
+    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_binding, (name, fortran_name, prefix), data_stores_seq)
 
 /*
  * @brief entry for the user
@@ -300,5 +301,5 @@
  *     set_FRep_u(repo, arr) sets CRep.u()
  *     set_FRep_v(repo, arr) sets CRep.v()
  */
-#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(name, fortran_name, data_stores_seq) \
-    GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))
+#define GRIDTOOLS_MAKE_REPOSITORY_BINDINGS(name, fortran_name, prefix, data_stores_seq) \
+    GRIDTOOLS_MAKE_REPOSITORY_BINDINGS_helper(name, fortran_name, prefix, BOOST_PP_VARIADIC_SEQ_TO_SEQ(data_stores_seq))

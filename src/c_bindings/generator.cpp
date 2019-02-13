@@ -50,15 +50,17 @@ namespace gridtools {
                 friend std::ostream &operator<<(std::ostream &strm, fortran_generics const &obj) {
                     for (auto &&item : obj.m_procedures) {
                         strm << "  interface " << item.first << "\n";
-                        strm << "    procedure ";
+                        const std::string prefix = "";
+                        std::string line = "";
+                        line += "    procedure ";
                         bool need_comma = false;
                         for (auto &&procedure : item.second) {
                             if (need_comma)
-                                strm << ", ";
-                            strm << procedure;
+                                line += ", ";
+                            line += procedure;
                             need_comma = true;
                         }
-                        strm << "\n";
+                        strm << wrap_line(line, prefix);
                         strm << "  end interface\n";
                     }
                     return strm;
