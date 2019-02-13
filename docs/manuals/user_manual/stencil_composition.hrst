@@ -366,7 +366,7 @@ otherwise. Certain backends do not fuse multiple multi-stage computations, so
 this effect could be not visible, but for portability, it is important that
 this rule is understood.
 
-To execute a given :term:`multi-stage computation<MultiStageComputation>`, the
+To execute a given :term:`Multi-Stage Computation`, the
 `run` method has to be called. Data has to be assigned to each non-temporary
 :term:`Placeholder`.
 

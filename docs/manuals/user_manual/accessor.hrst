@@ -195,7 +195,7 @@ Global Parameters and Accessors
 
 :term:`Global Accessors<Global Accessor>` are accessing read-only data which is independent of the current :term:`Iteration Point`.
 For this reason, intent, :term:`Extents<Extent>` and offsets cannot be specified for a :term:`Global Accessor`.
-Here the term `global` means that the data is the same for the whole :term:`IterationSpace`. An example can be
+Here the term `global` means that the data is the same for the whole :term:`Iteration Space`. An example can be
 a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
 various configuration options.
 

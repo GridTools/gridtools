@@ -139,7 +139,7 @@ The ``Do`` methods takes at most two(2) arguments, the
 type of the first one is the template type and it is usually called
 ``Eval``. The second argument of the ``Do`` is a :term:`Vertical Interval`. Multiple versions of the ``Do`` can
 be defined in the same :term:`Stencil Operator` with different :term:`Vertical
-Intervals`.
+Intervals<Vertical Interval>`.
   
 .. note:: 
 
