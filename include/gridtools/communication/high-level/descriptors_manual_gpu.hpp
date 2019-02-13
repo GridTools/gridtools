@@ -172,7 +172,7 @@ namespace gridtools {
         explicit hndlr_dynamic_ut(grid_type const &g) : base_type(g), halo() {}
 
         ~hndlr_dynamic_ut() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 

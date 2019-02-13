@@ -113,7 +113,7 @@ namespace gridtools {
         hndlr_generic(grid_type const &g) : base_type(g) {}
 
         ~hndlr_generic() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
@@ -445,7 +445,7 @@ namespace gridtools {
         hndlr_generic(grid_type const &g) : base_type(g) {}
 
         ~hndlr_generic() {
-#ifdef _GCL_CHECK_DESTRUCTOR
+#ifdef GCL_CHECK_DESTRUCTOR
             std::cout << "Destructor " << __FILE__ << ":" << __LINE__ << std::endl;
 #endif
 
