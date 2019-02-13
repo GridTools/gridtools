@@ -1,12 +1,10 @@
-.. _concepts:
+.. include:: ../defs.hrst
+
+.. _glossary:
 
 =========
-Concepts
+Glossary
 =========
-
----------------
-Basic concepts
----------------
 
 .. glossary::
 
