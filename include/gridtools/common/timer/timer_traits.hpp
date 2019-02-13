@@ -37,7 +37,7 @@
 
 #include "../defs.hpp"
 
-#ifndef ENABLE_METERS
+#ifndef GT_ENABLE_METERS
 #include "timer_dummy.hpp"
 #else
 #ifdef __CUDACC__
@@ -50,7 +50,7 @@ namespace gridtools {
     template <typename T>
     struct timer_traits;
 
-#ifndef ENABLE_METERS
+#ifndef GT_ENABLE_METERS
     template <typename T>
     struct timer_traits {
         using type = timer_dummy;
