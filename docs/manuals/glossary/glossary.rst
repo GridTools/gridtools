@@ -114,7 +114,7 @@ Glossary
     Application of a single :term:`Stencil Operator` on an :term:`Iteration Space`.
 
   Software-Managed Caches
-    User-defined caching of fields during a :ref:`Multi-Stage Computation`. See
+    User-defined caching of fields during a :term:`Multi-Stage Computation`. See
     section :ref:`caches`.
 
   GCL
