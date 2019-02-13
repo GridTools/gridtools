@@ -120,7 +120,7 @@ void m_unpackXU(array_t const &d_data_array,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     printf("Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
         nbx,
         nby,
@@ -155,7 +155,7 @@ void m_unpackXU(array_t const &d_data_array,
             (halo[0].end() + 1) + (halo[1].begin()) * halo[0].total_length() +
                 (halo[2].begin()) * halo[0].total_length() * halo[1].total_length(),
             i);
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
         int err = cudaGetLastError();
         if (err != cudaSuccess) {
             printf("KLF in $s", __FILE__);
@@ -164,7 +164,7 @@ void m_unpackXU(array_t const &d_data_array,
 #endif
     }
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);
@@ -204,7 +204,7 @@ int call_kernel_XU_u(Blocks blocks,
     m_unpackXUKernel<<<blocks, threads, b, XU_stream>>>(
         d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     int err = cudaGetLastError();
     if (err != cudaSuccess) {
         printf("Kernel launch failure\n");
@@ -241,7 +241,7 @@ void m_unpackXU_variadic(value_type **d_msgbufTab_r,
     if (nbx == 0 || nby == 0 || nbz == 0)
         return;
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     printf("Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
         nbx,
         nby,
@@ -275,7 +275,7 @@ void m_unpackXU_variadic(value_type **d_msgbufTab_r,
             (halo[2].begin()) * halo[0].total_length() * halo[1].total_length(),
         Ids)...};
 
-#ifdef CUDAMSG
+#ifdef GCL_CUDAMSG
     // more timing stuff and conversion into reasonable units
     // for display
     cudaEventRecord(stop, 0);
